@@ -1,15 +1,14 @@
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/widgets/custom_text_field.dart';
 import 'package:catch_ride/view/notifications/notification_permission_screen.dart';
-
+import 'package:catch_ride/view/trainer/trainer_main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-  
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -17,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -40,15 +39,19 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 16),
             Text(
               'Sign in',
-              style: AppTextStyles.headlineLarge.copyWith(color: AppColors.deepNavy),
+              style: AppTextStyles.headlineLarge.copyWith(
+                color: AppColors.deepNavy,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               'Enter your credentials to access your account.',
-              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 32),
-            
+
             CustomTextField(
               label: 'Email',
               hint: 'e.g. trainer@example.com',
@@ -62,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
               isPassword: true,
               controller: _passwordController,
             ),
-            
+
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerRight,
@@ -73,33 +76,39 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: const Text('Forgot Password?'),
               ),
             ),
-            
+
             const SizedBox(height: 24),
             CustomButton(
               text: 'Sign In',
               onPressed: () {
                 // Perform Login
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const NotificationPermissionScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NotificationPermissionScreen(
+                      nextScreen: const TrainerMainScreen(),
+                    ),
+                  ),
+                );
               },
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             Center(
               child: Text(
                 'Or sign in with',
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textTertiary),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textTertiary,
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildSocialButton(
-                  icon: Icons.apple,
-                  onTap: () {},
-                ),
+                _buildSocialButton(icon: Icons.apple, onTap: () {}),
                 const SizedBox(width: 16),
                 _buildSocialButton(
                   icon: Icons.g_mobiledata, // Placeholder for Google
@@ -118,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: () {
-                     Navigator.of(context).pop(); // Go back to Welcome
+                    Navigator.of(context).pop(); // Go back to Welcome
                   },
                   child: const Text('Sign Up'),
                 ),
@@ -130,7 +139,10 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSocialButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _buildSocialButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

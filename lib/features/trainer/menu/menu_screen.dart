@@ -4,11 +4,11 @@ import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/view/auth/welcome_screen.dart';
 import 'package:catch_ride/view/notifications/notification_screen.dart';
-import 'package:catch_ride/view/reviews/review_screen.dart';
-import 'package:catch_ride/view/trainer/list/add_horse_screen.dart';
-import 'package:catch_ride/view/trainer/barn_manager/invite_barn_manager_screen.dart'; // Import Invite Flow
-import 'package:catch_ride/view/profile/edit_profile_screen.dart';
-import 'package:catch_ride/view/trainer/favorites/favorites_screen.dart';
+import 'package:catch_ride/view/trainer/barn_manager/invite_barn_manager_screen.dart';
+import 'package:catch_ride/view/trainer/list/list_screen.dart';
+import 'package:catch_ride/view/trainer/onboarding/profile_complete_trainer_screen.dart';
+import 'package:catch_ride/view/trainer/listing/horse_listing_create_screen.dart';
+import 'package:catch_ride/view/trainer/profile/trainer_profile_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -29,62 +29,87 @@ class MenuScreen extends StatelessWidget {
             _buildProfileHeader(),
             const Divider(height: 32, thickness: 8, color: AppColors.grey100),
 
-            // Management Section
-            _buildSectionHeader('Management'),
+            // Top Action: Add your horses
             _buildMenuItem(
-              icon: Icons.inventory_2_outlined,
-              title: 'My Horses',
-              subtitle: 'Manage your listings',
+              icon: Icons.add_circle_outline,
+              title: 'Add your horses',
+              subtitle: 'Create a new listing',
               onTap: () {
-                // Navigate to List Screen or Add Horse
-                Get.to(() => const AddHorseScreen());
+                Get.to(() => const HorseListingCreateScreen());
               },
+              isProminent: true,
             ),
-            _buildMenuItem(
-              icon: Icons.people_outline,
-              title: 'Barn Staff',
-              subtitle: 'Invite & Manage Barn Managers',
-              onTap: () {
-                Get.to(() => const InviteBarnManagerScreen());
-              },
-            ),
-
-            _buildMenuItem(
-              icon: Icons.bookmark_outline,
-              title: 'Saved Items',
-              subtitle: 'Favorites horses & vendors',
-              onTap: () {
-                Get.to(() => const FavoritesScreen());
-              },
-            ),
-
             const Divider(height: 32, thickness: 1),
 
-            // Account Section
-            _buildSectionHeader('Account'),
+            // Account Settings
+            _buildSectionHeader('Account Settings'),
+            _buildMenuItem(
+              icon: Icons.edit_outlined,
+              title: 'Edit Profile',
+              onTap: () => Get.to(() => const ProfileCompleteTrainerScreen()),
+            ),
+            _buildMenuItem(
+              icon: Icons.person_outline,
+              title: 'Personal Information',
+              onTap: () =>
+                  Get.snackbar('Coming Soon', 'Personal Information Screen'),
+            ),
+            _buildMenuItem(
+              icon: Icons.security_outlined,
+              title: 'Login & Security',
+              onTap: () =>
+                  Get.snackbar('Coming Soon', 'Login & Security Screen'),
+            ),
             _buildMenuItem(
               icon: Icons.notifications_none_rounded,
               title: 'Notifications',
               onTap: () => Get.to(() => const NotificationScreen()),
             ),
             _buildMenuItem(
-              icon: Icons.star_border_rounded,
-              title: 'My Reviews',
-              onTap: () => Get.to(() => const ReviewScreen()),
+              icon: Icons.payment_outlined,
+              title: 'Payments + Subscriptions',
+              onTap: () => Get.snackbar('Coming Soon', 'EditYourPaymentScreen'),
             ),
             _buildMenuItem(
-              icon: Icons.payment_rounded,
-              title: 'Payment Methods',
-              onTap: () {
-                Get.snackbar('Coming Soon', 'Payment Integration');
-              },
+              icon: Icons.privacy_tip_outlined,
+              title: 'Privacy + Sharing',
+              onTap: () =>
+                  Get.snackbar('Coming Soon', 'Privacy + Sharing Screen'),
+            ),
+
+            const Divider(height: 32, thickness: 1),
+
+            // Horses + Services
+            _buildSectionHeader('Horses + Services'),
+            _buildMenuItem(
+              icon: Icons.add_box_outlined,
+              title: 'List your horse',
+              onTap: () => Get.to(() => const HorseListingCreateScreen()),
             ),
             _buildMenuItem(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
-              onTap: () {
-                Get.snackbar('Coming Soon', 'App Settings');
-              },
+              icon: Icons.inventory_2_outlined,
+              title: 'View your horses',
+              onTap: () => Get.to(() => const ListScreen()),
+            ),
+            _buildMenuItem(
+              icon: Icons.history_outlined,
+              title: 'Past Services + Trials',
+              onTap: () => Get.snackbar('Coming Soon', 'Past Services Screen'),
+            ),
+
+            const Divider(height: 32, thickness: 1),
+
+            // Referrals
+            _buildSectionHeader('Referrals'),
+            _buildMenuItem(
+              icon: Icons.people_outline,
+              title: 'Barn Managers',
+              onTap: () => Get.to(() => const InviteBarnManagerScreen()),
+            ),
+            _buildMenuItem(
+              icon: Icons.person_add_alt_1_outlined,
+              title: 'Refer a new Member',
+              onTap: () => Get.snackbar('Coming Soon', 'Referral Screen'),
             ),
 
             const Divider(height: 32, thickness: 1),
@@ -93,15 +118,23 @@ class MenuScreen extends StatelessWidget {
             _buildSectionHeader('Support'),
             _buildMenuItem(
               icon: Icons.help_outline_rounded,
-              title: 'Help & Support',
-              onTap: () {
-                Get.snackbar('Support', 'Contacting Support...');
-              },
+              title: 'Get Help',
+              onTap: () => Get.snackbar('Coming Soon', 'Help Screen'),
             ),
             _buildMenuItem(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Privacy Policy',
-              onTap: () {},
+              icon: Icons.feedback_outlined,
+              title: 'Give us feedback',
+              onTap: () => Get.snackbar('Coming Soon', 'Feedback Form'),
+            ),
+
+            const Divider(height: 32, thickness: 1),
+
+            // Tools
+            _buildSectionHeader('Tools'),
+            _buildMenuItem(
+              icon: Icons.description_outlined,
+              title: 'Terms + Conditions',
+              onTap: () => Get.snackbar('Coming Soon', 'Terms Screen'),
             ),
 
             const SizedBox(height: 48),
@@ -131,11 +164,14 @@ class MenuScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 24),
-            Text(
-              'Version 1.0.0',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
+            Center(
+              child: Text(
+                'Version 1.0.0',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.grey400,
+                ),
+              ),
             ),
           ],
         ),
@@ -144,56 +180,59 @@ class MenuScreen extends StatelessWidget {
   }
 
   Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.mutedGold.withOpacity(0.2),
-              border: Border.all(color: AppColors.mutedGold, width: 2),
-              image: const DecorationImage(
-                image: NetworkImage('https://via.placeholder.com/150'),
-                fit: BoxFit.cover,
+    return InkWell(
+      onTap: () =>
+          Get.to(() => const TrainerProfileScreen(isVisitingOwnProfile: true)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.mutedGold.withOpacity(0.2),
+                border: Border.all(color: AppColors.mutedGold, width: 2),
+                image: const DecorationImage(
+                  image: NetworkImage('https://via.placeholder.com/150'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'John Smith',
-                  style: AppTextStyles.headlineMedium.copyWith(fontSize: 20),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Wellington Stables',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'John Smith',
+                    style: AppTextStyles.headlineMedium.copyWith(fontSize: 20),
                   ),
-                ),
-                Text(
-                  'Trainer • USEF #12345',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.grey600,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Wellington Stables',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
+                  Text(
+                    'View Profile',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.deepNavy,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            onPressed: () {
-              // Edit Profile
-              Get.to(() => const EditProfileScreen());
-            },
-            icon: const Icon(Icons.edit_outlined, color: AppColors.deepNavy),
-          ),
-        ],
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: AppColors.grey400,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -221,20 +260,26 @@ class MenuScreen extends StatelessWidget {
     required String title,
     String? subtitle,
     required VoidCallback onTap,
+    bool isProminent = false,
   }) {
     return InkWell(
       onTap: onTap,
-      child: Padding(
+      child: Container(
+        color: isProminent ? AppColors.warmCream.withOpacity(0.3) : null,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.grey50,
+                color: isProminent ? AppColors.deepNavy : AppColors.grey50,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: AppColors.deepNavy, size: 22),
+              child: Icon(
+                icon,
+                color: isProminent ? Colors.white : AppColors.deepNavy,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -244,7 +289,12 @@ class MenuScreen extends StatelessWidget {
                   Text(
                     title,
                     style: AppTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w500,
+                      fontWeight: isProminent
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                      color: isProminent
+                          ? AppColors.deepNavy
+                          : AppColors.textPrimary,
                     ),
                   ),
                   if (subtitle != null)

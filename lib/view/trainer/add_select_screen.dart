@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
-import 'package:catch_ride/view/trainer/list/add_horse_screen.dart';
+
 import 'package:catch_ride/view/trainer/book_service/vendor_search_screen.dart';
 import 'package:catch_ride/view/trainer/barn_manager/invite_barn_manager_screen.dart';
+import 'package:catch_ride/view/trainer/listing/horse_listing_create_screen.dart';
 
 class AddSelectScreen extends StatelessWidget {
   const AddSelectScreen({super.key});
@@ -39,7 +40,7 @@ class AddSelectScreen extends StatelessWidget {
             subtitle: 'Add a new horse for sale, lease, or trial',
             onTap: () {
               Get.back();
-              Get.to(() => const AddHorseScreen());
+              Get.to(() => const HorseListingCreateScreen());
             },
           ),
 

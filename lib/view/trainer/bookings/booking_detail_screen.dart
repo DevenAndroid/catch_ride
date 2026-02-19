@@ -13,8 +13,7 @@ class BookingDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isIncoming =
-        booking.type == BookingType.lease || booking.type == BookingType.trial;
+    bool isIncoming = booking.isIncoming;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Booking Details')),
@@ -38,7 +37,9 @@ class BookingDetailScreen extends StatelessWidget {
 
             // Main Entity Info (Horse or Vendor)
             _buildSectionHeader(
-              booking.type == BookingType.service ? 'Vendor' : 'Horse',
+              booking.type == BookingType.vendorService
+                  ? 'Vendor'
+                  : 'Counterparty',
             ),
             const SizedBox(height: 12),
             InkWell(
@@ -60,23 +61,28 @@ class BookingDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(booking.subtitle, style: AppTextStyles.titleMedium),
-                      if (booking.type == BookingType.service)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          'Service Provider',
-                          style: AppTextStyles.bodyMedium,
-                        )
-                      else
-                        Text(
-                          'Detailed Info >',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.mutedGold,
-                          ),
+                          booking.subtitle,
+                          style: AppTextStyles.titleMedium,
                         ),
-                    ],
+                        if (booking.type == BookingType.vendorService)
+                          Text(
+                            'Service Provider',
+                            style: AppTextStyles.bodyMedium,
+                          )
+                        else
+                          Text(
+                            'View Profile >',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.mutedGold,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -92,9 +98,9 @@ class BookingDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _buildInfoRow(
-              Icons.access_time_filled,
+              Icons.event_note,
               booking.title,
-            ), // E.g. Full Lease
+            ), // E.g. Full Lease or Service Name
             const SizedBox(height: 8),
             _buildInfoRow(Icons.location_on, booking.location),
 
@@ -148,14 +154,14 @@ class BookingDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
 
-            // Actions (Only for Incoming Pending Requests)
-            if (isIncoming && booking.status == BookingStatus.pending) ...[
+            // Actions
+            if (isIncoming && booking.status == BookingStatus.requested) ...[
               CustomButton(
                 text: 'Accept Booking',
                 onPressed: () {
-                  // Handle accept
+                  // Handle accept logic (API call)
                   Get.back();
-                  Get.snackbar('Accepted', 'Booking confirmed!');
+                  Get.snackbar('Success', 'Booking marked as Accepted');
                 },
               ),
               const SizedBox(height: 16),
@@ -166,16 +172,34 @@ class BookingDetailScreen extends StatelessWidget {
                 onPressed: () {
                   // Handle decline
                   Get.back();
-                  Get.snackbar('Declined', 'Booking request declined.');
+                  Get.snackbar(
+                    'Declined',
+                    'Booking request has been declined.',
+                  );
+                },
+              ),
+            ] else if (!isIncoming &&
+                booking.status == BookingStatus.requested) ...[
+              // Outgoing Pending
+              CustomButton(
+                text: 'Cancel Request',
+                isOutlined: true,
+                textColor: AppColors.softRed,
+                onPressed: () {
+                  Get.back();
+                  Get.snackbar('Cancelled', 'Booking request cancelled.');
                 },
               ),
             ] else if (booking.status == BookingStatus.accepted) ...[
               CustomButton(
-                text: 'Message',
+                text: 'Message Counterparty',
                 isOutlined: true,
                 onPressed: () {
                   // Open Chat
-                  Get.snackbar('Message', 'Opening chat...');
+                  Get.snackbar(
+                    'Message',
+                    'Opening chat with ${booking.subtitle}...',
+                  );
                 },
               ),
             ],
@@ -188,7 +212,7 @@ class BookingDetailScreen extends StatelessWidget {
   Widget _buildStatusBadge(BookingStatus status) {
     Color color;
     switch (status) {
-      case BookingStatus.pending:
+      case BookingStatus.requested:
         color = AppColors.mutedGold;
         break;
       case BookingStatus.accepted:
@@ -198,6 +222,7 @@ class BookingDetailScreen extends StatelessWidget {
         color = AppColors.deepNavy;
         break;
       case BookingStatus.cancelled:
+      case BookingStatus.declined:
         color = AppColors.softRed;
         break;
     }

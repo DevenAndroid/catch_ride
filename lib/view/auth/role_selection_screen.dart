@@ -1,11 +1,13 @@
-
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
+import 'package:catch_ride/controllers/user_role_controller.dart';
+import 'package:catch_ride/view/trainer/onboarding/trainer_application_screen.dart';
 
 import 'package:catch_ride/view/notifications/notification_permission_screen.dart';
-import '../vendor/vendor_main_screen.dart';
-
+import 'package:catch_ride/view/vendor/application/vendor_application_screen.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_main_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -13,10 +15,7 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Choose Your Role'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Choose Your Role'), centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -24,41 +23,66 @@ class RoleSelectionScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'How will you use catch ride?',
-              style: AppTextStyles.headlineMedium.copyWith(color: AppColors.deepNavy),
+              style: AppTextStyles.headlineMedium.copyWith(
+                color: AppColors.deepNavy,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
+
             _buildRoleCard(
               context: context,
               title: 'Trainer',
               subtitle: 'List horses, manage bookings & reviews',
-              icon: Icons.sports_motorsports_rounded, // Best proxy for jockey/rider
+              icon: Icons
+                  .sports_motorsports_rounded, // Best proxy for jockey/rider
               onTap: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const NotificationPermissionScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NotificationPermissionScreen(
+                      nextScreen: const TrainerApplicationScreen(),
+                    ),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 16),
-            
+
             _buildRoleCard(
               context: context,
               title: 'Barn Manager',
               subtitle: 'Handle bookings & logistics for trainers',
               icon: Icons.storefront_rounded,
               onTap: () {
-                // Navigate to Barn Manager Registration
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Barn Manager Flow Coming Soon')));
+                // Register role controller and set to Barn Manager
+                final roleController = Get.put(UserRoleController());
+                roleController.setRole(UserRole.barnManager);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const BarnManagerMainScreen(),
+                  ),
+                );
               },
             ),
             const SizedBox(height: 16),
-            
+
             _buildRoleCard(
               context: context,
               title: 'Vendor',
               subtitle: 'Offer services like grooming & shipping',
               icon: Icons.handyman_rounded,
               onTap: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const VendorMainScreen()));
+                // Vendor goes through application flow first
+                final roleController = Get.put(UserRoleController());
+                roleController.setRole(UserRole.vendor);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const VendorApplicationScreen(),
+                  ),
+                );
               },
             ),
           ],
@@ -104,7 +128,11 @@ class RoleSelectionScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.grey400),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: AppColors.grey400,
+              ),
             ],
           ),
         ),

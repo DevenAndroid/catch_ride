@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
-import 'package:catch_ride/features/trainer/bookings/bookings_screen.dart';
-import 'package:catch_ride/view/trainer/inbox/inbox_screen.dart';
-import 'package:catch_ride/features/trainer/menu/menu_screen.dart';
-import 'package:catch_ride/view/vendor/availability/vendor_availability_screen.dart';
 import 'package:catch_ride/view/vendor/profile/vendor_profile_screen.dart';
+import 'package:catch_ride/view/vendor/bookings/vendor_bookings_screen.dart';
+import 'package:catch_ride/view/vendor/availability/vendor_availability_screen.dart';
+import 'package:catch_ride/view/vendor/inbox/vendor_inbox_screen.dart';
+import 'package:catch_ride/view/vendor/menu/vendor_menu_screen.dart';
 
 class VendorMainScreen extends StatefulWidget {
   const VendorMainScreen({super.key});
@@ -14,14 +14,14 @@ class VendorMainScreen extends StatefulWidget {
 }
 
 class _VendorMainScreenState extends State<VendorMainScreen> {
-  int _currentIndex = 2; // Default to Availability
+  int _currentIndex = 2; // Default to Availability (home)
 
   final List<Widget> _screens = [
-    const VendorProfileScreen(),
-    const BookingsScreen(), // Reuse Trainer Bookings Screen
-    const VendorAvailabilityScreen(),
-    const InboxScreen(), // Reuse Inbox
-    const MenuScreen(), // Reuse Menu
+    const VendorProfileScreen(), // Profile tab
+    const VendorBookingsScreen(), // Vendor bookings (Accept/Decline)
+    const VendorAvailabilityScreen(), // Availability = Home
+    const VendorInboxScreen(), // Vendor inbox
+    const VendorMenuScreen(), // Vendor-specific menu
   ];
 
   @override
@@ -32,10 +32,11 @@ class _VendorMainScreenState extends State<VendorMainScreen> {
         onTap: (index) {
           setState(() => _currentIndex = index);
         },
-        type: BottomNavigationBarType.fixed, // Ensure >3 items works
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         selectedItemColor: AppColors.deepNavy,
         unselectedItemColor: AppColors.grey400,
+        showUnselectedLabels: true,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

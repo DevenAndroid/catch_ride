@@ -11,8 +11,7 @@ class BookingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length:
-          2, // Simplified for now: Requests (Incoming), My Bookings (Outgoing)
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Bookings'),
@@ -22,28 +21,37 @@ class BookingsScreen extends StatelessWidget {
             indicatorColor: AppColors.mutedGold,
             indicatorWeight: 3,
             tabs: [
-              Tab(text: 'Incoming Requests'), // Leases/Trials requested OF you
-              Tab(text: 'My Bookings'), // Services/Trials you requested
+              Tab(text: 'Requests'),
+              Tab(text: 'Confirmed'),
+              Tab(text: 'Past'),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            _buildBookingList(true), // Incoming
-            _buildBookingList(false), // Outgoing
+            _buildBookingList(BookingStatus.requested),
+            _buildBookingList(BookingStatus.accepted),
+            _buildBookingList(
+              BookingStatus.completed,
+            ), // Logic handles completed/cancelled/declined
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBookingList(bool isIncoming) {
+  Widget _buildBookingList(BookingStatus targetStatus) {
     // Filter Mock Data
     List<BookingModel> bookings = mockBookings.where((b) {
-      if (isIncoming) {
-        return b.type == BookingType.lease || b.type == BookingType.trial;
+      if (targetStatus == BookingStatus.requested) {
+        return b.status == BookingStatus.requested;
+      } else if (targetStatus == BookingStatus.accepted) {
+        return b.status == BookingStatus.accepted;
       } else {
-        return b.type == BookingType.service;
+        // Past
+        return b.status == BookingStatus.completed ||
+            b.status == BookingStatus.cancelled ||
+            b.status == BookingStatus.declined;
       }
     }).toList();
 
@@ -62,6 +70,14 @@ class BookingsScreen extends StatelessWidget {
               'No bookings found',
               style: TextStyle(color: AppColors.grey500),
             ),
+            if (targetStatus == BookingStatus.requested)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Check Help Center if you expect requests.',
+                  style: TextStyle(color: AppColors.grey400, fontSize: 12),
+                ),
+              ),
           ],
         ),
       );
@@ -75,7 +91,7 @@ class BookingsScreen extends StatelessWidget {
         return BookingCard(
           booking: booking,
           onTap: () {
-            // Navigate to Detail with Data
+            // Navigate to unified detail screen
             Get.to(() => BookingDetailScreen(booking: booking));
           },
         );
