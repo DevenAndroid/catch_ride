@@ -1,9 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/view/trainer/explore/filter_modal.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
+import 'package:catch_ride/view/trainer/explore/horse_detail_screen.dart';
+import 'package:get/get.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
@@ -59,7 +60,10 @@ class ExploreScreen extends StatelessWidget {
                       color: AppColors.grey200,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.calendar_month_outlined, color: AppColors.deepNavy),
+                    child: const Icon(
+                      Icons.calendar_month_outlined,
+                      color: AppColors.deepNavy,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   InkWell(
@@ -69,7 +73,9 @@ class ExploreScreen extends StatelessWidget {
                         builder: (_) => const FilterModal(),
                         isScrollControlled: true,
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
                         ),
                       );
                     },
@@ -85,7 +91,7 @@ class ExploreScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Content
             Expanded(
               child: TabBarView(
@@ -109,17 +115,23 @@ class ExploreScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: 5, // Dummy data count
       itemBuilder: (context, index) {
-        return const Padding(
-          padding: EdgeInsets.only(bottom: 16),
-          child: HorseCard(
-            name: 'Thunderbolt',
-            location: 'Wellington, FL',
-            price: '\$45,000',
-            breed: 'Warmblood',
-            height: '16.2hh',
-            age: '8 yrs',
-            imageUrl: 'https://images.unsplash.com/photo-1553284965-0b0eb9e7f724?q=80&w=2574&auto=format&fit=crop', // Placeholder
-            isTopRated: true,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: InkWell(
+            onTap: () {
+              Get.to(() => const HorseDetailScreen());
+            },
+            child: const HorseCard(
+              name: 'Thunderbolt',
+              location: 'Wellington, FL',
+              price: '\$45,000',
+              breed: 'Warmblood',
+              height: '16.2hh',
+              age: '8 yrs',
+              imageUrl:
+                  'https://images.unsplash.com/photo-1553284965-0b0eb9e7f724?q=80&w=2574&auto=format&fit=crop', // Placeholder
+              isTopRated: true,
+            ),
           ),
         );
       },

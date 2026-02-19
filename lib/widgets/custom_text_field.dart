@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
@@ -22,9 +21,11 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.readOnly = false,
   });
 
   final int maxLines;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,9 @@ class CustomTextField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.labelLarge.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.labelLarge.copyWith(
+            color: AppColors.textPrimary,
+          ),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -41,11 +44,14 @@ class CustomTextField extends StatelessWidget {
           obscureText: isPassword,
           keyboardType: keyboardType,
           style: AppTextStyles.bodyLarge,
+          readOnly: readOnly,
           maxLines: isPassword ? 1 : maxLines,
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
             suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: readOnly ? AppColors.grey200 : Colors.white,
           ),
         ),
       ],

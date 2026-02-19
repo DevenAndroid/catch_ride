@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 
-import 'bookings/bookings_screen.dart';
+import 'package:catch_ride/features/trainer/bookings/bookings_screen.dart';
 import 'explore/explore_screen.dart';
 import 'inbox/inbox_screen.dart';
 import 'list/list_screen.dart';
-import 'menu/menu_screen.dart';
+import 'package:catch_ride/features/trainer/menu/menu_screen.dart';
 import 'package:catch_ride/view/trainer/add_select_screen.dart';
 
 class TrainerMainScreen extends StatefulWidget {

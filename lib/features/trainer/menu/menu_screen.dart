@@ -6,6 +6,9 @@ import 'package:catch_ride/view/auth/welcome_screen.dart';
 import 'package:catch_ride/view/notifications/notification_screen.dart';
 import 'package:catch_ride/view/reviews/review_screen.dart';
 import 'package:catch_ride/view/trainer/list/add_horse_screen.dart';
+import 'package:catch_ride/view/trainer/barn_manager/invite_barn_manager_screen.dart'; // Import Invite Flow
+import 'package:catch_ride/view/profile/edit_profile_screen.dart';
+import 'package:catch_ride/view/trainer/favorites/favorites_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -13,131 +16,191 @@ class MenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Menu')),
+      appBar: AppBar(
+        title: const Text('Menu'),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 40),
         child: Column(
           children: [
             // Profile Header
-            Container(
-              padding: const EdgeInsets.all(24),
-              color: Colors.white,
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: AppColors.mutedGold,
-                    child: Text(
-                      'JS',
-                      style: AppTextStyles.headlineMedium.copyWith(
-                        color: AppColors.deepNavy,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('John Smith', style: AppTextStyles.titleMedium),
-                        Text(
-                          'Wellington Stables',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          'Trainer • USEF #12345',
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.edit_outlined,
-                      color: AppColors.grey500,
-                    ),
-                    onPressed: () {
-                      // Edit Profile
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+            _buildProfileHeader(),
+            const Divider(height: 32, thickness: 8, color: AppColors.grey100),
 
-            // Core Features
+            // Management Section
             _buildSectionHeader('Management'),
             _buildMenuItem(
               icon: Icons.inventory_2_outlined,
-              title: 'Add your horses',
+              title: 'My Horses',
+              subtitle: 'Manage your listings',
               onTap: () {
+                // Navigate to List Screen or Add Horse
                 Get.to(() => const AddHorseScreen());
               },
             ),
             _buildMenuItem(
               icon: Icons.people_outline,
               title: 'Barn Staff',
-              subtitle: 'Approve & Manage Barn Managers',
+              subtitle: 'Invite & Manage Barn Managers',
               onTap: () {
-                // Barn Manager Approval Screen (Admin-lite)
+                Get.to(() => const InviteBarnManagerScreen());
               },
             ),
 
-            const SizedBox(height: 16),
+            _buildMenuItem(
+              icon: Icons.bookmark_outline,
+              title: 'Saved Items',
+              subtitle: 'Favorites horses & vendors',
+              onTap: () {
+                Get.to(() => const FavoritesScreen());
+              },
+            ),
+
+            const Divider(height: 32, thickness: 1),
+
+            // Account Section
             _buildSectionHeader('Account'),
             _buildMenuItem(
-              icon: Icons.notifications_outlined,
+              icon: Icons.notifications_none_rounded,
               title: 'Notifications',
               onTap: () => Get.to(() => const NotificationScreen()),
             ),
             _buildMenuItem(
-              icon: Icons.star_border,
+              icon: Icons.star_border_rounded,
               title: 'My Reviews',
               onTap: () => Get.to(() => const ReviewScreen()),
             ),
             _buildMenuItem(
-              icon: Icons.payment,
+              icon: Icons.payment_rounded,
               title: 'Payment Methods',
-              onTap: () {},
+              onTap: () {
+                Get.snackbar('Coming Soon', 'Payment Integration');
+              },
             ),
             _buildMenuItem(
               icon: Icons.settings_outlined,
               title: 'Settings',
-              onTap: () {},
+              onTap: () {
+                Get.snackbar('Coming Soon', 'App Settings');
+              },
             ),
 
-            const SizedBox(height: 16),
+            const Divider(height: 32, thickness: 1),
+
+            // Support
+            _buildSectionHeader('Support'),
             _buildMenuItem(
-              icon: Icons.help_outline,
+              icon: Icons.help_outline_rounded,
               title: 'Help & Support',
+              onTap: () {
+                Get.snackbar('Support', 'Contacting Support...');
+              },
+            ),
+            _buildMenuItem(
+              icon: Icons.privacy_tip_outlined,
+              title: 'Privacy Policy',
               onTap: () {},
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 48),
+
+            // Logout
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: OutlinedButton(
-                onPressed: () {
-                  Get.offAll(() => const WelcomeScreen());
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.softRed),
-                  foregroundColor: AppColors.softRed,
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    // Clear Session Logic
+                    Get.offAll(() => const WelcomeScreen());
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: AppColors.softRed),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    foregroundColor: AppColors.softRed,
+                  ),
+                  child: const Text(
+                    'Log Out',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                child: const Text('Log Out'),
               ),
             ),
-            const SizedBox(height: 32),
+
+            const SizedBox(height: 24),
+            Text(
+              'Version 1.0.0',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
+            ),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildProfileHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: Row(
+        children: [
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.mutedGold.withOpacity(0.2),
+              border: Border.all(color: AppColors.mutedGold, width: 2),
+              image: const DecorationImage(
+                image: NetworkImage('https://via.placeholder.com/150'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'John Smith',
+                  style: AppTextStyles.headlineMedium.copyWith(fontSize: 20),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Wellington Stables',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  'Trainer • USEF #12345',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.grey600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              // Edit Profile
+              Get.to(() => const EditProfileScreen());
+            },
+            icon: const Icon(Icons.edit_outlined, color: AppColors.deepNavy),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(
@@ -145,6 +208,8 @@ class MenuScreen extends StatelessWidget {
           style: AppTextStyles.labelLarge.copyWith(
             color: AppColors.grey500,
             letterSpacing: 1.2,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ),
@@ -156,26 +221,54 @@ class MenuScreen extends StatelessWidget {
     required String title,
     String? subtitle,
     required VoidCallback onTap,
-    Color? color,
   }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-      leading: Icon(icon, color: color ?? AppColors.deepNavy),
-      title: Text(
-        title,
-        style: AppTextStyles.bodyLarge.copyWith(
-          color: color ?? AppColors.textPrimary,
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.grey50,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: AppColors.deepNavy, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        subtitle,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.grey500,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: AppColors.grey400,
+            ),
+          ],
         ),
       ),
-      subtitle: subtitle != null
-          ? Text(subtitle, style: AppTextStyles.bodySmall)
-          : null,
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: AppColors.grey400,
-      ),
-      onTap: onTap,
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/widgets/booking_card.dart';
+import 'package:catch_ride/view/trainer/bookings/booking_detail_screen.dart';
 
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
@@ -9,67 +11,72 @@ class BookingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 5, // Expanded tabs according to flow
+      length:
+          2, // Simplified for now: Requests (Incoming), My Bookings (Outgoing)
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('My Bookings'),
+          title: const Text('Bookings'),
           bottom: const TabBar(
-            isScrollable: true,
             labelColor: AppColors.deepNavy,
             unselectedLabelColor: AppColors.grey500,
             indicatorColor: AppColors.mutedGold,
+            indicatorWeight: 3,
             tabs: [
-              Tab(text: 'All'), // Overview
-              Tab(text: 'Pending'),
-              Tab(text: 'Accepted'),
-              Tab(text: 'Completed'),
-              Tab(text: 'Cancelled'),
+              Tab(text: 'Incoming Requests'), // Leases/Trials requested OF you
+              Tab(text: 'My Bookings'), // Services/Trials you requested
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            _buildBookingList('All'),
-            _buildBookingList('Pending'),
-            _buildBookingList('Accepted'),
-            _buildBookingList('Completed'),
-            _buildBookingList('Cancelled'),
+            _buildBookingList(true), // Incoming
+            _buildBookingList(false), // Outgoing
           ],
-        ),
-
-        // Quick Action FAB for vendor booking flow shortcut if needed
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            // Navigate to Vendor Search or Request
-            Get.snackbar('New Booking', 'Navigate to Explore to find vendors');
-          },
-          label: const Text('Book Service'),
-          icon: const Icon(Icons.add),
-          backgroundColor: AppColors.deepNavy,
         ),
       ),
     );
   }
 
-  Widget _buildBookingList(String status) {
-    // Mock Data Logic
+  Widget _buildBookingList(bool isIncoming) {
+    // Filter Mock Data
+    List<BookingModel> bookings = mockBookings.where((b) {
+      if (isIncoming) {
+        return b.type == BookingType.lease || b.type == BookingType.trial;
+      } else {
+        return b.type == BookingType.service;
+      }
+    }).toList();
+
+    if (bookings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 64,
+              color: AppColors.grey300,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No bookings found',
+              style: TextStyle(color: AppColors.grey500),
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: 4,
+      itemCount: bookings.length,
       itemBuilder: (context, index) {
-        String currentStatus = status == 'All'
-            ? (index % 2 == 0 ? 'Pending' : 'Accepted')
-            : status;
-
+        final booking = bookings[index];
         return BookingCard(
-          title: index % 2 == 0
-              ? 'Full Body Clip - Vendor Name'
-              : 'Horse Trial - Client Name',
-          date: 'Nov ${10 + index}, 2023', // Upcoming
-          status: currentStatus,
+          booking: booking,
           onTap: () {
-            // Navigate to Detail
-            // Get.to(() => BookingDetailScreen(id: index));
+            // Navigate to Detail with Data
+            Get.to(() => BookingDetailScreen(booking: booking));
           },
         );
       },
