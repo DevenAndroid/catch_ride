@@ -2,233 +2,376 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
-import 'package:catch_ride/view/trainer/inbox/chat_detail_screen.dart';
+import 'package:catch_ride/view/vendor/inbox/vendor_inbox_models.dart';
+import 'package:catch_ride/view/vendor/inbox/vendor_chat_detail_screen.dart';
 
-class VendorInboxScreen extends StatelessWidget {
+class VendorInboxScreen extends StatefulWidget {
   const VendorInboxScreen({super.key});
+
+  @override
+  State<VendorInboxScreen> createState() => _VendorInboxScreenState();
+}
+
+class _VendorInboxScreenState extends State<VendorInboxScreen> {
+  String _activeFilter = 'All';
+
+  List<VendorThread> get _filtered {
+    switch (_activeFilter) {
+      case 'Unread':
+        return mockVendorThreads.where((t) => t.isUnread).toList();
+      case 'Bookings':
+        return mockVendorThreads
+            .where((t) => t.hasSystemMessage || t.relatedBookingId != null)
+            .toList();
+      case 'Trainers':
+        return mockVendorThreads
+            .where((t) => t.participantRole == VendorParticipantRole.trainer)
+            .toList();
+      case 'Barn Mgrs':
+        return mockVendorThreads
+            .where(
+              (t) => t.participantRole == VendorParticipantRole.barnManager,
+            )
+            .toList();
+      default:
+        return mockVendorThreads;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Messages'),
+        title: const Text('Inbox'),
         automaticallyImplyLeading: false,
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // TODO: open search delegate
+            },
+          ),
+        ],
       ),
+      // ── NO FAB: vendors cannot create threads independently (MVP rule) ──
       body: Column(
         children: [
-          // Quick Filters
-          SizedBox(
-            height: 50,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          // ── Restriction Info Banner ─────────────────────────────────────
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.deepNavy.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.deepNavy.withOpacity(0.15)),
+            ),
+            child: Row(
               children: [
-                _buildFilterChip('All', true),
-                _buildFilterChip('Unread', false),
-                _buildFilterChip('Bookings', false),
-                _buildFilterChip('General', false),
+                const Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: AppColors.deepNavy,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'You can reply to existing conversations. Trainers or Barn Managers must initiate new threads.',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.deepNavy,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
+          const SizedBox(height: 10),
 
-          // Message List
-          Expanded(
-            child: ListView.separated(
-              itemCount: 6,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                bool isUnread = index < 2;
-                bool isBookingRelated = index < 3;
-                return ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  leading: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: AppColors.grey300,
-                        child: Text(
-                          _clientInitials(index),
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: AppColors.deepNavy,
-                          ),
-                        ),
-                      ),
-                      if (isBookingRelated)
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: AppColors.mutedGold,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: const Icon(
-                              Icons.handyman,
-                              size: 10,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _clientName(index),
-                        style: isUnread
-                            ? AppTextStyles.titleMedium.copyWith(
-                                fontWeight: FontWeight.bold,
-                              )
-                            : AppTextStyles.titleMedium,
-                      ),
-                      Text(
-                        _messageTime(index),
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: isUnread
-                              ? AppColors.deepNavy
-                              : AppColors.grey500,
-                        ),
-                      ),
-                    ],
-                  ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (isBookingRelated)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.mutedGold.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            'Booking Inquiry',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.mutedGold,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _messagePreview(index),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: isUnread
-                                  ? AppTextStyles.bodyMedium.copyWith(
-                                      color: AppColors.deepNavy,
-                                      fontWeight: FontWeight.w600,
-                                    )
-                                  : AppTextStyles.bodyMedium.copyWith(
-                                      color: AppColors.grey600,
-                                    ),
-                            ),
-                          ),
-                          if (isUnread)
-                            Container(
-                              margin: const EdgeInsets.only(left: 8),
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                color: AppColors.deepNavy,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                '${index + 1}',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    Get.to(
-                      () => ChatDetailScreen(userName: _clientName(index)),
-                    );
-                  },
-                );
-              },
+          // ── Filter Chips ────────────────────────────────────────────────
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: ['All', 'Unread', 'Bookings', 'Trainers', 'Barn Mgrs']
+                  .map(
+                    (f) => _InboxFilterChip(
+                      label: f,
+                      isSelected: _activeFilter == f,
+                      onTap: () => setState(() => _activeFilter = f),
+                    ),
+                  )
+                  .toList(),
             ),
+          ),
+          const SizedBox(height: 4),
+
+          // ── Thread List ─────────────────────────────────────────────────
+          Expanded(
+            child: _filtered.isEmpty
+                ? _buildEmptyState()
+                : ListView.separated(
+                    itemCount: _filtered.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, indent: 80),
+                    itemBuilder: (context, index) {
+                      final thread = _filtered[index];
+                      return _ThreadTile(
+                        thread: thread,
+                        onTap: () => Get.to(
+                          () => VendorChatDetailScreen(thread: thread),
+                        ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(label),
-        selected: isSelected,
-        onSelected: (val) {},
-        selectedColor: AppColors.deepNavy,
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : AppColors.deepNavy,
-          fontWeight: FontWeight.w500,
-        ),
-        checkmarkColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.inbox_outlined, size: 64, color: AppColors.grey300),
+          const SizedBox(height: 16),
+          Text(
+            'No messages yet',
+            style: AppTextStyles.titleMedium.copyWith(color: AppColors.grey500),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Conversations will appear here once a\ntrainer or barn manager contacts you.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
+          ),
+        ],
       ),
     );
   }
+}
 
-  String _clientInitials(int index) {
-    const initials = ['SW', 'EJ', 'MD', 'LC', 'RB', 'TN'];
-    return initials[index % initials.length];
+// ─────────────────────────────────────────────────────────────────────────────
+//  Thread Tile
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ThreadTile extends StatelessWidget {
+  final VendorThread thread;
+  final VoidCallback onTap;
+
+  const _ThreadTile({required this.thread, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isBM = thread.participantRole == VendorParticipantRole.barnManager;
+    final initials = thread.participantName
+        .split(' ')
+        .take(2)
+        .map((p) => p[0])
+        .join();
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Avatar + role badge ──
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: isBM
+                      ? AppColors.mutedGold.withOpacity(0.18)
+                      : AppColors.deepNavy.withOpacity(0.12),
+                  child: Text(
+                    initials,
+                    style: AppTextStyles.titleMedium.copyWith(
+                      color: isBM ? AppColors.mutedGold : AppColors.deepNavy,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isBM ? AppColors.mutedGold : AppColors.deepNavy,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                    child: Text(
+                      isBM ? 'BM' : 'TR',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+
+            // ── Content ──
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name + time
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        thread.participantName,
+                        style: thread.isUnread
+                            ? AppTextStyles.titleMedium.copyWith(
+                                fontWeight: FontWeight.bold,
+                              )
+                            : AppTextStyles.titleMedium,
+                      ),
+                      Text(
+                        thread.time,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: thread.isUnread
+                              ? AppColors.deepNavy
+                              : AppColors.grey500,
+                          fontWeight: thread.isUnread
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+
+                  // System message pill
+                  if (thread.hasSystemMessage &&
+                      thread.systemMessageText != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.deepNavy.withOpacity(0.07),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: AppColors.deepNavy.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.bookmark_border_rounded,
+                            size: 12,
+                            color: AppColors.deepNavy,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            thread.systemMessageText!,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.deepNavy,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+
+                  // Preview + unread dot
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          thread.previewText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: thread.isUnread
+                                ? AppColors.textPrimary
+                                : AppColors.grey600,
+                            fontWeight: thread.isUnread
+                                ? FontWeight.w500
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      if (thread.isUnread) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: AppColors.deepNavy,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+}
 
-  String _clientName(int index) {
-    const names = [
-      'Sarah Williams',
-      'Emily Johnson',
-      'Michael Davis',
-      'Lisa Chen',
-      'Rachel Brooks',
-      'Tom Nelson',
-    ];
-    return names[index % names.length];
-  }
+// ─────────────────────────────────────────────────────────────────────────────
+//  Animated Filter Chip
+// ─────────────────────────────────────────────────────────────────────────────
 
-  String _messageTime(int index) {
-    const times = [
-      'Just now',
-      '2:15 PM',
-      '11:30 AM',
-      'Yesterday',
-      'Feb 17',
-      'Feb 15',
-    ];
-    return times[index % times.length];
-  }
+class _InboxFilterChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  String _messagePreview(int index) {
-    const previews = [
-      'Hi, are you available for grooming on March 5th?',
-      'Can you do braiding for two horses at WEF?',
-      'Great, I\'ll confirm the booking then!',
-      'Thanks for the amazing work yesterday!',
-      'Do you travel to Ocala for shows?',
-      'What\'s your rate for a full show weekend?',
-    ];
-    return previews[index % previews.length];
+  const _InboxFilterChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.deepNavy : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.deepNavy : AppColors.grey300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.deepNavy,
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
   }
 }

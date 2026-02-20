@@ -5,8 +5,13 @@ import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/view/auth/welcome_screen.dart';
 import 'package:catch_ride/view/notifications/notification_screen.dart';
 import 'package:catch_ride/view/profile/edit_profile_screen.dart';
-import 'package:catch_ride/view/trainer/favorites/favorites_screen.dart';
+import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/controllers/user_role_controller.dart';
+import 'package:catch_ride/view/profile/personal_info_screen.dart';
+import 'package:catch_ride/view/profile/login_security_screen.dart';
+import 'package:catch_ride/view/settings/terms_conditions_screen.dart';
+import 'package:catch_ride/view/barn_manager/manage_horses/barn_manager_horse_list_screen.dart';
+import 'package:catch_ride/view/barn_manager/book_service/create_booking_request_screen.dart';
 
 class BarnManagerMenuScreen extends StatelessWidget {
   const BarnManagerMenuScreen({super.key});
@@ -73,74 +78,105 @@ class BarnManagerMenuScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Management Section (REDUCED for Barn Manager)
-            _buildSectionHeader('Management'),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: CustomButton(
+                  text: 'Add your horses',
+                  onPressed: () {
+                    // Usually links to new listing
+                    Get.snackbar(
+                      'Permission Denied',
+                      'Barn Managers cannot create new horses. Please ask the Trainer.',
+                    );
+                  },
+                  backgroundColor: AppColors.mutedGold,
+                  textColor: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
 
-            // Can edit availability — NOT create horses
+            // Account Settings
+            _buildSectionHeader('Account Settings'),
             _buildMenuItem(
-              icon: Icons.edit_calendar_outlined,
-              title: 'Manage Availability',
-              subtitle: 'Update horse schedules & locations',
+              icon: Icons.person_outline,
+              title: 'Edit Profile',
               onTap: () {
-                Get.snackbar(
-                  'Navigate',
-                  'Go to Manage tab to update availability',
-                );
+                Get.to(() => const EditProfileScreen());
               },
             ),
-
-            // Can request vendor bookings
             _buildMenuItem(
-              icon: Icons.handyman_outlined,
-              title: 'Book a Service',
-              subtitle: 'Request vendor services on behalf of trainer',
+              icon: Icons.info_outline,
+              title: 'Personal Information',
               onTap: () {
-                Get.snackbar('Coming Soon', 'Vendor booking flow');
+                Get.to(() => const PersonalInfoScreen());
               },
             ),
-
             _buildMenuItem(
-              icon: Icons.bookmark_outline,
-              title: 'Saved Items',
-              subtitle: 'Favorite horses & vendors',
+              icon: Icons.security_outlined,
+              title: 'Login & Security',
               onTap: () {
-                Get.to(() => const FavoritesScreen());
+                Get.to(() => const LoginSecurityScreen());
               },
             ),
-
-            const Divider(height: 32, thickness: 1),
-
-            // Account Section
-            _buildSectionHeader('Account'),
             _buildMenuItem(
               icon: Icons.notifications_none_rounded,
               title: 'Notifications',
               onTap: () => Get.to(() => const NotificationScreen()),
             ),
-            // NO "My Reviews" — reviews tied to Trainer account
+
+            const Divider(height: 32, thickness: 1),
+
+            // Horses & Services
+            _buildSectionHeader('Management'),
             _buildMenuItem(
-              icon: Icons.settings_outlined,
-              title: 'Settings',
+              icon: Icons.list_alt_outlined,
+              title: 'Manage Horses',
+              subtitle: 'Availability & location updates',
               onTap: () {
-                Get.snackbar('Coming Soon', 'App Settings');
+                Get.to(() => const BarnManagerHorseListScreen());
+              },
+            ),
+            _buildMenuItem(
+              icon: Icons.handyman_outlined,
+              title: 'Book a Service',
+              subtitle: 'Request vendor services on behalf of trainer',
+              onTap: () {
+                Get.to(() => const CreateBookingRequestBarnManager());
               },
             ),
 
             const Divider(height: 32, thickness: 1),
 
-            // Support
+            // Support Section
             _buildSectionHeader('Support'),
             _buildMenuItem(
               icon: Icons.help_outline_rounded,
-              title: 'Help & Support',
+              title: 'Get Help',
               onTap: () {
-                Get.snackbar('Support', 'Contacting Support...');
+                Get.snackbar('Coming Soon', 'Help Center');
               },
             ),
             _buildMenuItem(
-              icon: Icons.privacy_tip_outlined,
-              title: 'Privacy Policy',
-              onTap: () {},
+              icon: Icons.feedback_outlined,
+              title: 'Give us feedback',
+              onTap: () {
+                Get.snackbar('Coming Soon', 'Share your feedback');
+              },
+            ),
+
+            const Divider(height: 32, thickness: 1),
+
+            // Tools Section
+            _buildSectionHeader('Tools'),
+            _buildMenuItem(
+              icon: Icons.description_outlined,
+              title: 'Terms & Conditions',
+              onTap: () {
+                Get.to(() => const TermsConditionsScreen());
+              },
             ),
 
             const SizedBox(height: 48),

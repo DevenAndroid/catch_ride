@@ -41,31 +41,40 @@ class _BarnManagerMainScreenState extends State<BarnManagerMainScreen> {
         selectedItemColor: AppColors.deepNavy,
         unselectedItemColor: AppColors.grey400,
         showUnselectedLabels: true,
-        items: const [
+        items: [
           // Same tab labels as Trainer per spec
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.explore_outlined),
             activeIcon: Icon(Icons.explore),
             label: 'Explore',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today_outlined),
             activeIcon: Icon(Icons.calendar_today),
             label: 'Bookings',
           ),
           BottomNavigationBarItem(
-            // "List" tab — but for Barn Manager shows
-            // Trainer's horses read-only with availability editing
-            icon: Icon(Icons.list_alt_outlined),
-            activeIcon: Icon(Icons.list_alt),
-            label: 'List',
+            // '+ New' repurposed: Redirects to Manage Horses/Availability
+            icon: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _currentIndex = 2;
+                });
+              },
+              child: const CircleAvatar(
+                radius: 24,
+                backgroundColor: AppColors.deepNavy,
+                child: Icon(Icons.add, color: Colors.white, size: 28),
+              ),
+            ),
+            label: '',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.chat_bubble_outline),
             activeIcon: Icon(Icons.chat_bubble),
             label: 'Inbox',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+          const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
         ],
       ),
     );

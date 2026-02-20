@@ -11,6 +11,7 @@ final List<Map<String, dynamic>> trainerHorses = [
     'name': 'Midnight Star',
     'location': 'Wellington, FL',
     'price': '\$65,000',
+    'listingType': 'Sale',
     'breed': 'Warmblood',
     'height': '17.1hh',
     'age': '9 yrs',
@@ -22,6 +23,7 @@ final List<Map<String, dynamic>> trainerHorses = [
     'name': 'Royal Knight',
     'location': 'Ocala, FL',
     'price': '\$45,000',
+    'listingType': 'Lease',
     'breed': 'Thoroughbred',
     'height': '16.2hh',
     'age': '7 yrs',
@@ -82,6 +84,38 @@ class BarnManagerHorseListScreen extends StatelessWidget {
                           Text(
                             '${horse['breed']} • ${horse['age']}',
                             style: AppTextStyles.bodySmall,
+                          ),
+                          const SizedBox(height: 4),
+                          // Type and Location
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.mutedGold.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  horse['listingType'].toUpperCase(),
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.mutedGold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Next Show: ${horse['location']}',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.grey500,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 8),
                           Container(

@@ -3,12 +3,16 @@ import 'package:get/get.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
+import 'package:catch_ride/controllers/user_role_controller.dart';
 
 class HorseDetailScreen extends StatelessWidget {
   const HorseDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final roleController = Get.find<UserRoleController>();
+    final isBM = roleController.isBarnManager;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -142,15 +146,32 @@ class HorseDetailScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: CustomButton(
-                          text: 'Contact Seller',
+                          text: isBM
+                              ? 'Request More Info\n(on behalf of Trainer)'
+                              : 'Contact Seller',
                           isOutlined: true,
-                          onPressed: () {},
+                          onPressed: () {
+                            if (isBM) {
+                              Get.snackbar(
+                                'Inquiry Sent',
+                                'Message explicitly labeled: "From Sarah (Barn Manager) acting on behalf of ${roleController.linkedTrainerName.value}"',
+                                duration: const Duration(seconds: 4),
+                              );
+                            } else {
+                              Get.snackbar(
+                                'Message',
+                                'Opening chat with seller',
+                              );
+                            }
+                          },
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: CustomButton(
-                          text: 'Book Trial',
+                          text: isBM
+                              ? 'Request Trial\n(on behalf of Trainer)'
+                              : 'Book Trial',
                           onPressed: () {
                             // Book Trial Flow
                             Get.snackbar('Trial', 'Navigate to booking flow');

@@ -5,6 +5,7 @@ import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/widgets/custom_text_field.dart';
 import 'package:catch_ride/view/vendor/application/vendor_application_submit_screen.dart';
+import 'package:catch_ride/view/vendor/application/application_complete_bodywork.dart';
 
 class VendorApplicationFormScreen extends StatefulWidget {
   final List<String> selectedServices;
@@ -47,6 +48,18 @@ class _VendorApplicationFormScreenState
     }
   }
 
+  /// Routes to the correct specialty form for the current service type.
+  /// Returns null if the generic inline form should render instead.
+  Widget? _buildSpecialtyForm() {
+    if (_currentService == 'Bodywork') {
+      return ApplicationCompleteBodyworkScreen(
+        isLastForm: _isLastForm,
+        onContinue: _nextForm,
+      );
+    }
+    return null; // use generic form below
+  }
+
   @override
   void dispose() {
     _businessNameController.dispose();
@@ -62,6 +75,10 @@ class _VendorApplicationFormScreenState
 
   @override
   Widget build(BuildContext context) {
+    // If the current service has a dedicated form, delegate to it.
+    final specialtyForm = _buildSpecialtyForm();
+    if (specialtyForm != null) return specialtyForm;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('$_currentService Application'),

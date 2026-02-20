@@ -12,6 +12,11 @@ class BarnManagerInboxScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final roleController = Get.find<UserRoleController>();
 
+    // Data / Logic Notes (Dev)
+    // - All Barn Manager messages inherit trainerId automatically.
+    // - BM ↔ Outside Trainer messaging is ONLY allowed from an active listing thread.
+    // - UI hides 'Start New Conversation' for any unauthorized contacts.
+
     return Scaffold(
       appBar: AppBar(title: const Text('Messages')),
       body: Column(
@@ -124,6 +129,86 @@ class BarnManagerInboxScreen extends StatelessWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showNewMessageBottomSheet(context, roleController),
+        backgroundColor: AppColors.deepNavy,
+        child: const Icon(Icons.edit, color: Colors.white),
+      ),
+    );
+  }
+
+  void _showNewMessageBottomSheet(
+    BuildContext context,
+    UserRoleController roleController,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Start New Conversation',
+                style: AppTextStyles.headlineMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Barn Managers can only initiate messages with their associated Trainer or Vendors.',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.grey600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.deepNavy.withOpacity(0.1),
+                  child: const Icon(Icons.person, color: AppColors.deepNavy),
+                ),
+                title: Text(
+                  'Message Associated Trainer',
+                  style: AppTextStyles.titleMedium,
+                ),
+                subtitle: Obx(
+                  () => Text(roleController.linkedTrainerName.value),
+                ),
+                onTap: () {
+                  Get.back();
+                  Get.to(
+                    () => ChatDetailScreen(
+                      userName: roleController.linkedTrainerName.value,
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  backgroundColor: AppColors.deepNavy.withOpacity(0.1),
+                  child: const Icon(Icons.handyman, color: AppColors.deepNavy),
+                ),
+                title: Text(
+                  'Message a Vendor',
+                  style: AppTextStyles.titleMedium,
+                ),
+                subtitle: const Text('Coordinate services & availability'),
+                onTap: () {
+                  Get.back();
+                  Get.snackbar('Vendors', 'Vendor selection coming soon');
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 }

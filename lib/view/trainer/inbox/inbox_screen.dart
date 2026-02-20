@@ -103,6 +103,14 @@ class InboxScreen extends StatelessWidget {
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Normal 'Start New Conversation' for Trainers
+          Get.snackbar('New Message', 'Select a contact to message');
+        },
+        backgroundColor: AppColors.deepNavy,
+        child: const Icon(Icons.edit, color: Colors.white),
+      ),
     );
   }
 

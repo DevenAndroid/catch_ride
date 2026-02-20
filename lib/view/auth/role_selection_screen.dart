@@ -6,8 +6,8 @@ import 'package:catch_ride/controllers/user_role_controller.dart';
 import 'package:catch_ride/view/trainer/onboarding/trainer_application_screen.dart';
 
 import 'package:catch_ride/view/notifications/notification_permission_screen.dart';
-import 'package:catch_ride/view/vendor/application/vendor_application_screen.dart';
-import 'package:catch_ride/view/barn_manager/barn_manager_main_screen.dart';
+import 'package:catch_ride/view/vendor/onboarding/vendor_application_initial_screen.dart';
+import 'package:catch_ride/view/barn_manager/onboarding/barn_manager_application_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -61,7 +61,9 @@ class RoleSelectionScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const BarnManagerMainScreen(),
+                    builder: (_) => NotificationPermissionScreen(
+                      nextScreen: const BarnManagerApplicationScreen(),
+                    ),
                   ),
                 );
               },
@@ -80,7 +82,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const VendorApplicationScreen(),
+                    builder: (_) => const VendorApplicationInitialScreen(),
                   ),
                 );
               },
