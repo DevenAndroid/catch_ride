@@ -4,11 +4,14 @@
 import 'package:flutter/material.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/vendor_booking_models.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/booking_list_base.dart';
-import 'package:catch_ride/view/vendor/bookings/flows/booking_request_form_base.dart';
-import 'package:catch_ride/view/vendor/bookings/flows/booking_request_review_base.dart';
+import 'package:catch_ride/view/vendor/bookings/flows/booking_request_braiding.dart'
+    as booking_req;
+import 'package:catch_ride/view/vendor/bookings/flows/booking_request_review_braiding.dart'
+    as booking_rev;
 import 'package:catch_ride/view/vendor/bookings/flows/booking_confirmed_base.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/booking_denied_base.dart';
-import 'package:catch_ride/view/vendor/bookings/flows/booking_detail_base.dart';
+import 'package:catch_ride/view/vendor/bookings/flows/booking_detail_braiding.dart'
+    as booking_det;
 
 const _svc = VendorServiceConfig.braiding;
 
@@ -25,7 +28,7 @@ class BookingsRequestBraidingScreen extends StatelessWidget {
   const BookingsRequestBraidingScreen({super.key, this.vendorName});
   @override
   Widget build(BuildContext context) =>
-      BookingRequestFormBase(service: _svc, prefilledVendorName: vendorName);
+      booking_req.BookingsRequestBraidingScreen(vendorName: vendorName);
 }
 
 /// BookingRequestReviewBraider — Braider reviews an incoming request
@@ -38,11 +41,11 @@ class BookingRequestReviewBraiderScreen extends StatelessWidget {
     this.acceptMode = false,
   });
   @override
-  Widget build(BuildContext context) => BookingRequestReviewBase(
-    booking: booking,
-    service: _svc,
-    acceptMode: acceptMode,
-  );
+  Widget build(BuildContext context) =>
+      booking_rev.BookingRequestReviewBraiderScreen(
+        booking: booking,
+        acceptMode: acceptMode,
+      );
 }
 
 /// BookingRequestConfirmedBraider — Braider confirms a booking request
@@ -72,5 +75,5 @@ class BookingBraiderScreen extends StatelessWidget {
   const BookingBraiderScreen({super.key, required this.booking});
   @override
   Widget build(BuildContext context) =>
-      BookingDetailBase(booking: booking, service: _svc);
+      booking_det.BookingBraiderScreen(booking: booking);
 }

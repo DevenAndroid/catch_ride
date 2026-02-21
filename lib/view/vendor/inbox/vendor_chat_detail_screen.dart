@@ -18,6 +18,7 @@ class VendorMessage {
   final String? bookingId;
   final String?
   bookingStatus; // "requested" | "accepted" | "declined" | "cancelled"
+  final String? loadId;
 
   const VendorMessage({
     required this.text,
@@ -26,6 +27,7 @@ class VendorMessage {
     this.type = VendorMsgType.user,
     this.bookingId,
     this.bookingStatus,
+    this.loadId,
   });
 }
 
@@ -66,6 +68,7 @@ class _VendorChatDetailScreenState extends State<VendorChatDetailScreen> {
           time: '09:55 AM',
           type: VendorMsgType.system,
           bookingId: widget.thread.relatedBookingId,
+          loadId: widget.thread.relatedLoadId,
           bookingStatus: widget.thread.systemMessageText!.contains('accepted')
               ? 'accepted'
               : widget.thread.systemMessageText!.contains('declined')
@@ -211,9 +214,16 @@ class _VendorChatDetailScreenState extends State<VendorChatDetailScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
-                return msg.type == VendorMsgType.system
-                    ? _SystemBubble(message: msg)
-                    : _UserBubble(message: msg);
+                if (msg.type == VendorMsgType.system) {
+                  return Column(
+                    children: [
+                      _SystemBubble(message: msg),
+                      if (msg.loadId != null)
+                        _LoadPreviewPill(loadId: msg.loadId!),
+                    ],
+                  );
+                }
+                return _UserBubble(message: msg);
               },
             ),
           ),
@@ -412,6 +422,66 @@ class _UserBubble extends StatelessWidget {
                 color: message.isMe ? Colors.white60 : AppColors.textTertiary,
                 fontSize: 10,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadPreviewPill extends StatelessWidget {
+  final String loadId;
+  const _LoadPreviewPill({required this.loadId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        width: MediaQuery.of(context).size.width * 0.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.local_shipping_outlined,
+                  size: 16,
+                  color: AppColors.deepNavy,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Load Inquiry: #$loadId',
+                  style: AppTextStyles.labelLarge.copyWith(fontSize: 12),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Wellington WEF → Lexington, KY',
+              style: AppTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Mar 10–12 • 2 Stall Request',
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey600),
             ),
           ],
         ),

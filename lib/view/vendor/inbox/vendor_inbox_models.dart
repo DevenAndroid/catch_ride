@@ -13,6 +13,7 @@ class VendorThread {
   final bool hasSystemMessage;
   final String? systemMessageText;
   final String? relatedBookingId;
+  final String? relatedLoadId;
 
   const VendorThread({
     required this.id,
@@ -24,6 +25,7 @@ class VendorThread {
     this.hasSystemMessage = false,
     this.systemMessageText,
     this.relatedBookingId,
+    this.relatedLoadId,
   });
 }
 
@@ -33,43 +35,50 @@ final mockVendorThreads = [
     id: 't1',
     participantName: 'Sarah Williams',
     participantRole: VendorParticipantRole.trainer,
-    previewText: 'Hi, are you available for grooming on March 5th?',
+    previewText:
+        'Interested in the Wellington → Lexington run. Do you have room for 2?',
     time: 'Just now',
     isUnread: true,
     hasSystemMessage: true,
-    systemMessageText: 'New booking request from Sarah Williams',
-    relatedBookingId: 'BK-001',
+    systemMessageText: 'Load Inquiry',
+    relatedLoadId: 'L-101',
   ),
   const VendorThread(
     id: 't2',
     participantName: 'Emily Johnson',
     participantRole: VendorParticipantRole.barnManager,
-    previewText: 'Can you do braiding for two horses at WEF?',
+    previewText: 'Sent you a booking request for the Ocala trip.',
     time: '2:15 PM',
     isUnread: true,
+    hasSystemMessage: true,
+    systemMessageText: 'Booking Request',
+    relatedBookingId: 'BK-002',
   ),
   const VendorThread(
     id: 't3',
     participantName: 'Michael Davis',
     participantRole: VendorParticipantRole.trainer,
-    previewText: 'Great, I\'ll confirm the booking then!',
+    previewText: 'Slot confirmed. We will be ready for pickup at 8am.',
     time: '11:30 AM',
     hasSystemMessage: true,
-    systemMessageText: 'Booking accepted',
-    relatedBookingId: 'BK-002',
+    systemMessageText: 'Slot Confirmed',
+    relatedBookingId: 'BK-003',
   ),
   const VendorThread(
-    id: 't4',
+    id: 'sh-1',
     participantName: 'Lisa Chen',
     participantRole: VendorParticipantRole.trainer,
-    previewText: 'Do you travel to Ocala for shows?',
+    previewText: 'Is there a layover included in this route?',
     time: 'Yesterday',
+    hasSystemMessage: true,
+    systemMessageText: 'Load Inquiry',
+    relatedLoadId: 'L-102',
   ),
   const VendorThread(
     id: 't5',
     participantName: 'Rachel Brooks',
     participantRole: VendorParticipantRole.barnManager,
-    previewText: 'What\'s your rate for a full show weekend?',
+    previewText: 'Do you come out to Ocala for shows?',
     time: 'Feb 17',
   ),
 ];

@@ -2,6 +2,7 @@
 // All 6 booking screens for the GROOM service type
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/vendor_booking_models.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/booking_list_base.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/booking_request_form_base.dart';
@@ -22,10 +23,20 @@ class BookingListGroomScreen extends StatelessWidget {
 /// BookingsRequestGroom — Trainer's form to request a groom
 class BookingsRequestGroomScreen extends StatelessWidget {
   final String? vendorName;
-  const BookingsRequestGroomScreen({super.key, this.vendorName});
+  final VendorBooking? existingBooking;
+
+  const BookingsRequestGroomScreen({
+    super.key,
+    this.vendorName,
+    this.existingBooking,
+  });
+
   @override
-  Widget build(BuildContext context) =>
-      BookingRequestFormBase(service: _svc, prefilledVendorName: vendorName);
+  Widget build(BuildContext context) => BookingRequestFormBase(
+    service: _svc,
+    prefilledVendorName: vendorName,
+    existingBooking: existingBooking,
+  );
 }
 
 /// BookingRequestReviewGroom — Groom vendor reviews an incoming request
@@ -68,6 +79,10 @@ class BookingGroomScreen extends StatelessWidget {
   final VendorBooking booking;
   const BookingGroomScreen({super.key, required this.booking});
   @override
-  Widget build(BuildContext context) =>
-      BookingDetailBase(booking: booking, service: _svc);
+  Widget build(BuildContext context) => BookingDetailBase(
+    booking: booking,
+    service: _svc,
+    onEditReservation: () =>
+        Get.to(() => BookingsRequestGroomScreen(existingBooking: booking)),
+  );
 }

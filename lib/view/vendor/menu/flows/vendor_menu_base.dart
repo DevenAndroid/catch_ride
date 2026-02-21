@@ -43,6 +43,9 @@ class VendorMenuBase extends StatelessWidget {
   /// Extra items injected into the Business section (service-specific)
   final List<VendorMenuItem> specialtyItems;
 
+  /// Custom action for the Edit Profile button
+  final VoidCallback? onEditProfile;
+
   const VendorMenuBase({
     super.key,
     this.vendorName = 'John Smith',
@@ -52,6 +55,7 @@ class VendorMenuBase extends StatelessWidget {
     this.rating = 4.8,
     this.reviewCount = 124,
     this.specialtyItems = const [],
+    this.onEditProfile,
   });
 
   @override
@@ -111,7 +115,9 @@ class VendorMenuBase extends StatelessWidget {
                 icon: Icons.person_outline_rounded,
                 title: 'Edit Profile',
                 subtitle: 'Update your public profile',
-                onTap: () => Get.to(() => const EditVendorProfileScreen()),
+                onTap:
+                    onEditProfile ??
+                    () => Get.to(() => const EditVendorProfileScreen()),
               ),
             ),
             _buildMenuItem(
@@ -291,7 +297,9 @@ class VendorMenuBase extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () => Get.to(() => const EditVendorProfileScreen()),
+            onPressed:
+                onEditProfile ??
+                () => Get.to(() => const EditVendorProfileScreen()),
             icon: const Icon(Icons.edit_outlined, color: AppColors.deepNavy),
             tooltip: 'Edit Profile',
           ),

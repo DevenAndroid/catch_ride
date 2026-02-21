@@ -6,6 +6,11 @@ import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/widgets/custom_text_field.dart';
 import 'package:catch_ride/view/vendor/application/vendor_application_submit_screen.dart';
 import 'package:catch_ride/view/vendor/application/application_complete_bodywork.dart';
+import 'package:catch_ride/view/vendor/application/application_complete_braiding.dart';
+import 'package:catch_ride/view/vendor/application/application_complete_clipping.dart';
+import 'package:catch_ride/view/vendor/application/application_complete_groom.dart';
+import 'package:catch_ride/view/vendor/application/application_complete_farrier.dart';
+import 'package:catch_ride/view/vendor/application/application_complete_shipping.dart';
 
 class VendorApplicationFormScreen extends StatefulWidget {
   final List<String> selectedServices;
@@ -53,6 +58,31 @@ class _VendorApplicationFormScreenState
   Widget? _buildSpecialtyForm() {
     if (_currentService == 'Bodywork') {
       return ApplicationCompleteBodyworkScreen(
+        isLastForm: _isLastForm,
+        onContinue: _nextForm,
+      );
+    } else if (_currentService == 'Braiding') {
+      return ApplicationCompleteBraidingScreen(
+        isLastForm: _isLastForm,
+        onContinue: _nextForm,
+      );
+    } else if (_currentService == 'Clipper' || _currentService == 'Clipping') {
+      return ApplicationCompleteClippingScreen(
+        isLastForm: _isLastForm,
+        onContinue: _nextForm,
+      );
+    } else if (_currentService == 'Groom') {
+      return ApplicationCompleteGroomScreen(
+        isLastForm: _isLastForm,
+        onContinue: _nextForm,
+      );
+    } else if (_currentService == 'Farrier') {
+      return ApplicationCompleteFarrierScreen(
+        isLastForm: _isLastForm,
+        onContinue: _nextForm,
+      );
+    } else if (_currentService == 'Shipping') {
+      return ApplicationCompleteShippingScreen(
         isLastForm: _isLastForm,
         onContinue: _nextForm,
       );

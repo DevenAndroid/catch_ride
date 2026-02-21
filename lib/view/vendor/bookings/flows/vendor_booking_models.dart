@@ -175,6 +175,12 @@ class VendorBooking {
   final BookingStatus status;
   final String? notes;
   final VendorServiceType serviceType;
+  final String? address; // Specific address or barn location
+  final String? pickupAddress;
+  final String? dropoffAddress;
+  final List<String>? paymentMethods;
+  final String? cancellationPolicy;
+  final String? relatedLoadId;
 
   const VendorBooking({
     required this.id,
@@ -191,6 +197,12 @@ class VendorBooking {
     required this.status,
     this.notes,
     required this.serviceType,
+    this.address,
+    this.pickupAddress,
+    this.dropoffAddress,
+    this.paymentMethods,
+    this.cancellationPolicy,
+    this.relatedLoadId,
   });
 }
 
@@ -213,6 +225,9 @@ final mockVendorBookings = [
     status: BookingStatus.pending,
     notes: 'Please arrive by 7:30 AM. Access through Gate 3.',
     serviceType: VendorServiceType.groom,
+    address: '14440 Pierson Rd, Wellington, FL 33414',
+    paymentMethods: ['Electronic (Zelle)', 'Cash', 'In-App'],
+    cancellationPolicy: 'Full refund if cancelled 48 hours before service.',
   ),
   VendorBooking(
     id: 'VB002',
@@ -274,16 +289,40 @@ final mockVendorBookings = [
     id: 'VB006',
     clientName: 'Tom Nelson',
     clientRole: 'Trainer',
-    horseName: 'Blaze',
+    horseName: 'Blaze, Rocky, Comet, Flash',
     horseCount: 4,
-    serviceDetail: 'Round Trip',
+    serviceDetail: 'One Way',
     date: DateTime(2026, 3, 12, 6, 0),
-    endDate: 'Mar 15',
+    endDate: 'Mar 12',
     location: 'Wellington → Ocala',
     showName: 'HITS Circuit',
-    rate: '\$1,200',
+    rate: '\$800',
     status: BookingStatus.pending,
     notes: 'Hay and buckets for 4 horses needed en route.',
     serviceType: VendorServiceType.shipping,
+    pickupAddress: 'Wellington WEF - Barn 4',
+    dropoffAddress: 'HITS Ocala - Tent 2',
+    relatedLoadId: 'L-101',
+    paymentMethods: ['Cash', 'Electronic (Zelle)'],
+    cancellationPolicy: 'Refundable up to 24hrs before departure.',
+  ),
+  VendorBooking(
+    id: 'VB007',
+    clientName: 'Sarah Williams',
+    clientRole: 'Trainer',
+    horseName: 'Midnight Star',
+    horseCount: 1,
+    serviceDetail: 'Round Trip',
+    date: DateTime(2026, 3, 10, 8, 0),
+    endDate: 'Mar 15',
+    location: 'Lexington → Tryon',
+    showName: 'Spring Circuit',
+    rate: '\$1,200',
+    status: BookingStatus.confirmed,
+    serviceType: VendorServiceType.shipping,
+    pickupAddress: 'Kentucky Horse Park',
+    dropoffAddress: 'Tryon Equestrian Center',
+    relatedLoadId: 'L-102',
+    paymentMethods: ['In-App', 'Zelle'],
   ),
 ];

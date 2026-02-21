@@ -27,13 +27,28 @@ class ProfilePageGroomScreen extends StatelessWidget {
           VendorServiceRate('Half Day / Show Prep', '\$120'),
           VendorServiceRate('Travel Day (no show)', '\$80'),
         ],
-        operatingRegion: 'Wellington, FL • Ocala, FL • East Coast Circuits',
+        operatingRegion: 'East Coast Circuits · Florida State · South Carolina',
+        homeBase: 'Wellington, FL, USA',
         isAcceptingBookings: true,
         rating: 4.8,
         reviewCount: 124,
         yearsExp: 8,
         jobsDone: 350,
+        availabilityBlocks: [
+          'Feb 10 – Feb 24: Wellington + WEC Ocala',
+          'Mar 1 – Mar 15: HITS Ocala + Aiken',
+          'Apr 1 – Apr 30: Lexington (Show Week Support)',
+        ],
         serviceIcon: Icons.cleaning_services_rounded,
+        coverPhotoUrl:
+            'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=1200',
+        cancellationPolicy:
+            'Full refund if cancelled at least 48 hours before scheduled service. 50% charge for cancellations within 24 hours.',
+        paymentMethods: ['In-App Payment', 'Zelle', 'Cash', 'Venmo'],
+        travelPreferences:
+            'Will travel up to 500 miles for show blocks. Air travel required for international circuits.',
+        disciplines: ['Hunter', 'Jumper', 'Equitation', 'Dressage'],
+        horseLevels: ['Grand Prix', 'FEI', 'A-Circuit', 'Junior/Amateur'],
       ),
     );
   }

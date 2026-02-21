@@ -4,14 +4,15 @@ import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/view/auth/welcome_screen.dart';
 import 'package:catch_ride/view/notifications/notification_screen.dart';
-import 'package:catch_ride/view/profile/edit_profile_screen.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/controllers/user_role_controller.dart';
 import 'package:catch_ride/view/profile/personal_info_screen.dart';
 import 'package:catch_ride/view/profile/login_security_screen.dart';
 import 'package:catch_ride/view/settings/terms_conditions_screen.dart';
 import 'package:catch_ride/view/barn_manager/manage_horses/barn_manager_horse_list_screen.dart';
-import 'package:catch_ride/view/barn_manager/book_service/create_booking_request_screen.dart';
+import 'package:catch_ride/view/trainer/book_service/vendor_search_screen.dart';
+import 'package:catch_ride/view/support/feedback_screen.dart';
+import 'package:catch_ride/view/barn_manager/profile/edit_profile_barn_manager_screen.dart';
 
 class BarnManagerMenuScreen extends StatelessWidget {
   const BarnManagerMenuScreen({super.key});
@@ -32,7 +33,7 @@ class BarnManagerMenuScreen extends StatelessWidget {
           children: [
             // Profile Header with "Managing on behalf of" label
             _buildProfileHeader(roleController),
-            const Divider(height: 32, thickness: 8, color: AppColors.grey100),
+            const Divider(height: 1, thickness: 1, color: AppColors.grey200),
 
             // "Managing on behalf of" Banner
             Container(
@@ -104,7 +105,7 @@ class BarnManagerMenuScreen extends StatelessWidget {
               icon: Icons.person_outline,
               title: 'Edit Profile',
               onTap: () {
-                Get.to(() => const EditProfileScreen());
+                Get.to(() => const EditProfileBarnManagerScreen());
               },
             ),
             _buildMenuItem(
@@ -144,7 +145,7 @@ class BarnManagerMenuScreen extends StatelessWidget {
               title: 'Book a Service',
               subtitle: 'Request vendor services on behalf of trainer',
               onTap: () {
-                Get.to(() => const CreateBookingRequestBarnManager());
+                Get.to(() => const VendorSearchScreen());
               },
             ),
 
@@ -163,7 +164,7 @@ class BarnManagerMenuScreen extends StatelessWidget {
               icon: Icons.feedback_outlined,
               title: 'Give us feedback',
               onTap: () {
-                Get.snackbar('Coming Soon', 'Share your feedback');
+                Get.to(() => const FeedbackScreen());
               },
             ),
 
@@ -218,61 +219,120 @@ class BarnManagerMenuScreen extends StatelessWidget {
   }
 
   Widget _buildProfileHeader(UserRoleController roleController) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.grey200,
-              image: const DecorationImage(
-                image: NetworkImage('https://via.placeholder.com/150'),
-                fit: BoxFit.cover,
+    return Column(
+      children: [
+        Stack(
+          children: [
+            Container(
+              height: 160,
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=800',
+                  ),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sarah Connor',
-                  style: AppTextStyles.headlineMedium.copyWith(fontSize: 20),
+            Container(
+              height: 160,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.1),
+                    Colors.transparent,
+                  ],
                 ),
-                const SizedBox(height: 4),
-                // Role Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.mutedGold.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Barn Manager',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.mutedGold,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
+            Positioned(
+              right: 16,
+              bottom: 16,
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                child: IconButton(
+                  icon: const Icon(Icons.camera_alt, color: AppColors.deepNavy),
+                  onPressed: () =>
+                      Get.snackbar('Photo', 'Update cover photo...'),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+          child: Row(
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.grey200,
+                  border: Border.all(color: Colors.white, width: 3),
+                  image: const DecorationImage(
+                    image: NetworkImage('https://via.placeholder.com/150'),
+                    fit: BoxFit.cover,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sarah Connor',
+                      style: AppTextStyles.headlineMedium.copyWith(
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.mutedGold.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Barn Manager',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.mutedGold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () {
+                  Get.to(() => const EditProfileBarnManagerScreen());
+                },
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: AppColors.deepNavy,
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: () {
-              Get.to(() => const EditProfileScreen());
-            },
-            icon: const Icon(Icons.edit_outlined, color: AppColors.deepNavy),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

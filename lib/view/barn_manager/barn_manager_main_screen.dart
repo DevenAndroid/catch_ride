@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
-import 'package:catch_ride/features/trainer/bookings/bookings_screen.dart';
 import 'package:catch_ride/view/trainer/explore/explore_screen.dart';
 import 'package:catch_ride/view/barn_manager/inbox/barn_manager_inbox_screen.dart';
 import 'package:catch_ride/view/barn_manager/menu/barn_manager_menu_screen.dart';
 import 'package:catch_ride/view/barn_manager/manage_horses/barn_manager_horse_list_screen.dart';
+import 'package:catch_ride/view/barn_manager/bookings/bookings_home_barn_manager.dart';
 
 class BarnManagerMainScreen extends StatefulWidget {
   const BarnManagerMainScreen({super.key});
@@ -20,7 +20,7 @@ class _BarnManagerMainScreenState extends State<BarnManagerMainScreen> {
   // But with reduced permissions per spec
   final List<Widget> _screens = [
     const ExploreScreen(), // Shared — browse horses & vendors
-    const BookingsScreen(), // Shared — views same bookings as Trainer
+    const BookingsHomeBarnManager(), // Shared — views same bookings as Trainer
     const BarnManagerHorseListScreen(), // List tab → read-only horses + edit availability
     const BarnManagerInboxScreen(), // Messages under Trainer identity
     const BarnManagerMenuScreen(), // Reduced menu options

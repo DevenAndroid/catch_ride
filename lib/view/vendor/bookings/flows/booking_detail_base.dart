@@ -8,15 +8,20 @@ import 'package:intl/intl.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/vendor_booking_models.dart';
+import 'package:catch_ride/view/vendor/profile/flows/profile_complete_groom.dart';
 
 class BookingDetailBase extends StatelessWidget {
   final VendorBooking booking;
   final VendorServiceConfig service;
+  final bool isVendorView;
+  final VoidCallback? onEditReservation;
 
   const BookingDetailBase({
     super.key,
     required this.booking,
     required this.service,
+    this.isVendorView = true,
+    this.onEditReservation,
   });
 
   @override
@@ -32,6 +37,13 @@ class BookingDetailBase extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Booking Title/Description ────────────────────────────────
+            Text(
+              '${b.horseCount} Day${b.horseCount > 1 ? 's' : ''} ${s.verbLabel} ${b.showName}',
+              style: AppTextStyles.headlineMedium.copyWith(fontSize: 22),
+            ),
+            const SizedBox(height: 12),
+
             // ── Status Banner ────────────────────────────────────────────
             Container(
               width: double.infinity,
@@ -63,8 +75,11 @@ class BookingDetailBase extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // ── Client Info ──────────────────────────────────────────────
-            _sectionLabel('Client', Icons.person_outline_rounded),
+            // ── Party Info (Conditional) ────────────────────────────────
+            _sectionLabel(
+              isVendorView ? 'Client' : 'Service Provider',
+              Icons.person_outline_rounded,
+            ),
             const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(16),
@@ -75,36 +90,43 @@ class BookingDetailBase extends StatelessWidget {
                     radius: 26,
                     backgroundColor: AppColors.deepNavy.withOpacity(0.1),
                     child: Text(
-                      b.clientName[0],
+                      isVendorView ? b.clientName[0] : 'JS',
                       style: AppTextStyles.titleLarge.copyWith(
                         color: AppColors.deepNavy,
                       ),
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(b.clientName, style: AppTextStyles.titleMedium),
-                      Text(
-                        b.clientRole,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.grey500,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isVendorView ? b.clientName : 'John Smith',
+                          style: AppTextStyles.titleMedium,
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  if (b.status == BookingStatus.confirmed)
-                    IconButton(
-                      onPressed: () =>
-                          Get.snackbar('Messages', 'Opening thread...'),
-                      icon: const Icon(
-                        Icons.chat_bubble_outline_rounded,
-                        color: AppColors.deepNavy,
-                      ),
-                      tooltip: 'Message',
+                        Text(
+                          isVendorView ? b.clientRole : 'Vendor · Groom',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.grey500,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      if (isVendorView) {
+                        Get.snackbar('Profile', 'Opening Trainer Profile');
+                      } else {
+                        Get.to(
+                          () =>
+                              const ProfilePageGroomScreen(isOwnProfile: false),
+                        );
+                      }
+                    },
+                    child: const Text('View Profile'),
+                  ),
                 ],
               ),
             ),
@@ -127,6 +149,10 @@ class BookingDetailBase extends StatelessWidget {
                   ],
                   _div(),
                   _row(Icons.location_on_outlined, 'Location', b.location),
+                  if (b.address != null) ...[
+                    _div(),
+                    _row(Icons.map_outlined, 'Address', b.address!),
+                  ],
                   _div(),
                   _row(Icons.flag_outlined, 'Show / Event', b.showName),
                   _div(),
@@ -145,6 +171,31 @@ class BookingDetailBase extends StatelessWidget {
                     _div(),
                     _row(Icons.notes_rounded, 'Notes', b.notes!),
                   ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Payment & Policy ─────────────────────────────────────────
+            _sectionLabel('Payment & Policy', Icons.info_outline_rounded),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: _cardDecor(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _row(
+                    Icons.payments_outlined,
+                    'Accepted',
+                    b.paymentMethods?.join(', ') ?? 'Cash, Zelle, In-App',
+                  ),
+                  _div(),
+                  _row(
+                    Icons.policy_outlined,
+                    'Cancellation',
+                    b.cancellationPolicy ?? 'Flexible (24hr notice)',
+                  ),
                 ],
               ),
             ),
@@ -174,13 +225,51 @@ class BookingDetailBase extends StatelessWidget {
             onPressed: () =>
                 Get.snackbar('Messages', 'Opening thread with ${b.clientName}'),
             icon: const Icon(Icons.chat_bubble_outline_rounded),
-            label: const Text('Message Client'),
+            label: const Text('Message'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.deepNavy,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed:
+                onEditReservation ??
+                () => Get.snackbar(
+                  'Edit',
+                  'Navigating to Request Form with pre-filled data...',
+                ),
+            icon: const Icon(Icons.edit_calendar_outlined),
+            label: const Text('Change Reservation'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.deepNavy,
+              side: const BorderSide(color: AppColors.deepNavy),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: TextButton(
+            onPressed: () => Get.snackbar(
+              'Cancel',
+              'Cancellation policy: ${b.cancellationPolicy ?? 'Standard'}',
+            ),
+            child: const Text(
+              'Cancel Booking',
+              style: TextStyle(
+                color: AppColors.softRed,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),

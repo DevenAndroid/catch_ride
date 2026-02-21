@@ -13,11 +13,14 @@ import 'package:catch_ride/view/vendor/bookings/flows/vendor_booking_models.dart
 class BookingRequestFormBase extends StatefulWidget {
   final VendorServiceConfig service;
   final String? prefilledVendorName; // passed when coming from a vendor profile
+  final VendorBooking?
+  existingBooking; // passed when editing/changing reservation
 
   const BookingRequestFormBase({
     super.key,
     required this.service,
     this.prefilledVendorName,
+    this.existingBooking,
   });
 
   @override
@@ -40,6 +43,18 @@ class _BookingRequestFormBaseState extends State<BookingRequestFormBase> {
     super.initState();
     if (widget.prefilledVendorName != null) {
       _vendorNameController.text = widget.prefilledVendorName!;
+    }
+
+    if (widget.existingBooking != null) {
+      final b = widget.existingBooking!;
+      _vendorNameController.text =
+          'John Smith'; // Assuming vendor name for mock
+      _showNameController.text = b.showName;
+      _locationController.text = b.location;
+      _horseCountController.text = b.horseCount.toString();
+      _notesController.text = b.notes ?? '';
+      _startDate = b.date;
+      _selectedService = b.serviceDetail;
     }
   }
 

@@ -43,7 +43,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Explore'),
@@ -57,6 +57,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
               Tab(text: 'Hunters'),
               Tab(text: 'Jumpers'),
               Tab(text: 'Equitation'),
+              Tab(text: 'Vendors'),
             ],
           ),
         ),
@@ -169,6 +170,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   _buildHorseList(), // Hunters
                   _buildHorseList(), // Jumpers
                   _buildHorseList(), // Equitation
+                  _buildVendorList(), // Vendors
                 ],
               ),
             ),
@@ -204,5 +206,108 @@ class _ExploreScreenState extends State<ExploreScreen> {
         );
       },
     );
+  }
+
+  Widget _buildVendorList() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 4,
+      itemBuilder: (context, index) {
+        final titles = [
+          'Elite Grooming',
+          'Superior Braiding',
+          'SafeRide Transport',
+          'Ocala Farrier',
+        ];
+        final services = ['Grooming', 'Braiding', 'Shipping', 'Farrier'];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.grey200),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: const DecorationImage(
+                    image: NetworkImage('https://via.placeholder.com/150'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(titles[index], style: AppTextStyles.titleMedium),
+                    Text(
+                      services[index],
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.grey500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 14,
+                          color: AppColors.mutedGold,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '4.9 (12 reviews)',
+                          style: AppTextStyles.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                children: [
+                  OutlinedButton(
+                    onPressed: () =>
+                        Get.to(() => const VendorPublicProfileScreen()),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    child: const Text('View'),
+                  ),
+                  const SizedBox(height: 4),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.chat_bubble_outline,
+                      size: 20,
+                      color: AppColors.deepNavy,
+                    ),
+                    onPressed: () =>
+                        Get.snackbar('Inbox', 'Opening chat with vendor...'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class VendorPublicProfileScreen extends StatelessWidget {
+  const VendorPublicProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Reusing existing screen
+    return const Scaffold(body: Center(child: Text('Vendor Profile')));
   }
 }

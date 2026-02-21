@@ -3,7 +3,8 @@ import 'package:get/get.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
-import 'package:catch_ride/view/vendor/profile/vendor_profile_complete_screen.dart';
+import 'package:catch_ride/view/vendor/profile/flows/community_standards_groom.dart';
+import 'package:catch_ride/view/vendor/profile/flows/community_standards_shipping.dart';
 
 class VendorWaitingScreen extends StatelessWidget {
   const VendorWaitingScreen({super.key});
@@ -102,9 +103,16 @@ class VendorWaitingScreen extends StatelessWidget {
 
               // For demo purposes: Skip to approved
               CustomButton(
-                text: 'Continue (Demo: Approved)',
+                text: 'Continue (Demo: Groom Approved)',
                 onPressed: () {
-                  Get.offAll(() => const VendorProfileCompleteScreen());
+                  Get.offAll(() => const CommunityStandardsGroomScreen());
+                },
+              ),
+              const SizedBox(height: 12),
+              CustomButton(
+                text: 'Continue (Demo: Shipping Approved)',
+                onPressed: () {
+                  Get.offAll(() => const CommunityStandardsShippingScreen());
                 },
               ),
               const SizedBox(height: 12),

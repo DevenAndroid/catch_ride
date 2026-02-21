@@ -1,11 +1,10 @@
-
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final bool isOutlined;
   final Color? backgroundColor;
@@ -15,7 +14,7 @@ class CustomButton extends StatelessWidget {
   const CustomButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     this.isLoading = false,
     this.isOutlined = false,
     this.backgroundColor,
@@ -62,14 +61,12 @@ class CustomButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (icon != null) ...[
-          icon!,
-          const SizedBox(width: 8),
-        ],
+        if (icon != null) ...[icon!, const SizedBox(width: 8)],
         Text(
           text,
           style: AppTextStyles.button.copyWith(
-            color: textColor ?? (isOutlined ? AppColors.deepNavy : Colors.white),
+            color:
+                textColor ?? (isOutlined ? AppColors.deepNavy : Colors.white),
           ),
         ),
       ],

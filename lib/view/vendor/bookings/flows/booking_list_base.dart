@@ -9,6 +9,7 @@ import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/vendor_booking_models.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/booking_detail_base.dart';
 import 'package:catch_ride/view/vendor/bookings/flows/booking_request_review_base.dart';
+import 'package:catch_ride/view/vendor/bookings/flows/farrier_booking_screens.dart';
 
 class BookingListBase extends StatelessWidget {
   final VendorServiceConfig service;
@@ -129,8 +130,13 @@ class _BookingCard extends StatelessWidget {
     final dateStr = DateFormat('EEE, MMM d · h:mm a').format(booking.date);
 
     return GestureDetector(
-      onTap: () =>
-          Get.to(() => BookingDetailBase(booking: booking, service: service)),
+      onTap: () {
+        if (service.type == VendorServiceType.farrier) {
+          Get.to(() => BookingFarrierScreen(booking: booking));
+        } else {
+          Get.to(() => BookingDetailBase(booking: booking, service: service));
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
