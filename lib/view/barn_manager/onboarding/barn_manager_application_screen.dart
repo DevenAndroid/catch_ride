@@ -7,11 +7,11 @@ import 'package:catch_ride/widgets/custom_text_field.dart';
 import 'package:catch_ride/view/barn_manager/onboarding/barn_manager_application_submit_screen.dart';
 
 class BarnManagerApplicationController extends GetxController {
+  final trainerNameController = TextEditingController(); // Required
+  final stableNameController = TextEditingController(); // Required
   final websiteController = TextEditingController();
   final facebookController = TextEditingController(); // Required
   final instagramController = TextEditingController();
-  final trainerController =
-      TextEditingController(); // Associated Trainer Required
   // Federation ID and choose federation are NOT required, so we omit them
 
   void submitApplication() {
@@ -31,10 +31,11 @@ class BarnManagerApplicationController extends GetxController {
 
   @override
   void onClose() {
+    trainerNameController.dispose();
+    stableNameController.dispose();
     websiteController.dispose();
     facebookController.dispose();
     instagramController.dispose();
-    trainerController.dispose();
     super.onClose();
   }
 }
@@ -68,13 +69,24 @@ class BarnManagerApplicationScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Associated Trainer (Required)
+            // Associated Trainer Information (Required)
+            Text('Associated Trainer', style: AppTextStyles.titleMedium),
+            const SizedBox(height: 12),
             CustomTextField(
-              label: 'Associated Trainer *',
-              hint: 'Enter your associated trainer\'s name or handle',
-              controller: controller.trainerController,
+              label: 'Trainer Name *',
+              hint: 'Enter your associated trainer\'s full name',
+              controller: controller.trainerNameController,
             ),
             const SizedBox(height: 16),
+            CustomTextField(
+              label: 'Stable Name *',
+              hint: 'Enter the stable where you work',
+              controller: controller.stableNameController,
+            ),
+            const SizedBox(height: 32),
+
+            Text('Professional Links', style: AppTextStyles.titleMedium),
+            const SizedBox(height: 12),
 
             // Website (Optional)
             CustomTextField(

@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/widgets/notification_card.dart';
+import 'package:catch_ride/view/trainer/barn_manager/barn_manager_approval_screen.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -11,19 +10,31 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Notifications')),
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return NotificationCard(
-            title: 'New Booking Request',
-            date: '2h ago',
-            body: 'You have a new booking request from John Doe.',
+      body: ListView(
+        children: [
+          NotificationCard(
+            title: 'Barn Manager Request',
+            date: 'Just now',
+            body:
+                'Sarah Connor has requested to manage your barn. Review and approve their access.',
             onTap: () {
-              // Navigate to booking details
+              Get.to(() => const BarnManagerApprovalScreen());
             },
-            isRead: index > 2, // Example logic
-          );
-        },
+            isRead: false,
+          ),
+          ...List.generate(
+            9,
+            (index) => NotificationCard(
+              title: 'New Booking Request',
+              date: '${index + 2}h ago',
+              body: 'You have a new booking request from Trainer ${index + 1}.',
+              onTap: () {
+                // Navigate to booking details
+              },
+              isRead: true,
+            ),
+          ),
+        ],
       ),
     );
   }

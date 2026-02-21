@@ -31,7 +31,8 @@ class BarnManagerProfileController extends GetxController {
       );
       return;
     }
-    // Redirect to Explore page flow (New page) - which is typically BarnManagerMainScreen
+    // Redirect to Explore page flow (New page)
+    // The BarnManagerMainScreen has Explore as the first tab (index 0)
     Get.offAll(() => const BarnManagerMainScreen());
   }
 }
