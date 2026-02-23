@@ -86,13 +86,10 @@ class ApplicationSubmitTrainerScreen extends StatelessWidget {
               ),
               const SizedBox(height: 48),
               CustomButton(
-                text: 'Contact Support',
+                text: 'Go to Dashboard',
                 onPressed: () {
                   Get.offAll(() => const TrainerMainScreen());
                 },
-                backgroundColor: AppColors.deepNavy,
-                textColor: AppColors.deepNavy,
-                isOutlined: true,
               ),
               const SizedBox(height: 16),
               CustomButton(

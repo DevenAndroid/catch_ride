@@ -21,16 +21,16 @@ class BookingsScreen extends StatelessWidget {
             indicatorColor: AppColors.mutedGold,
             indicatorWeight: 3,
             tabs: [
-              Tab(text: 'Requests'),
-              Tab(text: 'Confirmed'),
-              Tab(text: 'Past'),
+              Tab(text: 'Accepted'),
+              Tab(text: 'Requested'),
+              Tab(text: 'History'),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            _buildBookingList(BookingStatus.requested),
             _buildBookingList(BookingStatus.accepted),
+            _buildBookingList(BookingStatus.requested),
             _buildBookingList(
               BookingStatus.completed,
             ), // Logic handles completed/cancelled/declined

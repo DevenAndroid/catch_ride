@@ -235,46 +235,7 @@ class HorseListingCreateScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(HorseListingCreateController());
 
-    Widget _buildPricingRow(
-      String label,
-      TextEditingController ctrl,
-      RxBool isInquire,
-    ) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: AppTextStyles.labelLarge),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    label: '',
-                    hint: '\$50,000 - \$75,000',
-                    controller: ctrl,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Obx(
-                  () => Row(
-                    children: [
-                      Checkbox(
-                        value: isInquire.value,
-                        onChanged: (val) => isInquire.value = val ?? false,
-                        activeColor: AppColors.deepNavy,
-                      ),
-                      const Text('Inquire Only'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
+    // _buildPricingRow removed
 
     return Scaffold(
       appBar: AppBar(
@@ -391,56 +352,6 @@ class HorseListingCreateScreen extends StatelessWidget {
                     .toList(),
               ),
             ),
-
-            const SizedBox(height: 16),
-            // Dynamic Pricing Sections
-            Obx(() {
-              final types = controller.selectedListingType;
-              final children = <Widget>[];
-
-              if (types.contains('Sale')) {
-                children.add(
-                  _buildPricingRow(
-                    'Sale Price Range',
-                    controller.salePriceController,
-                    controller.isSaleInquire,
-                  ),
-                );
-              }
-              if (types.contains('Annual Lease')) {
-                children.add(
-                  _buildPricingRow(
-                    'Annual Lease Range',
-                    controller.annualLeasePriceController,
-                    controller.isAnnualLeaseInquire,
-                  ),
-                );
-              }
-              if (types.contains('Short Term Lease')) {
-                children.add(
-                  _buildPricingRow(
-                    'Short Term Lease Range',
-                    controller.shortTermLeasePriceController,
-                    controller.isShortTermLeaseInquire,
-                  ),
-                );
-              }
-              if (types.contains('Weekly Lease')) {
-                children.add(
-                  _buildPricingRow(
-                    'Weekly Lease Range',
-                    controller.weeklyLeasePriceController,
-                    controller.isWeeklyLeaseInquire,
-                  ),
-                );
-              }
-
-              if (children.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              return Column(children: children);
-            }),
 
             const SizedBox(height: 16),
             Text('Discipline', style: AppTextStyles.labelLarge),

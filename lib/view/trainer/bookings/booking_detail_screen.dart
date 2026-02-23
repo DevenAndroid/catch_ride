@@ -104,54 +104,6 @@ class BookingDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             _buildInfoRow(Icons.location_on, booking.location),
 
-            if (booking.notes != null) ...[
-              const SizedBox(height: 16),
-              const Text(
-                'Notes:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Text(booking.notes!, style: AppTextStyles.bodyMedium),
-            ],
-
-            const Divider(height: 32),
-
-            // Pricing
-            _buildSectionHeader('Payment'),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Base Fee', style: AppTextStyles.bodyLarge),
-                Text(
-                  '\$${booking.price.toStringAsFixed(0)}',
-                  style: AppTextStyles.bodyLarge,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Service Fee', style: AppTextStyles.bodyMedium),
-                Text('\$50', style: AppTextStyles.bodyMedium),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total', style: AppTextStyles.titleLarge),
-                Text(
-                  '\$${(booking.price + 50).toStringAsFixed(0)}',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    color: AppColors.deepNavy,
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 40),
 
             // Actions
@@ -188,18 +140,6 @@ class BookingDetailScreen extends StatelessWidget {
                 onPressed: () {
                   Get.back();
                   Get.snackbar('Cancelled', 'Booking request cancelled.');
-                },
-              ),
-            ] else if (booking.status == BookingStatus.accepted) ...[
-              CustomButton(
-                text: 'Message Counterparty',
-                isOutlined: true,
-                onPressed: () {
-                  // Open Chat
-                  Get.snackbar(
-                    'Message',
-                    'Opening chat with ${booking.subtitle}...',
-                  );
                 },
               ),
             ],

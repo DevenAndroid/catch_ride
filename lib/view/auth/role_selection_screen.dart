@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/controllers/user_role_controller.dart';
-import 'package:catch_ride/view/trainer/onboarding/trainer_application_screen.dart';
+import 'package:catch_ride/view/profile/edit_profile_screen.dart';
 
 import 'package:catch_ride/view/notifications/notification_permission_screen.dart';
 import 'package:catch_ride/view/vendor/onboarding/vendor_application_initial_screen.dart';
@@ -37,11 +37,13 @@ class RoleSelectionScreen extends StatelessWidget {
               icon: Icons
                   .sports_motorsports_rounded, // Best proxy for jockey/rider
               onTap: () {
+                final roleController = Get.put(UserRoleController());
+                roleController.setRole(UserRole.trainer);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (_) => NotificationPermissionScreen(
-                      nextScreen: const TrainerApplicationScreen(),
+                      nextScreen: const EditProfileScreen(),
                     ),
                   ),
                 );

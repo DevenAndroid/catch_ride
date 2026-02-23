@@ -308,12 +308,7 @@ class AddHorseScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          CustomTextField(
-            label: 'Price / Fee',
-            hint: '\$ Enter amount or "Inquire"',
-            controller: controller.priceController,
-          ),
-
+          // Price/Fee input removed
           const SizedBox(height: 24),
           Text('Availability Calendar', style: AppTextStyles.titleMedium),
           Text(

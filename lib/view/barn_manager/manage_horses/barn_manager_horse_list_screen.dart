@@ -5,12 +5,13 @@ import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/utils/date_picker_helper.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/widgets/custom_text_field.dart';
+import 'package:catch_ride/view/trainer/explore/horse_detail_screen.dart';
 
 // Mock Horse Data for Trainer
 final List<Map<String, dynamic>> trainerHorses = [
   {
     'name': 'Midnight Star',
-    'location': 'Wellington, FL',
+    'location': 'Wellington International',
     'price': '65000',
     'listingType': 'Sale',
     'breed': 'Warmblood',
@@ -18,12 +19,12 @@ final List<Map<String, dynamic>> trainerHorses = [
     'age': '9',
     'imageUrl':
         'https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&q=80&w=400',
-    'availability': 'Mar 1 - Mar 15',
+    'availability': '01 Mar 2026 - 15 Mar 2026',
     'status': 'Available',
   },
   {
     'name': 'Royal Knight',
-    'location': 'Ocala, FL',
+    'location': 'Ocala World Equestrian Center',
     'price': '45000',
     'listingType': 'Lease',
     'breed': 'Thoroughbred',
@@ -31,7 +32,7 @@ final List<Map<String, dynamic>> trainerHorses = [
     'age': '7',
     'imageUrl':
         'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=400',
-    'availability': 'Available Now',
+    'availability': '05 Feb 2026 - 10 Feb 2026',
     'status': 'In Trial',
   },
 ];
@@ -86,150 +87,141 @@ class BarnManagerHorseListScreen extends StatelessWidget {
   }
 
   Widget _buildHorseCard(BuildContext context, Map<String, dynamic> horse) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.grey200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        Get.to(
+          () => HorseDetailScreen(
+            name: horse['name'],
+            location: horse['location'],
+            price: horse['price'],
+            listingType: horse['listingType'],
+            breed: horse['breed'],
+            height: horse['height'],
+            age: horse['age'],
+            imageUrl: horse['imageUrl'],
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Media Section (Point 5 requirement)
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Stack(
-              children: [
-                Image.network(
-                  horse['imageUrl'],
-                  height: 180,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: _buildStatusBadge(horse['status']),
-                ),
-                Positioned(
-                  bottom: 12,
-                  left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.photo_library,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '1/4 Photos',
-                          style: AppTextStyles.bodySmall.copyWith(
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.grey200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Media Section (Point 5 requirement)
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child: Stack(
+                children: [
+                  Image.network(
+                    horse['imageUrl'],
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: _buildStatusBadge(horse['status']),
+                  ),
+                  Positioned(
+                    bottom: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.photo_library,
+                            size: 14,
                             color: Colors.white,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            '1/4 Photos',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(horse['name'], style: AppTextStyles.titleLarge),
-                    Text(
-                      '\$${horse['price']}',
-                      style: AppTextStyles.titleLarge.copyWith(
-                        color: AppColors.deepNavy,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                _buildInfoTag(
-                  Icons.sell_outlined,
-                  'Listing Type: ${horse['listingType']}',
-                ),
-                const SizedBox(height: 4),
-                _buildInfoTag(
-                  Icons.location_on_outlined,
-                  'Next Show: ${horse['location']}',
-                ),
-                const SizedBox(height: 4),
-                _buildInfoTag(
-                  Icons.calendar_month_outlined,
-                  'Availability: ${horse['availability']}',
-                ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(horse['name'], style: AppTextStyles.titleLarge),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoTag(
+                    Icons.location_on_outlined,
+                    'Next Show Venue: ${horse['location']}',
+                  ),
+                  const SizedBox(height: 4),
+                  _buildInfoTag(
+                    Icons.calendar_month_outlined,
+                    'Date Window: ${horse['availability']}',
+                  ),
 
-                const Divider(height: 32),
+                  const Divider(height: 32),
 
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Get.to(() => EditHorseDetailsScreen(horse: horse));
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.deepNavy),
-                          foregroundColor: AppColors.deepNavy,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Get.to(
+                              () => _EditAvailabilityPage(
+                                horseName: horse['name'],
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.deepNavy,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          child: const Text('Update Show'),
                         ),
-                        child: const Text('Edit Details'),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.to(
-                            () =>
-                                _EditAvailabilityPage(horseName: horse['name']),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.deepNavy,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text('Update Show'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

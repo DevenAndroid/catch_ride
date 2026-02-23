@@ -189,12 +189,27 @@ class _ExploreScreenState extends State<ExploreScreen> {
           padding: const EdgeInsets.only(bottom: 16),
           child: InkWell(
             onTap: () {
-              Get.to(() => const HorseDetailScreen());
+              Get.to(
+                () => const HorseDetailScreen(
+                  name: 'Thunderbolt',
+                  location: 'Wellington, FL',
+                  price: '\$45,000',
+                  description:
+                      'A fantastic jumper with a proven record in the 1.20m divisions.',
+                  breed: 'Warmblood',
+                  height: '16.2hh',
+                  age: '8 yrs',
+                  imageUrl:
+                      'https://images.unsplash.com/photo-1553284965-0b0eb9e7f724?q=80&w=2574&auto=format&fit=crop',
+                ),
+              );
             },
             child: const HorseCard(
               name: 'Thunderbolt',
               location: 'Wellington, FL',
               price: '\$45,000',
+              description:
+                  'A fantastic jumper with a proven record in the 1.20m divisions.',
               breed: 'Warmblood',
               height: '16.2hh',
               age: '8 yrs',

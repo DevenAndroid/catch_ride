@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:catch_ride/controllers/user_role_controller.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/widgets/custom_text_field.dart';
-import 'package:catch_ride/view/notifications/notification_permission_screen.dart';
-import 'package:catch_ride/view/trainer/trainer_main_screen.dart';
-import 'package:catch_ride/view/auth/signup_screen.dart';
+import 'package:catch_ride/view/auth/login_screen.dart';
+import 'package:catch_ride/view/auth/role_selection_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Good to see you again'),
+        title: const Text('Create an Account'),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
@@ -41,14 +41,14 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             const SizedBox(height: 16),
             Text(
-              'Sign in',
+              'Sign Up',
               style: AppTextStyles.headlineLarge.copyWith(
                 color: AppColors.deepNavy,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Enter your credentials to access your account.',
+              'Enter your details to create a new account.',
               style: AppTextStyles.bodyLarge.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             CustomTextField(
               label: 'Email',
-              hint: 'e.g. trainer@example.com',
+              hint: 'e.g. user@example.com',
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
             ),
@@ -68,32 +68,23 @@ class _LoginScreenState extends State<LoginScreen> {
               isPassword: true,
               controller: _passwordController,
             ),
-
             const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Forgot Password
-                },
-                child: const Text('Forgot Password?'),
-              ),
+            CustomTextField(
+              label: 'Confirm Password',
+              hint: 'Confirm your password',
+              isPassword: true,
+              controller: _confirmPasswordController,
             ),
 
             const SizedBox(height: 24),
             CustomButton(
-              text: 'Sign In',
+              text: 'Sign Up',
               onPressed: () {
-                // Perform Login
-                final roleController = Get.put(UserRoleController());
-                roleController.setRole(UserRole.trainer);
-
+                // Perform Sign Up
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => NotificationPermissionScreen(
-                      nextScreen: const TrainerMainScreen(),
-                    ),
+                    builder: (_) => const RoleSelectionScreen(),
                   ),
                 );
               },
@@ -103,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             Center(
               child: Text(
-                'Or sign in with',
+                'Or sign up with',
                 style: AppTextStyles.bodyMedium.copyWith(
                   color: AppColors.textTertiary,
                 ),
@@ -128,17 +119,17 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Don't have an account? ",
+                  "Already have an account? ",
                   style: AppTextStyles.bodyMedium,
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (_) => const SignupScreen()),
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
                     );
                   },
-                  child: const Text('Sign Up'),
+                  child: const Text('Sign In'),
                 ),
               ],
             ),

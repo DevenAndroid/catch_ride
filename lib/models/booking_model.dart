@@ -53,13 +53,13 @@ final List<BookingModel> mockBookings = [
   BookingModel(
     id: '1001',
     type: BookingType.vendorService,
-    title: 'Braiding Service (3 Horses)',
-    subtitle: 'Wellington Braiders',
+    title: 'Moonshadow',
+    subtitle: 'Trainer : Emily Johnson',
     startDate: DateTime.now().add(const Duration(days: 3)),
-    endDate: DateTime.now().add(const Duration(days: 3)),
+    endDate: DateTime.now().add(const Duration(days: 8)),
     status: BookingStatus.accepted,
     price: 450.0,
-    location: 'Wellington Stables, Barn 4',
+    location: 'Cypress, CA, United States',
     notes: 'Please arrive by 6am.',
     imageUrl:
         'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?auto=format&fit=crop&q=80&w=200',
@@ -69,13 +69,13 @@ final List<BookingModel> mockBookings = [
   BookingModel(
     id: '1002',
     type: BookingType.horseTrialIncoming,
-    title: 'Thunderbolt',
-    subtitle: 'Requested by: Sarah Miller (Trainer)',
-    startDate: DateTime.now().add(const Duration(days: 10)),
-    endDate: DateTime.now().add(const Duration(days: 13)),
-    status: BookingStatus.requested,
+    title: 'Starfire',
+    subtitle: 'Trainer : Mark Lee',
+    startDate: DateTime.now().add(const Duration(days: 15)),
+    endDate: DateTime.now().add(const Duration(days: 21)),
+    status: BookingStatus.accepted,
     price: 0.0, // Trial might be free or fee
-    location: 'Wellington Showgrounds',
+    location: 'Tampa, FL, United States',
     notes: 'Junior rider trial for equitation.',
     imageUrl:
         'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&q=80&w=200',
@@ -85,13 +85,13 @@ final List<BookingModel> mockBookings = [
   BookingModel(
     id: '1003',
     type: BookingType.weeklyLeaseOutgoing,
-    title: 'Midnight Star',
-    subtitle: 'Owner: High Point Farm',
-    startDate: DateTime.now().add(const Duration(days: 20)),
-    endDate: DateTime.now().add(const Duration(days: 27)),
-    status: BookingStatus.requested,
+    title: 'Whirlwind',
+    subtitle: 'Trainer : Sarah Brown',
+    startDate: DateTime.now().add(const Duration(days: 50)),
+    endDate: DateTime.now().add(const Duration(days: 55)),
+    status: BookingStatus.accepted,
     price: 3500.0,
-    location: 'Ocala, FL',
+    location: 'Dallas, TX, United States',
     notes: 'Need for Week 4 WEF.',
     imageUrl:
         'https://images.unsplash.com/photo-1534008897995-27a23e859048?auto=format&fit=crop&q=80&w=200',
@@ -107,8 +107,37 @@ final List<BookingModel> mockBookings = [
     endDate: DateTime.now().subtract(const Duration(days: 30)),
     status: BookingStatus.completed,
     price: 800.0,
-    location: 'Wellington -> Ocala',
+    location: 'Ocala, FL, United States',
     imageUrl:
         'https://images.unsplash.com/photo-1612140669140-5d65f5042398?auto=format&fit=crop&q=80&w=200',
+  ),
+
+  // New Requested Bookings
+  BookingModel(
+    id: '1005',
+    type: BookingType.horseTrialIncoming,
+    title: 'Stormchaser',
+    subtitle: 'Trainer : Alex Rider',
+    startDate: DateTime.now().add(const Duration(days: 4)),
+    endDate: DateTime.now().add(const Duration(days: 10)),
+    status: BookingStatus.requested,
+    price: 0.0,
+    location: 'Palm Beach, FL, United States',
+    imageUrl:
+        'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?auto=format&fit=crop&q=80&w=200',
+  ),
+
+  BookingModel(
+    id: '1006',
+    type: BookingType.weeklyLeaseOutgoing,
+    title: 'Silver Lining',
+    subtitle: 'Trainer : Chloe Davis',
+    startDate: DateTime.now().add(const Duration(days: 14)),
+    endDate: DateTime.now().add(const Duration(days: 20)),
+    status: BookingStatus.requested,
+    price: 2500.0,
+    location: 'Lexington, KY, United States',
+    imageUrl:
+        'https://images.unsplash.com/photo-1553284965-0b0eb9e7f724?auto=format&fit=crop&q=80&w=200',
   ),
 ];

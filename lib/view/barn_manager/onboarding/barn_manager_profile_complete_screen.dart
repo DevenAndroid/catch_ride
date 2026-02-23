@@ -4,12 +4,16 @@ import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/view/barn_manager/barn_manager_main_screen.dart';
+import 'package:catch_ride/widgets/custom_text_field.dart';
 
 class BarnManagerProfileController extends GetxController {
   // We only require profile photo. Cover photo is optional.
   // There is no barn, trainer, or location info.
   var profilePhoto = Rx<String?>(null);
   var coverPhoto = Rx<String?>(null);
+
+  final trainerName = 'Emily Johnson';
+  final location = 'Wellington, FL';
 
   void pickProfilePhoto() {
     // Mocking a photo pick
@@ -59,10 +63,25 @@ class BarnManagerProfileCompleteScreen extends StatelessWidget {
             Text('Set up your profile', style: AppTextStyles.headlineMedium),
             const SizedBox(height: 8),
             Text(
-              'Your barn, trainer, and location information will be pulled automatically from your associated trainer\'s profile.',
+              'Your trainer and location information is pulled automatically from your associated trainer\'s profile.',
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.grey600,
               ),
+            ),
+            const SizedBox(height: 32),
+
+            CustomTextField(
+              label: 'Trainer Name',
+              hint: '',
+              controller: TextEditingController(text: controller.trainerName),
+              readOnly: true,
+            ),
+            const SizedBox(height: 16),
+            CustomTextField(
+              label: 'Location',
+              hint: '',
+              controller: TextEditingController(text: controller.location),
+              readOnly: true,
             ),
             const SizedBox(height: 32),
 

@@ -89,9 +89,9 @@ class VendorPublicProfileScreen extends StatelessWidget {
                   // Services/Rates
                   Text('Services & Rates', style: AppTextStyles.titleMedium),
                   const SizedBox(height: 12),
-                  _buildServiceRow('Full Day Grooming', '\$200/day'),
-                  _buildServiceRow('Braiding (Mane)', '\$65'),
-                  _buildServiceRow('Clipping (Full Body)', '\$150'),
+                  _buildServiceRow('Full Day Grooming'),
+                  _buildServiceRow('Braiding (Mane)'),
+                  _buildServiceRow('Clipping (Full Body)'),
 
                   const SizedBox(height: 24),
 
@@ -220,20 +220,12 @@ class VendorPublicProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceRow(String title, String price) {
+  Widget _buildServiceRow(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: AppTextStyles.bodyLarge),
-          Text(
-            price,
-            style: AppTextStyles.titleMedium.copyWith(
-              color: AppColors.deepNavy,
-            ),
-          ),
-        ],
+        children: [Text(title, style: AppTextStyles.bodyLarge)],
       ),
     );
   }

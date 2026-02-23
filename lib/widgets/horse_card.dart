@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
@@ -11,6 +10,9 @@ class HorseCard extends StatelessWidget {
   final String height;
   final String age;
   final String imageUrl; // Placeholder for now
+  final String? description;
+  final String? discipline;
+  final String? listingType;
   final bool isTopRated;
 
   const HorseCard({
@@ -22,6 +24,9 @@ class HorseCard extends StatelessWidget {
     required this.height,
     required this.age,
     required this.imageUrl,
+    this.description,
+    this.discipline,
+    this.listingType,
     this.isTopRated = false,
   });
 
@@ -40,31 +45,42 @@ class HorseCard extends StatelessWidget {
               Container(
                 height: 220,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
                   color: AppColors.grey300,
                   image: DecorationImage(
-                    image: NetworkImage(imageUrl), // Will fail if offline or invalid URL, handle gracefully
+                    image: NetworkImage(
+                      imageUrl,
+                    ), // Will fail if offline or invalid URL, handle gracefully
                     fit: BoxFit.cover,
                   ),
                 ),
                 // Fallback if network image fails? Flutter handles it by just not showing or showing error builder.
                 // For now, I'll assume valid URLs or handle error logic later.
               ),
-              
+
               // Graduate/Top Rated Badge
               if (isTopRated)
                 Positioned(
                   top: 12,
                   left: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.mutedGold,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.star, size: 14, color: AppColors.deepNavy),
+                        const Icon(
+                          Icons.star,
+                          size: 14,
+                          color: AppColors.deepNavy,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Top Rated',
@@ -88,10 +104,14 @@ class HorseCard extends StatelessWidget {
                     color: Colors.black.withOpacity(0.3),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.favorite_border, color: Colors.white, size: 20),
+                  child: const Icon(
+                    Icons.favorite_border,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
               ),
-              
+
               // Video Indicator
               Positioned(
                 bottom: 12,
@@ -102,7 +122,11 @@ class HorseCard extends StatelessWidget {
                     color: Colors.black.withOpacity(0.6),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                  child: const Icon(
+                    Icons.play_arrow_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                 ),
               ),
             ],
@@ -116,29 +140,45 @@ class HorseCard extends StatelessWidget {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(name, style: AppTextStyles.titleMedium),
-                    Text(price, style: AppTextStyles.titleMedium.copyWith(color: AppColors.mutedGold)),
-                  ],
+                  children: [Text(name, style: AppTextStyles.titleMedium)],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 4),
                     Text(location, style: AppTextStyles.bodyMedium),
                   ],
                 ),
+                if (description != null && description!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    description!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 12),
-                
-                // Attributes: Breed • Height • Age
-                Row(
+
+                // Attributes: Breed • Height • Age • Discipline • Listing Type
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
                     _buildAttributeChip(breed),
-                    const SizedBox(width: 8),
                     _buildAttributeChip(height),
-                    const SizedBox(width: 8),
                     _buildAttributeChip(age),
+                    if (discipline != null && discipline!.isNotEmpty)
+                      _buildAttributeChip(discipline!),
+                    if (listingType != null && listingType!.isNotEmpty)
+                      _buildAttributeChip(listingType!),
                   ],
                 ),
               ],

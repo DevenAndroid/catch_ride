@@ -60,19 +60,45 @@ class BookingCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: AppColors.grey200,
-                      image: DecorationImage(
-                        image: NetworkImage(booking.imageUrl),
-                        fit: BoxFit.cover,
+                  Stack(
+                    children: [
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.grey200,
+                          image: DecorationImage(
+                            image: NetworkImage(booking.imageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            statusText,
+                            style: AppTextStyles.labelLarge.copyWith(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,49 +106,56 @@ class BookingCard extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildTypeBadge(booking.type),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
+                            Expanded(
                               child: Text(
-                                statusText,
-                                style: AppTextStyles.labelLarge.copyWith(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10,
+                                booking.title,
+                                style: AppTextStyles.titleMedium.copyWith(
+                                  fontSize: 16,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            _buildTypeBadge(booking.type),
                           ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          booking.title,
-                          style: AppTextStyles.titleMedium.copyWith(
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           booking.subtitle,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.grey600,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.grey700,
+                            fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 12,
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: AppColors.grey500,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                booking.location,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.grey500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_outlined,
+                              size: 14,
                               color: AppColors.grey500,
                             ),
                             const SizedBox(width: 4),
@@ -130,17 +163,8 @@ class BookingCard extends StatelessWidget {
                               dateRange,
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: AppColors.grey500,
-                                fontSize: 10,
                               ),
                             ),
-                            const Spacer(),
-                            if (booking.price > 0)
-                              Text(
-                                '\$${booking.price.toStringAsFixed(0)}',
-                                style: AppTextStyles.titleMedium.copyWith(
-                                  fontSize: 14,
-                                ),
-                              ),
                           ],
                         ),
                       ],
@@ -161,40 +185,38 @@ class BookingCard extends StatelessWidget {
 
     switch (type) {
       case BookingType.vendorService:
-        text = 'VENDOR';
-        color = Colors.purple;
+        text = 'Trail';
+        color = AppColors.grey600;
         break;
       case BookingType.horseTrialIncoming:
-        text = 'TRIAL REQ';
-        color = Colors.orange;
+        text = 'For Sale';
+        color = AppColors.grey600;
         break;
       case BookingType.horseTrialOutgoing:
-        text = 'TRIAL OUT';
-        color = Colors.blue;
+        text = 'For Lease';
+        color = AppColors.grey600;
         break;
       case BookingType.weeklyLeaseIncoming:
-        text = 'LEASE REQ';
-        color = Colors.orange;
+        text = 'For Lease';
+        color = AppColors.grey600;
         break;
       case BookingType.weeklyLeaseOutgoing:
-        text = 'LEASE OUT';
-        color = Colors.blue;
+        text = 'For Sale';
+        color = AppColors.grey600;
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: AppColors.grey100,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
-        style: AppTextStyles.labelLarge.copyWith(
+        style: AppTextStyles.bodySmall.copyWith(
           color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

@@ -1,11 +1,9 @@
-
-import 'package:catch_ride/view/auth/role_selection_screen.dart';
+import 'package:catch_ride/view/auth/signup_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 
 import 'login_screen.dart';
-
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -32,25 +30,29 @@ class WelcomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Spacer(),
-                
+
                 // Logo Placeholder
                 Center(
                   child: Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.mutedGold.withOpacity(0.5), width: 1),
+                      border: Border.all(
+                        color: AppColors.mutedGold.withOpacity(0.5),
+                        width: 1,
+                      ),
                       color: AppColors.deepNavy.withOpacity(0.5),
                     ),
                     child: Icon(
-                      Icons.bedroom_baby_outlined, // Placeholder for horse/stable icon
+                      Icons
+                          .bedroom_baby_outlined, // Placeholder for horse/stable icon
                       size: 64,
                       color: AppColors.mutedGold,
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Brand
                 Text(
                   'CATCH RIDE',
@@ -76,7 +78,10 @@ class WelcomeScreen extends StatelessWidget {
                 // CTA Buttons
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const RoleSelectionScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SignupScreen()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.mutedGold,
@@ -84,12 +89,15 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   child: const Text('Get Started'),
                 ),
-                
+
                 const SizedBox(height: 16),
-                
+
                 OutlinedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.mutedGold),

@@ -9,21 +9,18 @@ import 'package:catch_ride/controllers/user_role_controller.dart';
 class EditProfileBarnManagerController extends GetxController {
   final roleController = Get.find<UserRoleController>();
 
-  final nameController = TextEditingController(text: 'Sarah Connor');
-  final phoneController = TextEditingController(text: '(555) 987-6543');
-  final bioController = TextEditingController(
-    text: 'Experienced Barn Manager specialized in Hunter/Jumper stables.',
-  );
-
   // Trainer data (Read-Only for Barn Manager)
-  late final String stableName;
+  late final String trainerName;
   late final String trainerLocation;
+  late final String trainerBarnName;
 
   @override
   void onInit() {
     super.onInit();
-    stableName = roleController.linkedStableName.value;
+    trainerName = 'Emily Johnson'; // In real app, fetch from Trainer model
     trainerLocation = 'Wellington, FL'; // In real app, fetch from Trainer model
+    trainerBarnName =
+        'Sunshine Equestrian'; // In real app, fetch from Trainer model
   }
 
   void saveProfile() {
@@ -38,9 +35,6 @@ class EditProfileBarnManagerController extends GetxController {
 
   @override
   void onClose() {
-    nameController.dispose();
-    phoneController.dispose();
-    bioController.dispose();
     super.onClose();
   }
 }
@@ -53,8 +47,11 @@ class EditProfileBarnManagerScreen extends StatelessWidget {
     final controller = Get.put(EditProfileBarnManagerController());
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Edit Profile'),
+        backgroundColor: Colors.white,
+        elevation: 0,
         actions: [
           TextButton(
             onPressed: controller.saveProfile,
@@ -122,25 +119,13 @@ class EditProfileBarnManagerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            Text('Personal Information', style: AppTextStyles.headlineMedium),
-            const SizedBox(height: 16),
-            CustomTextField(
-              label: 'Full Name',
-              hint: 'Enter your full name',
-              controller: controller.nameController,
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              label: 'Phone Number',
-              hint: '(555) 000-0000',
-              controller: controller.phoneController,
-              keyboardType: TextInputType.phone,
-            ),
-
             const SizedBox(height: 32),
             Row(
               children: [
-                Text('Stable Information', style: AppTextStyles.headlineMedium),
+                Text(
+                  'Trainer Information',
+                  style: AppTextStyles.headlineMedium,
+                ),
                 const SizedBox(width: 8),
                 const Icon(
                   Icons.lock_outline,
@@ -151,14 +136,14 @@ class EditProfileBarnManagerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Provided by your Trainer',
+              'Fetched automatically from your associated Trainer.',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
             ),
             const SizedBox(height: 16),
             CustomTextField(
-              label: 'Stable Name',
+              label: 'Trainer Name',
               hint: '',
-              controller: TextEditingController(text: controller.stableName),
+              controller: TextEditingController(text: controller.trainerName),
               readOnly: true,
             ),
             const SizedBox(height: 16),
@@ -170,15 +155,14 @@ class EditProfileBarnManagerScreen extends StatelessWidget {
               ),
               readOnly: true,
             ),
-
-            const SizedBox(height: 32),
-            Text('About Me', style: AppTextStyles.headlineMedium),
             const SizedBox(height: 16),
             CustomTextField(
-              label: 'Bio / About',
-              hint: 'Tell us about your experience...',
-              controller: controller.bioController,
-              maxLines: 4,
+              label: 'Barn Name',
+              hint: '',
+              controller: TextEditingController(
+                text: controller.trainerBarnName,
+              ),
+              readOnly: true,
             ),
 
             const SizedBox(height: 48),
@@ -226,6 +210,8 @@ class EditProfileBarnManagerScreen extends StatelessWidget {
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.deepNavy,
                   elevation: 2,
+                  minimumSize: const Size(80, 36), // Restrict layout width
+                  maximumSize: const Size(120, 36),
                 ),
               ),
             ),

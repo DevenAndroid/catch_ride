@@ -4,6 +4,7 @@ import 'package:catch_ride/utils/app_colors.dart';
 import 'package:catch_ride/utils/app_text_styles.dart';
 import 'package:catch_ride/widgets/custom_button.dart';
 import 'package:catch_ride/view/auth/welcome_screen.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_main_screen.dart';
 
 class BarnManagerApplicationSubmitScreen extends StatelessWidget {
   const BarnManagerApplicationSubmitScreen({super.key});
@@ -88,12 +89,7 @@ class BarnManagerApplicationSubmitScreen extends StatelessWidget {
               CustomButton(
                 text: 'Contact Support',
                 onPressed: () {
-                  Get.snackbar(
-                    'Support',
-                    'Contacting support team. We will get back to you shortly.',
-                    backgroundColor: AppColors.deepNavy,
-                    colorText: Colors.white,
-                  );
+                  Get.offAll(() => const BarnManagerMainScreen());
                 },
                 backgroundColor: AppColors.deepNavy,
                 textColor: AppColors.deepNavy,

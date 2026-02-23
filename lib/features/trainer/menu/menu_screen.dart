@@ -65,11 +65,7 @@ class MenuScreen extends StatelessWidget {
               title: 'Notifications',
               onTap: () => Get.to(() => const NotificationScreen()),
             ),
-            _buildMenuItem(
-              icon: Icons.payment_outlined,
-              title: 'Payments + Subscriptions',
-              onTap: () => Get.snackbar('Coming Soon', 'EditYourPaymentScreen'),
-            ),
+            // Payment menu removed
             _buildMenuItem(
               icon: Icons.privacy_tip_outlined,
               title: 'Privacy + Sharing',
