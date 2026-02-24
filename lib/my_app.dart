@@ -1,3 +1,4 @@
+import 'package:catch_ride/view/trainer/splash_screen.dart';
 import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,7 +13,7 @@ class MyApp extends StatelessWidget {
       title: 'Catch Ride',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const CreateAccountView(),
+      home: const SplashScreen(),
     );
   }
 }
