@@ -7,6 +7,8 @@ import 'package:catch_ride/widgets/social_button.dart';
 import 'package:catch_ride/view/select_role_view.dart';
 import 'package:flutter_svg/svg.dart';
 
+import 'package:catch_ride/view/login_view.dart';
+
 class CreateAccountView extends StatefulWidget {
   const CreateAccountView({super.key});
 
@@ -15,7 +17,6 @@ class CreateAccountView extends StatefulWidget {
 }
 
 class _CreateAccountViewState extends State<CreateAccountView> {
-  int _selectedTabIndex = 0;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -61,33 +62,18 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SegmentedTabControl(
-                      selectedIndex: _selectedTabIndex,
-                      tabs: const ['Create Account', 'Log In'],
-                      onTabChanged: (index) {
-                        setState(() {
-                          _selectedTabIndex = index;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text(
-                      _selectedTabIndex == 0
-                          ? 'Create Account'
-                          : 'Welcome Back',
-                      style: const TextStyle(
+                    const Text(
+                      'Create Account',
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      _selectedTabIndex == 0
-                          ? 'Let\'s get started by filling out the form below.'
-                          : 'Fill out the information below in order to access your account.',
-                      style: const TextStyle(
+                    const Text(
+                      'Let\'s get started by filling out the form below.',
+                      style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                       ),
@@ -119,75 +105,40 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 16),
 
-                    if (_selectedTabIndex == 1) ...[
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {
-                            // Forget Password action
-                          },
-                          child: const Text(
-                            'Forget Password?',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFFD92D20),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                    CommonTextField(
+                      label: 'Confirm Password',
+                      hintText: '******',
+                      obscureText: _obscureConfirmPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          size: 20,
                         ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
                       ),
-                    ],
-
-                    if (_selectedTabIndex == 0) ...[
-                      const SizedBox(height: 16),
-                      CommonTextField(
-                        label: 'Confirm Password',
-                        hintText: '******',
-                        obscureText: _obscureConfirmPassword,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscureConfirmPassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword =
-                                  !_obscureConfirmPassword;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
+                    ),
 
                     const SizedBox(height: 24),
                     CommonButton(
-                      text: _selectedTabIndex == 0 ? 'Get Started' : 'Log In',
+                      text: 'Get Started',
                       onPressed: () {
-                        if (_selectedTabIndex == 1) {
-                          // Log In action
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SelectRoleView(),
-                            ),
-                          );
-                        } else {
-                          // Get Started action
-                        }
+                        // Get Started action
                       },
                     ),
                     const SizedBox(height: 20),
 
-                    Center(
+                    const Center(
                       child: Text(
-                        _selectedTabIndex == 0
-                            ? 'Or sign up with'
-                            : 'Or sign up with', // Matching exact text in Log In design
-                        style: const TextStyle(
+                        'Or sign up with',
+                        style: TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                         ),
@@ -208,8 +159,47 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         );
                       },
                     ),
+                    const SizedBox(height: 12),
+                    SocialButton(
+                      text: 'Continue with Apple ID',
+                      icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
+                      onPressed: () {
+                        // Apple Sign In Action
+                      },
+                    ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Already have an account? ',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginView(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Log In',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
