@@ -16,6 +16,7 @@ class AddNewListingView extends StatefulWidget {
 
 class _AddNewListingViewState extends State<AddNewListingView> {
   int _currentStep = 1;
+  final Set<String> _selectedListingTypes = {'Sale', 'Annual Lease'};
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +77,22 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                       const SizedBox(height: 20),
                       _buildHorseInformationForm(),
+                    ] else if (_currentStep == 3) ...[
+                      const CommonText(
+                        'Listing Type',
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 8),
+                      const CommonText(
+                        'Select one or more types',
+                        fontSize: AppTextSizes.size14,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildListingTypeSelection(),
                     ],
                   ],
                 ),
@@ -500,6 +517,77 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildListingTypeSelection() {
+    return Column(
+      children: [
+        _buildListingTypeCard('Sale'),
+        const SizedBox(height: 12),
+        _buildListingTypeCard('Annual Lease'),
+        const SizedBox(height: 12),
+        _buildListingTypeCard('Short Term or Circuit Lease'),
+        const SizedBox(height: 12),
+        _buildListingTypeCard('Weekly Lease'),
+      ],
+    );
+  }
+
+  Widget _buildListingTypeCard(String title) {
+    final bool isSelected = _selectedListingTypes.contains(title);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            _selectedListingTypes.remove(title);
+          } else {
+            _selectedListingTypes.add(title);
+          }
+        });
+      },
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.border,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CommonText(
+              title,
+              fontSize: AppTextSizes.size16,
+              fontWeight: isSelected
+                  ? FontWeight.w500
+                  : FontWeight.w500, // Matching the design
+              color: isSelected
+                  ? AppColors.textPrimary
+                  : AppColors.textSecondary,
+            ),
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.border,
+                ),
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  : null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
