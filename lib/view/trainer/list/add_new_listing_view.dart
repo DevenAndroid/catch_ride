@@ -14,6 +14,8 @@ class AddNewListingView extends StatefulWidget {
 }
 
 class _AddNewListingViewState extends State<AddNewListingView> {
+  int _currentStep = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,14 +57,25 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   children: [
                     _buildStepIndicator(),
                     const SizedBox(height: 32),
-                    const CommonText(
-                      'Upload Images and video',
-                      fontSize: AppTextSizes.size18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildUploadCard(),
+                    if (_currentStep == 1) ...[
+                      const CommonText(
+                        'Upload Images and video',
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildUploadCard(),
+                    ] else if (_currentStep == 2) ...[
+                      const CommonText(
+                        'Horse Information',
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildHorseInformationForm(),
+                    ],
                   ],
                 ),
               ),
@@ -79,7 +92,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(5, (index) {
         final stepNumber = index + 1;
-        final isActive = stepNumber == 1; // For now hardcoded to step 1
+        final isActive = stepNumber == _currentStep;
+        final isCompleted = stepNumber < _currentStep;
+
         return Expanded(
           child: Row(
             children: [
@@ -88,28 +103,33 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 height: 32,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: isCompleted
+                      ? const Color(0xFF047857)
+                      : Colors.white, // Green for completed
                   border: Border.all(
-                    color: isActive ? AppColors.textPrimary : AppColors.border,
+                    color: isCompleted
+                        ? const Color(0xFF047857)
+                        : (isActive ? AppColors.textPrimary : AppColors.border),
                     width: 1,
                   ),
                 ),
                 alignment: Alignment.center,
-                child: CommonText(
-                  '$stepNumber',
-                  fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.w500,
-                  color: isActive
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
-                ),
+                child: isCompleted
+                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    : CommonText(
+                        '$stepNumber',
+                        fontSize: AppTextSizes.size14,
+                        fontWeight: FontWeight.w500,
+                        color: isActive
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
+                      ),
               ),
               if (index < 4)
                 Expanded(
                   child: Container(
                     height: 1,
-                    color:
-                        AppColors.border, // Represents the dotted line for now
+                    color: AppColors.border,
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
@@ -136,7 +156,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             text: const TextSpan(
               text: 'Upload ',
               style: TextStyle(
-                fontFamily: 'Inter', // Assuming Inter font
+                fontFamily: 'Inter',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -159,7 +179,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               const SizedBox(width: 12),
               _buildImageItem(
                 imageUrl: AppConstants.dummyImageUrl,
-                isImage: false, // video presentation
+                isImage: false,
               ),
               const SizedBox(width: 12),
               _buildAddButton(),
@@ -280,14 +300,252 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       height: 85,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.border,
-          style: BorderStyle.solid, // Using solid as dotted requires package
-        ),
+        border: Border.all(color: AppColors.border, style: BorderStyle.solid),
         color: const Color(0xFFFAFAFA),
       ),
       child: const Center(
         child: Icon(Icons.add, color: AppColors.textSecondary, size: 24),
+      ),
+    );
+  }
+
+  Widget _buildHorseInformationForm() {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFormLabel(label: 'Listing Title', isRequired: true),
+              _buildTextField(hintText: 'e.g., Beautiful Hunter for Sale'),
+              const SizedBox(height: 16),
+              _buildFormLabel(label: 'Horse Name', isRequired: true),
+              _buildTextField(hintText: 'Enter horse name'),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildFormLabel(label: 'Age', isRequired: false),
+                        _buildTextField(hintText: 'e.g., 12 years'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildFormLabel(label: 'Height', isRequired: false),
+                        _buildTextField(hintText: 'e.g., 16.2hh'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildFormLabel(label: 'Breed', isRequired: true),
+              _buildTextField(hintText: 'Enter horse breed'),
+              const SizedBox(height: 16),
+              _buildFormLabel(label: 'Color', isRequired: false),
+              _buildTextField(hintText: 'Enter horse color'),
+              const SizedBox(height: 16),
+              _buildFormLabel(label: 'Discipline', isRequired: false),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    CommonText(
+                      'Select discipline',
+                      color: AppColors.textSecondary,
+                      fontSize: AppTextSizes.size14,
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildFormLabel(label: 'Description', isRequired: true),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                height: 120, // Taller for multiline
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const TextField(
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: 'Write here...',
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: AppTextSizes.size14,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: const TextSpan(
+                  text: 'Horse USEF number ',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: ' (optional)',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: const TextField(
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                          hintText: 'Enter USEF number',
+                          hintStyle: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: AppTextSizes.size14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    height: 52,
+                    width: 52,
+                    decoration: BoxDecoration(
+                      color: const Color(
+                        0xFFE5E7EB,
+                      ), // Gray background as design
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: const Icon(
+                      Icons.open_in_new,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormLabel({required String label, required bool isRequired}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: RichText(
+        text: TextSpan(
+          text: label,
+          style: const TextStyle(
+            fontFamily: 'Inter',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+          children: isRequired
+              ? [
+                  const TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ]
+              : [],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({required String hintText}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 52,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      alignment: Alignment.centerLeft,
+      child: TextField(
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+          hintText: hintText,
+          hintStyle: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
       ),
     );
   }
@@ -300,7 +558,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () => Get.back(),
+              onTap: () {
+                if (_currentStep > 1) {
+                  setState(() {
+                    _currentStep--;
+                  });
+                } else {
+                  Get.back();
+                }
+              },
               child: Container(
                 height: 52,
                 alignment: Alignment.center,
@@ -322,7 +588,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                // Next step logic here
+                if (_currentStep < 5) {
+                  setState(() {
+                    _currentStep++;
+                  });
+                }
               },
               child: Container(
                 height: 52,
