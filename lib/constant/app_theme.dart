@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'app_colors.dart';
 
 class AppTheme {
@@ -20,7 +22,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 16),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600),
           elevation: 0,
         ),
       ),
@@ -29,7 +31,7 @@ class AppTheme {
         fillColor: AppColors.inputBackground,
         hintStyle: const TextStyle(
           color: AppColors.textSecondary,
-          fontSize: 14,
+          fontSize: AppTextSizes.size14,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

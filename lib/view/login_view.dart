@@ -1,3 +1,7 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -30,14 +34,12 @@ class _LoginViewState extends State<LoginView> {
               SvgPicture.asset("assets/images/logo.svg"),
 
               const SizedBox(height: 12),
-              const Text(
-                'CATCH RIDE',
-                style: TextStyle(
-                  fontSize: 20,
+              const CommonText(
+                AppStrings.catchRide1,
+                fontSize: AppTextSizes.size18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                   letterSpacing: 1.5,
-                ),
               ),
               const SizedBox(height: 32),
 
@@ -59,34 +61,30 @@ class _LoginViewState extends State<LoginView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Welcome Back',
-                      style: TextStyle(
-                        fontSize: 22,
+                    const CommonText(
+                      AppStrings.welcomeBack,
+                      fontSize: AppTextSizes.size22,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
-                      ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Fill out the information below in order to access your account.',
-                      style: TextStyle(
-                        fontSize: 14,
+                    const CommonText(
+                      AppStrings.fillOutTheInformationBelowInOrderToAccessYourAccount,
+                      fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
-                      ),
                     ),
                     const SizedBox(height: 24),
 
                     const CommonTextField(
-                      label: 'Email',
-                      hintText: 'Enter your email',
+                      label: AppStrings.email,
+                      hintText: AppStrings.enterYourEmail,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
 
                     CommonTextField(
-                      label: 'Password',
-                      hintText: '******',
+                      label: AppStrings.password,
+                      hintText: AppStrings.emptyString,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -109,20 +107,18 @@ class _LoginViewState extends State<LoginView> {
                         onTap: () {
                           // Forget Password action
                         },
-                        child: const Text(
-                          'Forget Password?',
-                          style: TextStyle(
-                            fontSize: 14,
+                        child: const CommonText(
+                          AppStrings.forgetPassword,
+                          fontSize: AppTextSizes.size14,
                             color: Color(0xFFD92D20),
                             fontWeight: FontWeight.w500,
-                          ),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 24),
                     CommonButton(
-                      text: 'Log In',
+                      text: AppStrings.logIn,
                       onPressed: () {
                         // Log In action
                         Navigator.push(
@@ -136,18 +132,16 @@ class _LoginViewState extends State<LoginView> {
                     const SizedBox(height: 20),
 
                     const Center(
-                      child: Text(
-                        'Or Log In with',
-                        style: TextStyle(
-                          fontSize: 14,
+                      child: CommonText(
+                        AppStrings.orLogInWith,
+                        fontSize: AppTextSizes.size14,
                           color: AppColors.textSecondary,
-                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
 
                     SocialButton(
-                      text: 'Continue with Google',
+                      text: AppStrings.continueWithGoogle,
                       icon: SvgPicture.asset("assets/icons/google_icon.svg"),
                       onPressed: () {
                         // Google Sign In Action
@@ -161,7 +155,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 12),
                     SocialButton(
-                      text: 'Continue with Apple ID',
+                      text: AppStrings.continueWithAppleId,
                       icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
                       onPressed: () {
                         // Apple Sign In Action
@@ -174,12 +168,10 @@ class _LoginViewState extends State<LoginView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Don’t have an account? ',
-                    style: TextStyle(
-                      fontSize: 14,
+                  const CommonText(
+                    AppStrings.dontHaveAnAccount,
+                    fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
-                    ),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -190,13 +182,11 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       );
                     },
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 14,
+                    child: const CommonText(
+                      AppStrings.signUp,
+                      fontSize: AppTextSizes.size14,
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
-                      ),
                     ),
                   ),
                 ],

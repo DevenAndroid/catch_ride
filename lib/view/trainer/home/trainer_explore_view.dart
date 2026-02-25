@@ -1,3 +1,7 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
@@ -83,20 +87,16 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text(
-                    'John Snow',
-                    style: TextStyle(
-                      fontSize: 18,
+                  CommonText(
+                    AppStrings.johnSnow,
+                    fontSize: AppTextSizes.size18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
-                    ),
                   ),
-                  Text(
-                    'Professional Horse Trainer',
-                    style: TextStyle(
-                      fontSize: 13,
+                  CommonText(
+                    AppStrings.professionalHorseTrainer,
+                    fontSize: AppTextSizes.size12,
                       color: AppColors.textSecondary,
-                    ),
                   ),
                 ],
               ),
@@ -133,9 +133,9 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
             Icon(Icons.search, color: AppColors.textSecondary, size: 24),
             SizedBox(width: 12),
             Expanded(
-              child: Text(
-                'Search by trainers or horses',
-                style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+              child: CommonText(
+                AppStrings.searchByTrainersOrHorses,
+                fontSize: AppTextSizes.size14, color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -168,15 +168,13 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   width: 1.5,
                 ),
               ),
-              child: Text(
+              child: CommonText(
                 _filters[index],
-                style: TextStyle(
-                  fontSize: 14,
+                fontSize: AppTextSizes.size14,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected
                       ? AppColors.primary
                       : AppColors.textSecondary,
-                ),
               ),
             ),
           );
@@ -229,20 +227,16 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        CommonText(
                           userName,
-                          style: const TextStyle(
-                            fontSize: 15,
+                          fontSize: AppTextSizes.size14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
-                          ),
                         ),
-                        Text(
+                        CommonText(
                           userTitle,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          fontSize: AppTextSizes.size12,
                             color: AppColors.textSecondary,
-                          ),
                         ),
                       ],
                     ),
@@ -272,13 +266,11 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text(
+                    child: CommonText(
                       imageCount,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                      color: Colors.white,
+                        fontSize: AppTextSizes.size12,
                         fontWeight: FontWeight.w600,
-                      ),
                     ),
                   ),
                 ),
@@ -304,13 +296,11 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                                 color: AppColors.tabBackground,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Text(
+                              child: CommonText(
                                 tag,
-                                style: const TextStyle(
-                                  fontSize: 12,
+                                fontSize: AppTextSizes.size12,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary,
-                                ),
                               ),
                             ),
                           )
@@ -338,23 +328,19 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  CommonText(
                     postTitle,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                       height: 1.3,
-                    ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
+                  CommonText(
                     postDescription,
-                    style: const TextStyle(
-                      fontSize: 14,
+                    fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
                       height: 1.4,
-                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -365,12 +351,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                         size: 16,
                       ),
                       const SizedBox(width: 4),
-                      Text(
+                      CommonText(
                         location,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        fontSize: AppTextSizes.size12,
                           color: AppColors.textSecondary,
-                        ),
                       ),
                     ],
                   ),

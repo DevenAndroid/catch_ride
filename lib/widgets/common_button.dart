@@ -1,3 +1,6 @@
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -43,13 +46,11 @@ class CommonButton extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            : Text(
+            : CommonText(
                 text,
-                style: TextStyle(
-                  color: textColor ?? Colors.white,
-                  fontSize: 16,
+                color: textColor ?? Colors.white,
+                  fontSize: AppTextSizes.size16,
                   fontWeight: FontWeight.w600,
-                ),
               ),
       ),
     );

@@ -1,3 +1,6 @@
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 
@@ -46,15 +49,13 @@ class SegmentedTabControl extends StatelessWidget {
                       : [],
                 ),
                 alignment: Alignment.center,
-                child: Text(
+                child: CommonText(
                   tabs[index],
-                  style: TextStyle(
-                    fontSize: 14,
+                  fontSize: AppTextSizes.size14,
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected
                         ? AppColors.textPrimary
                         : AppColors.textSecondary,
-                  ),
                 ),
               ),
             ),

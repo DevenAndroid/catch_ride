@@ -1,3 +1,7 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -15,6 +19,7 @@ class TrainerProfileSetupView extends StatefulWidget {
 }
 
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
+  int _currentStep = 0;
   bool _isConfirmed = false;
   String _selectedFederation = 'USEF (United States)';
   String _selectedYears = 'Select years';
@@ -53,15 +58,21 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             color: AppColors.textPrimary,
             size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (_currentStep > 0) {
+              setState(() {
+                _currentStep--;
+              });
+            } else {
+              Navigator.pop(context);
+            }
+          },
         ),
-        title: const Text(
-          'Profile setup',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+        title: const CommonText(
+          AppStrings.profileSetup,
+          color: AppColors.textPrimary,
+          fontSize: AppTextSizes.size18,
+          fontWeight: FontWeight.bold,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -71,66 +82,22 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       body: SafeArea(
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 16.0,
+              ),
+              child: _buildProgressBar(),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
-                  vertical: 20.0,
+                  vertical: 4.0,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBasicDetailsCard(),
-                    const SizedBox(height: 16),
-                    _buildBarnInfoCard(),
-                    const SizedBox(height: 16),
-                    _buildFederationInfoCard(),
-                    const SizedBox(height: 16),
-                    _buildSocialMediaCard(),
-                    const SizedBox(height: 16),
-                    _buildExperienceCard(),
-                    const SizedBox(height: 16),
-                    _buildHorseShowsCard(),
-                    const SizedBox(height: 24),
-
-                    // Checkbox
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: Checkbox(
-                            value: _isConfirmed,
-                            onChanged: (val) {
-                              setState(() {
-                                _isConfirmed = val ?? false;
-                              });
-                            },
-                            activeColor: const Color(
-                              0xFFD92D20,
-                            ), // Reddish checkbox from design
-                            side: const BorderSide(
-                              color: AppColors.border,
-                              width: 1.5,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'I confirm all information is accurate',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-                  ],
+                  children: [_buildCurrentStep(), const SizedBox(height: 40)],
                 ),
               ),
             ),
@@ -139,15 +106,31 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: CommonButton(
-                text: 'Submit Application',
+                text: _currentStep == 3 ? AppStrings.submitApplication : 'Next',
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const TrainerApplicationSubmittedView(),
-                    ),
-                  );
+                  // if (_currentStep == 3 && !_isConfirmed) {
+                  //   ScaffoldMessenger.of(context).showSnackBar(
+                  //     const SnackBar(
+                  //       content: CommonText(
+                  //         'Please confirm all information is accurate.',
+                  //       ),
+                  //     ),
+                  //   );
+                  //   return;
+                  // }
+                  if (_currentStep < 3) {
+                    setState(() {
+                      _currentStep++;
+                    });
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const TrainerApplicationSubmittedView(),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -155,6 +138,92 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
         ),
       ),
     );
+  }
+
+  Widget _buildProgressBar() {
+    return Row(
+      children: List.generate(4, (index) {
+        return Expanded(
+          child: Container(
+            margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
+            height: 4,
+            decoration: BoxDecoration(
+              color: index <= _currentStep
+                  ? AppColors.primary
+                  : AppColors.border,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildCurrentStep() {
+    switch (_currentStep) {
+      case 0:
+        return Column(
+          children: [
+            _buildBasicDetailsCard(),
+            const SizedBox(height: 16),
+            _buildExperienceCard(),
+          ],
+        );
+      case 1:
+        return Column(
+          children: [
+            _buildBarnInfoCard(),
+            const SizedBox(height: 16),
+            _buildHorseShowsCard(),
+          ],
+        );
+      case 2:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [_buildFederationInfoCard()],
+        );
+      case 3:
+        return Column(
+          children: [
+            _buildSocialMediaCard(),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: Checkbox(
+                    value: _isConfirmed,
+                    onChanged: (val) {
+                      setState(() {
+                        _isConfirmed = val ?? false;
+                      });
+                    },
+                    activeColor: const Color(
+                      0xFFD92D20,
+                    ), // Reddish checkbox from design
+                    side: const BorderSide(color: AppColors.border, width: 1.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: CommonText(
+                    AppStrings.iConfirmAllInformationIsAccurate,
+                    fontSize: AppTextSizes.size14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      default:
+        return Container();
+    }
   }
 
   Widget _buildCard({required String title, required Widget child}) {
@@ -169,13 +238,11 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          CommonText(
             title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+            fontSize: AppTextSizes.size16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
           ),
           const SizedBox(height: 20),
           child,
@@ -186,7 +253,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildBasicDetailsCard() {
     return _buildCard(
-      title: 'Basic Details',
+      title: AppStrings.basicDetails,
       child: Column(
         children: [
           Align(
@@ -241,21 +308,19 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           ),
           const SizedBox(height: 24),
           const CommonTextField(
-            label: 'Full Name',
-            hintText: 'Enter your full name',
+            label: AppStrings.fullName,
+            hintText: AppStrings.enterYourFullName,
             isRequired: true,
           ),
           const SizedBox(height: 16),
 
           const Align(
             alignment: Alignment.centerLeft,
-            child: Text(
-              'Phone Number',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
+            child: CommonText(
+              AppStrings.phoneNumber,
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
@@ -276,12 +341,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                 ),
                 child: Row(
                   children: const [
-                    Text(
-                      '+91',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textPrimary,
-                      ),
+                    CommonText(
+                      AppStrings.num91,
+                      fontSize: AppTextSizes.size14,
+                      color: AppColors.textPrimary,
                     ),
                     SizedBox(width: 4),
                     Icon(
@@ -296,11 +359,11 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                 child: TextFormField(
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: AppTextSizes.size14,
                     color: AppColors.textPrimary,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Enter phone number',
+                    hintText: AppStrings.enterPhoneNumber,
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.only(
                         topRight: Radius.circular(12),
@@ -337,24 +400,24 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildBarnInfoCard() {
     return _buildCard(
-      title: 'Barn Information',
+      title: AppStrings.barnInformation,
       child: Column(
         children: [
           const CommonTextField(
-            label: 'Barn Name',
-            hintText: 'Enter your business name',
+            label: AppStrings.barnName,
+            hintText: AppStrings.enterYourBusinessName,
             isRequired: true,
           ),
           const SizedBox(height: 16),
           const CommonTextField(
-            label: 'Location I',
-            hintText: 'Enter barn location',
+            label: AppStrings.locationI,
+            hintText: AppStrings.enterBarnLocation,
             isRequired: true,
           ),
           const SizedBox(height: 16),
           const CommonTextField(
-            label: 'Location II (optional)',
-            hintText: 'Enter your business name',
+            label: AppStrings.locationIiOptional,
+            hintText: AppStrings.enterYourBusinessName,
           ),
         ],
       ),
@@ -363,7 +426,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildFederationInfoCard() {
     return _buildCard(
-      title: 'Federation Information',
+      title: AppStrings.federationInformation,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -386,12 +449,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                     .map(
                       (e) => DropdownMenuItem(
                         value: e,
-                        child: Text(
+                        child: CommonText(
                           e,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textPrimary,
-                          ),
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     )
@@ -404,8 +465,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           ),
           const SizedBox(height: 16),
           const CommonTextField(
-            label: 'Federation ID Number',
-            hintText: 'ID Number',
+            label: AppStrings.federationIdNumber,
+            hintText: AppStrings.idNumber,
           ),
           const SizedBox(height: 16),
           Container(
@@ -428,21 +489,18 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
-                      Text(
-                        'Federation Verification',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF16A34A),
-                        ),
+                      CommonText(
+                        AppStrings.federationVerification,
+                        fontSize: AppTextSizes.size12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF16A34A),
                       ),
                       SizedBox(height: 2),
-                      Text(
-                        'Your federation number will be verified to ensure proper city and state calculations.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF15803D),
-                        ),
+                      CommonText(
+                        AppStrings
+                            .yourFederationNumberWillBeVerifiedToEnsureProperCityAndStateCalculations,
+                        fontSize: AppTextSizes.size12,
+                        color: Color(0xFF15803D),
                       ),
                     ],
                   ),
@@ -457,18 +515,18 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildSocialMediaCard() {
     return _buildCard(
-      title: 'Social Media & Website',
+      title: AppStrings.socialMediaWebsite,
       child: Column(
         children: [
           const CommonTextField(
-            label: 'Facebook',
-            hintText: 'facebook.com/yourpage',
+            label: AppStrings.facebook,
+            hintText: AppStrings.facebookcomyourpage,
             isRequired: true,
           ),
           const SizedBox(height: 16),
           const CommonTextField(
-            label: 'Website URL',
-            hintText: 'https://yourwebsite.com',
+            label: AppStrings.websiteUrl,
+            hintText: AppStrings.httpsyourwebsitecom,
             prefixIcon: Icon(
               Icons.link,
               size: 20,
@@ -476,7 +534,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             ),
           ),
           const SizedBox(height: 16),
-          const CommonTextField(label: 'Instagram', hintText: '@yourusername'),
+          const CommonTextField(
+            label: AppStrings.instagram,
+            hintText: AppStrings.yourusername,
+          ),
         ],
       ),
     );
@@ -484,17 +545,15 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildExperienceCard() {
     return _buildCard(
-      title: 'Experience',
+      title: AppStrings.experience,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Years in industry',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
+          const CommonText(
+            AppStrings.yearsInIndustry,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
           ),
           const SizedBox(height: 6),
           Container(
@@ -516,12 +575,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                     .map(
                       (e) => DropdownMenuItem(
                         value: e,
-                        child: Text(
+                        child: CommonText(
                           e,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textPrimary,
-                          ),
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     )
@@ -534,18 +591,16 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           ),
           const SizedBox(height: 16),
           const CommonTextField(
-            label: 'Bio',
-            hintText: 'Write a short bio',
+            label: AppStrings.bio,
+            hintText: AppStrings.writeAShortBio,
             maxLines: 4,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Program tags',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
+          const CommonText(
+            AppStrings.programTags,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
           ),
           const SizedBox(height: 6),
           Container(
@@ -566,9 +621,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                     setState(() => _programTags.remove(tag));
                   }),
                 ),
-                const Text(
-                  'Well|',
-                  style: TextStyle(color: AppColors.textSecondary),
+                const CommonText(
+                  AppStrings.well,
+                  color: AppColors.textSecondary,
                 ),
               ],
             ),
@@ -580,17 +635,15 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildHorseShowsCard() {
     return _buildCard(
-      title: 'Horse Shows & Circuits Frequented',
+      title: AppStrings.horseShowsCircuitsFrequented,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select location',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
+          const CommonText(
+            AppStrings.selectLocation,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
           ),
           const SizedBox(height: 6),
           Container(
@@ -614,9 +667,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                           setState(() => _horseShows.remove(tag));
                         }),
                       ),
-                      const Text(
-                        'Well|',
-                        style: TextStyle(color: AppColors.textSecondary),
+                      const CommonText(
+                        AppStrings.well,
+                        color: AppColors.textSecondary,
                       ),
                     ],
                   ),
@@ -644,9 +697,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          CommonText(
             text,
-            style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textPrimary,
           ),
           const SizedBox(width: 4),
           GestureDetector(

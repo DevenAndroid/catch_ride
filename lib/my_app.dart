@@ -1,3 +1,4 @@
+import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/view/trainer/splash_screen.dart';
 import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Catch Ride',
+      title: AppStrings.catchRide,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: const SplashScreen(),

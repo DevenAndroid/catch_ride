@@ -1,3 +1,6 @@
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 
@@ -28,9 +31,9 @@ class SocialButton extends StatelessWidget {
         children: [
           icon,
           const SizedBox(width: 12),
-          Text(
+          CommonText(
             text,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+            fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500,
           ),
         ],
       ),

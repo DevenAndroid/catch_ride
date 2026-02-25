@@ -1,7 +1,12 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
 import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
+import 'package:catch_ride/view/trainer/list/hourse_listing_view.dart';
 
 class TrainerBottomNav extends StatefulWidget {
   final int initialIndex;
@@ -21,9 +26,9 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
   final List<Widget> _views = [
     const TrainerExploreView(),
     const TrainerBookingsView(),
-    const Scaffold(body: Center(child: Text('List'))),
-    const Scaffold(body: Center(child: Text('Inbox'))),
-    const Scaffold(body: Center(child: Text('Vendors'))),
+    const HourseListingView(),
+    const Scaffold(body: Center(child: CommonText(AppStrings.inbox))),
+    const Scaffold(body: Center(child: CommonText(AppStrings.vendors))),
   ];
 
   @override
@@ -98,13 +103,11 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
               size: 24,
             ),
             const SizedBox(height: 4),
-            Text(
+            CommonText(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
+              fontSize: AppTextSizes.size12,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? Colors.white : AppColors.textSecondary,
             ),
           ],
         ),

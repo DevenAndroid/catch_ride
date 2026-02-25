@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:catch_ride/constant/app_colors.dart';
 
 class CommonTextField extends StatelessWidget {
@@ -36,7 +38,7 @@ class CommonTextField extends StatelessWidget {
             text: TextSpan(
               text: label,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: AppTextSizes.size14,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
                 fontFamily: 'Inter',
@@ -57,7 +59,7 @@ class CommonTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+          style: const TextStyle(fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: prefixIcon,

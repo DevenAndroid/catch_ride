@@ -1,3 +1,7 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -33,14 +37,12 @@ class _CreateAccountViewState extends State<CreateAccountView> {
               SvgPicture.asset("assets/images/logo.svg"),
 
               const SizedBox(height: 12),
-              const Text(
-                'CATCH RIDE',
-                style: TextStyle(
-                  fontSize: 20,
+              const CommonText(
+                AppStrings.catchRide1,
+                fontSize: AppTextSizes.size18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                   letterSpacing: 1.5,
-                ),
               ),
               const SizedBox(height: 32),
 
@@ -62,34 +64,30 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 22,
+                    const CommonText(
+                      AppStrings.createAccount,
+                      fontSize: AppTextSizes.size22,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
-                      ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    const CommonText(
                       'Let\'s get started by filling out the form below.',
-                      style: TextStyle(
-                        fontSize: 14,
+                      fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
-                      ),
                     ),
                     const SizedBox(height: 24),
 
                     const CommonTextField(
-                      label: 'Email',
-                      hintText: 'Enter your email',
+                      label: AppStrings.email,
+                      hintText: AppStrings.enterYourEmail,
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 16),
 
                     CommonTextField(
-                      label: 'Password',
-                      hintText: '******',
+                      label: AppStrings.password,
+                      hintText: AppStrings.emptyString,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -108,8 +106,8 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     const SizedBox(height: 16),
 
                     CommonTextField(
-                      label: 'Confirm Password',
-                      hintText: '******',
+                      label: AppStrings.confirmPassword,
+                      hintText: AppStrings.emptyString,
                       obscureText: _obscureConfirmPassword,
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -128,7 +126,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
 
                     const SizedBox(height: 24),
                     CommonButton(
-                      text: 'Get Started',
+                      text: AppStrings.getStarted,
                       onPressed: () {
                         // Get Started action
                       },
@@ -136,18 +134,16 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     const SizedBox(height: 20),
 
                     const Center(
-                      child: Text(
-                        'Or sign up with',
-                        style: TextStyle(
-                          fontSize: 14,
+                      child: CommonText(
+                        AppStrings.orSignUpWith,
+                        fontSize: AppTextSizes.size14,
                           color: AppColors.textSecondary,
-                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
 
                     SocialButton(
-                      text: 'Continue with Google',
+                      text: AppStrings.continueWithGoogle,
                       icon: SvgPicture.asset("assets/icons/google_icon.svg"),
                       onPressed: () {
                         // Google Sign In Action
@@ -161,7 +157,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ),
                     const SizedBox(height: 12),
                     SocialButton(
-                      text: 'Continue with Apple ID',
+                      text: AppStrings.continueWithAppleId,
                       icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
                       onPressed: () {
                         // Apple Sign In Action
@@ -174,12 +170,10 @@ class _CreateAccountViewState extends State<CreateAccountView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Already have an account? ',
-                    style: TextStyle(
-                      fontSize: 14,
+                  const CommonText(
+                    AppStrings.alreadyHaveAnAccount,
+                    fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
-                    ),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -190,13 +184,11 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         ),
                       );
                     },
-                    child: const Text(
-                      'Log In',
-                      style: TextStyle(
-                        fontSize: 14,
+                    child: const CommonText(
+                      AppStrings.logIn,
+                      fontSize: AppTextSizes.size14,
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
-                      ),
                     ),
                   ),
                 ],

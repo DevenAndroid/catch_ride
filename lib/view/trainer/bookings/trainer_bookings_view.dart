@@ -1,7 +1,12 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 
 class TrainerBookingsView extends StatefulWidget {
   const TrainerBookingsView({super.key});
@@ -37,13 +42,11 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const Text(
-          'Bookings',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+        title: const CommonText(
+          AppStrings.bookings,
+          color: AppColors.textPrimary,
+          fontSize: AppTextSizes.size22,
+          fontWeight: FontWeight.bold,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -57,16 +60,16 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                 labelColor: AppColors.textPrimary,
                 unselectedLabelColor: AppColors.textSecondary,
                 labelStyle: const TextStyle(
-                  fontSize: 16,
+                  fontSize: AppTextSizes.size16,
                   fontWeight: FontWeight.bold,
                 ),
                 unselectedLabelStyle: const TextStyle(
-                  fontSize: 16,
+                  fontSize: AppTextSizes.size16,
                   fontWeight: FontWeight.w500,
                 ),
                 tabs: const [
-                  Tab(text: 'Received'),
-                  Tab(text: 'Sent'),
+                  Tab(text: AppStrings.received),
+                  Tab(text: AppStrings.sent),
                 ],
               ),
               Container(color: AppColors.border, height: 1),
@@ -80,9 +83,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           children: [
             _buildReceivedTab(),
             const Center(
-              child: Text(
-                'Sent Bookings',
-                style: TextStyle(color: AppColors.textSecondary),
+              child: CommonText(
+                AppStrings.sentBookings,
+                color: AppColors.textSecondary,
               ),
             ),
           ],
@@ -121,15 +124,13 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Center(
-                        child: Text(
+                        child: CommonText(
                           _filters[index],
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected
-                                ? AppColors.textPrimary
-                                : AppColors.textSecondary,
-                          ),
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected
+                              ? AppColors.textPrimary
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -191,152 +192,151 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     required String status,
     required String imageUrl,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image with badge
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              height: 105,
-              width: 105,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CommonImageView(url: imageUrl),
-                  Positioned(
-                    top: 6,
-                    left: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        status,
-                        style: const TextStyle(
-                          fontSize: 10,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const TrainerHorseDetailView(fromBooking: true),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image with badge
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 105,
+                width: 105,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CommonImageView(url: imageUrl),
+                    Positioned(
+                      top: 6,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: CommonText(
+                          status,
+                          fontSize: AppTextSizes.size12,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF16A34A),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 16,
+            const SizedBox(width: 14),
+            // Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: CommonText(
+                          name,
+                          fontSize: AppTextSizes.size16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.tabBackground,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        type,
-                        style: const TextStyle(
-                          fontSize: 11,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.tabBackground,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: CommonText(
+                          type,
+                          fontSize: AppTextSizes.size12,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Trainer : $trainer',
-                  style: const TextStyle(
-                    fontSize: 14,
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  CommonText(
+                    'Trainer : $trainer',
+                    fontSize: AppTextSizes.size14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        location,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 14,
+                        color: AppColors.textSecondary,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        date,
-                        style: const TextStyle(
-                          fontSize: 12,
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: CommonText(
+                          location,
+                          fontSize: AppTextSizes.size12,
                           color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: CommonText(
+                          date,
+                          fontSize: AppTextSizes.size12,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,7 @@
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
@@ -44,13 +48,11 @@ class _SelectRoleViewState extends State<SelectRoleView> {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
-          'Select your role',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
+        title: const CommonText(
+          AppStrings.selectYourRole,
+          color: AppColors.textPrimary,
+            fontSize: AppTextSizes.size18,
             fontWeight: FontWeight.bold,
-          ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -69,13 +71,11 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Help other trusted professionals connect with you by completing your application below.',
-                      style: TextStyle(
-                        fontSize: 15,
+                    const CommonText(
+                      AppStrings.helpOtherTrustedProfessionalsConnectWithYouByCompletingYourApplicationBelow,
+                      fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
                         height: 1.4,
-                      ),
                     ),
                     const SizedBox(height: 32),
                     ..._roles.map(
@@ -92,7 +92,7 @@ class _SelectRoleViewState extends State<SelectRoleView> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: CommonButton(
-                text: 'Continue',
+                text: AppStrings.continueText,
                 onPressed: () {
                   if (_selectedRole == 'Trainer') {
                     Navigator.push(
@@ -144,21 +144,17 @@ class _SelectRoleViewState extends State<SelectRoleView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  CommonText(
                     title,
-                    style: TextStyle(
-                      fontSize: 16,
+                    fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
-                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                  CommonText(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
+                    fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
-                    ),
                   ),
                 ],
               ),
