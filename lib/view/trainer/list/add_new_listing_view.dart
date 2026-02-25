@@ -220,6 +220,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   child: TextField(
                     decoration: InputDecoration(
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
                       hintText: 'https://url.com',
                       hintStyle: TextStyle(
                         color: AppColors.textSecondary,
@@ -314,6 +317,12 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       children: [
         Container(
           width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -394,6 +403,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   maxLines: null,
                   decoration: InputDecoration(
                     border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    errorBorder: InputBorder.none,
                     isDense: true,
                     contentPadding: EdgeInsets.zero,
                     hintText: 'Write here...',
@@ -456,6 +468,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       child: const TextField(
                         decoration: InputDecoration(
                           border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          errorBorder: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
                           hintText: 'Enter USEF number',
@@ -531,6 +546,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       child: TextField(
         decoration: InputDecoration(
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
           isDense: true,
           contentPadding: EdgeInsets.zero,
           hintText: hintText,
