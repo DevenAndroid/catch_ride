@@ -16,6 +16,8 @@ class AddNewListingView extends StatefulWidget {
 
 class _AddNewListingViewState extends State<AddNewListingView> {
   int _currentStep = 1;
+  bool _activeStatus = true;
+  final List<int> _entries = [1, 2];
   final Set<String> _selectedListingTypes = {'Sale', 'Annual Lease'};
 
   final Set<String> _selectedProgramTags = {
@@ -169,6 +171,40 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                       const SizedBox(height: 20),
                       _buildOtherInformationForm(),
+                    ] else if (_currentStep == 5) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const CommonText(
+                            'Availability',
+                            fontSize: AppTextSizes.size18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _entries.add(
+                                  _entries.isEmpty ? 1 : _entries.last + 1,
+                                );
+                              });
+                            },
+                            child: Row(
+                              children: const [
+                                Icon(Icons.add, color: Colors.blue, size: 16),
+                                SizedBox(width: 4),
+                                CommonText(
+                                  'Add Entry',
+                                  color: Colors.blue,
+                                  fontSize: AppTextSizes.size14,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildAvailabilityForm(),
                     ],
                   ],
                 ),
@@ -791,7 +827,137 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     );
   }
 
+  Widget _buildAvailabilityForm() {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  CommonText(
+                    'Active Status',
+                    fontSize: AppTextSizes.size14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  SizedBox(height: 4),
+                  CommonText(
+                    'Make listing visible to others',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+              Switch(
+                value: _activeStatus,
+                onChanged: (val) {
+                  setState(() {
+                    _activeStatus = val;
+                  });
+                },
+                activeColor: const Color(0xFF047857),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        ..._entries.asMap().entries.map((entry) {
+          int index = entry.key;
+          int entryNum = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(
+                        'Entry $entryNum',
+                        fontSize: AppTextSizes.size14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _entries.removeAt(index);
+                          });
+                        },
+                        child: const Icon(
+                          Icons.close,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const CommonTextField(
+                    label: 'City/State',
+                    hintText: 'e.g., Welling.',
+                  ),
+                  const SizedBox(height: 16),
+                  const CommonTextField(
+                    label: 'Show Venue',
+                    hintText: 'e.g., Welling.',
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: const [
+                      Expanded(
+                        child: CommonTextField(
+                          label: 'Start Date',
+                          hintText: 'Select date',
+                          suffixIcon: Icon(
+                            Icons.calendar_today_outlined,
+                            size: 20,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: CommonTextField(
+                          label: 'End Date',
+                          hintText: 'Select date',
+                          suffixIcon: Icon(
+                            Icons.calendar_today_outlined,
+                            size: 20,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
   Widget _buildBottomButtons() {
+    final bool isLastStep = _currentStep == 5;
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: const BoxDecoration(color: Colors.white),
@@ -816,11 +982,24 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: const CommonText(
-                  'Cancel',
-                  fontSize: AppTextSizes.size16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isLastStep) ...[
+                      const Icon(
+                        Icons.remove_red_eye_outlined,
+                        color: AppColors.textSecondary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    CommonText(
+                      isLastStep ? 'Preview' : 'Cancel',
+                      fontSize: AppTextSizes.size16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -833,6 +1012,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   setState(() {
                     _currentStep++;
                   });
+                } else {
+                  // Final Publish Listing integration API call would happen here
+                  Get.back(); // Mock return indicating success
                 }
               },
               child: Container(
@@ -842,8 +1024,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const CommonText(
-                  'Save',
+                child: CommonText(
+                  isLastStep ? 'Publish Listing' : 'Save',
                   fontSize: AppTextSizes.size16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
