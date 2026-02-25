@@ -26,6 +26,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   String _selectedYears = 'Select years';
 
   File? _profileImage;
+  File? _bannerImage;
   final ImagePicker _picker = ImagePicker();
 
   // Dummy tags for UI purposes
@@ -38,6 +39,19 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       if (image != null) {
         setState(() {
           _profileImage = File(image.path);
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
+  Future<void> _pickBannerImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _bannerImage = File(image.path);
         });
       }
     } catch (e) {
@@ -124,8 +138,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                       _currentStep++;
                     });
                   } else {
-                    Get.to(() => const TrainerApplicationSubmittedView(),
-                    );
+                    Get.to(() => const TrainerApplicationSubmittedView());
                   }
                 },
               ),
@@ -251,7 +264,15 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     return _buildCard(
       title: AppStrings.basicDetails,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const CommonText(
+            AppStrings.profilePhoto,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+          const SizedBox(height: 12),
           Align(
             alignment: Alignment.center,
             child: GestureDetector(
@@ -303,13 +324,51 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             ),
           ),
           const SizedBox(height: 24),
+          const CommonText(
+            AppStrings.bannerImage,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _pickBannerImage,
+            child: CustomPaint(
+              painter: _bannerImage == null
+                  ? DashPainter(color: AppColors.border)
+                  : null,
+              child: Container(
+                width: double.infinity,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _bannerImage != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(_bannerImage!, fit: BoxFit.cover),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.add,
+                            color: AppColors.textSecondary,
+                            size: 24,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
           const CommonTextField(
             label: AppStrings.fullName,
             hintText: AppStrings.enterYourFullName,
             isRequired: true,
           ),
           const SizedBox(height: 16),
-
           const Align(
             alignment: Alignment.centerLeft,
             child: CommonText(
@@ -711,4 +770,52 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       ),
     );
   }
+}
+
+class DashPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double dashWidth;
+  final double dashSpace;
+  final double borderRadius;
+
+  DashPainter({
+    this.color = Colors.grey,
+    this.strokeWidth = 1,
+    this.dashWidth = 5,
+    this.dashSpace = 3,
+    this.borderRadius = 12,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          Radius.circular(borderRadius),
+        ),
+      );
+
+    final dashPath = Path();
+    for (final metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        dashPath.addPath(
+          metric.extractPath(distance, distance + dashWidth),
+          Offset.zero,
+        );
+        distance += dashWidth + dashSpace;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(DashPainter oldDelegate) => false;
 }

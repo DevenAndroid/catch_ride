@@ -14,6 +14,7 @@ class CommonTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final int maxLines;
   final bool isRequired;
+  final String? suffixLabel;
 
   const CommonTextField({
     super.key,
@@ -26,6 +27,7 @@ class CommonTextField extends StatelessWidget {
     this.prefixIcon,
     this.maxLines = 1,
     this.isRequired = false,
+    this.suffixLabel,
   });
 
   @override
@@ -49,6 +51,15 @@ class CommonTextField extends StatelessWidget {
                     text: ' *',
                     style: TextStyle(color: Color(0xFFD92D20)),
                   ),
+                if (suffixLabel != null)
+                  TextSpan(
+                    text: ' $suffixLabel',
+                    style: TextStyle(
+                      fontSize: AppTextSizes.size12,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textSecondary.withOpacity(0.6),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -59,7 +70,10 @@ class CommonTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: const TextStyle(fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+          style: const TextStyle(
+            fontSize: AppTextSizes.size14,
+            color: AppColors.textPrimary,
+          ),
           decoration: InputDecoration(
             hintText: hintText,
             prefixIcon: prefixIcon,

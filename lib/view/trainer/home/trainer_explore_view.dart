@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:catch_ride/view/trainer/settings/notifications_view.dart';
+import 'package:catch_ride/view/trainer/settings/edit_profile.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
 
@@ -76,42 +78,48 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              const CommonImageView(
-                url: AppConstants.dummyImageUrl,
-                height: 48,
-                width: 48,
-                shape: BoxShape.circle,
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  CommonText(
-                    AppStrings.johnSnow,
-                    fontSize: AppTextSizes.size18,
+          GestureDetector(
+            onTap: () => Get.to(() => const EditProfileView()),
+            child: Row(
+              children: [
+                const CommonImageView(
+                  url: AppConstants.dummyImageUrl,
+                  height: 48,
+                  width: 48,
+                  shape: BoxShape.circle,
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    CommonText(
+                      AppStrings.johnSnow,
+                      fontSize: AppTextSizes.size18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
-                  ),
-                  CommonText(
-                    AppStrings.professionalHorseTrainer,
-                    fontSize: AppTextSizes.size12,
+                    ),
+                    CommonText(
+                      AppStrings.professionalHorseTrainer,
+                      fontSize: AppTextSizes.size12,
                       color: AppColors.textSecondary,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            child: const Icon(
-              Icons.notifications_none,
-              color: AppColors.textPrimary,
+          ),
+          GestureDetector(
+            onTap: () => Get.to(() => const NotificationsView()),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                Icons.notifications_none,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ],
@@ -122,24 +130,36 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: const [
-            Icon(Icons.search, color: AppColors.textSecondary, size: 24),
-            SizedBox(width: 12),
-            Expanded(
-              child: CommonText(
-                AppStrings.searchByTrainersOrHorses,
-                fontSize: AppTextSizes.size14, color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+      child: TextField(
+        decoration: InputDecoration(
+          hintText: AppStrings.searchByTrainersOrHorses,
+          hintStyle: const TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+          ),
+          prefixIcon: const Icon(
+            Icons.search,
+            color: AppColors.textSecondary,
+            size: 24,
+          ),
+          fillColor: Colors.white,
+          filled: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
         ),
       ),
     );
@@ -172,10 +192,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               child: CommonText(
                 _filters[index],
                 fontSize: AppTextSizes.size14,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected
-                      ? AppColors.primary
-                      : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
           );
@@ -196,8 +214,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   }) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => const TrainerHorseDetailView(),
-        );
+        Get.to(() => const TrainerHorseDetailView());
       },
       child: Container(
         decoration: BoxDecoration(
@@ -227,13 +244,13 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                         CommonText(
                           userName,
                           fontSize: AppTextSizes.size14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                         ),
                         CommonText(
                           userTitle,
                           fontSize: AppTextSizes.size12,
-                            color: AppColors.textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                       ],
                     ),
@@ -266,8 +283,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     child: CommonText(
                       imageCount,
                       color: Colors.white,
-                        fontSize: AppTextSizes.size12,
-                        fontWeight: FontWeight.w600,
+                      fontSize: AppTextSizes.size12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -296,8 +313,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                               child: CommonText(
                                 tag,
                                 fontSize: AppTextSizes.size12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           )
@@ -328,16 +345,16 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   CommonText(
                     postTitle,
                     fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                      height: 1.3,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    height: 1.3,
                   ),
                   const SizedBox(height: 6),
                   CommonText(
                     postDescription,
                     fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -351,7 +368,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       CommonText(
                         location,
                         fontSize: AppTextSizes.size12,
-                          color: AppColors.textSecondary,
+                        color: AppColors.textSecondary,
                       ),
                     ],
                   ),

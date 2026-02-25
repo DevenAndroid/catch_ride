@@ -1,4 +1,3 @@
-import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
@@ -7,9 +6,13 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
 import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
 import 'package:catch_ride/view/trainer/list/hourse_listing_view.dart';
+import 'package:catch_ride/view/trainer/chats/chats_view.dart';
+
+import 'vendors/vendors_view.dart';
 
 class TrainerBottomNav extends StatefulWidget {
   final int initialIndex;
+
   const TrainerBottomNav({
     super.key,
     this.initialIndex = 0,
@@ -27,8 +30,8 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
     const TrainerExploreView(),
     const TrainerBookingsView(),
     const HourseListingView(),
-    const Scaffold(body: Center(child: CommonText(AppStrings.inbox))),
-    const Scaffold(body: Center(child: CommonText(AppStrings.vendors))),
+    const TrainerChatsView(),
+    const VendorsView(),
   ];
 
   @override

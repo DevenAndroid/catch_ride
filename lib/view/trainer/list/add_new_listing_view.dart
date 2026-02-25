@@ -1,5 +1,7 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/add_new_listing_controller.dart';
+import 'package:catch_ride/view/trainer/list/listing_preview_view.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -15,77 +17,8 @@ class AddNewListingView extends StatefulWidget {
 }
 
 class _AddNewListingViewState extends State<AddNewListingView> {
+  final AddNewListingController controller = Get.put(AddNewListingController());
   int _currentStep = 1;
-  bool _activeStatus = true;
-  final List<int> _entries = [1, 2];
-  final Set<String> _selectedListingTypes = {'Sale', 'Annual Lease'};
-
-  final Set<String> _selectedProgramTags = {
-    'High Performance Jumper (1.20m +)',
-    'Young Developing Hunter',
-  };
-  final Set<String> _selectedOpportunityTags = {
-    'Investment Type',
-    'Owner Flexible',
-  };
-  final Set<String> _selectedExperienceTags = {
-    'Short/Long Stirrup',
-    'Young Developing Hunter',
-  };
-  final Set<String> _selectedPersonalityTags = {
-    'Sensitive Ride',
-    'Forward Ride',
-  };
-
-  final List<String> _programTags = [
-    'Big Equitation',
-    'High Performance Hunter (3\'6" +)',
-    'High Performance Jumper (1.20m +)',
-    'Young Developing Hunter',
-    'Young Developing Jumper',
-    'Schoolmaster',
-    'Prospect',
-    'Division Pony',
-  ];
-
-  final List<String> _opportunityTags = [
-    'Open to outside miles',
-    'Firesale',
-    'Investment Type',
-    'Owner Flexible',
-    'Open to Paid Trials',
-    'Backburner',
-  ];
-
-  final List<String> _experienceTags = [
-    'Division Pony',
-    'Beginner Friendly',
-    'Short/Long Stirrup',
-    'Young Developing Hunter',
-    'Crossrails',
-    '2\'6"',
-    '3\'0-3\'3"',
-    '3\'6"',
-    '3\'6"+',
-    '1.0m',
-    '1.10m',
-    '1.20m',
-    '1.30m',
-    '1.40m',
-    '1.50m',
-    'FEI',
-  ];
-
-  final List<String> _personalityTags = [
-    'Jr/Amateur Friendly',
-    'Brave / Bold',
-    'Sensitive Ride',
-    'Forward Ride',
-    'Auto Lead Change',
-    'Careful',
-    'Push Ride',
-    'Pro Ride',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -183,11 +116,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              setState(() {
-                                _entries.add(
-                                  _entries.isEmpty ? 1 : _entries.last + 1,
-                                );
-                              });
+                              controller.addEntry();
                             },
                             child: Row(
                               children: const [
@@ -317,15 +246,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ),
           const SizedBox(height: 24),
           RichText(
-            text: const TextSpan(
+            text: TextSpan(
               text: 'Video link ',
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
-              children: [
+              children: const [
                 TextSpan(
                   text: ' (optional)',
                   style: TextStyle(color: AppColors.textSecondary),
@@ -343,12 +272,17 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               border: Border.all(color: AppColors.border),
             ),
             child: Row(
-              children: const [
-                Icon(Icons.link, color: AppColors.textSecondary, size: 20),
-                SizedBox(width: 8),
+              children: [
+                const Icon(
+                  Icons.link,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: controller.videoLinkController,
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -458,12 +392,14 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             children: [
               CommonTextField(
                 label: 'Listing Title',
+                controller: controller.listingTitleController,
                 hintText: 'e.g., Beautiful Hunter for Sale',
                 isRequired: true,
               ),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Horse Name',
+                controller: controller.horseNameController,
                 hintText: 'Enter horse name',
                 isRequired: true,
               ),
@@ -473,6 +409,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   Expanded(
                     child: CommonTextField(
                       label: 'Age',
+                      controller: controller.ageController,
                       hintText: 'e.g., 12 years',
                       isRequired: false,
                     ),
@@ -481,6 +418,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   Expanded(
                     child: CommonTextField(
                       label: 'Height',
+                      controller: controller.heightController,
                       hintText: 'e.g., 16.2hh',
                       isRequired: false,
                     ),
@@ -490,12 +428,14 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Breed',
+                controller: controller.breedController,
                 hintText: 'Enter horse breed',
                 isRequired: true,
               ),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Color',
+                controller: controller.colorController,
                 hintText: 'Enter horse color',
                 isRequired: false,
               ),
@@ -537,6 +477,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Description',
+                controller: controller.descriptionController,
                 hintText: 'Write here...',
                 isRequired: true,
                 maxLines: 4,
@@ -589,8 +530,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         border: Border.all(color: AppColors.border),
                       ),
                       alignment: Alignment.centerLeft,
-                      child: const TextField(
-                        decoration: InputDecoration(
+                      child: TextField(
+                        controller: controller.usefNumberController,
+                        decoration: const InputDecoration(
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -633,32 +575,56 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   }
 
   Widget _buildListingTypeSelection() {
-    return Column(
-      children: [
-        _buildListingTypeCard('Sale'),
-        const SizedBox(height: 12),
-        _buildListingTypeCard('Annual Lease'),
-        const SizedBox(height: 12),
-        _buildListingTypeCard('Short Term or Circuit Lease'),
-        const SizedBox(height: 12),
-        _buildListingTypeCard('Weekly Lease'),
-      ],
+    return Obx(
+      () => Column(
+        children: [
+          _buildListingTypeCard(
+            title: 'Sale',
+            subtitle: 'The horse is for sale',
+            isSelected: controller.selectedListingTypes.contains('Sale'),
+            onTap: () => controller.toggleListingType('Sale'),
+          ),
+          const SizedBox(height: 16),
+          _buildListingTypeCard(
+            title: 'Annual Lease',
+            subtitle: 'The horse is for annual lease',
+            isSelected: controller.selectedListingTypes.contains(
+              'Annual Lease',
+            ),
+            onTap: () => controller.toggleListingType('Annual Lease'),
+          ),
+          const SizedBox(height: 16),
+          _buildListingTypeCard(
+            title: 'Short Term or Circuit Lease',
+            subtitle: 'The horse is for short term or circuit lease',
+            isSelected: controller.selectedListingTypes.contains(
+              'Short Term or Circuit Lease',
+            ),
+            onTap: () =>
+                controller.toggleListingType('Short Term or Circuit Lease'),
+          ),
+          const SizedBox(height: 16),
+          _buildListingTypeCard(
+            title: 'Weekly Lease',
+            subtitle: 'The horse is for weekly lease',
+            isSelected: controller.selectedListingTypes.contains(
+              'Weekly Lease',
+            ),
+            onTap: () => controller.toggleListingType('Weekly Lease'),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildListingTypeCard(String title) {
-    final bool isSelected = _selectedListingTypes.contains(title);
-
+  Widget _buildListingTypeCard({
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          if (isSelected) {
-            _selectedListingTypes.remove(title);
-          } else {
-            _selectedListingTypes.add(title);
-          }
-        });
-      },
+      onTap: onTap,
       child: Container(
         height: 56,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -709,29 +675,29 @@ class _AddNewListingViewState extends State<AddNewListingView> {
         _buildTagSection(
           title: 'Program Tag',
           isOptional: true,
-          tags: _programTags,
-          selectedTags: _selectedProgramTags,
+          tags: controller.programTags,
+          selectedTags: controller.selectedProgramTags,
         ),
         const SizedBox(height: 16),
         _buildTagSection(
           title: 'Opportunity Tag',
           isOptional: true,
-          tags: _opportunityTags,
-          selectedTags: _selectedOpportunityTags,
+          tags: controller.opportunityTags,
+          selectedTags: controller.selectedOpportunityTags,
         ),
         const SizedBox(height: 16),
         _buildTagSection(
           title: 'Experience',
           isOptional: false,
-          tags: _experienceTags,
-          selectedTags: _selectedExperienceTags,
+          tags: controller.experienceTags,
+          selectedTags: controller.selectedExperienceTags,
         ),
         const SizedBox(height: 16),
         _buildTagSection(
           title: 'Personality Tag',
           isOptional: false,
-          tags: _personalityTags,
-          selectedTags: _selectedPersonalityTags,
+          tags: controller.personalityTags,
+          selectedTags: controller.selectedPersonalityTags,
         ),
       ],
     );
@@ -741,7 +707,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     required String title,
     required bool isOptional,
     required List<String> tags,
-    required Set<String> selectedTags,
+    required RxSet<String> selectedTags,
   }) {
     return Container(
       width: double.infinity,
@@ -777,50 +743,48 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             ),
           ),
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: tags.map((tag) {
-              final isSelected = selectedTags.contains(tag);
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (isSelected) {
-                      selectedTags.remove(tag);
-                    } else {
-                      selectedTags.add(tag);
-                    }
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.border,
-                      width: 1,
+          Obx(
+            () => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: tags.map((tag) {
+                final isSelected = selectedTags.contains(tag);
+                return GestureDetector(
+                  onTap: () {
+                    controller.toggleTag(selectedTags, tag);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.border,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      tag,
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 12,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      ),
                     ),
                   ),
-                  child: Text(
-                    tag,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w500,
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
@@ -857,100 +821,128 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   ),
                 ],
               ),
-              Switch(
-                value: _activeStatus,
-                onChanged: (val) {
-                  setState(() {
-                    _activeStatus = val;
-                  });
-                },
-                activeColor: const Color(0xFF047857),
+              Obx(
+                () => Switch(
+                  value: controller.activeStatus.value,
+                  onChanged: (val) {
+                    controller.activeStatus.value = val;
+                  },
+                  activeColor: const Color(0xFF047857),
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        ..._entries.asMap().entries.map((entry) {
-          int index = entry.key;
-          int entryNum = entry.value;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+        Obx(
+          () => Column(
+            children: [
+              ...controller.availabilityEntries.asMap().entries.map((entry) {
+                int index = entry.key;
+                AvailabilityEntry availabilityEntry = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CommonText(
+                              'Entry ${availabilityEntry.id}',
+                              fontSize: AppTextSizes.size14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                controller.removeEntry(index);
+                              },
+                              child: const Icon(
+                                Icons.close,
+                                size: 20,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        CommonTextField(
+                          label: 'City/State',
+                          controller: availabilityEntry.cityStateController,
+                          hintText: 'e.g., Welling.',
+                        ),
+                        const SizedBox(height: 16),
+                        CommonTextField(
+                          label: 'Show Venue',
+                          controller: availabilityEntry.showVenueController,
+                          hintText: 'e.g., Welling.',
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CommonTextField(
+                                label: 'Start Date',
+                                controller:
+                                    availabilityEntry.startDateController,
+                                hintText: 'Select date',
+                                suffixIcon: const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 20,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CommonTextField(
+                                label: 'End Date',
+                                controller: availabilityEntry.endDateController,
+                                hintText: 'Select date',
+                                suffixIcon: const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 20,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+              GestureDetector(
+                onTap: controller.addEntry,
+                child: Container(
+                  width: double.infinity,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Center(
+                    child: CommonText(
+                      'Add another entry',
+                      fontSize: AppTextSizes.size16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CommonText(
-                        'Entry $entryNum',
-                        fontSize: AppTextSizes.size14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _entries.removeAt(index);
-                          });
-                        },
-                        child: const Icon(
-                          Icons.close,
-                          size: 20,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const CommonTextField(
-                    label: 'City/State',
-                    hintText: 'e.g., Welling.',
-                  ),
-                  const SizedBox(height: 16),
-                  const CommonTextField(
-                    label: 'Show Venue',
-                    hintText: 'e.g., Welling.',
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: CommonTextField(
-                          label: 'Start Date',
-                          hintText: 'Select date',
-                          suffixIcon: Icon(
-                            Icons.calendar_today_outlined,
-                            size: 20,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: CommonTextField(
-                          label: 'End Date',
-                          hintText: 'Select date',
-                          suffixIcon: Icon(
-                            Icons.calendar_today_outlined,
-                            size: 20,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -966,7 +958,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                if (_currentStep > 1) {
+                if (isLastStep) {
+                  Get.to(() => const ListingPreviewView());
+                } else if (_currentStep > 1) {
                   setState(() {
                     _currentStep--;
                   });
