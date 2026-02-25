@@ -10,6 +10,7 @@ import 'package:catch_ride/widgets/social_button.dart';
 import 'package:catch_ride/view/select_role_view.dart';
 import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -121,11 +122,7 @@ class _LoginViewState extends State<LoginView> {
                       text: AppStrings.logIn,
                       onPressed: () {
                         // Log In action
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SelectRoleView(),
-                          ),
+                        Get.to(() => const SelectRoleView(),
                         );
                       },
                     ),
@@ -145,11 +142,7 @@ class _LoginViewState extends State<LoginView> {
                       icon: SvgPicture.asset("assets/icons/google_icon.svg"),
                       onPressed: () {
                         // Google Sign In Action
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SelectRoleView(),
-                          ),
+                        Get.to(() => const SelectRoleView(),
                         );
                       },
                     ),
@@ -175,11 +168,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CreateAccountView(),
-                        ),
+                      Get.off(() => const CreateAccountView(),
                       );
                     },
                     child: const CommonText(

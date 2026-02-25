@@ -7,6 +7,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/create_account_view.dart';
 
 import '../../constant/app_text_sizes.dart';
+import 'package:get/get.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,9 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const CreateAccountView()),
+      Get.off(() => const CreateAccountView(),
       );
     });
   }

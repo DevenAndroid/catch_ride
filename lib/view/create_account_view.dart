@@ -12,6 +12,7 @@ import 'package:catch_ride/view/select_role_view.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:catch_ride/view/login_view.dart';
+import 'package:get/get.dart';
 
 class CreateAccountView extends StatefulWidget {
   const CreateAccountView({super.key});
@@ -147,11 +148,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       icon: SvgPicture.asset("assets/icons/google_icon.svg"),
                       onPressed: () {
                         // Google Sign In Action
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SelectRoleView(),
-                          ),
+                        Get.to(() => const SelectRoleView(),
                         );
                       },
                     ),
@@ -177,11 +174,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginView(),
-                        ),
+                      Get.off(() => const LoginView(),
                       );
                     },
                     child: const CommonText(

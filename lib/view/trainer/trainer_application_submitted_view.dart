@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
+import 'package:get/get.dart';
 
 class TrainerApplicationSubmittedView extends StatelessWidget {
   const TrainerApplicationSubmittedView({super.key});
@@ -54,8 +55,8 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
               const CommonText(
                 AppStrings.applicationSubmitted,
                 fontSize: AppTextSizes.size22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -63,7 +64,8 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
               // Subtitle
               const CommonText(
                 AppStrings.yourApplicationIsUnderReview,
-                fontSize: AppTextSizes.size16, color: AppColors.textSecondary,
+                fontSize: AppTextSizes.size16,
+                color: AppColors.textSecondary,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -81,10 +83,11 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
                   border: Border.all(color: AppColors.border),
                 ),
                 child: const CommonText(
-                  AppStrings.onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount,
+                  AppStrings
+                      .onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount,
                   fontSize: AppTextSizes.size14,
-                    color: AppColors.textSecondary,
-                    height: 1.5,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -93,17 +96,10 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
 
               // Bottom Button
               CommonButton(
-                text:
-                    AppStrings.goToDashboard, // Updated text to better reflect the action, but still using the same button style.
+                text: AppStrings
+                    .goToDashboard, // Updated text to better reflect the action, but still using the same button style.
                 onPressed: () {
-                  // Navigate to TrainerBottomNav and clear the stack
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TrainerBottomNav(),
-                    ),
-                    (route) => false,
-                  );
+                  Get.offAll(() => const TrainerBottomNav());
                 },
               ),
             ],

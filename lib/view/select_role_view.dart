@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/view/trainer/trainer_profile_setup_view.dart';
+import 'package:get/get.dart';
 
 class SelectRoleView extends StatefulWidget {
   const SelectRoleView({super.key});
@@ -45,7 +46,7 @@ class _SelectRoleViewState extends State<SelectRoleView> {
             size: 20,
           ),
           onPressed: () {
-            Navigator.pop(context);
+            Get.back();
           },
         ),
         title: const CommonText(
@@ -95,11 +96,7 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                 text: AppStrings.continueText,
                 onPressed: () {
                   if (_selectedRole == 'Trainer') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TrainerProfileSetupView(),
-                      ),
+                    Get.to(() => const TrainerProfileSetupView(),
                     );
                   } else {
                     // Logic for other roles

@@ -4,6 +4,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_constants.dart';
+import 'package:get/get.dart';
 
 class AddNewListingView extends StatefulWidget {
   const AddNewListingView({super.key});
@@ -27,7 +28,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             color: AppColors.textPrimary,
             size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: const CommonText(
           'Add new listing',
@@ -299,7 +300,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: () => Get.back(),
               child: Container(
                 height: 52,
                 alignment: Alignment.center,

@@ -7,6 +7,7 @@ import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:get/get.dart';
 
 class HourseListingView extends StatefulWidget {
   const HourseListingView({super.key});
@@ -41,11 +42,7 @@ class _HourseListingViewState extends State<HourseListingView> {
             const SizedBox(height: 16),
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddNewListingView(),
-                  ),
+                Get.to(() => const AddNewListingView(),
                 );
               },
               child: Image.asset(
@@ -114,11 +111,7 @@ class _HourseListingViewState extends State<HourseListingView> {
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const TrainerHorseDetailView(),
-          ),
+        Get.to(() => const TrainerHorseDetailView(),
         );
       },
       child: Container(

@@ -9,6 +9,7 @@ import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:get/get.dart';
 
 class TrainerProfileSetupView extends StatefulWidget {
   const TrainerProfileSetupView({super.key});
@@ -64,7 +65,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                 _currentStep--;
               });
             } else {
-              Navigator.pop(context);
+              Get.back();
             }
           },
         ),
@@ -123,12 +124,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                       _currentStep++;
                     });
                   } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const TrainerApplicationSubmittedView(),
-                      ),
+                    Get.to(() => const TrainerApplicationSubmittedView(),
                     );
                   }
                 },

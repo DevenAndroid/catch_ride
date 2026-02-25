@@ -7,6 +7,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:get/get.dart';
 
 class TrainerBookingsView extends StatefulWidget {
   const TrainerBookingsView({super.key});
@@ -194,12 +195,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   }) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                const TrainerHorseDetailView(fromBooking: true),
-          ),
+        Get.to(() => const TrainerHorseDetailView(fromBooking: true),
         );
       },
       child: Container(

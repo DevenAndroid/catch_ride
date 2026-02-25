@@ -7,6 +7,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_button.dart';
+import 'package:get/get.dart';
 
 class TrainerHorseDetailView extends StatefulWidget {
   final bool fromBooking;
@@ -34,7 +35,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             color: AppColors.textPrimary,
             size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Get.back(),
         ),
         title: const CommonText(
           AppStrings.horseDetail,
@@ -810,7 +811,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   CommonButton(
                     text: 'Next',
                     onPressed: () {
-                      Navigator.pop(context);
+                      Get.back();
                       _showSelectBookingTypeBottomSheet();
                     },
                   ),
@@ -1014,7 +1015,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
-                            Navigator.pop(context);
+                            Get.back();
                             _showSelectAvailabilityBottomSheet();
                           },
                           child: Container(
@@ -1039,7 +1040,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         child: CommonButton(
                           text: 'Send Request',
                           onPressed: () {
-                            Navigator.pop(context);
+                            Get.back();
                             setState(() {
                               _isRequested = true;
                             });
