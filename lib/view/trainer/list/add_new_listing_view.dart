@@ -18,6 +18,73 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   int _currentStep = 1;
   final Set<String> _selectedListingTypes = {'Sale', 'Annual Lease'};
 
+  final Set<String> _selectedProgramTags = {
+    'High Performance Jumper (1.20m +)',
+    'Young Developing Hunter',
+  };
+  final Set<String> _selectedOpportunityTags = {
+    'Investment Type',
+    'Owner Flexible',
+  };
+  final Set<String> _selectedExperienceTags = {
+    'Short/Long Stirrup',
+    'Young Developing Hunter',
+  };
+  final Set<String> _selectedPersonalityTags = {
+    'Sensitive Ride',
+    'Forward Ride',
+  };
+
+  final List<String> _programTags = [
+    'Big Equitation',
+    'High Performance Hunter (3\'6" +)',
+    'High Performance Jumper (1.20m +)',
+    'Young Developing Hunter',
+    'Young Developing Jumper',
+    'Schoolmaster',
+    'Prospect',
+    'Division Pony',
+  ];
+
+  final List<String> _opportunityTags = [
+    'Open to outside miles',
+    'Firesale',
+    'Investment Type',
+    'Owner Flexible',
+    'Open to Paid Trials',
+    'Backburner',
+  ];
+
+  final List<String> _experienceTags = [
+    'Division Pony',
+    'Beginner Friendly',
+    'Short/Long Stirrup',
+    'Young Developing Hunter',
+    'Crossrails',
+    '2\'6"',
+    '3\'0-3\'3"',
+    '3\'6"',
+    '3\'6"+',
+    '1.0m',
+    '1.10m',
+    '1.20m',
+    '1.30m',
+    '1.40m',
+    '1.50m',
+    'FEI',
+  ];
+
+  final List<String> _personalityTags = [
+    'Jr/Amateur Friendly',
+    'Brave / Bold',
+    'Sensitive Ride',
+    'Forward Ride',
+    'Auto Lead Change',
+    'Careful',
+    'Push Ride',
+    'Pro Ride',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,6 +160,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                       const SizedBox(height: 24),
                       _buildListingTypeSelection(),
+                    ] else if (_currentStep == 4) ...[
+                      const CommonText(
+                        'Other information',
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildOtherInformationForm(),
                     ],
                   ],
                 ),
@@ -587,6 +663,130 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildOtherInformationForm() {
+    return Column(
+      children: [
+        _buildTagSection(
+          title: 'Program Tag',
+          isOptional: true,
+          tags: _programTags,
+          selectedTags: _selectedProgramTags,
+        ),
+        const SizedBox(height: 16),
+        _buildTagSection(
+          title: 'Opportunity Tag',
+          isOptional: true,
+          tags: _opportunityTags,
+          selectedTags: _selectedOpportunityTags,
+        ),
+        const SizedBox(height: 16),
+        _buildTagSection(
+          title: 'Experience',
+          isOptional: false,
+          tags: _experienceTags,
+          selectedTags: _selectedExperienceTags,
+        ),
+        const SizedBox(height: 16),
+        _buildTagSection(
+          title: 'Personality Tag',
+          isOptional: false,
+          tags: _personalityTags,
+          selectedTags: _selectedPersonalityTags,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTagSection({
+    required String title,
+    required bool isOptional,
+    required List<String> tags,
+    required Set<String> selectedTags,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              text: title,
+              style: const TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              children: isOptional
+                  ? [
+                      const TextSpan(
+                        text: '  (optional)',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ]
+                  : [],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: tags.map((tag) {
+              final isSelected = selectedTags.contains(tag);
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      selectedTags.remove(tag);
+                    } else {
+                      selectedTags.add(tag);
+                    }
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primary : AppColors.border,
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    tag,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 12,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
