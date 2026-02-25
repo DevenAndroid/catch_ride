@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -326,48 +327,66 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildFormLabel(label: 'Listing Title', isRequired: true),
-              _buildTextField(hintText: 'e.g., Beautiful Hunter for Sale'),
+              CommonTextField(
+                label: 'Listing Title',
+                hintText: 'e.g., Beautiful Hunter for Sale',
+                isRequired: true,
+              ),
               const SizedBox(height: 16),
-              _buildFormLabel(label: 'Horse Name', isRequired: true),
-              _buildTextField(hintText: 'Enter horse name'),
+              CommonTextField(
+                label: 'Horse Name',
+                hintText: 'Enter horse name',
+                isRequired: true,
+              ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFormLabel(label: 'Age', isRequired: false),
-                        _buildTextField(hintText: 'e.g., 12 years'),
-                      ],
+                    child: CommonTextField(
+                      label: 'Age',
+                      hintText: 'e.g., 12 years',
+                      isRequired: false,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildFormLabel(label: 'Height', isRequired: false),
-                        _buildTextField(hintText: 'e.g., 16.2hh'),
-                      ],
+                    child: CommonTextField(
+                      label: 'Height',
+                      hintText: 'e.g., 16.2hh',
+                      isRequired: false,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildFormLabel(label: 'Breed', isRequired: true),
-              _buildTextField(hintText: 'Enter horse breed'),
+              CommonTextField(
+                label: 'Breed',
+                hintText: 'Enter horse breed',
+                isRequired: true,
+              ),
               const SizedBox(height: 16),
-              _buildFormLabel(label: 'Color', isRequired: false),
-              _buildTextField(hintText: 'Enter horse color'),
+              CommonTextField(
+                label: 'Color',
+                hintText: 'Enter horse color',
+                isRequired: false,
+              ),
               const SizedBox(height: 16),
-              _buildFormLabel(label: 'Discipline', isRequired: false),
+
+              // Discipline Dropdown Stub
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6.0),
+                child: const CommonText(
+                  'Discipline',
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 height: 52,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.inputBackground,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
@@ -387,35 +406,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildFormLabel(label: 'Description', isRequired: true),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                height: 120, // Taller for multiline
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: const TextField(
-                  maxLines: null,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    errorBorder: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    hintText: 'Write here...',
-                    hintStyle: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: AppTextSizes.size14,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
+              CommonTextField(
+                label: 'Description',
+                hintText: 'Write here...',
+                isRequired: true,
+                maxLines: 4,
               ),
             ],
           ),
@@ -505,60 +500,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFormLabel({required String label, required bool isRequired}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: RichText(
-        text: TextSpan(
-          text: label,
-          style: const TextStyle(
-            fontFamily: 'Inter',
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-          children: isRequired
-              ? [
-                  const TextSpan(
-                    text: ' *',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ]
-              : [],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({required String hintText}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 52,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      alignment: Alignment.centerLeft,
-      child: TextField(
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          errorBorder: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.zero,
-          hintText: hintText,
-          hintStyle: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: AppTextSizes.size14,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-      ),
     );
   }
 
