@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/view/trainer/trainer_profile_setup_view.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_create_profile_view.dart';
 import 'package:get/get.dart';
 
 class SelectRoleView extends StatefulWidget {
@@ -28,6 +29,11 @@ class _SelectRoleViewState extends State<SelectRoleView> {
       'title': 'Service Provider',
       'subtitle': 'Offer services and accept bookings.',
       'value': 'Service Provider',
+    },
+    {
+      'title': 'Barn Manager',
+      'subtitle': 'Manage barn operations and horses.',
+      'value': 'Barn Manager',
     },
   ];
 
@@ -52,8 +58,8 @@ class _SelectRoleViewState extends State<SelectRoleView> {
         title: const CommonText(
           AppStrings.selectYourRole,
           color: AppColors.textPrimary,
-            fontSize: AppTextSizes.size18,
-            fontWeight: FontWeight.bold,
+          fontSize: AppTextSizes.size18,
+          fontWeight: FontWeight.bold,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
@@ -73,10 +79,11 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const CommonText(
-                      AppStrings.helpOtherTrustedProfessionalsConnectWithYouByCompletingYourApplicationBelow,
+                      AppStrings
+                          .helpOtherTrustedProfessionalsConnectWithYouByCompletingYourApplicationBelow,
                       fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
                     ),
                     const SizedBox(height: 32),
                     ..._roles.map(
@@ -96,8 +103,9 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                 text: AppStrings.continueText,
                 onPressed: () {
                   if (_selectedRole == 'Trainer') {
-                    Get.to(() => const TrainerProfileSetupView(),
-                    );
+                    Get.to(() => const TrainerProfileSetupView());
+                  } else if (_selectedRole == 'Barn Manager') {
+                    Get.to(() => const BarnManagerCreateProfileView());
                   } else {
                     // Logic for other roles
                   }
@@ -144,14 +152,14 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                   CommonText(
                     title,
                     fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                   const SizedBox(height: 4),
                   CommonText(
                     subtitle,
                     fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                   ),
                 ],
               ),

@@ -41,9 +41,9 @@ class _CreateAccountViewState extends State<CreateAccountView> {
               const CommonText(
                 AppStrings.catchRide1,
                 fontSize: AppTextSizes.size18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                  letterSpacing: 1.5,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+                letterSpacing: 1.5,
               ),
               const SizedBox(height: 32),
 
@@ -68,14 +68,14 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     const CommonText(
                       AppStrings.createAccount,
                       fontSize: AppTextSizes.size22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                     const SizedBox(height: 8),
                     const CommonText(
                       'Let\'s get started by filling out the form below.',
                       fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
+                      color: AppColors.textSecondary,
                     ),
                     const SizedBox(height: 24),
 
@@ -129,7 +129,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     CommonButton(
                       text: AppStrings.getStarted,
                       onPressed: () {
-                        // Get Started action
+                        Get.to(() => const SelectRoleView());
                       },
                     ),
                     const SizedBox(height: 20),
@@ -138,7 +138,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       child: CommonText(
                         AppStrings.orSignUpWith,
                         fontSize: AppTextSizes.size14,
-                          color: AppColors.textSecondary,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -148,8 +148,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       icon: SvgPicture.asset("assets/icons/google_icon.svg"),
                       onPressed: () {
                         // Google Sign In Action
-                        Get.to(() => const SelectRoleView(),
-                        );
+                        Get.to(() => const SelectRoleView());
                       },
                     ),
                     const SizedBox(height: 12),
@@ -170,18 +169,17 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                   const CommonText(
                     AppStrings.alreadyHaveAnAccount,
                     fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
+                    color: AppColors.textSecondary,
                   ),
                   GestureDetector(
                     onTap: () {
-                      Get.off(() => const LoginView(),
-                      );
+                      Get.off(() => const LoginView());
                     },
                     child: const CommonText(
                       AppStrings.logIn,
                       fontSize: AppTextSizes.size14,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],

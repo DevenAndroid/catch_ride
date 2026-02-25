@@ -73,7 +73,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           //   _buildTalkToBarnManagerSection(),
                           //   const SizedBox(height: 24),
                           // ],
-
                           const CommonText(
                             AppStrings.details,
                             fontSize: AppTextSizes.size16,
