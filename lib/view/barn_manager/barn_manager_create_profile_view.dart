@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'barn_manager_application_submitted_view.dart';
+
 class BarnManagerCreateProfileView extends StatefulWidget {
   const BarnManagerCreateProfileView({super.key});
 
@@ -299,7 +301,7 @@ class _BarnManagerCreateProfileViewState
               child: CommonButton(
                 text: AppStrings.continueText,
                 onPressed: () {
-                  // Final submission or next screen
+                  Get.offAll(() => const BarnManagerApplicationSubmittedView());
                 },
               ),
             ),
