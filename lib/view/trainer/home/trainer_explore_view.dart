@@ -9,6 +9,7 @@ import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/view/trainer/settings/notifications_view.dart';
 import 'package:catch_ride/view/trainer/settings/edit_profile.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:get/get.dart';
 
 class TrainerExploreView extends StatefulWidget {
@@ -19,7 +20,7 @@ class TrainerExploreView extends StatefulWidget {
 }
 
 class _TrainerExploreViewState extends State<TrainerExploreView> {
-  int _selectedFilterIndex = 1; // Hunter is selected by default in image
+  final ExploreController controller = Get.put(ExploreController());
   final List<String> _filters = ['All', 'Hunter', 'Jumper', 'Equitation'];
 
   @override
@@ -33,38 +34,55 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
             _buildSearchBar(),
             _buildFilters(),
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                children: [
-                  _buildPostCard(
-                    userName: 'Arya Stark',
-                    userTitle: 'Professional Horse Trainer',
-                    mainImageUrl: 'https://via.placeholder.com/400x250',
-                    imageCount: '1 / 12',
-                    tags: ['For sale', 'Weekly Lease'],
-                    postTitle: 'Demo horse - Young Developing Hunter',
-                    postDescription:
-                        'An ideal small pony and great for a Child An ideal small pony and great for a Child',
-                    location: 'Ocklawaha, USA, United States',
+              child: Obx(() {
+                if (controller.isLoading.value && controller.horses.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (controller.horses.isEmpty) {
+                  return const Center(
+                    child: CommonText(
+                      'No horses found',
+                      fontSize: AppTextSizes.size16,
+                      color: AppColors.textSecondary,
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: controller.fetchHorses,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemCount: controller.horses.length,
+                    itemBuilder: (context, index) {
+                      final horse = controller.horses[index];
+                      final trainer = horse['trainerId'];
+                      
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildPostCard(
+                          userName: trainer != null 
+                              ? '${trainer['firstName']} ${trainer['lastName']}'
+                              : (horse['trainerName'] ?? 'Unknown Trainer'),
+                          userTitle: trainer != null ? (trainer['barnName'] ?? 'Professional Trainer') : 'Professional Trainer',
+                          mainImageUrl: horse['photo'] ?? AppConstants.dummyImageUrl,
+                          imageCount: '1 / ${(horse['images']?.length ?? 1)}',
+                          tags: [
+                            horse['status'] == 'available' ? 'For sale' : horse['status'],
+                            if (horse['discipline'] != null) horse['discipline'],
+                          ],
+                          postTitle: horse['name'] ?? 'Untitled Horse',
+                          postDescription: horse['description'] ?? 'No description available',
+                          location: horse['location'] ?? 'Location not specified',
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  _buildPostCard(
-                    userName: 'Arya Stark',
-                    userTitle: 'Professional Horse Trainer',
-                    mainImageUrl: 'https://via.placeholder.com/400x250',
-                    imageCount: '1 / 12',
-                    tags: ['For sale', 'Weekly Lease'],
-                    postTitle: 'Speedy mare - Dressage Star',
-                    postDescription:
-                        'Perfect for competitive riders looking for a spirited partner',
-                    location: 'Winterfell, USA, United States',
-                  ),
-                  const SizedBox(height: 80), // Padding for bottom nav
-                ],
-              ),
+                );
+              }),
             ),
           ],
         ),
@@ -131,6 +149,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
+        onChanged: controller.onSearch,
         decoration: InputDecoration(
           hintText: AppStrings.searchByTrainersOrHorses,
           hintStyle: const TextStyle(
@@ -166,17 +185,15 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   }
 
   Widget _buildFilters() {
-    return SingleChildScrollView(
+    return Obx(() => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: List.generate(_filters.length, (index) {
-          final isSelected = _selectedFilterIndex == index;
+          final isSelected = controller.selectedDiscipline.value == _filters[index];
           return GestureDetector(
             onTap: () {
-              setState(() {
-                _selectedFilterIndex = index;
-              });
+              controller.updateDiscipline(_filters[index]);
             },
             child: Container(
               margin: const EdgeInsets.only(right: 12),
@@ -199,7 +216,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
           );
         }),
       ),
-    );
+    ));
   }
 
   Widget _buildPostCard({
@@ -259,8 +276,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 ],
               ),
             ),
-
-            // Image
+// Image
             Stack(
               children: [
                 CommonImageView(

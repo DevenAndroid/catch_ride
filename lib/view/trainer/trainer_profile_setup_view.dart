@@ -1,4 +1,6 @@
 import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/constant/app_urls.dart';
+import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
@@ -11,6 +13,8 @@ import 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart'
 import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/auth_controller.dart';
+
 class TrainerProfileSetupView extends StatefulWidget {
   const TrainerProfileSetupView({super.key});
 
@@ -20,10 +24,25 @@ class TrainerProfileSetupView extends StatefulWidget {
 }
 
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
+  final AuthController _authController = Get.find<AuthController>();
+  
+  // Controllers for data collection
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _barnNameController = TextEditingController();
+  final TextEditingController _location1Controller = TextEditingController();
+  final TextEditingController _location2Controller = TextEditingController();
+  final TextEditingController _federationIdController = TextEditingController();
+  final TextEditingController _facebookController = TextEditingController();
+  final TextEditingController _websiteController = TextEditingController();
+  final TextEditingController _instagramController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+
   int _currentStep = 0;
   bool _isConfirmed = false;
   String _selectedFederation = 'USEF (United States)';
   String _selectedYears = 'Select years';
+  final TextEditingController _yearsExperienceController = TextEditingController();
 
   File? _profileImage;
   File? _bannerImage;
@@ -32,6 +51,22 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   // Dummy tags for UI purposes
   final List<String> _programTags = ['Jump', 'Dance', 'Well'];
   final List<String> _horseShows = ['WEC Ocala', 'Tryon', 'Well'];
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _phoneController.dispose();
+    _barnNameController.dispose();
+    _location1Controller.dispose();
+    _location2Controller.dispose();
+    _federationIdController.dispose();
+    _facebookController.dispose();
+    _websiteController.dispose();
+    _instagramController.dispose();
+    _bioController.dispose();
+    _yearsExperienceController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -120,28 +155,81 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             // Bottom Button
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: CommonButton(
+              child: Obx(() => CommonButton(
                 text: _currentStep == 3 ? AppStrings.submitApplication : 'Next',
-                onPressed: () {
-                  // if (_currentStep == 3 && !_isConfirmed) {
-                  //   ScaffoldMessenger.of(context).showSnackBar(
-                  //     const SnackBar(
-                  //       content: CommonText(
-                  //         'Please confirm all information is accurate.',
-                  //       ),
-                  //     ),
-                  //   );
-                  //   return;
-                  // }
+                isLoading: _authController.isLoading.value,
+                onPressed: () async {
                   if (_currentStep < 3) {
                     setState(() {
                       _currentStep++;
                     });
                   } else {
-                    Get.to(() => const TrainerApplicationSubmittedView());
+                    // Registration Logic
+                    if (!_isConfirmed) {
+                      Get.snackbar('Error', 'Please confirm that the information is accurate',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    if (_fullNameController.text.isEmpty) {
+                      Get.snackbar('Error', 'Full Name is required',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    // Split Name
+                    final nameParts = _fullNameController.text.trim().split(' ');
+                    final firstName = nameParts.first;
+                    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
+
+                    final Map<String, dynamic> registrationData = {
+                      'firstName': firstName,
+                      'lastName': lastName,
+                      'phone': _phoneController.text,
+                      'location': _location1Controller.text,
+                      'bio': _bioController.text,
+                      'barnName': _barnNameController.text,
+                      'yearsExperience': int.tryParse(_yearsExperienceController.text.trim()) ?? 0,
+                      'programTags': _programTags,
+                      'showCircuits': _horseShows,
+                      'facebook': _facebookController.text,
+                      'website': _websiteController.text,
+                      'instagram': _instagramController.text,
+                      'federationId': _federationIdController.text,
+                      'federationType': _selectedFederation,
+                    };
+
+                    // Call profile/complete API with all trainer details
+                    try {
+                      _authController.isLoading.value = true;
+                      final apiService = Get.find<ApiService>();
+                      final response = await apiService.putRequest(
+                        AppUrls.completeProfile,
+                        registrationData,
+                      );
+                      if (response.statusCode == 200) {
+                        Get.snackbar('Success', 'Profile submitted! Awaiting approval.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white);
+                        _authController.navigateAfterRoleSet();
+                      } else {
+                        final msg = response.body?['message'] ?? 'Profile submission failed';
+                        Get.snackbar('Error', msg,
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white);
+                      }
+                    } finally {
+                      _authController.isLoading.value = false;
+                    }
                   }
                 },
-              ),
+              )),
             ),
           ],
         ),
@@ -363,7 +451,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             ),
           ),
           const SizedBox(height: 24),
-          const CommonTextField(
+          CommonTextField(
+            controller: _fullNameController,
             label: AppStrings.fullName,
             hintText: AppStrings.enterYourFullName,
             isRequired: true,
@@ -412,6 +501,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
               ),
               Expanded(
                 child: TextFormField(
+                  controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(
                     fontSize: AppTextSizes.size14,
@@ -458,19 +548,22 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       title: AppStrings.barnInformation,
       child: Column(
         children: [
-          const CommonTextField(
+          CommonTextField(
+            controller: _barnNameController,
             label: AppStrings.barnName,
             hintText: AppStrings.enterYourBusinessName,
             isRequired: true,
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _location1Controller,
             label: AppStrings.locationI,
             hintText: AppStrings.enterBarnLocation,
             isRequired: true,
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _location2Controller,
             label: AppStrings.locationIiOptional,
             hintText: AppStrings.enterYourBusinessName,
           ),
@@ -519,7 +612,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             ),
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _federationIdController,
             label: AppStrings.federationIdNumber,
             hintText: AppStrings.idNumber,
           ),
@@ -573,23 +667,26 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       title: AppStrings.socialMediaWebsite,
       child: Column(
         children: [
-          const CommonTextField(
+          CommonTextField(
+            controller: _facebookController,
             label: AppStrings.facebook,
             hintText: AppStrings.facebookcomyourpage,
             isRequired: true,
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _websiteController,
             label: AppStrings.websiteUrl,
             hintText: AppStrings.httpsyourwebsitecom,
-            prefixIcon: Icon(
+            prefixIcon: const Icon(
               Icons.link,
               size: 20,
               color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _instagramController,
             label: AppStrings.instagram,
             hintText: AppStrings.yourusername,
           ),
@@ -611,41 +708,15 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.inputBackground,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedYears,
-                isExpanded: true,
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.textSecondary,
-                ),
-                items: ['Select years', '1-5 years', '5-10 years', '10+ years']
-                    .map(
-                      (e) => DropdownMenuItem(
-                        value: e,
-                        child: CommonText(
-                          e,
-                          fontSize: AppTextSizes.size14,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (val) {
-                  setState(() => _selectedYears = val!);
-                },
-              ),
-            ),
+          CommonTextField(
+            label: "",
+            controller: _yearsExperienceController,
+            keyboardType: TextInputType.number,
+            hintText: 'e.g. 5',
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _bioController,
             label: AppStrings.bio,
             hintText: AppStrings.writeAShortBio,
             maxLines: 4,

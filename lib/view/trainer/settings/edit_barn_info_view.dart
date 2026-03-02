@@ -2,11 +2,69 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class EditBarnInfoView extends StatelessWidget {
+class EditBarnInfoView extends StatefulWidget {
   const EditBarnInfoView({super.key});
+
+  @override
+  State<EditBarnInfoView> createState() => _EditBarnInfoViewState();
+}
+
+class _EditBarnInfoViewState extends State<EditBarnInfoView> {
+  final ProfileController _profileController = Get.find<ProfileController>();
+  late TextEditingController _barnNameController;
+  late TextEditingController _locationIController;
+  late TextEditingController _locationIIController;
+
+  @override
+  void initState() {
+    super.initState();
+    final String location = _profileController.location;
+    final List<String> locationParts = location.split(',');
+    
+    _barnNameController = TextEditingController(text: _profileController.userData['barnName'] ?? '');
+    _locationIController = TextEditingController(text: locationParts.isNotEmpty ? locationParts.first.trim() : '');
+    _locationIIController = TextEditingController(text: locationParts.length > 1 ? locationParts.sublist(1).join(', ').trim() : '');
+  }
+
+  @override
+  void dispose() {
+    _barnNameController.dispose();
+    _locationIController.dispose();
+    _locationIIController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveBarnInfo() async {
+    String location = _locationIController.text.trim();
+    if (_locationIIController.text.isNotEmpty) {
+      location += ', ${_locationIIController.text.trim()}';
+    }
+
+    final Map<String, dynamic> updateData = {
+      'barnName': _barnNameController.text.trim(),
+      'location': location,
+    };
+
+    final success = await _profileController.updateProfile(updateData);
+    if (success) {
+      await _profileController.fetchProfile();
+      Get.back();
+      
+      Get.snackbar('Success', 'Barn information updated successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white);
+    } else {
+      Get.snackbar('Error', 'Failed to update barn information',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +122,11 @@ class EditBarnInfoView extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: CommonButton(text: 'Save', onPressed: () => Get.back()),
+                child: Obx(() => CommonButton(
+                  text: 'Save', 
+                  isLoading: _profileController.isLoading.value,
+                  onPressed: () => _saveBarnInfo(),
+                )),
               ),
             ],
           ),
@@ -90,20 +152,23 @@ class EditBarnInfoView extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           CommonTextField(
+            controller: _barnNameController,
             label: 'Barn Name',
             hintText: 'Enter your business name',
             isRequired: true,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CommonTextField(
+            controller: _locationIController,
             label: 'Location I',
             hintText: 'Enter barn location',
             isRequired: true,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CommonTextField(
+            controller: _locationIIController,
             label: 'Location II',
             hintText: 'Enter your business name',
             suffixLabel: '(optional)',

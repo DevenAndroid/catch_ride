@@ -670,37 +670,42 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   }
 
   Widget _buildOtherInformationForm() {
-    return Column(
-      children: [
-        _buildTagSection(
-          title: 'Program Tag',
-          isOptional: true,
-          tags: controller.programTags,
-          selectedTags: controller.selectedProgramTags,
-        ),
-        const SizedBox(height: 16),
-        _buildTagSection(
-          title: 'Opportunity Tag',
-          isOptional: true,
-          tags: controller.opportunityTags,
-          selectedTags: controller.selectedOpportunityTags,
-        ),
-        const SizedBox(height: 16),
-        _buildTagSection(
-          title: 'Experience',
-          isOptional: false,
-          tags: controller.experienceTags,
-          selectedTags: controller.selectedExperienceTags,
-        ),
-        const SizedBox(height: 16),
-        _buildTagSection(
-          title: 'Personality Tag',
-          isOptional: false,
-          tags: controller.personalityTags,
-          selectedTags: controller.selectedPersonalityTags,
-        ),
-      ],
-    );
+    return Obx(() {
+      if (controller.isTagsLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      return Column(
+        children: [
+          _buildTagSection(
+            title: 'Program Tag',
+            isOptional: true,
+            tags: controller.programTags,
+            selectedTags: controller.selectedProgramTags,
+          ),
+          const SizedBox(height: 16),
+          _buildTagSection(
+            title: 'Opportunity Tag',
+            isOptional: true,
+            tags: controller.opportunityTags,
+            selectedTags: controller.selectedOpportunityTags,
+          ),
+          const SizedBox(height: 16),
+          _buildTagSection(
+            title: 'Experience',
+            isOptional: false,
+            tags: controller.experienceTags,
+            selectedTags: controller.selectedExperienceTags,
+          ),
+          const SizedBox(height: 16),
+          _buildTagSection(
+            title: 'Personality Tag',
+            isOptional: false,
+            tags: controller.personalityTags,
+            selectedTags: controller.selectedPersonalityTags,
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildTagSection({
@@ -1007,8 +1012,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     _currentStep++;
                   });
                 } else {
-                  // Final Publish Listing integration API call would happen here
-                  Get.back(); // Mock return indicating success
+                  controller.publishListing();
                 }
               },
               child: Container(

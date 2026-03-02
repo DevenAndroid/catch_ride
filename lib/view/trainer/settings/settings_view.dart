@@ -1,4 +1,5 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/view/trainer/settings/profile_information_view.dart';
 import 'package:catch_ride/view/trainer/settings/saved_view.dart';
@@ -185,7 +186,13 @@ class SettingsView extends StatelessWidget {
       width: double.infinity,
       height: 52,
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: () {
+          if (Get.isRegistered<AuthController>()) {
+            Get.find<AuthController>().logout();
+          } else {
+            Get.put(AuthController()).logout();
+          }
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: AppColors.border),
           shape: RoundedRectangleBorder(

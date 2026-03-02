@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../controllers/auth_controller.dart';
 import 'barn_manager_application_submitted_view.dart';
 
 class BarnManagerCreateProfileView extends StatefulWidget {
@@ -22,9 +23,20 @@ class BarnManagerCreateProfileView extends StatefulWidget {
 
 class _BarnManagerCreateProfileViewState
     extends State<BarnManagerCreateProfileView> {
+  final AuthController _authController = Get.find<AuthController>();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+
   File? _profileImage;
   File? _bannerImage;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage(bool isProfile) async {
     try {
@@ -201,7 +213,8 @@ class _BarnManagerCreateProfileViewState
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const CommonTextField(
+                      CommonTextField(
+                        controller: _fullNameController,
                         label: AppStrings.fullName,
                         hintText: AppStrings.enterYourFullName,
                         isRequired: true,
@@ -247,6 +260,7 @@ class _BarnManagerCreateProfileViewState
                           ),
                           Expanded(
                             child: TextFormField(
+                              controller: _phoneController,
                               keyboardType: TextInputType.phone,
                               style: const TextStyle(
                                 fontSize: AppTextSizes.size14,
@@ -298,12 +312,30 @@ class _BarnManagerCreateProfileViewState
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: CommonButton(
+              child: Obx(() => CommonButton(
                 text: AppStrings.continueText,
-                onPressed: () {
-                  Get.offAll(() => const BarnManagerApplicationSubmittedView());
+                isLoading: _authController.isLoading.value,
+                onPressed: () async {
+                  if (_fullNameController.text.isEmpty) {
+                    Get.snackbar('Error', 'Full Name is required',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white);
+                    return;
+                  }
+
+                  // Split Name
+                  final nameParts = _fullNameController.text.trim().split(' ');
+                  final firstName = nameParts.first;
+                  final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
+
+                  await _authController.register({
+                    'firstName': firstName,
+                    'lastName': lastName,
+                    'phone': _phoneController.text,
+                  });
                 },
-              ),
+              )),
             ),
           ],
         ),

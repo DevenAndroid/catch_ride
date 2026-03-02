@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,6 +19,68 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
   File? _profileImage;
   File? _bannerImage;
   final ImagePicker _picker = ImagePicker();
+  
+  final ProfileController _profileController = Get.find<ProfileController>();
+  
+  late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _aboutController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: _profileController.fullName);
+    _phoneController = TextEditingController(text: _profileController.phone.replaceAll('+1', '').trim());
+    _aboutController = TextEditingController(text: _profileController.bio);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _aboutController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveProfile() async {
+    final nameParts = _nameController.text.trim().split(' ');
+    String firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    String lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+    final Map<String, dynamic> updateData = {
+      'firstName': firstName,
+      'lastName': lastName,
+      'phone': '+1 ${_phoneController.text.trim()}',
+      'bio': _aboutController.text.trim(),
+    };
+
+    // 1. Update text data
+    bool success = await _profileController.updateProfile(updateData);
+    
+    // 2. Upload images if picked
+    if (success) {
+      if (_profileImage != null) {
+        await _profileController.uploadImage(_profileImage!.path, 'avatar');
+      }
+      if (_bannerImage != null) {
+        await _profileController.uploadImage(_bannerImage!.path, 'cover');
+      }
+      
+      // 3. Final refresh and go back
+      await _profileController.fetchProfile();
+      Get.back();
+      
+      Get.snackbar('Success', 'Profile updated successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white);
+    } else {
+      Get.snackbar('Error', 'Failed to update profile',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    }
+  }
 
   Future<void> _pickImage(bool isProfile) async {
     try {
@@ -92,7 +155,11 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: CommonButton(text: 'Save', onPressed: () => Get.back()),
+                child: Obx(() => CommonButton(
+                  text: 'Save', 
+                  isLoading: _profileController.isLoading.value,
+                  onPressed: () => _saveProfile(),
+                )),
               ),
             ],
           ),
@@ -231,7 +298,8 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
           const SizedBox(height: 24),
 
           // Full Name
-          const CommonTextField(
+          CommonTextField(
+            controller: _nameController,
             label: 'Full Name',
             hintText: 'Enter your full name',
             isRequired: true,
@@ -256,7 +324,7 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
             child: Row(
               children: [
                 const CommonText(
-                  '+91',
+                  '+1',
                   fontSize: 14,
                   color: AppColors.textPrimary,
                 ),
@@ -268,6 +336,8 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       hintText: 'Enter phone number',
                       border: InputBorder.none,
@@ -284,7 +354,8 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
           const SizedBox(height: 16),
 
           // About
-          const CommonTextField(
+          CommonTextField(
+            controller: _aboutController,
             label: 'About',
             hintText: 'Write a short bio',
             maxLines: 4,

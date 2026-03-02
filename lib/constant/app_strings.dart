@@ -64,7 +64,7 @@ class AppStrings {
   static const String logIn = 'Log In';
   static const String num112 = '1 / 12';
   static const String num5w3bnd67 = '5w3bnd67';
-  static const String num91 = '+91';
+  static const String num91 = '+1';
   static const String ocklawahaUsaUnitedStates =
       'Ocklawaha, USA, United States';
   static const String

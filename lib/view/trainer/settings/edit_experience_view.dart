@@ -1,4 +1,5 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +13,91 @@ class EditExperienceView extends StatefulWidget {
 }
 
 class _EditExperienceViewState extends State<EditExperienceView> {
-  final List<String> _specialties = ['Jump', 'Dance'];
-  final List<String> _circuits = ['WEC Ocala', 'Tryon'];
-  String _selectedYears = 'Select years';
+  final ProfileController _profileController = Get.find<ProfileController>();
+  late List<String> _specialties;
+  late List<String> _circuits;
+  late String _selectedYears;
+  final TextEditingController _specialtyController = TextEditingController();
+  final TextEditingController _circuitController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _specialties = List<String>.from(_profileController.userData['programTags'] ?? []);
+    _circuits = List<String>.from(_profileController.userData['showCircuits'] ?? []);
+    _selectedYears = _profileController.userData['yearsExperience']?.toString() ?? 
+                    _profileController.userData['experience']?.toString() ?? 'Select years';
+  }
+
+  @override
+  void dispose() {
+    _specialtyController.dispose();
+    _circuitController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveExperience() async {
+    final Map<String, dynamic> updateData = {
+      'yearsExperience': _selectedYears,
+      'programTags': _specialties,
+      'showCircuits': _circuits,
+    };
+
+    final success = await _profileController.updateProfile(updateData);
+    if (success) {
+      await _profileController.fetchProfile();
+      Get.back();
+      
+      Get.snackbar('Success', 'Experience updated successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white);
+    } else {
+      Get.snackbar('Error', 'Failed to update experience',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    }
+  }
+
+  void _showYearsPicker() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CommonText('Select Years of Experience', fontSize: 18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: 51,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Center(child: CommonText('$index years')),
+                    onTap: () {
+                      setState(() {
+                        _selectedYears = index.toString();
+                      });
+                      Get.back();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +155,11 @@ class _EditExperienceViewState extends State<EditExperienceView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: CommonButton(text: 'Save', onPressed: () => Get.back()),
+                child: Obx(() => CommonButton(
+                  text: 'Save', 
+                  isLoading: _profileController.isLoading.value,
+                  onPressed: () => _saveExperience(),
+                )),
               ),
             ],
           ),
@@ -107,27 +194,30 @@ class _EditExperienceViewState extends State<EditExperienceView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CommonText(
-                  _selectedYears,
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 20,
-                  color: AppColors.textSecondary,
-                ),
-              ],
+          GestureDetector(
+            onTap: _showYearsPicker,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CommonText(
+                    _selectedYears == 'Select years' ? _selectedYears : '$_selectedYears years',
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -140,7 +230,7 @@ class _EditExperienceViewState extends State<EditExperienceView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 8),
-          _buildTagsInput(_specialties, 'Well|'),
+          _buildTagsInput(_specialties, 'Add specialty', _specialtyController),
           const SizedBox(height: 24),
 
           // Show Circuits
@@ -151,13 +241,13 @@ class _EditExperienceViewState extends State<EditExperienceView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 8),
-          _buildTagsInput(_circuits, 'Well|'),
+          _buildTagsInput(_circuits, 'Add circuit', _circuitController),
         ],
       ),
     );
   }
 
-  Widget _buildTagsInput(List<String> tags, String hint) {
+  Widget _buildTagsInput(List<String> tags, String hint, TextEditingController controller) {
     return Container(
       padding: const EdgeInsets.all(8),
       width: double.infinity,
@@ -184,18 +274,34 @@ class _EditExperienceViewState extends State<EditExperienceView> {
                 children: [
                   CommonText(tag, fontSize: 13, color: AppColors.textPrimary),
                   const SizedBox(width: 4),
-                  const Icon(
-                    Icons.close,
-                    size: 14,
-                    color: AppColors.textSecondary,
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        tags.remove(tag);
+                      });
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           SizedBox(
-            width: 60,
+            width: 100,
             child: TextField(
+              controller: controller,
+              onSubmitted: (value) {
+                if (value.trim().isNotEmpty) {
+                  setState(() {
+                    tags.add(value.trim());
+                    controller.clear();
+                  });
+                }
+              },
               decoration: InputDecoration(
                 hintText: hint,
                 border: InputBorder.none,

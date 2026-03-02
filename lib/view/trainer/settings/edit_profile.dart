@@ -9,37 +9,49 @@ import 'package:catch_ride/view/trainer/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:catch_ride/controllers/profile_controller.dart';
+
 class EditProfileView extends StatelessWidget {
   const EditProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ProfileController profileController = Get.put(ProfileController());
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildProfileHeader(context),
-            const SizedBox(height: 25),
-            _buildAboutSection(),
-            _buildBarnInfoSection(),
-            _buildExperienceSection(),
-            _buildAvailableHorsesSection(),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+      body: Obx(() {
+        if (profileController.isLoading.value && profileController.userData.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return RefreshIndicator(
+          onRefresh: () => profileController.fetchProfile(),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileHeader(context, profileController),
+                const SizedBox(height: 25),
+                _buildAboutSection(profileController),
+                _buildBarnInfoSection(profileController),
+                _buildExperienceSection(profileController),
+                _buildAvailableHorsesSection(),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader(BuildContext context, ProfileController controller) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
         // Banner Image
         CommonImageView(
-          url: AppConstants.dummyImageUrl,
+          url: controller.coverImage.isNotEmpty ? controller.coverImage : AppConstants.dummyImageUrl,
           height: MediaQuery.of(context).size.height * 0.28,
           width: double.infinity,
           fit: BoxFit.cover,
@@ -112,28 +124,29 @@ class EditProfileView extends StatelessWidget {
                     // Profile Image with Verification Badge
                     Stack(
                       children: [
-                        const CommonImageView(
-                          url: AppConstants.dummyImageUrl,
+                        CommonImageView(
+                          url: controller.avatar.isNotEmpty ? controller.avatar : AppConstants.dummyImageUrl,
                           height: 80,
                           width: 80,
                           shape: BoxShape.circle,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            padding: const EdgeInsets.all(2),
-                            child: const Icon(
-                              Icons.check_circle,
-                              color: Color(0xFF13CA8B),
-                              size: 18,
+                        if (controller.userData['verificationStatus'] == 'verified')
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              padding: const EdgeInsets.all(2),
+                              child: const Icon(
+                                Icons.check_circle,
+                                color: Color(0xFF13CA8B),
+                                size: 18,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(width: 16),
@@ -142,19 +155,19 @@ class EditProfileView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CommonText(
-                            'Lisa James',
+                          CommonText(
+                            controller.fullName.isNotEmpty ? controller.fullName : 'No Name',
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                           const SizedBox(height: 4),
                           CommonText(
-                            '+1 6587 4385 244',
+                            controller.phone.isNotEmpty ? controller.phone : 'No Phone',
                             fontSize: 14,
                             color: Colors.grey.shade600,
                           ),
                           CommonText(
-                            'lisa@example.com',
+                            controller.email,
                             fontSize: 14,
                             color: Colors.grey.shade600,
                           ),
@@ -181,15 +194,28 @@ class EditProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(ProfileController controller) {
     return _buildSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText('About', fontSize: 16, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const CommonText('About', fontSize: 16, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () => Get.to(() => const EditBasicInfoView()),
+                child: Icon(
+                  Icons.edit_outlined,
+                  color: Colors.blue.shade600,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           CommonText(
-            "I'm Alex, a passionate hair stylist with over 10 years of experience in transforming looks and boosting confidence. My journey began in a small town, and since then, I've honed my skills in various styles, from classic cuts to trendy colors.",
+            controller.bio.isNotEmpty ? controller.bio : "No bio available.",
             fontSize: 14,
             color: Colors.grey.shade700,
             height: 1.5,
@@ -199,7 +225,7 @@ class EditProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildBarnInfoSection() {
+  Widget _buildBarnInfoSection(ProfileController controller) {
     return _buildSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,8 +251,8 @@ class EditProfileView extends StatelessWidget {
           const SizedBox(height: 16),
           CommonText('Barn Name', fontSize: 12, color: Colors.grey.shade500),
           const SizedBox(height: 4),
-          const CommonText(
-            'Winter Equestrian',
+          CommonText(
+            controller.userData['barnName'] ?? 'Not Specified',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -240,34 +266,46 @@ class EditProfileView extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               CommonText(
-                'Ocala, FL',
+                controller.location.isNotEmpty ? controller.location : 'Location Not Provided',
                 fontSize: 14,
                 color: Colors.grey.shade700,
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 16,
-                color: Colors.grey,
+          // Additional locations if available (mocked for now or extracted from location string)
+          if (controller.location.contains(','))
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(width: 8),
+                  CommonText(
+                    controller.location.split(',').last.trim(),
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              CommonText(
-                'Wellington, FL',
-                fontSize: 14,
-                color: Colors.grey.shade700,
-              ),
-            ],
-          ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildExperienceSection() {
+  Widget _buildExperienceSection(ProfileController controller) {
+    // Determine years from back-end
+    String experience = controller.userData['yearsExperience']?.toString() ?? 
+                       controller.userData['experience']?.toString() ?? 'N/A';
+    
+    // Extract program tags
+    List<dynamic> programTags = controller.userData['programTags'] ?? [];
+    List<dynamic> showCircuits = controller.userData['showCircuits'] ?? [];
+
     return _buildSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,21 +335,22 @@ class EditProfileView extends StatelessWidget {
             color: Colors.grey.shade500,
           ),
           const SizedBox(height: 4),
-          const CommonText(
-            '4 years',
+          CommonText(
+            experience.contains('year') ? experience : '$experience years',
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 16),
           CommonText('Program Tags', fontSize: 12, color: Colors.grey.shade500),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              _buildTag('Big Equitation'),
-              const SizedBox(width: 8),
-              _buildTag('Prospect'),
-            ],
-          ),
+          if (programTags.isEmpty)
+            CommonText('No tags added', fontSize: 13, color: Colors.grey.shade400)
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: programTags.map((tag) => _buildTag(tag.toString())).toList(),
+            ),
           const SizedBox(height: 16),
           CommonText(
             'Show Circuits',
@@ -319,13 +358,14 @@ class EditProfileView extends StatelessWidget {
             color: Colors.grey.shade500,
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              _buildTag('WEC Ocala'),
-              const SizedBox(width: 8),
-              _buildTag('Tryon'),
-            ],
-          ),
+          if (showCircuits.isEmpty)
+            CommonText('No circuits added', fontSize: 13, color: Colors.grey.shade400)
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: showCircuits.map((circuit) => _buildTag(circuit.toString())).toList(),
+            ),
         ],
       ),
     );

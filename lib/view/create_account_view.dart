@@ -6,13 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_button.dart';
-import 'package:catch_ride/widgets/segmented_tab_control.dart';
 import 'package:catch_ride/widgets/social_button.dart';
 import 'package:catch_ride/view/select_role_view.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:catch_ride/view/login_view.dart';
 import 'package:get/get.dart';
+
+import '../controllers/auth_controller.dart';
 
 class CreateAccountView extends StatefulWidget {
   const CreateAccountView({super.key});
@@ -22,8 +23,15 @@ class CreateAccountView extends StatefulWidget {
 }
 
 class _CreateAccountViewState extends State<CreateAccountView> {
+  final AuthController _authController = Get.find<AuthController>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    // We don't dispose here as AuthController manages them
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +87,8 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ),
                     const SizedBox(height: 24),
 
-                    const CommonTextField(
+                    CommonTextField(
+                      controller: _authController.emailController,
                       label: AppStrings.email,
                       hintText: AppStrings.enterYourEmail,
                       keyboardType: TextInputType.emailAddress,
@@ -87,6 +96,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     const SizedBox(height: 16),
 
                     CommonTextField(
+                      controller: _authController.passwordController,
                       label: AppStrings.password,
                       hintText: AppStrings.emptyString,
                       obscureText: _obscurePassword,
@@ -107,6 +117,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     const SizedBox(height: 16),
 
                     CommonTextField(
+                      controller: _authController.confirmPasswordController,
                       label: AppStrings.confirmPassword,
                       hintText: AppStrings.emptyString,
                       obscureText: _obscureConfirmPassword,
@@ -126,12 +137,48 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ),
 
                     const SizedBox(height: 24),
-                    CommonButton(
+                    Obx(() => CommonButton(
                       text: AppStrings.getStarted,
-                      onPressed: () {
-                        Get.to(() => const SelectRoleView());
+                      isLoading: _authController.isLoading.value,
+                      onPressed: () async {
+                        if (_authController.emailController.text.isEmpty ||
+                            _authController.passwordController.text.isEmpty ||
+                            _authController.confirmPasswordController.text.isEmpty) {
+                          Get.snackbar('Error', 'Please fill in all fields',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white);
+                          return;
+                        }
+                        if (_authController.passwordController.text !=
+                            _authController.confirmPasswordController.text) {
+                          Get.snackbar('Error', 'Passwords do not match',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white);
+                          return;
+                        }
+                        if (_authController.passwordController.text.length < 6) {
+                          Get.snackbar('Error', 'Password must be at least 6 characters',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white);
+                          return;
+                        }
+
+                        // Store for potential OTP resend
+                        _authController.registrationEmail.value = _authController.emailController.text.trim();
+                        _authController.registrationPassword.value = _authController.passwordController.text;
+
+                        // Call register API — will navigate to OTP screen on success
+                        await _authController.register({
+                          'firstName': 'New',
+                          'lastName': 'User',
+                          'email': _authController.emailController.text.trim(),
+                          'password': _authController.passwordController.text,
+                        });
                       },
-                    ),
+                    )),
                     const SizedBox(height: 20),
 
                     const Center(

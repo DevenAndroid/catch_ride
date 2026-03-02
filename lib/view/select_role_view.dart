@@ -1,13 +1,17 @@
 import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/constant/app_urls.dart';
+import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/view/trainer/trainer_profile_setup_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
-import 'package:catch_ride/view/trainer/trainer_profile_setup_view.dart';
-import 'package:catch_ride/view/barn_manager/barn_manager_create_profile_view.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../controllers/auth_controller.dart';
 
 class SelectRoleView extends StatefulWidget {
   const SelectRoleView({super.key});
@@ -17,23 +21,21 @@ class SelectRoleView extends StatefulWidget {
 }
 
 class _SelectRoleViewState extends State<SelectRoleView> {
+  final AuthController _authController = Get.find<AuthController>();
   String _selectedRole = 'Trainer';
 
   final List<Map<String, String>> _roles = [
     {
       'title': 'Trainer',
-      'subtitle': 'List horses and manage your program.',
+      'subtitle': 'List horses and manage your equestrian program.',
       'value': 'Trainer',
+      'backendValue': 'trainer',
     },
     {
       'title': 'Service Provider',
-      'subtitle': 'Offer services and accept bookings.',
+      'subtitle': 'Offer services, clinics, and accept bookings.',
       'value': 'Service Provider',
-    },
-    {
-      'title': 'Barn Manager',
-      'subtitle': 'Manage barn operations and horses.',
-      'value': 'Barn Manager',
+      'backendValue': 'service_provider',
     },
   ];
 
@@ -99,18 +101,46 @@ class _SelectRoleViewState extends State<SelectRoleView> {
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: CommonButton(
+              child: Obx(() => CommonButton(
                 text: AppStrings.continueText,
-                onPressed: () {
-                  if (_selectedRole == 'Trainer') {
-                    Get.to(() => const TrainerProfileSetupView());
-                  } else if (_selectedRole == 'Barn Manager') {
-                    Get.to(() => const BarnManagerCreateProfileView());
-                  } else {
-                    // Logic for other roles
+                isLoading: _authController.isLoading.value,
+                onPressed: () async {
+                  // Store selected role
+                  final roleData = _roles.firstWhere((r) => r['value'] == _selectedRole);
+                  final backendRole = roleData['backendValue']!;
+                  _authController.selectedRole.value = backendRole;
+
+                  // Update role via profile API
+                  final apiService = Get.find<ApiService>();
+                  try {
+                    _authController.isLoading.value = true;
+                    final response = await apiService.putRequest(
+                      AppUrls.updateRole,
+                      {'role': backendRole},
+                    );
+                    if (response.statusCode == 200) {
+                      // Save role locally
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('role', backendRole);
+
+                      // Navigate based on role
+                      if (backendRole == 'trainer') {
+                        Get.to(() => const TrainerProfileSetupView());
+                      } else {
+                        // Service Provider — go to submitted screen
+                        _authController.navigateAfterRoleSet();
+                      }
+                    } else {
+                      Get.snackbar('Error', 'Failed to set role. Please try again.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                    }
+                  } finally {
+                    _authController.isLoading.value = false;
                   }
                 },
-              ),
+              )),
             ),
           ],
         ),

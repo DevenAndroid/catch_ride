@@ -1,7 +1,21 @@
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/constant/app_urls.dart';
 
 class AddNewListingController extends GetxController {
+  final ApiService _apiService = Get.find<ApiService>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchTags();
+  }
+
+  // Loading state
+  var isTagsLoading = false.obs;
+  var isPublishing = false.obs;
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;
@@ -21,69 +35,112 @@ class AddNewListingController extends GetxController {
   var selectedListingTypes = <String>{'Sale', 'Annual Lease'}.obs;
 
   // Step 4
-  var selectedProgramTags = <String>{
-    'High Performance Jumper (1.20m +)',
-    'Young Developing Hunter',
-  }.obs;
-  var selectedOpportunityTags = <String>{
-    'Investment Type',
-    'Owner Flexible',
-  }.obs;
-  var selectedExperienceTags = <String>{
-    'Short/Long Stirrup',
-    'Young Developing Hunter',
-  }.obs;
-  var selectedPersonalityTags = <String>{'Sensitive Ride', 'Forward Ride'}.obs;
+  var selectedProgramTags = <String>{}.obs;
+  var selectedOpportunityTags = <String>{}.obs;
+  var selectedExperienceTags = <String>{}.obs;
+  var selectedPersonalityTags = <String>{}.obs;
 
-  final List<String> programTags = [
-    'Big Equitation',
-    'High Performance Hunter (3\'6" +)',
-    'High Performance Jumper (1.20m +)',
-    'Young Developing Hunter',
-    'Young Developing Jumper',
-    'Schoolmaster',
-    'Prospect',
-    'Division Pony',
-  ];
+  var programTags = <String>[].obs;
+  var opportunityTags = <String>[].obs;
+  var experienceTags = <String>[].obs;
+  var personalityTags = <String>[].obs;
 
-  final List<String> opportunityTags = [
-    'Open to outside miles',
-    'Firesale',
-    'Investment Type',
-    'Owner Flexible',
-    'Open to Paid Trials',
-    'Backburner',
-  ];
+  Future<void> fetchTags() async {
+    try {
+      isTagsLoading.value = true;
+      
+      // Fetch all tags in parallel
+      final results = await Future.wait([
+        _apiService.getRequest(AppUrls.programTags),
+        _apiService.getRequest(AppUrls.opportunityTags),
+        _apiService.getRequest(AppUrls.experienceLevels),
+        _apiService.getRequest(AppUrls.personalityTags),
+      ]);
 
-  final List<String> experienceTags = [
-    'Division Pony',
-    'Beginner Friendly',
-    'Short/Long Stirrup',
-    'Young Developing Hunter',
-    'Crossrails',
-    '2\'6"',
-    '3\'0-3\'3"',
-    '3\'6"',
-    '3\'6"+',
-    '1.0m',
-    '1.10m',
-    '1.20m',
-    '1.30m',
-    '1.40m',
-    '1.50m',
-    'FEI',
-  ];
+      if (results[0].statusCode == 200) {
+        programTags.assignAll((results[0].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+      if (results[1].statusCode == 200) {
+        opportunityTags.assignAll((results[1].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+      if (results[2].statusCode == 200) {
+        experienceTags.assignAll((results[2].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+      if (results[3].statusCode == 200) {
+        personalityTags.assignAll((results[3].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+    } catch (e) {
+      print('Error fetching tags: $e');
+    } finally {
+      isTagsLoading.value = false;
+    }
+  }
 
-  final List<String> personalityTags = [
-    'Jr/Amateur Friendly',
-    'Brave / Bold',
-    'Sensitive Ride',
-    'Forward Ride',
-    'Auto Lead Change',
-    'Careful',
-    'Push Ride',
-    'Pro Ride',
-  ];
+  Future<void> publishListing() async {
+    try {
+      isPublishing.value = true;
+      Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+
+      final horseData = {
+        'listingTitle': listingTitleController.text,
+        'name': horseNameController.text,
+        'age': int.tryParse(ageController.text) ?? 0,
+        'height': heightController.text,
+        'breed': breedController.text,
+        'color': colorController.text,
+        'discipline': disciplineController.text,
+        'description': descriptionController.text,
+        'usefNumber': usefNumberController.text,
+        'videoLink': videoLinkController.text,
+        'listingTypes': selectedListingTypes.toList(),
+        'programTags': selectedProgramTags.toList(),
+        'opportunityTags': selectedOpportunityTags.toList(),
+        'experienceLevel': selectedExperienceTags.toList().isNotEmpty ? selectedExperienceTags.toList().first : null,
+        'personalityTags': selectedPersonalityTags.toList(),
+        'isActive': activeStatus.value,
+        'showAvailability': availabilityEntries.map((e) => {
+          'cityState': e.cityStateController.text,
+          'showVenue': e.showVenueController.text,
+          'startDate': e.startDateController.text,
+          'endDate': e.endDateController.text,
+        }).toList(),
+      };
+
+      final response = await _apiService.postRequest(AppUrls.horses, horseData);
+
+      Get.back(); // Remove loading dialog
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Refresh profile to show new horse
+        try {
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().fetchProfile();
+          }
+        } catch (e) {
+          print('Could not refresh profile: $e');
+        }
+
+        Get.back(); // Return to previous screen
+        Get.snackbar('Success', 'Listing published successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white);
+      } else {
+        Get.snackbar('Error', response.body['message'] ?? 'Failed to publish listing',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white);
+      }
+    } catch (e) {
+      Get.back(); // Remove loading dialog
+      Get.snackbar('Error', 'An unexpected error occurred',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    } finally {
+      isPublishing.value = false;
+    }
+  }
 
   // Step 5
   var activeStatus = true.obs;

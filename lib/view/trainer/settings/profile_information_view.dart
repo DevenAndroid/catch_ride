@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -14,6 +15,57 @@ class ProfileInformationView extends StatefulWidget {
 
 class _ProfileInformationViewState extends State<ProfileInformationView> {
   String _selectedFederation = 'USEF (United States)';
+  final ProfileController _profileController = Get.find<ProfileController>();
+  
+  late TextEditingController _federationIdController;
+  late TextEditingController _facebookController;
+  late TextEditingController _websiteController;
+  late TextEditingController _instagramController;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFederation = _profileController.userData['federationName'] ?? 'USEF (United States)';
+    _federationIdController = TextEditingController(text: _profileController.userData['federationId']);
+    _facebookController = TextEditingController(text: _profileController.userData['facebook']);
+    _websiteController = TextEditingController(text: _profileController.userData['website']);
+    _instagramController = TextEditingController(text: _profileController.userData['instagram']);
+  }
+
+  @override
+  void dispose() {
+    _federationIdController.dispose();
+    _facebookController.dispose();
+    _websiteController.dispose();
+    _instagramController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveInformation() async {
+    final Map<String, dynamic> updateData = {
+      'federationName': _selectedFederation,
+      'federationId': _federationIdController.text.trim(),
+      'facebook': _facebookController.text.trim(),
+      'website': _websiteController.text.trim(),
+      'instagram': _instagramController.text.trim(),
+    };
+
+    final success = await _profileController.updateProfile(updateData);
+    if (success) {
+      await _profileController.fetchProfile();
+      Get.back();
+      
+      Get.snackbar('Success', 'Profile information updated successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white);
+    } else {
+      Get.snackbar('Error', 'Failed to update profile information',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +130,11 @@ class _ProfileInformationViewState extends State<ProfileInformationView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: CommonButton(text: 'Save', onPressed: () => Get.back()),
+                child: Obx(() => CommonButton(
+                  text: 'Save', 
+                  isLoading: _profileController.isLoading.value,
+                  onPressed: () => _saveInformation(),
+                )),
               ),
             ],
           ),
@@ -137,7 +193,8 @@ class _ProfileInformationViewState extends State<ProfileInformationView> {
             ),
           ),
           const SizedBox(height: 16),
-          const CommonTextField(
+          CommonTextField(
+            controller: _federationIdController,
             label: 'Federation ID Number',
             hintText: 'ID Number',
           ),
@@ -163,31 +220,36 @@ class _ProfileInformationViewState extends State<ProfileInformationView> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          CommonText(
+        children: [
+          const CommonText(
             'Social Media & Website',
             fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CommonTextField(
+            controller: _facebookController,
             label: 'Facebook',
             hintText: 'facebook.com/yourpage',
-            isRequired: true,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           CommonTextField(
+            controller: _websiteController,
             label: 'Website URL',
             hintText: 'https://yourwebsite.com',
-            prefixIcon: Icon(
+            prefixIcon: const Icon(
               Icons.link,
               size: 18,
               color: AppColors.textSecondary,
             ),
           ),
-          SizedBox(height: 16),
-          CommonTextField(label: 'Instagram', hintText: '@yourusername'),
+          const SizedBox(height: 16),
+          CommonTextField(
+            controller: _instagramController,
+            label: 'Instagram', 
+            hintText: '@yourusername'
+          ),
         ],
       ),
     );

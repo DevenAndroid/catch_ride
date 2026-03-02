@@ -1,7 +1,7 @@
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-
+import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -20,7 +20,10 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  final AuthController _authController = Get.find<AuthController>();
   bool _obscurePassword = true;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -76,10 +79,11 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 24),
 
-                    const CommonTextField(
+                    CommonTextField(
                       label: AppStrings.email,
                       hintText: AppStrings.enterYourEmail,
                       keyboardType: TextInputType.emailAddress,
+                      controller: _authController.emailController,
                     ),
                     const SizedBox(height: 16),
 
@@ -87,6 +91,7 @@ class _LoginViewState extends State<LoginView> {
                       label: AppStrings.password,
                       hintText: AppStrings.emptyString,
                       obscureText: _obscurePassword,
+                      controller: _authController.passwordController,
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -118,14 +123,12 @@ class _LoginViewState extends State<LoginView> {
                     ),
 
                     const SizedBox(height: 24),
-                    CommonButton(
-                      text: AppStrings.logIn,
-                      onPressed: () {
-                        // Log In action
-                        Get.to(() => const SelectRoleView(),
-                        );
-                      },
-                    ),
+                    Obx(() => CommonButton(
+                      text: _authController.isLoading.value ? 'Logging in...' : AppStrings.logIn,
+                      onPressed: _authController.isLoading.value 
+                        ? () {} 
+                        : () => _authController.login(),
+                    )),
                     const SizedBox(height: 20),
 
                     const Center(
