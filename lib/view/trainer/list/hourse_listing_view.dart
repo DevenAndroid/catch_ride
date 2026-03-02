@@ -9,6 +9,8 @@ import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
 
+import '../../../controllers/profile_controller.dart';
+
 class HourseListingView extends StatefulWidget {
   const HourseListingView({super.key});
 
@@ -19,6 +21,7 @@ class HourseListingView extends StatefulWidget {
 class _HourseListingViewState extends State<HourseListingView> {
   @override
   Widget build(BuildContext context) {
+    final ProfileController profileController = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -56,38 +59,45 @@ class _HourseListingViewState extends State<HourseListingView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CommonText(
-                      'My horse listing',
-                      fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPostCard(
-                      userName: 'John Snow',
-                      timePosted: '16 days ago',
-                      mainImageUrl: AppConstants.dummyImageUrl,
-                      // Fallback dummy
-                      imageCount: '1 / 12',
-                      tags: ['For sale', 'Weekly Lease'],
-                      postTitle: 'Demo horse - Young Developing Hunter',
-                      postDescription:
-                          'An ideal small pony and great for a Child An ideal small pony and great for a Child',
-                      location: 'Ocklawaha, USA, United States',
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPostCard(
-                      userName: 'John Snow',
-                      timePosted: '16 days ago',
-                      mainImageUrl: AppConstants.dummyImageUrl,
-                      // Fallback dummy
-                      imageCount: '1 / 12',
-                      tags: ['For sale', 'Weekly Lease'],
-                      postTitle: 'Speedy mare - Dressage Star',
-                      postDescription:
-                          'Perfect for competitive riders looking for a spirited partner',
-                      location: 'Winterfell, USA, United States',
-                    ),
+                    Obx(() => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CommonText(
+                          'My horse listing',
+                          fontSize: AppTextSizes.size16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildPostCard(
+                          userName: profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
+                          userAvatar: profileController.avatar,
+                          timePosted: '16 days ago',
+                          mainImageUrl: AppConstants.dummyImageUrl,
+                          // Fallback dummy
+                          imageCount: '1 / 12',
+                          tags: ['For sale', 'Weekly Lease'],
+                          postTitle: 'Demo horse - Young Developing Hunter',
+                          postDescription:
+                              'An ideal small pony and great for a Child An ideal small pony and great for a Child',
+                          location: profileController.location.isNotEmpty ? profileController.location : 'Ocklawaha, USA, United States',
+                        ),
+                        const SizedBox(height: 16),
+                        _buildPostCard(
+                          userName: profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
+                          userAvatar: profileController.avatar,
+                          timePosted: '16 days ago',
+                          mainImageUrl: AppConstants.dummyImageUrl,
+                          // Fallback dummy
+                          imageCount: '1 / 12',
+                          tags: ['For sale', 'Weekly Lease'],
+                          postTitle: 'Speedy mare - Dressage Star',
+                          postDescription:
+                              'Perfect for competitive riders looking for a spirited partner',
+                          location: profileController.location.isNotEmpty ? profileController.location : 'Winterfell, USA, United States',
+                        ),
+                      ],
+                    )),
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -101,6 +111,7 @@ class _HourseListingViewState extends State<HourseListingView> {
 
   Widget _buildPostCard({
     required String userName,
+    String? userAvatar,
     required String timePosted,
     required String mainImageUrl,
     required String imageCount,
@@ -128,8 +139,8 @@ class _HourseListingViewState extends State<HourseListingView> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  const CommonImageView(
-                    url: AppConstants.dummyImageUrl,
+                  CommonImageView(
+                    url: (userAvatar != null && userAvatar.isNotEmpty) ? userAvatar : AppConstants.dummyImageUrl,
                     height: 48,
                     width: 48,
                     shape: BoxShape.circle,

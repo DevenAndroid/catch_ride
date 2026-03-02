@@ -17,11 +17,14 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../controllers/profile_controller.dart';
+
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ProfileController controller = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -59,7 +62,7 @@ class SettingsView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Card
-            _buildProfileCard(),
+            Obx(() => _buildProfileCard(controller)),
             const SizedBox(height: 20),
 
             // Add a horse banner
@@ -146,7 +149,7 @@ class SettingsView extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(ProfileController controller) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24),
@@ -164,22 +167,22 @@ class SettingsView extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const CommonImageView(
-            url: AppConstants.dummyImageUrl,
+          CommonImageView(
+            url: controller.avatar.isNotEmpty ? controller.avatar : AppConstants.dummyImageUrl,
             height: 80,
             width: 80,
             shape: BoxShape.circle,
           ),
           const SizedBox(height: 16),
-          const CommonText(
-            'Arya Stark',
+          CommonText(
+            controller.fullName.isNotEmpty ? controller.fullName : 'User Name',
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 4),
           CommonText(
-            'Professional Horse Trainer',
+            controller.specialization,
             fontSize: 14,
             color: AppColors.textSecondary.withValues(alpha: 0.8),
           ),

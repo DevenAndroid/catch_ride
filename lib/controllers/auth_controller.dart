@@ -12,6 +12,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../view/trainer/trainer_profile_setup_view.dart';
+
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final Logger _logger = Logger();
@@ -51,16 +53,18 @@ class AuthController extends GetxController {
         final token = responseData['token'];
         final user = responseData['user'];
         final String role = user['role'] ?? '';
+        final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
 
-        _logger.i('Login success! User: ${user['email']}, Role: $role');
+        _logger.i('Login success! User: ${user['email']}, Role: $role, Completed: $isProfileCompleted');
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('role', role);
         await prefs.setString('userEmail', user['email']);
+        await prefs.setBool('isProfileCompleted', isProfileCompleted);
 
         _apiService.setToken(token);
-        _navigateBasedOnRole(role);
+        _navigateBasedOnRole(role, isProfileCompleted);
       } else if (response.statusCode == 403) {
         // Email not verified — send them to OTP screen
         final email = emailController.text.trim();
@@ -146,23 +150,25 @@ class AuthController extends GetxController {
         final token = responseData['token'];
         final user = responseData['user'];
         final String role = user['role'] ?? '';
+        final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
 
-        _logger.i('Email verified! User: ${user['email']}');
+        _logger.i('Email verified! User: ${user['email']}, Completed: $isProfileCompleted');
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('role', role);
         await prefs.setString('userEmail', user['email']);
+        await prefs.setBool('isProfileCompleted', isProfileCompleted);
 
         _apiService.setToken(token);
 
-        Get.snackbar('Success', 'Email verified! Please select your role.',
+        Get.snackbar('Success', 'Email verified successfully.',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green,
             colorText: Colors.white);
 
-        // After verification → role selection
-        Get.offAll(() => const SelectRoleView());
+        // Conditional navigation based on profile status
+        _navigateBasedOnRole(role, isProfileCompleted);
       } else {
         String message = response.body?['message'] ?? 'Verification failed';
         Get.snackbar('Invalid OTP', message,
@@ -207,7 +213,16 @@ class AuthController extends GetxController {
   }
 
   // ─── ROLE-BASED NAVIGATION (after LOGIN) ─────────────────────────────────────
-  void _navigateBasedOnRole(String role) {
+  void _navigateBasedOnRole(String role, bool isProfileCompleted) {
+    if (!isProfileCompleted) {
+      if (role == 'trainer') {
+        Get.offAll(() => const TrainerProfileSetupView());
+      } else {
+        Get.offAll(() => const SelectRoleView());
+      }
+      return;
+    }
+
     if (role == 'trainer') {
       Get.offAll(() => const TrainerBottomNav());
     } else if (role == 'barn_manager') {

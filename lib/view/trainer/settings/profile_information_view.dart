@@ -9,7 +9,7 @@ class ProfileInformationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ProfileController profileController = Get.put(ProfileController());
+    final ProfileController profileController = Get.find<ProfileController>();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -47,17 +47,26 @@ class ProfileInformationView extends StatelessWidget {
           ),
           child: Obx(() {
             final userData = profileController.userData;
+            final trainerData = profileController.trainerData;
+            
+            // Format joined date
+            String joinedDate = '2025';
+            if (userData['createdAt'] != null) {
+              DateTime dt = DateTime.parse(userData['createdAt']);
+              joinedDate = dt.year.toString();
+            }
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CommonText(
-                  'Joined in 2025',
+                CommonText(
+                  'Joined in $joinedDate',
                   fontSize: 13,
                   color: AppColors.textSecondary,
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  profileController.fullName.isNotEmpty ? profileController.fullName : 'Arya Stark',
+                  profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -71,7 +80,7 @@ class ProfileInformationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  profileController.email.isNotEmpty ? profileController.email : 'lisa@example.com',
+                  profileController.email,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -85,14 +94,14 @@ class ProfileInformationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  userData['federationName'] ?? 'USEF (United States)',
+                  trainerData?['federationName'] ?? userData['federationName'] ?? 'Not Specified',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  userData['federationId'] ?? '565GH67H89',
+                  trainerData?['federationId'] ?? userData['federationId'] ?? 'Not Specified',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,

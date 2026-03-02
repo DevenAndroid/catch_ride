@@ -3,21 +3,23 @@ import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:get/get.dart';
 
 class BarnManagerHomeView extends StatelessWidget {
   const BarnManagerHomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ProfileController profileController = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: Row(
+        title: Obx(() => Row(
           children: [
             Container(
               height: 40,
@@ -26,8 +28,8 @@ class BarnManagerHomeView extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.border, width: 1),
               ),
-              child: const CommonImageView(
-                url: AppConstants.dummyImageUrl,
+              child: CommonImageView(
+                url: profileController.avatar.isNotEmpty ? profileController.avatar : AppConstants.dummyImageUrl,
                 shape: BoxShape.circle,
                 fit: BoxFit.cover,
               ),
@@ -36,21 +38,21 @@ class BarnManagerHomeView extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CommonText(
-                  'Lisa James',
+                CommonText(
+                  profileController.fullName.isNotEmpty ? profileController.fullName : 'Manager Name',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
                 CommonText(
-                  'Willow Creek Stables',
+                  profileController.barnName.isNotEmpty ? profileController.barnName : 'Barn Name',
                   fontSize: 12,
                   color: AppColors.textSecondary,
                 ),
               ],
             ),
           ],
-        ),
+        )),
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16),

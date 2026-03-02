@@ -1,4 +1,6 @@
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -43,6 +45,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
 
   @override
   Widget build(BuildContext context) {
+    Get.put(ProfileController());
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _views[_selectedIndex],

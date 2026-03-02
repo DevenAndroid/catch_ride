@@ -35,9 +35,13 @@ class AppUrls {
   static const String experienceLevels = '$systemConfig/experience-levels';
   static const String personalityTags = '$systemConfig/personality-tags';
 
+  // Horse Shows
+  static const String horseShows = '/horse-shows';
+
   // Profile
   static const String profile = '/profile';
   static const String updateRole = '/profile/role';
   static const String completeProfile = '/profile/complete';
+  static const String upload = '/upload';
   static const String uploadProfileImage = '/profile/upload-image';
 }

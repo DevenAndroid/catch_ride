@@ -36,36 +36,125 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _whyJoinController = TextEditingController();
 
   int _currentStep = 0;
   bool _isConfirmed = false;
   String _selectedFederation = 'USEF (United States)';
-  String _selectedYears = 'Select years';
+  int _selectedYears = 0;
   final TextEditingController _yearsExperienceController = TextEditingController();
 
   File? _profileImage;
   File? _bannerImage;
   final ImagePicker _picker = ImagePicker();
 
-  // Dummy tags for UI purposes
-  final List<String> _programTags = [
-    'Schoolmaster',
-    'Big Equitation',
-    'Young Developing Jumper',
-    'Prospect',
-    'Division Pony',
-    'Young Developing Hunter',
-    'High Perf Hunter 3\'6"+',
-    'High Perf Jumper 1.20m+'
-  ];
-  final List<String> _horseShows = [
-    'WEF',
-    'HITS Ocala',
-    'Lake Placid',
-    'Devon',
-    'Washington Intl',
-    'Pin Oak'
-  ];
+  // Dynamic data from API
+  List<dynamic> _allProgramTags = [];
+  List<dynamic> _allHorseShows = [];
+  
+  // Selected values
+  final List<String> _selectedProgramTags = [];
+  final List<String> _selectedHorseShows = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchInitialData();
+  }
+
+  Future<void> _fetchInitialData() async {
+    final apiService = Get.find<ApiService>();
+    try {
+      final tagsRes = await apiService.getRequest(AppUrls.programTags);
+      final showsRes = await apiService.getRequest(AppUrls.horseShows);
+
+      if (tagsRes.statusCode == 200) {
+        setState(() {
+          _allProgramTags = tagsRes.body['data'] ?? [];
+        });
+      }
+      if (showsRes.statusCode == 200) {
+        setState(() {
+          _allHorseShows = showsRes.body['data'] ?? [];
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching metadata: $e');
+    }
+  }
+
+  void _showSelectionBottomSheet({
+    required String title,
+    required List<dynamic> options,
+    required List<String> initialSelectedList,
+    required Function(List<String>) onConfirm,
+  }) {
+    List<String> localSelected = List.from(initialSelectedList);
+
+    Get.bottomSheet(
+      StatefulBuilder(builder: (context, setSheetState) {
+        return Container(
+          height: Get.height * 0.7,
+          padding: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () => Get.back(),
+                    child: const CommonText("Cancel", color: Colors.grey),
+                  ),
+                  CommonText(title,
+                      fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+                  TextButton(
+                    onPressed: () {
+                      onConfirm(localSelected);
+                      Get.back();
+                    },
+                    child: const CommonText("Done",
+                        color: AppColors.primary, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final item = options[index];
+                    final name = item['name'] ?? '';
+                    final isSelected = localSelected.contains(name);
+
+                    return ListTile(
+                      title: CommonText(name),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: AppColors.primary)
+                          : const Icon(Icons.circle_outlined),
+                      onTap: () {
+                        setSheetState(() {
+                          if (isSelected) {
+                            localSelected.remove(name);
+                          } else {
+                            localSelected.add(name);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      isScrollControlled: true,
+    );
+  }
 
   @override
   void dispose() {
@@ -79,6 +168,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     _websiteController.dispose();
     _instagramController.dispose();
     _bioController.dispose();
+    _whyJoinController.dispose();
     _yearsExperienceController.dispose();
     super.dispose();
   }
@@ -190,66 +280,133 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                       _currentStep++;
                     });
                   } else {
-                    // Registration Logic
+                    // Final Submission Logic with Validations
                     if (!_isConfirmed) {
-                      Get.snackbar('Error', 'Please confirm that the information is accurate',
+                      Get.snackbar('Validation Error', 'Please confirm that all information provided is accurate.',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.red,
                           colorText: Colors.white);
                       return;
                     }
 
-                    if (_fullNameController.text.isEmpty) {
-                      Get.snackbar('Error', 'Full Name is required',
+                    if (_fullNameController.text.trim().isEmpty) {
+                      Get.snackbar('Input Required', 'Full Name is required to identify your professional profile.',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.red,
                           colorText: Colors.white);
                       return;
                     }
 
-                    // Split Name
-                    final nameParts = _fullNameController.text.trim().split(' ');
-                    final firstName = nameParts.first;
-                    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
+                    if (_phoneController.text.trim().isEmpty) {
+                      Get.snackbar('Input Required', 'Contact Phone Number is required for profile verification.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    if (_barnNameController.text.trim().isEmpty) {
+                      Get.snackbar('Input Required', 'Business or Barn Name is mandatory for trainers.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    if (_location1Controller.text.trim().isEmpty) {
+                      Get.snackbar('Input Required', 'Primary Barn Location is required.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    if (_bioController.text.trim().length < 20) {
+                      Get.snackbar('Content Too Short', 'Please provide a bio of at least 20 characters to help users know you better.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    if (_selectedYears == 0) {
+                      Get.snackbar('Input Required', 'Please select your years of experience in the industry.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
+                      return;
+                    }
+
+                    // Split Name safely
+                    final trimmedName = _fullNameController.text.trim();
+                    final nameParts = trimmedName.split(' ');
+                    final firstName = nameParts.length > 0 ? nameParts.first : '';
+                    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : (nameParts.length == 1 ? '' : '');
 
                     final Map<String, dynamic> registrationData = {
                       'firstName': firstName,
                       'lastName': lastName,
-                      'phone': _phoneController.text,
-                      'location': _location1Controller.text,
-                      'bio': _bioController.text,
-                      'barnName': _barnNameController.text,
-                      'yearsExperience': int.tryParse(_yearsExperienceController.text.trim()) ?? 0,
-                      'programTags': _programTags,
-                      'showCircuits': _horseShows,
-                      'facebook': _facebookController.text,
-                      'website': _websiteController.text,
-                      'instagram': _instagramController.text,
-                      'federationId': _federationIdController.text,
+                      'phone': _phoneController.text.trim(),
+                      'location': _location1Controller.text.trim(),
+                      'bio': _bioController.text.trim(),
+                      'whyJoin': _whyJoinController.text.trim(),
+                      'barnName': _barnNameController.text.trim(),
+                      'yearsExperience': _selectedYears,
+                      'programTags': _selectedProgramTags,
+                      'showCircuits': _selectedHorseShows,
+                      'facebook': _facebookController.text.trim(),
+                      'website': _websiteController.text.trim(),
+                      'instagram': _instagramController.text.trim(),
+                      'federationId': _federationIdController.text.trim(),
                       'federationType': _selectedFederation,
                     };
 
-                    // Call profile/complete API with all trainer details
                     try {
                       _authController.isLoading.value = true;
                       final apiService = Get.find<ApiService>();
+
+                      // 1. Upload Profile Photo if selected
+                      if (_profileImage != null) {
+                        final avatarUrl = await _uploadFile(_profileImage!);
+                        if (avatarUrl != null) {
+                          registrationData['avatar'] = avatarUrl;
+                        }
+                      }
+
+                      // 2. Upload Banner Image if selected
+                      if (_bannerImage != null) {
+                        final bannerUrl = await _uploadFile(_bannerImage!);
+                        if (bannerUrl != null) {
+                          registrationData['coverImage'] = bannerUrl;
+                        }
+                      }
+                      
+                      // 3. Submit all profile data to the unified endpoint
                       final response = await apiService.putRequest(
                         AppUrls.completeProfile,
                         registrationData,
                       );
+
                       if (response.statusCode == 200) {
-                        Get.snackbar('Success', 'Profile submitted! Awaiting approval.',
-                            snackPosition: SnackPosition.BOTTOM,
+                        Get.snackbar('Success', 'Your verified trainer application has been submitted successfully!',
+                            snackPosition: SnackPosition.TOP,
                             backgroundColor: Colors.green,
                             colorText: Colors.white);
+                        
+                        // Navigate to the "Application Submitted" success view
                         _authController.navigateAfterRoleSet();
                       } else {
-                        final msg = response.body?['message'] ?? 'Profile submission failed';
-                        Get.snackbar('Error', msg,
+                        final errorMsg = response.body?['message'] ?? 'Unable to submit profile at this time. Please check your connection and try again.';
+                        Get.snackbar('Submission Failed', errorMsg,
                             snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: Colors.red,
                             colorText: Colors.white);
                       }
+                    } catch (e) {
+                      Get.snackbar('Error', 'An unexpected error occurred. Please try again later.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white);
                     } finally {
                       _authController.isLoading.value = false;
                     }
@@ -566,8 +723,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       title: "Why Join Our Community?",
       child: CommonTextField(
         label: "",
-        controller: _bioController,
-        hintText: "Write a short bio",
+        controller: _whyJoinController,
+        hintText: "Write a short note on why you are joining",
         maxLines: 4,
       ),
     );
@@ -723,36 +880,69 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.inputBackground,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedYears,
-                isExpanded: true,
-                icon: const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.textSecondary,
-                ),
-                items: ['Select years', '1-3 years', '3-5 years', '5-10 years', '10+ years']
-                    .map(
-                      (e) => DropdownMenuItem(
-                        value: e,
-                        child: CommonText(
-                          e,
-                          fontSize: AppTextSizes.size14,
-                          color: AppColors.textPrimary,
+          GestureDetector(
+            onTap: () {
+              Get.bottomSheet(
+                Container(
+                  height: Get.height * 0.4,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    children: [
+                      const CommonText("Years of Experience",
+                          fontSize: AppTextSizes.size18,
+                          fontWeight: FontWeight.bold),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: 101,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Center(
+                                child: CommonText("$index Years",
+                                    fontSize: AppTextSizes.size16,
+                                    color: _selectedYears == index
+                                        ? AppColors.primary
+                                        : AppColors.textPrimary),
+                              ),
+                              onTap: () {
+                                setState(() => _selectedYears = index);
+                                Get.back();
+                              },
+                            );
+                          },
                         ),
                       ),
-                    )
-                    .toList(),
-                onChanged: (val) {
-                  setState(() => _selectedYears = val!);
-                },
+                    ],
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.inputBackground,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CommonText(
+                    _selectedYears == 0 ? "Select years" : "$_selectedYears Years",
+                    fontSize: AppTextSizes.size14,
+                    color: _selectedYears == 0
+                        ? AppColors.textSecondary
+                        : AppColors.textPrimary,
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
               ),
             ),
           ),
@@ -771,29 +961,43 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 6),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.inputBackground,
+          GestureDetector(
+            onTap: () => _showSelectionBottomSheet(
+              title: "Select Program Tags",
+              options: _allProgramTags,
+              initialSelectedList: _selectedProgramTags,
+              onConfirm: (list) {
+                setState(() {
+                  _selectedProgramTags.clear();
+                  _selectedProgramTags.addAll(list);
+                });
+              },
             ),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ..._programTags.map(
-                  (tag) => _buildTag(tag, () {
-                    setState(() => _programTags.remove(tag));
-                  }),
-                ),
-                const CommonText(
-                  AppStrings.well,
-                  color: AppColors.textSecondary,
-                ),
-              ],
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.inputBackground,
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (_selectedProgramTags.isEmpty)
+                    const CommonText(
+                      "Select your program specialties...",
+                      color: AppColors.textSecondary,
+                    ),
+                  ..._selectedProgramTags.map(
+                    (tag) => _buildTag(tag, () {
+                      setState(() => _selectedProgramTags.remove(tag));
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -807,51 +1011,53 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText(
-            "Search Horse Shows & Circuits",
-            fontSize: AppTextSizes.size14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          const SizedBox(height: 6),
-          const CommonTextField(
-            label: "",
-            hintText: "WEF",
-          ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.inputBackground,
+          GestureDetector(
+            onTap: () => _showSelectionBottomSheet(
+              title: "Select Horse Shows",
+              options: _allHorseShows,
+              initialSelectedList: _selectedHorseShows,
+              onConfirm: (list) {
+                setState(() {
+                  _selectedHorseShows.clear();
+                  _selectedHorseShows.addAll(list);
+                });
+              },
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      ..._horseShows.map(
-                        (tag) => _buildTag(tag, () {
-                          setState(() => _horseShows.remove(tag));
-                        }),
-                      ),
-                      const CommonText(
-                        AppStrings.well,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(12),
+                color: AppColors.inputBackground,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (_selectedHorseShows.isEmpty)
+                          const CommonText(
+                            "Select competition circuits...",
+                            color: AppColors.textSecondary,
+                          ),
+                        ..._selectedHorseShows.map(
+                          (tag) => _buildTag(tag, () {
+                            setState(() => _selectedHorseShows.remove(tag));
+                          }),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.textSecondary,
-                ),
-              ],
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -887,6 +1093,26 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
         ],
       ),
     );
+  }
+
+  Future<String?> _uploadFile(File file) async {
+    final apiService = Get.find<ApiService>();
+    try {
+      final formData = FormData({
+        'media': MultipartFile(file.path, filename: file.path.split('/').last),
+      });
+
+      final response = await apiService.postRequest(AppUrls.upload, formData);
+
+      if (response.statusCode == 200) {
+        return response.body['data']['url'];
+      }
+      debugPrint('Upload failed: ${response.statusText}');
+      return null;
+    } catch (e) {
+      debugPrint('Error uploading file: $e');
+      return null;
+    }
   }
 }
 

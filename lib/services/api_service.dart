@@ -31,6 +31,12 @@ class ApiService extends GetConnect implements GetxService {
 
       bool isSessionError = (statusCode == 401);
       
+      // EXCEPTION: Don't trigger "Session Expired" on authentication paths
+      // These endpoints return 401 for wrong credentials/invalid OTPs, not session expiry.
+      if (url.toLowerCase().contains('/auth/')) {
+        isSessionError = false;
+      }
+      
       // Also check body content if statusCode wasn't 401 but message confirms session error
       if (!isSessionError && message != null) {
         if (message.toLowerCase().contains('invalid or expired session token') || 

@@ -14,7 +14,7 @@ class EditProfileView extends StatefulWidget {
 }
 
 class _EditProfileViewState extends State<EditProfileView> {
-  final ProfileController profileController = Get.put(ProfileController());
+  final ProfileController profileController = Get.find<ProfileController>();
   
   // Controllers
   final TextEditingController _fullNameController = TextEditingController();
@@ -34,13 +34,13 @@ class _EditProfileViewState extends State<EditProfileView> {
     super.initState();
     _fullNameController.text = profileController.fullName;
     _phoneController.text = profileController.phone;
-    _barnNameController.text = profileController.userData['barnName'] ?? '';
+    _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
     _facebookController.text = profileController.userData['facebook'] ?? '';
     _websiteController.text = profileController.userData['website'] ?? '';
     _instagramController.text = profileController.userData['instagram'] ?? '';
-    _yearsController.text = profileController.userData['yearsExperience']?.toString() ?? '';
+    _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
   }
 
   @override

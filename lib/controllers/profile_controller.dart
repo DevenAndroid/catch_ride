@@ -3,6 +3,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -19,6 +20,14 @@ class ProfileController extends GetxController {
 
   Future<void> fetchProfile() async {
     try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      if (token == null || token.isEmpty) {
+        _logger.d('No auth token found, skipping profile fetch');
+        return;
+      }
+
       isLoading.value = true;
       final response = await _apiService.getRequest(AppUrls.profile);
       
@@ -59,20 +68,45 @@ class ProfileController extends GetxController {
     }
   }
 
+  Future<String?> uploadRawFile(String filePath) async {
+    try {
+      final formData = FormData({
+        'media': MultipartFile(filePath, filename: filePath.split('/').last),
+      });
+
+      final response = await _apiService.postRequest(AppUrls.upload, formData);
+
+      if (response.statusCode == 200) {
+        return response.body['data']['url'];
+      } else {
+        _logger.e('File upload failed: ${response.statusText}');
+        return null;
+      }
+    } catch (e) {
+      _logger.e('Error in uploadRawFile: $e');
+      return null;
+    }
+  }
+
   Future<bool> uploadImage(String filePath, String type) async {
     try {
       isLoading.value = true;
-      final formData = FormData({
-        'image': MultipartFile(filePath, filename: 'profile_image.jpg'),
+      
+      // 1. Upload to general media storage
+      final imageUrl = await uploadRawFile(filePath);
+      if (imageUrl == null) return false;
+
+      // 2. Link URL to profile
+      final response = await _apiService.postRequest(AppUrls.uploadProfileImage, {
+        'imageUrl': imageUrl,
         'type': type, // 'avatar' or 'cover'
       });
-
-      final response = await _apiService.postRequest(AppUrls.uploadProfileImage, formData);
       
       if (response.statusCode == 200) {
+        await fetchProfile(); // Refresh local data
         return true;
       } else {
-        _logger.e('Failed to upload image: ${response.statusText}');
+        _logger.e('Failed to link image to profile: ${response.statusText}');
         return false;
       }
     } catch (e) {
@@ -84,6 +118,8 @@ class ProfileController extends GetxController {
   }
 
   // Helper getters for UI
+  String get firstName => userData['firstName'] ?? '';
+  String get lastName => userData['lastName'] ?? '';
   String get fullName => "${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}".trim();
   String get email => userData['email'] ?? '';
   String get phone => userData['phone'] ?? '';
@@ -91,4 +127,29 @@ class ProfileController extends GetxController {
   String get location => userData['location'] ?? '';
   String get avatar => userData['avatar'] ?? userData['photo'] ?? '';
   String get coverImage => userData['coverImage'] ?? '';
+  String get role => userData['role'] ?? 'user';
+  
+  // Professional Data
+  Map<String, dynamic>? get trainerData => userData['trainerId'];
+  Map<String, dynamic>? get vendorData => userData['vendorId'];
+  Map<String, dynamic>? get barnManagerData => userData['barnManagerId'];
+
+  String get barnName {
+    if (role == 'trainer') return trainerData?['barnName'] ?? '';
+    if (role == 'barn_manager') return barnManagerData?['barnName'] ?? '';
+    return '';
+  }
+
+  String get specialization {
+    if (role == 'trainer') return trainerData?['specialization'] ?? 'Professional Horse Trainer';
+    if (role == 'service_provider') return vendorData?['serviceType'] ?? 'Service Provider';
+    if (role == 'barn_manager') return 'Barn Manager';
+    return role.capitalizeFirst ?? '';
+  }
+
+  int get yearsExperience {
+    if (role == 'trainer') return trainerData?['yearsExperience'] ?? 0;
+    if (role == 'service_provider') return vendorData?['yearsExperience'] ?? 0;
+    return 0;
+  }
 }
