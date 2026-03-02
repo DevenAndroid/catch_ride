@@ -1,4 +1,3 @@
-import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
@@ -6,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
-import 'package:catch_ride/view/trainer/settings/notifications_view.dart';
-import 'package:catch_ride/view/trainer/settings/edit_profile.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/explore_controller.dart';
+import 'package:catch_ride/view/trainer/home/search_filter_overlay.dart';
 import 'package:get/get.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class TrainerExploreView extends StatefulWidget {
   const TrainerExploreView({super.key});
@@ -21,7 +21,14 @@ class TrainerExploreView extends StatefulWidget {
 
 class _TrainerExploreViewState extends State<TrainerExploreView> {
   final ExploreController controller = Get.put(ExploreController());
-  final List<String> _filters = ['All', 'Hunter', 'Jumper', 'Equitation'];
+  bool _isGridView = false;
+  final List<Map<String, dynamic>> _categories = [
+    {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
+    {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
+    {'name': 'Jumper', 'icon': 'assets/icons/jumper.svg', 'isSvg': true},
+    {'name': 'Equitation', 'icon': 'assets/icons/equitation.svg', 'isSvg': true},
+    {'name': 'Vendors', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -49,38 +56,58 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   );
                 }
 
-                return RefreshIndicator(
-                  onRefresh: controller.fetchHorses,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
+                final bool isVendors = controller.selectedDiscipline.value == 'Vendors';
+
+                if (isVendors) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 5, // Dummy vendor count for now
+                    itemBuilder: (context, index) {
+                      return _buildVendorCard(
+                        name: 'Ria Gabriela',
+                        location: 'Wellington, FL',
+                        specialties: 'Shipping, Braider',
+                        dates: '10 Jan - 18 Jan 2026',
+                        imageUrl: AppConstants.dummyImageUrl,
+                      );
+                    },
+                  );
+                }
+
+                if (_isGridView) {
+                  return MasonryGridView.count(
+                    padding: const EdgeInsets.all(16),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
                     itemCount: controller.horses.length,
                     itemBuilder: (context, index) {
                       final horse = controller.horses[index];
-                      final trainer = horse['trainerId'];
+                      final heightFactor = (index % 3 == 0) ? 1.5 : (index % 2 == 0) ? 1.2 : 1.0;
                       
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildPostCard(
-                          userName: trainer != null 
-                              ? '${trainer['firstName']} ${trainer['lastName']}'
-                              : (horse['trainerName'] ?? 'Unknown Trainer'),
-                          userTitle: trainer != null ? (trainer['barnName'] ?? 'Professional Trainer') : 'Professional Trainer',
-                          mainImageUrl: horse['photo'] ?? AppConstants.dummyImageUrl,
-                          imageCount: '1 / ${(horse['images']?.length ?? 1)}',
-                          tags: [
-                            horse['status'] == 'available' ? 'For sale' : horse['status'],
-                            if (horse['discipline'] != null) horse['discipline'],
-                          ],
-                          postTitle: horse['name'] ?? 'Untitled Horse',
-                          postDescription: horse['description'] ?? 'No description available',
-                          location: horse['location'] ?? 'Location not specified',
-                        ),
+                      return _buildPostCard(
+                        name: horse['name'] ?? 'Horse',
+                        imageUrl: horse['photo'] ?? AppConstants.dummyImageUrl,
+                        height: 180 * heightFactor,
                       );
                     },
-                  ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: controller.horses.length,
+                  itemBuilder: (context, index) {
+                    final horse = controller.horses[index];
+                    return _buildListViewCard(
+                      name: horse['name'] ?? 'Whirlwind',
+                      discipline: horse['discipline'] ?? 'Jumper',
+                      venue: horse['venue'] ?? "Bruce's Field",
+                      dates: horse['dates'] ?? '10 Jan - 18 Jan 2026',
+                      location: horse['location'] ?? 'Winterfell, USA, United States',
+                      imageUrl: horse['photo'] ?? AppConstants.dummyImageUrl,
+                    );
+                  },
                 );
               }),
             ),
@@ -91,127 +118,153 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   }
 
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () => Get.to(() => const EditProfileView()),
-            child: Row(
-              children: [
-                const CommonImageView(
-                  url: AppConstants.dummyImageUrl,
-                  height: 48,
-                  width: 48,
-                  shape: BoxShape.circle,
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    CommonText(
-                      AppStrings.johnSnow,
-                      fontSize: AppTextSizes.size18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    CommonText(
-                      AppStrings.professionalHorseTrainer,
-                      fontSize: AppTextSizes.size12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () => Get.to(() => const NotificationsView()),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border),
-              ),
-              child: const Icon(
-                Icons.notifications_none,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return Container(); // No header in the new UI design
   }
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TextField(
-        onChanged: controller.onSearch,
-        decoration: InputDecoration(
-          hintText: AppStrings.searchByTrainersOrHorses,
-          hintStyle: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
-          prefixIcon: const Icon(
-            Icons.search,
-            color: AppColors.textSecondary,
-            size: 24,
-          ),
-          fillColor: Colors.white,
-          filled: true,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(24),
-            borderSide: const BorderSide(color: AppColors.border),
-          ),
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Get.to(
+                () => const SearchFilterOverlay(),
+                transition: Transition.fadeIn,
+                fullscreenDialog: true,
+                opaque: false,
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.search_rounded,
+                    size: 28,
+                    color: AppColors.textPrimary,
+                  ),
+                  SizedBox(width: 20),
+                ],
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Get.to(
+                  () => const SearchFilterOverlay(),
+                  transition: Transition.fadeIn,
+                  fullscreenDialog: true,
+                  opaque: false,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CommonText(
+                      "How can we help you?",
+                      fontSize: AppTextSizes.size16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    CommonText(
+                      "Search horses, vendors and circuits",
+                      fontSize: AppTextSizes.size12,
+                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isGridView = !_isGridView;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  _isGridView ? Icons.list_rounded : Icons.grid_view_rounded,
+                  color: AppColors.textPrimary,
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildFilters() {
-    return Obx(() => SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Obx(() => SizedBox(
+      height: 80,
       child: Row(
-        children: List.generate(_filters.length, (index) {
-          final isSelected = controller.selectedDiscipline.value == _filters[index];
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(_categories.length, (index) {
+          final cat = _categories[index];
+          final isSelected = controller.selectedDiscipline.value == cat['name'];
+          
           return GestureDetector(
             onTap: () {
-              controller.updateDiscipline(_filters[index]);
+              controller.updateDiscipline(cat['name']);
             },
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.transparent : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
-                  width: 1.5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: isSelected ? AppColors.primary : Colors.transparent,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: cat['isSvg']
+                          ? SvgPicture.asset(
+                              cat['icon'],
+                              width: 24,
+                              height: 24,
+                              colorFilter: ColorFilter.mode(
+                                isSelected ? AppColors.primary : AppColors.textSecondary,
+                                BlendMode.srcIn,
+                              ),
+                            )
+                          : Icon(
+                              cat['icon'] as IconData,
+                              size: 24,
+                              color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                            ),
+                    ),
+                  ),
                 ),
-              ),
-              child: CommonText(
-                _filters[index],
-                fontSize: AppTextSizes.size14,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              ),
+                const SizedBox(height: 8),
+                CommonText(
+                  cat['name'],
+                  fontSize: AppTextSizes.size12,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
           );
         }),
@@ -220,171 +273,170 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   }
 
   Widget _buildPostCard({
-    required String userName,
-    required String userTitle,
-    required String mainImageUrl,
-    required String imageCount,
-    required List<String> tags,
-    required String postTitle,
-    required String postDescription,
-    required String location,
+    required String name,
+    required String imageUrl,
+    required double height,
   }) {
     return GestureDetector(
       onTap: () {
         Get.to(() => const TrainerHorseDetailView());
       },
       child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          image: DecorationImage(
+            image: CachedNetworkImageProvider(imageUrl),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.5),
+              ],
+              stops: const [0.7, 1.0],
+            ),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommonText(
+                name,
+                color: Colors.white,
+                fontSize: AppTextSizes.size14,
+                fontWeight: FontWeight.bold,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildListViewCard({
+    required String name,
+    required String discipline,
+    required String venue,
+    required String dates,
+    required String location,
+    required String imageUrl,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => const TrainerHorseDetailView());
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  const CommonImageView(
-                    url: AppConstants.dummyImageUrl,
-                    height: 40,
-                    width: 40,
-                    shape: BoxShape.circle,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CommonText(
-                          userName,
-                          fontSize: AppTextSizes.size14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                        CommonText(
-                          userTitle,
-                          fontSize: AppTextSizes.size12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.more_vert, color: AppColors.textPrimary),
-                ],
+            // Image
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
               ),
             ),
-// Image
-            Stack(
-              children: [
-                CommonImageView(
-                  url: mainImageUrl,
-                  height: 220,
-                  width: double.infinity,
-                ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: CommonText(
-                      imageCount,
-                      color: Colors.white,
-                      fontSize: AppTextSizes.size12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            // Action Row & Tags
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 8,
-                      children: tags
-                          .map(
-                            (tag) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.tabBackground,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: CommonText(
-                                tag,
-                                fontSize: AppTextSizes.size12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.share_outlined,
-                    color: AppColors.textPrimary,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(
-                    Icons.bookmark_outline,
-                    color: AppColors.textPrimary,
-                    size: 24,
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            const SizedBox(width: 16),
+            // Details
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(
-                    postTitle,
-                    fontSize: AppTextSizes.size16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    height: 1.3,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                              fontFamily: 'Outfit',
+                            ),
+                            children: [
+                              TextSpan(text: name),
+                              TextSpan(
+                                text: ' • $discipline',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const CommonText(
+                          'Lease',
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   CommonText(
-                    postDescription,
-                    fontSize: AppTextSizes.size14,
+                    'Venue - $venue',
+                    fontSize: 13,
                     color: AppColors.textSecondary,
-                    height: 1.4,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: AppColors.textSecondary,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+                      const SizedBox(width: 6),
                       CommonText(
-                        location,
-                        fontSize: AppTextSizes.size12,
+                        dates,
+                        fontSize: 12,
                         color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: CommonText(
+                          location,
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -393,6 +445,99 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVendorCard({
+    required String name,
+    required String location,
+    required String specialties,
+    required String dates,
+    required String imageUrl,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Circular Image
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: CachedNetworkImageProvider(imageUrl),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonText(
+                  name,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    CommonText(
+                      location,
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.stars_outlined, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    CommonText(
+                      specialties,
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    CommonText(
+                      dates,
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

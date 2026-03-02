@@ -94,6 +94,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           const SizedBox(height: 16),
 
                           _buildTagsGridSection(),
+                          const SizedBox(height: 24),
+
+                          _buildCancellationPolicySection(),
+                          const SizedBox(height: 20),
                         ],
                       ),
                     ),
@@ -125,7 +129,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           : Colors.white,
                       onPressed: () {
                         if (!_isRequested) {
-                          _showSelectAvailabilityBottomSheet();
+                          _showBookingRequestBottomSheet();
                         }
                       },
                     ),
@@ -456,8 +460,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -471,10 +482,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           const SizedBox(height: 16),
           _buildDetailRow('Color', 'Brown'),
           const SizedBox(height: 16),
-          _buildDetailRow(
-            'Discipline',
-            '\$100',
-          ), // Screenshot says Discipline : $100
+          _buildDetailRow('Discipline', '\$100'),
         ],
       ),
     );
@@ -613,7 +621,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,7 +634,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           const SizedBox(height: 4),
           CommonText(
             value,
-            fontSize: AppTextSizes.size12,
+            fontSize: AppTextSizes.size14,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
@@ -635,324 +643,333 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  void _showSelectAvailabilityBottomSheet() {
-    int selectedAvailabilityIndex = 0;
+  Widget _buildCancellationPolicySection() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFD6D6)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            'Cancelation Policy',
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFD92D20),
+          ),
+          const SizedBox(height: 8),
+          CommonText(
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,',
+            fontSize: 13,
+            color: const Color(0xFFB42318).withValues(alpha: 0.8),
+            height: 1.5,
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBookingRequestBottomSheet() {
+    String selectedType = 'Trial';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setSheetState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 20,
-                right: 20,
-                top: 24,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheetState) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            left: 20,
+            right: 20,
+            top: 12,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 24),
+
+              // Horse Card
+              _buildBookingHorseCard(),
+              const SizedBox(height: 20),
+
+              // Type Toggle
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F4F7),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildTypeToggleItem('Trial', selectedType == 'Trial', () {
+                        setSheetState(() => selectedType = 'Trial');
+                      }),
+                    ),
+                    Expanded(
+                      child: _buildTypeToggleItem('Weekly Lease', selectedType == 'Weekly Lease', () {
+                        setSheetState(() => selectedType = 'Weekly Lease');
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Dates
+              Row(
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.circular(2),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CommonText('Start Date', fontSize: 13, fontWeight: FontWeight.bold),
+                        const SizedBox(height: 8),
+                        _buildDateSelector('Select Date'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CommonText('End Date', fontSize: 13, fontWeight: FontWeight.bold),
+                        const SizedBox(height: 8),
+                        _buildDateSelector('Select Date'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Location
+              const CommonText('Location', fontSize: 13, fontWeight: FontWeight.bold),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText('WEF, Wellington', fontSize: 14, color: AppColors.textPrimary),
+                    Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Message
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontFamily: 'Outfit'),
+                  children: [
+                    TextSpan(text: 'Message '),
+                    TextSpan(text: '(optional)', style: TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                height: 100,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TextField(
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Write here...',
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Get.back(),
+                      child: Container(
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Center(
+                          child: CommonText('Cancel', fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const CommonText(
-                    'Select Availability',
-                    fontSize: AppTextSizes.size18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.back();
+                        setState(() => _isRequested = true);
+                      },
+                      child: Container(
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Center(
+                          child: CommonText('Submit', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20),
-                  _buildAvailabilityOption(
-                    index: 0,
-                    selectedIndex: selectedAvailabilityIndex,
-                    label: 'Location 1',
-                    address: 'Ocklawaha, USA, United States',
-                    date: '05 Feb - 10 Feb 2026',
-                    onTap: () {
-                      setSheetState(() {
-                        selectedAvailabilityIndex = 0;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _buildAvailabilityOption(
-                    index: 1,
-                    selectedIndex: selectedAvailabilityIndex,
-                    label: 'Location 2',
-                    address: 'Ocklawaha, USA, United States',
-                    date: '05 Feb - 10 Feb 2026',
-                    onTap: () {
-                      setSheetState(() {
-                        selectedAvailabilityIndex = 1;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  CommonButton(
-                    text: 'Next',
-                    onPressed: () {
-                      Get.back();
-                      _showSelectBookingTypeBottomSheet();
-                    },
-                  ),
-                  const SizedBox(height: 40),
                 ],
               ),
-            );
-          },
-        );
-      },
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildAvailabilityOption({
-    required int index,
-    required int selectedIndex,
-    required String label,
-    required String address,
-    required String date,
-    required VoidCallback onTap,
-  }) {
-    bool isSelected = index == selectedIndex;
+  Widget _buildBookingHorseCard() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: const CommonImageView(
+              url: AppConstants.dummyImageUrl,
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    RichText(
+                      text: const TextSpan(
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontFamily: 'Outfit'),
+                        children: [
+                          TextSpan(text: 'Whirlwind'),
+                          TextSpan(text: ' • Jumper', style: TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F4F7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const CommonText('Lease', fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const CommonText('Venue – Bruce\'s Field', fontSize: 12, color: AppColors.textSecondary),
+                const SizedBox(height: 6),
+                const Row(
+                  children: [
+                    Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textSecondary),
+                    SizedBox(width: 6),
+                    CommonText('10 Jan - 18 Jan 2026', fontSize: 11, color: AppColors.textSecondary),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                const Row(
+                  children: [
+                    Icon(Icons.location_on_outlined, size: 13, color: AppColors.textSecondary),
+                    SizedBox(width: 6),
+                    CommonText('Winterfell, USA, United States', fontSize: 11, color: AppColors.textSecondary),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeToggleItem(String title, bool isActive, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 1.5 : 1,
-          ),
+          color: isActive ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: isActive ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)] : null,
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CommonText(
-                    label,
-                    fontSize: AppTextSizes.size12,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: AppColors.textSecondary,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: CommonText(
-                          address,
-                          fontSize: AppTextSizes.size12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        color: AppColors.textSecondary,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 6),
-                      CommonText(
-                        date,
-                        fontSize: AppTextSizes.size12,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected ? AppColors.primary : AppColors.border,
-              size: 20,
-            ),
-          ],
+        child: Center(
+          child: CommonText(
+            title,
+            fontSize: 14,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+            color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+          ),
         ),
       ),
     );
   }
 
-  void _showSelectBookingTypeBottomSheet() {
-    int selectedTypeIndex = 0;
-    List<String> types = [
-      'Sale',
-      'Annual Lease',
-      'Short Term or Circuit Lease',
-      'Weekly Lease',
-    ];
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
+  Widget _buildDateSelector(String hint) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.border),
+        borderRadius: BorderRadius.circular(12),
       ),
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setSheetState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 20,
-                right: 20,
-                top: 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const CommonText(
-                    'Select Booking Type',
-                    fontSize: AppTextSizes.size18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  const SizedBox(height: 20),
-                  ...List.generate(types.length, (index) {
-                    bool isSelected = index == selectedTypeIndex;
-                    return GestureDetector(
-                      onTap: () {
-                        setSheetState(() {
-                          selectedTypeIndex = index;
-                        });
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 20,
-                        ),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.border,
-                            width: isSelected ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            CommonText(
-                              types[index],
-                              fontSize: AppTextSizes.size14,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: AppColors.textPrimary,
-                            ),
-                            Icon(
-                              isSelected
-                                  ? Icons.radio_button_checked
-                                  : Icons.radio_button_off,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.border,
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Get.back();
-                            _showSelectAvailabilityBottomSheet();
-                          },
-                          child: Container(
-                            height: 52,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: const CommonText(
-                              'Previous',
-                              fontSize: AppTextSizes.size16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CommonButton(
-                          text: 'Send Request',
-                          onPressed: () {
-                            Get.back();
-                            setState(() {
-                              _isRequested = true;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            );
-          },
-        );
-      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          CommonText(hint, fontSize: 14, color: AppColors.textSecondary.withValues(alpha: 0.6)),
+          const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.textSecondary),
+        ],
+      ),
     );
   }
 }

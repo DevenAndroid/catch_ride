@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_button.dart';
-import 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:get/get.dart';
 
@@ -49,8 +48,24 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final ImagePicker _picker = ImagePicker();
 
   // Dummy tags for UI purposes
-  final List<String> _programTags = ['Jump', 'Dance', 'Well'];
-  final List<String> _horseShows = ['WEC Ocala', 'Tryon', 'Well'];
+  final List<String> _programTags = [
+    'Schoolmaster',
+    'Big Equitation',
+    'Young Developing Jumper',
+    'Prospect',
+    'Division Pony',
+    'Young Developing Hunter',
+    'High Perf Hunter 3\'6"+',
+    'High Perf Jumper 1.20m+'
+  ];
+  final List<String> _horseShows = [
+    'WEF',
+    'HITS Ocala',
+    'Lake Placid',
+    'Devon',
+    'Washington Intl',
+    'Pin Oak'
+  ];
 
   @override
   void dispose() {
@@ -118,8 +133,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             }
           },
         ),
-        title: const CommonText(
-          AppStrings.profileSetup,
+        title: CommonText(
+          _currentStep == 1 ? "Complete Your Profile" : AppStrings.profileSetup,
           color: AppColors.textPrimary,
           fontSize: AppTextSizes.size18,
           fontWeight: FontWeight.bold,
@@ -132,13 +147,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 16.0,
-              ),
-              child: _buildProgressBar(),
-            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -147,7 +155,25 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [_buildCurrentStep(), const SizedBox(height: 40)],
+                  children: [
+                    if (_currentStep == 1) ...[
+                      const CommonText(
+                        "Finish your Verified Trainer Application",
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 8),
+                      CommonText(
+                        "Step building a trusted network of professionals and partners in the horse world - let's get",
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    _buildCurrentStep(),
+                    const SizedBox(height: 40)
+                  ],
                 ),
               ),
             ),
@@ -156,10 +182,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: Obx(() => CommonButton(
-                text: _currentStep == 3 ? AppStrings.submitApplication : 'Next',
+                text: _currentStep == 1 ? AppStrings.submitApplication : 'Next',
                 isLoading: _authController.isLoading.value,
                 onPressed: () async {
-                  if (_currentStep < 3) {
+                  if (_currentStep < 1) {
                     setState(() {
                       _currentStep++;
                     });
@@ -237,52 +263,28 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     );
   }
 
-  Widget _buildProgressBar() {
-    return Row(
-      children: List.generate(4, (index) {
-        return Expanded(
-          child: Container(
-            margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
-            height: 4,
-            decoration: BoxDecoration(
-              color: index <= _currentStep
-                  ? AppColors.primary
-                  : AppColors.border,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        );
-      }),
-    );
-  }
+
 
   Widget _buildCurrentStep() {
     switch (_currentStep) {
       case 0:
-        return Column(
-          children: [
-            _buildBasicDetailsCard(),
-            const SizedBox(height: 16),
-            _buildExperienceCard(),
-          ],
-        );
+        return _buildBasicDetailsCard();
       case 1:
         return Column(
           children: [
-            _buildBarnInfoCard(),
+            _buildMediaCard(),
+            const SizedBox(height: 16),
+            _buildWhyJoinCard(),
+            const SizedBox(height: 16),
+            _buildExperienceCard(),
             const SizedBox(height: 16),
             _buildHorseShowsCard(),
-          ],
-        );
-      case 2:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [_buildFederationInfoCard()],
-        );
-      case 3:
-        return Column(
-          children: [
+            const SizedBox(height: 16),
             _buildSocialMediaCard(),
+            const SizedBox(height: 16),
+            _buildFederationInfoCard(),
+            const SizedBox(height: 16),
+            _buildBarnInfoCard(),
             const SizedBox(height: 24),
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -351,6 +353,110 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   Widget _buildBasicDetailsCard() {
     return _buildCard(
       title: AppStrings.basicDetails,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CommonTextField(
+            controller: _fullNameController,
+            label: AppStrings.fullName,
+            hintText: AppStrings.enterYourFullName,
+            isRequired: true,
+          ),
+          const SizedBox(height: 16),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: CommonText(
+              AppStrings.phoneNumber,
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.inputBackground,
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  children: const [
+                    CommonText(
+                      AppStrings.num91,
+                      fontSize: AppTextSizes.size14,
+                      color: AppColors.textPrimary,
+                    ),
+                    SizedBox(width: 4),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(
+                    fontSize: AppTextSizes.size14,
+                    color: AppColors.textPrimary,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.enterPhoneNumber,
+                    border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                      borderSide: BorderSide(color: AppColors.border),
+                    ),
+                    enabledBorder: const OutlineInputBorder(
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                      borderSide: BorderSide(color: AppColors.border),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                      borderSide: BorderSide(
+                        color: AppColors.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CommonTextField(
+            controller: _barnNameController,
+            label: AppStrings.barnName,
+            hintText: AppStrings.enterYourBusinessName,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMediaCard() {
+    return _buildCard(
+      title: "Upload Image",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -450,95 +556,19 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
               ),
             ),
           ),
-          const SizedBox(height: 24),
-          CommonTextField(
-            controller: _fullNameController,
-            label: AppStrings.fullName,
-            hintText: AppStrings.enterYourFullName,
-            isRequired: true,
-          ),
-          const SizedBox(height: 16),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: CommonText(
-              AppStrings.phoneNumber,
-              fontSize: AppTextSizes.size14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.inputBackground,
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  children: const [
-                    CommonText(
-                      AppStrings.num91,
-                      fontSize: AppTextSizes.size14,
-                      color: AppColors.textPrimary,
-                    ),
-                    SizedBox(width: 4),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  style: const TextStyle(
-                    fontSize: AppTextSizes.size14,
-                    color: AppColors.textPrimary,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: AppStrings.enterPhoneNumber,
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                      ),
-                      borderSide: BorderSide(color: AppColors.border),
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                      ),
-                      borderSide: BorderSide(color: AppColors.border),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                      ),
-                      borderSide: BorderSide(
-                        color: AppColors.primary,
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildWhyJoinCard() {
+    return _buildCard(
+      title: "Why Join Our Community?",
+      child: CommonTextField(
+        label: "",
+        controller: _bioController,
+        hintText: "Write a short bio",
+        maxLines: 4,
       ),
     );
   }
@@ -548,13 +578,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       title: AppStrings.barnInformation,
       child: Column(
         children: [
-          CommonTextField(
-            controller: _barnNameController,
-            label: AppStrings.barnName,
-            hintText: AppStrings.enterYourBusinessName,
-            isRequired: true,
-          ),
-          const SizedBox(height: 16),
           CommonTextField(
             controller: _location1Controller,
             label: AppStrings.locationI,
@@ -621,7 +644,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4), // Light green background
+              color: const Color(0xFFF0FDF4), // Light green background from image
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFBBF7D0)),
             ),
@@ -629,7 +652,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(
-                  Icons.check_circle_outline,
+                  Icons.radio_button_unchecked, // Matches the thin circle in image
                   color: Color(0xFF16A34A),
                   size: 18,
                 ),
@@ -644,12 +667,11 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF16A34A),
                       ),
-                      SizedBox(height: 2),
+                      SizedBox(height: 4),
                       CommonText(
-                        AppStrings
-                            .yourFederationNumberWillBeVerifiedToEnsureProperCityAndStateCalculations,
+                        "Your federation number will be verified to ensure authenticity and maintain standards",
                         fontSize: AppTextSizes.size12,
-                        color: Color(0xFF15803D),
+                        color: Color(0xFF16A34A),
                       ),
                     ],
                   ),
@@ -688,7 +710,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           CommonTextField(
             controller: _instagramController,
             label: AppStrings.instagram,
-            hintText: AppStrings.yourusername,
+            hintText: "@yourusername",
           ),
         ],
       ),
@@ -701,24 +723,44 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText(
-            AppStrings.yearsInIndustry,
-            fontSize: AppTextSizes.size14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          const SizedBox(height: 6),
-          CommonTextField(
-            label: "",
-            controller: _yearsExperienceController,
-            keyboardType: TextInputType.number,
-            hintText: 'e.g. 5',
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.border),
+              borderRadius: BorderRadius.circular(12),
+              color: AppColors.inputBackground,
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedYears,
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.textSecondary,
+                ),
+                items: ['Select years', '1-3 years', '3-5 years', '5-10 years', '10+ years']
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: e,
+                        child: CommonText(
+                          e,
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  setState(() => _selectedYears = val!);
+                },
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           CommonTextField(
             controller: _bioController,
             label: AppStrings.bio,
-            hintText: AppStrings.writeAShortBio,
+            hintText: "Write a short bio",
             maxLines: 4,
           ),
           const SizedBox(height: 16),
@@ -766,12 +808,17 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CommonText(
-            AppStrings.selectLocation,
+            "Search Horse Shows & Circuits",
             fontSize: AppTextSizes.size14,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 6),
+          const CommonTextField(
+            label: "",
+            hintText: "WEF",
+          ),
+          const SizedBox(height: 16),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),

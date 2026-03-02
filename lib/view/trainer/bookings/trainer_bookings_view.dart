@@ -1,7 +1,6 @@
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
@@ -19,14 +18,14 @@ class TrainerBookingsView extends StatefulWidget {
 class _TrainerBookingsViewState extends State<TrainerBookingsView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedFilterIndex = 0; // 0: Accepted, 1: Rejected, 2: Completed
+  int _selectedFilterIndex = 0; 
 
-  final List<String> _filters = ['Accepted', 'Rejected', 'Completed'];
+  final List<String> _filters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 1); // Set to 'Sent' as in image
   }
 
   @override
@@ -38,171 +37,181 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const CommonText(
-          AppStrings.bookings,
-          color: AppColors.textPrimary,
-          fontSize: AppTextSizes.size22,
-          fontWeight: FontWeight.bold,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: CommonText(
+            AppStrings.bookings,
+            color: AppColors.textPrimary,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Column(
             children: [
-              Container(color: AppColors.border, height: 1),
               TabBar(
                 controller: _tabController,
-                indicatorColor: AppColors.textPrimary,
-                indicatorWeight: 2,
-                labelColor: AppColors.textPrimary,
+                indicatorColor: Colors.black,
+                indicatorWeight: 3,
+                labelColor: Colors.black,
                 unselectedLabelColor: AppColors.textSecondary,
                 labelStyle: const TextStyle(
-                  fontSize: AppTextSizes.size16,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
                 unselectedLabelStyle: const TextStyle(
-                  fontSize: AppTextSizes.size16,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
+                indicatorSize: TabBarIndicatorSize.tab,
                 tabs: const [
-                  Tab(text: AppStrings.received),
-                  Tab(text: AppStrings.sent),
+                  Tab(text: 'Received'),
+                  Tab(text: 'Sent'),
                 ],
               ),
-              Container(color: AppColors.border, height: 1),
+              Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
             ],
           ),
         ),
       ),
-      body: SafeArea(
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildReceivedTab(),
-            const Center(
-              child: CommonText(
-                AppStrings.sentBookings,
-                color: AppColors.textSecondary,
-              ),
+      body: Column(
+        children: [
+          // Filter Chips
+          _buildFilterSection(),
+          
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildBookingsList(),
+                _buildBookingsList(), // Same for demo as in image
+              ],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        border: Border.symmetric(
+          horizontal: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+        ),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: List.generate(_filters.length, (index) {
+            final isSelected = _selectedFilterIndex == index;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedFilterIndex = index),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: isSelected ? AppColors.border.withValues(alpha: 0.3) : Colors.transparent,
+                    ),
+                    boxShadow: isSelected ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      )
+                    ] : null,
+                  ),
+                  child: Center(
+                    child: CommonText(
+                      _filters[index],
+                      fontSize: 14,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected ? const Color(0xFF344054) : const Color(0xFF667085),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
         ),
       ),
     );
   }
 
-  Widget _buildReceivedTab() {
-    return Column(
+  Widget _buildBookingsList() {
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
-        // Filters
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              children: List.generate(_filters.length, (index) {
-                final isSelected = _selectedFilterIndex == index;
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedFilterIndex = index;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Center(
-                        child: CommonText(
-                          _filters[index],
-                          fontSize: AppTextSizes.size14,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? AppColors.textPrimary
-                              : AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
+        _buildBookingCard(
+          name: 'Moonshadow',
+          trainer: 'Emily Johnson',
+          location: 'Cypress, CA, United States',
+          date: '15 Mar - 20 Mar 2026',
+          type: 'For Sale',
+          status: 'Accepted',
+          imageUrl: AppConstants.dummyImageUrl,
         ),
-
-        // List
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              _buildBookingCard(
-                name: 'Moonshadow',
-                trainer: 'Emily Johnson',
-                location: 'Cypress, CA, United States',
-                date: '15 Mar - 20 Mar 2026',
-                type: 'For Sale',
-                status: 'Accepted',
-                imageUrl: AppConstants.dummyImageUrl,
-              ),
-              const SizedBox(height: 12),
-              _buildBookingCard(
-                name: 'Starfire',
-                trainer: 'Mark Lee',
-                location: 'Tampa, FL, United States',
-                date: '01 Apr - 07 Apr 2026',
-                type: 'For Lease',
-                status: 'Accepted',
-                imageUrl: AppConstants.dummyImageUrl,
-              ),
-              const SizedBox(height: 12),
-              _buildBookingCard(
-                name: 'Whirlwind',
-                trainer: 'Sarah Brown',
-                location: 'Dallas, TX, United States',
-                date: '10 May - 15 May 2026',
-                type: 'Trail',
-                status: 'Accepted',
-                imageUrl: AppConstants.dummyImageUrl,
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
+        const SizedBox(height: 16),
+        _buildBookingCard(
+          name: 'Starfire',
+          trainer: 'Mark Lee',
+          location: 'Tampa, FL, United States',
+          date: '01 Apr - 07 Apr 2026',
+          type: 'For Lease',
+          status: 'Accepted',
+          imageUrl: AppConstants.dummyImageUrl,
         ),
+        const SizedBox(height: 16),
+        _buildBookingCard(
+          name: 'Ria Gabriala',
+          location: 'Wellington, FL',
+          specialty: 'Shipping, Braider',
+          date: '10 Jan - 18 Jan 2026',
+          status: 'Accepted',
+          imageUrl: AppConstants.dummyImageUrl,
+        ),
+        const SizedBox(height: 120), // Padding for bottom nav
       ],
     );
   }
 
   Widget _buildBookingCard({
     required String name,
-    required String trainer,
+    String? trainer,
     required String location,
+    String? specialty,
     required String date,
-    required String type,
+    String? type,
     required String status,
     required String imageUrl,
   }) {
     return GestureDetector(
-      onTap: () {
-        Get.to(() => const TrainerHorseDetailView(fromBooking: true),
-        );
-      },
+      onTap: () => Get.to(() => const TrainerHorseDetailView(fromBooking: true)),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(12),
         child: Row(
@@ -210,10 +219,10 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           children: [
             // Image with badge
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: SizedBox(
-                height: 105,
-                width: 105,
+                height: 100,
+                width: 100,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -222,19 +231,16 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       top: 6,
                       left: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: CommonText(
                           status,
-                          fontSize: AppTextSizes.size12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF16A34A),
+                          color: const Color(0xFF16A34A),
                         ),
                       ),
                     ),
@@ -242,7 +248,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
             // Details
             Expanded(
               child: Column(
@@ -254,53 +260,48 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       Expanded(
                         child: CommonText(
                           name,
-                          fontSize: AppTextSizes.size16,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                      if (type != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: CommonText(
+                            type,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: AppColors.tabBackground,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: CommonText(
-                          type,
-                          fontSize: AppTextSizes.size12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  CommonText(
-                    'Trainer : $trainer',
-                    fontSize: AppTextSizes.size14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
+                  if (trainer != null)
+                    CommonText(
+                      'Trainer : $trainer',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                      const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
                       const SizedBox(width: 6),
                       Expanded(
                         child: CommonText(
                           location,
-                          fontSize: AppTextSizes.size12,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -309,18 +310,32 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                     ],
                   ),
                   const SizedBox(height: 6),
+                  if (specialty != null) ...[
+                    Row(
+                      children: [
+                        const Icon(Icons.person_search_outlined, size: 16, color: AppColors.textSecondary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: CommonText(
+                            specialty,
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Row(
                     children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                      const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
                       const SizedBox(width: 6),
                       Expanded(
                         child: CommonText(
                           date,
-                          fontSize: AppTextSizes.size12,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

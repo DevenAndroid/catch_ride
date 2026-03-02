@@ -1,5 +1,3 @@
-import 'package:catch_ride/constant/app_strings.dart';
-import 'package:catch_ride/widgets/common_text.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -10,7 +8,6 @@ import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 import 'package:catch_ride/view/barn_manager/barn_manager_bottom_nav.dart';
 import 'package:catch_ride/view/select_role_view.dart';
 import 'package:logger/logger.dart';
-import '../../constant/app_text_sizes.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,20 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SvgPicture.asset('assets/images/logo_white.svg', width: 120),
-            const SizedBox(height: 16),
-            const CommonText(
-              AppStrings.catchRide1,
-              fontSize: AppTextSizes.size26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 2.0,
-            ),
-          ],
-        ),
+        child: SvgPicture.asset('assets/images/new_logo.svg',),
       ),
     );
   }

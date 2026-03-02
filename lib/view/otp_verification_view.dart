@@ -144,30 +144,49 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                     margin: const EdgeInsets.symmetric(horizontal: 6),
                     width: 48,
                     height: 56,
+                    clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border, width: 1.5),
+                      border: Border.all(
+                        color: _focusNodes[index].hasFocus 
+                            ? AppColors.primary 
+                            : AppColors.border, 
+                        width: 1.5,
+                      ),
                     ),
+                    alignment: Alignment.center,
                     child: TextField(
                       controller: _controllers[index],
                       focusNode: _focusNodes[index],
                       textAlign: TextAlign.center,
-                      textAlignVertical: TextAlignVertical.center,
                       keyboardType: TextInputType.number,
+                      showCursor: false, // Keeps UI cleaner
                       maxLength: 1,
+                      onTap: () {
+                        setState(() {}); 
+                      },
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
+                        height: 1.0, // Force centered text
                       ),
                       decoration: const InputDecoration(
                         counterText: '',
                         border: InputBorder.none,
-                        isDense: true,
+                        focusedBorder: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        isCollapsed: true, // Crucial for removing internal padding
+                        filled: false,
                         contentPadding: EdgeInsets.zero,
                       ),
-                      onChanged: (val) => _onOtpChanged(val, index),
+                      onChanged: (val) {
+                        _onOtpChanged(val, index);
+                        setState(() {});
+                      },
                     ),
                   );
                 }),

@@ -57,7 +57,7 @@ class CommonTextField extends StatelessWidget {
                     style: TextStyle(
                       fontSize: AppTextSizes.size12,
                       fontWeight: FontWeight.w400,
-                      color: AppColors.textSecondary.withOpacity(0.6),
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
                     ),
                   ),
               ],

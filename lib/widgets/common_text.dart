@@ -21,7 +21,7 @@ class CommonText extends StatelessWidget {
   final Locale? locale;
   final bool? softWrap;
   final TextOverflow? overflow;
-  final double? textScaleFactor;
+
   final TextScaler? textScaler;
   final int? maxLines;
   final String? semanticsLabel;
@@ -45,7 +45,6 @@ class CommonText extends StatelessWidget {
     this.locale,
     this.softWrap,
     this.overflow,
-    this.textScaleFactor,
     this.textScaler,
     this.maxLines,
     this.semanticsLabel,
@@ -56,7 +55,7 @@ class CommonText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Merge direct properties with any provided style
-    TextStyle _baseStyle = GoogleFonts.inter(
+    TextStyle baseStyle = GoogleFonts.inter(
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
@@ -67,19 +66,18 @@ class CommonText extends StatelessWidget {
     );
 
     if (style != null) {
-      _baseStyle = _baseStyle.merge(style);
+      baseStyle = baseStyle.merge(style);
     }
 
     return Text(
       text,
-      style: _baseStyle,
+      style: baseStyle,
       strutStyle: strutStyle,
       textAlign: textAlign,
       textDirection: textDirection,
       locale: locale,
       softWrap: softWrap,
       overflow: overflow,
-      textScaleFactor: textScaleFactor,
       textScaler: textScaler,
       maxLines: maxLines,
       semanticsLabel: semanticsLabel,

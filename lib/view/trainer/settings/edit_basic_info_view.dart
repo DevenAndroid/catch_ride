@@ -122,7 +122,7 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
+          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -174,10 +174,10 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
