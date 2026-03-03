@@ -16,6 +16,7 @@ class AppUrls {
   static const String register = '/auth/register';
   static const String verifyEmail = '/auth/verify-email';
   static const String resendOtp = '/auth/resend-otp';
+  static const String logout = '/auth/logout';
   static const String verifyToken = '/auth/verify';
 
   // Horses

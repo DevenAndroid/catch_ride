@@ -85,10 +85,13 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       final horse = controller.horses[index];
                       final heightFactor = (index % 3 == 0) ? 1.5 : (index % 2 == 0) ? 1.2 : 1.0;
                       
-                      return _buildPostCard(
-                        name: horse['name'] ?? 'Horse',
-                        imageUrl: horse['photo'] ?? AppConstants.dummyImageUrl,
-                        height: 180 * heightFactor,
+                      return GestureDetector(
+                        onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
+                        child: _buildPostCard(
+                          name: horse.name,
+                          imageUrl: horse.photo ?? AppConstants.dummyImageUrl,
+                          height: 180 * heightFactor,
+                        ),
                       );
                     },
                   );
@@ -99,13 +102,17 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   itemCount: controller.horses.length,
                   itemBuilder: (context, index) {
                     final horse = controller.horses[index];
-                    return _buildListViewCard(
-                      name: horse['name'] ?? 'Whirlwind',
-                      discipline: horse['discipline'] ?? 'Jumper',
-                      venue: horse['venue'] ?? "Bruce's Field",
-                      dates: horse['dates'] ?? '10 Jan - 18 Jan 2026',
-                      location: horse['location'] ?? 'Winterfell, USA, United States',
-                      imageUrl: horse['photo'] ?? AppConstants.dummyImageUrl,
+                    final show = horse.showAvailability.isNotEmpty ? horse.showAvailability.first : null;
+                    return GestureDetector(
+                      onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
+                      child: _buildListViewCard(
+                        name: horse.name,
+                        discipline: horse.discipline ?? 'Jumper',
+                        venue: show?.showVenue ?? 'Unknown Venue',
+                        dates: show != null ? '${show.startDate} - ${show.endDate}' : 'Availability not listed',
+                        location: horse.location ?? 'Location not specified',
+                        imageUrl: horse.photo ?? AppConstants.dummyImageUrl,
+                      ),
                     );
                   },
                 );
@@ -277,12 +284,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     required String imageUrl,
     required double height,
   }) {
-    return GestureDetector(
-      onTap: () {
-        Get.to(() => const TrainerHorseDetailView());
-      },
-      child: Container(
-        height: height,
+    return Container(
+      height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           image: DecorationImage(
@@ -317,10 +320,9 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
             ],
           ),
         ),
-      ),
     );
   }
-  Widget _buildListViewCard({
+ Widget _buildListViewCard({
     required String name,
     required String discipline,
     required String venue,
@@ -328,12 +330,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     required String location,
     required String imageUrl,
   }) {
-    return GestureDetector(
-      onTap: () {
-        Get.to(() => const TrainerHorseDetailView());
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -414,13 +412,18 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   ),
                   const SizedBox(height: 8),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
                       const SizedBox(width: 6),
-                      CommonText(
-                        dates,
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                      Expanded(
+                        child: CommonText(
+                          dates,
+                          fontSize: 12,
+                          maxLines: 1,
+                          color: AppColors.textSecondary,
+                          overflow: TextOverflow.fade,
+                        ),
                       ),
                     ],
                   ),
@@ -445,11 +448,9 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
             ),
           ],
         ),
-      ),
     );
   }
-
-  Widget _buildVendorCard({
+ Widget _buildVendorCard({
     required String name,
     required String location,
     required String specialties,

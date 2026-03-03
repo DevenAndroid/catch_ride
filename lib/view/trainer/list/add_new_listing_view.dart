@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/add_new_listing_controller.dart';
@@ -6,8 +8,8 @@ import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
-import 'package:catch_ride/constant/app_constants.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class AddNewListingView extends StatefulWidget {
   const AddNewListingView({super.key});
@@ -19,6 +21,34 @@ class AddNewListingView extends StatefulWidget {
 class _AddNewListingViewState extends State<AddNewListingView> {
   final AddNewListingController controller = Get.put(AddNewListingController());
   int _currentStep = 1;
+
+  Future<void> _selectDateTime(BuildContext context, TextEditingController textController) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null) {
+      if (!context.mounted) return;
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        final DateTime finalDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        textController.text = DateFormat('MM-dd-yyyy hh:mm a').format(finalDateTime);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -229,21 +259,61 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
+          Obx(() => Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              _buildImageItem(
-                imageUrl: AppConstants.dummyImageUrl,
-                isImage: true,
+              ...controller.localImages.asMap().entries.map((entry) {
+                int index = entry.key;
+                File file = entry.value;
+                return Stack(
+                  children: [
+                    Container(
+                      width: 85,
+                      height: 85,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(11),
+                        child: Image.file(file, fit: BoxFit.cover),
+                      ),
+                    ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: GestureDetector(
+                        onTap: () => controller.removeLocalImage(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.edit_outlined,
+                            size: 14,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              GestureDetector(
+                onTap: controller.pickImage,
+                child: _buildAddButton(),
               ),
-              const SizedBox(width: 12),
-              _buildImageItem(
-                imageUrl: AppConstants.dummyImageUrl,
-                isImage: false,
-              ),
-              const SizedBox(width: 12),
-              _buildAddButton(),
             ],
-          ),
+          )),
           const SizedBox(height: 24),
           RichText(
             text: TextSpan(
@@ -304,62 +374,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     );
   }
 
-  Widget _buildImageItem({required String imageUrl, required bool isImage}) {
-    return Container(
-      width: 85,
-      height: 85,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(11),
-            child: CommonImageView(url: imageUrl),
-          ),
-          if (!isImage)
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          Positioned(
-            top: 6,
-            right: 6,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.8),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.edit_outlined,
-                size: 14,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAddButton() {
     return Container(
@@ -440,6 +454,44 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 isRequired: false,
               ),
               const SizedBox(height: 16),
+              
+              // Gender Selection
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6.0),
+                child: const CommonText(
+                  'Gender',
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Obx(() => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                height: 52,
+                decoration: BoxDecoration(
+                  color: AppColors.inputBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: controller.gender.value,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                    onChanged: (String? newValue) {
+                      if (newValue != null) controller.gender.value = newValue;
+                    },
+                    items: <String>['Stallion', 'Mare', 'Gelding', 'Filly', 'Colt', 'Other']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: CommonText(value, fontSize: AppTextSizes.size14),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              )),
+              const SizedBox(height: 16),
 
               // Discipline Dropdown Stub
               Padding(
@@ -473,6 +525,13 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 16),
+              CommonTextField(
+                label: 'Location',
+                controller: controller.locationController,
+                hintText: 'e.g., Winterfell, USA',
+                isRequired: true,
               ),
               const SizedBox(height: 16),
               CommonTextField(
@@ -679,28 +738,28 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           _buildTagSection(
             title: 'Program Tag',
             isOptional: true,
-            tags: controller.programTags,
+            tags: controller.programTags.map((t) => t.name).toList(),
             selectedTags: controller.selectedProgramTags,
           ),
           const SizedBox(height: 16),
           _buildTagSection(
             title: 'Opportunity Tag',
             isOptional: true,
-            tags: controller.opportunityTags,
+            tags: controller.opportunityTags.map((t) => t.name).toList(),
             selectedTags: controller.selectedOpportunityTags,
           ),
           const SizedBox(height: 16),
           _buildTagSection(
             title: 'Experience',
             isOptional: false,
-            tags: controller.experienceTags,
+            tags: controller.experienceTags.map((t) => t.name).toList(),
             selectedTags: controller.selectedExperienceTags,
           ),
           const SizedBox(height: 16),
           _buildTagSection(
             title: 'Personality Tag',
             isOptional: false,
-            tags: controller.personalityTags,
+            tags: controller.personalityTags.map((t) => t.name).toList(),
             selectedTags: controller.selectedPersonalityTags,
           ),
         ],
@@ -832,7 +891,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   onChanged: (val) {
                     controller.activeStatus.value = val;
                   },
-                  activeColor: const Color(0xFF047857),
+                  activeThumbColor: const Color(0xFF047857),
                 ),
               ),
             ],
@@ -899,6 +958,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                 controller:
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
+                                readOnly: true,
+                                onTap: () => _selectDateTime(context, availabilityEntry.startDateController),
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
                                   size: 20,
@@ -912,6 +973,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                 label: 'End Date',
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
+                                readOnly: true,
+                                onTap: () => _selectDateTime(context, availabilityEntry.endDateController),
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
                                   size: 20,
@@ -925,7 +988,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     ),
                   ),
                 );
-              }).toList(),
+              }),
               GestureDetector(
                 onTap: controller.addEntry,
                 child: Container(

@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/view/login_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,26 +51,23 @@ class ApiService extends GetConnect implements GetxService {
       }
 
       if (response.hasError || isSessionError) {
-        _logger.e('❌ API ERROR [$statusCode] $method $url');
-        _logger.e('📦 RESPONSE BODY: $body');
-        
+        // _logger.e('❌ API ERROR [$statusCode] $method $url');
+        // _logger.e('📦 RESPONSE BODY: ${jsonEncode(body)}');
+
+        log('❌ API ERROR [$statusCode] $method $url');
+        log('📦 RESPONSE BODY: ${jsonEncode(body)}');
+
         // Auto-logout on session error
         if (isSessionError) {
           _logger.w('⚠️ Session error detected. Triggering auto-logout.');
-          try {
-            if (Get.isRegistered<AuthController>()) {
-              Get.find<AuthController>().logout(sessionExpired: true);
-            } else {
-              // Fallback if controller not registered
-               Get.offAllNamed('/login'); // Or alternative direct navigation
-            }
-          } catch (e) {
-            _logger.e('Failed to trigger auto-logout: $e');
-          }
+          _triggerAutoLogout(); // Handles clearing prefs and navigation
         }
       } else {
-        _logger.i('✅ API SUCCESS [$statusCode] $method $url');
-        _logger.d('📦 RESPONSE BODY: $body');
+        // _logger.i('✅ API SUCCESS [$statusCode] $method $url');
+        // _logger.d('📦 RESPONSE BODY: ${jsonEncode(body)}');
+
+        log('❌ API ERROR [$statusCode] $method $url');
+        log('📦 RESPONSE BODY: ${jsonEncode(body)}');
       }
       return response;
     });
@@ -89,29 +91,72 @@ class ApiService extends GetConnect implements GetxService {
     });
   }
 
-  // Generic methods for common HTTP verbs
-  Future<Response> getRequest(String path, {Map<String, dynamic>? query}) {
+  // Helper to check token for non-auth paths
+  Future<bool> _isAuthorized(String path) async {
+    if (path.toLowerCase().contains('/auth/')) return true;
+    
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+    
+    if (token == null || token.isEmpty) {
+      _logger.w('Request to $path blocked: No auth token');
+      await _triggerAutoLogout();
+      return false;
+    }
+    return true;
+  }
+
+  Future<void> _triggerAutoLogout() async {
+    try {
+      if (Get.isRegistered<AuthController>()) {
+        await Get.find<AuthController>().logout(sessionExpired: true);
+      } else {
+        // Fallback: Clear everything manually if controller is missing
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        clearToken();
+        Get.offAll(() => const LoginView());
+      }
+    } catch (e) {
+      _logger.e('Failed to trigger auto-logout: $e');
+    }
+  }
+
+  // Generic methods with internal auth checks
+  Future<Response> getRequest(String path, {Map<String, dynamic>? query}) async {
+    if (!await _isAuthorized(path)) {
+      return const Response(statusCode: 401, statusText: 'Unauthorized');
+    }
     final String fullUrl = '${httpClient.baseUrl}$path';
-     _logger.i('🔍 GET REQUEST: $fullUrl');
+    _logger.i('🔍 GET REQUEST: $fullUrl');
     if (query != null) _logger.d('❓ QUERY PARAMS: $query');
     return get(path, query: query);
   }
 
-  Future<Response> postRequest(String path, dynamic body) {
+  Future<Response> postRequest(String path, dynamic body) async {
+    if (!await _isAuthorized(path)) {
+      return const Response(statusCode: 401, statusText: 'Unauthorized');
+    }
     final String fullUrl = '${httpClient.baseUrl}$path';
     _logger.i('📤 POST REQUEST: $fullUrl');
     _logger.d('📦 REQUEST BODY: $body');
     return post(path, body);
   }
 
-  Future<Response> putRequest(String path, dynamic body) {
+  Future<Response> putRequest(String path, dynamic body) async {
+    if (!await _isAuthorized(path)) {
+      return const Response(statusCode: 401, statusText: 'Unauthorized');
+    }
     final String fullUrl = '${httpClient.baseUrl}$path';
     _logger.i('📤 PUT REQUEST: $fullUrl');
     _logger.d('📦 REQUEST BODY: $body');
     return put(path, body);
   }
 
-  Future<Response> deleteRequest(String path) {
+  Future<Response> deleteRequest(String path) async {
+    if (!await _isAuthorized(path)) {
+      return const Response(statusCode: 401, statusText: 'Unauthorized');
+    }
     final String fullUrl = '${httpClient.baseUrl}$path';
     _logger.i('🗑️ DELETE REQUEST: $fullUrl');
     return delete(path);

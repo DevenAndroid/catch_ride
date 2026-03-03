@@ -5,7 +5,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_button.dart';
-import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
+import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:get/get.dart';
 
 class TrainerApplicationSubmittedView extends StatelessWidget {
@@ -96,10 +96,10 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
 
               // Bottom Button
               CommonButton(
-                text: AppStrings
-                    .goToDashboard, // Updated text to better reflect the action, but still using the same button style.
+                text: 'Back to Login',
                 onPressed: () {
-                  Get.offAll(() => const TrainerBottomNav());
+                  final authController = Get.find<AuthController>();
+                  authController.logout();
                 },
               ),
             ],

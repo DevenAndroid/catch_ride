@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+
+import '../../../controllers/explore_controller.dart';
 
 class SearchFilterOverlay extends StatefulWidget {
   const SearchFilterOverlay({super.key});
@@ -14,9 +15,34 @@ class SearchFilterOverlay extends StatefulWidget {
 }
 
 class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
+  final ExploreController controller = Get.find<ExploreController>();
+  final TextEditingController _searchController = TextEditingController();
+
   String _selectedSection = 'location'; // 'location' or 'date'
-  String _selectedCategory = 'All';
+  late String _selectedCategory;
   String _locationType = 'City / Home'; // 'City / Home' or 'Show Venue'
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = controller.selectedDiscipline.value;
+    _searchController.text = controller.searchQuery.value;
+  }
+
+  void _onSearchPressed() {
+    controller.selectedDiscipline.value = _selectedCategory;
+    controller.searchQuery.value = _searchController.text;
+    controller.fetchHorses();
+    Get.back();
+  }
+
+  void _onClearAll() {
+    setState(() {
+      _selectedCategory = 'All';
+      _searchController.clear();
+      _locationType = 'City / Home';
+    });
+  }
   
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
@@ -184,6 +210,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   border: Border.all(color: AppColors.border),
                 ),
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search horses, vendors and circuits',
                     hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
@@ -547,7 +574,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap: () {},
+              onTap: _onClearAll,
               child: Container(
                 height: 56,
                 decoration: BoxDecoration(
@@ -564,7 +591,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           Expanded(
             flex: 2,
             child: GestureDetector(
-              onTap: () => Get.back(),
+              onTap: _onSearchPressed,
               child: Container(
                 height: 56,
                 decoration: BoxDecoration(

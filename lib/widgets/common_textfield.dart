@@ -15,6 +15,8 @@ class CommonTextField extends StatelessWidget {
   final int maxLines;
   final bool isRequired;
   final String? suffixLabel;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const CommonTextField({
     super.key,
@@ -28,6 +30,8 @@ class CommonTextField extends StatelessWidget {
     this.maxLines = 1,
     this.isRequired = false,
     this.suffixLabel,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -70,6 +74,8 @@ class CommonTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           maxLines: maxLines,
+          readOnly: readOnly,
+          onTap: onTap,
           style: const TextStyle(
             fontSize: AppTextSizes.size14,
             color: AppColors.textPrimary,

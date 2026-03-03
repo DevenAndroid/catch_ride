@@ -1,8 +1,15 @@
-import 'package:catch_ride/controllers/profile_controller.dart';
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:catch_ride/services/api_service.dart';
+import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_urls.dart';
+import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/controllers/horse_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:catch_ride/models/tag_model.dart';
+import 'package:path/path.dart' as path;
+
+import 'explore_controller.dart';
 
 class AddNewListingController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -16,6 +23,10 @@ class AddNewListingController extends GetxController {
   // Loading state
   var isTagsLoading = false.obs;
   var isPublishing = false.obs;
+  
+  final ImagePicker _picker = ImagePicker();
+  var localImages = <File>[].obs;
+  var gender = 'Gelding'.obs;
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;
@@ -30,6 +41,7 @@ class AddNewListingController extends GetxController {
   final disciplineController = TextEditingController();
   final descriptionController = TextEditingController();
   final usefNumberController = TextEditingController();
+  final locationController = TextEditingController();
 
   // Step 3
   var selectedListingTypes = <String>{'Sale', 'Annual Lease'}.obs;
@@ -40,10 +52,10 @@ class AddNewListingController extends GetxController {
   var selectedExperienceTags = <String>{}.obs;
   var selectedPersonalityTags = <String>{}.obs;
 
-  var programTags = <String>[].obs;
-  var opportunityTags = <String>[].obs;
-  var experienceTags = <String>[].obs;
-  var personalityTags = <String>[].obs;
+  var programTags = <TagModel>[].obs;
+  var opportunityTags = <TagModel>[].obs;
+  var experienceTags = <TagModel>[].obs;
+  var personalityTags = <TagModel>[].obs;
 
   Future<void> fetchTags() async {
     try {
@@ -58,16 +70,20 @@ class AddNewListingController extends GetxController {
       ]);
 
       if (results[0].statusCode == 200) {
-        programTags.assignAll((results[0].body['data'] as List).map((e) => e['name'] as String).toList());
+        final List data = results[0].body['data'] ?? [];
+        programTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
       }
       if (results[1].statusCode == 200) {
-        opportunityTags.assignAll((results[1].body['data'] as List).map((e) => e['name'] as String).toList());
+        final List data = results[1].body['data'] ?? [];
+        opportunityTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
       }
       if (results[2].statusCode == 200) {
-        experienceTags.assignAll((results[2].body['data'] as List).map((e) => e['name'] as String).toList());
+        final List data = results[2].body['data'] ?? [];
+        experienceTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
       }
       if (results[3].statusCode == 200) {
-        personalityTags.assignAll((results[3].body['data'] as List).map((e) => e['name'] as String).toList());
+        final List data = results[3].body['data'] ?? [];
+        personalityTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
       }
     } catch (e) {
       print('Error fetching tags: $e');
@@ -81,6 +97,28 @@ class AddNewListingController extends GetxController {
       isPublishing.value = true;
       Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
+      // 1. Upload Images
+      List<String> imageUrls = [];
+      for (var imageFile in localImages) {
+        final url = await _uploadFile(imageFile);
+        if (url != null) imageUrls.add(url);
+      }
+
+      // 2. Map name selections to IDs
+      final programTagIds = selectedProgramTags.map((name) =>
+        programTags.firstWhere((t) => t.name == name).id as String).toList();
+      
+      final opportunityTagIds = selectedOpportunityTags.map((name) =>
+        opportunityTags.firstWhere((t) => t.name == name).id as String).toList();
+        
+      final personalityTagIds = selectedPersonalityTags.map((name) =>
+        personalityTags.firstWhere((t) => t.name == name).id as String).toList();
+        
+      String? experienceLevelId;
+      if (selectedExperienceTags.isNotEmpty) {
+        experienceLevelId = experienceTags.firstWhere((t) => t.name == selectedExperienceTags.first).id as String;
+      }
+
       final horseData = {
         'listingTitle': listingTitleController.text,
         'name': horseNameController.text,
@@ -88,16 +126,20 @@ class AddNewListingController extends GetxController {
         'height': heightController.text,
         'breed': breedController.text,
         'color': colorController.text,
+        'gender': gender.value,
         'discipline': disciplineController.text,
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkController.text,
+        'images': imageUrls,
+        'photo': imageUrls.isNotEmpty ? imageUrls.first : null,
         'listingTypes': selectedListingTypes.toList(),
-        'programTags': selectedProgramTags.toList(),
-        'opportunityTags': selectedOpportunityTags.toList(),
-        'experienceLevel': selectedExperienceTags.toList().isNotEmpty ? selectedExperienceTags.toList().first : null,
-        'personalityTags': selectedPersonalityTags.toList(),
+        'programTags': programTagIds,
+        'opportunityTags': opportunityTagIds,
+        'experienceLevel': experienceLevelId,
+        'personalityTags': personalityTagIds,
         'isActive': activeStatus.value,
+        'location': locationController.text,
         'showAvailability': availabilityEntries.map((e) => {
           'cityState': e.cityStateController.text,
           'showVenue': e.showVenueController.text,
@@ -111,13 +153,23 @@ class AddNewListingController extends GetxController {
       Get.back(); // Remove loading dialog
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Refresh profile to show new horse
+        // Refresh profile and horse list to show new horse
         try {
           if (Get.isRegistered<ProfileController>()) {
             Get.find<ProfileController>().fetchProfile();
           }
+          if (Get.isRegistered<HorseController>()) {
+            final profile = Get.find<ProfileController>();
+            final userId = profile.user.value?.id;
+            if (userId != null) {
+               Get.find<HorseController>().fetchHorses(refresh: true, trainerId: userId);
+            }
+          }
+          if (Get.isRegistered<ExploreController>()) {
+            Get.find<ExploreController>().fetchHorses();
+          }
         } catch (e) {
-          print('Could not refresh profile: $e');
+          print('Could not refresh data: $e');
         }
 
         Get.back(); // Return to previous screen
@@ -133,12 +185,50 @@ class AddNewListingController extends GetxController {
       }
     } catch (e) {
       Get.back(); // Remove loading dialog
-      Get.snackbar('Error', 'An unexpected error occurred',
+      Get.snackbar('Error', 'An unexpected error occurred: $e',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white);
     } finally {
       isPublishing.value = false;
+    }
+  }
+  Future<String?> _uploadFile(File file) async {
+    try {
+      final String fileName = path.basename(file.path);
+      final FormData formData = FormData({
+        'media': MultipartFile(
+          file.path,
+          filename: fileName,
+          contentType: 'image/jpeg',
+        ),
+      });
+
+      final response = await _apiService.postRequest(AppUrls.upload, formData);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.body['data']['url'];
+      }
+      return null;
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  Future<void> pickImage() async {
+    try {
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        localImages.addAll(images.map((x) => File(x.path)));
+      }
+    } catch (e) {
+      print('Error picking images: $e');
+    }
+  }
+
+  void removeLocalImage(int index) {
+    if (localImages.length > index) {
+      localImages.removeAt(index);
     }
   }
 

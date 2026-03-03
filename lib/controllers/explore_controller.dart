@@ -1,13 +1,16 @@
 import 'package:catch_ride/constant/app_urls.dart';
+import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
 class ExploreController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
+  final ProfileController _profileController = Get.find<ProfileController>();
   final Logger _logger = Logger();
 
-  final RxList<dynamic> horses = <dynamic>[].obs;
+  final RxList<HorseModel> horses = <HorseModel>[].obs;
   final RxBool isLoading = false.obs;
   final RxString selectedDiscipline = 'All'.obs;
   final RxString searchQuery = ''.obs;
@@ -22,9 +25,12 @@ class ExploreController extends GetxController {
     try {
       isLoading.value = true;
       
-      final Map<String, String> queryParams = {
-        'status': 'available', // Only show available horses
-      };
+      final Map<String, String> queryParams = {};
+
+      final currentUserId = _profileController.id;
+      if (currentUserId.isNotEmpty) {
+        queryParams['excludeTrainerId'] = currentUserId;
+      }
 
       if (selectedDiscipline.value != 'All') {
         queryParams['discipline'] = selectedDiscipline.value;
@@ -37,8 +43,9 @@ class ExploreController extends GetxController {
       final response = await _apiService.getRequest(AppUrls.horses, query: queryParams);
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.body['data'];
-        horses.assignAll(data);
+        final List data = response.body['data'] ?? [];
+        final List<HorseModel> newHorses = data.map((e) => HorseModel.fromJson(e)).toList();
+        horses.assignAll(newHorses);
         _logger.i('Fetched ${horses.length} horses');
       } else {
         _logger.e('Failed to fetch horses: ${response.statusText}');

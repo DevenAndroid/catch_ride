@@ -340,7 +340,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                     // Split Name safely
                     final trimmedName = _fullNameController.text.trim();
                     final nameParts = trimmedName.split(' ');
-                    final firstName = nameParts.length > 0 ? nameParts.first : '';
+                    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
                     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : (nameParts.length == 1 ? '' : '');
 
                     final Map<String, dynamic> registrationData = {

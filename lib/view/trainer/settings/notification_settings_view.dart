@@ -38,7 +38,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
+          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
         ),
       ),
       body: Padding(
@@ -50,7 +50,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border.withOpacity(0.5)),
+                border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [

@@ -1,3 +1,4 @@
+import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
@@ -15,7 +16,7 @@ class TrainerBottomNav extends StatefulWidget {
 
   const TrainerBottomNav({
     super.key,
-    this.initialIndex = 1, // Default to Explore (index 1)
+    this.initialIndex = 0, // Default to Bookings (index 0)
   });
 
   @override
@@ -49,6 +50,7 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
   @override
   Widget build(BuildContext context) {
     Get.put(ProfileController());
+    Get.put(HorseController());
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true, // Content flows behind the nav bar

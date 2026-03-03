@@ -244,11 +244,25 @@ class AuthController extends GetxController {
   Future<void> logout({bool sessionExpired = false}) async {
     try {
       _logger.i('Logging out user...');
+      
+      // Notify backend if it's a manual logout
+      if (!sessionExpired) {
+        try {
+          // Attempt but don't block by failure
+          await _apiService.postRequest(AppUrls.logout, {});
+        } catch (e) {
+          _logger.w('Failed to notify backend of logout: $e');
+        }
+      }
+
+      // Clear all SharedPreferences (token, role, email, profileStatus, etc.)
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('token');
-      await prefs.remove('role');
-      await prefs.remove('userEmail');
+      await prefs.clear();
+      
+      // Reset API state
       _apiService.clearToken();
+      
+      // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());
 
       if (sessionExpired) {

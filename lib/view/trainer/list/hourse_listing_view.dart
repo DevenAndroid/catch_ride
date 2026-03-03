@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
 
-import '../../../controllers/profile_controller.dart';
+import 'package:catch_ride/controllers/horse_controller.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 
 class HourseListingView extends StatefulWidget {
   const HourseListingView({super.key});
@@ -19,9 +21,40 @@ class HourseListingView extends StatefulWidget {
 }
 
 class _HourseListingViewState extends State<HourseListingView> {
+  final HorseController horseController = Get.find<HorseController>();
+  final ProfileController profileController = Get.find<ProfileController>();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHorses();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _loadHorses({bool refresh = true}) {
+    final userId = profileController.id;
+    if (userId.isNotEmpty) {
+      horseController.fetchHorses(refresh: refresh, trainerId: userId);
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!horseController.isLoading.value && !horseController.isMoreLoading.value && horseController.hasNextPage.value) {
+        _loadHorses(refresh: false);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final ProfileController profileController = Get.find<ProfileController>();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -45,63 +78,127 @@ class _HourseListingViewState extends State<HourseListingView> {
             const SizedBox(height: 16),
             GestureDetector(
               onTap: () {
-                Get.to(() => const AddNewListingView(),
-                );
+                Get.to(() => const AddNewListingView());
               },
-              child: Image.asset(
-                "assets/images/add_hours4x.png",
-                width: double.infinity,
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
+              child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Obx(() => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CommonText(
-                          'My horse listing',
-                          fontSize: AppTextSizes.size16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(height: 16),
-                        _buildPostCard(
-                          userName: profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
-                          userAvatar: profileController.avatar,
-                          timePosted: '16 days ago',
-                          mainImageUrl: AppConstants.dummyImageUrl,
-                          // Fallback dummy
-                          imageCount: '1 / 12',
-                          tags: ['For sale', 'Weekly Lease'],
-                          postTitle: 'Demo horse - Young Developing Hunter',
-                          postDescription:
-                              'An ideal small pony and great for a Child An ideal small pony and great for a Child',
-                          location: profileController.location.isNotEmpty ? profileController.location : 'Ocklawaha, USA, United States',
-                        ),
-                        const SizedBox(height: 16),
-                        _buildPostCard(
-                          userName: profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
-                          userAvatar: profileController.avatar,
-                          timePosted: '16 days ago',
-                          mainImageUrl: AppConstants.dummyImageUrl,
-                          // Fallback dummy
-                          imageCount: '1 / 12',
-                          tags: ['For sale', 'Weekly Lease'],
-                          postTitle: 'Speedy mare - Dressage Star',
-                          postDescription:
-                              'Perfect for competitive riders looking for a spirited partner',
-                          location: profileController.location.isNotEmpty ? profileController.location : 'Winterfell, USA, United States',
-                        ),
-                      ],
-                    )),
-                    const SizedBox(height: 24),
-                  ],
+                child: Image.asset(
+                  "assets/images/add_hours4x.png",
+                  width: double.infinity,
+                  fit: BoxFit.fitWidth,
                 ),
               ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: Obx(() {
+                if (horseController.isLoading.value && horseController.horses.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (horseController.horses.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            '🐴',
+                            style: TextStyle(fontSize: 72),
+                          ),
+                          const SizedBox(height: 20),
+                          const CommonText(
+                            'Your stable is empty!',
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          const CommonText(
+                            'Every great trainer starts somewhere.\nList your first horse and let the rides find you.',
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                            textAlign: TextAlign.center,
+                            height: 1.6,
+                            maxLines: 4,
+                          ),
+                          const SizedBox(height: 32),
+                          GestureDetector(
+                            onTap: () => Get.to(() => const AddNewListingView()),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 28,
+                                vertical: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.35),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
+                                  SizedBox(width: 8),
+                                  CommonText(
+                                    'List Your First Horse',
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async => _loadHorses(),
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: horseController.horses.length + (horseController.hasNextPage.value ? 1 : 0),
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      if (index == horseController.horses.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      final horse = horseController.horses[index];
+                      return _buildPostCard(
+                        horse: horse,
+                        userName: profileController.fullName,
+                        userAvatar: profileController.avatar,
+                        timePosted: profileController.bio,
+                        mainImageUrl: horse.images.isNotEmpty ? horse.images.first : AppConstants.dummyImageUrl,
+                        imageCount: '1 / ${horse.images.length}',
+                        tags: horse.listingTypes,
+                        postTitle: horse.listingTitle ?? horse.name,
+                        postDescription: horse.description ?? '',
+                        location: horse.location ?? profileController.location,
+                        isOwnHorse: true,
+                      );
+                    },
+                  ),
+                );
+              }),
             ),
           ],
         ),
@@ -110,6 +207,7 @@ class _HourseListingViewState extends State<HourseListingView> {
   }
 
   Widget _buildPostCard({
+    required HorseModel horse,
     required String userName,
     String? userAvatar,
     required String timePosted,
@@ -119,11 +217,11 @@ class _HourseListingViewState extends State<HourseListingView> {
     required String postTitle,
     required String postDescription,
     required String location,
+    bool isOwnHorse = false,
   }) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => const TrainerHorseDetailView(),
-        );
+        Get.to(() => TrainerHorseDetailView(horse: horse, isOwnHorse: isOwnHorse));
       },
       child: Container(
         decoration: BoxDecoration(
@@ -159,6 +257,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                         CommonText(
                           timePosted,
                           fontSize: AppTextSizes.size12,
+                          maxLines: 1,
                           color: AppColors.textSecondary,
                         ),
                       ],
@@ -204,6 +303,7 @@ class _HourseListingViewState extends State<HourseListingView> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Wrap(
@@ -211,6 +311,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                       children: tags
                           .map(
                             (tag) => Container(
+                              margin: EdgeInsets.only(bottom: 4),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                                 vertical: 4,

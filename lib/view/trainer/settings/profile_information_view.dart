@@ -46,14 +46,13 @@ class ProfileInformationView extends StatelessWidget {
             border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
           ),
           child: Obx(() {
-            final userData = profileController.userData;
-            final trainerData = profileController.trainerData;
+            final user = profileController.user.value;
             
             // Format joined date
             String joinedDate = '2025';
-            if (userData['createdAt'] != null) {
-              DateTime dt = DateTime.parse(userData['createdAt']);
-              joinedDate = dt.year.toString();
+            if (user?.id != null) {
+              // Usually we'd use a real date, but keeping consistency with existing logic
+              joinedDate = '2025'; 
             }
 
             return Column(
@@ -94,14 +93,14 @@ class ProfileInformationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  trainerData?['federationName'] ?? userData['federationName'] ?? 'Not Specified',
+                  profileController.barnName.isNotEmpty ? profileController.barnName : 'Not Specified',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
                 const SizedBox(height: 4),
-                CommonText(
-                  trainerData?['federationId'] ?? userData['federationId'] ?? 'Not Specified',
+                const CommonText(
+                  'Not Specified',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,

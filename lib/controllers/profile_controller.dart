@@ -1,39 +1,62 @@
 import 'package:catch_ride/constant/app_urls.dart';
+import 'package:catch_ride/models/user_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final Logger _logger = Logger();
 
-  final RxMap userData = <String, dynamic>{}.obs;
+  final Rx<UserModel?> user = Rx<UserModel?>(null);
+  final RxMap userData = <String, dynamic>{}.obs; // Keeping for backward compatibility temporarily
   final RxBool isLoading = false.obs;
+
+  // Metadata Lists
+  final RxList<String> allProgramTags = <String>[].obs;
+  final RxList<String> allHorseShows = <String>[].obs;
+  final RxList<String> allExperienceLevels = <String>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     fetchProfile();
+    fetchMetadata();
+  }
+
+  Future<void> fetchMetadata() async {
+    try {
+      final results = await Future.wait([
+        _apiService.getRequest(AppUrls.programTags),
+        _apiService.getRequest(AppUrls.horseShows),
+        _apiService.getRequest(AppUrls.experienceLevels),
+      ]);
+
+      if (results[0].statusCode == 200) {
+        allProgramTags.assignAll((results[0].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+      if (results[1].statusCode == 200) {
+        allHorseShows.assignAll((results[1].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+      if (results[2].statusCode == 200) {
+        allExperienceLevels.assignAll((results[2].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+    } catch (e) {
+      _logger.e('Error fetching metadata: $e');
+    }
   }
 
   Future<void> fetchProfile() async {
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? token = prefs.getString('token');
-
-      if (token == null || token.isEmpty) {
-        _logger.d('No auth token found, skipping profile fetch');
-        return;
-      }
-
       isLoading.value = true;
       final response = await _apiService.getRequest(AppUrls.profile);
       
       if (response.statusCode == 200) {
-        userData.value = response.body['data'] ?? {};
-        _logger.i('Profile fetched successfully: ${userData['email']}');
+        final data = response.body['data'] ?? {};
+        userData.value = data;
+        user.value = UserModel.fromJson(data);
+        _logger.i('Profile fetched successfully: ${user.value?.email}');
       } else {
         _logger.e('Failed to fetch profile: ${response.statusText}');
       }
@@ -47,9 +70,11 @@ class ProfileController extends GetxController {
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
-      final response = await _apiService.putRequest(AppUrls.profile, data);
+      // Use completeProfile endpoint as it handles role-specific data synchronization
+      final response = await _apiService.putRequest(AppUrls.completeProfile, data);
       
       if (response.statusCode == 200) {
+        await fetchProfile(); // Refresh local data
         return true;
       } else {
         String message = response.body?['message'] ?? 'Update failed';
@@ -118,38 +143,28 @@ class ProfileController extends GetxController {
   }
 
   // Helper getters for UI
-  String get firstName => userData['firstName'] ?? '';
-  String get lastName => userData['lastName'] ?? '';
-  String get fullName => "${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}".trim();
-  String get email => userData['email'] ?? '';
-  String get phone => userData['phone'] ?? '';
-  String get bio => userData['bio'] ?? '';
-  String get location => userData['location'] ?? '';
-  String get avatar => userData['avatar'] ?? userData['photo'] ?? '';
-  String get coverImage => userData['coverImage'] ?? '';
-  String get role => userData['role'] ?? 'user';
+  String get id => user.value?.id ?? '';
+  String get firstName => user.value?.firstName ?? '';
+  String get lastName => user.value?.lastName ?? '';
+  String get fullName => user.value?.fullName ?? '';
+  String get email => user.value?.email ?? '';
+  String get phone => user.value?.phone ?? '';
+  String get bio => user.value?.bio ?? '';
+  String get location => user.value?.location ?? '';
+  String get avatar => user.value?.displayAvatar ?? '';
+  String get coverImage => user.value?.coverImage ?? '';
+  String get role => user.value?.role ?? 'user';
   
   // Professional Data
-  Map<String, dynamic>? get trainerData => userData['trainerId'];
-  Map<String, dynamic>? get vendorData => userData['vendorId'];
-  Map<String, dynamic>? get barnManagerData => userData['barnManagerId'];
-
-  String get barnName {
-    if (role == 'trainer') return trainerData?['barnName'] ?? '';
-    if (role == 'barn_manager') return barnManagerData?['barnName'] ?? '';
-    return '';
-  }
+  String get barnName => user.value?.barnName ?? '';
+  int get yearsExperience => user.value?.yearsExperience ?? 0;
+  List<String> get selectedProgramTags => user.value?.programTags ?? [];
+  List<String> get selectedHorseShows => user.value?.showCircuits ?? [];
 
   String get specialization {
-    if (role == 'trainer') return trainerData?['specialization'] ?? 'Professional Horse Trainer';
-    if (role == 'service_provider') return vendorData?['serviceType'] ?? 'Service Provider';
+    if (role == 'trainer') return 'Professional Horse Trainer';
+    if (role == 'service_provider') return 'Service Provider';
     if (role == 'barn_manager') return 'Barn Manager';
     return role.capitalizeFirst ?? '';
-  }
-
-  int get yearsExperience {
-    if (role == 'trainer') return trainerData?['yearsExperience'] ?? 0;
-    if (role == 'service_provider') return vendorData?['yearsExperience'] ?? 0;
-    return 0;
   }
 }

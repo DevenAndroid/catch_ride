@@ -1,3 +1,4 @@
+import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
@@ -46,6 +47,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
   @override
   Widget build(BuildContext context) {
     Get.put(ProfileController());
+    Get.put(HorseController());
     return Scaffold(
       backgroundColor: AppColors.background,
       body: _views[_selectedIndex],

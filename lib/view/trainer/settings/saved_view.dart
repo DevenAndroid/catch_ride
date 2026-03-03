@@ -33,7 +33,7 @@ class SavedView extends StatelessWidget {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
+          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
         ),
       ),
       body: ListView(
@@ -141,7 +141,7 @@ class SavedView extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: CommonText(

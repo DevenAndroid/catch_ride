@@ -1,10 +1,12 @@
 import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:get/get.dart';
 
@@ -20,16 +22,43 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   late TabController _tabController;
   int _selectedFilterIndex = 0; 
 
+  final BookingController bookingController = Get.put(BookingController());
+  final ProfileController profileController = Get.find<ProfileController>();
+
   final List<String> _filters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 1); // Set to 'Sent' as in image
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+    _tabController.addListener(_onTabChanged);
+    _loadBookings();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      _loadBookings();
+    }
+  }
+
+  void _loadBookings() {
+    final myId = profileController.id;
+    if (myId.isEmpty) return;
+
+    final status = _filters[_selectedFilterIndex].toLowerCase();
+    
+    if (_tabController.index == 0) {
+      // Received
+      bookingController.fetchBookings(trainerId: myId, status: status);
+    } else {
+      // Sent
+      bookingController.fetchBookings(clientId: myId, status: status);
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -86,13 +115,36 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           _buildFilterSection(),
           
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildBookingsList(),
-                _buildBookingsList(), // Same for demo as in image
-              ],
-            ),
+            child: Obx(() {
+              if (bookingController.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (bookingController.bookings.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                      const SizedBox(height: 16),
+                      const CommonText(
+                        'No bookings found',
+                        fontSize: 16,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildBookingsList(bookingController.bookings),
+                  _buildBookingsList(bookingController.bookings),
+                ],
+              );
+            }),
           ),
         ],
       ),
@@ -117,7 +169,12 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: GestureDetector(
-                onTap: () => setState(() => _selectedFilterIndex = index),
+                onTap: () {
+                  setState(() {
+                    _selectedFilterIndex = index;
+                  });
+                  _loadBookings();
+                },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                   decoration: BoxDecoration(
@@ -151,52 +208,30 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     );
   }
 
-  Widget _buildBookingsList() {
-    return ListView(
+  Widget _buildBookingsList(List<BookingModel> bookings) {
+    return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      children: [
-        _buildBookingCard(
-          name: 'Moonshadow',
-          trainer: 'Emily Johnson',
-          location: 'Cypress, CA, United States',
-          date: '15 Mar - 20 Mar 2026',
-          type: 'For Sale',
-          status: 'Accepted',
-          imageUrl: AppConstants.dummyImageUrl,
-        ),
-        const SizedBox(height: 16),
-        _buildBookingCard(
-          name: 'Starfire',
-          trainer: 'Mark Lee',
-          location: 'Tampa, FL, United States',
-          date: '01 Apr - 07 Apr 2026',
-          type: 'For Lease',
-          status: 'Accepted',
-          imageUrl: AppConstants.dummyImageUrl,
-        ),
-        const SizedBox(height: 16),
-        _buildBookingCard(
-          name: 'Ria Gabriala',
-          location: 'Wellington, FL',
-          specialty: 'Shipping, Braider',
-          date: '10 Jan - 18 Jan 2026',
-          status: 'Accepted',
-          imageUrl: AppConstants.dummyImageUrl,
-        ),
-        const SizedBox(height: 120), // Padding for bottom nav
-      ],
+      itemCount: bookings.length + 1, // +1 for the bottom padding
+      itemBuilder: (context, index) {
+        if (index == bookings.length) {
+          return const SizedBox(height: 120);
+        }
+
+        final booking = bookings[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildBookingCard(
+            booking: booking,
+            status: booking.status.capitalizeFirst ?? booking.status,
+          ),
+        );
+      },
     );
   }
 
   Widget _buildBookingCard({
-    required String name,
-    String? trainer,
-    required String location,
-    String? specialty,
-    required String date,
-    String? type,
+    required BookingModel booking,
     required String status,
-    required String imageUrl,
   }) {
     return GestureDetector(
       onTap: () => Get.to(() => const TrainerHorseDetailView(fromBooking: true)),
@@ -226,7 +261,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    CommonImageView(url: imageUrl),
+                    CommonImageView(url: AppConstants.dummyImageUrl),
                     Positioned(
                       top: 6,
                       left: 6,
@@ -259,7 +294,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                     children: [
                       Expanded(
                         child: CommonText(
-                          name,
+                          booking.horseName ?? 'Horse Name',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -267,26 +302,25 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (type != null)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: CommonText(
-                            type,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
-                          ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(8),
                         ),
+                        child: CommonText(
+                          booking.type.capitalizeFirst ?? booking.type,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
-                  if (trainer != null)
+                  if (booking.trainerName != null)
                     CommonText(
-                      'Trainer : $trainer',
+                      'Trainer : ${booking.trainerName}',
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textSecondary,
@@ -300,7 +334,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       const SizedBox(width: 6),
                       Expanded(
                         child: CommonText(
-                          location,
+                          'Location not specified', // Fallback as location is not in BookingModel directly
                           fontSize: 13,
                           color: AppColors.textSecondary,
                           maxLines: 1,
@@ -309,32 +343,13 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  if (specialty != null) ...[
-                    Row(
-                      children: [
-                        const Icon(Icons.person_search_outlined, size: 16, color: AppColors.textSecondary),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: CommonText(
-                            specialty,
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                  ],
                   Row(
                     children: [
                       const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
                       const SizedBox(width: 6),
                       Expanded(
                         child: CommonText(
-                          date,
+                          booking.date,
                           fontSize: 13,
                           color: AppColors.textSecondary,
                           maxLines: 1,

@@ -8,11 +8,23 @@ import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:get/get.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:video_player/video_player.dart';
+
+import 'package:catch_ride/models/horse_model.dart';
+import '../../../controllers/profile_controller.dart';
 
 class TrainerHorseDetailView extends StatefulWidget {
+  final HorseModel? horse;
   final bool fromBooking;
+  final bool isOwnHorse;
 
-  const TrainerHorseDetailView({super.key, this.fromBooking = false});
+  const TrainerHorseDetailView({
+    super.key,
+    this.horse,
+    this.fromBooking = false,
+    this.isOwnHorse = false,
+  });
 
   @override
   State<TrainerHorseDetailView> createState() => _TrainerHorseDetailViewState();
@@ -20,6 +32,59 @@ class TrainerHorseDetailView extends StatefulWidget {
 
 class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   bool _isRequested = false;
+  HorseModel? horse;
+  
+  // Image carousel state
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  // Video state
+  YoutubePlayerController? _youtubeController;
+  VideoPlayerController? _videoPlayerController;
+  bool _isYoutube = false;
+  bool _hasVideo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    horse = widget.horse;
+    if (horse != null) {
+      _initVideo();
+    }
+  }
+
+  void _initVideo() {
+    final String? videoLink = horse!.videoLink;
+    if (videoLink == null || videoLink.isEmpty) return;
+
+    _hasVideo = true;
+    final String? youtubeId = YoutubePlayer.convertUrlToId(videoLink);
+    
+    if (youtubeId != null) {
+      _isYoutube = true;
+      _youtubeController = YoutubePlayerController(
+        initialVideoId: youtubeId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+        ),
+      );
+    } else {
+      _isYoutube = false;
+      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(videoLink))
+        ..initialize().then((_) {
+          setState(() {});
+        });
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _youtubeController?.dispose();
+    _videoPlayerController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,36 +114,35 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: horse == null
+            ? const Center(child: CircularProgressIndicator())
+            : Builder(builder: (context) {
+                return Column(
                   children: [
-                    if (widget.fromBooking) _buildBookedByHeader(),
-                    if (!widget.fromBooking) _buildHeader(),
-                    _buildImageSection(),
-                    _buildHeaderInfoSection(),
-                    _buildUsefNumberBanner(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 20,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // if (!widget.fromBooking) ...[
-                          //   _buildTalkToBarnManagerSection(),
-                          //   const SizedBox(height: 24),
-                          // ],
-                          const CommonText(
-                            AppStrings.details,
-                            fontSize: AppTextSizes.size16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (widget.fromBooking) _buildBookedByHeader(),
+                            if (!widget.fromBooking) _buildHeader(),
+                            _buildImageSection(),
+                            _buildHeaderInfoSection(),
+                            _buildUsefNumberBanner(),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 20,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const CommonText(
+                                    AppStrings.details,
+                                    fontSize: AppTextSizes.size16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
                           const SizedBox(height: 12),
                           _buildDetailsSection(),
                           const SizedBox(height: 24),
@@ -94,9 +158,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           const SizedBox(height: 16),
 
                           _buildTagsGridSection(),
-                          const SizedBox(height: 24),
-
-                          _buildCancellationPolicySection(),
                           const SizedBox(height: 20),
                         ],
                       ),
@@ -106,38 +167,52 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
             ),
             // Bottom Button
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: widget.fromBooking
-                  ? CommonButton(
-                      text: 'Open Messages',
-                      backgroundColor: Colors.white,
-                      textColor: AppColors.primary,
-                      onPressed: () {
-                        // Open messages functionality
-                      },
-                    )
-                  : CommonButton(
-                      text: _isRequested
-                          ? 'Requested'
-                          : AppStrings.sendBookingRequest,
-                      backgroundColor: _isRequested
-                          ? AppColors.inputBackground
-                          : AppColors.primary,
-                      textColor: _isRequested
-                          ? AppColors.textSecondary
-                          : Colors.white,
-                      onPressed: () {
-                        if (!_isRequested) {
-                          _showBookingRequestBottomSheet();
-                        }
-                      },
-                    ),
-            ),
+            Obx(() {
+              final String currentUserId = Get.find<ProfileController>().user.value?.id ?? '';
+              final String trainerProfileId = Get.find<ProfileController>().user.value?.trainerProfileId ?? '';
+              final String horseTrainerId = horse!.trainerId ?? '';
+              
+              // Hide the booking request/message button if viewing own horse
+              final bool isMyHorse = widget.isOwnHorse || 
+                  (currentUserId.isNotEmpty && currentUserId == horseTrainerId) ||
+                  (trainerProfileId.isNotEmpty && trainerProfileId == horseTrainerId);
+
+              if (isMyHorse) return const SizedBox.shrink();
+
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: widget.fromBooking
+                    ? CommonButton(
+                        text: 'Open Messages',
+                        backgroundColor: Colors.white,
+                        textColor: AppColors.primary,
+                        onPressed: () {
+                          // Open messages functionality
+                        },
+                      )
+                    : CommonButton(
+                        text: _isRequested
+                            ? 'Requested'
+                            : AppStrings.sendBookingRequest,
+                        backgroundColor: _isRequested
+                            ? AppColors.inputBackground
+                            : AppColors.primary,
+                        textColor: _isRequested
+                            ? AppColors.textSecondary
+                            : Colors.white,
+                        onPressed: () {
+                          if (!_isRequested) {
+                            _showBookingRequestBottomSheet();
+                          }
+                        },
+                      ),
+              );
+            }),
           ],
-        ),
-      ),
-    );
+        );
+      }),
+    ),
+  );
   }
 
   Widget _buildBookedByHeader() {
@@ -168,8 +243,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const CommonImageView(
-                      url: AppConstants.dummyImageUrl,
+                    CommonImageView(
+                      url: horse!.bookedByAvatar ?? AppConstants.dummyImageUrl,
                       height: 50,
                       width: 50,
                       shape: BoxShape.circle,
@@ -179,24 +254,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const CommonText(
-                            'Mark Lee',
+                          CommonText(
+                            horse!.bookedByName ?? 'Mark Lee',
                             fontSize: AppTextSizes.size16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                           const SizedBox(height: 4),
                           Row(
-                            children: const [
-                              Icon(
+                            children: [
+                              const Icon(
                                 Icons.location_on_outlined,
                                 color: AppColors.textSecondary,
                                 size: 14,
                               ),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Expanded(
                                 child: CommonText(
-                                  'Cypress, CA, United States',
+                                  horse!.bookedByLocation ?? 'Cypress, CA, United States',
                                   fontSize: AppTextSizes.size12,
                                   color: AppColors.textSecondary,
                                   overflow: TextOverflow.ellipsis,
@@ -206,15 +281,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           ),
                           const SizedBox(height: 4),
                           Row(
-                            children: const [
-                              Icon(
+                            children: [
+                              const Icon(
                                 Icons.calendar_today_outlined,
                                 color: AppColors.textSecondary,
                                 size: 14,
                               ),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               CommonText(
-                                '01 Apr - 07 Apr 2026',
+                                horse!.bookingDates ?? '01 Apr - 07 Apr 2026',
                                 fontSize: AppTextSizes.size12,
                                 color: AppColors.textSecondary,
                               ),
@@ -258,14 +333,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     CommonText(
-                      'John Snow',
+                      horse!.trainerName ?? 'Unknown Trainer',
                       fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
-                    CommonText(
+                    const CommonText(
                       AppStrings.professionalHorseTrainer,
                       fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
@@ -286,8 +361,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const CommonImageView(
-            url: AppConstants.dummyImageUrl,
+          CommonImageView(
+            url: horse!.trainerAvatar ?? AppConstants.dummyImageUrl,
             height: 44,
             width: 44,
             shape: BoxShape.circle,
@@ -296,14 +371,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 CommonText(
-                  AppStrings.aryaStark,
+                  horse!.trainerName ?? 'Unknown Trainer',
                   fontSize: AppTextSizes.size14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
-                CommonText(
+                const CommonText(
                   AppStrings.professionalHorseTrainer,
                   fontSize: AppTextSizes.size12,
                   color: AppColors.textSecondary,
@@ -318,35 +393,102 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildImageSection() {
+    final images = horse!.images;
+    final int totalItems = images.length + (_hasVideo ? 1 : 0);
+
+    if (totalItems == 0) {
+      return const CommonImageView(
+        url: AppConstants.dummyImageUrl,
+        height: 240,
+        width: double.infinity,
+      );
+    }
+
     return Stack(
       children: [
-        const CommonImageView(
-          url: AppConstants.dummyImageUrl,
-          height: 240,
-          width: double.infinity,
-        ),
-        Positioned(
-          bottom: 12,
-          right: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const CommonText(
-              AppStrings.num112,
-              color: Colors.white,
-              fontSize: AppTextSizes.size12,
-              fontWeight: FontWeight.w600,
-            ),
+        SizedBox(
+          height: 260,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: totalItems,
+            itemBuilder: (context, index) {
+              if (index < images.length) {
+                return CommonImageView(
+                  url: images[index],
+                  height: 260,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                );
+              } else {
+                return Container(
+                  color: Colors.black,
+                  child: _isYoutube
+                      ? YoutubePlayer(
+                          controller: _youtubeController!,
+                          showVideoProgressIndicator: true,
+                          progressIndicatorColor: AppColors.primary,
+                        )
+                      : _videoPlayerController!.value.isInitialized
+                          ? GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _videoPlayerController!.value.isPlaying
+                                      ? _videoPlayerController!.pause()
+                                      : _videoPlayerController!.play();
+                                });
+                              },
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  AspectRatio(
+                                    aspectRatio: _videoPlayerController!
+                                        .value.aspectRatio,
+                                    child: VideoPlayer(_videoPlayerController!),
+                                  ),
+                                  if (!_videoPlayerController!.value.isPlaying)
+                                    const Icon(
+                                      Icons.play_circle_fill,
+                                      color: Colors.white,
+                                      size: 64,
+                                    ),
+                                ],
+                              ),
+                            )
+                          : const Center(child: CircularProgressIndicator()),
+                );
+              }
+            },
           ),
         ),
+        if (totalItems > 1)
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: CommonText(
+                '${_currentPage + 1} / $totalItems',
+                color: Colors.white,
+                fontSize: AppTextSizes.size12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
       ],
     );
   }
 
   Widget _buildHeaderInfoSection() {
+    final tags = horse!.listingTypes;
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -358,7 +500,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               Expanded(
                 child: Wrap(
                   spacing: 8,
-                  children: ['For sale', 'Weekly Lease']
+                  children: tags
                       .map(
                         (tag) => Container(
                           padding: const EdgeInsets.symmetric(
@@ -394,32 +536,32 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ],
           ),
           const SizedBox(height: 16),
-          const CommonText(
-            AppStrings.demoHorseYoungDevelopingHunter,
+          CommonText(
+            horse!.listingTitle ?? horse!.name,
             fontSize: AppTextSizes.size18,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
             height: 1.3,
           ),
           const SizedBox(height: 8),
-          const CommonText(
-            AppStrings
-                .anIdealSmallPonyAndGreatForAChildAnIdealSmallPonyAndGreatForAChildanIdealSmallPonyAndGreatForAChildAnIdealSmallPonyAndGreatForAChild,
+          CommonText(
+            horse!.description ?? 'No description provided.',
             fontSize: AppTextSizes.size14,
             color: AppColors.textSecondary,
             height: 1.4,
           ),
           const SizedBox(height: 12),
+          if (horse!.location != null && horse!.location!.isNotEmpty && horse!.location != 'N/A')
           Row(
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.location_on_outlined,
                 color: AppColors.textSecondary,
                 size: 16,
               ),
-              SizedBox(width: 4),
+              const SizedBox(width: 4),
               CommonText(
-                AppStrings.ocklawahaUsaUnitedStates,
+                horse!.location!,
                 fontSize: AppTextSizes.size12,
                 color: AppColors.textSecondary,
               ),
@@ -431,20 +573,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildUsefNumberBanner() {
+    final usef = horse!.usefNumber;
+    if (usef == null || usef.toString().isEmpty || usef == 'N/A') {
+      return const SizedBox.shrink();
+    }
     return Container(
       width: double.infinity,
       color: const Color(0xFFF3F4F6), // Light gray background
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          CommonText(
+        children: [
+          const CommonText(
             AppStrings.horseUsefNumber,
             fontSize: AppTextSizes.size14,
             color: AppColors.textSecondary,
           ),
           CommonText(
-            AppStrings.num5w3bnd67,
+            usef.toString(),
             fontSize: AppTextSizes.size14,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -456,34 +602,41 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
 
   Widget _buildDetailsSection() {
+    final List<Map<String, String>> detailItems = [
+      if (horse!.name.isNotEmpty)
+        {'label': 'Horse name', 'value': horse!.name},
+      if (horse!.age > 0)
+        {'label': 'Age', 'value': '${horse!.age} Years'},
+      if (horse!.height != null && horse!.height!.isNotEmpty)
+        {'label': 'Height', 'value': horse!.height!},
+      if (horse!.breed.isNotEmpty)
+        {'label': 'Breed', 'value': horse!.breed},
+      if (horse!.color != null && horse!.color!.isNotEmpty)
+        {'label': 'Color', 'value': horse!.color!},
+      if (horse!.discipline != null && horse!.discipline!.isNotEmpty)
+        {'label': 'Discipline', 'value': horse!.discipline!},
+    ];
+
+    if (detailItems.isEmpty) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Column(
-        children: [
-          _buildDetailRow('Horse name', 'Thunderbolt'),
-          const SizedBox(height: 16),
-          _buildDetailRow('Age', '14 Years'),
-          const SizedBox(height: 16),
-          _buildDetailRow('Height', '16.2hh'),
-          const SizedBox(height: 16),
-          _buildDetailRow('Breed', 'Thoroughbred'),
-          const SizedBox(height: 16),
-          _buildDetailRow('Color', 'Brown'),
-          const SizedBox(height: 16),
-          _buildDetailRow('Discipline', '\$100'),
-        ],
+        children: detailItems.asMap().entries.map((entry) {
+          final detail = entry.value;
+          final isLast = entry.key == detailItems.length - 1;
+          return Column(
+            children: [
+              _buildDetailRow(detail['label']!, detail['value']!),
+              if (!isLast) const SizedBox(height: 16),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -518,20 +671,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildAvailabilitySection() {
+    final availability = horse!.showAvailability
+        .where((a) => a.cityState.isNotEmpty || a.showVenue.isNotEmpty)
+        .toList();
+        
+    if (availability.isEmpty) {
+      return const CommonText('No availability records found.', color: AppColors.textSecondary);
+    }
     return Column(
-      children: [
-        _buildLocationCard(
-          'Location 1',
-          'Ocklawaha, USA, United States',
-          '05 Feb - 10 Feb 2026',
-        ),
-        const SizedBox(height: 12),
-        _buildLocationCard(
-          'Location 2',
-          'Ocklawaha, USA, United States',
-          '05 Feb - 10 Feb 2026',
-        ),
-      ],
+      children: availability.map((a) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: _buildLocationCard(
+            'Location',
+            '${a.showVenue}, ${a.cityState}'.trim(),
+            '${a.startDate} - ${a.endDate}',
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -594,23 +751,56 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildTagsGridSection() {
+    final programs = horse!.programTags;
+    final opportunities = horse!.opportunityTags;
+    final experience = horse!.experienceLevel;
+    final personalities = horse!.personalityTags;
+
+    final bool hasPrograms = programs.isNotEmpty;
+    final bool hasOpportunities = opportunities.isNotEmpty;
+    final bool hasExperience = experience != null;
+    final bool hasPersonalities = personalities.isNotEmpty;
+
+    if (!hasPrograms && !hasOpportunities && !hasExperience && !hasPersonalities) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(child: _buildTagCard('Program Tag', 'Big Equitation')),
-            const SizedBox(width: 12),
-            Expanded(child: _buildTagCard('Opportunity Tag', 'Firesale')),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildTagCard('Experience', 'Division Pony')),
-            const SizedBox(width: 12),
-            Expanded(child: _buildTagCard('Personality Tag', 'Brave / Bold')),
-          ],
-        ),
+        if (hasPrograms || hasOpportunities)
+          Row(
+            children: [
+              if (hasPrograms)
+                Expanded(child: _buildTagCard('Program Tag', programs.first.name))
+              else if (hasOpportunities)
+                const Spacer(),
+              
+              if (hasPrograms && hasOpportunities) const SizedBox(width: 12),
+              
+              if (hasOpportunities)
+                Expanded(child: _buildTagCard('Opportunity Tag', opportunities.first.name))
+              else if (hasPrograms)
+                const Spacer(),
+            ],
+          ),
+        if ((hasPrograms || hasOpportunities) && (hasExperience || hasPersonalities))
+          const SizedBox(height: 12),
+        if (hasExperience || hasPersonalities)
+          Row(
+            children: [
+              if (hasExperience)
+                Expanded(child: _buildTagCard('Experience', experience.name))
+              else if (hasPersonalities)
+                const Spacer(),
+
+              if (hasExperience && hasPersonalities) const SizedBox(width: 12),
+
+              if (hasPersonalities)
+                Expanded(child: _buildTagCard('Personality Tag', personalities.first.name))
+              else if (hasExperience)
+                const Spacer(),
+            ],
+          ),
       ],
     );
   }
@@ -643,35 +833,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  Widget _buildCancellationPolicySection() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFFD6D6)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CommonText(
-            'Cancelation Policy',
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFD92D20),
-          ),
-          const SizedBox(height: 8),
-          CommonText(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,',
-            fontSize: 13,
-            color: const Color(0xFFB42318).withValues(alpha: 0.8),
-            height: 1.5,
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showBookingRequestBottomSheet() {
     String selectedType = 'Trial';

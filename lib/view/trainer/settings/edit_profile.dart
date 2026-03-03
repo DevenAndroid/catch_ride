@@ -1,10 +1,11 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/widgets/common_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -29,6 +30,29 @@ class _EditProfileViewState extends State<EditProfileView> {
   final TextEditingController _yearsController = TextEditingController();
   final TextEditingController _searchCircuitsController = TextEditingController();
 
+  final ImagePicker _picker = ImagePicker();
+  File? _profileImage;
+  File? _bannerImage;
+  final RxList<String> _selectedProgramTags = <String>[].obs;
+  final RxList<String> _selectedHorseShows = <String>[].obs;
+
+  Future<void> _pickImage(bool isProfile) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          if (isProfile) {
+            _profileImage = File(image.path);
+          } else {
+            _bannerImage = File(image.path);
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -37,10 +61,30 @@ class _EditProfileViewState extends State<EditProfileView> {
     _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
-    _facebookController.text = profileController.userData['facebook'] ?? '';
-    _websiteController.text = profileController.userData['website'] ?? '';
-    _instagramController.text = profileController.userData['instagram'] ?? '';
     _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
+    _facebookController.text = profileController.user.value?.facebook ?? '';
+    _websiteController.text = profileController.user.value?.website ?? '';
+    _instagramController.text = profileController.user.value?.instagram ?? '';
+    
+    _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+    _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+    
+    // If profile is empty, fetch it
+    if (profileController.userData.isEmpty) {
+      profileController.fetchProfile().then((_) {
+        _fullNameController.text = profileController.fullName;
+        _phoneController.text = profileController.phone;
+        _barnNameController.text = profileController.barnName;
+        _bioController.text = profileController.bio;
+        _location1Controller.text = profileController.location;
+        _facebookController.text = profileController.user.value?.facebook ?? '';
+        _websiteController.text = profileController.user.value?.website ?? '';
+        _instagramController.text = profileController.user.value?.instagram ?? '';
+        _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
+        _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+        _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+      });
+    }
   }
 
   @override
@@ -141,54 +185,72 @@ class _EditProfileViewState extends State<EditProfileView> {
         const CommonText('Profile Photo', fontSize: 13, color: AppColors.textPrimary),
         const SizedBox(height: 8),
         Center(
-          child: Stack(
-            children: [
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF2F4F7),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: const Icon(Icons.person_outline_rounded, size: 50, color: AppColors.textSecondary),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+          child: GestureDetector(
+            onTap: () => _pickImage(true),
+            child: Stack(
+              children: [
+                Obx(() => Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2F4F7),
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                    border: Border.all(color: AppColors.border),
                   ),
-                  child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textPrimary),
+                  child: ClipOval(
+                    child: _profileImage != null
+                        ? Image.file(_profileImage!, fit: BoxFit.cover)
+                        : CommonImageView(
+                            url: profileController.avatar,
+                            fit: BoxFit.cover,
+                            fallbackIcon: Icons.person_outline_rounded,
+                          ),
+                  ),
+                )),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                    ),
+                    child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textPrimary),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 20),
         const CommonText('Banner image', fontSize: 13, color: AppColors.textPrimary),
         const SizedBox(height: 8),
-        Container(
-          height: 120,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border, style: BorderStyle.none), // Mocking dotted border with a container
-          ),
-          child: Container(
+        GestureDetector(
+          onTap: () => _pickImage(false),
+          child: Obx(() => Container(
+            height: 120,
+            width: double.infinity,
             decoration: BoxDecoration(
-               border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-               borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
             ),
-            child: const Center(
-              child: Icon(Icons.add, color: AppColors.textSecondary),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: _bannerImage != null
+                  ? Image.file(_bannerImage!, fit: BoxFit.cover)
+                  : profileController.coverImage.isNotEmpty
+                      ? CommonImageView(
+                          url: profileController.coverImage,
+                          fit: BoxFit.cover,
+                        )
+                      : const Center(
+                          child: Icon(Icons.add, color: AppColors.textSecondary),
+                        ),
             ),
-          ),
+          )),
         ),
         const SizedBox(height: 20),
         _buildTextField('Full Name', _fullNameController, hint: 'Enter your full name', isRequired: true),
@@ -210,20 +272,25 @@ class _EditProfileViewState extends State<EditProfileView> {
         const SizedBox(height: 16),
         const CommonText('Program tags', fontSize: 13, color: AppColors.textPrimary),
         const SizedBox(height: 8),
-        Wrap(
+        Obx(() => Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            _buildTag('Schoolmaster'),
-            _buildTag('Big Equitation'),
-            _buildTag('Young Developing Jumper'),
-            _buildTag('Prospect'),
-            _buildTag('Division Pony'),
-            _buildTag('Young Developing Hunter'),
-            _buildTag('High Perf Hunter 3\'6"+'),
-            _buildSelectedTag('High Perf Jumper 1.30m+'),
-          ],
-        ),
+          children: profileController.allProgramTags.map((tag) {
+            return Obx(() {
+              final isSelected = _selectedProgramTags.contains(tag);
+              return GestureDetector(
+                onTap: () {
+                  if (isSelected) {
+                    _selectedProgramTags.remove(tag);
+                  } else {
+                    _selectedProgramTags.add(tag);
+                  }
+                },
+                child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+              );
+            });
+          }).toList(),
+        )),
       ],
     );
   }
@@ -247,18 +314,25 @@ class _EditProfileViewState extends State<EditProfileView> {
       children: [
         _buildTextField('Search Horse Shows & Circuits', _searchCircuitsController, hint: 'WEF'),
         const SizedBox(height: 12),
-        Wrap(
+        Obx(() => Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [
-            _buildTag('WEF'),
-            _buildTag('HITS Ocala'),
-            _buildTag('Lake Placid'),
-            _buildTag('Devon'),
-            _buildTag('Washington Intl'),
-            _buildTag('Pin Oak'),
-          ],
-        ),
+          children: profileController.allHorseShows.map((tag) {
+            return Obx(() {
+              final isSelected = _selectedHorseShows.contains(tag);
+              return GestureDetector(
+                onTap: () {
+                  if (isSelected) {
+                    _selectedHorseShows.remove(tag);
+                  } else {
+                    _selectedHorseShows.add(tag);
+                  }
+                },
+                child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+              );
+            });
+          }).toList(),
+        )),
       ],
     );
   }
@@ -351,32 +425,6 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Widget _buildDropdownField(String label, String? value, List<String> options, Function(String?) onChanged, {String? hint}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(label, fontSize: 13, color: AppColors.textPrimary),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              hint: CommonText(hint ?? '', fontSize: 14, color: AppColors.textSecondary.withValues(alpha: 0.5)),
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-              items: options.map((e) => DropdownMenuItem(value: e, child: CommonText(e, fontSize: 14))).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildTag(String text) {
     return Container(
@@ -441,22 +489,69 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: GestureDetector(
-              onTap: () {
-                // profileController.updateProfile(...)
-                Get.back();
+            child: Obx(() => GestureDetector(
+              onTap: profileController.isLoading.value ? null : () async {
+                // 1. Upload Images if picked
+                if (_profileImage != null) {
+                  await profileController.uploadImage(_profileImage!.path, 'avatar');
+                }
+                if (_bannerImage != null) {
+                  await profileController.uploadImage(_bannerImage!.path, 'cover');
+                }
+
+                // 2. Prepare Name split
+                final nameParts = _fullNameController.text.trim().split(' ');
+                final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+                final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+
+                // 3. Update Text Profile
+                final success = await profileController.updateProfile({
+                  'firstName': firstName,
+                  'lastName': lastName,
+                  'phone': _phoneController.text.trim(),
+                  'barnName': _barnNameController.text.trim(),
+                  'bio': _bioController.text.trim(),
+                  'location': _location1Controller.text.trim(),
+                  'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
+                  'facebook': _facebookController.text.trim(),
+                  'website': _websiteController.text.trim(),
+                  'instagram': _instagramController.text.trim(),
+                  'programTags': _selectedProgramTags,
+                  'showCircuits': _selectedHorseShows,
+                });
+
+                if (success) {
+                  Get.snackbar('Success', 'Profile updated successfully',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.green,
+                      colorText: Colors.white,
+                      duration: const Duration(seconds: 2));
+                  await Future.delayed(const Duration(milliseconds: 1500));
+                  // Use Navigator instead of Get.back() to avoid dismissing the snackbar overlay
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
+                }
               },
               child: Container(
                 height: 52,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF000B48),
+                  color: profileController.isLoading.value 
+                      ? const Color(0xFF000B48).withValues(alpha: 0.7) 
+                      : const Color(0xFF000B48),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Center(
-                  child: CommonText('Save', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                child: Center(
+                  child: profileController.isLoading.value
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const CommonText('Save', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
-            ),
+            )),
           ),
         ],
       ),
