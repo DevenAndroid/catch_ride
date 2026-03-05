@@ -29,6 +29,37 @@ class AuthController extends GetxController {
   final RxString registrationPassword = ''.obs;
 
   final RxBool isLoading = false.obs;
+  final Rxn<UserModel> currentUser = Rxn<UserModel>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadUserFromStorage();
+  }
+
+  Future<void> _loadUserFromStorage() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? email = prefs.getString('userEmail');
+    final String? role = prefs.getString('role');
+    
+    // Minimal user object for initial load, can be refreshed by a profile API call
+    if (email != null && role != null) {
+      currentUser.value = UserModel(
+        firstName: '', // We don't store first/last name in prefs currently
+        lastName: '',
+        email: email,
+        role: role,
+        id: box.read('userId') // Assuming we might store ID in box
+      );
+      
+      // Auto-authenticate socket if possible
+      Get.find<SocketService>().authenticate(
+        box.read('userId') ?? '',
+        email,
+        role,
+      );
+    }
+  }
 
   // ─── LOGIN ───────────────────────────────────────────────────────────────────
   Future<void> login() async {
@@ -62,8 +93,18 @@ class AuthController extends GetxController {
         await prefs.setString('role', role);
         await prefs.setString('userEmail', user['email']);
         await prefs.setBool('isProfileCompleted', isProfileCompleted);
+        box.write('userId', user['_id'] ?? user['id']);
+
+        currentUser.value = UserModel.fromJson(user);
 
         _apiService.setToken(token);
+        
+        Get.find<SocketService>().authenticate(
+          user['_id'] ?? user['id'],
+          user['email'],
+          user['role'],
+        );
+
         _navigateBasedOnRole(role, isProfileCompleted);
       } else if (response.statusCode == 403) {
         // Email not verified — send them to OTP screen
@@ -159,8 +200,17 @@ class AuthController extends GetxController {
         await prefs.setString('role', role);
         await prefs.setString('userEmail', user['email']);
         await prefs.setBool('isProfileCompleted', isProfileCompleted);
+        box.write('userId', user['_id'] ?? user['id']);
+
+        currentUser.value = UserModel.fromJson(user);
 
         _apiService.setToken(token);
+        
+        Get.find<SocketService>().authenticate(
+          user['_id'] ?? user['id'],
+          user['email'],
+          user['role'],
+        );
 
         Get.snackbar('Success', 'Email verified successfully.',
             snackPosition: SnackPosition.BOTTOM,

@@ -1,4 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
   Get.put(ApiService());
   Get.put(SocketService());
   Get.put(AuthController(), permanent: true);
+  Get.lazyPut(() => ChatController(), fenix: true);
   
   runApp(const MyApp());
 }

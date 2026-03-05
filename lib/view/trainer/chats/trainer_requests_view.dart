@@ -2,6 +2,8 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -10,6 +12,8 @@ class TrainerRequestsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ChatController controller = Get.find<ChatController>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -35,22 +39,40 @@ class TrainerRequestsView extends StatelessWidget {
           child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1.0),
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 2, 
-        itemBuilder: (context, index) {
-          return const RequestCard();
-        },
-      ),
+      body: Obx(() {
+        final requests = controller.conversations
+            .where((c) => c.status == 'request-pending')
+            .toList();
+
+        if (requests.isEmpty) {
+          return const Center(
+            child: CommonText('No pending requests', color: AppColors.textSecondary),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            return RequestCard(request: requests[index]);
+          },
+        );
+      }),
     );
   }
 }
 
 class RequestCard extends StatelessWidget {
-  const RequestCard({super.key});
+  final ChatConversation request;
+  const RequestCard({super.key, required this.request});
 
   @override
   Widget build(BuildContext context) {
+    final ChatController controller = Get.find<ChatController>();
+    final String name = request.otherUser?.name ?? 'Unknown';
+    final String role = request.otherUser?.role ?? 'User';
+    final String avatar = request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       clipBehavior: Clip.antiAlias,
@@ -71,107 +93,59 @@ class RequestCard extends StatelessWidget {
           // Header - Light Blue Background
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFE5F1FF), // Soft premium blue
+            color: const Color(0xFFE5F1FF),
             child: Row(
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundImage: NetworkImage(AppConstants.dummyImageUrl),
+                  backgroundImage: avatar.startsWith('http') 
+                    ? NetworkImage(avatar) 
+                    : const NetworkImage(AppConstants.dummyImageUrl),
                 ),
                 const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText(
-                      'Trainer : Mark Lee',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: AppColors.textPrimary,
-                    ),
-                    SizedBox(height: 2),
-                    CommonText(
-                      'Professional Horse Trainer',
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CommonText(
+                        name,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: AppColors.textPrimary,
+                        maxLines: 1,
+                      ),
+                      const SizedBox(height: 2),
+                      CommonText(
+                        role,
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           
-          // Info Section - White Background
+          // Last Message Snippet
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Horse Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    AppConstants.dummyImageUrl,
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
+                const CommonText(
+                  'Message Request:',
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textSecondary,
                 ),
-                const SizedBox(width: 12),
-                // Horse Details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const CommonText(
-                            'Starfire',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 17,
-                            color: AppColors.textPrimary,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3F4F6),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const CommonText(
-                              'For Sale',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Row(
-                        children: [
-                          Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
-                          SizedBox(width: 4),
-                          CommonText(
-                            'Tampa, FL, United States',
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      const Row(
-                        children: [
-                          Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
-                          SizedBox(width: 4),
-                          CommonText(
-                            '01 Apr - 07 Apr 2026',
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 4),
+                CommonText(
+                  request.lastMessage ?? 'No message provided',
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                  maxLines: 3,
                 ),
               ],
             ),
@@ -184,7 +158,7 @@ class RequestCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () => controller.declineRequest(request.conversationId),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.border),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -201,9 +175,9 @@ class RequestCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () => controller.acceptRequest(request.conversationId),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF17B26A), // Vibrant success green
+                      backgroundColor: const Color(0xFF17B26A),
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(vertical: 14),

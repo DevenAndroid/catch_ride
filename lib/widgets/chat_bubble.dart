@@ -49,14 +49,16 @@ class ChatBubble extends StatelessWidget {
           ),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isMe ? Colors.white : const Color(0xFFF9FAFB),
+            color: isMe ? const Color(0xFFE5F1FF) : const Color(0xFFF3F4F6),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(12),
               topRight: const Radius.circular(12),
               bottomLeft: Radius.circular(isMe ? 12 : 0),
               bottomRight: Radius.circular(isMe ? 0 : 12),
             ),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(
+              color: isMe ? const Color(0xFFB3D7FF) : AppColors.border,
+            ),
           ),
           child: CommonText(
             message,
