@@ -32,12 +32,6 @@ class HorseModel {
   final String? bookedByName;
   final String? bookedByLocation;
   final String? bookingDates;
-  
-  String get displayDiscipline {
-    if (discipline != null && discipline!.isNotEmpty) return discipline!;
-    if (programTags.isNotEmpty) return programTags.first.name;
-    return 'General';
-  }
 
   HorseModel({
     this.id,
