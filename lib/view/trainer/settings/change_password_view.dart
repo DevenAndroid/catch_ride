@@ -50,7 +50,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: Column(
@@ -132,7 +132,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, -4),
             blurRadius: 10,
           ),

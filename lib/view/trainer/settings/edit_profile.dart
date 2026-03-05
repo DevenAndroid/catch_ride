@@ -122,7 +122,7 @@ class _EditProfileViewState extends State<EditProfileView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: Column(
@@ -157,10 +157,10 @@ class _EditProfileViewState extends State<EditProfileView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -235,7 +235,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              border: Border.all(color: AppColors.border.withOpacity(0.5)),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -376,7 +376,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-            hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+            hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
           ),
         ),
       ],
@@ -414,7 +414,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
                   ),
                 ),
               ),
@@ -432,7 +432,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+        border: Border.all(color: AppColors.border.withOpacity(0.7)),
       ),
       child: CommonText(text, fontSize: 12, color: AppColors.textSecondary),
     );
@@ -442,7 +442,7 @@ class _EditProfileViewState extends State<EditProfileView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF000B48).withValues(alpha: 0.05),
+        color: const Color(0xFF000B48).withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF000B48)),
       ),
@@ -464,7 +464,7 @@ class _EditProfileViewState extends State<EditProfileView> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, -4),
             blurRadius: 10,
           ),
@@ -537,7 +537,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 height: 52,
                 decoration: BoxDecoration(
                   color: profileController.isLoading.value 
-                      ? const Color(0xFF000B48).withValues(alpha: 0.7) 
+                      ? const Color(0xFF000B48).withOpacity(0.7) 
                       : const Color(0xFF000B48),
                   borderRadius: BorderRadius.circular(12),
                 ),

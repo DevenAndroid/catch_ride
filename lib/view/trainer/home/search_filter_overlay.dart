@@ -64,7 +64,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: Container(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withOpacity(0.1),
               ),
             ),
           ),
@@ -192,7 +192,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: Colors.black.withOpacity(0.05),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -213,7 +213,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search horses, vendors and circuits',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5)),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
                     border: InputBorder.none,
                     prefixIcon: const Icon(Icons.search_rounded, color: Colors.black87),
                   ),
@@ -271,7 +271,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -281,7 +281,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText('When', fontSize: 16, fontWeight: FontWeight.bold),
-                CommonText('Add dates', fontSize: 14, color: AppColors.textSecondary.withValues(alpha: 0.8)),
+                CommonText('Add dates', fontSize: 14, color: AppColors.textSecondary.withOpacity(0.8)),
               ],
             ),
           ),
@@ -304,7 +304,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
+                  color: Colors.black.withOpacity(0.02),
                   blurRadius: 10,
                 ),
               ],
@@ -328,7 +328,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: Colors.black.withOpacity(0.08),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -361,9 +361,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.chevron_left, color: AppColors.textSecondary.withValues(alpha: 0.6)),
+                        Icon(Icons.chevron_left, color: AppColors.textSecondary.withOpacity(0.6)),
                         const CommonText('January 2026', fontSize: 15, fontWeight: FontWeight.bold),
-                        Icon(Icons.chevron_right, color: AppColors.textSecondary.withValues(alpha: 0.6)),
+                        Icon(Icons.chevron_right, color: AppColors.textSecondary.withOpacity(0.6)),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -403,7 +403,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           borderRadius: BorderRadius.circular(10),
           boxShadow: isActive ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 4,
             )
           ] : null,
@@ -476,7 +476,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          CommonText(hint, color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 14),
+          CommonText(hint, color: AppColors.textSecondary.withOpacity(0.6), fontSize: 14),
           const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.textSecondary),
         ],
       ),
@@ -505,7 +505,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           return Center(
             child: CommonText(
               day < 1 ? (31 + day).toString() : (day - 31).toString(), // Mock previous/next month days
-              color: AppColors.textSecondary.withValues(alpha: 0.3),
+              color: AppColors.textSecondary.withOpacity(0.3),
               fontSize: 14,
             ),
           );
@@ -567,7 +567,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
+        color: Colors.white.withOpacity(0.9),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Row(

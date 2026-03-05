@@ -94,7 +94,7 @@ class _BarnManagerCreateProfileViewState
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: AppColors.border.withValues(alpha: 0.5),
+                      color: AppColors.border.withOpacity(0.5),
                     ),
                   ),
                   child: Column(
@@ -127,7 +127,7 @@ class _BarnManagerCreateProfileViewState
                                   color: const Color(0xFFF2F4F7),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColors.border.withValues(alpha: 0.5),
+                                    color: AppColors.border.withOpacity(0.5),
                                   ),
                                 ),
                                 child: _profileImage != null
@@ -152,11 +152,11 @@ class _BarnManagerCreateProfileViewState
                                     color: Colors.white,
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: AppColors.border.withValues(alpha: 0.5),
+                                      color: AppColors.border.withOpacity(0.5),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.1),
+                                        color: Colors.black.withOpacity(0.1),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),

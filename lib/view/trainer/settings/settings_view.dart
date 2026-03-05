@@ -46,7 +46,7 @@ class SettingsView extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                border: Border.all(color: AppColors.border.withOpacity(0.5)),
               ),
               child: IconButton(
                 icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
@@ -156,10 +156,10 @@ class SettingsView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -184,7 +184,7 @@ class SettingsView extends StatelessWidget {
           CommonText(
             controller.specialization,
             fontSize: 14,
-            color: AppColors.textSecondary.withValues(alpha: 0.8),
+            color: AppColors.textSecondary.withOpacity(0.8),
           ),
           const SizedBox(height: 12),
           TextButton(
@@ -207,7 +207,7 @@ class SettingsView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Row(
         children: [
@@ -234,7 +234,7 @@ class SettingsView extends StatelessWidget {
                 CommonText(
                   "It's simple to get set up and start earning.",
                   fontSize: 13,
-                  color: AppColors.textSecondary.withValues(alpha: 0.7),
+                  color: AppColors.textSecondary.withOpacity(0.7),
                 ),
               ],
             ),
@@ -261,7 +261,7 @@ class SettingsView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Column(children: children),
     );
@@ -295,7 +295,7 @@ class SettingsView extends StatelessWidget {
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 14,
-                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                  color: AppColors.textSecondary.withOpacity(0.5),
                 ),
               ],
             ),
@@ -305,7 +305,7 @@ class SettingsView extends StatelessWidget {
               padding: const EdgeInsets.only(left: 54),
               child: Divider(
                 height: 1,
-                color: AppColors.border.withValues(alpha: 0.5),
+                color: AppColors.border.withOpacity(0.5),
               ),
             ),
         ],

@@ -10,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../controllers/profile_controller.dart';
+import '../../../services/socket_service.dart';
+
 class TrainerChatsView extends StatelessWidget {
   const TrainerChatsView({super.key});
 
@@ -68,7 +71,7 @@ class TrainerChatsView extends StatelessWidget {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: RefreshIndicator(
@@ -78,8 +81,9 @@ class TrainerChatsView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final currentUserId = Get.find<ProfileController>().id;
           final activeConversations = controller.conversations
-              .where((c) => c.status != 'request-pending')
+              .where((c) => c.status != 'request-pending' || c.senderId == currentUserId)
               .toList();
 
           if (activeConversations.isEmpty) {

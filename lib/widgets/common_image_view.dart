@@ -42,7 +42,7 @@ class CommonImageView extends StatelessWidget {
         width: width,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: AppColors.border.withValues(alpha: 0.1),
+          color: AppColors.border.withOpacity(0.1),
           shape: shape,
           borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(radius),
         ),
@@ -68,7 +68,7 @@ class CommonImageView extends StatelessWidget {
       width: width,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.border.withValues(alpha: 0.1),
+        color: AppColors.border.withOpacity(0.1),
         shape: shape,
         borderRadius: shape == BoxShape.circle
             ? null
@@ -80,7 +80,7 @@ class CommonImageView extends StatelessWidget {
         width: width,
         fit: fit,
         placeholder: (context, url) => Container(
-          color: AppColors.border.withValues(alpha: 0.1),
+          color: AppColors.border.withOpacity(0.1),
           child: const Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
@@ -100,7 +100,7 @@ class CommonImageView extends StatelessWidget {
       height: height,
       width: width,
       decoration: BoxDecoration(
-        color: AppColors.border.withValues(alpha: 0.1),
+        color: AppColors.border.withOpacity(0.1),
         shape: shape,
         borderRadius: shape == BoxShape.circle
             ? null

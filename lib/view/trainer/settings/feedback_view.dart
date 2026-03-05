@@ -42,7 +42,7 @@ class _FeedbackViewState extends State<FeedbackView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: Column(
@@ -79,7 +79,7 @@ class _FeedbackViewState extends State<FeedbackView> {
                       maxLines: null,
                       decoration: InputDecoration(
                         hintText: 'Write your feedback...',
-                        hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 16),
+                        hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 16),
                         border: InputBorder.none,
                       ),
                     ),
@@ -101,7 +101,7 @@ class _FeedbackViewState extends State<FeedbackView> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, -4),
             blurRadius: 10,
           ),

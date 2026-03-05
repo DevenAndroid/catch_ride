@@ -49,7 +49,7 @@ class _BarnManagerApplicationSubmittedViewState
                     shape: BoxShape.circle,
                     color: const Color(
                       0xFF16A34A,
-                    ).withValues(alpha: 0.2), // Light green
+                    ).withOpacity(0.2), // Light green
                   ),
                   child: Center(
                     child: Container(

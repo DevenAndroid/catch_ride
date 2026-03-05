@@ -12,6 +12,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/user_model.dart';
+import '../services/socket_service.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
 
 class AuthController extends GetxController {

@@ -288,11 +288,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: Colors.white.withOpacity(0.8),
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
+                                color: Colors.black.withOpacity(0.1),
                                 blurRadius: 4,
                               ),
                             ],
@@ -808,11 +808,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ),
           const SizedBox(height: 16),
           Obx(
-            () => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: tags.map((tag) {
-                final isSelected = selectedTags.contains(tag);
+            () {
+              // Ensure observable is registered even if tags is empty
+              // ignore: unused_local_variable
+              final _ = selectedTags.length;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: tags.map((tag) {
+                  final isSelected = selectedTags.contains(tag);
                 return GestureDetector(
                   onTap: () {
                     controller.toggleTag(selectedTags, tag);
@@ -848,8 +852,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   ),
                 );
               }).toList(),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );

@@ -42,7 +42,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: Column(
@@ -55,7 +55,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                  border: Border.all(color: AppColors.border.withOpacity(0.5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +82,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: 'barn.manager@email.com',
-                        hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+                        hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
@@ -107,7 +107,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             offset: const Offset(0, -4),
             blurRadius: 10,
           ),

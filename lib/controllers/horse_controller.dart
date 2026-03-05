@@ -20,7 +20,7 @@ class HorseController extends GetxController {
     fetchHorses();
   }
 
-  Future<void> fetchHorses({bool refresh = true, String? trainerId, int limit = 10}) async {
+  Future<void> fetchHorses({bool refresh = true, String? trainerId, String? ownerId, int limit = 10}) async {
     if (refresh) {
       currentPage.value = 1;
       horses.clear();
@@ -39,6 +39,9 @@ class HorseController extends GetxController {
       
       if (trainerId != null) {
         query['trainerId'] = trainerId;
+      }
+      if (ownerId != null) {
+        query['ownerId'] = ownerId;
       }
 
       final response = await _apiService.getRequest(AppUrls.horses, query: query);

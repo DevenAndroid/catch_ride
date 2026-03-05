@@ -5,6 +5,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import 'booking_controller.dart';
 
 class ChatController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -68,7 +69,7 @@ class ChatController extends GetxController {
     try {
       activeConversationId.value = conversationId;
       isLoadingMessages.value = true;
-      final response = await _apiService.getRequest('${AppUrls.messagesByConversation}$conversationId');
+      final response = await _apiService.getRequest('${AppUrls.messagesByConversation}$conversationId/messages');
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
         currentMessages.value = data.map((json) => ChatMessage.fromJson(json)).toList();
@@ -112,9 +113,10 @@ class ChatController extends GetxController {
 
   Future<bool> acceptRequest(String conversationId) async {
     try {
-      final response = await _apiService.postRequest(AppUrls.acceptChatRequest, {
-        'conversationId': conversationId,
-      });
+      final response = await _apiService.postRequest(
+        '${AppUrls.acceptChatRequest}$conversationId/accept',
+        {},
+      );
       if (response.statusCode == 200) {
         _handleStatusUpdate(conversationId, 'request-accepted');
         return true;
@@ -128,9 +130,10 @@ class ChatController extends GetxController {
 
   Future<bool> declineRequest(String conversationId) async {
     try {
-      final response = await _apiService.postRequest(AppUrls.declineChatRequest, {
-        'conversationId': conversationId,
-      });
+      final response = await _apiService.postRequest(
+        '${AppUrls.declineChatRequest}$conversationId/decline',
+        {},
+      );
       if (response.statusCode == 200) {
         _handleStatusUpdate(conversationId, 'request-declined');
         return true;
@@ -188,5 +191,12 @@ class ChatController extends GetxController {
       currentMessages.value = updatedMessages;
     }
     fetchConversations();
+    
+    // Refresh bookings to reflect new status (confirmed/rejected)
+    if (Get.isRegistered<BookingController>()) {
+      final bc = Get.find<BookingController>();
+      bc.fetchBookings(type: 'received');
+      bc.fetchBookings(type: 'sent');
+    }
   }
 }

@@ -160,6 +160,7 @@ class ProfileController extends GetxController {
   int get yearsExperience => user.value?.yearsExperience ?? 0;
   List<String> get selectedProgramTags => user.value?.programTags ?? [];
   List<String> get selectedHorseShows => user.value?.showCircuits ?? [];
+  String get trainerId => user.value?.trainerProfileId ?? '';
 
   String get specialization {
     if (role == 'trainer') return 'Professional Horse Trainer';

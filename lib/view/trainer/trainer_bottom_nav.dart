@@ -76,7 +76,7 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
+                      color: Colors.black.withOpacity(0.12),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),

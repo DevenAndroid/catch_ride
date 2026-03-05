@@ -12,16 +12,21 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:catch_ride/models/horse_model.dart';
+import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
+import '../../../controllers/booking_controller.dart';
+import '../../../services/api_service.dart';
 
 class TrainerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
+  final String? horseId;
   final bool fromBooking;
   final bool isOwnHorse;
 
   const TrainerHorseDetailView({
     super.key,
     this.horse,
+    this.horseId,
     this.fromBooking = false,
     this.isOwnHorse = false,
   });
@@ -43,13 +48,55 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   VideoPlayerController? _videoPlayerController;
   bool _isYoutube = false;
   bool _hasVideo = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    horse = widget.horse;
-    if (horse != null) {
+    if (widget.horse != null) {
+      horse = widget.horse;
       _initVideo();
+      _checkIfRequested();
+    } else if (widget.horseId != null) {
+      _fetchHorseDetails();
+    }
+  }
+
+  Future<void> _fetchHorseDetails() async {
+    try {
+      setState(() => _isLoading = true);
+      final ApiService api = Get.find<ApiService>();
+      final response = await api.getRequest('/horses/${widget.horseId}');
+      if (response.statusCode == 200) {
+        final data = response.body['data'];
+        if (data != null) {
+          setState(() {
+            horse = HorseModel.fromJson(data);
+            _initVideo();
+            _checkIfRequested();
+          });
+        }
+      } else {
+        Get.snackbar('Error', 'Failed to load horse details');
+      }
+    } catch (e) {
+      debugPrint('Error fetching horse: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _checkIfRequested() {
+    final bookingController = Get.find<BookingController>();
+    final currentUserId = Get.find<ProfileController>().id;
+    
+    final existingBooking = bookingController.bookings.firstWhereOrNull(
+      (b) => b.horseId == horse?.id && 
+             b.status.toLowerCase() == 'pending'
+    );
+    
+    if (existingBooking != null) {
+      setState(() => _isRequested = true);
     }
   }
 
@@ -88,6 +135,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (horse == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Details')),
+        body: const Center(child: Text('Horse details not found')),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -472,7 +532,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
+                color: Colors.black.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: CommonText(
@@ -624,7 +684,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Column(
         children: detailItems.asMap().entries.map((entry) {
@@ -811,7 +871,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,7 +895,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
 
   void _showBookingRequestBottomSheet() {
+    DateTime? startDate;
+    DateTime? endDate;
     String selectedType = 'Trial';
+    final TextEditingController messageController = TextEditingController();
+    final BookingController bookingController = Get.put(BookingController());
 
     showModalBottomSheet(
       context: context,
@@ -863,7 +927,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border.withValues(alpha: 0.6),
+                    color: AppColors.border.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -907,7 +971,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       children: [
                         const CommonText('Start Date', fontSize: 13, fontWeight: FontWeight.bold),
                         const SizedBox(height: 8),
-                        _buildDateSelector('Select Date'),
+                        _buildDateSelector(
+                          startDate != null ? DateFormat('dd MMM yyyy').format(startDate!) : 'Select Date',
+                          () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: startDate ?? DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (date != null) {
+                              setSheetState(() => startDate = date);
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -918,7 +995,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       children: [
                         const CommonText('End Date', fontSize: 13, fontWeight: FontWeight.bold),
                         const SizedBox(height: 8),
-                        _buildDateSelector('Select Date'),
+                        _buildDateSelector(
+                          endDate != null ? DateFormat('dd MMM yyyy').format(endDate!) : 'Select Date',
+                          () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: endDate ?? startDate ?? DateTime.now(),
+                              firstDate: startDate ?? DateTime.now(),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (date != null) {
+                              setSheetState(() => endDate = date);
+                            }
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -964,10 +1054,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: TextField(
+                  controller: messageController,
                   maxLines: 4,
                   decoration: InputDecoration(
                     hintText: 'Write here...',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
                     border: InputBorder.none,
                     isDense: true,
                   ),
@@ -996,22 +1087,62 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Get.back();
-                        setState(() => _isRequested = true);
+                    child: Obx(() => GestureDetector(
+                      onTap: bookingController.isLoading.value ? null : () async {
+                        if (startDate == null || endDate == null) {
+                          Get.snackbar(
+                            'Error', 
+                            'Please select both start and end dates',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                            barBlur: 0,
+                            margin: const EdgeInsets.all(16),
+                          );
+                          return;
+                        }
+
+                        final success = await bookingController.createBooking({
+                          'horseId': horse!.id,
+                          'horseName': horse!.name,
+                          'trainerId': horse!.trainerId,
+                          'type': selectedType,
+                          'date': DateFormat('yyyy-MM-dd').format(startDate!),
+                          'endDate': DateFormat('yyyy-MM-dd').format(endDate!),
+                          'location': 'WEF, Wellington',
+                          'notes': messageController.text,
+                          'service': selectedType,
+                          'price': horse!.price ?? 0,
+                          'clientId': Get.find<ProfileController>().user.value?.id,
+                        });
+
+                        if (success) {
+                          Get.back(); // Close bottom sheet
+                          Get.snackbar(
+                            'Success', 
+                            'Booking request sent successfully',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: const Color(0xFF17B26A),
+                            colorText: Colors.white,
+                            barBlur: 0,
+                            margin: const EdgeInsets.all(16),
+                          );
+                          setState(() => _isRequested = true);
+                        }
                       },
                       child: Container(
                         height: 56,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
+                          color: bookingController.isLoading.value ? AppColors.inputBackground : AppColors.primary,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Center(
-                          child: CommonText('Submit', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        child: Center(
+                          child: bookingController.isLoading.value 
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const CommonText('Submit', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                       ),
-                    ),
+                    )),
                   ),
                 ],
               ),
@@ -1028,7 +1159,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1103,7 +1234,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         decoration: BoxDecoration(
           color: isActive ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: isActive ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)] : null,
+          boxShadow: isActive ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : null,
         ),
         child: Center(
           child: CommonText(
@@ -1117,19 +1248,22 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  Widget _buildDateSelector(String hint) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CommonText(hint, fontSize: 14, color: AppColors.textSecondary.withValues(alpha: 0.6)),
-          const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.textSecondary),
-        ],
+  Widget _buildDateSelector(String hint, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CommonText(hint, fontSize: 14, color: AppColors.textPrimary),
+            const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }

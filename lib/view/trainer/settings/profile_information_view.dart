@@ -32,7 +32,7 @@ class ProfileInformationView extends StatelessWidget {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -43,7 +43,7 @@ class ProfileInformationView extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+            border: Border.all(color: AppColors.border.withOpacity(0.5)),
           ),
           child: Obx(() {
             final user = profileController.user.value;

@@ -25,6 +25,7 @@ class AppUrls {
 
   // Bookings
   static const String bookings = '/bookings';
+  static const String myBookings = '$bookings/my';
   
   // Trainers
   static const String trainers = '/trainers';
@@ -50,9 +51,9 @@ class AppUrls {
   static const String faqs = '/faq';
   static const String supportTickets = '/support-tickets';
   static const String conversations = '/messages/conversations';
-  static const String messagesByConversation = '/messages/conversations/'; // + id
-  static const String acceptChatRequest = '/messages/accept';
-  static const String declineChatRequest = '/messages/decline';
+  static const String messagesByConversation = '/messages/conversation/'; // + id + '/messages'
+  static const String acceptChatRequest = '/messages/conversation/'; // + id + '/accept'
+  static const String declineChatRequest = '/messages/conversation/'; // + id + '/decline'
   static const String blockUser = '/messages/user/'; // + userId + '/block'
 
 }

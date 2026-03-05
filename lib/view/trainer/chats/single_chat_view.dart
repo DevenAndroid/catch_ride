@@ -3,10 +3,12 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/chat_bubble.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
-import 'package:catch_ride/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
+import '../../../controllers/auth_controller.dart';
+import '../../../controllers/profile_controller.dart';
 
 class SingleChatView extends StatelessWidget {
   final String name;
@@ -86,18 +88,30 @@ class SingleChatView extends StatelessWidget {
             final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == conversationId);
             if (convo == null) return const SizedBox.shrink();
 
+            final currentUserId = Get.find<ProfileController>().id;
+            final isSender = convo.senderId == currentUserId;
+
             if (convo.status == 'request-pending') {
-              return _buildStatusBanner(
-                'Waiting for your response',
-                'Accept request to start chatting',
-                Colors.orange.shade50,
-                Colors.orange,
-                actions: [
-                  _buildBannerButton('Decline', () => controller.declineRequest(conversationId), isAction: false),
-                  const SizedBox(width: 8),
-                  _buildBannerButton('Accept', () => controller.acceptRequest(conversationId)),
-                ],
-              );
+              if (isSender) {
+                return _buildStatusBanner(
+                  'Request Pending',
+                  'Waiting for professional to accept your request',
+                  Colors.blue.shade50,
+                  Colors.blue,
+                );
+              } else {
+                return _buildStatusBanner(
+                  'Waiting for your response',
+                  'Accept request to start chatting',
+                  Colors.orange.shade50,
+                  Colors.orange,
+                  actions: [
+                    _buildBannerButton('Decline', () => controller.declineRequest(conversationId), isAction: false),
+                    const SizedBox(width: 8),
+                    _buildBannerButton('Accept', () => controller.acceptRequest(conversationId)),
+                  ],
+                );
+              }
             } else if (convo.status == 'request-declined') {
               return _buildStatusBanner(
                 'Conversation Restricted',

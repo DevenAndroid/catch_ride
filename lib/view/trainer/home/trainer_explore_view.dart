@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../../controllers/booking_controller.dart';
 
 class TrainerExploreView extends StatefulWidget {
   const TrainerExploreView({super.key});
@@ -45,6 +46,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 if (controller.isLoading.value && controller.horses.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
+
+                // Reactive trigger for booking status changes
+                final bookingController = Get.find<BookingController>();
+                final _ = bookingController.bookings.length;
 
                 if (controller.horses.isEmpty) {
                   return const Center(
@@ -85,12 +90,14 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       final horse = controller.horses[index];
                       final heightFactor = (index % 3 == 0) ? 1.5 : (index % 2 == 0) ? 1.2 : 1.0;
                       
+                      final isRequested = Get.find<BookingController>().bookings.any((b) => b.horseId == horse.id && b.status.toLowerCase() == 'pending');
                       return GestureDetector(
                         onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
                         child: _buildPostCard(
                           name: horse.name,
                           imageUrl: horse.photo ?? AppConstants.dummyImageUrl,
                           height: 180 * heightFactor,
+                          isRequested: isRequested,
                         ),
                       );
                     },
@@ -103,15 +110,19 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   itemBuilder: (context, index) {
                     final horse = controller.horses[index];
                     final show = horse.showAvailability.isNotEmpty ? horse.showAvailability.first : null;
+                    
+                    final isRequested = Get.find<BookingController>().bookings.any((b) => b.horseId == horse.id && b.status.toLowerCase() == 'pending');
+
                     return GestureDetector(
                       onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
                       child: _buildListViewCard(
                         name: horse.name,
-                        discipline: horse.discipline ?? 'Jumper',
+                        discipline: horse.displayDiscipline,
                         venue: show?.showVenue ?? 'Unknown Venue',
                         dates: show != null ? '${show.startDate} - ${show.endDate}' : 'Availability not listed',
                         location: horse.location ?? 'Location not specified',
                         imageUrl: horse.photo ?? AppConstants.dummyImageUrl,
+                        isRequested: isRequested,
                       ),
                     );
                   },
@@ -139,7 +150,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
           border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withOpacity(0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -186,7 +197,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     CommonText(
                       "Search horses, vendors and circuits",
                       fontSize: AppTextSizes.size12,
-                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      color: AppColors.textSecondary.withOpacity(0.7),
                     ),
                   ],
                 ),
@@ -283,6 +294,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     required String name,
     required String imageUrl,
     required double height,
+    bool isRequested = false,
   }) {
     return Container(
       height: height,
@@ -301,7 +313,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                Colors.black.withValues(alpha: 0.5),
+                Colors.black.withOpacity(0.5),
               ],
               stops: const [0.7, 1.0],
             ),
@@ -317,18 +329,34 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 fontSize: AppTextSizes.size14,
                 fontWeight: FontWeight.bold,
               ),
+              if (isRequested)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const CommonText(
+                    'Requested',
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
             ],
           ),
         ),
     );
   }
- Widget _buildListViewCard({
+  Widget _buildListViewCard({
     required String name,
     required String discipline,
     required String venue,
     required String dates,
     required String location,
     required String imageUrl,
+    bool isRequested = false,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -336,10 +364,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+          border: Border.all(color: AppColors.border.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -392,14 +420,14 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: AppColors.background,
+                          color: isRequested ? Colors.orange.shade50 : AppColors.background,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const CommonText(
-                          'Lease',
+                        child: CommonText(
+                          isRequested ? 'Requested' : 'Lease',
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
+                          color: isRequested ? Colors.orange : AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -463,10 +491,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
