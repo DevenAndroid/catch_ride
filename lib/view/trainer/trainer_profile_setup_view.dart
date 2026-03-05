@@ -257,7 +257,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                       CommonText(
                         "Step building a trusted network of professionals and partners in the horse world - let's get",
                         fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        color: AppColors.textSecondary.withOpacity(0.7),
                       ),
                       const SizedBox(height: 24),
                     ],

@@ -72,7 +72,7 @@ class BarnManagerHomeView extends StatelessWidget {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(
-            color: AppColors.border.withValues(alpha: 0.5),
+            color: AppColors.border.withOpacity(0.5),
             height: 1.0,
           ),
         ),
@@ -276,7 +276,7 @@ class BarnManagerHomeView extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

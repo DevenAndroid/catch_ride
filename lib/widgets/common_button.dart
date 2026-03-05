@@ -32,7 +32,7 @@ class CommonButton extends StatelessWidget {
         height: 52, // Typical height for prominent buttons
         decoration: BoxDecoration(
           color: isLoading
-              ? (backgroundColor ?? AppColors.primary).withValues(alpha: 0.7)
+              ? (backgroundColor ?? AppColors.primary).withOpacity(0.7)
               : (backgroundColor ?? AppColors.primary),
           borderRadius: BorderRadius.circular(12),
         ),

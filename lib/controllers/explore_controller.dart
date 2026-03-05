@@ -28,8 +28,13 @@ class ExploreController extends GetxController {
       final Map<String, String> queryParams = {};
 
       final currentUserId = _profileController.id;
+      final trainerId = _profileController.trainerId;
+      
+      if (trainerId.isNotEmpty) {
+        queryParams['excludeTrainerId'] = trainerId;
+      }
       if (currentUserId.isNotEmpty) {
-        queryParams['excludeTrainerId'] = currentUserId;
+        queryParams['excludeOwnerId'] = currentUserId;
       }
 
       if (selectedDiscipline.value != 'All') {

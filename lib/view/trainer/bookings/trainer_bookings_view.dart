@@ -25,7 +25,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   final BookingController bookingController = Get.put(BookingController());
   final ProfileController profileController = Get.find<ProfileController>();
 
-  final List<String> _filters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
+  final List<String> _filters = ['All', 'Accepted', 'Rejected', 'Pending', 'Canceled'];
 
   @override
   void initState() {
@@ -42,17 +42,25 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   }
 
   void _loadBookings() {
-    final myId = profileController.id;
-    if (myId.isEmpty) return;
-
-    final status = _filters[_selectedFilterIndex].toLowerCase();
+    final statusStr = _filters[_selectedFilterIndex];
+    String? status;
+    
+    if (statusStr == 'All') {
+      status = null;
+    } else if (statusStr == 'Accepted') {
+      status = 'confirmed';
+    } else if (statusStr == 'Canceled') {
+      status = 'cancelled';
+    } else {
+      status = statusStr.toLowerCase();
+    }
     
     if (_tabController.index == 0) {
       // Received
-      bookingController.fetchBookings(trainerId: myId, status: status);
+      bookingController.fetchBookings(type: 'received', status: status);
     } else {
       // Sent
-      bookingController.fetchBookings(clientId: myId, status: status);
+      bookingController.fetchBookings(type: 'sent', status: status);
     }
   }
 
@@ -104,7 +112,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   Tab(text: 'Sent'),
                 ],
               ),
-              Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+              Container(color: AppColors.border.withOpacity(0.5), height: 1),
             ],
           ),
         ),
@@ -125,7 +133,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withOpacity(0.3)),
                       const SizedBox(height: 16),
                       const CommonText(
                         'No bookings found',
@@ -140,8 +148,8 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
               return TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildBookingsList(bookingController.bookings),
-                  _buildBookingsList(bookingController.bookings),
+                  _buildBookingsList(bookingController.receivedBookings),
+                  _buildBookingsList(bookingController.sentBookings),
                 ],
               );
             }),
@@ -157,7 +165,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
         border: Border.symmetric(
-          horizontal: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+          horizontal: BorderSide(color: AppColors.border.withOpacity(0.5)),
         ),
       ),
       child: SingleChildScrollView(
@@ -181,11 +189,11 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                     color: isSelected ? Colors.white : Colors.transparent,
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
-                      color: isSelected ? AppColors.border.withValues(alpha: 0.3) : Colors.transparent,
+                      color: isSelected ? AppColors.border.withOpacity(0.3) : Colors.transparent,
                     ),
                     boxShadow: isSelected ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
+                        color: Colors.black.withOpacity(0.03),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       )
@@ -218,11 +226,15 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         }
 
         final booking = bookings[index];
+        String displayStatus = booking.status.capitalizeFirst ?? booking.status;
+        if (booking.status == 'confirmed') displayStatus = 'Accepted';
+        if (booking.status == 'cancelled') displayStatus = 'Canceled';
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _buildBookingCard(
             booking: booking,
-            status: booking.status.capitalizeFirst ?? booking.status,
+            status: displayStatus,
           ),
         );
       },
@@ -234,15 +246,18 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     required String status,
   }) {
     return GestureDetector(
-      onTap: () => Get.to(() => const TrainerHorseDetailView(fromBooking: true)),
+      onTap: () => Get.to(() => TrainerHorseDetailView(
+        horseId: booking.horseId,
+        fromBooking: true,
+      )),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+          border: Border.all(color: AppColors.border.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: Colors.black.withOpacity(0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),

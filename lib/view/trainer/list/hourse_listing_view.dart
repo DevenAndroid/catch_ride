@@ -33,9 +33,14 @@ class _HourseListingViewState extends State<HourseListingView> {
   }
 
   void _loadHorses({bool refresh = true}) {
+    final trainerId = profileController.trainerId;
     final userId = profileController.id;
-    if (userId.isNotEmpty) {
-      horseController.fetchHorses(refresh: refresh, trainerId: userId);
+    
+    if (trainerId.isNotEmpty) {
+      horseController.fetchHorses(refresh: refresh, trainerId: trainerId);
+    } else if (userId.isNotEmpty) {
+      // Fallback to ownerId if trainer profile is not yet fully linked
+      horseController.fetchHorses(refresh: refresh, ownerId: userId);
     }
   }
 
@@ -137,7 +142,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                                 borderRadius: BorderRadius.circular(30),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.35),
+                                    color: AppColors.primary.withOpacity(0.35),
                                     blurRadius: 12,
                                     offset: const Offset(0, 6),
                                   ),
@@ -285,7 +290,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: Colors.black.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: CommonText(

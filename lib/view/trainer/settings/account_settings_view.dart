@@ -37,7 +37,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -135,10 +135,10 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -196,7 +196,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
         if (showDivider)
           Padding(
             padding: const EdgeInsets.only(left: 52),
-            child: Divider(height: 1, color: AppColors.border.withValues(alpha: 0.5)),
+            child: Divider(height: 1, color: AppColors.border.withOpacity(0.5)),
           ),
       ],
     );
@@ -231,7 +231,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                     CommonText(
                       subtitle,
                       fontSize: 12,
-                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      color: AppColors.textSecondary.withOpacity(0.7),
                     ),
                   ],
                 ),
@@ -251,7 +251,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
         if (showDivider)
           Padding(
             padding: const EdgeInsets.only(left: 52),
-            child: Divider(height: 1, color: AppColors.border.withValues(alpha: 0.5)),
+            child: Divider(height: 1, color: AppColors.border.withOpacity(0.5)),
           ),
       ],
     );
@@ -292,7 +292,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
         if (showDivider)
           Padding(
             padding: const EdgeInsets.only(left: 52),
-            child: Divider(height: 1, color: AppColors.border.withValues(alpha: 0.5)),
+            child: Divider(height: 1, color: AppColors.border.withOpacity(0.5)),
           ),
       ],
     );
