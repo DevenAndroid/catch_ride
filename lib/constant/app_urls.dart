@@ -45,4 +45,8 @@ class AppUrls {
   static const String completeProfile = '/profile/complete';
   static const String upload = '/upload';
   static const String uploadProfileImage = '/profile/upload-image';
+  
+  // Support
+  static const String faqs = '/faq';
+  static const String supportTickets = '/support-tickets';
 }

@@ -107,7 +107,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
                       child: _buildListViewCard(
                         name: horse.name,
-                        discipline: horse.discipline ?? 'Jumper',
+                        discipline: horse.displayDiscipline,
                         venue: show?.showVenue ?? 'Unknown Venue',
                         dates: show != null ? '${show.startDate} - ${show.endDate}' : 'Availability not listed',
                         location: horse.location ?? 'Location not specified',
