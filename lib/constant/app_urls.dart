@@ -45,4 +45,11 @@ class AppUrls {
   static const String completeProfile = '/profile/complete';
   static const String upload = '/upload';
   static const String uploadProfileImage = '/profile/upload-image';
+
+  // Messages
+  static const String conversations = '/messages/conversations';
+  static const String messagesByConversation = '/messages/conversations/'; // + id
+  static const String acceptChatRequest = '/messages/accept';
+  static const String declineChatRequest = '/messages/decline';
+  static const String blockUser = '/messages/user/'; // + userId + '/block'
 }

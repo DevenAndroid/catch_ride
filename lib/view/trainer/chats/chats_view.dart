@@ -2,90 +2,61 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_constants.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/view/trainer/chats/trainer_requests_view.dart';
 import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class TrainerChatsView extends StatelessWidget {
   const TrainerChatsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> chats = [
-      {
-        'name': 'Lana Steiner',
-        'message': 'Thanks so much, happy with that.',
-        'time': '2 mins ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': true,
-      },
-      {
-        'name': 'Demi Wikinson',
-        'message': 'Got you a coffee',
-        'time': '2 mins ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': false,
-      },
-      {
-        'name': 'Candice Wu',
-        'message': 'Great to see you again!',
-        'time': '3 hours ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': false,
-      },
-      {
-        'name': 'Natali Craig',
-        'message': 'We should ask Oli about this...',
-        'time': '6 hours ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': false,
-      },
-      {
-        'name': 'Drew Cano',
-        'message': 'Okay, see you then.',
-        'time': '12 hours ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': false,
-      },
-      {
-        'name': 'Drew Cano',
-        'message': 'Okay, see you then.',
-        'time': '12 hours ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': false,
-      },
-      {
-        'name': 'Drew Cano',
-        'message': 'Okay, see you then.',
-        'time': '12 hours ago',
-        'image': AppConstants.dummyImageUrl,
-        'isUnread': false,
-      },
-    ];
+    final ChatController controller = Get.find<ChatController>();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const CommonText(
-          'Inbox',
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+        title: Row(
+          children: [
+            const CommonText(
+              'Inbox',
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+            const SizedBox(width: 8),
+            Obx(() {
+              final isConnected = Get.find<SocketService>().isConnected.value;
+              return Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: isConnected ? Colors.green : Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              );
+            }),
+          ],
         ),
         actions: [
           TextButton.icon(
             onPressed: () => Get.to(() => const TrainerRequestsView()),
-            icon: Container(
-              width: 8,
-              height: 8,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
-              ),
-            ),
+            icon: Obx(() => Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: controller.conversations.any((c) => c.status == 'request-pending')
+                        ? Colors.red
+                        : Colors.blue,
+                    shape: BoxShape.circle,
+                  ),
+                )),
             label: const CommonText(
               'Requests',
               fontSize: 14,
@@ -100,45 +71,84 @@ class TrainerChatsView extends StatelessWidget {
           child: Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
         ),
       ),
-      body: ListView.separated(
-        itemCount: chats.length,
-        separatorBuilder: (context, index) => const Divider(
-          height: 1,
-          indent: 80,
-          endIndent: 16,
-          color: AppColors.border,
-        ),
-        itemBuilder: (context, index) {
-          final chat = chats[index];
-          return _buildChatItem(context, chat);
-        },
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchConversations(),
+        child: Obx(() {
+          if (controller.isLoadingConversations.value && controller.conversations.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final activeConversations = controller.conversations
+              .where((c) => c.status != 'request-pending')
+              .toList();
+
+          if (activeConversations.isEmpty) {
+            return const Center(
+              child: CommonText('No active conversations', color: AppColors.textSecondary),
+            );
+          }
+
+          return ListView.separated(
+            itemCount: activeConversations.length,
+            separatorBuilder: (context, index) => const Divider(
+              height: 1,
+              indent: 80,
+              endIndent: 16,
+              color: AppColors.border,
+            ),
+            itemBuilder: (context, index) {
+              final chat = activeConversations[index];
+              return _buildChatItem(context, chat);
+            },
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildChatItem(BuildContext context, Map<String, dynamic> chat) {
+  Widget _buildChatItem(BuildContext context, ChatConversation chat) {
+    final String name = chat.otherUser?.name ?? 'Unknown';
+    final String message = chat.lastMessage ?? 'No messages yet';
+    final String image = chat.otherUser?.avatar ?? AppConstants.dummyImageUrl;
+    final String time = chat.date != null 
+        ? DateFormat('hh:mm a').format(chat.date!) 
+        : '';
+    final bool isUnread = chat.unread > 0;
+
     return GestureDetector(
-      onTap: () => Get.to(
-        () => SingleChatView(name: chat['name'], image: chat['image']),
-      ),
+      onTap: () {
+        Get.find<ChatController>().fetchMessages(chat.conversationId);
+        Get.to(() => SingleChatView(
+              name: name,
+              image: image,
+              conversationId: chat.conversationId,
+              otherId: chat.otherUser?.id,
+            ));
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: ListTile(
           leading: CircleAvatar(
             radius: 28,
-            backgroundImage: NetworkImage(chat['image']),
+            backgroundImage: image.startsWith('http') 
+              ? NetworkImage(image) 
+              : const NetworkImage(AppConstants.dummyImageUrl),
           ),
           title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CommonText(
-                chat['name'],
-                fontSize: AppTextSizes.size16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+              Expanded(
+                child: CommonText(
+                  name,
+                  fontSize: AppTextSizes.size16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                  maxLines: 1,
+                ),
               ),
               const SizedBox(width: 8),
               CommonText(
-                chat['time'],
+                time,
                 fontSize: 12,
                 color: AppColors.textSecondary,
               ),
@@ -147,13 +157,13 @@ class TrainerChatsView extends StatelessWidget {
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 4),
             child: CommonText(
-              chat['message'],
+              message,
               fontSize: 14,
               color: AppColors.textSecondary,
               maxLines: 1,
             ),
           ),
-          trailing: chat['isUnread']
+          trailing: isUnread
               ? Container(
                   width: 10,
                   height: 10,
