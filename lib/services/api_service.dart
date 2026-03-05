@@ -51,23 +51,22 @@ class ApiService extends GetConnect implements GetxService {
       }
 
       if (response.hasError || isSessionError) {
-        // _logger.e('❌ API ERROR [$statusCode] $method $url');
-        // _logger.e('📦 RESPONSE BODY: ${jsonEncode(body)}');
-
-        log('❌ API ERROR [$statusCode] $method $url');
-        log('📦 RESPONSE BODY: ${jsonEncode(body)}');
+        _logger.e('❌ API ERROR [$statusCode] $method $url');
+        if (body != null) {
+          try {
+            _logger.e('📦 RESPONSE BODY: ${jsonEncode(body)}');
+          } catch (_) {
+            _logger.e('📦 RESPONSE BODY: $body');
+          }
+        }
 
         // Auto-logout on session error
         if (isSessionError) {
           _logger.w('⚠️ Session error detected. Triggering auto-logout.');
-          _triggerAutoLogout(); // Handles clearing prefs and navigation
+          _triggerAutoLogout(); 
         }
       } else {
-        // _logger.i('✅ API SUCCESS [$statusCode] $method $url');
-        // _logger.d('📦 RESPONSE BODY: ${jsonEncode(body)}');
-
-        log('❌ API ERROR [$statusCode] $method $url');
-        log('📦 RESPONSE BODY: ${jsonEncode(body)}');
+        _logger.i('✅ API SUCCESS [$statusCode] $method $url');
       }
       return response;
     });
