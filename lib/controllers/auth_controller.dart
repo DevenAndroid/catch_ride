@@ -14,6 +14,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
 import '../services/socket_service.dart';
+import '../controllers/profile_controller.dart';
+import '../view/create_account_view.dart';
+import '../view/trainer/trainer_complete_profile_view.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
 
 class AuthController extends GetxController {
@@ -43,15 +46,21 @@ class AuthController extends GetxController {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? email = prefs.getString('userEmail');
     final String? role = prefs.getString('role');
+    final String? token = prefs.getString('token');
     
     // Minimal user object for initial load, can be refreshed by a profile API call
     if (email != null && role != null) {
+      if (token != null) _apiService.setToken(token);
+      
       currentUser.value = UserModel(
         firstName: '', // We don't store first/last name in prefs currently
         lastName: '',
         email: email,
         role: role,
-        id: box.read('userId') // Assuming we might store ID in box
+        id: box.read('userId'),
+        isProfileCompleted: prefs.getBool('isProfileCompleted') ?? false,
+        isProfileSetup: prefs.getBool('isProfileSetup') ?? false,
+        isProfileApprove: prefs.getBool('isProfileApprove') ?? false,
       );
       
       // Auto-authenticate socket if possible
@@ -60,6 +69,65 @@ class AuthController extends GetxController {
         email,
         role,
       );
+    }
+  }
+
+  // ─── CHECK AUTH STATUS (Splash Logic) ───────────────────────────────────────
+  Future<void> checkAuthStatus() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+      final String? role = prefs.getString('role');
+      final bool isFirstLaunch = box.read('isFirstLaunch') ?? true;
+
+      if (token == null || token.isEmpty) {
+        // Not logged in
+        if (isFirstLaunch) {
+          box.write('isFirstLaunch', false);
+          Get.offAll(() => const CreateAccountView());
+        } else {
+          Get.offAll(() => const LoginView());
+        }
+        return;
+      }
+
+      // 1. Initial navigation from stored values while we wait for fresh data
+      _apiService.setToken(token);
+      final bool storedSetup = prefs.getBool('isProfileSetup') ?? false;
+      final bool storedApprove = prefs.getBool('isProfileApprove') ?? false;
+      final bool storedCompleted = prefs.getBool('isProfileCompleted') ?? false;
+
+      // 2. Refresh profile from backend to get the latest status (especially admin approval)
+      final response = await _apiService.getRequest(AppUrls.profile);
+      if (response.statusCode == 200) {
+        final data = response.body['data'];
+        final bool setup = data['isProfileSetup'] ?? false;
+        final bool approve = data['isProfileApprove'] ?? false;
+        final bool completed = data['isProfileCompleted'] ?? false;
+        final String refreshedRole = data['role'] ?? role ?? '';
+
+        _logger.i('Startup Refresh: role=$refreshedRole setup=$setup approve=$approve completed=$completed');
+
+        // Update storage with fresh data
+        await prefs.setBool('isProfileSetup', setup);
+        await prefs.setBool('isProfileApprove', approve);
+        await prefs.setBool('isProfileCompleted', completed);
+        await prefs.setString('role', refreshedRole);
+        
+        currentUser.value = UserModel.fromJson(data);
+        _navigateBasedOnRole(refreshedRole, completed, setup, approve);
+      } else {
+        // If API fails (e.g., token expired), logout the user
+        if (response.statusCode == 401) {
+          await logout(sessionExpired: true);
+        } else {
+          // Fallback to stored values if API is temporarily unavailable
+          _navigateBasedOnRole(role ?? '', storedCompleted, storedSetup, storedApprove);
+        }
+      }
+    } catch (e) {
+      _logger.e('Error checking auth status: $e');
+      Get.offAll(() => const LoginView());
     }
   }
 
@@ -87,14 +155,18 @@ class AuthController extends GetxController {
         final user = responseData['user'];
         final String role = user['role'] ?? '';
         final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
+        final bool isProfileSetup = user['isProfileSetup'] ?? false;
+        final bool isProfileApprove = user['isProfileApprove'] ?? false;
 
-        _logger.i('Login success! User: ${user['email']}, Role: $role, Completed: $isProfileCompleted');
+        _logger.i('Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove');
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('role', role);
         await prefs.setString('userEmail', user['email']);
         await prefs.setBool('isProfileCompleted', isProfileCompleted);
+        await prefs.setBool('isProfileSetup', isProfileSetup);
+        await prefs.setBool('isProfileApprove', isProfileApprove);
         box.write('userId', user['_id'] ?? user['id']);
 
         currentUser.value = UserModel.fromJson(user);
@@ -107,7 +179,7 @@ class AuthController extends GetxController {
           user['role'],
         );
 
-        _navigateBasedOnRole(role, isProfileCompleted);
+        _navigateBasedOnRole(role, isProfileCompleted, isProfileSetup, isProfileApprove);
       } else if (response.statusCode == 403) {
         // Email not verified — send them to OTP screen
         final email = emailController.text.trim();
@@ -194,33 +266,18 @@ class AuthController extends GetxController {
         final user = responseData['user'];
         final String role = user['role'] ?? '';
         final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
+        final bool isProfileSetup = user['isProfileSetup'] ?? false;
+        final bool isProfileApprove = user['isProfileApprove'] ?? false;
 
         _logger.i('Email verified! User: ${user['email']}, Completed: $isProfileCompleted');
 
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
-        await prefs.setString('role', role);
-        await prefs.setString('userEmail', user['email']);
-        await prefs.setBool('isProfileCompleted', isProfileCompleted);
-        box.write('userId', user['_id'] ?? user['id']);
-
-        currentUser.value = UserModel.fromJson(user);
-
-        _apiService.setToken(token);
-        
-        Get.find<SocketService>().authenticate(
-          user['_id'] ?? user['id'],
-          user['email'],
-          user['role'],
-        );
-
-        Get.snackbar('Success', 'Email verified successfully.',
+        Get.snackbar('Success', 'Email verified successfully. Please log in to continue.',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green,
             colorText: Colors.white);
 
-        // Conditional navigation based on profile status
-        _navigateBasedOnRole(role, isProfileCompleted);
+        // Redirect to Login as per requirement (user must login after verification)
+        Get.offAll(() => const LoginView());
       } else {
         String message = response.body?['message'] ?? 'Verification failed';
         Get.snackbar('Invalid OTP', message,
@@ -265,25 +322,70 @@ class AuthController extends GetxController {
   }
 
   // ─── ROLE-BASED NAVIGATION (after LOGIN) ─────────────────────────────────────
-  void _navigateBasedOnRole(String role, bool isProfileCompleted) {
-    if (!isProfileCompleted) {
+  // Priority (highest first):
+  // 1. isProfileCompleted = true  → Trainer filled TrainerCompleteProfileView → Dashboard
+  // 2. isProfileApprove   = true  → Admin approved → TrainerCompleteProfileView
+  // 3. isProfileSetup     = true  → Trainer submitted application → ApplicationSubmittedView
+  // 4. all false                  → New user → SelectRoleView
+  void _navigateBasedOnRole(String role, bool isProfileCompleted, bool isProfileSetup, bool isProfileApprove) {
+    if (isProfileCompleted) {
       if (role == 'trainer') {
-        Get.offAll(() => const TrainerProfileSetupView());
+        Get.offAll(() => const TrainerBottomNav());
+      } else if (role == 'barn_manager') {
+        Get.offAll(() => const BarnManagerBottomNav());
+      } else if (role == 'service_provider') {
+        Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
       } else {
         Get.offAll(() => const SelectRoleView());
       }
       return;
     }
 
-    if (role == 'trainer') {
-      Get.offAll(() => const TrainerBottomNav());
-    } else if (role == 'barn_manager') {
-      Get.offAll(() => const BarnManagerBottomNav());
-    } else if (role == 'service_provider') {
-      Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
-    } else {
-      // New account — hasn't picked a role yet
-      Get.offAll(() => const SelectRoleView());
+    if (isProfileApprove) {
+      // Admin approved — ensure ProfileController is available before navigating
+      if (!Get.isRegistered<ProfileController>()) {
+        Get.put(ProfileController());
+      }
+      Get.offAll(() => const TrainerCompleteProfileView());
+      return;
+    }
+
+    if (isProfileSetup) {
+      // Application submitted, waiting for admin review
+      Get.offAll(() => const TrainerApplicationSubmittedView());
+      return;
+    }
+
+    // New account — no role chosen yet
+    Get.offAll(() => const SelectRoleView());
+  }
+
+  // ─── COMPLETE TRAINER PROFILE (TrainerProfileSetupView — professional application) ──────────────────────────
+  Future<void> completeTrainerProfile(Map<String, dynamic> profileData) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.putRequest(AppUrls.completeProfile, profileData);
+
+      if (response.statusCode == 200) {
+        _logger.i('Trainer application submitted. Waiting for admin approval.');
+        // NOTE: isProfileSetup is NOT set here — admin sets it upon approval.
+        // Just navigate directly to the submitted screen.
+        navigateAfterRoleSet();
+      } else {
+        String message = response.body?['message'] ?? 'Failed to submit application';
+        Get.snackbar('Error', message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white);
+      }
+    } catch (e) {
+      _logger.e('Complete profile error: $e');
+      Get.snackbar('Error', 'An unexpected error occurred',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
     }
   }
 

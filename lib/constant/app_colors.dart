@@ -9,4 +9,7 @@ class AppColors {
   static const Color border = Color(0xFFE5E7EB);
   static const Color inputBackground = Colors.white;
   static const Color tabBackground = Color(0xFFF3F4F6);
+  static const Color accentRed = Color(0xFF8B4444);
+  static const Color infoBoxBg = Color(0xFFFEF2F2);
+  static const Color infoBoxBorder = Color(0xFFFEE2E2);
 }

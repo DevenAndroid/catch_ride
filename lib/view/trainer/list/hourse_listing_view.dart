@@ -67,7 +67,7 @@ class _HourseListingViewState extends State<HourseListingView> {
         elevation: 0,
         centerTitle: false,
         title: const CommonText(
-          'Horse Listing',
+          'My Horses',
           color: AppColors.textPrimary,
           fontSize: AppTextSizes.size22,
           fontWeight: FontWeight.bold,
@@ -81,16 +81,55 @@ class _HourseListingViewState extends State<HourseListingView> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {
-                Get.to(() => const AddNewListingView());
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Image.asset(
-                  "assets/images/add_hours4x.png",
-                  width: double.infinity,
-                  fit: BoxFit.fitWidth,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: GestureDetector(
+                onTap: () => Get.to(() => const AddNewListingView()),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF00083B),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.pets_rounded, color: Colors.white, size: 24),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const CommonText(
+                              'Add your horses',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF00083B),
+                            ),
+                            CommonText(
+                              'Create a listing to share availability.',
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -189,15 +228,15 @@ class _HourseListingViewState extends State<HourseListingView> {
                       final horse = horseController.horses[index];
                       return _buildPostCard(
                         horse: horse,
-                        userName: profileController.fullName,
-                        userAvatar: profileController.avatar,
-                        timePosted: profileController.bio,
+                        userName: (horse.trainerName != null && horse.trainerName!.isNotEmpty) ? horse.trainerName! : profileController.fullName,
+                        userAvatar: (horse.trainerAvatar != null && horse.trainerAvatar!.isNotEmpty) ? horse.trainerAvatar! : profileController.avatar,
+                        timePosted: '16 days ago', // Placeholder to match design
                         mainImageUrl: horse.images.isNotEmpty ? horse.images.first : AppConstants.dummyImageUrl,
                         imageCount: '1 / ${horse.images.length}',
                         tags: horse.listingTypes,
                         postTitle: horse.listingTitle ?? horse.name,
                         postDescription: horse.description ?? '',
-                        location: horse.location ?? profileController.location,
+                        location: horse.location ?? 'Ocala, FL',
                         isOwnHorse: true,
                       );
                     },
@@ -244,8 +283,8 @@ class _HourseListingViewState extends State<HourseListingView> {
                 children: [
                   CommonImageView(
                     url: (userAvatar != null && userAvatar.isNotEmpty) ? userAvatar : AppConstants.dummyImageUrl,
-                    height: 48,
-                    width: 48,
+                    height: 44,
+                    width: 44,
                     shape: BoxShape.circle,
                   ),
                   const SizedBox(width: 12),
@@ -255,14 +294,13 @@ class _HourseListingViewState extends State<HourseListingView> {
                       children: [
                         CommonText(
                           userName,
-                          fontSize: AppTextSizes.size16,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
                         CommonText(
                           timePosted,
-                          fontSize: AppTextSizes.size12,
-                          maxLines: 1,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
                       ],
@@ -308,27 +346,25 @@ class _HourseListingViewState extends State<HourseListingView> {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Wrap(
-                      spacing: 8,
+                    child: Row(
                       children: tags
                           .map(
                             (tag) => Container(
-                              margin: EdgeInsets.only(bottom: 4),
+                              margin: const EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
+                                horizontal: 12,
+                                vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: AppColors.tabBackground,
-                                borderRadius: BorderRadius.circular(12),
+                                color: const Color(0xFFF2F4F7),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: CommonText(
                                 tag,
-                                fontSize: AppTextSizes.size12,
-                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
                                 color: AppColors.textSecondary,
                               ),
                             ),
@@ -338,12 +374,6 @@ class _HourseListingViewState extends State<HourseListingView> {
                   ),
                   const Icon(
                     Icons.share_outlined,
-                    color: AppColors.textPrimary,
-                    size: 22,
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(
-                    Icons.bookmark_outline,
                     color: AppColors.textPrimary,
                     size: 24,
                   ),
@@ -359,7 +389,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                 children: [
                   CommonText(
                     postTitle,
-                    fontSize: AppTextSizes.size16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                     height: 1.3,
@@ -367,7 +397,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                   const SizedBox(height: 6),
                   CommonText(
                     postDescription,
-                    fontSize: AppTextSizes.size14,
+                    fontSize: 15,
                     color: AppColors.textSecondary,
                     height: 1.4,
                   ),
@@ -375,14 +405,14 @@ class _HourseListingViewState extends State<HourseListingView> {
                   Row(
                     children: [
                       const Icon(
-                        Icons.location_on_outlined,
+                        Icons.location_on,
                         color: AppColors.textSecondary,
                         size: 16,
                       ),
                       const SizedBox(width: 4),
                       CommonText(
                         location,
-                        fontSize: AppTextSizes.size12,
+                        fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
                     ],

@@ -18,6 +18,8 @@ class UserModel {
   final String? instagram;
   final String? website;
   final bool isProfileCompleted;
+  final bool isProfileSetup;
+  final bool isProfileApprove;
   final String? trainerProfileId;
 
   UserModel({
@@ -40,6 +42,8 @@ class UserModel {
     this.instagram,
     this.website,
     this.isProfileCompleted = false,
+    this.isProfileSetup = false,
+    this.isProfileApprove = false,
     this.trainerProfileId,
   });
 
@@ -67,6 +71,8 @@ class UserModel {
       instagram: json['instagram'],
       website: json['website'],
       isProfileCompleted: json['isProfileCompleted'] ?? false,
+      isProfileSetup: json['isProfileSetup'] ?? false,
+      isProfileApprove: json['isProfileApprove'] ?? false,
       trainerProfileId: json['trainerId'] is Map 
           ? json['trainerId']['_id'] 
           : json['trainerId'],
@@ -94,6 +100,8 @@ class UserModel {
       'instagram': instagram,
       'website': website,
       'isProfileCompleted': isProfileCompleted,
+      'isProfileSetup': isProfileSetup,
+      'isProfileApprove': isProfileApprove,
     };
   }
 }
