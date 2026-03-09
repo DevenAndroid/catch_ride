@@ -35,16 +35,7 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SvgPicture.asset("assets/images/logo.svg"),
-
-              const SizedBox(height: 12),
-              const CommonText(
-                AppStrings.catchRide1,
-                fontSize: AppTextSizes.size18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                  letterSpacing: 1.5,
-              ),
+              SvgPicture.asset("assets/images/logo_with_title.svg"),
               const SizedBox(height: 32),
 
               // Main Card
@@ -63,7 +54,7 @@ class _LoginViewState extends State<LoginView> {
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const CommonText(
                       AppStrings.welcomeBack,
@@ -73,9 +64,10 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 8),
                     const CommonText(
-                      AppStrings.fillOutTheInformationBelowInOrderToAccessYourAccount,
+                      AppStrings.welcomeBackSubtitle,
                       fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
+                        textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
 
@@ -124,7 +116,7 @@ class _LoginViewState extends State<LoginView> {
 
                     const SizedBox(height: 24),
                     Obx(() => CommonButton(
-                      text: _authController.isLoading.value ? 'Logging in...' : AppStrings.logIn,
+                      text: _authController.isLoading.value ? AppStrings.loggingIn : AppStrings.logIn,
                       onPressed: _authController.isLoading.value 
                         ? () {} 
                         : () => _authController.login(),

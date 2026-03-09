@@ -11,7 +11,9 @@ import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:catch_ride/view/vendor/vendor_details_view.dart';
 import '../../../../controllers/booking_controller.dart';
+import '../../../models/vendor_model.dart';
 
 class TrainerExploreView extends StatefulWidget {
   const TrainerExploreView({super.key});
@@ -52,9 +54,11 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 final _ = bookingController.bookings.length;
 
                 if (controller.horses.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: CommonText(
-                      'No horses found',
+                      controller.selectedDiscipline.value == 'Vendors' 
+                        ? 'No vendors found' 
+                        : 'No horses found',
                       fontSize: AppTextSizes.size16,
                       color: AppColors.textSecondary,
                     ),
@@ -66,14 +70,11 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 if (isVendors) {
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: 5, // Dummy vendor count for now
+                    itemCount: controller.vendors.length,
                     itemBuilder: (context, index) {
+                      final vendor = controller.vendors[index];
                       return _buildVendorCard(
-                        name: 'Ria Gabriela',
-                        location: 'Wellington, FL',
-                        specialties: 'Shipping, Braider',
-                        dates: '10 Jan - 18 Jan 2026',
-                        imageUrl: AppConstants.dummyImageUrl,
+                        vendor: vendor,
                       );
                     },
                   );
@@ -478,95 +479,96 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
         ),
     );
   }
- Widget _buildVendorCard({
-    required String name,
-    required String location,
-    required String specialties,
-    required String dates,
-    required String imageUrl,
+  Widget _buildVendorCard({
+    required VendorModel vendor,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Circular Image
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: CachedNetworkImageProvider(imageUrl),
-                fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () => Get.to(() => VendorDetailsView(vendor: vendor)),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Circular Image
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: CachedNetworkImageProvider(vendor.profilePhoto ?? AppConstants.dummyImageUrl),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonText(
-                  name,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    CommonText(
-                      location,
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.stars_outlined, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    CommonText(
-                      specialties,
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    CommonText(
-                      dates,
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-              ],
+            const SizedBox(width: 16),
+            // Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonText(
+                    vendor.fullName,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      CommonText(
+                        vendor.location ?? 'Location not specified',
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.stars_outlined, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      CommonText(
+                        vendor.serviceType,
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 8),
+                      CommonText(
+                        vendor.serviceAvailability.isNotEmpty 
+                          ? '${vendor.serviceAvailability.first.startDate} - ${vendor.serviceAvailability.first.endDate}'
+                          : 'Availability not listed',
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

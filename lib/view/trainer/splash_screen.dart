@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../controllers/auth_controller.dart';
 import '../../services/api_service.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -35,44 +36,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _handleNavigation() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String? token = prefs.getString('token');
-    final String? role = prefs.getString('role');
-    final bool isProfileCompleted = prefs.getBool('isProfileCompleted') ?? false;
-    final bool isFirstLaunch = box.read('isFirstLaunch') ?? true;
-
-    if (token != null && token.isNotEmpty) {
-      // User is logged in, redirect based on role and completion status
-      _logger.i('Auto-logging in user with role: $role, Completed: $isProfileCompleted');
-      
-      // SET TOKEN IN API SERVICE
-      Get.find<ApiService>().setToken(token);
-      
-      if (!isProfileCompleted) {
-        if (role == 'trainer') {
-          Get.offAll(() => const TrainerProfileSetupView());
-        } else {
-          Get.offAll(() => const SelectRoleView());
-        }
-        return;
-      }
-
-      if (role == 'trainer') {
-        Get.offAll(() => const TrainerBottomNav());
-      } else if (role == 'barn_manager') {
-        Get.offAll(() => const BarnManagerBottomNav());
-      } else {
-        Get.offAll(() => const SelectRoleView());
-      }
-    } else {
-      // Not logged in
-      if (isFirstLaunch) {
-        box.write('isFirstLaunch', false);
-        Get.offAll(() => const CreateAccountView());
-      } else {
-        Get.offAll(() => const LoginView());
-      }
-    }
+    // Let AuthController handle the logic of checking token and profile status
+    // It will fetch the latest profile and redirect to the correct screen
+    await Get.find<AuthController>().checkAuthStatus();
   }
 
   @override

@@ -43,16 +43,16 @@ class _CreateAccountViewState extends State<CreateAccountView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SvgPicture.asset("assets/images/logo.svg"),
+              SvgPicture.asset("assets/images/logo_with_title.svg"),
 
-              const SizedBox(height: 12),
+/*              const SizedBox(height: 12),
               const CommonText(
                 AppStrings.catchRide1,
                 fontSize: AppTextSizes.size18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primary,
                 letterSpacing: 1.5,
-              ),
+              ),*/
               const SizedBox(height: 32),
 
               // Main Card
@@ -71,7 +71,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center ,
                   children: [
                     const CommonText(
                       AppStrings.createAccount,
@@ -81,9 +81,10 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ),
                     const SizedBox(height: 8),
                     const CommonText(
-                      'Let\'s get started by filling out the form below.',
+                      AppStrings.createAccountSubtitle,
                       fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
 
@@ -144,7 +145,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         if (_authController.emailController.text.isEmpty ||
                             _authController.passwordController.text.isEmpty ||
                             _authController.confirmPasswordController.text.isEmpty) {
-                          Get.snackbar('Error', 'Please fill in all fields',
+                          Get.snackbar(AppStrings.error, AppStrings.pleaseFillInAllFields,
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: Colors.red,
                               colorText: Colors.white);
@@ -152,14 +153,14 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         }
                         if (_authController.passwordController.text !=
                             _authController.confirmPasswordController.text) {
-                          Get.snackbar('Error', 'Passwords do not match',
+                          Get.snackbar(AppStrings.error, AppStrings.passwordsDoNotMatch,
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: Colors.red,
                               colorText: Colors.white);
                           return;
                         }
                         if (_authController.passwordController.text.length < 6) {
-                          Get.snackbar('Error', 'Password must be at least 6 characters',
+                          Get.snackbar(AppStrings.error, AppStrings.passwordMustBeAtLeast6Characters,
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: Colors.red,
                               colorText: Colors.white);

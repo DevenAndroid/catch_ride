@@ -70,8 +70,8 @@ class ProfileController extends GetxController {
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
-      // Use completeProfile endpoint as it handles role-specific data synchronization
-      final response = await _apiService.putRequest(AppUrls.completeProfile, data);
+      // PUT /profile — handles all field updates AND syncs trainer/vendor/barn-manager record
+      final response = await _apiService.putRequest(AppUrls.profile, data);
       
       if (response.statusCode == 200) {
         await fetchProfile(); // Refresh local data
@@ -79,6 +79,10 @@ class ProfileController extends GetxController {
       } else {
         String message = response.body?['message'] ?? 'Update failed';
         _logger.e('Update failed: $message');
+        Get.snackbar('Error', message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white);
         return false;
       }
     } catch (e) {

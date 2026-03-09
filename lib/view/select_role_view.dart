@@ -26,15 +26,15 @@ class _SelectRoleViewState extends State<SelectRoleView> {
 
   final List<Map<String, String>> _roles = [
     {
-      'title': 'Trainer',
-      'subtitle': 'List horses and manage your equestrian program.',
-      'value': 'Trainer',
+      'title': AppStrings.trainer,
+      'subtitle': AppStrings.trainersAndServiceProviders,
+      'value': AppStrings.trainer,
       'backendValue': 'trainer',
     },
     {
-      'title': 'Service Provider',
-      'subtitle': 'Offer services, clinics, and accept bookings.',
-      'value': 'Service Provider',
+      'title': AppStrings.serviceProvider,
+      'subtitle': AppStrings.offerServicesAndAcceptBookings,
+      'value': AppStrings.serviceProvider,
       'backendValue': 'service_provider',
     },
   ];
@@ -81,11 +81,9 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const CommonText(
-                      AppStrings
-                          .helpOtherTrustedProfessionalsConnectWithYouByCompletingYourApplicationBelow,
+                      AppStrings.chooseHowYouWillUseCatchRide,
                       fontSize: AppTextSizes.size14,
                       color: AppColors.textSecondary,
-                      height: 1.4,
                     ),
                     const SizedBox(height: 32),
                     ..._roles.map(
@@ -131,7 +129,7 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                         _authController.navigateAfterRoleSet();
                       }
                     } else {
-                      Get.snackbar('Error', 'Failed to set role. Please try again.',
+                      Get.snackbar(AppStrings.error, AppStrings.failedToSetRole,
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.red,
                           colorText: Colors.white);

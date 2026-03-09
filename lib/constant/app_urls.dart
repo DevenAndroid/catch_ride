@@ -29,6 +29,7 @@ class AppUrls {
   
   // Trainers
   static const String trainers = '/trainers';
+  static const String vendors = '/vendors';
 
   // System Config (Tags)
   static const String systemConfig = '/system-config';
