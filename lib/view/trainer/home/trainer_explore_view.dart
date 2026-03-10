@@ -30,7 +30,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
     {'name': 'Jumper', 'icon': 'assets/icons/jumper.svg', 'isSvg': true},
     {'name': 'Equitation', 'icon': 'assets/icons/equitation.svg', 'isSvg': true},
-    {'name': 'Vendors', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
+    {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
   @override
@@ -53,19 +53,27 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 final bookingController = Get.find<BookingController>();
                 final _ = bookingController.bookings.length;
 
-                if (controller.horses.isEmpty) {
-                  return Center(
+                final bool isVendors = controller.selectedDiscipline.value == 'Services';
+
+                if (isVendors && controller.vendors.isEmpty) {
+                  return const Center(
                     child: CommonText(
-                      controller.selectedDiscipline.value == 'Vendors' 
-                        ? 'No vendors found' 
-                        : 'No horses found',
+                      'No vendors available',
                       fontSize: AppTextSizes.size16,
                       color: AppColors.textSecondary,
                     ),
                   );
                 }
 
-                final bool isVendors = controller.selectedDiscipline.value == 'Vendors';
+                if (!isVendors && controller.horses.isEmpty) {
+                  return const Center(
+                    child: CommonText(
+                      'No horses found',
+                      fontSize: AppTextSizes.size16,
+                      color: AppColors.textSecondary,
+                    ),
+                  );
+                }
 
                 if (isVendors) {
                   return ListView.builder(
@@ -146,12 +154,12 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -198,7 +206,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     CommonText(
                       "Search horses, vendors and circuits",
                       fontSize: AppTextSizes.size12,
-                      color: AppColors.textSecondary.withOpacity(0.7),
+                      color: AppColors.textSecondary.withValues(alpha: 0.7),
                     ),
                   ],
                 ),
@@ -314,7 +322,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.transparent,
-                Colors.black.withOpacity(0.5),
+                Colors.black.withValues(alpha: 0.5),
               ],
               stops: const [0.7, 1.0],
             ),
@@ -363,12 +371,12 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
       margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -488,13 +496,12 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border.withOpacity(0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 15,
               offset: const Offset(0, 4),
             ),
           ],
@@ -502,16 +509,14 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Circular Image
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: CachedNetworkImageProvider(vendor.profilePhoto ?? AppConstants.dummyImageUrl),
-                  fit: BoxFit.cover,
-                ),
+            // Square Image with rounded corners
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: CachedNetworkImage(
+                imageUrl: vendor.profilePhoto ?? AppConstants.dummyImageUrl,
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
               ),
             ),
             const SizedBox(width: 16),
@@ -520,47 +525,51 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 4),
                   CommonText(
                     vendor.fullName,
                     fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
+                      const SizedBox(width: 8),
+                      CommonText(
+                        vendor.location ?? 'Wellington, FL',
+                        fontSize: 14,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
-                      const SizedBox(width: 8),
-                      CommonText(
-                        vendor.location ?? 'Location not specified',
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.stars_outlined, size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
                       const SizedBox(width: 8),
                       CommonText(
                         vendor.serviceType,
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
+                      Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
                       const SizedBox(width: 8),
                       CommonText(
                         vendor.serviceAvailability.isNotEmpty 
                           ? '${vendor.serviceAvailability.first.startDate} - ${vendor.serviceAvailability.first.endDate}'
-                          : 'Availability not listed',
+                          : '10 Jan - 18 Jan 2026',
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ),

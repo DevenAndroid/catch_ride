@@ -18,55 +18,59 @@ class ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: isMe
-          ? CrossAxisAlignment.end
-          : CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (isMe) ...[
-                CommonText(time, fontSize: 11, color: AppColors.textSecondary),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.done_all,
-                  size: 14,
-                  color: isRead ? Colors.blue : AppColors.textSecondary,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: isMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isMe ? AppColors.secondary : const Color(0xFFF2F4F7),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isMe 
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ] 
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+            ),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
+            child: CommonText(
+              message,
+              fontSize: 15,
+              color: isMe ? Colors.white : AppColors.textPrimary,
+              height: 1.4,
+            ),
+          ),
+          if (isMe && isRead) ...[
+            const SizedBox(height: 4),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CommonText(
+                  'Seen $time',
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
                 ),
-              ] else
-                CommonText(time, fontSize: 11, color: AppColors.textSecondary),
-            ],
-          ),
-        ),
-        Container(
-          margin: EdgeInsets.only(
-            bottom: 16,
-            left: isMe ? 64 : 0,
-            right: isMe ? 0 : 64,
-          ),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isMe ? const Color(0xFFE5F1FF) : const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(12),
-              topRight: const Radius.circular(12),
-              bottomLeft: Radius.circular(isMe ? 12 : 0),
-              bottomRight: Radius.circular(isMe ? 0 : 12),
+              ],
             ),
-            border: Border.all(
-              color: isMe ? const Color(0xFFB3D7FF) : AppColors.border,
-            ),
-          ),
-          child: CommonText(
-            message,
-            fontSize: 15,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ],
+          ],
+        ],
+      ),
     );
   }
 }

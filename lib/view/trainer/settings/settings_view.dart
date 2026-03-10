@@ -12,12 +12,15 @@ import 'package:catch_ride/view/trainer/settings/horses_services_view.dart';
 import 'package:catch_ride/view/trainer/settings/refer_new_member_view.dart';
 import 'package:catch_ride/view/trainer/settings/get_help_view.dart';
 import 'package:catch_ride/view/trainer/settings/feedback_view.dart';
+import 'package:catch_ride/view/trainer/settings/view_all_horses_view.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../list/add_new_listing_view.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -26,16 +29,17 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final ProfileController controller = Get.find<ProfileController>();
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        centerTitle: false,
         title: const Padding(
           padding: EdgeInsets.only(left: 8),
           child: CommonText(
             'Profile',
-            fontSize: 18,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
@@ -44,12 +48,15 @@ class SettingsView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Container(
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border.withOpacity(0.5)),
+                border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
               ),
               child: IconButton(
-                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary),
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
                 onPressed: () {},
               ),
             ),
@@ -57,7 +64,7 @@ class SettingsView extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -66,13 +73,67 @@ class SettingsView extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Add a horse banner
-            _buildAddHorseBanner(),
-            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: () => Get.to(() => const AddNewListingView()),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 54,
+                      height: 54,
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF00083B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: SvgPicture.asset(
+                        "assets/images/logo.svg",
+                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CommonText(
+                            'Add your horses',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF00083B),
+                          ),
+                          CommonText(
+                            'Create a listing to share availability.',
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
 
             _buildSectionHeader('Account Settings'),
             _buildSettingsGroup([
               _buildSettingsTile(
-                icon: Icons.edit_note_rounded,
+                icon: Icons.edit_outlined,
                 title: 'Edit Profile',
                 onTap: () => Get.to(() => const EditProfileView()),
               ),
@@ -82,19 +143,35 @@ class SettingsView extends StatelessWidget {
                 onTap: () => Get.to(() => const ProfileInformationView()),
               ),
               _buildSettingsTile(
-                icon: Icons.lock_outline_rounded,
+                icon: Icons.shield_outlined,
                 title: 'Login & Security',
                 onTap: () => Get.to(() => const AccountSettingsView()),
               ),
               _buildSettingsTile(
-                icon: Icons.notifications_none_rounded,
+                icon: Icons.notifications_none_outlined,
                 title: 'Notifications',
                 onTap: () => Get.to(() => const NotificationSettingsView()),
+                showDivider: false,
+              ),
+            ]),
+            const SizedBox(height: 24),
+
+            _buildSectionHeader('Horses & Services'),
+            _buildSettingsGroup([
+              _buildSettingsTile(
+                icon: Icons.add_circle_outline_rounded,
+                title: 'List Your Horses',
+                onTap: () => Get.to(() => const AddNewListingView()),
               ),
               _buildSettingsTile(
-                icon: Icons.pest_control_rodent_outlined, // Closer to horse icon in standard icons or use SVG
-                title: 'Horses & Services',
-                onTap: () => Get.to(() => const HorsesServicesView()),
+                icon: Icons.visibility_outlined,
+                title: 'View all Horses',
+                onTap: () => Get.to(() => const ViewAllHorsesView()),
+              ),
+              _buildSettingsTile(
+                icon: Icons.history_rounded,
+                title: 'Past Services and Trials',
+                onTap: () {},
                 showDivider: false,
               ),
             ]),
@@ -103,7 +180,7 @@ class SettingsView extends StatelessWidget {
             _buildSectionHeader('Referrals'),
             _buildSettingsGroup([
               _buildSettingsTile(
-                icon: Icons.person_add_alt_1_outlined,
+                icon: Icons.person_add_alt_outlined,
                 title: 'Invite Barn Manager',
                 onTap: () => Get.to(() => const InviteBarnManagerView()),
               ),
@@ -129,12 +206,12 @@ class SettingsView extends StatelessWidget {
                 onTap: () => Get.to(() => const FeedbackView()),
               ),
               _buildSettingsTile(
-                icon: Icons.assignment_outlined,
+                icon: Icons.description_outlined,
                 title: 'Privacy policy',
                 onTap: () => Get.to(() => const PrivacyPolicyView()),
               ),
               _buildSettingsTile(
-                icon: Icons.assignment_outlined,
+                icon: Icons.description_outlined,
                 title: 'Terms & conditions',
                 onTap: () => Get.to(() => const TermsAndConditionsView()),
                 showDivider: false,
@@ -142,7 +219,7 @@ class SettingsView extends StatelessWidget {
             ]),
             const SizedBox(height: 32),
             _buildLogoutButton(),
-            const SizedBox(height: 100), // Space for bottom nav
+            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -152,91 +229,61 @@ class SettingsView extends StatelessWidget {
   Widget _buildProfileCard(ProfileController controller) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: 30),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
         children: [
-          CommonImageView(
-            url: controller.avatar.isNotEmpty ? controller.avatar : AppConstants.dummyImageUrl,
-            height: 80,
-            width: 80,
-            shape: BoxShape.circle,
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.2)),
+            ),
+            child: CommonImageView(
+              url: controller.avatar.isNotEmpty ? controller.avatar : AppConstants.dummyImageUrl,
+              height: 90,
+              width: 90,
+              shape: BoxShape.circle,
+            ),
           ),
           const SizedBox(height: 16),
           CommonText(
-            controller.fullName.isNotEmpty ? controller.fullName : 'User Name',
-            fontSize: 18,
+            controller.fullName.isNotEmpty ? controller.fullName : 'Arya Stark',
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 4),
           CommonText(
-            controller.specialization,
+            controller.specialization.isNotEmpty ? controller.specialization : 'Winter Equestrian',
             fontSize: 14,
-            color: AppColors.textSecondary.withOpacity(0.8),
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
           ),
           const SizedBox(height: 12),
           TextButton(
             onPressed: () {},
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
             child: const CommonText(
               'View Profile',
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2E90FA), // Blue color from image
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAddHorseBanner() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF000B48),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.pest_control_rodent_outlined, color: Colors.white, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CommonText(
-                  'Add a horse',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                const SizedBox(height: 2),
-                CommonText(
-                  "It's simple to get set up and start earning.",
-                  fontSize: 13,
-                  color: AppColors.textSecondary.withOpacity(0.7),
-                ),
-              ],
+              color: AppColors.linkBlue,
             ),
           ),
         ],
@@ -249,8 +296,8 @@ class SettingsView extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: CommonText(
         title,
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
         color: AppColors.textSecondary,
       ),
     );
@@ -259,9 +306,9 @@ class SettingsView extends StatelessWidget {
   Widget _buildSettingsGroup(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
       ),
       child: Column(children: children),
     );
@@ -282,30 +329,30 @@ class SettingsView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
-                Icon(icon, size: 22, color: AppColors.textSecondary),
+                Icon(icon, size: 24, color: AppColors.textSecondary),
                 const SizedBox(width: 16),
                 Expanded(
                   child: CommonText(
                     title,
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                   ),
                 ),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: AppColors.textSecondary.withOpacity(0.5),
+                  size: 16,
+                  color: AppColors.textSecondary.withValues(alpha: 0.4),
                 ),
               ],
             ),
           ),
           if (showDivider)
             Padding(
-              padding: const EdgeInsets.only(left: 54),
+              padding: const EdgeInsets.only(left: 56),
               child: Divider(
                 height: 1,
-                color: AppColors.border.withOpacity(0.5),
+                color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
         ],
@@ -316,11 +363,11 @@ class SettingsView extends StatelessWidget {
   Widget _buildLogoutButton() {
     return SizedBox(
       width: double.infinity,
-      height: 54,
+      height: 56,
       child: OutlinedButton(
         onPressed: () => _showLogoutDialog(Get.context!),
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.border),
+          side: const BorderSide(color: Color(0xFFEAECF0)),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -329,13 +376,13 @@ class SettingsView extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Icon(Icons.logout_rounded, size: 20, color: Color(0xFFD92D20)),
+            Icon(Icons.logout_rounded, size: 22, color: Color(0xFFF04438)),
             SizedBox(width: 10),
             CommonText(
               'Logout',
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Color(0xFFD92D20),
+              color: Color(0xFFF04438),
             ),
           ],
         ),

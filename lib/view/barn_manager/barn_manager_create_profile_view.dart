@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../controllers/profile_controller.dart';
 import 'barn_manager_application_submitted_view.dart';
 
 class BarnManagerCreateProfileView extends StatefulWidget {
@@ -24,6 +25,7 @@ class BarnManagerCreateProfileView extends StatefulWidget {
 class _BarnManagerCreateProfileViewState
     extends State<BarnManagerCreateProfileView> {
   final AuthController _authController = Get.find<AuthController>();
+  final ProfileController _profileController = Get.put(ProfileController());
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
@@ -329,11 +331,32 @@ class _BarnManagerCreateProfileViewState
                   final firstName = nameParts.first;
                   final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
 
-                  await _authController.register({
-                    'firstName': firstName,
-                    'lastName': lastName,
-                    'phone': _phoneController.text,
-                  });
+                  // Handle Image Uploads first if needed
+                  String? profileUrl;
+                  String? bannerUrl;
+                  
+                  _authController.isLoading.value = true;
+                  try {
+                    if (_profileImage != null) {
+                      profileUrl = await _profileController.uploadRawFile(_profileImage!.path);
+                    }
+                    if (_bannerImage != null) {
+                      bannerUrl = await _profileController.uploadRawFile(_bannerImage!.path);
+                    }
+
+                    final Map<String, dynamic> profileData = {
+                      'firstName': firstName,
+                      'lastName': lastName,
+                      'phone': _phoneController.text.trim(),
+                    };
+
+                    if (profileUrl != null) profileData['avatar'] = profileUrl;
+                    if (bannerUrl != null) profileData['coverImage'] = bannerUrl;
+
+                    await _authController.completeBarnManagerProfile(profileData);
+                  } finally {
+                    _authController.isLoading.value = false;
+                  }
                 },
               )),
             ),

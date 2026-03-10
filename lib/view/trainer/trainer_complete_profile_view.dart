@@ -114,10 +114,6 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border, height: 1),
-        ),
       ),
       body: Column(
         children: [
@@ -151,22 +147,16 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.border.withOpacity(0.8)),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CommonText(title, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ...children,
         ],
       ),
@@ -190,45 +180,53 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   decoration: BoxDecoration(
                     color: const Color(0xFFF2F4F7),
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border),
                   ),
                   child: ClipOval(
                     child: _profileImage != null
                         ? Image.file(_profileImage!, fit: BoxFit.cover)
-                        : CommonImageView(
-                            url: profileController.avatar,
-                            fit: BoxFit.cover,
-                            fallbackIcon: Icons.person_outline_rounded,
-                          ),
+                        : profileController.avatar.isNotEmpty 
+                            ? CommonImageView(
+                                url: profileController.avatar,
+                                fit: BoxFit.cover,
+                                fallbackIcon: Icons.person_outline_rounded,
+                              )
+                            : const Icon(Icons.person_outline_rounded, size: 48, color: AppColors.textSecondary),
                   ),
                 ),
                 Positioned(
-                  bottom: 0,
-                  right: 0,
+                  bottom: 2,
+                  right: 2,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border.withOpacity(0.5)),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textPrimary),
+                    child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        const CommonText('Banner Image (optional)', fontSize: 13, color: AppColors.textPrimary),
+        const SizedBox(height: 24),
+        const CommonText('Banner Image  (optional)', fontSize: 13, color: AppColors.textPrimary),
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () => _pickImage(false),
           child: CustomPaint(
-            painter: _bannerImage == null ? DashPainter(color: AppColors.border) : null,
+            painter: _bannerImage == null && profileController.coverImage.isEmpty 
+                ? DashPainter(color: AppColors.border, borderRadius: 12) 
+                : null,
             child: Container(
-              height: 120,
+              height: 140,
               width: double.infinity,
               decoration: BoxDecoration(
                 color: const Color(0xFFF9FAFB),
@@ -244,7 +242,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                             fit: BoxFit.cover,
                           )
                         : const Center(
-                            child: Icon(Icons.add, color: AppColors.textSecondary),
+                            child: Icon(Icons.add, color: AppColors.textSecondary, size: 28),
                           ),
               ),
             ),
@@ -259,7 +257,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       title: 'Basic Details',
       children: [
         _buildTextField('Full Name', _fullNameController, hint: 'Enter your full name', isRequired: true),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildPhoneField(),
       ],
     );
@@ -270,9 +268,9 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       title: 'Barn Information',
       children: [
         _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name', isRequired: true),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildTextField('Location I', _location1Controller, hint: 'Enter barn location', isRequired: true),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildTextField('Location II', _location2Controller, hint: 'Enter your business name', suffix: '(optional)'),
       ],
     );
@@ -283,15 +281,28 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       title: 'Experience',
       children: [
         _buildExperienceDropdown(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildTextField('Bio', _bioController, hint: 'Write a short bio', maxLines: 4),
-        const SizedBox(height: 16),
-        _buildBottomSheetSelector(
-          label: 'Program Tags',
-          hint: 'Select program tags...',
-          selectedItems: _selectedProgramTags,
-          allItems: profileController.allProgramTags,
-        ),
+        const SizedBox(height: 24),
+        const CommonText('Select Program tags', fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.normal),
+        const SizedBox(height: 12),
+        Obx(() => Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: profileController.allProgramTags.map((tag) {
+            final isSelected = _selectedProgramTags.contains(tag);
+            return GestureDetector(
+              onTap: () {
+                if (isSelected) {
+                  _selectedProgramTags.remove(tag);
+                } else {
+                  _selectedProgramTags.add(tag);
+                }
+              },
+              child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+            );
+          }).toList(),
+        )),
       ],
     );
   }
@@ -418,304 +429,38 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     return _buildSectionContainer(
       title: 'Horse Shows & Circuits Frequented',
       children: [
-        _buildBottomSheetSelector(
-          label: 'Horse Shows & Circuits',
-          hint: 'Select horse shows & circuits...',
-          selectedItems: _selectedHorseShows,
-          allItems: profileController.allHorseShows,
+        _buildTextField(
+          'Search Horse Shows & Circuits', 
+          _searchCircuitsController, 
+          hint: 'Search horse shows & circuits', 
+          isRequired: true
         ),
-      ],
-    );
-  }
-
-  /// Opens a multi-select bottom sheet with search, Done & Cancel.
-  Widget _buildBottomSheetSelector({
-    required String label,
-    required String hint,
-    required RxList<String> selectedItems,
-    required RxList<String> allItems,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(label, fontSize: 13, color: AppColors.textPrimary),
-        const SizedBox(height: 8),
-        // Tap to open bottom sheet
-        GestureDetector(
-          onTap: () => _showMultiSelectBottomSheet(
-            title: label,
-            selectedItems: selectedItems,
-            allItems: allItems,
-          ),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Obx(() => CommonText(
-                    selectedItems.isEmpty ? hint : '${selectedItems.length} selected',
-                    fontSize: 14,
-                    color: selectedItems.isEmpty
-                        ? AppColors.textSecondary.withOpacity(0.5)
-                        : AppColors.textPrimary,
-                  )),
-                ),
-                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // Show selected chips below the selector
+        const SizedBox(height: 16),
         Obx(() {
-          if (selectedItems.isEmpty) return const SizedBox.shrink();
+          final query = _searchCircuitsController.text.toLowerCase();
+          final shows = profileController.allHorseShows.where((s) => s.toLowerCase().contains(query)).toList();
           return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: selectedItems.map((tag) => GestureDetector(
-              onTap: () => selectedItems.remove(tag),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF000B48).withOpacity(0.07),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF000B48).withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CommonText(tag, fontSize: 12, color: const Color(0xFF000B48), fontWeight: FontWeight.w600),
-                    const SizedBox(width: 5),
-                    const Icon(Icons.close, size: 13, color: Color(0xFF000B48)),
-                  ],
-                ),
-              ),
-            )).toList(),
+            spacing: 12,
+            runSpacing: 12,
+            children: shows.map((tag) {
+              final isSelected = _selectedHorseShows.contains(tag);
+              return GestureDetector(
+                onTap: () {
+                  if (isSelected) {
+                    _selectedHorseShows.remove(tag);
+                  } else {
+                    _selectedHorseShows.add(tag);
+                  }
+                },
+                child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+              );
+            }).toList(),
           );
         }),
       ],
     );
   }
 
-  void _showMultiSelectBottomSheet({
-    required String title,
-    required RxList<String> selectedItems,
-    required RxList<String> allItems,
-  }) {
-    // Temp copy so Cancel can discard changes
-    final tempSelected = RxList<String>.from(selectedItems);
-    final searchController = TextEditingController();
-    final filteredItems = RxList<String>.from(allItems);
-
-    searchController.addListener(() {
-      final q = searchController.text.toLowerCase();
-      filteredItems.assignAll(
-        q.isEmpty ? allItems : allItems.where((e) => e.toLowerCase().contains(q)).toList(),
-      );
-    });
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.75,
-          minChildSize: 0.4,
-          maxChildSize: 0.92,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                // Handle bar
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                // Title row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CommonText(
-                          title,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      Obx(() => CommonText(
-                        '${tempSelected.length} selected',
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      )),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Search field
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: TextField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search...',
-                      prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                      hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF000B48), width: 1.5),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // List
-                Expanded(
-                  child: Obx(() => ListView.builder(
-                    controller: scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    itemCount: filteredItems.length,
-                    itemBuilder: (_, i) {
-                      final item = filteredItems[i];
-                      return Obx(() {
-                        final isSelected = tempSelected.contains(item);
-                        return InkWell(
-                          onTap: () {
-                            if (isSelected) {
-                              tempSelected.remove(item);
-                            } else {
-                              tempSelected.add(item);
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                            margin: const EdgeInsets.only(bottom: 4),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF000B48).withOpacity(0.05)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: CommonText(
-                                    item,
-                                    fontSize: 14,
-                                    color: isSelected
-                                        ? const Color(0xFF000B48)
-                                        : AppColors.textPrimary,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 180),
-                                  width: 22,
-                                  height: 22,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? const Color(0xFF000B48)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? const Color(0xFF000B48)
-                                          : AppColors.border,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: isSelected
-                                      ? const Icon(Icons.check, size: 14, color: Colors.white)
-                                      : null,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      });
-                    },
-                  )),
-                ),
-                // Done / Cancel
-                Container(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        offset: const Offset(0, -3),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx), // discard
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: const BorderSide(color: AppColors.border),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const CommonText('Cancel', fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            selectedItems.assignAll(tempSelected); // commit
-                            Navigator.pop(ctx);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF000B48),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                          child: const CommonText('Done', fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
 
   Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType}) {
@@ -766,16 +511,15 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           child: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: const [
                     CommonText('+1', fontSize: 14, color: AppColors.textPrimary),
                     SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
+                    Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.textSecondary),
                   ],
                 ),
               ),
-              Container(width: 1, height: 24, color: AppColors.border),
               Expanded(
                 child: TextField(
                   controller: _phoneController,
@@ -784,7 +528,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
                   ),
                 ),
@@ -798,30 +542,30 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
 
   Widget _buildTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.7)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border.withOpacity(0.8)),
       ),
-      child: CommonText(text, fontSize: 12, color: AppColors.textSecondary),
+      child: CommonText(text, fontSize: 13, color: AppColors.textPrimary),
     );
   }
 
   Widget _buildSelectedTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF000B48).withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF000B48)),
+        color: const Color(0xFF000B48).withOpacity(0.02),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF000B48), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CommonText(text, fontSize: 12, color: const Color(0xFF000B48), fontWeight: FontWeight.bold),
-          const SizedBox(width: 4),
-          const Icon(Icons.close, size: 14, color: Color(0xFF000B48)),
+          CommonText(text, fontSize: 13, color: const Color(0xFF000B48), fontWeight: FontWeight.bold),
+          const SizedBox(width: 8),
+          const Icon(Icons.close, size: 16, color: Color(0xFF000B48)),
         ],
       ),
     );

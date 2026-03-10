@@ -4,6 +4,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/trainer/trainer_profile_setup_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_create_profile_view.dart';
 
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -37,6 +38,12 @@ class _SelectRoleViewState extends State<SelectRoleView> {
       'value': AppStrings.serviceProvider,
       'backendValue': 'service_provider',
     },
+/*    {
+      'title': AppStrings.barnManager,
+      'subtitle': AppStrings.manageBarnOperations,
+      'value': AppStrings.barnManager,
+      'backendValue': 'barn_manager',
+    },*/
   ];
 
   @override
@@ -124,6 +131,8 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                       // Navigate based on role
                       if (backendRole == 'trainer') {
                         Get.to(() => const TrainerProfileSetupView());
+                      } else if (backendRole == 'barn_manager') {
+                        Get.to(() => const BarnManagerCreateProfileView());
                       } else {
                         // Service Provider — go to submitted screen
                         _authController.navigateAfterRoleSet();

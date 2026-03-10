@@ -1,5 +1,4 @@
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -21,14 +20,15 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.black87,
+            color: AppColors.textPrimary,
             size: 20,
           ),
           onPressed: () => Get.back(),
@@ -39,13 +39,9 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
-        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           children: [
             if (_hasBarnManager)
@@ -83,101 +79,123 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
   Widget _buildCurrentManagerSection() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF), // Soft blue background
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const CommonText(
-                'Your current barn manager',
-                fontSize: 13,
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-              ),
-              PopupMenuButton(
-                icon: const Icon(
-                  Icons.more_vert,
-                  size: 20,
-                  color: Colors.black87,
-                ),
-                onSelected: (value) {
-                  if (value == 'remove') {
-                    setState(() {
-                      _hasBarnManager = false;
-                    });
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'remove',
-                    child: Text('Remove Barn Manager'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
+          // Header
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonImageView(
-                  url: AppConstants.dummyImageUrl,
-                  height: 60,
-                  width: 60,
-                  shape: BoxShape.circle,
+                const CommonText(
+                  'Your current barn manager',
+                  fontSize: 13,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                PopupMenuButton(
+                  icon: const Icon(Icons.more_vert, size: 20, color: Colors.white),
+                  onSelected: (value) {
+                    if (value == 'remove') {
+                      setState(() {
+                        _hasBarnManager = false;
+                      });
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'remove',
+                      child: Text('Remove Barn Manager'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          // Barn Image
+          const CommonImageView(
+            url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=800',
+            height: 180,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+          
+          // Profile & Info
+          Transform.translate(
+            offset: const Offset(0, -40),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const CommonText(
-                        'Lisa James',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const CommonImageView(
+                          url: 'https://i.pravatar.cc/150?u=lisa_james',
+                          height: 100,
+                          width: 100,
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                      const SizedBox(height: 2),
-                      const CommonText(
-                        'lisa@example.com',
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: const [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: AppColors.textSecondary,
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CommonText(
+                                'Lisa James',
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                              SizedBox(height: 4),
+                              CommonText(
+                                'lisa@example.com',
+                                fontSize: 15,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
                           ),
-                          SizedBox(width: 4),
-                          Expanded(
-                            child: CommonText(
-                              'Ocklawaha, USA, United States',
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  const CommonText(
+                    "I'm Alex, a passionate hair stylist with over 10 years of experience in transforming looks and boosting confidence. My journey began in a small town, and since then, I've honed my skills in various styles, from classic cuts to trendy colors.",
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
           ),
         ],
@@ -191,10 +209,10 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

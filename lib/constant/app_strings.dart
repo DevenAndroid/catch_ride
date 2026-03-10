@@ -12,6 +12,8 @@ class AppStrings {
   static const String barnInformation = 'Barn Information';
   static const String barnName = 'Barn Name';
   static const String basicDetails = 'Basic Details';
+  static const String barnManager = 'Barn Manager';
+  static const String manageBarnOperations = 'Manage barn operations and coordinates with owners.';
   static const String bio = 'Bio';
   static const String failedToSetRole = 'Failed to set role. Please try again.';
   static const String bookings = 'Bookings';

@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 import '../services/socket_service.dart';
 import '../controllers/profile_controller.dart';
+import '../view/barn_manager/barn_manager_application_submitted_view.dart';
 import '../view/create_account_view.dart';
 import '../view/trainer/trainer_complete_profile_view.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
@@ -352,7 +353,11 @@ class AuthController extends GetxController {
 
     if (isProfileSetup) {
       // Application submitted, waiting for admin review
-      Get.offAll(() => const TrainerApplicationSubmittedView());
+      if (role == 'barn_manager') {
+        Get.offAll(() => const BarnManagerApplicationSubmittedView());
+      } else {
+        Get.offAll(() => const TrainerApplicationSubmittedView());
+      }
       return;
     }
 
@@ -389,9 +394,40 @@ class AuthController extends GetxController {
     }
   }
 
+  // ─── COMPLETE BARN MANAGER PROFILE (BarnManagerCreateProfileView) ─────────────
+  Future<void> completeBarnManagerProfile(Map<String, dynamic> profileData) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.putRequest(AppUrls.completeProfile, profileData);
+
+      if (response.statusCode == 200) {
+        _logger.i('Barn Manager application submitted.');
+        Get.offAll(() => const BarnManagerApplicationSubmittedView());
+      } else {
+        String message = response.body?['message'] ?? 'Failed to submit application';
+        Get.snackbar('Error', message,
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white);
+      }
+    } catch (e) {
+      _logger.e('Complete profile error: $e');
+      Get.snackbar('Error', 'An unexpected error occurred',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // ─── NAVIGATION AFTER REGISTRATION (after role set) ──────────────────────────
   void navigateAfterRoleSet() {
-    Get.offAll(() => const TrainerApplicationSubmittedView());
+    if (selectedRole.value == 'barn_manager') {
+      Get.offAll(() => const BarnManagerApplicationSubmittedView());
+    } else {
+      Get.offAll(() => const TrainerApplicationSubmittedView());
+    }
   }
 
   // ─── LOGOUT ──────────────────────────────────────────────────────────────────
