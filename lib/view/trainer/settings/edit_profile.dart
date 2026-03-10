@@ -106,10 +106,11 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () => Get.back(),
@@ -120,28 +121,26 @@ class _EditProfileViewState extends State<EditProfileView> {
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
-        ),
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 children: [
                   _buildBasicDetailsSection(),
-                  const SizedBox(height: 16),
-                  _buildExperienceSection(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   _buildBarnInformationSection(),
-                  const SizedBox(height: 16),
-                  _buildFrequentedCircuitsSection(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  _buildExperienceSection(),
+                  const SizedBox(height: 20),
                   _buildSocialMediaSection(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  _buildFrequentedCircuitsSection(),
+                  const SizedBox(height: 20),
+                  _buildFederationInformationSection(),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -157,21 +156,21 @@ class _EditProfileViewState extends State<EditProfileView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(title, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-          const SizedBox(height: 16),
+          CommonText(title, fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          const SizedBox(height: 20),
           ...children,
         ],
       ),
@@ -182,20 +181,20 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Basic Details',
       children: [
-        const CommonText('Profile Photo', fontSize: 13, color: AppColors.textPrimary),
-        const SizedBox(height: 8),
+        const CommonText('Profile Photo', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const SizedBox(height: 12),
         Center(
           child: GestureDetector(
             onTap: () => _pickImage(true),
             child: Stack(
               children: [
-                Obx(() => Container(
-                  width: 100,
-                  height: 100,
+                Container(
+                  width: 110,
+                  height: 110,
                   decoration: BoxDecoration(
                     color: const Color(0xFFF2F4F7),
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border),
+                    border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
                   ),
                   child: ClipOval(
                     child: _profileImage != null
@@ -206,39 +205,40 @@ class _EditProfileViewState extends State<EditProfileView> {
                             fallbackIcon: Icons.person_outline_rounded,
                           ),
                   ),
-                )),
+                ),
                 Positioned(
-                  bottom: 0,
-                  right: 0,
+                  bottom: 5,
+                  right: 5,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                      border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
                     ),
-                    child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textPrimary),
+                    child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textPrimary),
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 20),
-        const CommonText('Banner image', fontSize: 13, color: AppColors.textPrimary),
-        const SizedBox(height: 8),
+        const SizedBox(height: 24),
+        const CommonText('Banner image', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const SizedBox(height: 12),
         GestureDetector(
           onTap: () => _pickImage(false),
-          child: Obx(() => Container(
-            height: 120,
+          child: Container(
+            height: 140,
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border.withOpacity(0.5)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: _bannerImage != null
                   ? Image.file(_bannerImage!, fit: BoxFit.cover)
                   : profileController.coverImage.isNotEmpty
@@ -247,17 +247,30 @@ class _EditProfileViewState extends State<EditProfileView> {
                           fit: BoxFit.cover,
                         )
                       : const Center(
-                          child: Icon(Icons.add, color: AppColors.textSecondary),
+                          child: Icon(Icons.add, color: AppColors.textSecondary, size: 28),
                         ),
             ),
-          )),
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         _buildTextField('Full Name', _fullNameController, hint: 'Enter your full name', isRequired: true),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildPhoneField(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name'),
+      ],
+    );
+  }
+
+  Widget _buildBarnInformationSection() {
+    return _buildSectionContainer(
+      title: 'Barn Information',
+      children: [
+        _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name', isRequired: true),
+        const SizedBox(height: 20),
+        _buildTextField('Location I', _location1Controller, hint: 'Enter barn location', isRequired: true),
+        const SizedBox(height: 20),
+        _buildTextField('Location II', _location2Controller, hint: 'Enter your business name', suffix: '(optional)'),
       ],
     );
   }
@@ -266,15 +279,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Experience',
       children: [
-        _buildTextField('Years in Industry', _yearsController, hint: 'e.g. 5', keyboardType: TextInputType.number),
-        const SizedBox(height: 16),
+        _buildDropdownField('Years in Industry', 'Select years'),
+        const SizedBox(height: 20),
         _buildTextField('Bio', _bioController, hint: 'Write a short bio', maxLines: 4),
-        const SizedBox(height: 16),
-        const CommonText('Program tags', fontSize: 13, color: AppColors.textPrimary),
-        const SizedBox(height: 8),
+        const SizedBox(height: 24),
+        const CommonText('Select Program tags', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const SizedBox(height: 12),
         Obx(() => Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: profileController.allProgramTags.map((tag) {
             return Obx(() {
               final isSelected = _selectedProgramTags.contains(tag);
@@ -295,15 +308,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Widget _buildBarnInformationSection() {
+  Widget _buildSocialMediaSection() {
     return _buildSectionContainer(
-      title: 'Barn Information',
+      title: 'Social Media & Website',
       children: [
-        _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name', isRequired: true),
-        const SizedBox(height: 16),
-        _buildTextField('Location I', _location1Controller, hint: 'Enter barn location', isRequired: true),
-        const SizedBox(height: 16),
-        _buildTextField('Location II', _location2Controller, hint: 'Enter your business name', suffix: '(optional)'),
+        _buildTextField('Facebook', _facebookController, hint: 'facebook.com/yourpage', isRequired: true),
+        const SizedBox(height: 20),
+        _buildTextField('Website URI', _websiteController, hint: 'https://yourwebsite.com', prefixIcon: Icons.link_rounded),
+        const SizedBox(height: 20),
+        _buildTextField('Instagram', _instagramController, hint: '@yourusername'),
       ],
     );
   }
@@ -313,10 +326,10 @@ class _EditProfileViewState extends State<EditProfileView> {
       title: 'Horse Shows & Circuits Frequented',
       children: [
         _buildTextField('Search Horse Shows & Circuits', _searchCircuitsController, hint: 'WEF'),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Obx(() => Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: 10,
+          runSpacing: 10,
           children: profileController.allHorseShows.map((tag) {
             return Obx(() {
               final isSelected = _selectedHorseShows.contains(tag);
@@ -337,15 +350,13 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Widget _buildSocialMediaSection() {
+  Widget _buildFederationInformationSection() {
     return _buildSectionContainer(
-      title: 'Social Media & Website',
+      title: 'Federation Information',
       children: [
-        _buildTextField('Facebook', _facebookController, hint: 'facebook.com/yourpage', isRequired: true),
-        const SizedBox(height: 16),
-        _buildTextField('Website URI', _websiteController, hint: 'https://yourwebsite.com', prefixIcon: Icons.link),
-        const SizedBox(height: 16),
-        _buildTextField('Instagram', _instagramController, hint: '@yourusername'),
+        _buildDropdownField('Federation', 'USEF (United States)'),
+        const SizedBox(height: 20),
+        _buildTextField('Federation ID Number', TextEditingController(), hint: 'ID Number'),
       ],
     );
   }
@@ -356,7 +367,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       children: [
         RichText(
           text: TextSpan(
-            style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontFamily: 'Outfit'),
+            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontFamily: 'Outfit'),
             children: [
               TextSpan(text: label),
               if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
@@ -369,14 +380,42 @@ class _EditProfileViewState extends State<EditProfileView> {
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary) : null,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderMedium)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderMedium)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-            hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
+            hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+            fillColor: Colors.white,
+            filled: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(label, fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: AppColors.borderMedium),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CommonText(value, fontSize: 15, color: AppColors.textSecondary),
+              const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+            ],
           ),
         ),
       ],
@@ -387,34 +426,37 @@ class _EditProfileViewState extends State<EditProfileView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Phone Number', fontSize: 13, color: AppColors.textPrimary),
+        const CommonText('Phone Number', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.borderMedium),
           ),
           child: Row(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: const [
-                    CommonText('+1', fontSize: 14, color: AppColors.textPrimary),
+                    CommonText('+91', fontSize: 15, color: AppColors.textPrimary),
+                    SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
                   ],
                 ),
               ),
-              Container(width: 1, height: 24, color: AppColors.border),
+              Container(width: 1, height: 24, color: AppColors.borderMedium),
               Expanded(
                 child: TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
                   ),
                 ),
               ),
@@ -425,33 +467,32 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-
   Widget _buildTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.7)),
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: AppColors.borderMedium.withValues(alpha: 0.5)),
       ),
-      child: CommonText(text, fontSize: 12, color: AppColors.textSecondary),
+      child: CommonText(text, fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
     );
   }
 
   Widget _buildSelectedTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF000B48).withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF000B48)),
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: AppColors.primary),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CommonText(text, fontSize: 12, color: const Color(0xFF000B48), fontWeight: FontWeight.bold),
-          const SizedBox(width: 4),
-          const Icon(Icons.close, size: 14, color: Color(0xFF000B48)),
+          CommonText(text, fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.bold),
+          const SizedBox(width: 6),
+          const Icon(Icons.close, size: 16, color: AppColors.primary),
         ],
       ),
     );
@@ -459,14 +500,14 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Widget _buildBottomButtons() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, -4),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.05),
+            offset: const Offset(0, -5),
+            blurRadius: 15,
           ),
         ],
       ),
@@ -476,18 +517,18 @@ class _EditProfileViewState extends State<EditProfileView> {
             child: GestureDetector(
               onTap: () => Get.back(),
               child: Container(
-                height: 52,
+                height: 56,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.borderMedium),
                 ),
                 child: const Center(
-                  child: CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold),
+                  child: CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Obx(() => GestureDetector(
               onTap: profileController.isLoading.value ? null : () async {
@@ -527,19 +568,16 @@ class _EditProfileViewState extends State<EditProfileView> {
                       colorText: Colors.white,
                       duration: const Duration(seconds: 2));
                   await Future.delayed(const Duration(milliseconds: 1500));
-                  // Use Navigator instead of Get.back() to avoid dismissing the snackbar overlay
-                  if (context.mounted) {
+                  if (mounted) {
                     Navigator.of(context).pop();
                   }
                 }
               },
               child: Container(
-                height: 52,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: profileController.isLoading.value 
-                      ? const Color(0xFF000B48).withOpacity(0.7) 
-                      : const Color(0xFF000B48),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.primaryDark,
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Center(
                   child: profileController.isLoading.value

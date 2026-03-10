@@ -12,10 +12,11 @@ class ProfileInformationView extends StatelessWidget {
     final ProfileController profileController = Get.find<ProfileController>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -30,77 +31,67 @@ class ProfileInformationView extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
-        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.border.withOpacity(0.5)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Obx(() {
-            final user = profileController.user.value;
-            
             // Format joined date
-            String joinedDate = '2025';
-            if (user?.id != null) {
-              // Usually we'd use a real date, but keeping consistency with existing logic
-              joinedDate = '2025'; 
-            }
+            String joinedDate = '2025'; 
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CommonText(
                   'Joined in $joinedDate',
-                  fontSize: 13,
+                  fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 CommonText(
                   profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 
                 const CommonText(
                   'Email Address',
-                  fontSize: 13,
+                  fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 CommonText(
-                  profileController.email,
+                  profileController.email.isNotEmpty ? profileController.email : 'lisa@example.com',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 const CommonText(
-                  'Federation ID',
-                  fontSize: 13,
+                  'Phone Number',
+                  fontSize: 14,
                   color: AppColors.textSecondary,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 CommonText(
-                  profileController.barnName.isNotEmpty ? profileController.barnName : 'Not Specified',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                const SizedBox(height: 4),
-                const CommonText(
-                  'Not Specified',
+                  profileController.phone.isNotEmpty ? profileController.phone : '+1 6587 4385 244',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,

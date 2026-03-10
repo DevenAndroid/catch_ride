@@ -22,10 +22,11 @@ class _FeedbackViewState extends State<FeedbackView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
@@ -40,21 +41,17 @@ class _FeedbackViewState extends State<FeedbackView> {
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
-        ),
       ),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const CommonText(
-                    'Share your thoughts so we can make things better for you.',
+                    'Your feedback helps shape the future of Catch Ride. Let us know what’s working and what could be improved.',
                     fontSize: 14,
                     color: AppColors.textSecondary,
                     height: 1.5,
@@ -62,25 +59,38 @@ class _FeedbackViewState extends State<FeedbackView> {
                   const SizedBox(height: 32),
                   const CommonText(
                     'Give Feedback',
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
                   const SizedBox(height: 12),
-                  Container(
-                    height: 160,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                  TextField(
+                    controller: _feedbackController,
+                    maxLines: 6,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: AppColors.textPrimary,
                     ),
-                    child: TextField(
-                      controller: _feedbackController,
-                      maxLines: null,
-                      decoration: InputDecoration(
-                        hintText: 'Write your feedback...',
-                        hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 16),
-                        border: InputBorder.none,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: 'Write your feedback...',
+                      hintStyle: TextStyle(
+                        color: AppColors.textSecondary.withValues(alpha: 0.5),
+                        fontSize: 15,
+                      ),
+                      contentPadding: const EdgeInsets.all(16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
                       ),
                     ),
                   ),
@@ -96,16 +106,9 @@ class _FeedbackViewState extends State<FeedbackView> {
 
   Widget _buildBottomButton() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            offset: const Offset(0, -4),
-            blurRadius: 10,
-          ),
-        ],
       ),
       child: GestureDetector(
         onTap: () {
@@ -125,8 +128,15 @@ class _FeedbackViewState extends State<FeedbackView> {
         child: Container(
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFF000B48),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: const Center(
             child: CommonText(

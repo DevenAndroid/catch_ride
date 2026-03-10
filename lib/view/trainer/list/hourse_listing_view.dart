@@ -8,6 +8,7 @@ import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import 'package:catch_ride/controllers/horse_controller.dart';
@@ -100,14 +101,7 @@ class _HourseListingViewState extends State<HourseListingView> {
                   ),
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF00083B),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.pets_rounded, color: Colors.white, size: 24),
-                      ),
+                      SvgPicture.asset("assets/images/logo.svg"),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -348,11 +342,12 @@ class _HourseListingViewState extends State<HourseListingView> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Row(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
                       children: tags
                           .map(
                             (tag) => Container(
-                              margin: const EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 6,

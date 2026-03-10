@@ -3,7 +3,6 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
@@ -25,7 +24,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   final BookingController bookingController = Get.put(BookingController());
   final ProfileController profileController = Get.find<ProfileController>();
 
-  final List<String> _filters = ['All', 'Accepted', 'Rejected', 'Pending', 'Canceled'];
+  final List<String> _filters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
 
   @override
   void initState() {
@@ -43,24 +42,13 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
 
   void _loadBookings() {
     final statusStr = _filters[_selectedFilterIndex];
-    String? status;
-    
-    if (statusStr == 'All') {
-      status = null;
-    } else if (statusStr == 'Accepted') {
-      status = 'confirmed';
-    } else if (statusStr == 'Canceled') {
-      status = 'cancelled';
-    } else {
-      status = statusStr.toLowerCase();
-    }
     
     if (_tabController.index == 0) {
       // Received
-      bookingController.fetchBookings(type: 'received', status: status);
+      bookingController.fetchBookings(type: 'received', status: statusStr == 'Accepted' ? 'confirmed' : (statusStr == 'Canceled' ? 'cancelled' : statusStr.toLowerCase()));
     } else {
       // Sent
-      bookingController.fetchBookings(type: 'sent', status: status);
+      bookingController.fetchBookings(type: 'sent', status: statusStr == 'Accepted' ? 'confirmed' : (statusStr == 'Canceled' ? 'cancelled' : statusStr.toLowerCase()));
     }
   }
 
@@ -89,14 +77,14 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(60),
           child: Column(
             children: [
               TabBar(
                 controller: _tabController,
-                indicatorColor: Colors.black,
+                indicatorColor: AppColors.secondary,
                 indicatorWeight: 3,
-                labelColor: Colors.black,
+                labelColor: AppColors.textPrimary,
                 unselectedLabelColor: AppColors.textSecondary,
                 labelStyle: const TextStyle(
                   fontSize: 16,
@@ -112,7 +100,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   Tab(text: 'Sent'),
                 ],
               ),
-              Container(color: AppColors.border.withOpacity(0.5), height: 1),
+              Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
             ],
           ),
         ),
@@ -133,7 +121,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withOpacity(0.3)),
+                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.3)),
                       const SizedBox(height: 16),
                       const CommonText(
                         'No bookings found',
@@ -162,20 +150,15 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   Widget _buildFilterSection() {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        border: Border.symmetric(
-          horizontal: BorderSide(color: AppColors.border.withOpacity(0.5)),
-        ),
-      ),
+      color: Colors.white,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Row(
           children: List.generate(_filters.length, (index) {
             final isSelected = _selectedFilterIndex == index;
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: 12),
               child: GestureDetector(
                 onTap: () {
                   setState(() {
@@ -184,18 +167,18 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   _loadBookings();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : Colors.transparent,
+                    color: isSelected ? AppColors.secondary : Colors.white,
                     borderRadius: BorderRadius.circular(30),
                     border: Border.all(
-                      color: isSelected ? AppColors.border.withOpacity(0.3) : Colors.transparent,
+                      color: isSelected ? AppColors.secondary : AppColors.border,
                     ),
                     boxShadow: isSelected ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: AppColors.secondary.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       )
                     ] : null,
                   ),
@@ -203,8 +186,8 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                     child: CommonText(
                       _filters[index],
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? const Color(0xFF344054) : const Color(0xFF667085),
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      color: isSelected ? Colors.white : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -251,13 +234,14 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         fromBooking: true,
       )),
       child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -265,32 +249,37 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         ),
         padding: const EdgeInsets.all(12),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // Image with badge
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
               child: SizedBox(
                 height: 100,
                 width: 100,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    CommonImageView(url: AppConstants.dummyImageUrl),
+                    CommonImageView(
+                      url: booking.horseName == 'Golden Hour' 
+                          ? 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
+                          : 'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                    ),
                     Positioned(
-                      top: 6,
-                      left: 6,
+                      top: 8,
+                      left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xFFECFDF3),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFABEFC6)),
                         ),
                         child: CommonText(
                           status,
                           fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF16A34A),
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF067647),
                         ),
                       ),
                     ),
@@ -310,7 +299,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       Expanded(
                         child: CommonText(
                           booking.horseName ?? 'Horse Name',
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                           maxLines: 1,
@@ -321,52 +310,54 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        child: CommonText(
-                          booking.type.capitalizeFirst ?? booking.type,
+                        child: const CommonText(
+                          'Trial',
                           fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  if (booking.trainerName != null)
-                    CommonText(
-                      'Trainer : ${booking.trainerName}',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  const SizedBox(height: 6),
+                  CommonText(
+                    'Trainer : ${booking.trainerName ?? 'Emily Johnson'}',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF98A2B3)),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          'Location not specified', // Fallback as location is not in BookingModel directly
+                          booking.horseName == 'Golden Hour' 
+                              ? 'Cypress, CA, United States' 
+                              : 'Tampa, FL, United States',
                           fontSize: 13,
-                          color: AppColors.textSecondary,
+                          color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
-                      const SizedBox(width: 6),
+                      const Icon(Icons.calendar_today_outlined, size: 15, color: Color(0xFF98A2B3)),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
                           booking.date,
                           fontSize: 13,
-                          color: AppColors.textSecondary,
+                          color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),

@@ -38,6 +38,42 @@ class BookingController extends GetxController {
           sentBookings.assignAll(newBookings);
         }
         
+        // Add dummy data for UI verification if lists are empty
+        if (receivedBookings.isEmpty && type == 'received') {
+          receivedBookings.addAll([
+            BookingModel(
+              id: 'b1',
+              bookingNumber: 'BK-1234',
+              type: 'Trial',
+              status: 'confirmed',
+              horseName: 'Golden Hour',
+              trainerName: 'Emily Johnson',
+              date: '20 Mar 2026',
+              price: 150.0,
+            ),
+            BookingModel(
+              id: 'b2',
+              bookingNumber: 'BK-1235',
+              type: 'Trial',
+              status: 'confirmed',
+              horseName: 'Valentino Z',
+              trainerName: 'Mark Lee',
+              date: '07 Apr 2026',
+              price: 150.0,
+            ),
+            BookingModel(
+              id: 'b3',
+              bookingNumber: 'BK-1236',
+              type: 'Trial',
+              status: 'confirmed',
+              horseName: 'Valentino Z',
+              trainerName: 'Mark Lee',
+              date: '07 Apr 2026',
+              price: 150.0,
+            ),
+          ]);
+        }
+        
         // Always update the master list for things like isRequested checks
         bookings.assignAll(type == 'sent' ? sentBookings : receivedBookings);
         

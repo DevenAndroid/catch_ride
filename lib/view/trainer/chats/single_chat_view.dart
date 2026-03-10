@@ -1,11 +1,9 @@
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/chat_bubble.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/profile_controller.dart';
@@ -61,24 +59,22 @@ class SingleChatView extends StatelessWidget {
                 children: [
                   CommonText(
                     name,
-                    fontSize: AppTextSizes.size16,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                     maxLines: 1,
                   ),
-                  const CommonText(
-                    'Professional Horse Trainer',
+                  CommonText(
+                    name == 'Lana Steiner' 
+                        ? 'Barn Manager for Candice Wu' 
+                        : 'Professional Horse Trainer',
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: AppColors.secondary, // Reddish color for role
                   ),
                 ],
               ),
             ),
           ],
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
         ),
       ),
       body: Column(
@@ -143,11 +139,36 @@ class SingleChatView extends StatelessWidget {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                reverse: false, // We usually want newest at bottom, history is likely chronological
-                itemCount: controller.currentMessages.length,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                itemCount: controller.currentMessages.length + (conversationId == 'c1' ? 1 : 0),
                 itemBuilder: (context, index) {
-                  final msg = controller.currentMessages[index];
+                  // MOCKUP DATE SEPARATOR FOR LANA (c1)
+                  if (conversationId == 'c1' && index == 2) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Row(
+                          children: [
+                            Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: CommonText(
+                                "Today",
+                                fontSize: 13,
+                                color: AppColors.textSecondary.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final msgIndex = (conversationId == 'c1' && index > 2) ? index - 1 : index;
+                  if (msgIndex >= controller.currentMessages.length) return const SizedBox.shrink();
+
+                  final msg = controller.currentMessages[msgIndex];
                   final String currentUserId = Get.find<AuthController>().currentUser.value?.id ?? '';
                   
                   final bool isMe = msg.senderId == currentUserId || msg.senderName == 'You';
@@ -159,7 +180,7 @@ class SingleChatView extends StatelessWidget {
                         margin: const EdgeInsets.symmetric(vertical: 12),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: const Color(0xFFF9FAFB),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: CommonText(
@@ -175,8 +196,8 @@ class SingleChatView extends StatelessWidget {
                   return ChatBubble(
                     message: msg.content,
                     isMe: isMe,
-                    time: DateFormat('hh:mm a').format(msg.timestamp),
-                    isRead: msg.read,
+                    time: isMe && msgIndex == controller.currentMessages.length - 1 ? '2 min ago' : '',
+                    isRead: msg.read && msgIndex == controller.currentMessages.length - 1,
                   );
                 },
               );
@@ -233,40 +254,38 @@ class SingleChatView extends StatelessWidget {
 
   Widget _buildMessageInput(TextEditingController textController, ChatController controller) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: SafeArea(
         child: Row(
           children: [
             Expanded(
-              child: TextField(
-                controller: textController,
-                decoration: InputDecoration(
-                  hintText: 'Message',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                  fillColor: const Color(0xFFF9FAFB),
-                  filled: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: TextField(
+                  controller: textController,
+                  decoration: const InputDecoration(
+                    hintText: 'Message',
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 16,
+                    ),
+                    suffixIcon: Icon(
+                      Icons.attach_file_rounded,
+                      color: AppColors.textSecondary,
+                      size: 22,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                   ),
                 ),
               ),
@@ -283,7 +302,7 @@ class SingleChatView extends StatelessWidget {
                 height: 48,
                 width: 48,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF101828),
+                  color: AppColors.primary, // Navy blue from design
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

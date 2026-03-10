@@ -93,15 +93,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     const SizedBox(height: 32),
                     if (_currentStep == 1) ...[
                       const CommonText(
-                        'Upload Images and video',
-                        fontSize: AppTextSizes.size18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 20),
-                      _buildUploadCard(),
-                    ] else if (_currentStep == 2) ...[
-                      const CommonText(
                         'Horse Information',
                         fontSize: AppTextSizes.size18,
                         fontWeight: FontWeight.bold,
@@ -109,7 +100,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                       const SizedBox(height: 20),
                       _buildHorseInformationForm(),
-                    ] else if (_currentStep == 3) ...[
+                    ] else if (_currentStep == 2) ...[
                       const CommonText(
                         'Listing Type',
                         fontSize: AppTextSizes.size18,
@@ -125,7 +116,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                       const SizedBox(height: 24),
                       _buildListingTypeSelection(),
-                    ] else if (_currentStep == 4) ...[
+                    ] else if (_currentStep == 3) ...[
                       const CommonText(
                         'Other information',
                         fontSize: AppTextSizes.size18,
@@ -134,6 +125,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                       const SizedBox(height: 20),
                       _buildOtherInformationForm(),
+                    ] else if (_currentStep == 4) ...[
+                      const CommonText(
+                        'Upload Images and video',
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildUploadCard(),
                     ] else if (_currentStep == 5) ...[
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -407,14 +407,21 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               CommonTextField(
                 label: 'Listing Title',
                 controller: controller.listingTitleController,
-                hintText: 'e.g., Beautiful Hunter for Sale',
+                hintText: 'Children\'s Hunter',
                 isRequired: true,
               ),
               const SizedBox(height: 16),
               CommonTextField(
-                label: 'Horse Name',
+                label: 'Horse\'s Registered Name',
                 controller: controller.horseNameController,
-                hintText: 'Enter horse name',
+                hintText: 'Enter name',
+                isRequired: true,
+              ),
+              const SizedBox(height: 16),
+              CommonTextField(
+                label: 'Location',
+                controller: controller.locationController,
+                hintText: 'Enter horse\'s location',
                 isRequired: true,
               ),
               const SizedBox(height: 16),
@@ -424,7 +431,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     child: CommonTextField(
                       label: 'Age',
                       controller: controller.ageController,
-                      hintText: 'e.g., 12 years',
+                      hintText: 'Enter age',
                       isRequired: false,
                     ),
                   ),
@@ -433,7 +440,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     child: CommonTextField(
                       label: 'Height',
                       controller: controller.heightController,
-                      hintText: 'e.g., 16.2hh',
+                      hintText: 'Enter height',
                       isRequired: false,
                     ),
                   ),
@@ -443,54 +450,16 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               CommonTextField(
                 label: 'Breed',
                 controller: controller.breedController,
-                hintText: 'Enter horse breed',
+                hintText: 'Enter breed',
                 isRequired: true,
               ),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Color',
                 controller: controller.colorController,
-                hintText: 'Enter horse color',
+                hintText: 'Enter color',
                 isRequired: false,
               ),
-              const SizedBox(height: 16),
-              
-              // Gender Selection
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6.0),
-                child: const CommonText(
-                  'Gender',
-                  fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Obx(() => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.inputBackground,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: controller.gender.value,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-                    onChanged: (String? newValue) {
-                      if (newValue != null) controller.gender.value = newValue;
-                    },
-                    items: <String>['Stallion', 'Mare', 'Gelding', 'Filly', 'Colt', 'Other']
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: CommonText(value, fontSize: AppTextSizes.size14),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              )),
               const SizedBox(height: 16),
 
               // Discipline Dropdown Stub
@@ -525,13 +494,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Location',
-                controller: controller.locationController,
-                hintText: 'e.g., Winterfell, USA',
-                isRequired: true,
               ),
               const SizedBox(height: 16),
               CommonTextField(
@@ -1060,7 +1022,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       const SizedBox(width: 8),
                     ],
                     CommonText(
-                      isLastStep ? 'Preview' : 'Cancel',
+                      isLastStep ? 'Preview' : (_currentStep > 1 ? 'Back' : 'Cancel'),
                       fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
@@ -1090,7 +1052,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: CommonText(
-                  isLastStep ? 'Publish Listing' : 'Save',
+                  isLastStep ? 'Publish Listing' : 'Next',
                   fontSize: AppTextSizes.size16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
