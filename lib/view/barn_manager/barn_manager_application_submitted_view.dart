@@ -44,73 +44,73 @@ class _BarnManagerApplicationSubmittedViewState
             children: [
               const Spacer(flex: 2),
 
-              // Success Icon with halo
+              // Success Icon with halo (Maroon Theme)
               Center(
                 child: Container(
-                  height: 100,
-                  width: 100,
+                  height: 110,
+                  width: 110,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF16A34A).withOpacity(0.2), // Halo
+                    color: AppColors.secondary.withOpacity(0.3), // Halo
                   ),
                   child: Center(
                     child: Container(
-                      height: 80,
-                      width: 80,
+                      height: 85,
+                      width: 85,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF22C55E), // Main Green
+                        color: AppColors.secondary, // Main Maroon
                       ),
                       child: const Icon(
-                        Icons.check,
-                        size: 45,
+                        Icons.done_rounded,
+                        size: 50,
                         color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
 
               // Welcome Text
               CommonText(
-                'Welcome $name!',
-                fontSize: AppTextSizes.size26,
+                'Welcome ${name}!',
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
 
               // Success Subtitle
               const CommonText(
                 'Your profile has been successfully set up.',
-                fontSize: AppTextSizes.size16,
+                fontSize: 16,
                 color: AppColors.textSecondary,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 32),
 
-              // Info Box (as seen in mockup)
+              // Info Box (Matching Mockup)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24.0,
-                  vertical: 20.0,
+                  vertical: 24.0,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.infoBoxBg,
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFFFF7F7), // Very light pink
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: AppColors.infoBoxBorder,
-                    width: 1.5,
+                    color: AppColors.secondary.withOpacity(0.4),
+                    width: 1.2,
                   ),
                 ),
                 child: const CommonText(
                   'You can now start exploring services and managing your bookings.',
-                  fontSize: AppTextSizes.size14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF4B5563),
+                  color: Color(0xFF4B5562),
                   textAlign: TextAlign.center,
                 ),
               ),

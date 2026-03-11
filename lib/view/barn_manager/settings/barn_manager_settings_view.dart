@@ -1,19 +1,17 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
-import 'package:catch_ride/view/trainer/settings/privacy_policy_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/privacy_policy_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/view/trainer/settings/profile_information_view.dart';
-import 'package:catch_ride/view/trainer/settings/account_settings_view.dart';
-import 'package:catch_ride/view/trainer/settings/notification_settings_view.dart';
-import 'package:catch_ride/view/trainer/settings/invite_barn_manager_view.dart';
-import 'package:catch_ride/view/trainer/settings/terms_and_conditions_view.dart';
-import 'package:catch_ride/view/trainer/settings/edit_profile.dart';
-import 'package:catch_ride/view/trainer/settings/horses_services_view.dart';
-import 'package:catch_ride/view/trainer/settings/refer_new_member_view.dart';
-import 'package:catch_ride/view/trainer/settings/get_help_view.dart';
-import 'package:catch_ride/view/trainer/settings/feedback_view.dart';
-import 'package:catch_ride/view/trainer/settings/trainer_profile_view.dart';
-import 'package:catch_ride/view/trainer/settings/view_all_horses_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/profile_information_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/account_settings_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/notification_settings_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/terms_and_conditions_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/edit_profile.dart';
+import 'package:catch_ride/view/barn_manager/settings/get_help_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/feedback_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/barn_manager_profile_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/past_services_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/view_all_horses_view.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter/material.dart';
@@ -21,29 +19,26 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
-import '../list/add_new_listing_view.dart';
 
-class SettingsView extends StatelessWidget {
-  const SettingsView({super.key});
+
+class BarnManagerSettingsView extends StatelessWidget {
+  const BarnManagerSettingsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final ProfileController controller = Get.find<ProfileController>();
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: false,
-        title: const Padding(
-          padding: EdgeInsets.only(left: 8),
-          child: CommonText(
-            'Profile',
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+        title: const CommonText(
+          'Profile',
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF101828),
         ),
         actions: [
           Padding(
@@ -53,11 +48,11 @@ class SettingsView extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                border: Border.all(color: const Color(0xFFEAECF0)),
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
+                icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF344054), size: 24),
                 onPressed: () {},
               ),
             ),
@@ -71,64 +66,12 @@ class SettingsView extends StatelessWidget {
           children: [
             // Profile Card
             Obx(() => _buildProfileCard(controller)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // Add a horse banner
-            GestureDetector(
-              onTap: () => Get.to(() => const AddNewListingView()),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF00083B),
-                        shape: BoxShape.circle,
-                      ),
-                      child: SvgPicture.asset(
-                        "assets/images/logo.svg",
-                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const CommonText(
-                            'Add your horses',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF00083B),
-                          ),
-                          CommonText(
-                            'Create a listing to share availability.',
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Manage Your Horses Banner
+            _buildManageHorsesBanner(),
+            const SizedBox(height: 24),
+
             const SizedBox(height: 32),
 
             _buildSectionHeader('Account Settings'),
@@ -139,7 +82,7 @@ class SettingsView extends StatelessWidget {
                 onTap: () => Get.to(() => const EditProfileView()),
               ),
               _buildSettingsTile(
-                icon: Icons.person_outline_rounded,
+                icon: Icons.person_outline,
                 title: 'Personal Information',
                 onTap: () => Get.to(() => const ProfileInformationView()),
               ),
@@ -160,59 +103,40 @@ class SettingsView extends StatelessWidget {
             _buildSectionHeader('Horses & Services'),
             _buildSettingsGroup([
               _buildSettingsTile(
-                icon: Icons.add_circle_outline_rounded,
-                title: 'List Your Horses',
-                onTap: () => Get.to(() => const AddNewListingView()),
-              ),
-              _buildSettingsTile(
                 icon: Icons.visibility_outlined,
                 title: 'View all Horses',
                 onTap: () => Get.to(() => const ViewAllHorsesView()),
               ),
               _buildSettingsTile(
-                icon: Icons.history_rounded,
+                icon: Icons.history,
                 title: 'Past Services and Trials',
-                onTap: () {},
+                onTap: () => Get.to(() => const PastServicesView()),
                 showDivider: false,
               ),
             ]),
             const SizedBox(height: 24),
 
-            _buildSectionHeader('Referrals'),
-            _buildSettingsGroup([
-              _buildSettingsTile(
-                icon: Icons.person_add_alt_outlined,
-                title: 'Invite Barn Manager',
-                onTap: () => Get.to(() => const InviteBarnManagerView()),
-              ),
-              _buildSettingsTile(
-                icon: Icons.group_add_outlined,
-                title: 'Refer a New Members',
-                onTap: () => Get.to(() => const ReferNewMemberView()),
-                showDivider: false,
-              ),
-            ]),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             _buildSectionHeader('Support'),
             _buildSettingsGroup([
               _buildSettingsTile(
-                icon: Icons.help_outline_rounded,
+                icon: Icons.help_outline,
                 title: 'Get Help',
                 onTap: () => Get.to(() => const GetHelpView()),
               ),
               _buildSettingsTile(
-                icon: Icons.mode_comment_outlined,
+                icon: Icons.chat_bubble_outline_rounded,
                 title: 'Share your feedback',
                 onTap: () => Get.to(() => const FeedbackView()),
               ),
               _buildSettingsTile(
-                icon: Icons.description_outlined,
+                icon: Icons.article_outlined,
                 title: 'Privacy policy',
                 onTap: () => Get.to(() => const PrivacyPolicyView()),
               ),
               _buildSettingsTile(
-                icon: Icons.description_outlined,
+                icon: Icons.article_outlined,
                 title: 'Terms & conditions',
                 onTap: () => Get.to(() => const TermsAndConditionsView()),
                 showDivider: false,
@@ -230,61 +154,105 @@ class SettingsView extends StatelessWidget {
   Widget _buildProfileCard(ProfileController controller) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 30),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: AppColors.cardColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0xFFEAECF0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.2)),
-            ),
-            child: CommonImageView(
-              url: controller.avatar.isNotEmpty ? controller.avatar : AppConstants.dummyImageUrl,
-              height: 90,
-              width: 90,
-              shape: BoxShape.circle,
-            ),
+          CommonImageView(
+            url: controller.avatar.isNotEmpty ? controller.avatar : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+            height: 85,
+            width: 85,
+            shape: BoxShape.circle,
           ),
           const SizedBox(height: 16),
           CommonText(
             controller.fullName.isNotEmpty ? controller.fullName : 'Arya Stark',
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: const Color(0xFF101828),
           ),
           const SizedBox(height: 4),
           CommonText(
-            controller.specialization.isNotEmpty ? controller.specialization : 'Winter Equestrian',
+            'Barn Manager at Winter Equestrian',
             fontSize: 14,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
+            color: const Color(0xFF667085),
+            fontWeight: FontWeight.w400,
           ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () => Get.to(() => const TrainerProfileView()),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => Get.to(() => const BarnManagerProfileView()),
             child: const CommonText(
               'View Profile',
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: AppColors.linkBlue,
+              color: Color(0xFF2E90FA),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManageHorsesBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEAECF0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF00083B),
+              shape: BoxShape.circle,
+            ),
+            child: SvgPicture.string(
+              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 19V11.53M19 11.53C19 9.8 19 8.93 18.66 8.26C18.32 7.6 17.73 7.07 17.03 6.82C16.34 6.57 15.47 6.64 13.73 6.78L13 6.85M19 11.53C19.34 11.53 19.68 11.66 19.92 11.91C20.17 12.15 20.31 12.48 20.31 12.83C20.31 13.52 19.74 14.08 19.05 14.08H18.99C18.61 14.08 18.25 14.24 17.99 14.51C17.73 14.78 17.58 15.13 17.58 15.51V15.51C17.58 15.89 17.73 16.24 18 16.51C18.26 16.78 18.63 16.94 19.01 16.94H19.09C19.74 16.94 20.3 17.47 20.33 18.12V18.12C20.36 18.8 19.83 19.37 19.15 19.37C18.49 19.37 17.96 19.88 17.96 20.54V21M13 6.85L12.56 6.89C10.74 7.04 9.83 7.12 9.17 6.76C8.5 6.4 8.1 5.61 7.29 4.02L7 3.45M13 6.85V11V15V19V21M13 19H9.42M13 15H11M13 11H12M8 10L6.75 10C5.78 10 5.3 10 4.93 10.19C4.6 10.35 4.35 10.6 4.19 10.93C4 11.3 4 11.78 4 12.75V15.25C4 16.22 4 16.7 4.19 17.07C4.35 17.4 4.6 17.65 4.93 17.81C5.3 18 5.78 18 6.75 18L8 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+              width: 24,
+              height: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                CommonText(
+                  'Manage Your horses',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF101828),
+                ),
+                SizedBox(height: 2),
+                CommonText(
+                  'Edit availability for yours trainer\'s current string.',
+                  fontSize: 13,
+                  color: Color(0xFF667085),
+                  fontWeight: FontWeight.w400,
+                ),
+              ],
             ),
           ),
         ],

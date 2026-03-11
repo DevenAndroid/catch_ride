@@ -4,6 +4,7 @@ class AvailabilityModel {
   final String showVenue;
   final String startDate;
   final String endDate;
+  final bool isActive;
 
   AvailabilityModel({
     this.id,
@@ -11,6 +12,7 @@ class AvailabilityModel {
     required this.showVenue,
     required this.startDate,
     required this.endDate,
+    this.isActive = true,
   });
 
   factory AvailabilityModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class AvailabilityModel {
       showVenue: json['showVenue'] ?? '',
       startDate: json['startDate'] ?? '',
       endDate: json['endDate'] ?? '',
+      isActive: json['isActive'] ?? true,
     );
   }
 
@@ -30,6 +33,7 @@ class AvailabilityModel {
       'showVenue': showVenue,
       'startDate': startDate,
       'endDate': endDate,
+      'isActive': isActive,
     };
   }
 }

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 class CommonButton extends StatelessWidget {
   final String? text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final double width;
   final double? height;
@@ -18,7 +18,7 @@ class CommonButton extends StatelessWidget {
   const CommonButton({
     super.key,
     this.text,
-    required this.onPressed,
+    this.onPressed,
     this.isLoading = false,
     this.width = double.infinity,
     this.height,

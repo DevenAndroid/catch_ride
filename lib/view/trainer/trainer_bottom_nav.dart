@@ -1,3 +1,4 @@
+import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -7,9 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
 import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
-import 'package:catch_ride/view/trainer/list/hourse_listing_view.dart';
 import 'package:catch_ride/view/trainer/chats/chats_view.dart';
 import 'package:catch_ride/view/trainer/settings/settings_view.dart';
+
+import 'list/horse_listing_view.dart';
 
 class TrainerBottomNav extends StatefulWidget {
   final int initialIndex;
@@ -51,6 +53,8 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
   Widget build(BuildContext context) {
     Get.put(ProfileController());
     Get.put(HorseController());
+    Get.put(BookingController());
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true, // Content flows behind the nav bar
