@@ -1,21 +1,23 @@
+import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
-import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
-import 'package:catch_ride/view/trainer/list/hourse_listing_view.dart';
-import 'package:catch_ride/view/trainer/chats/chats_view.dart';
-
-import 'home/barn_manager_home_view.dart';
+import 'package:catch_ride/view/barn_manager/bookings/barn_manager_bookings_view.dart';
+import 'package:catch_ride/view/barn_manager/settings/barn_manager_settings_view.dart';
+import 'package:catch_ride/view/barn_manager/home/barn_manager_explore_view.dart';
+import 'package:catch_ride/view/barn_manager/list/barn_manager_horse_listing_view.dart';
+import 'chats/barn_manager_chat_list_view.dart';
 
 class BarnManagerBottomNav extends StatefulWidget {
   final int initialIndex;
 
-  const BarnManagerBottomNav({super.key, this.initialIndex = 0});
+  const BarnManagerBottomNav({
+    super.key,
+    this.initialIndex = 0, // Default to Bookings (index 0)
+  });
 
   @override
   State<BarnManagerBottomNav> createState() => _BarnManagerBottomNavState();
@@ -24,12 +26,13 @@ class BarnManagerBottomNav extends StatefulWidget {
 class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
   late int _selectedIndex;
 
+  // Tabs: Bookings, Explore, List, Inbox, Profile
   final List<Widget> _views = [
-    const BarnManagerHomeView(),
-    const TrainerExploreView(), // Placeholder for explore
-    const HourseListingView(), // Placeholder for listing
-    const TrainerBookingsView(), // Placeholder for bookings
-    const TrainerChatsView(), // Placeholder for inbox
+    const BarnManagerBookingsView(),
+    const BarnManagerExploreView(),
+    const BarnManagerHorseListingView(),
+    const BarnManagerInboxView(),
+    const BarnManagerSettingsView(),
   ];
 
   @override
@@ -48,39 +51,56 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
   Widget build(BuildContext context) {
     Get.put(ProfileController());
     Get.put(HorseController());
+    Get.put(BookingController());
+    
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: _views[_selectedIndex],
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+      extendBody: true, // Content flows behind the nav bar
+      body: Stack(
+        children: [
+          // Ensure views have enough bottom space
+          Padding(
+            padding: const EdgeInsets.only(bottom: 100),
+            child: _views[_selectedIndex],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildNavItem(0, 'Home', Icons.home_outlined),
-                _buildNavItem(1, 'Explore', Icons.search),
-                _buildNavItem(2, 'Listing', Icons.article_outlined),
-                _buildNavItem(3, 'Bookings', Icons.calendar_today_outlined),
-                _buildNavItem(4, 'Inbox', Icons.chat_bubble_outline),
-              ],
+          
+          // Floating Bottom Nav
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 15,
+            child: SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildNavItem(0, 'Bookings', Icons.calendar_month_rounded),
+                      _buildNavItem(1, 'Explore', Icons.search_rounded),
+                      _buildNavItem(2, 'List', Icons.add_rounded),
+                      _buildNavItem(3, 'Inbox', Icons.chat_bubble_outline_rounded),
+                      _buildNavItem(4, 'Profile', Icons.person_rounded),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -91,8 +111,8 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
@@ -103,13 +123,13 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
             Icon(
               icon,
               color: isSelected ? Colors.white : AppColors.textSecondary,
-              size: 24,
+              size: 26,
             ),
             const SizedBox(height: 4),
             CommonText(
               label,
-              fontSize: AppTextSizes.size12,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               color: isSelected ? Colors.white : AppColors.textSecondary,
             ),
           ],

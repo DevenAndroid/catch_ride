@@ -50,26 +50,56 @@ class BookingController extends GetxController {
               trainerName: 'Emily Johnson',
               date: '20 Mar 2026',
               price: 150.0,
+              horseId: 'h1',
             ),
             BookingModel(
               id: 'b2',
               bookingNumber: 'BK-1235',
               type: 'Trial',
-              status: 'confirmed',
+              status: 'pending',
               horseName: 'Valentino Z',
               trainerName: 'Mark Lee',
               date: '07 Apr 2026',
               price: 150.0,
+              horseId: 'h2',
             ),
             BookingModel(
               id: 'b3',
               bookingNumber: 'BK-1236',
               type: 'Trial',
+              status: 'rejected',
+              horseName: 'Starfire',
+              trainerName: 'Sarah Jenkins',
+              date: '12 Apr 2026',
+              price: 200.0,
+              horseId: 'h3',
+            ),
+          ]);
+        }
+
+        if (sentBookings.isEmpty && type == 'sent') {
+          sentBookings.addAll([
+            BookingModel(
+              id: 's1',
+              bookingNumber: 'BK-9988',
+              type: 'Trial',
               status: 'confirmed',
-              horseName: 'Valentino Z',
-              trainerName: 'Mark Lee',
-              date: '07 Apr 2026',
-              price: 150.0,
+              horseName: 'Midnight Rebel',
+              trainerName: 'David Smith',
+              date: '25 Mar 2026',
+              price: 180.0,
+              horseId: 'h4',
+            ),
+            BookingModel(
+              id: 's2',
+              bookingNumber: 'BK-9989',
+              type: 'Trial',
+              status: 'pending',
+              horseName: 'Cloud Dancer',
+              trainerName: 'Chris Evans',
+              date: '30 Mar 2026',
+              price: 160.0,
+              horseId: 'h5',
             ),
           ]);
         }

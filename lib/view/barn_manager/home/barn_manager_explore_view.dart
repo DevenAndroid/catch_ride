@@ -4,26 +4,27 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
-import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
 import 'package:catch_ride/controllers/explore_controller.dart';
-import 'package:catch_ride/view/trainer/home/search_filter_overlay.dart';
+import 'package:catch_ride/view/barn_manager/home/barn_manager_search_filter_overlay.dart';
 import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:catch_ride/view/vendor/vendor_details_view.dart';
+import 'package:catch_ride/view/barn_manager/vendor/barn_manager_vendor_details_view.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
 import '../../../../controllers/booking_controller.dart';
 import '../../../models/vendor_model.dart';
+import '../../trainer/home/search_filter_overlay.dart';
 
-class TrainerExploreView extends StatefulWidget {
-  const TrainerExploreView({super.key});
+class BarnManagerExploreView extends StatefulWidget {
+  const BarnManagerExploreView({super.key});
 
   @override
-  State<TrainerExploreView> createState() => _TrainerExploreViewState();
+  State<BarnManagerExploreView> createState() => _BarnManagerExploreViewState();
 }
 
-class _TrainerExploreViewState extends State<TrainerExploreView> {
+class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
   final ExploreController controller = Get.put(ExploreController());
   bool _isGridView = false;
   final List<Map<String, dynamic>> _categories = [
@@ -99,7 +100,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     return HorseCard(
                       horse: horse,
                       isRequested: isRequested,
-                      onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
+                      onTap: () => Get.to(() => BarnManagerHorseDetailView(horse: horse)),
                     );
                   },
                 );
@@ -134,7 +135,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
         ),
         child: InkWell(
           onTap: () => Get.to(
-            () => const SearchFilterOverlay(),
+            () => const BarnManagerSearchFilterOverlay(),
             transition: Transition.fadeIn,
             fullscreenDialog: true,
             opaque: false,
@@ -242,7 +243,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     required VendorModel vendor,
   }) {
     return GestureDetector(
-      onTap: () => Get.to(() => VendorDetailsView(vendor: vendor)),
+      onTap: () => Get.to(() => BarnManagerVendorDetailsView(vendor: vendor)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),

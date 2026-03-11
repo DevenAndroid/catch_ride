@@ -16,6 +16,7 @@ import '../models/user_model.dart';
 import '../services/socket_service.dart';
 import '../controllers/profile_controller.dart';
 import '../view/barn_manager/barn_manager_application_submitted_view.dart';
+import '../view/barn_manager/barn_manager_create_profile_view.dart';
 import '../view/create_account_view.dart';
 import '../view/trainer/trainer_complete_profile_view.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
@@ -48,13 +49,14 @@ class AuthController extends GetxController {
     final String? email = prefs.getString('userEmail');
     final String? role = prefs.getString('role');
     final String? token = prefs.getString('token');
-    
+
     // Minimal user object for initial load, can be refreshed by a profile API call
     if (email != null && role != null) {
       if (token != null) _apiService.setToken(token);
-      
+
       currentUser.value = UserModel(
-        firstName: '', // We don't store first/last name in prefs currently
+        firstName: '',
+        // We don't store first/last name in prefs currently
         lastName: '',
         email: email,
         role: role,
@@ -63,13 +65,9 @@ class AuthController extends GetxController {
         isProfileSetup: prefs.getBool('isProfileSetup') ?? false,
         isProfileApprove: prefs.getBool('isProfileApprove') ?? false,
       );
-      
+
       // Auto-authenticate socket if possible
-      Get.find<SocketService>().authenticate(
-        box.read('userId') ?? '',
-        email,
-        role,
-      );
+      Get.find<SocketService>().authenticate(box.read('userId') ?? '', email, role);
     }
   }
 
@@ -114,7 +112,7 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileApprove', approve);
         await prefs.setBool('isProfileCompleted', completed);
         await prefs.setString('role', refreshedRole);
-        
+
         currentUser.value = UserModel.fromJson(data);
         _navigateBasedOnRole(refreshedRole, completed, setup, approve);
       } else {
@@ -135,10 +133,13 @@ class AuthController extends GetxController {
   // ─── LOGIN ───────────────────────────────────────────────────────────────────
   Future<void> login() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar('Error', 'Please fill in all fields',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please fill in all fields',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -173,12 +174,8 @@ class AuthController extends GetxController {
         currentUser.value = UserModel.fromJson(user);
 
         _apiService.setToken(token);
-        
-        Get.find<SocketService>().authenticate(
-          user['_id'] ?? user['id'],
-          user['email'],
-          user['role'],
-        );
+
+        Get.find<SocketService>().authenticate(user['_id'] ?? user['id'], user['email'], user['role']);
 
         _navigateBasedOnRole(role, isProfileCompleted, isProfileSetup, isProfileApprove);
       } else if (response.statusCode == 403) {
@@ -195,17 +192,23 @@ class AuthController extends GetxController {
         Get.to(() => OtpVerificationView(email: email));
       } else {
         String message = response.body?['message'] ?? 'Login failed';
-        Get.snackbar('Login Failed', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Login Failed',
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       _logger.e('Login error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -228,24 +231,27 @@ class AuthController extends GetxController {
         Get.to(() => OtpVerificationView(email: email));
       } else if (response.statusCode == 409) {
         // Email already verified — tell user to log in
-        Get.snackbar('Account Exists', 'This email is already registered. Please log in.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 4));
+        Get.snackbar(
+          'Account Exists',
+          'This email is already registered. Please log in.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
       } else {
         String message = response.body?['message'] ?? 'Registration failed';
-        Get.snackbar('Error', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
       _logger.e('Registration error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -256,10 +262,7 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      final response = await _apiService.postRequest(AppUrls.verifyEmail, {
-        'email': email,
-        'otp': otp,
-      });
+      final response = await _apiService.postRequest(AppUrls.verifyEmail, {'email': email, 'otp': otp});
 
       if (response.statusCode == 200) {
         final responseData = response.body['data'];
@@ -272,26 +275,35 @@ class AuthController extends GetxController {
 
         _logger.i('Email verified! User: ${user['email']}, Completed: $isProfileCompleted');
 
-        Get.snackbar('Success', 'Email verified successfully. Please log in to continue.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Email verified successfully. Please log in to continue.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
 
         // Redirect to Login as per requirement (user must login after verification)
         Get.offAll(() => const LoginView());
       } else {
         String message = response.body?['message'] ?? 'Verification failed';
-        Get.snackbar('Invalid OTP', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Invalid OTP',
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       _logger.e('Verify email error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -304,16 +316,16 @@ class AuthController extends GetxController {
       final response = await _apiService.postRequest(AppUrls.resendOtp, {'email': email});
 
       if (response.statusCode == 200) {
-        Get.snackbar('OTP Sent', 'A new OTP has been sent to your email.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white);
+        Get.snackbar(
+          'OTP Sent',
+          'A new OTP has been sent to your email.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
         String message = response.body?['message'] ?? 'Failed to resend OTP';
-        Get.snackbar('Error', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
       _logger.e('Resend OTP error: $e');
@@ -354,11 +366,14 @@ class AuthController extends GetxController {
     if (isProfileSetup) {
       // Application submitted, waiting for admin review
       if (role == 'barn_manager') {
-        Get.offAll(() => const BarnManagerApplicationSubmittedView());
-      } else {
-        Get.offAll(() => const TrainerApplicationSubmittedView());
+        if (isProfileCompleted) {
+          Get.offAll(() => const BarnManagerCreateProfileView());
+        } else {
+          Get.offAll(() => const BarnManagerBottomNav());
+        }
+
+        return;
       }
-      return;
     }
 
     // New account — no role chosen yet
@@ -378,17 +393,17 @@ class AuthController extends GetxController {
         navigateAfterRoleSet();
       } else {
         String message = response.body?['message'] ?? 'Failed to submit application';
-        Get.snackbar('Error', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
       _logger.e('Complete profile error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -405,17 +420,17 @@ class AuthController extends GetxController {
         Get.offAll(() => const BarnManagerApplicationSubmittedView());
       } else {
         String message = response.body?['message'] ?? 'Failed to submit application';
-        Get.snackbar('Error', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
       _logger.e('Complete profile error: $e');
-      Get.snackbar('Error', 'An unexpected error occurred',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }
@@ -434,7 +449,7 @@ class AuthController extends GetxController {
   Future<void> logout({bool sessionExpired = false}) async {
     try {
       _logger.i('Logging out user...');
-      
+
       // Notify backend if it's a manual logout
       if (!sessionExpired) {
         try {
@@ -448,24 +463,30 @@ class AuthController extends GetxController {
       // Clear all SharedPreferences (token, role, email, profileStatus, etc.)
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      
+
       // Reset API state
       _apiService.clearToken();
-      
+
       // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());
 
       if (sessionExpired) {
-        Get.snackbar('Session Expired', 'Your session has expired. Please log in again.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 4));
+        Get.snackbar(
+          'Session Expired',
+          'Your session has expired. Please log in again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 4),
+        );
       } else {
-        Get.snackbar('Logged Out', 'You have been successfully logged out.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.blue,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Logged Out',
+          'You have been successfully logged out.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.blue,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       _logger.e('Error during logout: $e');
@@ -481,5 +502,3 @@ class AuthController extends GetxController {
     super.onClose();
   }
 }
-
-

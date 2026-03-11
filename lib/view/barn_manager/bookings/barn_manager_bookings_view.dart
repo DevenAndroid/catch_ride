@@ -6,17 +6,17 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
-import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
 import 'package:get/get.dart';
 
-class TrainerBookingsView extends StatefulWidget {
-  const TrainerBookingsView({super.key});
+class BarnManagerBookingsView extends StatefulWidget {
+  const BarnManagerBookingsView({super.key});
 
   @override
-  State<TrainerBookingsView> createState() => _TrainerBookingsViewState();
+  State<BarnManagerBookingsView> createState() => _BarnManagerBookingsViewState();
 }
 
-class _TrainerBookingsViewState extends State<TrainerBookingsView>
+class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedFilterIndex = 0; 
@@ -245,7 +245,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     required String status,
   }) {
     return GestureDetector(
-      onTap: () => Get.to(() => TrainerHorseDetailView(
+      onTap: () => Get.to(() => BarnManagerHorseDetailView(
         horseId: booking.horseId,
         fromBooking: true,
       )),

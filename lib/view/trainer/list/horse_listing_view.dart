@@ -7,12 +7,15 @@ import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_availability_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/widgets/horse_card.dart';
+import 'package:catch_ride/widgets/horse_card.dart';
 
 class HourseListingView extends StatefulWidget {
   const HourseListingView({super.key});
@@ -58,6 +61,7 @@ class _HourseListingViewState extends State<HourseListingView> {
     _scrollController.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -220,18 +224,55 @@ class _HourseListingViewState extends State<HourseListingView> {
                       }
 
                       final horse = horseController.horses[index];
-                      return _buildPostCard(
+                      return HorseCard(
                         horse: horse,
-                        userName: (horse.trainerName != null && horse.trainerName!.isNotEmpty) ? horse.trainerName! : profileController.fullName,
-                        userAvatar: (horse.trainerAvatar != null && horse.trainerAvatar!.isNotEmpty) ? horse.trainerAvatar! : profileController.avatar,
-                        timePosted: '16 days ago', // Placeholder to match design
-                        mainImageUrl: horse.images.isNotEmpty ? horse.images.first : AppConstants.dummyImageUrl,
-                        imageCount: '1 / ${horse.images.length}',
-                        tags: horse.listingTypes,
-                        postTitle: horse.listingTitle ?? horse.name,
-                        postDescription: horse.description ?? '',
-                        location: horse.location ?? 'Ocala, FL',
-                        isOwnHorse: true,
+                        onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse, isOwnHorse: true)),
+                        trailing: PopupMenuButton<String>(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.more_vert, color: AppColors.textPrimary, size: 24),
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              // Trainer edit logic
+                            } else if (value == 'share') {
+                              // Share logic
+                            } else if (value == 'availability') {
+                              Get.to(() => BarnManagerAvailabilityView(horse: horse));
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.edit, size: 20, color: AppColors.textPrimary),
+                                  SizedBox(width: 8),
+                                  CommonText('Edit Horse', fontSize: 14),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'availability',
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.calendar_month, size: 20, color: AppColors.textPrimary),
+                                  SizedBox(width: 8),
+                                  CommonText('Manage Availability', fontSize: 14),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'share',
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.share, size: 20, color: AppColors.textPrimary),
+                                  SizedBox(width: 8),
+                                  CommonText('Share', fontSize: 14),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -300,7 +341,40 @@ class _HourseListingViewState extends State<HourseListingView> {
                       ],
                     ),
                   ),
-                  const Icon(Icons.more_vert, color: AppColors.textPrimary),
+                  PopupMenuButton<String>(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
+                    onSelected: (value) {
+                      if (value == 'availability') {
+                        Get.to(() => BarnManagerAvailabilityView(horse: horse));
+                      } else if (value == 'edit') {
+                        // Trainer edit logic could go here
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: const [
+                            Icon(Icons.edit, size: 20, color: AppColors.textPrimary),
+                            SizedBox(width: 8),
+                            CommonText('Edit Horse', fontSize: 14),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'share',
+                        child: Row(
+                          children: const [
+                            Icon(Icons.share, size: 20, color: AppColors.textPrimary),
+                            SizedBox(width: 8),
+                            CommonText('Share', fontSize: 14),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
