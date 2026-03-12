@@ -94,7 +94,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   itemCount: controller.horses.length,
                   itemBuilder: (context, index) {
                     final horse = controller.horses[index];
-                    final isRequested = Get.find<BookingController>().bookings.any((b) => b.horseId == horse.id && b.status.toLowerCase() == 'pending');
+                    final isRequested = Get.put(BookingController()).bookings.any((b) => b.horseId == horse.id && b.status.toLowerCase() == 'pending');
 
                     return HorseCard(
                       horse: horse,
@@ -151,13 +151,13 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     CommonText(
-                      "Bruce's Field",
+                      "Search horses or services",
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF101828),
                     ),
                     CommonText(
-                      "10 Jan - 18 Jan 2026",
+                      "Select location & dates",
                       fontSize: 12,
                       color: Color(0xFF667085),
                     ),
@@ -289,7 +289,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       Icon(Icons.location_on, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
                       const SizedBox(width: 8),
                       CommonText(
-                        vendor.location ?? 'Wellington, FL',
+                        vendor.location ?? '',
                         fontSize: 14,
                         color: AppColors.textSecondary.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w500,
@@ -317,7 +317,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       CommonText(
                         vendor.serviceAvailability.isNotEmpty 
                           ? '${vendor.serviceAvailability.first.startDate} - ${vendor.serviceAvailability.first.endDate}'
-                          : '10 Jan - 18 Jan 2026',
+                          : '',
                         fontSize: 14,
                         color: AppColors.textSecondary.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w500,

@@ -70,95 +70,7 @@ class TrainerChatsView extends StatelessWidget {
               .where((c) => c.status != 'request-pending' || c.senderId == currentUserId)
               .toList();
 
-          // INJECT DUMMY DATA FOR UI VERIFICATION
-          if (activeConversations.isEmpty) {
-            activeConversations = [
-              ChatConversation(
-                id: '1',
-                conversationId: 'c1',
-                lastMessage: 'Thanks so much, happy with that.',
-                date: DateTime.now().subtract(const Duration(minutes: 2)),
-                unread: 1,
-                otherUser: ChatOtherUser(
-                  id: 'u1',
-                  name: 'Lana Steiner',
-                  avatar: 'https://i.pravatar.cc/150?u=lana',
-                ),
-              ),
-              ChatConversation(
-                id: '2',
-                conversationId: 'c2',
-                lastMessage: 'Got you a coffee',
-                date: DateTime.now().subtract(const Duration(minutes: 2)),
-                unread: 0,
-                otherUser: ChatOtherUser(
-                  id: 'u2',
-                  name: 'Demi Wilkinson',
-                  avatar: 'https://i.pravatar.cc/150?u=demi',
-                ),
-              ),
-              ChatConversation(
-                id: '3',
-                conversationId: 'c3',
-                lastMessage: 'Great to see you again!',
-                date: DateTime.now().subtract(const Duration(hours: 3)),
-                unread: 0,
-                otherUser: ChatOtherUser(
-                  id: 'u3',
-                  name: 'Candice Wu',
-                  avatar: 'https://i.pravatar.cc/150?u=candice',
-                ),
-              ),
-              ChatConversation(
-                id: '4',
-                conversationId: 'c4',
-                lastMessage: 'We should ask Oli about this...',
-                date: DateTime.now().subtract(const Duration(hours: 6)),
-                unread: 0,
-                otherUser: ChatOtherUser(
-                  id: 'u4',
-                  name: 'Natali Craig',
-                  avatar: 'https://i.pravatar.cc/150?u=natali',
-                ),
-              ),
-              ChatConversation(
-                id: '5',
-                conversationId: 'c5',
-                lastMessage: 'Okay, see you then.',
-                date: DateTime.now().subtract(const Duration(hours: 12)),
-                unread: 0,
-                otherUser: ChatOtherUser(
-                  id: 'u5',
-                  name: 'Drew Cano',
-                  avatar: 'https://i.pravatar.cc/150?u=drew',
-                ),
-              ),
-              ChatConversation(
-                id: '6',
-                conversationId: 'c6',
-                lastMessage: 'Okay, see you then.',
-                date: DateTime.now().subtract(const Duration(hours: 12)),
-                unread: 0,
-                otherUser: ChatOtherUser(
-                  id: '6',
-                  name: 'Drew Cano',
-                  avatar: 'https://i.pravatar.cc/150?u=drew',
-                ),
-              ),
-              ChatConversation(
-                id: '7',
-                conversationId: 'c7',
-                lastMessage: 'Okay, see you then.',
-                date: DateTime.now().subtract(const Duration(hours: 12)),
-                unread: 0,
-                otherUser: ChatOtherUser(
-                  id: '7',
-                  name: 'Drew Cano',
-                  avatar: 'https://i.pravatar.cc/150?u=drew',
-                ),
-              ),
-            ];
-          }
+
 
           return ListView.separated(
             padding: EdgeInsets.zero,
@@ -192,7 +104,7 @@ class TrainerChatsView extends StatelessWidget {
       } else if (diff.inHours < 24) {
         time = '${diff.inHours} hours ago';
       } else {
-        time = DateFormat('MMM d').format(chat.date!);
+        time = DateFormat('dd MMM yyyy').format(chat.date!);
       }
     }
 

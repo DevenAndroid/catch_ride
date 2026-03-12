@@ -138,70 +138,7 @@ class ExploreController extends GetxController {
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
         final List<VendorModel> newVendors = data.map((e) => VendorModel.fromJson(e)).toList();
-        
-        if (newVendors.isEmpty) {
-          // Add static data for demonstration if no data from API
-          vendors.assignAll([
-            VendorModel(
-              id: '1',
-              firstName: 'Thomas',
-              lastName: 'Martin',
-              email: 'thomas@example.com',
-              businessName: 'Martin Grooming',
-              serviceType: 'Groom',
-              location: 'Wellington, FL',
-              status: 'active',
-              profilePhoto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1374&auto=format&fit=crop',
-              serviceAvailability: [
-                VendorAvailability(startDate: '10 Jan', endDate: '18 Jan 2026')
-              ],
-            ),
-            VendorModel(
-              id: '2',
-              firstName: 'Thomas',
-              lastName: 'Martin',
-              email: 'thomas2@example.com',
-              businessName: 'Martin Grooming',
-              serviceType: 'Groom',
-              location: 'Wellington, FL',
-              status: 'active',
-              profilePhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1374&auto=format&fit=crop',
-              serviceAvailability: [
-                VendorAvailability(startDate: '10 Jan', endDate: '18 Jan 2026')
-              ],
-            ),
-            VendorModel(
-              id: '3',
-              firstName: 'Thomas',
-              lastName: 'Martin',
-              email: 'thomas3@example.com',
-              businessName: 'Martin Grooming',
-              serviceType: 'Groom',
-              location: 'Wellington, FL',
-              status: 'active',
-              profilePhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=1470&auto=format&fit=crop',
-              serviceAvailability: [
-                VendorAvailability(startDate: '10 Jan', endDate: '18 Jan 2026')
-              ],
-            ),
-            VendorModel(
-              id: '4',
-              firstName: 'Thomas',
-              lastName: 'Martin',
-              email: 'thomas4@example.com',
-              businessName: 'Martin Grooming',
-              serviceType: 'Groom',
-              location: 'Wellington, FL',
-              status: 'active',
-              profilePhoto: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1376&auto=format&fit=crop',
-              serviceAvailability: [
-                VendorAvailability(startDate: '10 Jan', endDate: '18 Jan 2026')
-              ],
-            ),
-          ]);
-        } else {
-          vendors.assignAll(newVendors);
-        }
+        vendors.assignAll(newVendors);
         _logger.i('Fetched ${vendors.length} vendors');
       } else {
         _logger.e('Failed to fetch vendors: ${response.statusText}');

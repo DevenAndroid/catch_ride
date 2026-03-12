@@ -37,6 +37,7 @@ class AppUrls {
   static const String opportunityTags = '$systemConfig/opportunity-tags';
   static const String experienceLevels = '$systemConfig/experience-levels';
   static const String personalityTags = '$systemConfig/personality-tags';
+  static const String tagTypesWithValues = '$systemConfig/tag-types/with-values';
 
   // Horse Shows
   static const String horseShows = '/horse-shows';

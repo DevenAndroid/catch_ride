@@ -14,6 +14,8 @@ class BookingModel {
   final String? endTime;
   final double price;
   final String? paymentStatus;
+  final String? horseImage;
+  final String? location;
   final String? notes;
 
   BookingModel({
@@ -32,6 +34,8 @@ class BookingModel {
     this.endTime,
     required this.price,
     this.paymentStatus,
+    this.horseImage,
+    this.location,
     this.notes,
   });
 
@@ -52,6 +56,8 @@ class BookingModel {
       endTime: json['endTime'],
       price: json['price'] is num ? (json['price'] as num).toDouble() : 0.0,
       paymentStatus: json['paymentStatus'],
+      horseImage: json['horseId'] is Map ? json['horseId']['images']?.first : null,
+      location: json['horseId'] is Map ? json['horseId']['location'] : null,
       notes: json['notes'],
     );
   }
@@ -73,6 +79,8 @@ class BookingModel {
       'endTime': endTime,
       'price': price,
       'paymentStatus': paymentStatus,
+      'horseImage': horseImage,
+      'location': location,
       'notes': notes,
     };
   }

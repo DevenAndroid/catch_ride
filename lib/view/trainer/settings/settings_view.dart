@@ -28,7 +28,7 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ProfileController controller = Get.find<ProfileController>();
+    final ProfileController controller = Get.put(ProfileController());
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -260,21 +260,21 @@ class SettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           CommonText(
-            controller.fullName.isNotEmpty ? controller.fullName : 'Arya Stark',
+            controller.fullName.isNotEmpty ? controller.fullName : '',
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 4),
           CommonText(
-            controller.specialization.isNotEmpty ? controller.specialization : 'Winter Equestrian',
+            controller.specialization.isNotEmpty ? controller.specialization : '',
             fontSize: 14,
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () => Get.to(() => const TrainerProfileView()),
+            onPressed: () => Get.to(() => TrainerProfileView()),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               minimumSize: Size.zero,

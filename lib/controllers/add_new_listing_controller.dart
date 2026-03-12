@@ -42,6 +42,26 @@ class AddNewListingController extends GetxController {
   final descriptionController = TextEditingController();
   final usefNumberController = TextEditingController();
   final locationController = TextEditingController();
+  
+  // Price and Inquire state for Step 2
+  final Map<String, TextEditingController> minPriceControllers = {
+    'Sale': TextEditingController(),
+    'Annual Lease': TextEditingController(),
+    'Short Term or Circuit Lease': TextEditingController(),
+    'Weekly Lease': TextEditingController(),
+  };
+  final Map<String, TextEditingController> maxPriceControllers = {
+    'Sale': TextEditingController(),
+    'Annual Lease': TextEditingController(),
+    'Short Term or Circuit Lease': TextEditingController(),
+    'Weekly Lease': TextEditingController(),
+  };
+  final RxMap<String, bool> inquireForPrice = <String, bool>{
+    'Sale': false,
+    'Annual Lease': false,
+    'Short Term or Circuit Lease': false,
+    'Weekly Lease': false,
+  }.obs;
 
   // Step 3
   var selectedListingTypes = <String>{'Sale', 'Annual Lease'}.obs;
@@ -140,6 +160,14 @@ class AddNewListingController extends GetxController {
         'personalityTags': personalityTagIds,
         'isActive': activeStatus.value,
         'location': locationController.text,
+        'prices': {
+          for (var type in selectedListingTypes)
+            type: {
+              'inquire': inquireForPrice[type] ?? false,
+              'min': minPriceControllers[type]?.text,
+              'max': maxPriceControllers[type]?.text,
+            }
+        },
         'showAvailability': availabilityEntries.map((e) => {
           'cityState': e.cityStateController.text,
           'showVenue': e.showVenueController.text,
@@ -271,6 +299,42 @@ class AddNewListingController extends GetxController {
     selectedTags.refresh();
   }
 
+  bool validateStep1() {
+    if (listingTitleController.text.trim().isEmpty) {
+      _showError('Please enter the listing title');
+      return false;
+    }
+    if (horseNameController.text.trim().isEmpty) {
+      _showError('Please enter the horse name');
+      return false;
+    }
+    if (locationController.text.trim().isEmpty) {
+      _showError('Please enter the location');
+      return false;
+    }
+    if (breedController.text.trim().isEmpty) {
+      _showError('Please enter the breed');
+      return false;
+    }
+    if (descriptionController.text.trim().isEmpty) {
+      _showError('Please enter a description');
+      return false;
+    }
+    return true;
+  }
+
+  void _showError(String message) {
+    Get.snackbar(
+      'Required',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.redAccent,
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+    );
+  }
+
   @override
   void onClose() {
     videoLinkController.dispose();
@@ -283,6 +347,8 @@ class AddNewListingController extends GetxController {
     disciplineController.dispose();
     descriptionController.dispose();
     usefNumberController.dispose();
+    minPriceControllers.forEach((_, c) => c.dispose());
+    maxPriceControllers.forEach((_, c) => c.dispose());
     for (var entry in availabilityEntries) {
       entry.dispose();
     }

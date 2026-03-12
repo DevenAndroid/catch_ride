@@ -37,7 +37,7 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
                 width: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.accentRed.withOpacity(0.3),
+                  color: AppColors.secondary.withOpacity(0.3),
                 ),
                 child: Center(
                   child: Container(
@@ -45,7 +45,7 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
                     width: 76,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.accentRed,
+                      color: AppColors.secondary,
                     ),
                     child: const Icon(Icons.check, size: 42, color: Colors.white),
                   ),
@@ -79,7 +79,7 @@ class TrainerApplicationSubmittedView extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.infoBoxBg,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.accentRed.withOpacity(0.5)),
+                  border: Border.all(color: AppColors.secondary.withOpacity(0.5)),
                 ),
                 child: const CommonText(
                   AppStrings.onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount,

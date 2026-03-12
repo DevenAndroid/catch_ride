@@ -11,6 +11,7 @@ import 'package:catch_ride/view/select_role_view.dart';
 import 'package:flutter_svg/svg.dart';
 
 import 'package:catch_ride/view/login_view.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
 import '../controllers/auth_controller.dart';
@@ -26,12 +27,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
   final AuthController _authController = Get.find<AuthController>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-
-  @override
-  void dispose() {
-    // We don't dispose here as AuthController manages them
-    super.dispose();
-  }
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -40,146 +36,145 @@ class _CreateAccountViewState extends State<CreateAccountView> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SvgPicture.asset("assets/images/logo_with_title.svg"),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset("assets/images/logo_with_title.svg"),
+                const SizedBox(height: 32),
 
-/*              const SizedBox(height: 12),
-              const CommonText(
-                AppStrings.catchRide1,
-                fontSize: AppTextSizes.size18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-                letterSpacing: 1.5,
-              ),*/
-              const SizedBox(height: 32),
-
-              // Main Card
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardColor,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center ,
-                  children: [
-                    const CommonText(
-                      AppStrings.createAccount,
-                      fontSize: AppTextSizes.size22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    const SizedBox(height: 8),
-                    const CommonText(
-                      AppStrings.createAccountSubtitle,
-                      fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-
-                    CommonTextField(
-                      controller: _authController.emailController,
-                      label: AppStrings.email,
-                      hintText: AppStrings.enterYourEmail,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                    const SizedBox(height: 16),
-
-                    CommonTextField(
-                      controller: _authController.passwordController,
-                      label: AppStrings.password,
-                      hintText: AppStrings.emptyString,
-                      obscureText: _obscurePassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                // Main Card
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardColor,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    CommonTextField(
-                      controller: _authController.confirmPasswordController,
-                      label: AppStrings.confirmPassword,
-                      hintText: AppStrings.emptyString,
-                      obscureText: _obscureConfirmPassword,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirmPassword = !_obscureConfirmPassword;
-                          });
-                        },
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center ,
+                    children: [
+                      const CommonText(
+                        AppStrings.createAccount,
+                        fontSize: AppTextSizes.size22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      const CommonText(
+                        AppStrings.createAccountSubtitle,
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textSecondary,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
 
-                    const SizedBox(height: 24),
-                    Obx(() => CommonButton(
-                      text: AppStrings.getStarted,
-                      isLoading: _authController.isLoading.value,
-                      onPressed: () async {
-                        if (_authController.emailController.text.isEmpty ||
-                            _authController.passwordController.text.isEmpty ||
-                            _authController.confirmPasswordController.text.isEmpty) {
-                          Get.snackbar(AppStrings.error, AppStrings.pleaseFillInAllFields,
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white);
-                          return;
-                        }
-                        if (_authController.passwordController.text !=
-                            _authController.confirmPasswordController.text) {
-                          Get.snackbar(AppStrings.error, AppStrings.passwordsDoNotMatch,
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white);
-                          return;
-                        }
-                        if (_authController.passwordController.text.length < 6) {
-                          Get.snackbar(AppStrings.error, AppStrings.passwordMustBeAtLeast6Characters,
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white);
-                          return;
-                        }
+                      Row(
+                        children: [
+                          Expanded(
+                            child: CommonTextField(
+                              controller: _authController.firstNameController,
+                              label: 'First Name',
+                              hintText: 'John',
+                              isRequired: true,
+                              validator: RequiredValidator(errorText: 'Please enter your first name'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: CommonTextField(
+                              controller: _authController.lastNameController,
+                              label: 'Last Name',
+                              hintText: 'Doe',
+                              isRequired: true,
+                              validator: RequiredValidator(errorText: 'Please enter your last name'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
-                        // Store for potential OTP resend
-                        _authController.registrationEmail.value = _authController.emailController.text.trim();
-                        _authController.registrationPassword.value = _authController.passwordController.text;
+                      CommonTextField(
+                        controller: _authController.emailController,
+                        label: AppStrings.email,
+                        hintText: AppStrings.enterYourEmail,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: MultiValidator([
+                          RequiredValidator(errorText: 'Please enter your email'),
+                          EmailValidator(errorText: 'Please enter a valid email address'),
+                        ]),
+                      ),
+                      const SizedBox(height: 16),
 
-                        // Call register API — will navigate to OTP screen on success
-                        await _authController.register({
-                          'firstName': 'New',
-                          'lastName': 'User',
-                          'email': _authController.emailController.text.trim(),
-                          'password': _authController.passwordController.text,
-                        });
-                      },
-                    )),
+                      CommonTextField(
+                        controller: _authController.passwordController,
+                        label: AppStrings.password,
+                        hintText: AppStrings.emptyString,
+                        obscureText: _obscurePassword,
+                        validator: MultiValidator([
+                          RequiredValidator(errorText: 'Please enter your password'),
+                          MinLengthValidator(6, errorText: 'Please use at least 6 characters for your password'),
+                        ]),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      CommonTextField(
+                        controller: _authController.confirmPasswordController,
+                        label: AppStrings.confirmPassword,
+                        hintText: AppStrings.emptyString,
+                        obscureText: _obscureConfirmPassword,
+                        validator: (val) => MatchValidator(errorText: 'Passwords do not match, please check again').validateMatch(val ?? '', _authController.passwordController.text),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      Obx(() => CommonButton(
+                        text: AppStrings.getStarted,
+                        isLoading: _authController.isLoading.value,
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            // Store for potential OTP resend
+                            _authController.registrationEmail.value = _authController.emailController.text.trim();
+                            _authController.registrationPassword.value = _authController.passwordController.text;
+
+                            // Call register API — will navigate to OTP screen on success
+                            await _authController.register({});
+                          }
+                        },
+                      )),
                     const SizedBox(height: 20),
 
                     const Center(
@@ -236,6 +231,6 @@ class _CreateAccountViewState extends State<CreateAccountView> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_button.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 import '../../controllers/auth_controller.dart';
 
@@ -22,6 +24,7 @@ class TrainerProfileSetupView extends StatefulWidget {
 
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final AuthController _authController = Get.find<AuthController>();
+  final _formKey = GlobalKey<FormState>();
   
   // References controllers
   final List<TextEditingController> _refNameControllers = List.generate(4, (_) => TextEditingController());
@@ -99,17 +102,19 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 4.0,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 4.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     const CommonText(
                       AppStrings.provideFollowingDetails,
                       fontSize: AppTextSizes.size14,
@@ -138,55 +143,42 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                         colorText: Colors.white);
                   }
 
-                  // 1. References Validation (Require 2 complete references)
+                  // 1. Trigger Form Validation
+                  if (!_formKey.currentState!.validate()) {
+                    return;
+                  }
+
+                  // 2. Additional validation for custom widgets
+                  // References logic: ensuring at least 2 references are fully filled (Form handles fields, we just collect)
                   final List<Map<String, String>> references = [];
                   for (int i = 0; i < 2; i++) {
-                    String name = _refNameControllers[i].text.trim();
-                    String business = _refBusinessControllers[i].text.trim();
-                    String relationship = _refRelationControllers[i].text.trim();
-
-                    if (name.isEmpty || business.isEmpty || relationship.isEmpty) {
-                      showError('Please fill in all details for Reference ${i + 1}');
-                      return;
-                    }
-
                     references.add({
-                      'name': name,
-                      'business': business,
-                      'relationship': relationship,
+                      'name': _refNameControllers[i].text.trim(),
+                      'business': _refBusinessControllers[i].text.trim(),
+                      'relationship': _refRelationControllers[i].text.trim(),
                     });
                   }
 
-                  // 2. Social Media Validation
-                  if (_facebookController.text.trim().isEmpty) {
-                    showError('Facebook profile link is required.');
-                    return;
-                  }
-
-                  // 3. Federation info Validation
-                  if (_federationIdController.text.trim().isEmpty) {
-                    showError('Federation ID is required.');
-                    return;
-                  }
+                  // Federation selection check
                   if (_selectedFederation == 'Select Federation') {
-                    showError('Please select a Federation type.');
+                    showError('Please select a federation type');
                     return;
                   }
 
-                  // 4. Primary use Validation
+                  // Primary use Validation
                   final List<String> primaryUse = [];
                   if (_useSelling) primaryUse.add('Selling / Leasing');
                   if (_useBuying) primaryUse.add('Buying / Leasing');
                   if (_useBooking) primaryUse.add('Booking Service Providers');
 
                   if (primaryUse.isEmpty) {
-                    showError('Please select at least one choice for "How you will use Catch-Ride".');
+                    showError('Please select at least one choice for how you will use Catch-Ride');
                     return;
                   }
 
-                  // 5. Compliance Checkboxes Validation
+                  // Compliance Checkboxes Validation
                   if (!_confirm18 || !_agreeTerms || !_understandPlatform) {
-                    showError('Please confirm all three checkboxes at the bottom.');
+                    showError('Please confirm all three checkboxes at the bottom');
                     return;
                   }
 
@@ -208,6 +200,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -339,6 +332,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             label: "Facebook",
             isRequired: true,
             hintText: AppStrings.facebookcomyourpage,
+            validator: RequiredValidator(errorText: 'Please enter your Facebook profile link'),
           ),
           const SizedBox(height: 16),
           CommonTextField(

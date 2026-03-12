@@ -6,11 +6,9 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/view/login_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService extends GetConnect implements GetxService {
-  final Logger _logger = Logger();
 
   @override
   void onInit() {
@@ -53,22 +51,23 @@ class ApiService extends GetConnect implements GetxService {
       }
 
       if (response.hasError || isSessionError) {
-        _logger.e('❌ API ERROR [$statusCode] $method $url');
+        debugPrint('❌ API ERROR [$statusCode] $method $url');
         if (body != null) {
           try {
-            _logger.e('📦 RESPONSE BODY: ${jsonEncode(body)}');
+            debugPrint('📦 RESPONSE BODY: ${jsonEncode(body)}');
           } catch (_) {
-            _logger.e('📦 RESPONSE BODY: $body');
+            debugPrint('📦 RESPONSE BODY: $body');
           }
         }
 
         // Auto-logout on session error
         if (isSessionError) {
-          _logger.w('⚠️ Session error detected. Triggering auto-logout.');
+          debugPrint('⚠️ Session error detected. Triggering auto-logout.');
           _triggerAutoLogout(); 
         }
       } else {
-        _logger.i('✅ API SUCCESS [$statusCode] $method $url');
+        debugPrint('✅ API SUCCESS [$statusCode] $method $url');
+        log('✅ API SUCCESS [$statusCode] ${jsonEncode(body)}');
       }
       return response;
     });
@@ -77,7 +76,7 @@ class ApiService extends GetConnect implements GetxService {
   }
 
   void setToken(String token) {
-    _logger.d('🔑 Setting Auth Token for API requests');
+    debugPrint('🔑 Setting Auth Token for API requests');
     httpClient.addRequestModifier<dynamic>((request) {
       request.headers['Authorization'] = 'Bearer $token';
       return request;
@@ -85,7 +84,7 @@ class ApiService extends GetConnect implements GetxService {
   }
 
   void clearToken() {
-    _logger.d('🔑 Clearing Auth Token');
+    debugPrint('🔑 Clearing Auth Token');
     httpClient.addRequestModifier<dynamic>((request) {
       request.headers.remove('Authorization');
       return request;
@@ -100,7 +99,7 @@ class ApiService extends GetConnect implements GetxService {
     final String? token = prefs.getString('token');
     
     if (token == null || token.isEmpty) {
-      _logger.w('Request to $path blocked: No auth token');
+      debugPrint('Request to $path blocked: No auth token');
       await _triggerAutoLogout();
       return false;
     }
@@ -119,7 +118,7 @@ class ApiService extends GetConnect implements GetxService {
         Get.offAll(() => const LoginView());
       }
     } catch (e) {
-      _logger.e('Failed to trigger auto-logout: $e');
+      debugPrint('Failed to trigger auto-logout: $e');
     }
   }
 
@@ -129,8 +128,8 @@ class ApiService extends GetConnect implements GetxService {
       return const Response(statusCode: 401, statusText: 'Unauthorized');
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
-    _logger.i('🔍 GET REQUEST: $fullUrl');
-    if (query != null) _logger.d('❓ QUERY PARAMS: $query');
+    debugPrint('🔍 GET REQUEST: $fullUrl');
+    if (query != null) debugPrint('❓ QUERY PARAMS: $query');
     return get(path, query: query);
   }
 
@@ -139,8 +138,8 @@ class ApiService extends GetConnect implements GetxService {
       return const Response(statusCode: 401, statusText: 'Unauthorized');
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
-    _logger.i('📤 POST REQUEST: $fullUrl');
-    _logger.d('📦 REQUEST BODY: $body');
+    debugPrint('📤 POST REQUEST: $fullUrl');
+    debugPrint('📦 REQUEST BODY: $body');
     return post(path, body);
   }
 
@@ -149,8 +148,8 @@ class ApiService extends GetConnect implements GetxService {
       return const Response(statusCode: 401, statusText: 'Unauthorized');
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
-    _logger.i('📤 PUT REQUEST: $fullUrl');
-    _logger.d('📦 REQUEST BODY: $body');
+    debugPrint('📤 PUT REQUEST: $fullUrl');
+    debugPrint('📦 REQUEST BODY: ${jsonEncode(body)}');
     return put(path, body);
   }
 
@@ -159,7 +158,7 @@ class ApiService extends GetConnect implements GetxService {
       return const Response(statusCode: 401, statusText: 'Unauthorized');
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
-    _logger.i('🗑️ DELETE REQUEST: $fullUrl');
+    debugPrint('🗑️ DELETE REQUEST: $fullUrl');
     return delete(path);
   }
 }

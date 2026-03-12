@@ -45,7 +45,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           pickedTime.hour,
           pickedTime.minute,
         );
-        textController.text = DateFormat('MM-dd-yyyy hh:mm a').format(finalDateTime);
+        textController.text = DateFormat('dd MMM yyyy').format(finalDateTime);
       }
     }
   }
@@ -570,22 +570,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    height: 52,
-                    width: 52,
-                    decoration: BoxDecoration(
-                      color: const Color(
-                        0xFFE5E7EB,
-                      ), // Gray background as design
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Icon(
-                      Icons.open_in_new,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -601,36 +585,25 @@ class _AddNewListingViewState extends State<AddNewListingView> {
         children: [
           _buildListingTypeCard(
             title: 'Sale',
-            subtitle: 'The horse is for sale',
             isSelected: controller.selectedListingTypes.contains('Sale'),
             onTap: () => controller.toggleListingType('Sale'),
           ),
           const SizedBox(height: 16),
           _buildListingTypeCard(
             title: 'Annual Lease',
-            subtitle: 'The horse is for annual lease',
-            isSelected: controller.selectedListingTypes.contains(
-              'Annual Lease',
-            ),
+            isSelected: controller.selectedListingTypes.contains('Annual Lease'),
             onTap: () => controller.toggleListingType('Annual Lease'),
           ),
           const SizedBox(height: 16),
           _buildListingTypeCard(
             title: 'Short Term or Circuit Lease',
-            subtitle: 'The horse is for short term or circuit lease',
-            isSelected: controller.selectedListingTypes.contains(
-              'Short Term or Circuit Lease',
-            ),
-            onTap: () =>
-                controller.toggleListingType('Short Term or Circuit Lease'),
+            isSelected: controller.selectedListingTypes.contains('Short Term or Circuit Lease'),
+            onTap: () => controller.toggleListingType('Short Term or Circuit Lease'),
           ),
           const SizedBox(height: 16),
           _buildListingTypeCard(
             title: 'Weekly Lease',
-            subtitle: 'The horse is for weekly lease',
-            isSelected: controller.selectedListingTypes.contains(
-              'Weekly Lease',
-            ),
+            isSelected: controller.selectedListingTypes.contains('Weekly Lease'),
             onTap: () => controller.toggleListingType('Weekly Lease'),
           ),
         ],
@@ -640,51 +613,173 @@ class _AddNewListingViewState extends State<AddNewListingView> {
 
   Widget _buildListingTypeCard({
     required String title,
-    required String subtitle,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 1.5 : 1,
+    final isInquire = controller.inquireForPrice[title] ?? false;
+    
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CommonText(
-              title,
-              fontSize: AppTextSizes.size16,
-              fontWeight: isSelected
-                  ? FontWeight.w500
-                  : FontWeight.w500, // Matching the design
-              color: isSelected
-                  ? AppColors.textPrimary
-                  : AppColors.textSecondary,
-            ),
-            Container(
-              width: 20,
-              height: 20,
+        ],
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 56,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.white,
-                borderRadius: BorderRadius.circular(4),
+                color: isSelected ? const Color(0xFFE9F0FF) : const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.border,
+                  color: isSelected ? const Color(0xFF00084D) : const Color(0xFFD1D5DB),
+                  width: isSelected ? 2 : 1,
                 ),
               ),
-              child: isSelected
-                  ? const Icon(Icons.check, size: 14, color: Colors.white)
-                  : null,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CommonText(
+                    title,
+                    fontSize: AppTextSizes.size16,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? const Color(0xFF00084D) : const Color(0xFF475467),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isSelected) ...[
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      controller.inquireForPrice[title] = !isInquire;
+                      controller.inquireForPrice.refresh();
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color: isInquire ? const Color(0xFF00084D) : Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: isInquire ? const Color(0xFF00084D) : const Color(0xFFD0D5DD),
+                            ),
+                          ),
+                          child: isInquire
+                              ? const Icon(Icons.check, size: 14, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 10),
+                        const CommonText(
+                          'Inquire for price',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textPrimary,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isInquire) ...[
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CommonText(
+                                'Min Price',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF344054),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildPriceTextField(
+                                controller: controller.minPriceControllers[title]!,
+                                hintText: 'Enter min price',
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CommonText(
+                                'Max Price',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF344054),
+                              ),
+                              const SizedBox(height: 8),
+                              _buildPriceTextField(
+                                controller: controller.maxPriceControllers[title]!,
+                                hintText: 'Enter max price',
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceTextField({
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(
+        fontSize: 16,
+        color: AppColors.textPrimary,
+      ),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(
+          color: Color(0xFF667085),
+          fontSize: 16,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        filled: true,
+        fillColor: Colors.white,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF00084D), width: 1.5),
         ),
       ),
     );
@@ -1037,6 +1132,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             child: GestureDetector(
               onTap: () {
                 if (_currentStep < 5) {
+                  if (_currentStep == 1 && !controller.validateStep1()) return;
                   setState(() {
                     _currentStep++;
                   });

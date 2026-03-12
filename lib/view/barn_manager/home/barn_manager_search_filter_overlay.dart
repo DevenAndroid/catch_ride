@@ -312,7 +312,7 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                 const CommonText('When', fontSize: 16, fontWeight: FontWeight.bold),
                 CommonText(
                   _rangeStart != null 
-                    ? (_rangeEnd != null ? '${DateFormat('dd MMM').format(_rangeStart!)} - ${DateFormat('dd MMM').format(_rangeEnd!)}' : DateFormat('dd MMM').format(_rangeStart!))
+                    ? (_rangeEnd != null ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}' : DateFormat('dd MMM yyyy').format(_rangeStart!))
                     : 'Add dates', 
                   fontSize: 14, 
                   color: AppColors.textSecondary.withOpacity(0.8)

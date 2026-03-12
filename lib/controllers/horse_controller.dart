@@ -4,7 +4,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:get/get.dart';
 
 class HorseController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  final ApiService _apiService = Get.put(ApiService());
 
   // State variables
   var horses = <HorseModel>[].obs;
@@ -51,11 +51,6 @@ class HorseController extends GetxController {
         List<HorseModel> newHorses = data.map((e) => HorseModel.fromJson(e)).toList();
         final pagination = response.body['pagination'] ?? {};
 
-        // Add dummy data for development if list is empty
-        if (newHorses.isEmpty && refresh) {
-          newHorses = _getDummyHorses();
-        }
-
         if (refresh) {
           horses.assignAll(newHorses);
         } else {
@@ -67,60 +62,9 @@ class HorseController extends GetxController {
       }
     } catch (e) {
       print('Error fetching horses: $e');
-      // Fallback to dummy data on error too
-      if (refresh) {
-        horses.assignAll(_getDummyHorses());
-      }
     } finally {
       isLoading.value = false;
       isMoreLoading.value = false;
     }
-  }
-
-  List<HorseModel> _getDummyHorses() {
-    return [
-      HorseModel(
-        id: '1',
-        name: 'Golden Hour',
-        breed: 'Warmblood',
-        age: 8,
-        gender: 'Gelding',
-        listingTitle: 'Golden Hour - Top Children\'s Hunter',
-        description: 'Lovely Children\'s Hunter with a great brain and an easy lead change. Brave, consistent, and forgiving...',
-        location: 'Aiken, SC, USA',
-        images: ['https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=800&auto=format&fit=crop'],
-        listingTypes: ['For Sale', 'Weekly Lease'],
-        trainerName: 'John Snow',
-        trainerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-      ),
-      HorseModel(
-        id: '2',
-        name: 'Moonshadow',
-        breed: 'Thoroughbred',
-        age: 6,
-        gender: 'Mare',
-        listingTitle: 'Moonshadow - Athletic Jumper Prospect',
-        description: 'Scopey and careful jumper with plenty of heart. Ready to move up through the divisions with a dedicated rider.',
-        location: 'Ocala, FL, USA',
-        images: ['https://images.unsplash.com/photo-1598974357851-98166a9d9b45?q=80&w=800&auto=format&fit=crop'],
-        listingTypes: ['Annual Lease'],
-        trainerName: 'John Snow',
-        trainerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-      ),
-      HorseModel(
-        id: '3',
-        name: 'Zantura',
-        breed: 'Dutch Warmblood',
-        age: 10,
-        gender: 'Mare',
-        listingTitle: 'Zantura - Experienced Equitation Partner',
-        description: 'Reliable and elegant mare with numerous wins in the equitation ring. Perfect for a rider looking to move up.',
-        location: 'Wellington, FL, USA',
-        images: ['https://images.unsplash.com/photo-1534067783941-51c9c23ecefd?q=80&w=800&auto=format&fit=crop'],
-        listingTypes: ['For Sale'],
-        trainerName: 'John Snow',
-        trainerAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-      ),
-    ];
   }
 }

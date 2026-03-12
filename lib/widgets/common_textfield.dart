@@ -17,6 +17,7 @@ class CommonTextField extends StatelessWidget {
   final String? suffixLabel;
   final bool readOnly;
   final VoidCallback? onTap;
+  final String? Function(String?)? validator;
 
   const CommonTextField({
     super.key,
@@ -32,6 +33,7 @@ class CommonTextField extends StatelessWidget {
     this.suffixLabel,
     this.readOnly = false,
     this.onTap,
+    this.validator,
   });
 
   @override
@@ -76,6 +78,7 @@ class CommonTextField extends StatelessWidget {
           maxLines: maxLines,
           readOnly: readOnly,
           onTap: onTap,
+          validator: validator,
           style: const TextStyle(
             fontSize: AppTextSizes.size14,
             color: AppColors.textPrimary,
