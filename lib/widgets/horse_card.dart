@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/utils/date_util.dart';
 import 'package:flutter/material.dart';
 
 class HorseCard extends StatelessWidget {
@@ -23,9 +24,9 @@ class HorseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final show = horse.showAvailability.isNotEmpty ? horse.showAvailability.first : null;
     final String discipline = horse.displayDiscipline;
-    final String venue = show?.showVenue ?? 'Bruce\'s Field in Aiken, SC'; // Default from mockup if null
-    final String dates = '10 Jan - 18 Jan 2026'; // Default from mockup
-    final String location = horse.location ?? 'Aiken, SC, USA'; // Default from mockup
+    final String venue = show?.showVenue ?? '';
+    final String dates = DateUtil.formatRange(show?.startDate, show?.endDate);
+    final String location = horse.location ?? '';
 
     return GestureDetector(
       onTap: onTap,

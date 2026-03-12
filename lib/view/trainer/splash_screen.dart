@@ -30,9 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
-      _handleNavigation();
-    });
+    _handleNavigation();
   }
 
   Future<void> _handleNavigation() async {

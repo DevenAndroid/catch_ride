@@ -1,3 +1,4 @@
+import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -8,6 +9,8 @@ import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
 import 'package:get/get.dart';
+
+import '../../../constant/app_constants.dart';
 
 class BarnManagerBookingsView extends StatefulWidget {
   const BarnManagerBookingsView({super.key});
@@ -277,9 +280,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   fit: StackFit.expand,
                   children: [
                     CommonImageView(
-                      url: booking.horseName == 'Golden Hour' 
-                          ? 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'
-                          : 'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
+                      url: booking.horseImage ?? AppConstants.dummyImageUrl,
                     ),
                     Positioned(
                       top: 8,
@@ -328,8 +329,8 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                           color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const CommonText(
-                          'Trial',
+                        child: CommonText(
+                          booking.type.capitalizeFirst ?? 'Trial',
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
@@ -339,7 +340,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    'Trainer : ${booking.trainerName ?? 'Emily Johnson'}',
+                    'Trainer : ${booking.trainerName ?? ''}',
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
@@ -353,9 +354,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          booking.horseName == 'Golden Hour' 
-                              ? 'Cypress, CA, United States' 
-                              : 'Tampa, FL, United States',
+                          booking.location ?? '',
                           fontSize: 13,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
@@ -371,7 +370,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          booking.date,
+                          DateUtil.formatDisplayDate(booking.date),
                           fontSize: 13,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,

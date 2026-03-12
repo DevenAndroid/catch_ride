@@ -9,7 +9,6 @@ import 'package:catch_ride/view/barn_manager/barn_manager_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
@@ -23,12 +22,13 @@ import '../view/trainer/trainer_profile_setup_view.dart';
 
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
-  final Logger _logger = Logger();
   final box = GetStorage();
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
 
   // Registration State
   final RxString selectedRole = 'trainer'.obs;
@@ -73,14 +73,23 @@ class AuthController extends GetxController {
 
   // ─── CHECK AUTH STATUS (Splash Logic) ───────────────────────────────────────
   Future<void> checkAuthStatus() async {
+    final DateTime startTime = DateTime.now();
+
+    // Helper to ensure minimum splash time
+    Future<void> ensureMinTime() async {
+      final elapsed = DateTime.now().difference(startTime);
+      if (elapsed < const Duration(seconds: 3)) {
+        await Future.delayed(const Duration(seconds: 3) - elapsed);
+      }
+    }
+
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
-      final String? role = prefs.getString('role');
       final bool isFirstLaunch = box.read('isFirstLaunch') ?? true;
 
       if (token == null || token.isEmpty) {
-        // Not logged in
+        await ensureMinTime();
         if (isFirstLaunch) {
           box.write('isFirstLaunch', false);
           Get.offAll(() => const CreateAccountView());
@@ -90,42 +99,44 @@ class AuthController extends GetxController {
         return;
       }
 
-      // 1. Initial navigation from stored values while we wait for fresh data
+      // 1. Authenticate API Service
       _apiService.setToken(token);
-      final bool storedSetup = prefs.getBool('isProfileSetup') ?? false;
-      final bool storedApprove = prefs.getBool('isProfileApprove') ?? false;
-      final bool storedCompleted = prefs.getBool('isProfileCompleted') ?? false;
 
-      // 2. Refresh profile from backend to get the latest status (especially admin approval)
+      // 2. Fetch FRESH profile data directly from API
+      debugPrint('Fetching fresh profile data for redirection...');
       final response = await _apiService.getRequest(AppUrls.profile);
+
+      // 3. Ensure we've shown the splash for at least 3 seconds
+      await ensureMinTime();
+
       if (response.statusCode == 200) {
         final data = response.body['data'];
+        final String refreshedRole = data['role'] ?? '';
         final bool setup = data['isProfileSetup'] ?? false;
         final bool approve = data['isProfileApprove'] ?? false;
         final bool completed = data['isProfileCompleted'] ?? false;
-        final String refreshedRole = data['role'] ?? role ?? '';
 
-        _logger.i('Startup Refresh: role=$refreshedRole setup=$setup approve=$approve completed=$completed');
+        debugPrint('API Success: role=$refreshedRole setup=$setup approve=$approve completed=$completed');
 
-        // Update storage with fresh data
+        // Sync fresh data to local model
+        currentUser.value = UserModel.fromJson(data);
+        
+        // Update storage only for session persistence, not for flow logic
+        await prefs.setString('role', refreshedRole);
         await prefs.setBool('isProfileSetup', setup);
         await prefs.setBool('isProfileApprove', approve);
         await prefs.setBool('isProfileCompleted', completed);
-        await prefs.setString('role', refreshedRole);
 
-        currentUser.value = UserModel.fromJson(data);
+        // ALWAYS Navigate based on the FRESH API response
         _navigateBasedOnRole(refreshedRole, completed, setup, approve);
       } else {
-        // If API fails (e.g., token expired), logout the user
-        if (response.statusCode == 401) {
-          await logout(sessionExpired: true);
-        } else {
-          // Fallback to stored values if API is temporarily unavailable
-          _navigateBasedOnRole(role ?? '', storedCompleted, storedSetup, storedApprove);
-        }
+        // If API fails (e.g., token expired/invalid), force logout
+        debugPrint('Profile API failed with status: ${response.statusCode}');
+        await logout(sessionExpired: true);
       }
     } catch (e) {
-      _logger.e('Error checking auth status: $e');
+      debugPrint('Error during auth check: $e');
+      await ensureMinTime();
       Get.offAll(() => const LoginView());
     }
   }
@@ -160,7 +171,7 @@ class AuthController extends GetxController {
         final bool isProfileSetup = user['isProfileSetup'] ?? false;
         final bool isProfileApprove = user['isProfileApprove'] ?? false;
 
-        _logger.i('Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove');
+        debugPrint('Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove');
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
@@ -201,7 +212,7 @@ class AuthController extends GetxController {
         );
       }
     } catch (e) {
-      _logger.e('Login error: $e');
+      debugPrint('Login error: $e');
       Get.snackbar(
         'Error',
         'An unexpected error occurred',
@@ -219,14 +230,16 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      if (!userData.containsKey('email')) userData['email'] = registrationEmail.value;
-      if (!userData.containsKey('password')) userData['password'] = registrationPassword.value;
+      if (!userData.containsKey('email')) userData['email'] = emailController.text.trim();
+      if (!userData.containsKey('password')) userData['password'] = passwordController.text;
+      if (!userData.containsKey('firstName')) userData['firstName'] = firstNameController.text.trim();
+      if (!userData.containsKey('lastName')) userData['lastName'] = lastNameController.text.trim();
       if (!userData.containsKey('role')) userData['role'] = 'user';
 
       final response = await _apiService.postRequest(AppUrls.register, userData);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        _logger.i('OTP sent. Navigating to OTP screen.');
+        debugPrint('OTP sent. Navigating to OTP screen.');
         final email = userData['email'];
         Get.to(() => OtpVerificationView(email: email));
       } else if (response.statusCode == 409) {
@@ -244,7 +257,7 @@ class AuthController extends GetxController {
         Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      _logger.e('Registration error: $e');
+      debugPrint('Registration error: $e');
       Get.snackbar(
         'Error',
         'An unexpected error occurred',
@@ -273,7 +286,7 @@ class AuthController extends GetxController {
         final bool isProfileSetup = user['isProfileSetup'] ?? false;
         final bool isProfileApprove = user['isProfileApprove'] ?? false;
 
-        _logger.i('Email verified! User: ${user['email']}, Completed: $isProfileCompleted');
+        debugPrint('Email verified! User: ${user['email']}, Completed: $isProfileCompleted');
 
         Get.snackbar(
           'Success',
@@ -296,7 +309,7 @@ class AuthController extends GetxController {
         );
       }
     } catch (e) {
-      _logger.e('Verify email error: $e');
+      debugPrint('Verify email error: $e');
       Get.snackbar(
         'Error',
         'An unexpected error occurred',
@@ -328,7 +341,7 @@ class AuthController extends GetxController {
         Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      _logger.e('Resend OTP error: $e');
+      debugPrint('Resend OTP error: $e');
     } finally {
       isLoading.value = false;
     }
@@ -341,43 +354,47 @@ class AuthController extends GetxController {
   // 3. isProfileSetup     = true  → Trainer submitted application → ApplicationSubmittedView
   // 4. all false                  → New user → SelectRoleView
   void _navigateBasedOnRole(String role, bool isProfileCompleted, bool isProfileSetup, bool isProfileApprove) {
-    if (isProfileCompleted) {
-      if (role == 'trainer') {
+    debugPrint('Navigating: role=$role, completed=$isProfileCompleted, setup=$isProfileSetup, approve=$isProfileApprove');
+
+    if (role == 'trainer') {
+      if (isProfileCompleted) {
         Get.offAll(() => const TrainerBottomNav());
-      } else if (role == 'barn_manager') {
+      } else if (isProfileApprove) {
+        // Admin approved — show completion screen
+        if (!Get.isRegistered<ProfileController>()) Get.put(ProfileController());
+        Get.offAll(() => const TrainerCompleteProfileView());
+      } else if (isProfileSetup) {
+        // Submitted — show waiting screen
+        Get.offAll(() => const TrainerApplicationSubmittedView());
+      } else {
+        // Initial state or rejected
+        Get.offAll(() => const SelectRoleView());
+      }
+    } 
+    else if (role == 'barn_manager') {
+      if (isProfileCompleted) {
         Get.offAll(() => const BarnManagerBottomNav());
-      } else if (role == 'service_provider') {
+      } else if (isProfileApprove) {
+        // Admin approved — show completion screen if needed, else dashboard
+        Get.offAll(() => const BarnManagerBottomNav());
+      } else if (isProfileSetup) {
+        // Submitted — show waiting screen
+        Get.offAll(() => const BarnManagerApplicationSubmittedView());
+      } else {
+        Get.offAll(() => const SelectRoleView());
+      }
+    } 
+    else if (role == 'service_provider') {
+      if (isProfileCompleted) {
         Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
       } else {
         Get.offAll(() => const SelectRoleView());
       }
-      return;
+    } 
+    else {
+      // No valid role or super_admin
+      Get.offAll(() => const SelectRoleView());
     }
-
-    if (isProfileApprove) {
-      // Admin approved — ensure ProfileController is available before navigating
-      if (!Get.isRegistered<ProfileController>()) {
-        Get.put(ProfileController());
-      }
-      Get.offAll(() => const TrainerCompleteProfileView());
-      return;
-    }
-
-    if (isProfileSetup) {
-      // Application submitted, waiting for admin review
-      if (role == 'barn_manager') {
-        if (isProfileCompleted) {
-          Get.offAll(() => const BarnManagerCreateProfileView());
-        } else {
-          Get.offAll(() => const BarnManagerBottomNav());
-        }
-
-        return;
-      }
-    }
-
-    // New account — no role chosen yet
-    Get.offAll(() => const SelectRoleView());
   }
 
   // ─── COMPLETE TRAINER PROFILE (TrainerProfileSetupView — professional application) ──────────────────────────
@@ -387,7 +404,7 @@ class AuthController extends GetxController {
       final response = await _apiService.putRequest(AppUrls.completeProfile, profileData);
 
       if (response.statusCode == 200) {
-        _logger.i('Trainer application submitted. Waiting for admin approval.');
+        debugPrint('Trainer application submitted. Waiting for admin approval.');
         // NOTE: isProfileSetup is NOT set here — admin sets it upon approval.
         // Just navigate directly to the submitted screen.
         navigateAfterRoleSet();
@@ -396,7 +413,7 @@ class AuthController extends GetxController {
         Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      _logger.e('Complete profile error: $e');
+      debugPrint('Complete profile error: $e');
       Get.snackbar(
         'Error',
         'An unexpected error occurred',
@@ -416,14 +433,14 @@ class AuthController extends GetxController {
       final response = await _apiService.putRequest(AppUrls.completeProfile, profileData);
 
       if (response.statusCode == 200) {
-        _logger.i('Barn Manager application submitted.');
+        debugPrint('Barn Manager application submitted.');
         Get.offAll(() => const BarnManagerApplicationSubmittedView());
       } else {
         String message = response.body?['message'] ?? 'Failed to submit application';
         Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      _logger.e('Complete profile error: $e');
+      debugPrint('Complete profile error: $e');
       Get.snackbar(
         'Error',
         'An unexpected error occurred',
@@ -448,7 +465,7 @@ class AuthController extends GetxController {
   // ─── LOGOUT ──────────────────────────────────────────────────────────────────
   Future<void> logout({bool sessionExpired = false}) async {
     try {
-      _logger.i('Logging out user...');
+      debugPrint('Logging out user...');
 
       // Notify backend if it's a manual logout
       if (!sessionExpired) {
@@ -456,7 +473,7 @@ class AuthController extends GetxController {
           // Attempt but don't block by failure
           await _apiService.postRequest(AppUrls.logout, {});
         } catch (e) {
-          _logger.w('Failed to notify backend of logout: $e');
+          debugPrint('Failed to notify backend of logout: $e');
         }
       }
 
@@ -489,7 +506,7 @@ class AuthController extends GetxController {
         );
       }
     } catch (e) {
-      _logger.e('Error during logout: $e');
+      debugPrint('Error during logout: $e');
       Get.offAll(() => const LoginView());
     }
   }
@@ -499,6 +516,8 @@ class AuthController extends GetxController {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
     super.onClose();
   }
 }

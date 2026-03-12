@@ -15,7 +15,7 @@ class EditProfileView extends StatefulWidget {
 }
 
 class _EditProfileViewState extends State<EditProfileView> {
-  final ProfileController profileController = Get.find<ProfileController>();
+  final ProfileController profileController = Get.put(ProfileController());
   
   // Controllers
   final TextEditingController _fullNameController = TextEditingController();
@@ -440,7 +440,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: const [
-                    CommonText('+91', fontSize: 15, color: AppColors.textPrimary),
+                    CommonText('+1', fontSize: 15, color: AppColors.textPrimary),
                     SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
                   ],

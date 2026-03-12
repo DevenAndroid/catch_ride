@@ -46,7 +46,7 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
           pickedTime.hour,
           pickedTime.minute,
         );
-        textController.text = DateFormat('MM-dd-yyyy hh:mm a').format(finalDateTime);
+        textController.text = DateFormat('dd MMM yyyy').format(finalDateTime);
       }
     }
   }

@@ -17,8 +17,8 @@ class ViewAllHorsesView extends StatefulWidget {
 }
 
 class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
-  final HorseController horseController = Get.find<HorseController>();
-  final ProfileController profileController = Get.find<ProfileController>();
+  final HorseController horseController = Get.put(HorseController());
+  final ProfileController profileController = Get.put(ProfileController());
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -78,39 +78,11 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Use static mock data if the list is empty (for review purposes)
-          final displayHorses = horseController.horses.isEmpty 
-            ? [
-                HorseModel(
-                  id: 'mock1',
-                  name: 'Golden Hour',
-                  breed: 'Warmblood',
-                  age: 8,
-                  gender: 'Gelding',
-                  listingTitle: 'Golden Hour - Top Children\'s Hunter',
-                  description: 'Lovely Children\'s Hunter with a great brain and an easy lead change. Brave, consistent, and forgiving...',
-                  location: 'Aiken, SC, USA',
-                  trainerName: 'John Snow',
-                  trainerAvatar: 'https://i.pravatar.cc/150?u=john',
-                  images: ['https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=800'],
-                  listingTypes: ['For Sale', 'Weekly Lease'],
-                ),
-                HorseModel(
-                  id: 'mock2',
-                  name: 'Valentino Z',
-                  breed: 'Zangersheide',
-                  age: 10,
-                  gender: 'Stallion',
-                  listingTitle: 'Valentino Z - Quick + Careful Jr/Am Ju...',
-                  description: 'Brave to the jumps and efficient around the track. Perfect for a Jr/Am rider looking to be competitive in the ring.',
-                  location: 'Tryon, NC',
-                  trainerName: 'John Snow',
-                  trainerAvatar: 'https://i.pravatar.cc/150?u=john',
-                  images: ['https://images.unsplash.com/photo-1598974357801-cbca100e65d3?q=80&w=800'],
-                  listingTypes: ['For Sale', 'Annual Lease'],
-                ),
-              ]
-            : horseController.horses;
+          final displayHorses = horseController.horses;
+
+          if (displayHorses.isEmpty) {
+            return _buildEmptyState();
+          }
 
           return RefreshIndicator(
             onRefresh: () async => _loadHorses(),
@@ -140,7 +112,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   tags: horse.listingTypes,
                   postTitle: horse.listingTitle ?? horse.name,
                   postDescription: horse.description ?? '',
-                  location: horse.location ?? 'Ocala, FL',
+                  location: horse.location ?? '',
                   isOwnHorse: true,
                 );
               },

@@ -5,32 +5,61 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
+import '../models/horse_model.dart';
+
 class ProfileController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
+  final ApiService _apiService = Get.put(ApiService());
   final Logger _logger = Logger();
 
   final Rx<UserModel?> user = Rx<UserModel?>(null);
   final RxMap userData = <String, dynamic>{}.obs; // Keeping for backward compatibility temporarily
+  final RxList<HorseModel> trainerHorses = <HorseModel>[].obs;
   final RxBool isLoading = false.obs;
 
   // Metadata Lists
   final RxList<String> allProgramTags = <String>[].obs;
   final RxList<String> allHorseShows = <String>[].obs;
   final RxList<String> allExperienceLevels = <String>[].obs;
+  final RxList<Map<String, dynamic>> tagTypes = <Map<String, dynamic>>[].obs;
+  final RxList<String> selectedTags = <String>[].obs;
 
   @override
   void onInit() {
     super.onInit();
-    fetchProfile();
+    fetchProfile().then((_) {
+      if (user.value?.role == 'trainer' && user.value?.trainerProfileId != null) {
+        fetchTrainerHorses();
+      }
+    });
     fetchMetadata();
+  }
+
+  Future<void> fetchTrainerHorses() async {
+    try {
+      final tId = user.value?.trainerProfileId;
+      if (tId == null) return;
+
+      final response = await _apiService.getRequest(AppUrls.horses, query: {
+        'trainerId': tId,
+        'limit': '5'
+      });
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        trainerHorses.assignAll(data.map((e) => HorseModel.fromJson(e)).toList());
+      }
+    } catch (e) {
+      _logger.e('Error fetching trainer horses: $e');
+    }
   }
 
   Future<void> fetchMetadata() async {
     try {
       final results = await Future.wait([
         _apiService.getRequest(AppUrls.programTags),
-        _apiService.getRequest(AppUrls.horseShows),
+        _apiService.getRequest('${AppUrls.horseShows}?limit=100'),
         _apiService.getRequest(AppUrls.experienceLevels),
+        _apiService.getRequest('${AppUrls.tagTypesWithValues}?category=Trainer'),
       ]);
 
       if (results[0].statusCode == 200) {
@@ -41,6 +70,9 @@ class ProfileController extends GetxController {
       }
       if (results[2].statusCode == 200) {
         allExperienceLevels.assignAll((results[2].body['data'] as List).map((e) => e['name'] as String).toList());
+      }
+      if (results[3].statusCode == 200) {
+        tagTypes.assignAll((results[3].body['data'] as List).map((e) => e as Map<String, dynamic>).toList());
       }
     } catch (e) {
       _logger.e('Error fetching metadata: $e');
@@ -57,6 +89,11 @@ class ProfileController extends GetxController {
         userData.value = data;
         user.value = UserModel.fromJson(data);
         _logger.i('Profile fetched successfully: ${user.value?.email}');
+        
+        // Fetch horses if trainer
+        if (user.value?.role == 'trainer' && user.value?.trainerProfileId != null) {
+          fetchTrainerHorses();
+        }
       } else {
         _logger.e('Failed to fetch profile: ${response.statusText}');
       }
@@ -171,5 +208,36 @@ class ProfileController extends GetxController {
     if (role == 'service_provider') return 'Service Provider';
     if (role == 'barn_manager') return 'Barn Manager';
     return role.capitalizeFirst ?? '';
+  }
+
+  // Helper to group selected tags by their type name
+  Map<String, List<String>> get groupedTrainerTags {
+    final Map<String, List<String>> grouped = {};
+    final currentUser = user.value;
+    if (currentUser == null || tagTypes.isEmpty) return grouped;
+
+    final userTagIds = currentUser.tags;
+    
+    // Group selected values by their tag type
+    for (var type in tagTypes) {
+      final String typeName = type['name'] ?? 'General';
+      final List values = type['values'] ?? [];
+      
+      final List<String> selectedInThisType = [];
+      for (var val in values) {
+        final String valId = val['_id'] ?? '';
+        final String valName = val['name'] ?? '';
+        
+        if (userTagIds.contains(valId)) {
+          selectedInThisType.add(valName);
+        }
+      }
+      
+      if (selectedInThisType.isNotEmpty) {
+        grouped[typeName] = selectedInThisType;
+      }
+    }
+    
+    return grouped;
   }
 }

@@ -195,17 +195,17 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                   children: [
                     Expanded(child: _buildDetailRow('Services', widget.vendor.services.isNotEmpty ? widget.vendor.services.map((s) => s.name).join(", ") : widget.vendor.serviceType)),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildDetailRow('Travel Preferences', 'Local Only, Regional')),
+                    Expanded(child: _buildDetailRow('Travel Preferences', '')),
                   ],
                 ),
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: AppColors.borderLight),
                 const SizedBox(height: 16),
-                _buildDetailRow('Operating Regions', widget.vendor.location ?? 'Ocala, Tryon, Lexington, Mid- Atlantic (VA/MD/PA)'),
+                _buildDetailRow('Operating Regions', widget.vendor.location ?? ''),
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: AppColors.borderLight),
                 const SizedBox(height: 16),
-                _buildDetailRow('Disciplines', 'Dressage, Eventing'),
+                _buildDetailRow('Disciplines', ''),
               ],
             ),
           ),
@@ -234,9 +234,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: CommonText('Upcoming Availability', fontSize: 20, fontWeight: FontWeight.w700),
         ),
-        const SizedBox(height: 8),
         if (widget.vendor.serviceAvailability.isEmpty)
-          _buildDummyAvailabilityCard()
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: CommonText('No upcoming availability listed.', fontSize: 14, color: AppColors.textSecondary),
+          )
         else
           ...widget.vendor.serviceAvailability.map((avail) => _buildAvailabilityCard(avail)),
       ],
@@ -387,7 +389,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
           ),
           const SizedBox(height: 12),
           const CommonText(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,',
+            'The reservation is non-refundable and non-transferable.',
             fontSize: 14,
             color: AppColors.errorPrimary,
             fontWeight: FontWeight.w500,
@@ -499,11 +501,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                             children: [
                               CommonText(widget.vendor.fullName, fontSize: 18, fontWeight: FontWeight.bold),
                               const SizedBox(height: 4),
-                              _buildIconTextSmall(Icons.location_on_outlined, widget.vendor.location ?? 'Wellington, FL'),
+                              _buildIconTextSmall(Icons.location_on_outlined, widget.vendor.location ?? ''),
                               const SizedBox(height: 2),
                               _buildIconTextSmall(Icons.person_outline, widget.vendor.services.isNotEmpty ? widget.vendor.services.map((s) => s.name).join(", ") : widget.vendor.serviceType),
                               const SizedBox(height: 2),
-                              _buildIconTextSmall(Icons.calendar_today_outlined, '10 Jan - 18 Jan 2026'),
+                              if (widget.vendor.serviceAvailability.isNotEmpty)
+                                _buildIconTextSmall(Icons.calendar_today_outlined, '${widget.vendor.serviceAvailability.first.startDate} - ${widget.vendor.serviceAvailability.first.endDate}'),
                             ],
                           ),
                         ),

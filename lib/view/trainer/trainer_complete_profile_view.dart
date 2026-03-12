@@ -12,6 +12,7 @@ import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 
 class TrainerCompleteProfileView extends StatefulWidget {
   const TrainerCompleteProfileView({super.key});
@@ -21,7 +22,8 @@ class TrainerCompleteProfileView extends StatefulWidget {
 }
 
 class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView> {
-  final ProfileController profileController = Get.find<ProfileController>();
+  final ProfileController profileController = Get.put(ProfileController());
+  final _formKey = GlobalKey<FormState>();
   
   // Controllers
   final TextEditingController _fullNameController = TextEditingController();
@@ -38,6 +40,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
   File? _bannerImage;
   final RxList<String> _selectedProgramTags = <String>[].obs;
   final RxList<String> _selectedHorseShows = <String>[].obs;
+  final RxList<String> _selectedTags = <String>[].obs;
 
   Future<void> _pickImage(bool isProfile) async {
     try {
@@ -68,6 +71,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     
     _selectedProgramTags.assignAll(profileController.selectedProgramTags);
     _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+    _selectedTags.assignAll(profileController.user.value?.tags ?? []);
     
     if (profileController.userData.isEmpty) {
       profileController.fetchProfile().then((_) {
@@ -79,8 +83,14 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
         _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
         _selectedProgramTags.assignAll(profileController.selectedProgramTags);
         _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+        _selectedTags.assignAll(profileController.user.value?.tags ?? []);
       });
     }
+
+    // Add listener for real-time searching
+    _searchCircuitsController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -118,10 +128,12 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
                   _buildUploadImageSection(),
                   const SizedBox(height: 16),
                   _buildBasicDetailsSection(),
@@ -131,16 +143,20 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   _buildExperienceSection(),
                   const SizedBox(height: 16),
                   _buildFrequentedCircuitsSection(),
+                  const SizedBox(height: 16),
+                  _buildDynamicTagsSection(),
                   const SizedBox(height: 24),
                 ],
               ),
             ),
+          ),
           ),
           _buildBottomButton(),
         ],
       ),
     );
   }
+
 
   Widget _buildSectionContainer({required String title, required List<Widget> children}) {
     return Container(
@@ -256,7 +272,13 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     return _buildSectionContainer(
       title: 'Basic Details',
       children: [
-        _buildTextField('Full Name', _fullNameController, hint: 'Enter your full name', isRequired: true),
+        _buildTextField(
+          'Full Name', 
+          _fullNameController, 
+          hint: 'Enter your full name', 
+          isRequired: true,
+          validator: RequiredValidator(errorText: 'Please enter your full name'),
+        ),
         const SizedBox(height: 20),
         _buildPhoneField(),
       ],
@@ -267,11 +289,28 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     return _buildSectionContainer(
       title: 'Barn Information',
       children: [
-        _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name', isRequired: true),
+        _buildTextField(
+          'Barn Name', 
+          _barnNameController, 
+          hint: 'Enter your business name', 
+          isRequired: true,
+          validator: RequiredValidator(errorText: 'Please enter your barn name'),
+        ),
         const SizedBox(height: 20),
-        _buildTextField('Location I', _location1Controller, hint: 'Enter barn location', isRequired: true),
+        _buildTextField(
+          'Location I', 
+          _location1Controller, 
+          hint: 'Enter barn location', 
+          isRequired: true,
+          validator: RequiredValidator(errorText: 'Please enter your location'),
+        ),
         const SizedBox(height: 20),
-        _buildTextField('Location II', _location2Controller, hint: 'Enter your business name', suffix: '(optional)'),
+        _buildTextField(
+          'Location II', 
+          _location2Controller, 
+          hint: 'Enter your business name', 
+          suffix: '(optional)',
+        ),
       ],
     );
   }
@@ -282,27 +321,14 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       children: [
         _buildExperienceDropdown(),
         const SizedBox(height: 20),
-        _buildTextField('Bio', _bioController, hint: 'Write a short bio', maxLines: 4),
-        const SizedBox(height: 24),
-        const CommonText('Select Program tags', fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.normal),
-        const SizedBox(height: 12),
-        Obx(() => Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: profileController.allProgramTags.map((tag) {
-            final isSelected = _selectedProgramTags.contains(tag);
-            return GestureDetector(
-              onTap: () {
-                if (isSelected) {
-                  _selectedProgramTags.remove(tag);
-                } else {
-                  _selectedProgramTags.add(tag);
-                }
-              },
-              child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
-            );
-          }).toList(),
-        )),
+        _buildTextField(
+          'Bio', 
+          _bioController, 
+          hint: 'Write a short bio', 
+          maxLines: 4,
+          isRequired: true,
+          validator: RequiredValidator(errorText: 'Please write a short bio'),
+        ),
       ],
     );
   }
@@ -433,7 +459,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           'Search Horse Shows & Circuits', 
           _searchCircuitsController, 
           hint: 'Search horse shows & circuits', 
-          isRequired: true
+          isRequired: true,
+          validator: (val) {
+            if (_selectedHorseShows.isEmpty) return 'Please select at least one circuit';
+            return null;
+          }
         ),
         const SizedBox(height: 16),
         Obx(() {
@@ -461,39 +491,82 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     );
   }
 
+  Widget _buildDynamicTagsSection() {
+    return Obx(() {
+      if (profileController.tagTypes.isEmpty) return const SizedBox.shrink();
+      
+      return Column(
+        children: profileController.tagTypes.map((type) {
+          final typeId = type['_id'] ?? '';
+          final typeName = type['name'] ?? '';
+          final values = (type['values'] as List? ?? []);
+          final isSingleSelect = type['selectionType'] == 'single';
 
-
-  Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontFamily: 'Outfit'),
+          return _buildSectionContainer(
+            title: typeName,
             children: [
-              TextSpan(text: label),
-              if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
-              if (suffix != null) TextSpan(text: ' $suffix', style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.normal)),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: values.map((val) {
+                  final tagId = val['_id'] ?? '';
+                  final tagName = val['name'] ?? '';
+                  final isSelected = _selectedTags.contains(tagId);
+
+                  return GestureDetector(
+                    onTap: () {
+                      if (isSingleSelect) {
+                        if (isSelected) {
+                          _selectedTags.remove(tagId);
+                        } else {
+                          // Check if any other tag of this type is already selected
+                          final valueIds = values.map((v) => v['_id'] as String).toList();
+                          final hasExistingSelection = _selectedTags.any((id) => valueIds.contains(id));
+                          
+                          if (hasExistingSelection) {
+                            Get.snackbar(
+                              'Selection Limit', 
+                              'Please select only one value for $typeName',
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          } else {
+                            _selectedTags.add(tagId);
+                          }
+                        }
+                      } else {
+                        if (isSelected) {
+                          _selectedTags.remove(tagId);
+                        } else {
+                          _selectedTags.add(tagId);
+                        }
+                      }
+                    },
+                    child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
+                  );
+                }).toList(),
+              ),
             ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          keyboardType: keyboardType,
-          style: const TextStyle(fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary) : null,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-            hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
-          ),
-        ),
-      ],
+          );
+        }).toList(),
+      );
+    });
+  }
+
+
+
+  Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType, String? Function(String?)? validator}) {
+    return CommonTextField(
+      label: label,
+      controller: controller,
+      hintText: hint ?? '',
+      isRequired: isRequired,
+      maxLines: maxLines,
+      suffixLabel: suffix,
+      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary) : null,
+      keyboardType: keyboardType,
+      validator: validator,
     );
   }
 
@@ -521,10 +594,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                 ),
               ),
               Expanded(
-                child: TextField(
+                child: TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(fontSize: 14),
+                  validator: RequiredValidator(errorText: 'Please enter your phone number'),
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
@@ -563,7 +637,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CommonText(text, fontSize: 13, color: const Color(0xFF000B48), fontWeight: FontWeight.bold),
+          Expanded(child: CommonText(text, fontSize: 13, color: const Color(0xFF000B48), fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
           const Icon(Icons.close, size: 16, color: Color(0xFF000B48)),
         ],
@@ -586,10 +660,15 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       ),
       child: Obx(() => GestureDetector(
         onTap: profileController.isLoading.value ? null : () async {
-          if (_fullNameController.text.isEmpty) {
-            Get.snackbar('Error', 'Full Name is required', backgroundColor: Colors.red, colorText: Colors.white);
+          if (!_formKey.currentState!.validate()) {
             return;
           }
+
+          if (_profileImage == null && profileController.avatar.isEmpty) {
+            Get.snackbar('Error', 'Please upload a profile photo', backgroundColor: Colors.red, colorText: Colors.white);
+            return;
+          }
+
 
           // 1. Upload Images
           if (_profileImage != null) {
@@ -616,6 +695,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
             'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
             'programTags': _selectedProgramTags.toList(),
             'showCircuits': _selectedHorseShows.toList(),
+            'tags': _selectedTags.toList(),
             'isProfileCompleted': true,
           });
 

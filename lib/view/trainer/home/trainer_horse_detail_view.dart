@@ -3,6 +3,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
 import 'package:flutter/material.dart';
+import 'package:catch_ride/utils/date_util.dart';
+import 'package:catch_ride/view/trainer/home/search_filter_overlay.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -16,6 +18,7 @@ import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../controllers/booking_controller.dart';
 import '../../../services/api_service.dart';
+import '../settings/trainer_profile_view.dart';
 
 class TrainerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
@@ -65,7 +68,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   Future<void> _fetchHorseDetails() async {
     try {
       setState(() => _isLoading = true);
-      final ApiService api = Get.find<ApiService>();
+      final ApiService api = Get.put(ApiService());
       final response = await api.getRequest('/horses/${widget.horseId}');
       if (response.statusCode == 200) {
         final data = response.body['data'];
@@ -87,8 +90,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   void _checkIfRequested() {
-    final bookingController = Get.find<BookingController>();
-    final currentUserId = Get.find<ProfileController>().id;
+    final bookingController = Get.put(BookingController());
+    final currentUserId = Get.put(ProfileController()).id;
     
     final existingBooking = bookingController.bookings.firstWhereOrNull(
       (b) => b.horseId == horse?.id && 
@@ -221,8 +224,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 children: [
                   if (horse!.listingTypes.isNotEmpty)
                     _buildOverlayBadge(horse!.listingTypes.first, const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
-                  const SizedBox(width: 8),
-                  _buildOverlayBadge('Weekly Lease', const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
+                  if (horse!.listingTypes.length > 1) ...[
+                    const SizedBox(width: 8),
+                    _buildOverlayBadge(horse!.listingTypes[1], const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
+                  ],
                 ],
               ),
               const SizedBox(height: 12),
@@ -232,7 +237,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: CommonText(
-                      horse!.location ?? '931 Powderhouse Rd SE, Aiken, SC 29803, USA',
+                      horse!.location ?? '',
                       fontSize: 12,
                       color: Colors.white,
                       overflow: TextOverflow.ellipsis,
@@ -285,12 +290,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonText(horse!.trainerName ?? 'John Snow', fontSize: 16, fontWeight: FontWeight.bold),
-                CommonText('Barn - Winter Equestrian', fontSize: 13, color: AppColors.textSecondary),
-              ],
+            child: GestureDetector(
+              onTap: () => Get.to(() => TrainerProfileView()),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonText(horse!.trainerName ?? '', fontSize: 16, fontWeight: FontWeight.bold),
+                  CommonText(horse!.location != null && horse!.location!.isNotEmpty ? 'Location - ${horse!.location}' : '', fontSize: 13, color: AppColors.textSecondary),
+                ],
+              ),
             ),
           ),
           GestureDetector(
@@ -326,7 +334,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: CommonText(
-            horse!.description ?? 'An ideal small pony and great for a Child An ideal small pony and great for a Child...',
+            horse!.description ?? '',
             fontSize: 14,
             color: AppColors.textPrimary.withOpacity(0.7),
             height: 1.5,
@@ -338,7 +346,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              'Big Equitation', 'Firesale', 'Division Pony', 'Brave / Bold'
+              ...horse!.programTags.map((t) => t.name),
+              ...horse!.opportunityTags.map((t) => t.name),
+              ...horse!.personalityTags.map((t) => t.name),
             ].map((tag) => Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -395,46 +405,48 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CommonText(
-                            horse!.bookedByName ?? 'Mark Lee',
+                            horse!.bookedByName ?? '',
                             fontSize: AppTextSizes.size16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                           const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on_outlined,
-                                color: AppColors.textSecondary,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: CommonText(
-                                  horse!.bookedByLocation ?? 'Cypress, CA, United States',
+                          if (horse!.bookedByLocation != null)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  color: AppColors.textSecondary,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: CommonText(
+                                    horse!.bookedByLocation!,
+                                    fontSize: AppTextSizes.size12,
+                                    color: AppColors.textSecondary,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 4),
+                          if (horse!.bookingDates != null)
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today_outlined,
+                                  color: AppColors.textSecondary,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 4),
+                                CommonText(
+                                  horse!.bookingDates!,
                                   fontSize: AppTextSizes.size12,
                                   color: AppColors.textSecondary,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today_outlined,
-                                color: AppColors.textSecondary,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              CommonText(
-                                horse!.bookingDates ?? '01 Apr - 07 Apr 2026',
-                                fontSize: AppTextSizes.size12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -471,21 +483,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText(
-                      horse!.trainerName ?? 'Unknown Trainer',
-                      fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    const CommonText(
-                      AppStrings.professionalHorseTrainer,
-                      fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
+                child: GestureDetector(
+                  onTap: () => Get.to(() => TrainerProfileView()),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CommonText(
+                        horse!.trainerName ?? 'Unknown Trainer',
+                        fontSize: AppTextSizes.size16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const CommonText(
+                        AppStrings.professionalHorseTrainer,
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const Icon(Icons.more_vert, color: AppColors.textPrimary),
@@ -680,11 +695,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               childAspectRatio: 2.2,
               children: [
                 _buildPremiumDetailItem('Horse name', horse!.name),
-                _buildPremiumDetailItem('USEF number', horse!.usefNumber ?? '5w3bnd67'),
+                _buildPremiumDetailItem('USEF number', horse!.usefNumber ?? ''),
                 _buildPremiumDetailItem('Age', '${horse!.age} Years'),
-                _buildPremiumDetailItem('Height', horse!.height ?? '16.2hh'),
+                _buildPremiumDetailItem('Height', horse!.height ?? ''),
                 _buildPremiumDetailItem('Breed', horse!.breed),
-                _buildPremiumDetailItem('Color', horse!.color ?? 'Brown'),
+                _buildPremiumDetailItem('Color', horse!.color ?? ''),
                 _buildPremiumDetailItem('Discipline', horse!.displayDiscipline),
               ],
             ),
@@ -724,11 +739,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPremiumAvailabilityItem('Location 1', 'Ocklawaha, USA, United States', '05 Feb - 10 Feb 2026'),
-                const SizedBox(height: 16),
-                _buildPremiumAvailabilityItem('Location 2', 'Ocklawaha, USA, United States', '05 Feb - 10 Feb 2026'),
-              ],
+              children: horse!.showAvailability.asMap().entries.map((entry) {
+                final index = entry.key;
+                final show = entry.value;
+                return Column(
+                  children: [
+                    if (index > 0) const SizedBox(height: 16),
+                    _buildPremiumAvailabilityItem(
+                      'Location ${index + 1}', 
+                      show.showVenue, 
+                      DateUtil.formatRange(show.startDate, show.endDate)
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -785,7 +809,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(height: 12),
           const CommonText(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,',
+            'The reservation is non-refundable and non-transferable.',
             fontSize: 13,
             color: Color(0xFFB42318),
             height: 1.5,

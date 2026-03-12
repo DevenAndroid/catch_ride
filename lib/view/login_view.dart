@@ -10,6 +10,7 @@ import 'package:catch_ride/widgets/social_button.dart';
 import 'package:catch_ride/view/select_role_view.dart';
 import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
 class LoginView extends StatefulWidget {
@@ -22,8 +23,7 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final AuthController _authController = Get.find<AuthController>();
   bool _obscurePassword = true;
-
-
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
@@ -32,126 +32,137 @@ class _LoginViewState extends State<LoginView> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SvgPicture.asset("assets/images/logo_with_title.svg"),
-              const SizedBox(height: 32),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SvgPicture.asset("assets/images/logo_with_title.svg"),
+                const SizedBox(height: 32),
 
-              // Main Card
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardColor,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.border),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const CommonText(
-                      AppStrings.welcomeBack,
-                      fontSize: AppTextSizes.size22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                    ),
-                    const SizedBox(height: 8),
-                    const CommonText(
-                      AppStrings.welcomeBackSubtitle,
-                      fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
-                        textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-
-                    CommonTextField(
-                      label: AppStrings.email,
-                      hintText: AppStrings.enterYourEmail,
-                      keyboardType: TextInputType.emailAddress,
-                      controller: _authController.emailController,
-                    ),
-                    const SizedBox(height: 16),
-
-                    CommonTextField(
-                      label: AppStrings.password,
-                      hintText: AppStrings.emptyString,
-                      obscureText: _obscurePassword,
-                      controller: _authController.passwordController,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
+                // Main Card
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardColor,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {
-                          // Forget Password action
-                        },
-                        child: const CommonText(
-                          AppStrings.forgetPassword,
-                          fontSize: AppTextSizes.size14,
-                            color: Color(0xFFD92D20),
-                            fontWeight: FontWeight.w500,
-                        ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const CommonText(
+                        AppStrings.welcomeBack,
+                        fontSize: AppTextSizes.size22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                       ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    Obx(() => CommonButton(
-                      text: _authController.isLoading.value ? AppStrings.loggingIn : AppStrings.logIn,
-                      onPressed: _authController.isLoading.value 
-                        ? () {} 
-                        : () => _authController.login(),
-                    )),
-                    const SizedBox(height: 20),
-
-                    const Center(
-                      child: CommonText(
-                        AppStrings.orLogInWith,
+                      const SizedBox(height: 8),
+                      const CommonText(
+                        AppStrings.welcomeBackSubtitle,
                         fontSize: AppTextSizes.size14,
                           color: AppColors.textSecondary,
+                          textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 24),
 
-                    SocialButton(
-                      text: AppStrings.continueWithGoogle,
-                      icon: SvgPicture.asset("assets/icons/google_icon.svg"),
-                      onPressed: () {
-                        // Google Sign In Action
-                        Get.to(() => const SelectRoleView(),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    SocialButton(
-                      text: AppStrings.continueWithAppleId,
-                      icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
-                      onPressed: () {
-                        // Apple Sign In Action
-                      },
-                    ),
-                  ],
+                      CommonTextField(
+                        label: AppStrings.email,
+                        hintText: AppStrings.enterYourEmail,
+                        keyboardType: TextInputType.emailAddress,
+                        controller: _authController.emailController,
+                        validator: MultiValidator([
+                          RequiredValidator(errorText: 'Please enter your email'),
+                          EmailValidator(errorText: 'Please enter a valid email address'),
+                        ]),
+                      ),
+                      const SizedBox(height: 16),
+
+                      CommonTextField(
+                        label: AppStrings.password,
+                        hintText: AppStrings.emptyString,
+                        obscureText: _obscurePassword,
+                        controller: _authController.passwordController,
+                        validator: RequiredValidator(errorText: 'Please enter your password'),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: GestureDetector(
+                          onTap: () {
+                            // Forget Password action
+                          },
+                          child: const CommonText(
+                            AppStrings.forgetPassword,
+                            fontSize: AppTextSizes.size14,
+                              color: Color(0xFFD92D20),
+                              fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      Obx(() => CommonButton(
+                        text: _authController.isLoading.value ? AppStrings.loggingIn : AppStrings.logIn,
+                        onPressed: _authController.isLoading.value 
+                          ? () {} 
+                          : () {
+                              if (_formKey.currentState!.validate()) {
+                                _authController.login();
+                              }
+                            },
+                      )),
+                      const SizedBox(height: 20),
+
+                      const Center(
+                        child: CommonText(
+                          AppStrings.orLogInWith,
+                          fontSize: AppTextSizes.size14,
+                            color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      SocialButton(
+                        text: AppStrings.continueWithGoogle,
+                        icon: SvgPicture.asset("assets/icons/google_icon.svg"),
+                        onPressed: () {
+                          // Google Sign In Action
+                          Get.to(() => const SelectRoleView(),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      SocialButton(
+                        text: AppStrings.continueWithAppleId,
+                        icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
+                        onPressed: () {
+                          // Apple Sign In Action
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -179,6 +190,6 @@ class _LoginViewState extends State<LoginView> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

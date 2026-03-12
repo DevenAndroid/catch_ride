@@ -261,7 +261,7 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
     } else if (difference.inHours < 24) {
       return '${difference.inHours} hours ago';
     } else {
-      return DateFormat('MMM d').format(date);
+      return DateFormat('dd MMM yyyy').format(date);
     }
   }
 }
