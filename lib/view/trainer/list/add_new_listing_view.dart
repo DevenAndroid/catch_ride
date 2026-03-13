@@ -5,7 +5,6 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/add_new_listing_controller.dart';
 import 'package:catch_ride/view/trainer/list/listing_preview_view.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,6 +19,7 @@ class AddNewListingView extends StatefulWidget {
 
 class _AddNewListingViewState extends State<AddNewListingView> {
   final AddNewListingController controller = Get.put(AddNewListingController());
+  final _formKey = GlobalKey<FormState>();
   int _currentStep = 1;
 
   Future<void> _selectDateTime(BuildContext context, TextEditingController textController) async {
@@ -99,7 +99,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         color: AppColors.textPrimary,
                       ),
                       const SizedBox(height: 20),
-                      _buildHorseInformationForm(),
+                      Form(
+                        key: _formKey,
+                        child: _buildHorseInformationForm(),
+                      ),
                     ] else if (_currentStep == 2) ...[
                       const CommonText(
                         'Listing Type',
@@ -409,6 +412,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 controller: controller.listingTitleController,
                 hintText: 'Children\'s Hunter',
                 isRequired: true,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Please enter the listing title';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               CommonTextField(
@@ -416,6 +423,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 controller: controller.horseNameController,
                 hintText: 'Enter name',
                 isRequired: true,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Please enter the horse name';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               CommonTextField(
@@ -423,6 +434,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 controller: controller.locationController,
                 hintText: 'Enter horse\'s location',
                 isRequired: true,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Please enter the location';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               Row(
@@ -452,6 +467,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 controller: controller.breedController,
                 hintText: 'Enter breed',
                 isRequired: true,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Please enter the breed';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               CommonTextField(
@@ -472,29 +491,44 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppColors.inputBackground,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+              Obx(() => GestureDetector(
+                onTap: () => _showSingleSelectBottomSheet(
+                  title: 'Select Discipline',
+                  currentValue: controller.selectedDiscipline.value,
+                  items: ['Hunter', 'Jumper', 'Equitation'],
+                  onSelected: (val) {
+                    controller.selectedDiscipline.value = val;
+                    controller.disciplineController.text = val;
+                  },
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    CommonText(
-                      'Select discipline',
-                      color: AppColors.textSecondary,
-                      fontSize: AppTextSizes.size14,
-                    ),
-                    Icon(
-                      Icons.keyboard_arrow_down,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: AppColors.inputBackground,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(
+                        controller.selectedDiscipline.value.isEmpty 
+                            ? 'Select discipline' 
+                            : controller.selectedDiscipline.value,
+                        color: controller.selectedDiscipline.value.isEmpty 
+                            ? AppColors.textSecondary 
+                            : AppColors.textPrimary,
+                        fontSize: AppTextSizes.size14,
+                      ),
+                      const Icon(
+                        Icons.keyboard_arrow_down,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              )),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Description',
@@ -502,6 +536,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 hintText: 'Write here...',
                 isRequired: true,
                 maxLines: 4,
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) return 'Please enter the description';
+                  return null;
+                },
               ),
             ],
           ),
@@ -788,47 +826,45 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   Widget _buildOtherInformationForm() {
     return Obx(() {
       if (controller.isTagsLoading.value) {
-        return const Center(child: CircularProgressIndicator());
+        return const SizedBox(
+          height: 200,
+          child: Center(child: CircularProgressIndicator()),
+        );
       }
+      
+      if (controller.tagTypes.isEmpty) {
+        return const SizedBox(
+          height: 100,
+          child: Center(child: CommonText('No tags available', color: AppColors.textSecondary)),
+        );
+      }
+
       return Column(
-        children: [
-          _buildTagSection(
-            title: 'Program Tag',
-            isOptional: true,
-            tags: controller.programTags.map((t) => t.name).toList(),
-            selectedTags: controller.selectedProgramTags,
-          ),
-          const SizedBox(height: 16),
-          _buildTagSection(
-            title: 'Opportunity Tag',
-            isOptional: true,
-            tags: controller.opportunityTags.map((t) => t.name).toList(),
-            selectedTags: controller.selectedOpportunityTags,
-          ),
-          const SizedBox(height: 16),
-          _buildTagSection(
-            title: 'Experience',
-            isOptional: false,
-            tags: controller.experienceTags.map((t) => t.name).toList(),
-            selectedTags: controller.selectedExperienceTags,
-          ),
-          const SizedBox(height: 16),
-          _buildTagSection(
-            title: 'Personality Tag',
-            isOptional: false,
-            tags: controller.personalityTags.map((t) => t.name).toList(),
-            selectedTags: controller.selectedPersonalityTags,
-          ),
-        ],
+        children: controller.tagTypes.map((type) {
+          final String typeName = type['name'] ?? 'Tag';
+          final List values = type['values'] ?? [];
+          final List<String> tagNames = values.map((v) => v['name'].toString()).toList();
+          final Map<String, String> nameToId = {
+            for (var v in values) v['name'].toString(): v['_id'].toString()
+          };
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildDynamicTagSection(
+              title: typeName,
+              tagNames: tagNames,
+              nameToId: nameToId,
+            ),
+          );
+        }).toList(),
       );
     });
   }
 
-  Widget _buildTagSection({
+  Widget _buildDynamicTagSection({
     required String title,
-    required bool isOptional,
-    required List<String> tags,
-    required RxSet<String> selectedTags,
+    required List<String> tagNames,
+    required Map<String, String> nameToId,
   }) {
     return Container(
       width: double.infinity,
@@ -847,66 +883,38 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
               ),
-              children: isOptional
-                  ? [
-                      const TextSpan(
-                        text: '  (optional)',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                    ]
-                  : [],
+              children: [
+                if (title.toLowerCase().contains('optional') || title == 'Opportunity Tag')
+                  const TextSpan(
+                    text: ' (optional)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
-          Obx(
-            () {
-              // Ensure observable is registered even if tags is empty
-              // ignore: unused_local_variable
-              final _ = selectedTags.length;
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: tags.map((tag) {
-                  final isSelected = selectedTags.contains(tag);
+          Obx(() {
+            return Wrap(
+              spacing: 8,
+              runSpacing: 12,
+              children: tagNames.map((name) {
+                final id = nameToId[name]!;
+                final isSelected = controller.selectedTags.contains(id);
                 return GestureDetector(
                   onTap: () {
-                    controller.toggleTag(selectedTags, tag);
+                    if (isSelected) {
+                      controller.selectedTags.remove(id);
+                    } else {
+                      controller.selectedTags.add(id);
+                    }
                   },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.border,
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      tag,
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 12,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
+                  child: _buildTagChip(name, isSelected),
                 );
               }).toList(),
             );
@@ -915,6 +923,27 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       ),
     );
   }
+
+  Widget _buildTagChip(String label, bool isSelected) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isSelected ? const Color(0xFF00084D) : const Color(0xFFE5E7EB),
+          width: isSelected ? 1.5 : 1,
+        ),
+      ),
+      child: CommonText(
+        label,
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        color: isSelected ? const Color(0xFF00084D) : AppColors.textPrimary,
+      ),
+    );
+  }
+
 
   Widget _buildAvailabilityForm() {
     return Column(
@@ -1132,7 +1161,18 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             child: GestureDetector(
               onTap: () {
                 if (_currentStep < 5) {
-                  if (_currentStep == 1 && !controller.validateStep1()) return;
+                  if (_currentStep == 1) {
+                    if (!_formKey.currentState!.validate()) return;
+                    if (controller.selectedDiscipline.value.isEmpty) {
+                      Get.snackbar('Required', 'Please select a discipline',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white);
+                      return;
+                    }
+                  } else if (_currentStep == 2) {
+                    if (!controller.validateStep2()) return;
+                  }
                   setState(() {
                     _currentStep++;
                   });
@@ -1158,6 +1198,79 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showSingleSelectBottomSheet({
+    required String title,
+    required String currentValue,
+    required List<String> items,
+    required Function(String) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final isSelected = item == currentValue;
+                      return InkWell(
+                        onTap: () {
+                          onSelected(item);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(child: CommonText(item, fontSize: 15)),
+                              if (isSelected) const Icon(Icons.check, color: AppColors.primary, size: 20),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -192,6 +192,7 @@ class ProfileController extends GetxController {
   String get phone => user.value?.phone ?? '';
   String get bio => user.value?.bio ?? '';
   String get location => user.value?.location ?? '';
+  String get location2 => user.value?.location2 ?? '';
   String get avatar => user.value?.displayAvatar ?? '';
   String get coverImage => user.value?.coverImage ?? '';
   String get role => user.value?.role ?? 'user';
@@ -239,5 +240,10 @@ class ProfileController extends GetxController {
     }
     
     return grouped;
+  }
+
+  List<String> get disciplines {
+    final grouped = groupedTrainerTags;
+    return grouped['Discipline'] ?? grouped['Disciplines'] ?? [];
   }
 }

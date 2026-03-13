@@ -376,8 +376,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         {'label': 'Breed', 'value': controller.breedController.text},
       if (controller.colorController.text.isNotEmpty)
         {'label': 'Color', 'value': controller.colorController.text},
-      if (controller.disciplineController.text.isNotEmpty)
-        {'label': 'Discipline', 'value': controller.disciplineController.text},
+      if (controller.selectedDiscipline.value.isNotEmpty)
+        {'label': 'Discipline', 'value': controller.selectedDiscipline.value},
     ];
 
     if (detailItems.isEmpty) return const SizedBox.shrink();
@@ -432,63 +432,33 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   Widget _buildTagsGridSection() {
     return Obx(() {
-      final hasPrograms = controller.selectedProgramTags.isNotEmpty;
-      final hasOpportunities = controller.selectedOpportunityTags.isNotEmpty;
-      final hasExperience = controller.selectedExperienceTags.isNotEmpty;
-      final hasPersonalities = controller.selectedPersonalityTags.isNotEmpty;
+      if (controller.selectedTags.isEmpty) return const SizedBox.shrink();
 
-      if (!hasPrograms &&
-          !hasOpportunities &&
-          !hasExperience &&
-          !hasPersonalities) {
-        return const SizedBox.shrink();
+      // We need to find the names for these IDs
+      final List<String> selectedTagNames = [];
+      for (var type in controller.tagTypes) {
+        final List values = type['values'] ?? [];
+        for (var v in values) {
+          if (controller.selectedTags.contains(v['_id'].toString())) {
+            selectedTagNames.add(v['name'].toString());
+          }
+        }
       }
+
+      if (selectedTagNames.isEmpty) return const SizedBox.shrink();
 
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (hasPrograms || hasOpportunities)
-              Row(
-                children: [
-                  if (hasPrograms)
-                    Expanded(
-                        child: _buildTagCard('Program Tag',
-                            controller.selectedProgramTags.first))
-                  else if (hasOpportunities)
-                    const Spacer(),
-                  if (hasPrograms && hasOpportunities)
-                    const SizedBox(width: 12),
-                  if (hasOpportunities)
-                    Expanded(
-                        child: _buildTagCard('Opportunity Tag',
-                            controller.selectedOpportunityTags.first))
-                  else if (hasPrograms)
-                    const Spacer(),
-                ],
-              ),
-            if ((hasPrograms || hasOpportunities) &&
-                (hasExperience || hasPersonalities))
-              const SizedBox(height: 12),
-            if (hasExperience || hasPersonalities)
-              Row(
-                children: [
-                  if (hasExperience)
-                    Expanded(
-                        child: _buildTagCard('Experience',
-                            controller.selectedExperienceTags.first))
-                  else if (hasPersonalities)
-                    const Spacer(),
-                  if (hasExperience && hasPersonalities)
-                    const SizedBox(width: 12),
-                  if (hasPersonalities)
-                    Expanded(
-                        child: _buildTagCard('Personality Tag',
-                            controller.selectedPersonalityTags.first))
-                  else if (hasExperience)
-                    const Spacer(),
-                ],
-              ),
+            const CommonText('Other Information', fontSize: 16, fontWeight: FontWeight.bold),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: selectedTagNames.map((name) => _buildChip(name)).toList(),
+            ),
           ],
         ),
       );

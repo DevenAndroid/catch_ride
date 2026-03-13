@@ -142,6 +142,8 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   const SizedBox(height: 16),
                   _buildExperienceSection(),
                   const SizedBox(height: 16),
+                  _buildProgramTagsSection(),
+                  const SizedBox(height: 16),
                   _buildFrequentedCircuitsSection(),
                   const SizedBox(height: 16),
                   _buildDynamicTagsSection(),
@@ -392,9 +394,9 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       builder: (ctx) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.5,
-          minChildSize: 0.3,
-          maxChildSize: 0.8,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
           builder: (_, scrollController) {
             return Column(
               children: [
@@ -426,17 +428,15 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                         },
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                           decoration: BoxDecoration(
                             border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
                           ),
-                          child: Center(
-                            child: CommonText(
-                              item,
-                              fontSize: 16,
-                              color: isSelected ? const Color(0xFF000B48) : AppColors.textPrimary,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            ),
+                          child: Row(
+                            children: [
+                              Expanded(child: CommonText(item, fontSize: 15)),
+                              if (isSelected) const Icon(Icons.check, color: AppColors.primary, size: 20),
+                            ],
                           ),
                         ),
                       );
@@ -451,38 +451,191 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     );
   }
 
+  void _showMultiSelectBottomSheet({
+    required String title,
+    required RxList<String> selectedItems,
+    required List<String> allItems,
+    String? hint,
+  }) {
+    final TextEditingController searchController = TextEditingController();
+    final RxList<String> filteredItems = RxList<String>(allItems);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: searchController,
+                    onChanged: (val) {
+                      filteredItems.assignAll(allItems
+                          .where((s) => s.toLowerCase().contains(val.toLowerCase()))
+                          .toList());
+                    },
+                    decoration: InputDecoration(
+                      hintText: hint ?? 'Search...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Obx(() => Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: filteredItems.map((item) {
+                          final isSelected = selectedItems.contains(item);
+                          return GestureDetector(
+                            onTap: () {
+                              if (isSelected) {
+                                selectedItems.remove(item);
+                              } else {
+                                selectedItems.add(item);
+                              }
+                            },
+                            child: isSelected ? _buildSelectedTag(item) : _buildTag(item),
+                          );
+                        }).toList(),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildProgramTagsSection() {
+    return _buildSectionContainer(
+      title: 'Program Focus',
+      children: [
+        GestureDetector(
+          onTap: () => _showMultiSelectBottomSheet(
+            title: 'Program Focus',
+            selectedItems: _selectedProgramTags,
+            allItems: profileController.allProgramTags,
+            hint: 'Search program focus...',
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CommonText(
+                    'Search Program Focus',
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Obx(() {
+          if (_selectedProgramTags.isEmpty) return const SizedBox.shrink();
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: _selectedProgramTags.map((tag) {
+              return GestureDetector(
+                onTap: () => _selectedProgramTags.remove(tag),
+                child: _buildSelectedTag(tag),
+              );
+            }).toList(),
+          );
+        }),
+      ],
+    );
+  }
+
   Widget _buildFrequentedCircuitsSection() {
     return _buildSectionContainer(
       title: 'Horse Shows & Circuits Frequented',
       children: [
-        _buildTextField(
-          'Search Horse Shows & Circuits', 
-          _searchCircuitsController, 
-          hint: 'Search horse shows & circuits', 
-          isRequired: true,
-          validator: (val) {
-            if (_selectedHorseShows.isEmpty) return 'Please select at least one circuit';
-            return null;
-          }
+        GestureDetector(
+          onTap: () => _showMultiSelectBottomSheet(
+            title: 'Horse Shows & Circuits',
+            selectedItems: _selectedHorseShows,
+            allItems: profileController.allHorseShows,
+            hint: 'Search horse shows...',
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CommonText(
+                    'Search Horse Shows & Circuits',
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Obx(() {
-          final query = _searchCircuitsController.text.toLowerCase();
-          final shows = profileController.allHorseShows.where((s) => s.toLowerCase().contains(query)).toList();
+          if (_selectedHorseShows.isEmpty) return const SizedBox.shrink();
           return Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: shows.map((tag) {
-              final isSelected = _selectedHorseShows.contains(tag);
+            children: _selectedHorseShows.map((tag) {
               return GestureDetector(
-                onTap: () {
-                  if (isSelected) {
-                    _selectedHorseShows.remove(tag);
-                  } else {
-                    _selectedHorseShows.add(tag);
-                  }
-                },
-                child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+                onTap: () => _selectedHorseShows.remove(tag),
+                child: _buildSelectedTag(tag),
               );
             }).toList(),
           );
@@ -502,56 +655,166 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           final values = (type['values'] as List? ?? []);
           final isSingleSelect = type['selectionType'] == 'single';
 
+          // Get the names of currently selected tags for this type
+          final List<String> currentSelections = [];
+          for (var val in values) {
+             if (_selectedTags.contains(val['_id'])) {
+               currentSelections.add(val['name'] ?? '');
+             }
+          }
+
           return _buildSectionContainer(
             title: typeName,
             children: [
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: values.map((val) {
-                  final tagId = val['_id'] ?? '';
-                  final tagName = val['name'] ?? '';
-                  final isSelected = _selectedTags.contains(tagId);
-
-                  return GestureDetector(
-                    onTap: () {
-                      if (isSingleSelect) {
-                        if (isSelected) {
-                          _selectedTags.remove(tagId);
-                        } else {
-                          // Check if any other tag of this type is already selected
-                          final valueIds = values.map((v) => v['_id'] as String).toList();
-                          final hasExistingSelection = _selectedTags.any((id) => valueIds.contains(id));
-                          
-                          if (hasExistingSelection) {
-                            Get.snackbar(
-                              'Selection Limit', 
-                              'Please select only one value for $typeName',
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                              snackPosition: SnackPosition.BOTTOM,
-                            );
-                          } else {
-                            _selectedTags.add(tagId);
-                          }
-                        }
-                      } else {
-                        if (isSelected) {
-                          _selectedTags.remove(tagId);
-                        } else {
-                          _selectedTags.add(tagId);
-                        }
-                      }
-                    },
-                    child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
-                  );
-                }).toList(),
+              GestureDetector(
+                onTap: () => _showTagsBottomSheet(
+                  title: typeName,
+                  isSingleSelect: isSingleSelect,
+                  values: values,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(
+                          'Select $typeName',
+                          color: AppColors.textSecondary.withOpacity(0.5),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
+              const SizedBox(height: 16),
+              if (currentSelections.isNotEmpty)
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: values.map((val) {
+                    final tagId = val['_id'] ?? '';
+                    final tagName = val['name'] ?? '';
+                    if (!_selectedTags.contains(tagId)) return const SizedBox.shrink();
+
+                    return GestureDetector(
+                      onTap: () => _selectedTags.remove(tagId),
+                      child: _buildSelectedTag(tagName),
+                    );
+                  }).toList(),
+                ),
             ],
           );
         }).toList(),
       );
     });
+  }
+
+  void _showTagsBottomSheet({
+    required String title,
+    required bool isSingleSelect,
+    required List values,
+  }) {
+    final TextEditingController searchController = TextEditingController();
+    final RxList filteredValues = values.obs;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: searchController,
+                    onChanged: (val) {
+                      filteredValues.assignAll(values
+                          .where((v) => (v['name'] as String).toLowerCase().contains(val.toLowerCase()))
+                          .toList());
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search $title...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Obx(() => Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: filteredValues.map((val) {
+                          final tagId = val['_id'] ?? '';
+                          final tagName = val['name'] ?? '';
+                          final isSelected = _selectedTags.contains(tagId);
+
+                          return GestureDetector(
+                            onTap: () {
+                              if (isSingleSelect) {
+                                if (isSelected) {
+                                  _selectedTags.remove(tagId);
+                                } else {
+                                  // Remove others of same type
+                                  final allTagIds = values.map((v) => v['_id'] as String).toList();
+                                  _selectedTags.removeWhere((id) => allTagIds.contains(id));
+                                  _selectedTags.add(tagId);
+                                }
+                              } else {
+                                if (isSelected) {
+                                  _selectedTags.remove(tagId);
+                                } else {
+                                  _selectedTags.add(tagId);
+                                }
+                              }
+                            },
+                            child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
+                          );
+                        }).toList(),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
 
@@ -637,7 +900,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: CommonText(text, fontSize: 13, color: const Color(0xFF000B48), fontWeight: FontWeight.bold)),
+          Flexible(child: CommonText(text, fontSize: 13, color: const Color(0xFF000B48), fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
           const Icon(Icons.close, size: 16, color: Color(0xFF000B48)),
         ],
