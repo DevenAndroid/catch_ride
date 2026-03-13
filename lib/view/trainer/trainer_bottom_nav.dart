@@ -32,7 +32,7 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
   final List<Widget> _views = [
     const TrainerBookingsView(),
     const TrainerExploreView(),
-    const HourseListingView(),
+    const HorseListingView(),
     const TrainerChatsView(),
     const SettingsView(),
   ];

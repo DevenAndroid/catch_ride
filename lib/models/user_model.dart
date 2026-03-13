@@ -15,6 +15,7 @@ class UserModel {
   final int yearsExperience;
   final List<String> programTags;
   final List<String> showCircuits;
+  final List<String> horseShows;
   final String? facebook;
   final String? instagram;
   final String? website;
@@ -41,6 +42,7 @@ class UserModel {
     this.yearsExperience = 0,
     this.programTags = const [],
     this.showCircuits = const [],
+    this.horseShows = const [],
     this.tags = const [],
     this.facebook,
     this.instagram,
@@ -68,6 +70,18 @@ class UserModel {
       }
     }
 
+    dynamic horseShowsList = json['horseShows'] ?? (json['trainerId'] is Map ? json['trainerId']['horseShows'] : []);
+    List<String> parsedHorseShows = [];
+    if (horseShowsList is List) {
+      for (var h in horseShowsList) {
+        if (h is Map) {
+          parsedHorseShows.add(h['_id'] ?? h['id'] ?? '');
+        } else if (h is String) {
+          parsedHorseShows.add(h);
+        }
+      }
+    }
+
     final trainerData = json['trainerId'] is Map ? json['trainerId'] as Map<String, dynamic> : null;
 
     return UserModel(
@@ -87,6 +101,7 @@ class UserModel {
       yearsExperience: json['yearsExperience'] ?? trainerData?['yearsExperience'] ?? 0,
       programTags: List<String>.from(json['programTags'] ?? trainerData?['programTags'] ?? []),
       showCircuits: List<String>.from(json['showCircuits'] ?? trainerData?['showCircuits'] ?? []),
+      horseShows: parsedHorseShows,
       tags: parsedTags,
       facebook: json['facebook'] ?? trainerData?['facebook'],
       instagram: json['instagram'] ?? trainerData?['instagram'],
@@ -118,6 +133,7 @@ class UserModel {
       'yearsExperience': yearsExperience,
       'programTags': programTags,
       'showCircuits': showCircuits,
+      'horseShows': horseShows,
       'tags': tags,
       'facebook': facebook,
       'instagram': instagram,

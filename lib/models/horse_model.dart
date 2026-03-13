@@ -32,11 +32,12 @@ class HorseModel {
   final String? bookedByName;
   final String? bookedByLocation;
   final String? bookingDates;
+  final DateTime? createdAt;
   
   String get displayDiscipline {
     if (discipline != null && discipline!.isNotEmpty) return discipline!;
     if (programTags.isNotEmpty) return programTags.first.name;
-    return 'General';
+    return 'N/A';
   }
 
   HorseModel({
@@ -70,6 +71,7 @@ class HorseModel {
     this.bookedByName,
     this.bookedByLocation,
     this.bookingDates,
+    this.createdAt,
   });
 
   factory HorseModel.fromJson(Map<String, dynamic> json) {
@@ -133,6 +135,7 @@ class HorseModel {
       bookedByName: json['bookedByName'],
       bookedByLocation: json['bookedByLocation'],
       bookingDates: json['bookingDates'],
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
     );
   }
 
@@ -163,6 +166,7 @@ class HorseModel {
       'trainerId': trainerId,
       'trainerName': trainerName,
       'location': location,
+      'createdAt': createdAt?.toIso8601String(),
     };
   }
 }

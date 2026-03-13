@@ -41,4 +41,22 @@ class DateUtil {
     if (e.isEmpty) return s;
     return '$s - $e';
   }
+
+  static String getTimeAgo(DateTime? date) {
+    if (date == null) return 'N/A';
+    
+    final duration = DateTime.now().difference(date);
+    
+    if (duration.inDays > 30) {
+      return formatDisplayDate(date);
+    } else if (duration.inDays > 0) {
+      return '${duration.inDays} ${duration.inDays == 1 ? 'day' : 'days'} ago';
+    } else if (duration.inHours > 0) {
+      return '${duration.inHours} ${duration.inHours == 1 ? 'hour' : 'hours'} ago';
+    } else if (duration.inMinutes > 0) {
+      return '${duration.inMinutes} ${duration.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+    } else {
+      return 'Just now';
+    }
+  }
 }

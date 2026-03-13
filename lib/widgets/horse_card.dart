@@ -24,9 +24,10 @@ class HorseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final show = horse.showAvailability.isNotEmpty ? horse.showAvailability.first : null;
     final String discipline = horse.displayDiscipline;
-    final String venue = show?.showVenue ?? '';
-    final String dates = DateUtil.formatRange(show?.startDate, show?.endDate);
-    final String location = horse.location ?? '';
+    final String venue = (show?.showVenue == null || show!.showVenue!.isEmpty) ? 'N/A' : show.showVenue!;
+    final String datesStr = DateUtil.formatRange(show?.startDate, show?.endDate);
+    final String dates = (datesStr.isEmpty || datesStr.trim() == '-') ? 'N/A' : datesStr;
+    final String location = (horse.location == null || horse.location!.isEmpty) ? 'N/A' : horse.location!;
 
     return GestureDetector(
       onTap: onTap,
@@ -80,7 +81,7 @@ class HorseCard extends StatelessWidget {
                               color: Color(0xFF101828),
                             ),
                             children: [
-                              TextSpan(text: horse.name),
+                              TextSpan(text: horse.name.isEmpty ? 'N/A' : horse.name),
                               TextSpan(
                                 text: ' - $discipline',
                                 style: const TextStyle(

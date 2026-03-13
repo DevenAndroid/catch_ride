@@ -18,7 +18,8 @@ class ProfileController extends GetxController {
 
   // Metadata Lists
   final RxList<String> allProgramTags = <String>[].obs;
-  final RxList<String> allHorseShows = <String>[].obs;
+  final RxList<String> allHorseShows = <String>[].obs; // List of names
+  final RxList<Map<String, dynamic>> rawHorseShows = <Map<String, dynamic>>[].obs; // Full objects
   final RxList<String> allExperienceLevels = <String>[].obs;
   final RxList<Map<String, dynamic>> tagTypes = <Map<String, dynamic>>[].obs;
   final RxList<String> selectedTags = <String>[].obs;
@@ -66,7 +67,9 @@ class ProfileController extends GetxController {
         allProgramTags.assignAll((results[0].body['data'] as List).map((e) => e['name'] as String).toList());
       }
       if (results[1].statusCode == 200) {
-        allHorseShows.assignAll((results[1].body['data'] as List).map((e) => e['name'] as String).toList());
+        final List data = results[1].body['data'] ?? [];
+        allHorseShows.assignAll(data.map((e) => e['name'] as String).toList());
+        rawHorseShows.assignAll(data.map((e) => e as Map<String, dynamic>).toList());
       }
       if (results[2].statusCode == 200) {
         allExperienceLevels.assignAll((results[2].body['data'] as List).map((e) => e['name'] as String).toList());
@@ -202,6 +205,7 @@ class ProfileController extends GetxController {
   int get yearsExperience => user.value?.yearsExperience ?? 0;
   List<String> get selectedProgramTags => user.value?.programTags ?? [];
   List<String> get selectedHorseShows => user.value?.showCircuits ?? [];
+  List<String> get selectedHorseShowIds => user.value?.horseShows ?? [];
   String get trainerId => user.value?.trainerProfileId ?? '';
 
   String get specialization {

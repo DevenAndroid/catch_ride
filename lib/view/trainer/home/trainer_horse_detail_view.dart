@@ -105,7 +105,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   void _initVideo() {
     final String? videoLink = horse!.videoLink;
-    if (videoLink == null || videoLink.isEmpty) return;
+    if (videoLink == null || videoLink.isEmpty || videoLink == 'N/A') {
+      _hasVideo = false;
+      return;
+    }
 
     _hasVideo = true;
     final String? youtubeId = YoutubePlayer.convertUrlToId(videoLink);
@@ -162,6 +165,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ? const Center(child: CircularProgressIndicator())
             : Builder(builder: (context) {
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: SingleChildScrollView(
@@ -188,7 +192,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildPremiumHeader() {
-    final tags = horse!.listingTypes;
     return Stack(
       children: [
         _buildImageSection(),
@@ -237,7 +240,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: CommonText(
-                      horse!.location ?? '',
+                      (horse!.location == null || horse!.location!.isEmpty) ? 'N/A' : horse!.location!,
                       fontSize: 12,
                       color: Colors.white,
                       overflow: TextOverflow.ellipsis,
@@ -258,7 +261,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 20, color: Colors.black),
@@ -270,7 +273,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF8B4242).withOpacity(0.6), // Matched to mockup dark trans-red
+        color: const Color(0xFF8B4242).withValues(alpha: 0.6), // Matched to mockup dark trans-red
         borderRadius: BorderRadius.circular(8),
       ),
       child: CommonText(text, fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
@@ -295,8 +298,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(horse!.trainerName ?? '', fontSize: 16, fontWeight: FontWeight.bold),
-                  CommonText(horse!.location != null && horse!.location!.isNotEmpty ? 'Location - ${horse!.location}' : '', fontSize: 13, color: AppColors.textSecondary),
+                  CommonText(horse!.trainerName ?? 'N/A', fontSize: 16, fontWeight: FontWeight.bold),
+                  CommonText(horse!.location != null && horse!.location!.isNotEmpty ? 'Location - ${horse!.location}' : 'Location - N/A', fontSize: 13, color: AppColors.textSecondary),
                 ],
               ),
             ),
@@ -328,38 +331,46 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildDescriptionAndTags() {
+    final description = (horse!.description == null || horse!.description!.isEmpty) ? '' : horse!.description!;
+    final tags = [
+      ...horse!.programTags.map((t) => t.name),
+      ...horse!.opportunityTags.map((t) => t.name),
+      ...horse!.personalityTags.map((t) => t.name),
+    ];
+
+    if (description.isEmpty && tags.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: CommonText(
-            horse!.description ?? '',
-            fontSize: 14,
-            color: AppColors.textPrimary.withOpacity(0.7),
-            height: 1.5,
+        if (description.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: CommonText(
+              description,
+              fontSize: 14,
+              color: AppColors.textPrimary.withValues(alpha: 0.7),
+              height: 1.5,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              ...horse!.programTags.map((t) => t.name),
-              ...horse!.opportunityTags.map((t) => t.name),
-              ...horse!.personalityTags.map((t) => t.name),
-            ].map((tag) => Container(
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF2F4F7),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: CommonText(tag, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF1D2939)),
-            )).toList(),
+        if (tags.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: tags.map((tag) => Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F4F7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: CommonText(tag, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF1D2939)),
+              )).toList(),
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 24),
       ],
     );
@@ -488,17 +499,17 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CommonText(
-                        horse!.trainerName ?? 'Unknown Trainer',
-                        fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const CommonText(
-                        AppStrings.professionalHorseTrainer,
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
-                      ),
+                        CommonText(
+                          horse!.trainerName ?? 'N/A',
+                          fontSize: AppTextSizes.size16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        const CommonText(
+                          AppStrings.professionalHorseTrainer,
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textSecondary,
+                        ),
                     ],
                   ),
                 ),
@@ -528,7 +539,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CommonText(
-                  horse!.trainerName ?? 'Unknown Trainer',
+                  horse!.trainerName ?? 'N/A',
                   fontSize: AppTextSizes.size14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -627,7 +638,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: CommonText(
@@ -686,7 +697,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border.withOpacity(0.5)),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
             ),
             child: GridView.count(
               shrinkWrap: true,
@@ -694,13 +705,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               crossAxisCount: 2,
               childAspectRatio: 2.2,
               children: [
-                _buildPremiumDetailItem('Horse name', horse!.name),
-                _buildPremiumDetailItem('USEF number', horse!.usefNumber ?? ''),
-                _buildPremiumDetailItem('Age', '${horse!.age} Years'),
-                _buildPremiumDetailItem('Height', horse!.height ?? ''),
-                _buildPremiumDetailItem('Breed', horse!.breed),
-                _buildPremiumDetailItem('Color', horse!.color ?? ''),
-                _buildPremiumDetailItem('Discipline', horse!.displayDiscipline),
+                _buildPremiumDetailItem('Horse name', horse!.name.isEmpty ? 'N/A' : horse!.name),
+                _buildPremiumDetailItem('USEF number', (horse!.usefNumber == null || horse!.usefNumber.toString().isEmpty) ? 'N/A' : horse!.usefNumber.toString()),
+                _buildPremiumDetailItem('Age', horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years'),
+                _buildPremiumDetailItem('Height', (horse!.height == null || horse!.height!.isEmpty) ? 'N/A' : horse!.height!),
+                _buildPremiumDetailItem('Breed', horse!.breed.isEmpty ? 'N/A' : horse!.breed),
+                _buildPremiumDetailItem('Color', (horse!.color == null || horse!.color!.isEmpty) ? 'N/A' : horse!.color!),
+                _buildPremiumDetailItem('Discipline', horse!.displayDiscipline.isEmpty ? 'N/A' : horse!.displayDiscipline),
               ],
             ),
           ),
@@ -717,12 +728,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         const SizedBox(height: 4),
         CommonText(value, fontSize: 15, fontWeight: FontWeight.bold),
         const SizedBox(height: 4),
-        Container(height: 1, color: AppColors.border.withOpacity(0.3)),
+        Container(height: 1, color: AppColors.border.withValues(alpha: 0.3)),
       ],
     );
   }
 
   Widget _buildAvailabilitySection() {
+    if (horse!.showAvailability.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -735,7 +747,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border.withOpacity(0.5)),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,7 +782,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           children: [
             const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
             const SizedBox(width: 8),
-            CommonText(location, fontSize: 14, fontWeight: FontWeight.w500),
+            CommonText(location.isEmpty ? 'N/A' : location, fontSize: 14, fontWeight: FontWeight.w500),
           ],
         ),
         const SizedBox(height: 6),
@@ -778,7 +790,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           children: [
             const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
             const SizedBox(width: 8),
-            CommonText(dates, fontSize: 14, fontWeight: FontWeight.bold),
+            CommonText(dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates, fontSize: 14, fontWeight: FontWeight.bold),
           ],
         ),
       ],
@@ -824,7 +836,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
       child: CommonButton(
         text: 'Request a Trial',
@@ -896,7 +908,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -952,7 +964,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border.withOpacity(0.6),
+                    color: AppColors.border.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1083,7 +1095,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   maxLines: 4,
                   decoration: InputDecoration(
                     hintText: 'Write here...',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
+                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
                     border: InputBorder.none,
                     isDense: true,
                   ),
@@ -1184,7 +1196,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1259,7 +1271,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         decoration: BoxDecoration(
           color: isActive ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: isActive ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)] : null,
+          boxShadow: isActive ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)] : null,
         ),
         child: Center(
           child: CommonText(
