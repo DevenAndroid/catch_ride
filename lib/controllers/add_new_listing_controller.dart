@@ -90,6 +90,7 @@ class AddNewListingController extends GetxController {
 
   Future<void> publishListing() async {
     try {
+      if (!validateStep5()) return;
       isPublishing.value = true;
       Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
@@ -127,6 +128,7 @@ class AddNewListingController extends GetxController {
             }
         },
         'showAvailability': availabilityEntries.map((e) => {
+          'showId': e.showIdController.text.isEmpty ? null : e.showIdController.text,
           'cityState': e.cityStateController.text,
           'showVenue': e.showVenueController.text,
           'startDate': e.startDateController.text,
@@ -146,9 +148,13 @@ class AddNewListingController extends GetxController {
           }
           if (Get.isRegistered<HorseController>()) {
             final profile = Get.find<ProfileController>();
-            final userId = profile.user.value?.id;
-            if (userId != null) {
-               Get.find<HorseController>().fetchHorses(refresh: true, trainerId: userId);
+            final tId = profile.trainerId;
+            final uId = profile.id;
+            
+            if (tId.isNotEmpty) {
+              Get.find<HorseController>().fetchHorses(refresh: true, trainerId: tId);
+            } else if (uId.isNotEmpty) {
+              Get.find<HorseController>().fetchHorses(refresh: true, ownerId: uId);
             }
           }
           if (Get.isRegistered<ExploreController>()) {
@@ -222,7 +228,6 @@ class AddNewListingController extends GetxController {
   var activeStatus = true.obs;
   var availabilityEntries = <AvailabilityEntry>[
     AvailabilityEntry(id: 1),
-    AvailabilityEntry(id: 2),
   ].obs;
 
   void addEntry() {
@@ -305,6 +310,31 @@ class AddNewListingController extends GetxController {
     }
     return true;
   }
+  bool validateStep5() {
+    if (activeStatus.value) {
+      if (availabilityEntries.isEmpty) {
+        _showError('Please add at least one availability entry');
+        return false;
+      }
+      
+      bool anyFilled = false;
+      for (var entry in availabilityEntries) {
+        if (entry.showVenueController.text.trim().isNotEmpty || 
+            entry.cityStateController.text.trim().isNotEmpty ||
+            entry.startDateController.text.trim().isNotEmpty) {
+          anyFilled = true;
+          break;
+        }
+      }
+      
+      if (!anyFilled) {
+        _showError('Please fill in at least one availability entry detail');
+        return false;
+      }
+    }
+    return true;
+  }
+
 
   void _showError(String message) {
     Get.snackbar(
@@ -343,6 +373,7 @@ class AvailabilityEntry {
   final int id;
   final cityStateController = TextEditingController();
   final showVenueController = TextEditingController();
+  final showIdController = TextEditingController();
   final startDateController = TextEditingController();
   final endDateController = TextEditingController();
 
@@ -351,6 +382,7 @@ class AvailabilityEntry {
   void dispose() {
     cityStateController.dispose();
     showVenueController.dispose();
+    showIdController.dispose();
     startDateController.dispose();
     endDateController.dispose();
   }

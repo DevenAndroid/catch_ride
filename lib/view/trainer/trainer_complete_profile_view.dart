@@ -40,6 +40,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
   File? _bannerImage;
   final RxList<String> _selectedProgramTags = <String>[].obs;
   final RxList<String> _selectedHorseShows = <String>[].obs;
+  final RxList<String> _selectedHorseShowIds = <String>[].obs;
   final RxList<String> _selectedTags = <String>[].obs;
 
   Future<void> _pickImage(bool isProfile) async {
@@ -71,6 +72,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     
     _selectedProgramTags.assignAll(profileController.selectedProgramTags);
     _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+    _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
     
     if (profileController.userData.isEmpty) {
@@ -83,6 +85,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
         _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
         _selectedProgramTags.assignAll(profileController.selectedProgramTags);
         _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+        _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
         _selectedTags.assignAll(profileController.user.value?.tags ?? []);
       });
     }
@@ -378,6 +381,94 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     );
   }
 
+  void _showHorseShowsBottomSheet() {
+    final TextEditingController searchController = TextEditingController();
+    final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
+    final RxList<Map<String, dynamic>> filteredShows = RxList<Map<String, dynamic>>(allShows);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const CommonText('Horse Shows & Circuits', fontSize: 18, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: searchController,
+                    onChanged: (val) {
+                      filteredShows.assignAll(allShows
+                          .where((s) => (s['name'] as String).toLowerCase().contains(val.toLowerCase()))
+                          .toList());
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search horse shows...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Obx(() => Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: filteredShows.map((show) {
+                          final String id = show['_id'] ?? show['id'] ?? '';
+                          final String name = show['name'] ?? '';
+                          final isSelected = _selectedHorseShowIds.contains(id);
+
+                          return GestureDetector(
+                            onTap: () {
+                              if (isSelected) {
+                                _selectedHorseShowIds.remove(id);
+                                _selectedHorseShows.remove(name);
+                              } else {
+                                _selectedHorseShowIds.add(id);
+                                _selectedHorseShows.add(name);
+                              }
+                            },
+                            child: isSelected ? _buildSelectedTag(name) : _buildTag(name),
+                          );
+                        }).toList(),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showSingleSelectBottomSheet({
     required String title,
     required String currentValue,
@@ -598,12 +689,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       title: 'Horse Shows & Circuits Frequented',
       children: [
         GestureDetector(
-          onTap: () => _showMultiSelectBottomSheet(
-            title: 'Horse Shows & Circuits',
-            selectedItems: _selectedHorseShows,
-            allItems: profileController.allHorseShows,
-            hint: 'Search horse shows...',
-          ),
+          onTap: () => _showHorseShowsBottomSheet(),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
@@ -958,6 +1044,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
             'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
             'programTags': _selectedProgramTags.toList(),
             'showCircuits': _selectedHorseShows.toList(),
+            'horseShows': _selectedHorseShowIds.toList(),
             'tags': _selectedTags.toList(),
             'isProfileCompleted': true,
           });
