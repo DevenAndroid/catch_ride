@@ -79,7 +79,7 @@ class BarnManagerSettingsView extends StatelessWidget {
               _buildSettingsTile(
                 icon: Icons.edit_outlined,
                 title: 'Edit Profile',
-                onTap: () => Get.to(() => const EditProfileView()),
+                onTap: () => Get.to(() => const EditBarnManagerProfileView()),
               ),
               _buildSettingsTile(
                 icon: Icons.person_outline,

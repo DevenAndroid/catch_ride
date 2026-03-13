@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../barn_manager/settings/edit_profile.dart';
+import 'edit_profile.dart';
 
 class TrainerProfileView extends StatelessWidget {
   TrainerProfileView({super.key});
@@ -28,35 +30,33 @@ class TrainerProfileView extends StatelessWidget {
           return const Center(child: CommonText('Profile not found'));
         }
 
-        return SingleChildScrollView(
-          child: Column(
+        final hasInstagram = profile.instagram?.isNotEmpty ?? false;
+        final hasFacebook = profile.facebook?.isNotEmpty ?? false;
+        final hasWebsite = profile.website?.isNotEmpty ?? false;
+        final hasSocials = hasInstagram || hasFacebook || hasWebsite;
+        final hasBio = _controller.bio.isNotEmpty;
+
+        return RefreshIndicator(
+          onRefresh: () => _controller.fetchProfile(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Section
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  CommonImageView(
-                    url: _controller.coverImage,
-                    height: 280,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                  
-                  // Gradient Overlay for Banner
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withOpacity(0.3),
-                            Colors.transparent,
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.1),
-                          ],
-                        ),
-                      ),
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
+                    ),
+                    child: CommonImageView(
+                      url: _controller.coverImage,
+                      height: 200,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
                     ),
                   ),
 
@@ -67,41 +67,60 @@ class TrainerProfileView extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => Get.back(),
                       child: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.8),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
+                        child: const Icon(Icons.chevron_left, size: 24, color: Colors.black),
                       ),
-                    ),
-                  ),
-                  
-                  // More Button
-                  Positioned(
-                    top: 50,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.more_vert, size: 20, color: Colors.black),
                     ),
                   ),
 
-                  // Profile Image
                   Positioned(
-                    bottom: -60,
+                    top: 50,
+                    right: 16,
+                    child: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          Get.to(() => const EditProfileView());
+                        }
+                      },
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      icon: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.8),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.more_vert, size: 24, color: Colors.black),
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, size: 20, color: AppColors.textPrimary),
+                              SizedBox(width: 12),
+                              CommonText('Edit Profile', fontWeight: FontWeight.bold),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Profile Image Overlap (Moved lower to -65)
+                  Positioned(
+                    bottom: -65,
                     left: 16,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(5),
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))
+                          BoxShadow(color: Colors.black12, blurRadius: 15, offset: Offset(0, 5))
                         ]
                       ),
                       child: CommonImageView(
@@ -114,152 +133,132 @@ class TrainerProfileView extends StatelessWidget {
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 70),
 
-              // Profile Info
+              const SizedBox(height: 12),
+
+              // Profile Identity Section (Name & Info)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CommonText(
-                      _controller.fullName,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    const SizedBox(height: 4),
-                    
                     Row(
                       children: [
-                        CommonText(
-                          _controller.specialization,
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        if (_controller.yearsExperience > 0) ...[
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 6.0),
-                            child: CommonText("·", color: AppColors.textSecondary, fontWeight: FontWeight.bold),
-                          ),
-                          CommonText(
-                            '${_controller.yearsExperience} Years',
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ]
-                      ],
-                    ),
-                    
-                    if (_controller.bio.isNotEmpty)
-                      CommonText(
-                        _controller.bio,
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        height: 1.5,
-                      ),
-                    
-                    if ((profile.instagram?.isNotEmpty ?? false) || (profile.facebook?.isNotEmpty ?? false) || (profile.website?.isNotEmpty ?? false))
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24),
-                        child: Row(
-                          children: [
-                            if (profile.instagram?.isNotEmpty ?? false)
-                              Expanded(child: _buildSocialButton('Instagram', Icons.camera_alt_outlined, Colors.pink)),
-                            if (profile.facebook?.isNotEmpty ?? false)
-                              ...[
-                                const SizedBox(width: 8),
-                                Expanded(child: _buildSocialButton('Facebook', Icons.facebook, Colors.blue)),
-                              ],
-                            if (profile.website?.isNotEmpty ?? false)
-                              ...[
-                                const SizedBox(width: 8),
-                                Expanded(child: _buildSocialButton('Website', Icons.link, Colors.black54)),
-                              ],
-                          ],
-                        ),
-                      ),
-                    
-                    if (_controller.location.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24),
-                        child: _buildSectionCard(
+                        const SizedBox(width: 125), // Matches profile image width + margin
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CommonText(
-                                profile.barnName?.isNotEmpty ?? false ? 'Barn - ${profile.barnName}' : 'Location',
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                                _controller.fullName.isEmpty ? 'N/A' : _controller.fullName,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
                               ),
-                              const SizedBox(height: 12),
-                              Row(
+                              const SizedBox(height: 4),
+                              CommonText(
+                                _controller.barnName.isEmpty ? 'N/A' : _controller.barnName,
+                                fontSize: 16,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  const Icon(Icons.location_on_outlined, size: 18, color: AppColors.textSecondary),
+                                  const Icon(Icons.location_on, size: 16, color: Colors.redAccent),
                                   const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Wrap(
-                                      children: [
-                                        CommonText(_controller.location, fontSize: 13, color: AppColors.textSecondary),
-                                        if (profile.location2?.isNotEmpty ?? false) ...[
-                                          const Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 8.0),
-                                            child: CommonText("|", color: Colors.grey),
-                                          ),
-                                          CommonText(profile.location2!, fontSize: 13, color: AppColors.textSecondary),
-                                        ]
-                                      ],
-                                    ),
+                                  CommonText(
+                                    _controller.location.isEmpty ? 'N/A' : _controller.location,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textSecondary,
                                   ),
+                                  if (profile.location2?.isNotEmpty ?? false) ...[
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(horizontal: 6.0),
+                                      child: CommonText("|", color: Colors.grey),
+                                    ),
+                                    CommonText(
+                                      profile.location2!,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ]
                                 ],
                               ),
+                              const SizedBox(height: 4),
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    children: [
+                                      if (_controller.disciplines.isNotEmpty) ...[
+                                        CommonText(
+                                          _controller.disciplines.join(" / ") + (" Trainer"),
+                                          fontSize: 15,
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        if (_controller.yearsExperience > 0)
+                                          const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 6.0),
+                                            child: CommonText("·", color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                                          ),
+                                      ],
+                                      if (_controller.yearsExperience > 0)
+                                        CommonText(
+                                          '${_controller.yearsExperience}+ Years',
+                                          fontSize: 15,
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                    ],
+                                  ),
                             ],
                           ),
                         ),
+                      ],
+                    ),
+
+                    // Bio Section (No empty space if empty)
+                    if (hasBio) ...[
+                      const SizedBox(height: 24),
+                      CommonText(
+                        _controller.bio,
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        height: 1.6,
                       ),
+                    ],
+
+                    // Social Buttons (No empty space if empty)
+                    if (hasSocials) ...[
+                      const SizedBox(height: 24),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            if (hasInstagram)
+                              _buildSocialButton('Instagram', Icons.camera_alt_outlined, const Color(0xFFD62976)),
+                            if (hasFacebook) ...[
+                              if (hasInstagram) const SizedBox(width: 12),
+                              _buildSocialButton('Facebook', Icons.facebook, const Color(0xFF1877F2)),
+                            ],
+                            if (hasWebsite) ...[
+                              if (hasInstagram || hasFacebook) const SizedBox(width: 12),
+                              _buildSocialButton('Website', Icons.link, Colors.black87),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+
+                    // Professional Detail Card
+                    _buildProfessionalInfoCard(),
 
                     const SizedBox(height: 24),
-
-                    // Dynamic Tag Sections
-                    ..._controller.groupedTrainerTags.entries.map((entry) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CommonText(entry.key, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 10,
-                              children: entry.value.map((tagName) => _buildTagChip(tagName)).toList(),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-
-                    // Legacy Show Circuits (If any)
-                    if (_controller.selectedHorseShows.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const CommonText('Horse Shows & Circuits', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                            const SizedBox(height: 12),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 10,
-                              children: _controller.selectedHorseShows.map((tagName) => _buildTagChip(tagName)).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
 
                     // Available Horses Section
                     Obx(() {
@@ -268,23 +267,22 @@ class TrainerProfileView extends StatelessWidget {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              CommonText(
-                                'Available Horses (${_controller.trainerHorses.length})',
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                              const CommonText(
+                                'Available Horses',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
                               ),
                               TextButton(
                                 onPressed: () => Get.to(() => const ViewAllHorsesView()), 
-                                child: const CommonText('View all', color: AppColors.primary, fontWeight: FontWeight.bold)
+                                child: const CommonText('View all', color: AppColors.linkBlue, fontWeight: FontWeight.bold)
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           ..._controller.trainerHorses.map((horse) => _buildHorseCard(horse)).toList(),
                         ],
                       );
@@ -296,64 +294,90 @@ class TrainerProfileView extends StatelessWidget {
               ),
             ],
           ),
-        );
+        ));
       }),
     );
   }
 
-  Widget _buildTagChip(String label) {
+  Widget _buildProfessionalInfoCard() {
+    final tags = _controller.groupedTrainerTags;
+    final horseShows = _controller.selectedHorseShows;
+
+    final Map<String, List<String>> filteredTags = Map.from(tags)
+      ..remove('Discipline')
+      ..remove('Disciplines');
+
+    if (filteredTags.isEmpty && horseShows.isEmpty) return const SizedBox.shrink();
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F6FF),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: const Color(0xFFE8EEFF)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: CommonText(
-        label, 
-        fontSize: 13, 
-        fontWeight: FontWeight.w600, 
-        color: const Color(0xFF000B48)
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...filteredTags.entries.map((entry) {
+            final isLast = filteredTags.keys.last == entry.key && horseShows.isEmpty;
+            return _buildInfoRow(entry.key, entry.value.join(" · "), !isLast);
+          }).toList(),
+          if (horseShows.isNotEmpty)
+            _buildInfoRow('Horse Shows & Circuits Frequented', horseShows.join(" · "), false),
+        ],
       ),
+    );
+  }
+
+  Widget _buildInfoRow(String title, String content, bool showDivider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommonText(title, fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              const SizedBox(height: 6),
+              CommonText(content, fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            ],
+          ),
+        ),
+        if (showDivider)
+          Divider(color: AppColors.borderLight.withValues(alpha: 0.5), height: 1),
+      ],
     );
   }
 
   Widget _buildSocialButton(String label, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))
+        ]
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 8),
-          CommonText(label, fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          CommonText(label, fontSize: 15, fontWeight: FontWeight.w700, color: color == Colors.black87 ? AppColors.textPrimary : color),
         ],
       ),
-    );
-  }
-
-  Widget _buildSectionCard({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: child,
     );
   }
 
@@ -365,8 +389,8 @@ class TrainerProfileView extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -379,29 +403,30 @@ class TrainerProfileView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: CommonImageView(
                 url: horse.photo ?? horse.images.firstOrNull,
-                height: 100,
-                width: 100,
+                height: 90,
+                width: 90,
                 fit: BoxFit.cover,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(horse.name ?? 'Unknown', fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  const SizedBox(height: 4),
-                  CommonText("${horse.age} year old ${horse.breed ?? 'Horse'}", fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-                  const SizedBox(height: 8),
+                  CommonText(horse.name ?? 'Unknown', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  const SizedBox(height: 2),
+                  CommonText("${horse.age}-year-old ${horse.breed ?? 'Horse'}", fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  const SizedBox(height: 6),
                   CommonText(
                     horse.description ?? '',
                     fontSize: 12,
                     color: AppColors.textSecondary,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    height: 1.3,
                   ),
                 ],
               ),

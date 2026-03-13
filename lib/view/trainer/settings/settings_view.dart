@@ -267,7 +267,7 @@ class SettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           CommonText(
-            controller.specialization.isNotEmpty ? controller.specialization : '',
+            controller.barnName.isNotEmpty ? controller.barnName : '',
             fontSize: 14,
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,

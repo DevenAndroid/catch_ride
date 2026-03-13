@@ -8,14 +8,14 @@ import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:image_picker/image_picker.dart';
 
-class EditProfileView extends StatefulWidget {
-  const EditProfileView({super.key});
+class EditBarnManagerProfileView extends StatefulWidget {
+  const EditBarnManagerProfileView({super.key});
 
   @override
-  State<EditProfileView> createState() => _EditProfileViewState();
+  State<EditBarnManagerProfileView> createState() => _EditBarnManagerProfileViewState();
 }
 
-class _EditProfileViewState extends State<EditProfileView> {
+class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView> {
   final ProfileController profileController = Get.find<ProfileController>();
   
   // Controllers

@@ -16,6 +16,7 @@ class EditProfileView extends StatefulWidget {
 
 class _EditProfileViewState extends State<EditProfileView> {
   final ProfileController profileController = Get.put(ProfileController());
+  final _formKey = GlobalKey<FormState>();
   
   // Controllers
   final TextEditingController _fullNameController = TextEditingController();
@@ -35,6 +36,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   File? _bannerImage;
   final RxList<String> _selectedProgramTags = <String>[].obs;
   final RxList<String> _selectedHorseShows = <String>[].obs;
+  final RxList<String> _selectedTags = <String>[].obs;
 
   Future<void> _pickImage(bool isProfile) async {
     try {
@@ -56,33 +58,45 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void initState() {
     super.initState();
+    debugPrint('📝 EditProfileView: Initializing with ${profileController.yearsExperience} years, barn: ${profileController.barnName}');
+    
     _fullNameController.text = profileController.fullName;
     _phoneController.text = profileController.phone;
     _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
-    _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
+    _location2Controller.text = profileController.location2;
+    _yearsController.text = profileController.yearsExperience.toString();
     _facebookController.text = profileController.user.value?.facebook ?? '';
     _websiteController.text = profileController.user.value?.website ?? '';
     _instagramController.text = profileController.user.value?.instagram ?? '';
     
     _selectedProgramTags.assignAll(profileController.selectedProgramTags);
     _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+    _selectedTags.assignAll(profileController.user.value?.tags ?? []);
     
     // If profile is empty, fetch it
     if (profileController.userData.isEmpty) {
       profileController.fetchProfile().then((_) {
-        _fullNameController.text = profileController.fullName;
-        _phoneController.text = profileController.phone;
-        _barnNameController.text = profileController.barnName;
-        _bioController.text = profileController.bio;
-        _location1Controller.text = profileController.location;
-        _facebookController.text = profileController.user.value?.facebook ?? '';
-        _websiteController.text = profileController.user.value?.website ?? '';
-        _instagramController.text = profileController.user.value?.instagram ?? '';
-        _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
-        _selectedProgramTags.assignAll(profileController.selectedProgramTags);
-        _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+        if (mounted) {
+          debugPrint('🔄 EditProfileView: Re-initializing after fetch - ${profileController.yearsExperience} years');
+          setState(() {
+            _fullNameController.text = profileController.fullName;
+            _phoneController.text = profileController.phone;
+            _barnNameController.text = profileController.barnName;
+            _bioController.text = profileController.bio;
+            _location1Controller.text = profileController.location;
+            _location2Controller.text = profileController.location2;
+            _facebookController.text = profileController.user.value?.facebook ?? '';
+            _websiteController.text = profileController.user.value?.website ?? '';
+            _instagramController.text = profileController.user.value?.instagram ?? '';
+            _yearsController.text = profileController.yearsExperience.toString();
+            
+            _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+            _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+            _selectedTags.assignAll(profileController.user.value?.tags ?? []);
+          });
+        }
       });
     }
   }
@@ -106,53 +120,50 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Get.back(),
         ),
-        title: const CommonText(
-          'Edit Profile',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
+        title: const CommonText('Edit Profile', fontSize: 18, fontWeight: FontWeight.bold),
+        centerTitle: true,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Column(
-                children: [
-                  _buildBasicDetailsSection(),
-                  const SizedBox(height: 20),
-                  _buildBarnInformationSection(),
-                  const SizedBox(height: 20),
-                  _buildExperienceSection(),
-                  const SizedBox(height: 20),
-                  _buildSocialMediaSection(),
-                  const SizedBox(height: 20),
-                  _buildFrequentedCircuitsSection(),
-                  const SizedBox(height: 20),
-                  _buildFederationInformationSection(),
-                  const SizedBox(height: 32),
-                ],
+      body: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBasicDetailsSection(),
+                    _buildBarnInformationSection(),
+                    _buildExperienceSection(),
+                    _buildProgramTagsSection(),
+                    _buildSocialMediaSection(),
+                    _buildFrequentedCircuitsSection(),
+                    _buildFederationInformationSection(),
+                    _buildDynamicTagsSection(),
+                  ],
+                ),
               ),
             ),
-          ),
-          _buildBottomButtons(),
-        ],
+            _buildBottomButtons(),
+            const SizedBox(height: 10),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSectionContainer({required String title, required List<Widget> children}) {
     return Container(
+      width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -165,11 +176,12 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(title, fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          CommonText(title, fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
           const SizedBox(height: 20),
           ...children,
         ],
@@ -256,8 +268,6 @@ class _EditProfileViewState extends State<EditProfileView> {
         _buildTextField('Full Name', _fullNameController, hint: 'Enter your full name', isRequired: true),
         const SizedBox(height: 20),
         _buildPhoneField(),
-        const SizedBox(height: 20),
-        _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name'),
       ],
     );
   }
@@ -279,31 +289,73 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Experience',
       children: [
-        _buildDropdownField('Years in Industry', 'Select years'),
+        GestureDetector(
+          onTap: () => _showSingleSelectBottomSheet(
+            title: 'Years in Industry',
+            currentValue: _yearsController.text,
+            items: List.generate(51, (index) => index.toString()),
+            onSelected: (val) {
+              setState(() => _yearsController.text = val);
+            },
+          ),
+          child: _buildDropdownField(
+            'Years in Industry', 
+            _yearsController.text.isEmpty ? 'Select years' : _yearsController.text
+          ),
+        ),
         const SizedBox(height: 20),
         _buildTextField('Bio', _bioController, hint: 'Write a short bio', maxLines: 4),
-        const SizedBox(height: 24),
-        const CommonText('Select Program tags', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        const SizedBox(height: 12),
-        Obx(() => Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: profileController.allProgramTags.map((tag) {
-            return Obx(() {
-              final isSelected = _selectedProgramTags.contains(tag);
+      ],
+    );
+  }
+
+  Widget _buildProgramTagsSection() {
+    return _buildSectionContainer(
+      title: 'Program Focus',
+      children: [
+        GestureDetector(
+          onTap: () => _showMultiSelectBottomSheet(
+            title: 'Program Focus',
+            selectedItems: _selectedProgramTags,
+            allItems: profileController.allProgramTags,
+            hint: 'Search program focus...',
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderMedium),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CommonText(
+                    'Search Program Focus',
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Obx(() {
+          if (_selectedProgramTags.isEmpty) return const SizedBox.shrink();
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: _selectedProgramTags.map((tag) {
               return GestureDetector(
-                onTap: () {
-                  if (isSelected) {
-                    _selectedProgramTags.remove(tag);
-                  } else {
-                    _selectedProgramTags.add(tag);
-                  }
-                },
-                child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+                onTap: () => _selectedProgramTags.remove(tag),
+                child: _buildSelectedTag(tag),
               );
-            });
-          }).toList(),
-        )),
+            }).toList(),
+          );
+        }),
       ],
     );
   }
@@ -325,27 +377,49 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Horse Shows & Circuits Frequented',
       children: [
-        _buildTextField('Search Horse Shows & Circuits', _searchCircuitsController, hint: 'WEF'),
+        GestureDetector(
+          onTap: () => _showMultiSelectBottomSheet(
+            title: 'Horse Shows & Circuits',
+            selectedItems: _selectedHorseShows,
+            allItems: profileController.allHorseShows,
+            hint: 'Search horse shows...',
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderMedium),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CommonText(
+                    'Search Horse Shows & Circuits',
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         const SizedBox(height: 16),
-        Obx(() => Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: profileController.allHorseShows.map((tag) {
-            return Obx(() {
-              final isSelected = _selectedHorseShows.contains(tag);
+        Obx(() {
+          if (_selectedHorseShows.isEmpty) return const SizedBox.shrink();
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: _selectedHorseShows.map((tag) {
               return GestureDetector(
-                onTap: () {
-                  if (isSelected) {
-                    _selectedHorseShows.remove(tag);
-                  } else {
-                    _selectedHorseShows.add(tag);
-                  }
-                },
-                child: isSelected ? _buildSelectedTag(tag) : _buildTag(tag),
+                onTap: () => _selectedHorseShows.remove(tag),
+                child: _buildSelectedTag(tag),
               );
-            });
-          }).toList(),
-        )),
+            }).toList(),
+          );
+        }),
       ],
     );
   }
@@ -361,7 +435,179 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType}) {
+  Widget _buildDynamicTagsSection() {
+    return Obx(() {
+      if (profileController.tagTypes.isEmpty) return const SizedBox.shrink();
+      
+      return Column(
+        children: profileController.tagTypes.map((type) {
+          final typeId = type['_id'] ?? '';
+          final typeName = type['name'] ?? '';
+          final values = (type['values'] as List? ?? []);
+          final isSingleSelect = type['selectionType'] == 'single';
+
+          // Get the names of currently selected tags for this type
+          final List<String> currentSelections = [];
+          for (var val in values) {
+             if (_selectedTags.contains(val['_id'])) {
+               currentSelections.add(val['name'] ?? '');
+             }
+          }
+
+          return _buildSectionContainer(
+            title: typeName,
+            children: [
+              GestureDetector(
+                onTap: () => _showTagsBottomSheet(
+                  title: typeName,
+                  isSingleSelect: isSingleSelect,
+                  values: values,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderMedium),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(
+                          'Select $typeName',
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (currentSelections.isNotEmpty)
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: values.map((val) {
+                    final tagId = val['_id'] ?? '';
+                    final tagName = val['name'] ?? '';
+                    if (!_selectedTags.contains(tagId)) return const SizedBox.shrink();
+
+                    return GestureDetector(
+                      onTap: () => _selectedTags.remove(tagId),
+                      child: _buildSelectedTag(tagName),
+                    );
+                  }).toList(),
+                ),
+            ],
+          );
+        }).toList(),
+      );
+    });
+  }
+
+  void _showTagsBottomSheet({
+    required String title,
+    required bool isSingleSelect,
+    required List values,
+  }) {
+    final TextEditingController searchController = TextEditingController();
+    final RxList filteredValues = values.obs;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: searchController,
+                    onChanged: (val) {
+                      filteredValues.assignAll(values
+                          .where((v) => (v['name'] as String).toLowerCase().contains(val.toLowerCase()))
+                          .toList());
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search $title...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Obx(() => Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: filteredValues.map((val) {
+                          final tagId = val['_id'] ?? '';
+                          final tagName = val['name'] ?? '';
+                          final isSelected = _selectedTags.contains(tagId);
+
+                          return GestureDetector(
+                            onTap: () {
+                              if (isSingleSelect) {
+                                if (isSelected) {
+                                  _selectedTags.remove(tagId);
+                                } else {
+                                  // Remove others of same type
+                                  final allTagIds = values.map((v) => v['_id'] as String).toList();
+                                  _selectedTags.removeWhere((id) => allTagIds.contains(id));
+                                  _selectedTags.add(tagId);
+                                }
+                              } else {
+                                if (isSelected) {
+                                  _selectedTags.remove(tagId);
+                                } else {
+                                  _selectedTags.add(tagId);
+                                }
+                              }
+                            },
+                            child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
+                          );
+                        }).toList(),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType, Function(String)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -376,10 +622,17 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
           maxLines: maxLines,
           keyboardType: keyboardType,
+          onChanged: onChanged,
+          validator: isRequired ? (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Please enter ${label.toLowerCase()}';
+            }
+            return null;
+          } : null,
           style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
@@ -388,6 +641,8 @@ class _EditProfileViewState extends State<EditProfileView> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderMedium)),
             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderMedium)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+            errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 1.0)),
+            focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 1.5)),
             hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
             fillColor: Colors.white,
             filled: true,
@@ -398,6 +653,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   }
 
   Widget _buildDropdownField(String label, String value) {
+    bool isPlaceholder = value.toLowerCase().contains('select');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -413,7 +669,11 @@ class _EditProfileViewState extends State<EditProfileView> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CommonText(value, fontSize: 15, color: AppColors.textSecondary),
+              CommonText(
+                value, 
+                fontSize: 15, 
+                color: isPlaceholder ? AppColors.textSecondary.withValues(alpha: 0.5) : AppColors.textSecondary
+              ),
               const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
             ],
           ),
@@ -448,10 +708,16 @@ class _EditProfileViewState extends State<EditProfileView> {
               ),
               Container(width: 1, height: 24, color: AppColors.borderMedium),
               Expanded(
-                child: TextField(
+                child: TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Required';
+                    }
+                    return null;
+                  },
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
@@ -469,32 +735,196 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Widget _buildTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: AppColors.borderMedium.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
       ),
-      child: CommonText(text, fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+      child: CommonText(text, fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
     );
   }
 
   Widget _buildSelectedTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: AppColors.primary),
+        color: AppColors.primary.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary, width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CommonText(text, fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.bold),
-          const SizedBox(width: 6),
+          Flexible(child: CommonText(text, fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
           const Icon(Icons.close, size: 16, color: AppColors.primary),
         ],
       ),
+    );
+  }
+
+  void _showSingleSelectBottomSheet({
+    required String title,
+    required String currentValue,
+    required List<String> items,
+    required Function(String) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final isSelected = item == currentValue;
+                      return InkWell(
+                        onTap: () {
+                          onSelected(item);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(child: CommonText(item, fontSize: 15)),
+                              if (isSelected) const Icon(Icons.check, color: AppColors.primary, size: 20),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showMultiSelectBottomSheet({
+    required String title,
+    required RxList<String> selectedItems,
+    required List<String> allItems,
+    String? hint,
+  }) {
+    final TextEditingController searchController = TextEditingController();
+    final RxList<String> filteredItems = RxList<String>(allItems);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: searchController,
+                    onChanged: (val) {
+                      filteredItems.assignAll(allItems
+                          .where((s) => s.toLowerCase().contains(val.toLowerCase()))
+                          .toList());
+                    },
+                    decoration: InputDecoration(
+                      hintText: hint ?? 'Search...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Obx(() => Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: filteredItems.map((item) {
+                          final isSelected = selectedItems.contains(item);
+                          return GestureDetector(
+                            onTap: () {
+                              if (isSelected) {
+                                selectedItems.remove(item);
+                              } else {
+                                selectedItems.add(item);
+                              }
+                            },
+                            child: isSelected ? _buildSelectedTag(item) : _buildTag(item),
+                          );
+                        }).toList(),
+                      )),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -532,6 +962,9 @@ class _EditProfileViewState extends State<EditProfileView> {
           Expanded(
             child: Obx(() => GestureDetector(
               onTap: profileController.isLoading.value ? null : () async {
+                if (!_formKey.currentState!.validate()) {
+                  return;
+                }
                 // 1. Upload Images if picked
                 if (_profileImage != null) {
                   await profileController.uploadImage(_profileImage!.path, 'avatar');
@@ -553,12 +986,14 @@ class _EditProfileViewState extends State<EditProfileView> {
                   'barnName': _barnNameController.text.trim(),
                   'bio': _bioController.text.trim(),
                   'location': _location1Controller.text.trim(),
+                  'location2': _location2Controller.text.trim(),
                   'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
                   'facebook': _facebookController.text.trim(),
                   'website': _websiteController.text.trim(),
                   'instagram': _instagramController.text.trim(),
-                  'programTags': _selectedProgramTags,
-                  'showCircuits': _selectedHorseShows,
+                  'programTags': _selectedProgramTags.toList(),
+                  'showCircuits': _selectedHorseShows.toList(),
+                  'tags': _selectedTags.toList(),
                 });
 
                 if (success) {

@@ -6,7 +6,6 @@ import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:catch_ride/models/tag_model.dart';
 import 'package:path/path.dart' as path;
 
 import 'explore_controller.dart';
@@ -42,6 +41,7 @@ class AddNewListingController extends GetxController {
   final descriptionController = TextEditingController();
   final usefNumberController = TextEditingController();
   final locationController = TextEditingController();
+  var selectedDiscipline = ''.obs;
   
   // Price and Inquire state for Step 2
   final Map<String, TextEditingController> minPriceControllers = {
@@ -67,43 +67,19 @@ class AddNewListingController extends GetxController {
   var selectedListingTypes = <String>{'Sale', 'Annual Lease'}.obs;
 
   // Step 4
-  var selectedProgramTags = <String>{}.obs;
-  var selectedOpportunityTags = <String>{}.obs;
-  var selectedExperienceTags = <String>{}.obs;
-  var selectedPersonalityTags = <String>{}.obs;
-
-  var programTags = <TagModel>[].obs;
-  var opportunityTags = <TagModel>[].obs;
-  var experienceTags = <TagModel>[].obs;
-  var personalityTags = <TagModel>[].obs;
+  // Step 3 (Dynamic Tags)
+  var tagTypes = <dynamic>[].obs;
+  var selectedTags = <String>{}.obs;
 
   Future<void> fetchTags() async {
     try {
       isTagsLoading.value = true;
       
-      // Fetch all tags in parallel
-      final results = await Future.wait([
-        _apiService.getRequest(AppUrls.programTags),
-        _apiService.getRequest(AppUrls.opportunityTags),
-        _apiService.getRequest(AppUrls.experienceLevels),
-        _apiService.getRequest(AppUrls.personalityTags),
-      ]);
+      final response = await _apiService.getRequest('${AppUrls.tagTypesWithValues}?category=Horse');
 
-      if (results[0].statusCode == 200) {
-        final List data = results[0].body['data'] ?? [];
-        programTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
-      }
-      if (results[1].statusCode == 200) {
-        final List data = results[1].body['data'] ?? [];
-        opportunityTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
-      }
-      if (results[2].statusCode == 200) {
-        final List data = results[2].body['data'] ?? [];
-        experienceTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
-      }
-      if (results[3].statusCode == 200) {
-        final List data = results[3].body['data'] ?? [];
-        personalityTags.assignAll(data.map((e) => TagModel.fromJson(e)).toList());
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        tagTypes.assignAll(data);
       }
     } catch (e) {
       print('Error fetching tags: $e');
@@ -124,21 +100,6 @@ class AddNewListingController extends GetxController {
         if (url != null) imageUrls.add(url);
       }
 
-      // 2. Map name selections to IDs
-      final programTagIds = selectedProgramTags.map((name) =>
-        programTags.firstWhere((t) => t.name == name).id as String).toList();
-      
-      final opportunityTagIds = selectedOpportunityTags.map((name) =>
-        opportunityTags.firstWhere((t) => t.name == name).id as String).toList();
-        
-      final personalityTagIds = selectedPersonalityTags.map((name) =>
-        personalityTags.firstWhere((t) => t.name == name).id as String).toList();
-        
-      String? experienceLevelId;
-      if (selectedExperienceTags.isNotEmpty) {
-        experienceLevelId = experienceTags.firstWhere((t) => t.name == selectedExperienceTags.first).id as String;
-      }
-
       final horseData = {
         'listingTitle': listingTitleController.text,
         'name': horseNameController.text,
@@ -147,17 +108,14 @@ class AddNewListingController extends GetxController {
         'breed': breedController.text,
         'color': colorController.text,
         'gender': gender.value,
-        'discipline': disciplineController.text,
+        'discipline': selectedDiscipline.value,
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkController.text,
         'images': imageUrls,
         'photo': imageUrls.isNotEmpty ? imageUrls.first : null,
         'listingTypes': selectedListingTypes.toList(),
-        'programTags': programTagIds,
-        'opportunityTags': opportunityTagIds,
-        'experienceLevel': experienceLevelId,
-        'personalityTags': personalityTagIds,
+        'tags': selectedTags.toList(),
         'isActive': activeStatus.value,
         'location': locationController.text,
         'prices': {
@@ -319,6 +277,31 @@ class AddNewListingController extends GetxController {
     if (descriptionController.text.trim().isEmpty) {
       _showError('Please enter a description');
       return false;
+    }
+    return true;
+  }
+
+  bool validateStep2() {
+    if (selectedListingTypes.isEmpty) {
+      _showError('Please select at least one listing type');
+      return false;
+    }
+
+    for (var type in selectedListingTypes) {
+      final isInquire = inquireForPrice[type] ?? false;
+      if (!isInquire) {
+        final minPrice = minPriceControllers[type]?.text.trim() ?? '';
+        final maxPrice = maxPriceControllers[type]?.text.trim() ?? '';
+        
+        if (minPrice.isEmpty) {
+          _showError('Please enter the min price for $type');
+          return false;
+        }
+        if (maxPrice.isEmpty) {
+          _showError('Please enter the max price for $type');
+          return false;
+        }
+      }
     }
     return true;
   }
