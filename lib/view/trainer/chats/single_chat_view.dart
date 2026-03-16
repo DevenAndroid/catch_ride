@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/profile_controller.dart';
 
-class SingleChatView extends StatelessWidget {
+class SingleChatView extends StatefulWidget {
   final String name;
   final String image;
   final String conversationId;
@@ -23,10 +23,31 @@ class SingleChatView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
-    final TextEditingController textController = TextEditingController();
+  State<SingleChatView> createState() => _SingleChatViewState();
+}
 
+class _SingleChatViewState extends State<SingleChatView> {
+  final ChatController controller = Get.find<ChatController>();
+  final TextEditingController textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch full conversation data every time we enter the view
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchMessages(widget.conversationId);
+      controller.fetchConversations(); // Also refresh convo info for banners
+    });
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -48,8 +69,8 @@ class SingleChatView extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundImage: image.startsWith('http')
-                  ? NetworkImage(image)
+              backgroundImage: widget.image.startsWith('http')
+                  ? NetworkImage(widget.image)
                   : const NetworkImage('https://via.placeholder.com/150'),
             ),
             const SizedBox(width: 12),
@@ -58,18 +79,11 @@ class SingleChatView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    name,
+                    widget.name,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                     maxLines: 1,
-                  ),
-                  CommonText(
-                    name == 'Lana Steiner' 
-                        ? 'Barn Manager for Candice Wu' 
-                        : 'Professional Horse Trainer',
-                    fontSize: 12,
-                    color: AppColors.secondary, // Reddish color for role
                   ),
                 ],
               ),
@@ -81,7 +95,7 @@ class SingleChatView extends StatelessWidget {
         children: [
           // Banner for Pending/Declined status
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == conversationId);
+            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
             if (convo == null) return const SizedBox.shrink();
 
             final currentUserId = Get.find<ProfileController>().id;
@@ -102,9 +116,9 @@ class SingleChatView extends StatelessWidget {
                   Colors.orange.shade50,
                   Colors.orange,
                   actions: [
-                    _buildBannerButton('Decline', () => controller.declineRequest(conversationId), isAction: false),
+                    _buildBannerButton('Decline', () => controller.declineRequest(widget.conversationId), isAction: false),
                     const SizedBox(width: 8),
-                    _buildBannerButton('Accept', () => controller.acceptRequest(conversationId)),
+                    _buildBannerButton('Accept', () => controller.acceptRequest(widget.conversationId)),
                   ],
                 );
               }
@@ -140,32 +154,9 @@ class SingleChatView extends StatelessWidget {
 
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: controller.currentMessages.length + (conversationId == 'c1' ? 1 : 0),
+                itemCount: controller.currentMessages.length,
                 itemBuilder: (context, index) {
-                  // MOCKUP DATE SEPARATOR FOR LANA (c1)
-                  if (conversationId == 'c1' && index == 2) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: Row(
-                          children: [
-                            Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: CommonText(
-                                "Today",
-                                fontSize: 13,
-                                color: AppColors.textSecondary.withValues(alpha: 0.7),
-                              ),
-                            ),
-                            Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  final msgIndex = (conversationId == 'c1' && index > 2) ? index - 1 : index;
+                  final msgIndex = index;
                   if (msgIndex >= controller.currentMessages.length) return const SizedBox.shrink();
 
                   final msg = controller.currentMessages[msgIndex];
@@ -196,8 +187,8 @@ class SingleChatView extends StatelessWidget {
                   return ChatBubble(
                     message: msg.content,
                     isMe: isMe,
-                    time: isMe && msgIndex == controller.currentMessages.length - 1 ? '2 min ago' : '',
-                    isRead: msg.read && msgIndex == controller.currentMessages.length - 1,
+                    time: '', 
+                    isRead: msg.read,
                   );
                 },
               );
@@ -205,7 +196,7 @@ class SingleChatView extends StatelessWidget {
           ),
           
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == conversationId);
+            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
             final bool canChat = convo?.status != 'request-declined' && 
                                convo?.status != 'request-pending' && 
                                convo?.status != 'request-blocked';
@@ -294,7 +285,7 @@ class SingleChatView extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 if (textController.text.isNotEmpty) {
-                  controller.sendMessage(textController.text, receiverId: otherId);
+                  controller.sendMessage(textController.text, receiverId: widget.otherId);
                   textController.clear();
                 }
               },

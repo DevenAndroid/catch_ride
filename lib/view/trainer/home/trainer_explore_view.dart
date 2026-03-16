@@ -14,6 +14,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:catch_ride/view/vendor/vendor_details_view.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
 import '../../../../controllers/booking_controller.dart';
+import '../../../models/horse_model.dart';
 import '../../../models/vendor_model.dart';
 
 class TrainerExploreView extends StatefulWidget {
@@ -25,7 +26,6 @@ class TrainerExploreView extends StatefulWidget {
 
 class _TrainerExploreViewState extends State<TrainerExploreView> {
   final ExploreController controller = Get.put(ExploreController());
-  bool _isGridView = false;
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
@@ -33,6 +33,11 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     {'name': 'Equitation', 'icon': 'assets/icons/equitation.svg', 'isSvg': true},
     {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchHorses();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,36 +50,57 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
             _buildSearchBar(),
             _buildFilters(),
             Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value && controller.horses.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  await controller.fetchHorses();
+                },
+                child: Obx(() {
+                  if (controller.isLoading.value && controller.horses.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                // Reactive trigger for booking status changes
-                final bookingController = Get.put(BookingController());
-                final _ = bookingController.bookings.length;
+                  // Reactive trigger for booking status changes
+                  final bookingController = Get.put(BookingController());
+                  final _ = bookingController.bookings.length;
 
-                final bool isVendors = controller.selectedDiscipline.value == 'Services';
+                  final bool isVendors = controller.selectedDiscipline.value == 'Services';
 
-                if (isVendors && controller.vendors.isEmpty) {
-                  return const Center(
-                    child: CommonText(
-                      'No vendors available',
-                      fontSize: AppTextSizes.size16,
-                      color: AppColors.textSecondary,
-                    ),
-                  );
-                }
+                  if (isVendors && controller.vendors.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CommonText(
+                              'No vendors available',
+                              fontSize: AppTextSizes.size16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
 
-                if (!isVendors && controller.horses.isEmpty) {
-                  return const Center(
-                    child: CommonText(
-                      'No horses found',
-                      fontSize: AppTextSizes.size16,
-                      color: AppColors.textSecondary,
-                    ),
-                  );
-                }
+                  if (!isVendors && controller.horses.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CommonText(
+                              'No horses found',
+                              fontSize: AppTextSizes.size16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
 
                 if (isVendors) {
                   return ListView.builder(
@@ -85,6 +111,20 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       return _buildVendorCard(
                         vendor: vendor,
                       );
+                    },
+                  );
+                }
+
+                if (controller.isGridView.value) {
+                  return MasonryGridView.count(
+                    padding: const EdgeInsets.all(16),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    itemCount: controller.horses.length,
+                    itemBuilder: (context, index) {
+                      final horse = controller.horses[index];
+                      return _buildMasonryHorseCard(horse, index);
                     },
                   );
                 }
@@ -105,8 +145,9 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 );
               }),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
       ),
     );
   }
@@ -151,19 +192,27 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     CommonText(
-                      "Search horses or services",
+                      "How can we help you?",
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF101828),
                     ),
                     CommonText(
-                      "Select location & dates",
+                      "Search horses, services and circuits",
                       fontSize: 12,
                       color: Color(0xFF667085),
                     ),
                   ],
                 ),
               ),
+              Obx(() => IconButton(
+                onPressed: () => controller.isGridView.toggle(),
+                icon: Icon(
+                  controller.isGridView.value ? Icons.list_rounded : Icons.grid_view_rounded,
+                  color: const Color(0xFF101828),
+                ),
+              )),
+              const SizedBox(width: 8),
             ],
           ),
         ),
@@ -328,6 +377,81 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMasonryHorseCard(HorseModel horse, int index) {
+    // Generate varying heights to create the masonry effect
+    final double cardHeight = (index % 3 == 0) ? 280 : (index % 2 == 0) ? 200 : 240;
+
+    return GestureDetector(
+      onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
+      child: Container(
+        height: cardHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: horse.images.isNotEmpty 
+                    ? horse.images[0] 
+                    : (horse.photo ?? AppConstants.dummyImageUrl),
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[100],
+                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[100],
+                  child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 32, 12, 12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.8),
+                        Colors.black.withValues(alpha: 0.4),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                  child: Text(
+                    horse.name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

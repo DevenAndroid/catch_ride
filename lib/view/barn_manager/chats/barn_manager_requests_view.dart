@@ -7,6 +7,7 @@ import 'package:catch_ride/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'barn_manager_single_chat_view.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 
 class BarnManagerRequestsView extends StatelessWidget {
   const BarnManagerRequestsView({super.key});
@@ -41,8 +42,9 @@ class BarnManagerRequestsView extends StatelessWidget {
         ),
       ),
       body: Obx(() {
+        final currentUserId = Get.find<ProfileController>().id;
         final requests = controller.conversations
-            .where((c) => c.status == 'request-pending')
+            .where((c) => c.status == 'request-pending' && c.senderId != currentUserId)
             .toList();
 
         if (requests.isEmpty) {
@@ -102,7 +104,7 @@ class BarnManagerRequestCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonText(
-                        "Trainer : $name",
+                        "Requester : $name",
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF101828),
@@ -143,8 +145,8 @@ class BarnManagerRequestCard extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: const CommonImageView(
-                        url: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                      child: CommonImageView(
+                        url: request.booking?.horseImage ?? AppConstants.dummyImageUrl,
                         height: 90,
                         width: 90,
                         fit: BoxFit.cover,
@@ -158,48 +160,53 @@ class BarnManagerRequestCard extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const CommonText(
-                                "Starfire",
+                              CommonText(
+                                request.booking?.horseName ?? "Booking Request",
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF101828),
+                                color: const Color(0xFF101828),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF2F4F7),
-                                  borderRadius: BorderRadius.circular(8),
+                              if (request.booking?.type != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF2F4F7),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: CommonText(
+                                    request.booking!.type,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF475467),
+                                  ),
                                 ),
-                                child: const CommonText(
-                                  "For Sale",
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF475467),
-                                ),
-                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.location_on_outlined, size: 18, color: Color(0xFF98A2B3)),
-                              SizedBox(width: 6),
-                              CommonText(
-                                "Tampa, FL, United States",
-                                fontSize: 14,
-                                color: Color(0xFF667085),
+                              const Icon(Icons.location_on_outlined, size: 18, color: Color(0xFF98A2B3)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: CommonText(
+                                  request.booking?.location ?? 'N/A',
+                                  fontSize: 14,
+                                  color: const Color(0xFF667085),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 6),
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
-                              SizedBox(width: 6),
+                              const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
+                              const SizedBox(width: 6),
                               CommonText(
-                                "01 Apr - 07 Apr 2026",
+                                request.booking?.date ?? 'N/A',
                                 fontSize: 14,
-                                color: Color(0xFF667085),
+                                color: const Color(0xFF667085),
                               ),
                             ],
                           ),
@@ -216,7 +223,7 @@ class BarnManagerRequestCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: CommonText(
-              "Note - ${request.lastMessage ?? "Prefer mornings. Experience with warmbloods."}",
+              "Note - ${request.lastMessage ?? request.booking?.notes ?? "No notes provided"}",
               fontSize: 14,
               color: const Color(0xFF344054),
               height: 1.5,

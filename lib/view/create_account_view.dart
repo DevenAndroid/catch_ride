@@ -77,31 +77,6 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       ),
                       const SizedBox(height: 24),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child: CommonTextField(
-                              controller: _authController.firstNameController,
-                              label: 'First Name',
-                              hintText: 'John',
-                              isRequired: true,
-                              validator: RequiredValidator(errorText: 'Please enter your first name'),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CommonTextField(
-                              controller: _authController.lastNameController,
-                              label: 'Last Name',
-                              hintText: 'Doe',
-                              isRequired: true,
-                              validator: RequiredValidator(errorText: 'Please enter your last name'),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
                       CommonTextField(
                         controller: _authController.emailController,
                         label: AppStrings.email,

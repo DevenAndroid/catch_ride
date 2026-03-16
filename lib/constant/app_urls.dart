@@ -46,6 +46,7 @@ class AppUrls {
   static const String profile = '/profile';
   static const String updateRole = '/profile/role';
   static const String completeProfile = '/profile/complete';
+  static const String toggleNotifications = '/profile/toggle-notifications';
   static const String upload = '/upload';
   static const String uploadProfileImage = '/profile/upload-image';
   
@@ -57,5 +58,9 @@ class AppUrls {
   static const String acceptChatRequest = '/messages/conversation/'; // + id + '/accept'
   static const String declineChatRequest = '/messages/conversation/'; // + id + '/decline'
   static const String blockUser = '/messages/user/'; // + userId + '/block'
+
+  // Notifications
+  static const String notifications = '/notifications';
+  static const String feedback = '/feedback';
 
 }

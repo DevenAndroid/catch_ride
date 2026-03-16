@@ -22,6 +22,8 @@ class UserModel {
   final bool isProfileCompleted;
   final bool isProfileSetup;
   final bool isProfileApprove;
+  final bool pushNotificationsEnabled;
+  final String status;
   final List<String> tags;
   final String? trainerProfileId;
 
@@ -50,6 +52,8 @@ class UserModel {
     this.isProfileCompleted = false,
     this.isProfileSetup = false,
     this.isProfileApprove = false,
+    this.pushNotificationsEnabled = true,
+    this.status = 'active',
     this.trainerProfileId,
   });
 
@@ -109,6 +113,8 @@ class UserModel {
       isProfileCompleted: json['isProfileCompleted'] ?? false,
       isProfileSetup: json['isProfileSetup'] ?? false,
       isProfileApprove: json['isProfileApprove'] ?? false,
+      pushNotificationsEnabled: json['pushNotificationsEnabled'] ?? true,
+      status: json['status'] ?? 'active',
       trainerProfileId: trainerData != null 
           ? trainerData['_id'] 
           : json['trainerId'],
@@ -141,6 +147,8 @@ class UserModel {
       'isProfileCompleted': isProfileCompleted,
       'isProfileSetup': isProfileSetup,
       'isProfileApprove': isProfileApprove,
+      'pushNotificationsEnabled': pushNotificationsEnabled,
+      'status': status,
     };
   }
 }

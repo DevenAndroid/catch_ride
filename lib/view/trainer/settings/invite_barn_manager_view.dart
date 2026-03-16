@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../controllers/barn_manager_controller.dart';
 
 class InviteBarnManagerView extends StatefulWidget {
   const InviteBarnManagerView({super.key});
@@ -14,8 +15,17 @@ class InviteBarnManagerView extends StatefulWidget {
 }
 
 class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
+  final BarnManagerController _controller = Get.put(BarnManagerController());
+  final TextEditingController _emailController = TextEditingController();
+  
   // Simulating the flow: Starts with no manager, then shows manager after invite
   bool _hasBarnManager = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,20 +67,29 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
           : SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: CommonButton(
-                  text: 'Send Invite Link',
-                  onPressed: () {
-                    setState(() {
-                      _hasBarnManager = true;
-                    });
-                    Get.snackbar(
-                      'Success',
-                      'Invitation sent successfully',
-                      backgroundColor: const Color(0xFF13CA8B),
-                      colorText: Colors.white,
-                    );
+                child: Obx(() => CommonButton(
+                  text: _controller.isLoading.value ? 'Sending...' : 'Send Invite Link',
+                  onPressed: _controller.isLoading.value ? null : () async {
+                    final email = _emailController.text.trim();
+                    if (email.isEmpty || !GetUtils.isEmail(email)) {
+                      Get.snackbar('Error', 'Please enter a valid email address');
+                      return;
+                    }
+                    
+                    final success = await _controller.inviteBarnManager(email);
+                    if (success) {
+                      setState(() {
+                        _hasBarnManager = true;
+                      });
+                      Get.snackbar(
+                        'Success',
+                        'Invitation sent successfully',
+                        backgroundColor: const Color(0xFF13CA8B),
+                        colorText: Colors.white,
+                      );
+                    }
                   },
-                ),
+                )),
               ),
             ),
     );
@@ -176,7 +195,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                               ),
                               SizedBox(height: 4),
                               CommonText(
-                                'lisa@example.com',
+                                'test_barn_manager@example.com',
                                 fontSize: 15,
                                 color: AppColors.textSecondary,
                               ),
@@ -220,15 +239,16 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          CommonText(
+        children: [
+          const CommonText(
             "Send a direct invitation to someone you'd like to work with. They'll receive priority review.",
             fontSize: 14,
             color: AppColors.textSecondary,
             height: 1.5,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           CommonTextField(
+            controller: _emailController,
             label: 'Email',
             hintText: 'barn.manager@email.com',
             isRequired: true,
@@ -239,3 +259,4 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
     );
   }
 }
+

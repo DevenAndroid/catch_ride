@@ -8,14 +8,12 @@ import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view
 import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_search_filter_overlay.dart';
 import 'package:get/get.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:catch_ride/view/barn_manager/vendor/barn_manager_vendor_details_view.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
 import '../../../../controllers/booking_controller.dart';
 import '../../../models/vendor_model.dart';
-import '../../trainer/home/search_filter_overlay.dart';
 
 class BarnManagerExploreView extends StatefulWidget {
   const BarnManagerExploreView({super.key});
@@ -26,7 +24,6 @@ class BarnManagerExploreView extends StatefulWidget {
 
 class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
   final ExploreController controller = Get.put(ExploreController());
-  bool _isGridView = false;
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
@@ -46,36 +43,57 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
             _buildSearchBar(),
             _buildFilters(),
             Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value && controller.horses.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              child: RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  await controller.fetchHorses();
+                },
+                child: Obx(() {
+                  if (controller.isLoading.value && controller.horses.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                // Reactive trigger for booking status changes
-                final bookingController = Get.put(BookingController());
-                final _ = bookingController.bookings.length;
+                  // Reactive trigger for booking status changes
+                  final bookingController = Get.put(BookingController());
+                  final _ = bookingController.bookings.length;
 
-                final bool isVendors = controller.selectedDiscipline.value == 'Services';
+                  final bool isVendors = controller.selectedDiscipline.value == 'Services';
 
-                if (isVendors && controller.vendors.isEmpty) {
-                  return const Center(
-                    child: CommonText(
-                      'No vendors available',
-                      fontSize: AppTextSizes.size16,
-                      color: AppColors.textSecondary,
-                    ),
-                  );
-                }
+                  if (isVendors && controller.vendors.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CommonText(
+                              'No vendors available',
+                              fontSize: AppTextSizes.size16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
 
-                if (!isVendors && controller.horses.isEmpty) {
-                  return const Center(
-                    child: CommonText(
-                      'No horses found',
-                      fontSize: AppTextSizes.size16,
-                      color: AppColors.textSecondary,
-                    ),
-                  );
-                }
+                  if (!isVendors && controller.horses.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CommonText(
+                              'No horses found',
+                              fontSize: AppTextSizes.size16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
 
                 if (isVendors) {
                   return ListView.builder(
@@ -106,8 +124,9 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                 );
               }),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
       ),
     );
   }

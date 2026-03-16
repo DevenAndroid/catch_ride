@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class BookingModel {
   final String? id;
   final String bookingNumber;
@@ -40,24 +42,49 @@ class BookingModel {
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    // Direct date extraction
+    Object? dateVal = json['date'];
+    String displayDate = 'N/A';
+    
+    if (dateVal != null) {
+      if (dateVal is String) {
+        if (dateVal.contains('T')) {
+          try {
+            final dt = DateTime.parse(dateVal);
+            displayDate = DateFormat('dd MMM yyyy').format(dt);
+          } catch (e) {
+            displayDate = dateVal.split('T').first;
+          }
+        } else {
+          displayDate = dateVal;
+        }
+      } else {
+        displayDate = dateVal.toString();
+      }
+    }
+
     return BookingModel(
       id: json['_id'],
       bookingNumber: json['bookingNumber'] ?? '',
       type: json['type'] ?? '',
       status: json['status'] ?? 'pending',
       clientId: json['clientId'] is Map ? json['clientId']['_id'] : json['clientId'],
-      clientName: json['clientName'],
+      clientName: json['clientName'] ?? (json['clientId'] is Map ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}".trim() : null),
       trainerId: json['trainerId'] is Map ? json['trainerId']['_id'] : json['trainerId'],
-      trainerName: json['trainerName'],
+      trainerName: (json['trainerName'] != null && json['trainerName'].toString().isNotEmpty) 
+          ? json['trainerName'] 
+          : (json['trainerId'] is Map ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() : null),
       horseId: json['horseId'] is Map ? json['horseId']['_id'] : json['horseId'],
-      horseName: json['horseName'],
-      date: json['date'] ?? '',
+      horseName: (json['horseName'] != null && json['horseName'].toString().isNotEmpty) 
+          ? json['horseName'] 
+          : (json['horseId'] is Map ? json['horseId']['name'] : null),
+      date: displayDate,
       startTime: json['startTime'],
       endTime: json['endTime'],
       price: json['price'] is num ? (json['price'] as num).toDouble() : 0.0,
       paymentStatus: json['paymentStatus'],
-      horseImage: json['horseId'] is Map ? json['horseId']['images']?.first : null,
-      location: json['horseId'] is Map ? json['horseId']['location'] : null,
+      horseImage: json['horseImage'] ?? (json['horseId'] is Map ? (json['horseId']['images']?.isNotEmpty == true ? json['horseId']['images'].first : json['horseId']['photo']) : null),
+      location: (json['location'] != null && json['location'].toString().isNotEmpty) ? json['location'] : null,
       notes: json['notes'],
     );
   }

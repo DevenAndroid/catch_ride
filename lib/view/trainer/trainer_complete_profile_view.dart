@@ -145,8 +145,6 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   const SizedBox(height: 16),
                   _buildExperienceSection(),
                   const SizedBox(height: 16),
-                  _buildProgramTagsSection(),
-                  const SizedBox(height: 16),
                   _buildFrequentedCircuitsSection(),
                   const SizedBox(height: 16),
                   _buildDynamicTagsSection(),
@@ -523,11 +521,13 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                           decoration: BoxDecoration(
                             border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(child: CommonText(item, fontSize: 15)),
-                              if (isSelected) const Icon(Icons.check, color: AppColors.primary, size: 20),
-                            ],
+                          child: Center(
+                            child: CommonText(
+                              item, 
+                              fontSize: 16, 
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       );
@@ -633,56 +633,6 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     );
   }
 
-  Widget _buildProgramTagsSection() {
-    return _buildSectionContainer(
-      title: 'Program Focus',
-      children: [
-        GestureDetector(
-          onTap: () => _showMultiSelectBottomSheet(
-            title: 'Program Focus',
-            selectedItems: _selectedProgramTags,
-            allItems: profileController.allProgramTags,
-            hint: 'Search program focus...',
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: CommonText(
-                    'Search Program Focus',
-                    color: AppColors.textSecondary.withOpacity(0.5),
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Obx(() {
-          if (_selectedProgramTags.isEmpty) return const SizedBox.shrink();
-          return Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: _selectedProgramTags.map((tag) {
-              return GestureDetector(
-                onTap: () => _selectedProgramTags.remove(tag),
-                child: _buildSelectedTag(tag),
-              );
-            }).toList(),
-          );
-        }),
-      ],
-    );
-  }
 
   Widget _buildFrequentedCircuitsSection() {
     return _buildSectionContainer(
@@ -740,62 +690,42 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           final typeName = type['name'] ?? '';
           final values = (type['values'] as List? ?? []);
           final isSingleSelect = type['selectionType'] == 'single';
-
-          // Get the names of currently selected tags for this type
-          final List<String> currentSelections = [];
-          for (var val in values) {
-             if (_selectedTags.contains(val['_id'])) {
-               currentSelections.add(val['name'] ?? '');
-             }
-          }
+          final isRequired = type['isRequired'] == true;
 
           return _buildSectionContainer(
-            title: typeName,
+            title: isRequired ? '$typeName *' : typeName,
             children: [
-              GestureDetector(
-                onTap: () => _showTagsBottomSheet(
-                  title: typeName,
-                  isSingleSelect: isSingleSelect,
-                  values: values,
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CommonText(
-                          'Select $typeName',
-                          color: AppColors.textSecondary.withOpacity(0.5),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (currentSelections.isNotEmpty)
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: values.map((val) {
-                    final tagId = val['_id'] ?? '';
-                    final tagName = val['name'] ?? '';
-                    if (!_selectedTags.contains(tagId)) return const SizedBox.shrink();
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: values.map((val) {
+                  final tagId = val['_id'] ?? '';
+                  final tagName = val['name'] ?? '';
+                  final isSelected = _selectedTags.contains(tagId);
 
-                    return GestureDetector(
-                      onTap: () => _selectedTags.remove(tagId),
-                      child: _buildSelectedTag(tagName),
-                    );
-                  }).toList(),
-                ),
+                  return GestureDetector(
+                    onTap: () {
+                      if (isSingleSelect) {
+                        if (isSelected) {
+                          _selectedTags.remove(tagId);
+                        } else {
+                          // Remove others of same type
+                          final allTypeTagIds = values.map((v) => v['_id'] as String).toList();
+                          _selectedTags.removeWhere((id) => allTypeTagIds.contains(id));
+                          _selectedTags.add(tagId);
+                        }
+                      } else {
+                        if (isSelected) {
+                          _selectedTags.remove(tagId);
+                        } else {
+                          _selectedTags.add(tagId);
+                        }
+                      }
+                    },
+                    child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
+                  );
+                }).toList(),
+              ),
             ],
           );
         }).toList(),
@@ -965,31 +895,29 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
 
   Widget _buildTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border.withOpacity(0.8)),
       ),
-      child: CommonText(text, fontSize: 13, color: AppColors.textPrimary),
+      child: CommonText(text, fontSize: 14, color: AppColors.textPrimary),
     );
   }
 
   Widget _buildSelectedTag(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF000B48).withOpacity(0.02),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFF2F4F7),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF000B48), width: 1.5),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(child: CommonText(text, fontSize: 13, color: const Color(0xFF000B48), fontWeight: FontWeight.bold)),
-          const SizedBox(width: 8),
-          const Icon(Icons.close, size: 16, color: Color(0xFF000B48)),
-        ],
+      child: CommonText(
+        text, 
+        fontSize: 14, 
+        color: const Color(0xFF000B48), 
+        fontWeight: FontWeight.bold
       ),
     );
   }
@@ -1016,6 +944,27 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           if (_profileImage == null && profileController.avatar.isEmpty) {
             Get.snackbar('Error', 'Please upload a profile photo', backgroundColor: Colors.red, colorText: Colors.white);
             return;
+          }
+
+          // Dynamic Tag Validation
+          for (var type in profileController.tagTypes) {
+            if (type['isRequired'] == true) {
+              final typeName = type['name'] ?? 'Tag';
+              final values = (type['values'] as List? ?? []);
+              final allTypeTagIds = values.map((v) => v['_id'] as String).toList();
+              
+              final hasSelection = _selectedTags.any((id) => allTypeTagIds.contains(id));
+              if (!hasSelection) {
+                Get.snackbar(
+                  'Required Field', 
+                  'Please select at least one $typeName', 
+                  backgroundColor: Colors.red, 
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.TOP
+                );
+                return;
+              }
+            }
           }
 
 

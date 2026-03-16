@@ -23,12 +23,18 @@ class ExploreController extends GetxController {
   final Rxn<DateTime> startDate = Rxn<DateTime>();
   final Rxn<DateTime> endDate = Rxn<DateTime>();
   final RxList<String> recentSearches = <String>[].obs;
+  final RxBool isGridView = false.obs;
+
+  // Suggested search items
+  final RxList<Map<String, String>> defaultLocations = <Map<String, String>>[].obs;
+  final RxList<Map<String, String>> defaultVenues = <Map<String, String>>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadRecentSearches();
-    fetchHorses();
+    fetchDefaultSearchMetadata();
+    // fetchHorses(); // Removed to prevent fetching without profile exclusion filters
   }
 
   Future<void> _loadRecentSearches() async {
@@ -71,6 +77,11 @@ class ExploreController extends GetxController {
       final currentUserId = _profileController.id;
       final trainerId = _profileController.trainerId;
       
+      // Filter for active and approved horses only in Explore
+      queryParams['isActive'] = 'true';
+      queryParams['status'] = 'approved,available';
+      queryParams['onlyApprovedTrainers'] = 'true';
+
       if (trainerId.isNotEmpty) {
         queryParams['excludeTrainerId'] = trainerId;
       }
@@ -158,5 +169,46 @@ class ExploreController extends GetxController {
   void onSearch(String query) {
     searchQuery.value = query;
     fetchHorses();
+  }
+
+  Future<void> fetchDefaultSearchMetadata() async {
+    try {
+      final response = await _apiService.getRequest(AppUrls.horseShows, query: {'limit': '3'});
+      
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        
+        // Extract 3 unique locations (City, State)
+        final List<Map<String, String>> locations = [];
+        final List<Map<String, String>> venues = [];
+
+        for (var show in data) {
+          final city = show['city'] ?? '';
+          final state = show['state'] ?? '';
+          final venue = show['showVenue'] ?? '';
+
+          if (city.isNotEmpty && state.isNotEmpty) {
+            final locName = "$city, $state";
+            if (!locations.any((l) => l['name'] == locName)) {
+              locations.add({'name': locName});
+            }
+          }
+
+          if (venue.isNotEmpty) {
+            if (!venues.any((v) => v['name'] == venue)) {
+              venues.add({
+                'name': venue,
+                'subtitle': "$city, $state"
+              });
+            }
+          }
+        }
+
+        defaultLocations.assignAll(locations);
+        defaultVenues.assignAll(venues);
+      }
+    } catch (e) {
+      _logger.e('Error fetching default search metadata: $e');
+    }
   }
 }

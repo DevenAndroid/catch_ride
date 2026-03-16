@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
+import '../models/horse_model.dart';
 import 'explore_controller.dart';
 
 class AddNewListingController extends GetxController {
@@ -26,6 +27,8 @@ class AddNewListingController extends GetxController {
   final ImagePicker _picker = ImagePicker();
   var localImages = <File>[].obs;
   var gender = 'Gelding'.obs;
+  var editingHorseId = RxnString();
+  bool get isEditMode => editingHorseId.value != null;
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;
@@ -88,14 +91,74 @@ class AddNewListingController extends GetxController {
     }
   }
 
+  void setInitialData(HorseModel horse) {
+    editingHorseId.value = horse.id;
+    listingTitleController.text = horse.listingTitle ?? '';
+    horseNameController.text = horse.name;
+    ageController.text = horse.age.toString();
+    heightController.text = horse.height ?? '';
+    breedController.text = horse.breed;
+    colorController.text = horse.color ?? '';
+    descriptionController.text = horse.description ?? '';
+    usefNumberController.text = horse.usefNumber ?? '';
+    videoLinkController.text = horse.videoLink ?? '';
+    locationController.text = horse.location ?? '';
+    gender.value = horse.gender;
+    selectedDiscipline.value = horse.discipline ?? '';
+    disciplineController.text = horse.discipline ?? '';
+    activeStatus.value = horse.isActive;
+    
+    selectedListingTypes.assignAll(horse.listingTypes);
+    
+    // Remote images (keep them as strings, might need a separate list for UI)
+    uploadedImages.assignAll(horse.images);
+    
+    // Availability
+    availabilityEntries.clear();
+    if (horse.showAvailability.isEmpty) {
+      availabilityEntries.add(AvailabilityEntry(id: 1));
+    } else {
+      for (var i = 0; i < horse.showAvailability.length; i++) {
+        final avail = horse.showAvailability[i];
+        final entry = AvailabilityEntry(id: i + 1);
+        entry.cityStateController.text = avail.cityState ?? '';
+        entry.showVenueController.text = avail.showVenue ?? '';
+        entry.showIdController.text = avail.showId ?? '';
+        entry.startDateController.text = avail.startDate ?? '';
+        entry.endDateController.text = avail.endDate ?? '';
+        availabilityEntries.add(entry);
+      }
+    }
+
+    // Tags
+    final allTagIds = <String>{};
+    for (var tag in horse.programTags) { if (tag.id != null) allTagIds.add(tag.id!); }
+    for (var tag in horse.opportunityTags) { if (tag.id != null) allTagIds.add(tag.id!); }
+    for (var tag in horse.personalityTags) { if (tag.id != null) allTagIds.add(tag.id!); }
+    for (var tag in horse.tags) { if (tag.id != null) allTagIds.add(tag.id!); }
+    if (horse.experienceLevel?.id != null) allTagIds.add(horse.experienceLevel!.id!);
+    selectedTags.assignAll(allTagIds);
+
+    // Prices
+    if (horse.prices != null) {
+      horse.prices!.forEach((type, data) {
+        if (data is Map) {
+          inquireForPrice[type] = data['inquire'] ?? false;
+          minPriceControllers[type]?.text = data['min']?.toString() ?? '';
+          maxPriceControllers[type]?.text = data['max']?.toString() ?? '';
+        }
+      });
+    }
+  }
+
   Future<void> publishListing() async {
     try {
       if (!validateStep5()) return;
       isPublishing.value = true;
       Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
 
-      // 1. Upload Images
-      List<String> imageUrls = [];
+      // 1. Upload Images (New ones from local)
+      List<String> imageUrls = [...uploadedImages]; // Start with existing images
       for (var imageFile in localImages) {
         final url = await _uploadFile(imageFile);
         if (url != null) imageUrls.add(url);
@@ -136,7 +199,9 @@ class AddNewListingController extends GetxController {
         }).toList(),
       };
 
-      final response = await _apiService.postRequest(AppUrls.horses, horseData);
+      final response = isEditMode 
+          ? await _apiService.putRequest('${AppUrls.horses}/${editingHorseId.value}', horseData)
+          : await _apiService.postRequest(AppUrls.horses, horseData);
 
       Get.back(); // Remove loading dialog
 
@@ -304,6 +369,23 @@ class AddNewListingController extends GetxController {
         }
         if (maxPrice.isEmpty) {
           _showError('Please enter the max price for $type');
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  bool validateStep3() {
+    for (var type in tagTypes) {
+      if (type['isRequired'] == true) {
+        final typeName = type['name'] ?? 'Tag';
+        final List values = type['values'] ?? [];
+        final allTypeIds = values.map((v) => v['_id'].toString()).toList();
+        
+        final hasSelection = selectedTags.any((id) => allTypeIds.contains(id));
+        if (!hasSelection) {
+          _showError('Please select at least one $typeName');
           return false;
         }
       }

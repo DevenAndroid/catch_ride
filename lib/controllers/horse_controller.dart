@@ -17,7 +17,7 @@ class HorseController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchHorses();
+    // fetchHorses(); // Removed to prevent fetching all horses on init
   }
 
   Future<void> fetchHorses({bool refresh = true, String? trainerId, String? ownerId, int limit = 10}) async {

@@ -8,21 +8,43 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
-import '../../barn_manager/settings/edit_profile.dart';
 import 'edit_profile.dart';
 
-class TrainerProfileView extends StatelessWidget {
-  TrainerProfileView({super.key});
+class TrainerProfileView extends StatefulWidget {
+  final String? trainerId;
+  const TrainerProfileView({super.key, this.trainerId});
 
-  final ProfileController _controller = Get.put(ProfileController());
+  @override
+  State<TrainerProfileView> createState() => _TrainerProfileViewState();
+}
+
+class _TrainerProfileViewState extends State<TrainerProfileView> {
+  final ProfileController _controller = Get.find<ProfileController>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.trainerId != null && widget.trainerId != _controller.trainerId) {
+        _controller.fetchPublicTrainerProfile(widget.trainerId!);
+      } else {
+        // Clear viewed user if we're viewing our own profile
+        _controller.viewedUser.value = null;
+        _controller.viewedUserHorses.clear();
+        _controller.fetchProfile();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Obx(() {
-        final profile = _controller.user.value;
-        if (_controller.isLoading.value && profile == null) {
+        final bool isViewingOther = widget.trainerId != null && widget.trainerId != _controller.user.value?.trainerProfileId;
+        final profile = isViewingOther ? _controller.viewedUser.value : _controller.user.value;
+        
+        if (_controller.isLoading.value || (isViewingOther && profile == null)) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -35,9 +57,16 @@ class TrainerProfileView extends StatelessWidget {
         final hasWebsite = profile.website?.isNotEmpty ?? false;
         final hasSocials = hasInstagram || hasFacebook || hasWebsite;
         final hasBio = _controller.bio.isNotEmpty;
+        final isOwnProfile = widget.trainerId == null || widget.trainerId == _controller.user.value?.trainerProfileId;
 
         return RefreshIndicator(
-          onRefresh: () => _controller.fetchProfile(),
+          onRefresh: () async {
+            if (widget.trainerId != null) {
+              await _controller.fetchPublicTrainerProfile(widget.trainerId!);
+            } else {
+              await _controller.fetchProfile();
+            }
+          },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
@@ -77,6 +106,7 @@ class TrainerProfileView extends StatelessWidget {
                     ),
                   ),
 
+                  if (isOwnProfile)
                   Positioned(
                     top: 50,
                     right: 16,
@@ -110,7 +140,7 @@ class TrainerProfileView extends StatelessWidget {
                     ),
                   ),
 
-                  // Profile Image Overlap (Moved lower to -65)
+                  // Profile Image Overlap
                   Positioned(
                     bottom: -65,
                     left: 16,
@@ -144,7 +174,7 @@ class TrainerProfileView extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const SizedBox(width: 125), // Matches profile image width + margin
+                        const SizedBox(width: 125),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,7 +250,6 @@ class TrainerProfileView extends StatelessWidget {
                       ],
                     ),
 
-                    // Bio Section (No empty space if empty)
                     if (hasBio) ...[
                       const SizedBox(height: 24),
                       CommonText(
@@ -231,7 +260,6 @@ class TrainerProfileView extends StatelessWidget {
                       ),
                     ],
 
-                    // Social Buttons (No empty space if empty)
                     if (hasSocials) ...[
                       const SizedBox(height: 24),
                       SingleChildScrollView(
@@ -255,14 +283,13 @@ class TrainerProfileView extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    // Professional Detail Card
                     _buildProfessionalInfoCard(),
 
                     const SizedBox(height: 24),
 
-                    // Available Horses Section
                     Obx(() {
-                      if (_controller.trainerHorses.isEmpty) return const SizedBox.shrink();
+                      final horses = widget.trainerId != null ? _controller.viewedUserHorses : _controller.trainerHorses;
+                      if (horses.isEmpty) return const SizedBox.shrink();
                       
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,6 +303,7 @@ class TrainerProfileView extends StatelessWidget {
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
                               ),
+                              if (isOwnProfile)
                               TextButton(
                                 onPressed: () => Get.to(() => const ViewAllHorsesView()), 
                                 child: const CommonText('View all', color: AppColors.linkBlue, fontWeight: FontWeight.bold)
@@ -283,7 +311,7 @@ class TrainerProfileView extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          ..._controller.trainerHorses.map((horse) => _buildHorseCard(horse)).toList(),
+                          ...horses.map((horse) => _buildHorseCard(horse)).toList(),
                         ],
                       );
                     }),
@@ -416,9 +444,9 @@ class TrainerProfileView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(horse.name ?? 'Unknown', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  CommonText(horse.name, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   const SizedBox(height: 2),
-                  CommonText("${horse.age}-year-old ${horse.breed ?? 'Horse'}", fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  CommonText("${horse.age}-year-old ${horse.breed}", fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                   const SizedBox(height: 6),
                   CommonText(
                     horse.description ?? '',

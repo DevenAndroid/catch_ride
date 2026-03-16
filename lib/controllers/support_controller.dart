@@ -161,4 +161,52 @@ class SupportController extends GetxController {
       isSubmitting.value = false;
     }
   }
+
+  Future<bool> submitFeedback({
+    required String category,
+    required String subject,
+    required String message,
+    int? rating,
+  }) async {
+    try {
+      isSubmitting.value = true;
+      final feedbackData = {
+        'category': category,
+        'subject': subject,
+        'message': message,
+        if (rating != null) 'rating': rating,
+      };
+
+      final response = await _apiService.postRequest(AppUrls.feedback, feedbackData);
+
+      if (response.isOk) {
+        Get.snackbar(
+          'Success',
+          'Thank you for your feedback!',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF17B26A),
+          colorText: Colors.white,
+        );
+        return true;
+      } else {
+        String errorMsg = 'Failed to submit feedback';
+        if (response.body != null && response.body is Map) {
+          errorMsg = response.body['message'] ?? errorMsg;
+        }
+        Get.snackbar(
+          'Error',
+          errorMsg,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+    } catch (e) {
+      _logger.e('Error submitting feedback: $e');
+      return false;
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
 }
