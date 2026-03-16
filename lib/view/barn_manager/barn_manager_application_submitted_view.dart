@@ -1,13 +1,10 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-
+import 'package:catch_ride/widgets/common_button.dart';
 import 'package:flutter/material.dart';
-
-// Add Get for navigation
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
-import 'barn_manager_bottom_nav.dart';
 
 class BarnManagerApplicationSubmittedView extends StatefulWidget {
   const BarnManagerApplicationSubmittedView({super.key});
@@ -22,14 +19,6 @@ class _BarnManagerApplicationSubmittedViewState
   final AuthController _authController = Get.find<AuthController>();
 
   @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      Get.offAll(() => const BarnManagerBottomNav());
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     String name = _authController.currentUser.value?.firstName ?? 'there';
     if (name.isEmpty) name = 'there';
@@ -38,7 +27,7 @@ class _BarnManagerApplicationSubmittedViewState
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -84,7 +73,7 @@ class _BarnManagerApplicationSubmittedViewState
 
               // Success Subtitle
               const CommonText(
-                'Your profile has been successfully set up.',
+                'Your profile has been submitted for review.',
                 fontSize: 16,
                 color: AppColors.textSecondary,
                 textAlign: TextAlign.center,
@@ -107,7 +96,7 @@ class _BarnManagerApplicationSubmittedViewState
                   ),
                 ),
                 child: const CommonText(
-                  'You can now start exploring services and managing your bookings.',
+                  'Your application is currently being verified by the administrator. You will be able to access all features once approved.',
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF4B5562),
@@ -116,6 +105,12 @@ class _BarnManagerApplicationSubmittedViewState
               ),
 
               const Spacer(flex: 3),
+
+              CommonButton(
+                text: 'Back to Login',
+                onPressed: () => _authController.logout(),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -123,3 +118,4 @@ class _BarnManagerApplicationSubmittedViewState
     );
   }
 }
+

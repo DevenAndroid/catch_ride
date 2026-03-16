@@ -8,6 +8,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../controllers/profile_controller.dart';
 
 class BarnManagerInboxView extends StatefulWidget {
   const BarnManagerInboxView({super.key});
@@ -37,28 +38,34 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: TextButton(
-              onPressed: () => Get.to(() => const BarnManagerRequestsView()),
-              child: Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
+            child: Obx(() {
+              final currentUserId = Get.find<ProfileController>().id;
+              final hasRequests = chatController.conversations.any((c) => c.status == 'request-pending' && c.senderId != currentUserId);
+              final color = hasRequests ? const Color(0xFFF04438) : Colors.blue;
+
+              return TextButton(
+                onPressed: () => Get.to(() => const BarnManagerRequestsView()),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const CommonText(
-                    'Requests',
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ],
-              ),
-            ),
+                    const SizedBox(width: 4),
+                    CommonText(
+                      'Requests',
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ],
+                ),
+              );
+            }),
           ),
         ],
         bottom: PreferredSize(

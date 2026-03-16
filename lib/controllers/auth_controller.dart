@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/login_view.dart';
@@ -27,8 +28,7 @@ class AuthController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
+
 
   // Registration State
   final RxString selectedRole = 'trainer'.obs;
@@ -126,9 +126,10 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileSetup', setup);
         await prefs.setBool('isProfileApprove', approve);
         await prefs.setBool('isProfileCompleted', completed);
+        await prefs.setString('status', data['status'] ?? 'active');
 
         // ALWAYS Navigate based on the FRESH API response
-        _navigateBasedOnRole(refreshedRole, completed, setup, approve);
+        _navigateBasedOnRole(refreshedRole, completed, setup, approve, data['status'] ?? 'active');
       } else {
         // If API fails (e.g., token expired/invalid), force logout
         debugPrint('Profile API failed with status: ${response.statusCode}');
@@ -180,6 +181,7 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileCompleted', isProfileCompleted);
         await prefs.setBool('isProfileSetup', isProfileSetup);
         await prefs.setBool('isProfileApprove', isProfileApprove);
+        await prefs.setString('status', user['status'] ?? 'active');
         box.write('userId', user['_id'] ?? user['id']);
 
         currentUser.value = UserModel.fromJson(user);
@@ -188,7 +190,7 @@ class AuthController extends GetxController {
 
         Get.find<SocketService>().authenticate(user['_id'] ?? user['id'], user['email'], user['role']);
 
-        _navigateBasedOnRole(role, isProfileCompleted, isProfileSetup, isProfileApprove);
+        _navigateBasedOnRole(role, isProfileCompleted, isProfileSetup, isProfileApprove, user['status'] ?? 'active');
       } else if (response.statusCode == 403) {
         // Email not verified — send them to OTP screen
         final email = emailController.text.trim();
@@ -202,7 +204,22 @@ class AuthController extends GetxController {
         );
         Get.to(() => OtpVerificationView(email: email));
       } else {
-        String message = response.body?['message'] ?? 'Login failed';
+        String message = 'Login failed';
+        if (response.body != null) {
+          if (response.body is Map) {
+            message = response.body['message'] ?? 'Login failed';
+          } else if (response.body is String) {
+            try {
+              final decoded = jsonDecode(response.body);
+              message = decoded['message'] ?? response.body;
+            } catch (_) {
+              message = response.body;
+            }
+          }
+        } else if (response.statusText != null && response.statusText!.isNotEmpty) {
+          message = response.statusText!;
+        }
+
         Get.snackbar(
           'Login Failed',
           message,
@@ -232,8 +249,6 @@ class AuthController extends GetxController {
 
       if (!userData.containsKey('email')) userData['email'] = emailController.text.trim();
       if (!userData.containsKey('password')) userData['password'] = passwordController.text;
-      if (!userData.containsKey('firstName')) userData['firstName'] = firstNameController.text.trim();
-      if (!userData.containsKey('lastName')) userData['lastName'] = lastNameController.text.trim();
       if (!userData.containsKey('role')) userData['role'] = 'user';
 
       final response = await _apiService.postRequest(AppUrls.register, userData);
@@ -353,41 +368,56 @@ class AuthController extends GetxController {
   // 2. isProfileApprove   = true  → Admin approved → TrainerCompleteProfileView
   // 3. isProfileSetup     = true  → Trainer submitted application → ApplicationSubmittedView
   // 4. all false                  → New user → SelectRoleView
-  void _navigateBasedOnRole(String role, bool isProfileCompleted, bool isProfileSetup, bool isProfileApprove) {
-    debugPrint('Navigating: role=$role, completed=$isProfileCompleted, setup=$isProfileSetup, approve=$isProfileApprove');
+  void _navigateBasedOnRole(String role, bool isProfileCompleted, bool isProfileSetup, bool isProfileApprove, String status) {
+    debugPrint('Navigating: role=$role, completed=$isProfileCompleted, setup=$isProfileSetup, approve=$isProfileApprove, status=$status');
 
-    if (role == 'trainer') {
+    if (role == 'trainer' || role == 'barn_manager' || role == 'service_provider') {
+      // Check if active and approved for dashboard access
       if (isProfileCompleted) {
-        Get.offAll(() => const TrainerBottomNav());
-      } else if (isProfileApprove) {
-        // Admin approved — show completion screen
-        if (!Get.isRegistered<ProfileController>()) Get.put(ProfileController());
-        Get.offAll(() => const TrainerCompleteProfileView());
-      } else if (isProfileSetup) {
-        // Submitted — show waiting screen
-        Get.offAll(() => const TrainerApplicationSubmittedView());
-      } else {
-        // Initial state or rejected
-        Get.offAll(() => const SelectRoleView());
+        if (status.toLowerCase() == 'active' && isProfileApprove) {
+          if (role == 'trainer') {
+            Get.offAll(() => const TrainerBottomNav());
+          } else if (role == 'barn_manager') {
+            Get.offAll(() => const BarnManagerBottomNav());
+          } else {
+            Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
+          }
+        } else {
+          // Profile exists but not active/approved
+          logout(sessionExpired: false);
+          Get.snackbar(
+            'Access Denied', 
+            'Your account is ${status.toLowerCase()} or awaiting secondary approval. Please contact support.',
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 5)
+          );
+        }
+        return;
       }
-    } 
-    else if (role == 'barn_manager') {
-      if (isProfileCompleted) {
-        Get.offAll(() => const BarnManagerBottomNav());
-      } else if (isProfileApprove) {
-        // Admin approved — show completion screen if needed, else dashboard
-        Get.offAll(() => const BarnManagerBottomNav());
-      } else if (isProfileSetup) {
-        // Submitted — show waiting screen
-        Get.offAll(() => const BarnManagerApplicationSubmittedView());
-      } else {
-        Get.offAll(() => const SelectRoleView());
-      }
-    } 
-    else if (role == 'service_provider') {
-      if (isProfileCompleted) {
-        Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
-      } else {
+
+      // If not completed, handle application flow
+      if (role == 'trainer') {
+        if (isProfileApprove) {
+          if (!Get.isRegistered<ProfileController>()) Get.put(ProfileController());
+          Get.offAll(() => const TrainerCompleteProfileView());
+        } else if (isProfileSetup) {
+          Get.offAll(() => const TrainerApplicationSubmittedView());
+        } else {
+          Get.offAll(() => const SelectRoleView());
+        }
+      } 
+      else if (role == 'barn_manager') {
+        if (isProfileApprove) {
+          Get.offAll(() => const BarnManagerBottomNav());
+        } else if (isProfileSetup) {
+          Get.offAll(() => const BarnManagerApplicationSubmittedView());
+        } else {
+          Get.offAll(() => const SelectRoleView());
+        }
+      } 
+      else {
         Get.offAll(() => const SelectRoleView());
       }
     } 
@@ -516,8 +546,6 @@ class AuthController extends GetxController {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
-    firstNameController.dispose();
-    lastNameController.dispose();
     super.onClose();
   }
 }

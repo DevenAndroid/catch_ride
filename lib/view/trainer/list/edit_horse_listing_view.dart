@@ -3,26 +3,40 @@ import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/add_new_listing_controller.dart';
-import 'package:catch_ride/view/trainer/list/listing_preview_view.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/models/horse_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
-class AddNewListingView extends StatefulWidget {
-  const AddNewListingView({super.key});
+class EditHorseListingView extends StatefulWidget {
+  final HorseModel horse;
+  const EditHorseListingView({super.key, required this.horse});
 
   @override
-  State<AddNewListingView> createState() => _AddNewListingViewState();
+  State<EditHorseListingView> createState() => _EditHorseListingViewState();
 }
 
-class _AddNewListingViewState extends State<AddNewListingView> {
-  final AddNewListingController controller = Get.put(AddNewListingController());
+class _EditHorseListingViewState extends State<EditHorseListingView> {
+  late final AddNewListingController controller;
   final ProfileController profileController = Get.find<ProfileController>();
   final _formKey = GlobalKey<FormState>();
   int _currentStep = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use a unique tag for the controller to avoid conflicts with 'Add New' instance
+    controller = Get.put(AddNewListingController(), tag: 'edit_${widget.horse.id}');
+    
+    // Pre-fill data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.setInitialData(widget.horse);
+    });
+  }
 
   Future<void> _selectDateTime(BuildContext context, TextEditingController textController) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -190,7 +204,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
-          'Add new listing',
+          'Edit listing',
           fontSize: AppTextSizes.size18,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
@@ -390,6 +404,48 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             spacing: 12,
             runSpacing: 12,
             children: [
+              // 1. Existing Network Images
+              ...controller.uploadedImages.asMap().entries.map((entry) {
+                int index = entry.key;
+                String imageUrl = entry.value;
+                return Stack(
+                  children: [
+                    Container(
+                      width: 85,
+                      height: 85,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(11),
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => controller.uploadedImages.removeAt(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.close, size: 14, color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              // 2. Local Images (Newly picked)
               ...controller.localImages.asMap().entries.map((entry) {
                 int index = entry.key;
                 File file = entry.value;
@@ -1282,7 +1338,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             child: GestureDetector(
               onTap: () {
                 if (isLastStep) {
-                  Get.to(() => const ListingPreviewView());
+                  // You might need to implement ListingPreviewView for edit as well, 
+                  // but for now I'll just match the navigation if the view exists
+                  // Get.to(() => const ListingPreviewView()); 
                 } else if (_currentStep > 1) {
                   setState(() {
                     _currentStep--;
@@ -1340,7 +1398,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   } else if (_currentStep == 3) {
                     if (!controller.validateStep3()) return;
                   } else if (_currentStep == 4) {
-                    if (controller.localImages.isEmpty) {
+                    // Images - in edit mode, they can be pre-filled so check both
+                    if (controller.localImages.isEmpty && controller.uploadedImages.isEmpty) {
                       Get.snackbar('Required', 'Please upload at least one image',
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: Colors.redAccent,
@@ -1363,7 +1422,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: CommonText(
-                  isLastStep ? 'Publish Listing' : 'Next',
+                  isLastStep ? 'Save Changes' : 'Next',
                   fontSize: AppTextSizes.size16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,

@@ -32,29 +32,34 @@ class TrainerChatsView extends StatelessWidget {
           color: AppColors.textPrimary,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Get.to(() => const TrainerRequestsView()),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF2E90FA), // Blue dot
-                    shape: BoxShape.circle,
+          Obx(() {
+            final hasRequests = controller.conversations.any((c) => c.status == 'request-pending' && c.senderId != Get.find<ProfileController>().id);
+            final color = hasRequests ? const Color(0xFFF04438) : const Color(0xFF2E90FA); // Red for requests, Blue otherwise
+            
+            return TextButton(
+              onPressed: () => Get.to(() => const TrainerRequestsView()),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 6),
-                const CommonText(
-                  'Requests',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF2E90FA),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(width: 6),
+                  CommonText(
+                    'Requests',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ],
+              ),
+            );
+          }),
           const SizedBox(width: 8),
         ],
       ),
@@ -112,7 +117,6 @@ class TrainerChatsView extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Get.find<ChatController>().fetchMessages(chat.conversationId);
         Get.to(() => SingleChatView(
               name: name,
               image: image,

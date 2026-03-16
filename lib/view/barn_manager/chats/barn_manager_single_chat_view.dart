@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/profile_controller.dart';
 
-class BarnManagerSingleChatView extends StatelessWidget {
+class BarnManagerSingleChatView extends StatefulWidget {
   final String name;
   final String image;
   final String conversationId;
@@ -23,10 +23,31 @@ class BarnManagerSingleChatView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
-    final TextEditingController textController = TextEditingController();
+  State<BarnManagerSingleChatView> createState() => _BarnManagerSingleChatViewState();
+}
 
+class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
+  final ChatController controller = Get.find<ChatController>();
+  final TextEditingController textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch full conversation data every time we enter the view
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchMessages(widget.conversationId);
+      controller.fetchConversations(); // Also refresh convo info for banners
+    });
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -48,8 +69,8 @@ class BarnManagerSingleChatView extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 20,
-              backgroundImage: image.startsWith('http')
-                  ? NetworkImage(image)
+              backgroundImage: widget.image.startsWith('http')
+                  ? NetworkImage(widget.image)
                   : const NetworkImage('https://via.placeholder.com/150'),
             ),
             const SizedBox(width: 12),
@@ -58,16 +79,11 @@ class BarnManagerSingleChatView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    name,
+                    widget.name,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF101828),
                     maxLines: 1,
-                  ),
-                  CommonText(
-                    'Professional Horse Trainer', // Default for Barn Manager context
-                    fontSize: 12,
-                    color: const Color(0xFFD92D20), // App Secondary color
                   ),
                 ],
               ),
@@ -79,7 +95,7 @@ class BarnManagerSingleChatView extends StatelessWidget {
         children: [
           // Status banners
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == conversationId);
+            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
             if (convo == null) return const SizedBox.shrink();
 
             final currentUserId = Get.find<ProfileController>().id;
@@ -100,9 +116,9 @@ class BarnManagerSingleChatView extends StatelessWidget {
                   Colors.orange.shade50,
                   Colors.orange,
                   actions: [
-                    _buildBannerButton('Decline', () => controller.declineRequest(conversationId), isAction: false),
+                    _buildBannerButton('Decline', () => controller.declineRequest(widget.conversationId), isAction: false),
                     const SizedBox(width: 8),
-                    _buildBannerButton('Accept', () => controller.acceptRequest(conversationId)),
+                    _buildBannerButton('Accept', () => controller.acceptRequest(widget.conversationId)),
                   ],
                 );
               }
@@ -150,7 +166,7 @@ class BarnManagerSingleChatView extends StatelessWidget {
           ),
           
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == conversationId);
+            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
             final bool canChat = convo?.status != 'request-declined' && 
                                convo?.status != 'request-pending' && 
                                convo?.status != 'request-blocked';
@@ -241,7 +257,7 @@ class BarnManagerSingleChatView extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 if (textController.text.isNotEmpty) {
-                  controller.sendMessage(textController.text, receiverId: otherId);
+                  controller.sendMessage(textController.text, receiverId: widget.otherId);
                   textController.clear();
                 }
               },

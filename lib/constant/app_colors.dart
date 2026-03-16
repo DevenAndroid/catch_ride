@@ -20,4 +20,10 @@ class AppColors {
   static const Color linkBlue = Color(0xFF2C74EA);
   static const Color infoBoxBg = Color(0xFFFEF2F2);
   static const Color infoBoxBorder = Color(0xFFFEE2E2);
+  static const Color successPrimary = Color(0xFF13CA8B);
+  static const Color chipBackground = Color(0xFFE8EAF6);
+  static const Color chipBackgroundRed = Color(0xFFFFE4E6);
+  static const Color accentBlue = Color(0xFF3F51B5);
+  static const Color accentRedLight = Color(0xFFE11D48);
+  static const Color lightGray = Color(0xFFF2F4F7);
 }

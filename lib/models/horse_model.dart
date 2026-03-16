@@ -19,14 +19,18 @@ class HorseModel {
   final TagModel? experienceLevel;
   final List<TagModel> opportunityTags;
   final List<TagModel> personalityTags;
+  final List<TagModel> tags;
   final String? description;
   final String? photo;
   final List<String> images;
   final double? price;
+  final Map<String, dynamic>? prices;
   final String status;
+  final bool isActive;
   final String? trainerId;
   final String? trainerName;
   final String? trainerAvatar;
+  final String? ownerId;
   final String? location;
   final String? bookedByAvatar;
   final String? bookedByName;
@@ -58,14 +62,18 @@ class HorseModel {
     this.experienceLevel,
     this.opportunityTags = const [],
     this.personalityTags = const [],
+    this.tags = const [],
     this.description,
     this.photo,
     this.images = const [],
     this.price,
+    this.prices,
     this.status = 'pending',
+    this.isActive = true,
     this.trainerId,
     this.trainerName,
     this.trainerAvatar,
+    this.ownerId,
     this.location,
     this.bookedByAvatar,
     this.bookedByName,
@@ -122,14 +130,21 @@ class HorseModel {
               ?.map((e) => TagModel.fromJson(e))
               .toList() ??
           [],
+      tags: (json['tags'] as List?)
+              ?.map((e) => TagModel.fromJson(e))
+              .toList() ??
+          [],
       description: json['description'],
       photo: json['photo'],
       images: List<String>.from(json['images'] ?? []),
       price: json['price'] is num ? (json['price'] as num).toDouble() : null,
+      prices: json['prices'] is Map<String, dynamic> ? json['prices'] : null,
       status: json['status'] ?? 'pending',
+      isActive: json['isActive'] ?? true,
       trainerId: tId,
       trainerName: tName,
       trainerAvatar: tAvatar,
+      ownerId: json['ownerId'],
       location: json['location'],
       bookedByAvatar: json['bookedByAvatar'],
       bookedByName: json['bookedByName'],
@@ -158,13 +173,17 @@ class HorseModel {
       if (experienceLevel != null) 'experienceLevel': experienceLevel!.toJson(),
       'opportunityTags': opportunityTags.map((e) => e.toJson()).toList(),
       'personalityTags': personalityTags.map((e) => e.toJson()).toList(),
+      'tags': tags.map((e) => e.toJson()).toList(),
       'description': description,
       'photo': photo,
       'images': images,
       'price': price,
+      'prices': prices,
       'status': status,
+      'isActive': isActive,
       'trainerId': trainerId,
       'trainerName': trainerName,
+      'ownerId': ownerId,
       'location': location,
       'createdAt': createdAt?.toIso8601String(),
     };

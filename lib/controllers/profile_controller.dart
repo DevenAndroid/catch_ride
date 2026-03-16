@@ -12,8 +12,10 @@ class ProfileController extends GetxController {
   final Logger _logger = Logger();
 
   final Rx<UserModel?> user = Rx<UserModel?>(null);
-  final RxMap userData = <String, dynamic>{}.obs; // Keeping for backward compatibility temporarily
+  final Rx<UserModel?> viewedUser = Rx<UserModel?>(null);
+  final RxMap userData = <String, dynamic>{}.obs;
   final RxList<HorseModel> trainerHorses = <HorseModel>[].obs;
+  final RxList<HorseModel> viewedUserHorses = <HorseModel>[].obs;
   final RxBool isLoading = false.obs;
 
   // Metadata Lists
@@ -107,6 +109,63 @@ class ProfileController extends GetxController {
     }
   }
 
+  Future<void> fetchPublicTrainerProfile(String trainerId) async {
+    try {
+      isLoading.value = true;
+      viewedUser.value = null;
+      viewedUserHorses.clear();
+
+      final response = await _apiService.getRequest('${AppUrls.trainers}/$trainerId');
+      
+      if (response.statusCode == 200) {
+        final data = response.body['data'] ?? {};
+        
+        // The /api/trainers/:id endpoint returns a Trainer object
+        // We need to map it to a format the ProfileView can use, ideally UserModel
+        final mappedUser = UserModel(
+          id: data['_id'] ?? '',
+          firstName: data['firstName'] ?? '',
+          lastName: data['lastName'] ?? '',
+          email: data['email'] ?? '',
+          role: 'trainer',
+          phone: data['phone'] ?? '',
+          location: data['location'] ?? '',
+          bio: data['bio'] ?? '',
+          barnName: data['barnName'] ?? '',
+          yearsExperience: data['yearsExperience'] ?? 0,
+          avatar: data['profilePhoto'] ?? '',
+          coverImage: data['coverImage'] ?? '',
+          trainerProfileId: data['_id'],
+          isProfileApprove: data['isProfileApprove'] ?? false,
+          status: data['status'] ?? 'active',
+          instagram: data['instagram'] ?? '',
+          facebook: data['facebook'] ?? '',
+          website: data['website'] ?? '',
+          showCircuits: (data['horseShows'] as List?)?.map((e) => e['name'].toString()).toList() ?? [],
+          horseShows: (data['horseShows'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
+          tags: (data['tags'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
+        );
+        
+        viewedUser.value = mappedUser;
+        
+        // Fetch horses for this trainer
+        final horseResponse = await _apiService.getRequest(AppUrls.horses, query: {
+          'trainerId': trainerId,
+          'limit': '10'
+        });
+
+        if (horseResponse.statusCode == 200) {
+          final List horseData = horseResponse.body['data'] ?? [];
+          viewedUserHorses.assignAll(horseData.map((e) => HorseModel.fromJson(e)).toList());
+        }
+      }
+    } catch (e) {
+      _logger.e('Error fetching public trainer profile: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
@@ -186,27 +245,33 @@ class ProfileController extends GetxController {
     }
   }
 
+  UserModel? get displayUser => viewedUser.value ?? user.value;
+
   // Helper getters for UI
-  String get id => user.value?.id ?? '';
-  String get firstName => user.value?.firstName ?? '';
-  String get lastName => user.value?.lastName ?? '';
-  String get fullName => user.value?.fullName ?? '';
-  String get email => user.value?.email ?? '';
-  String get phone => user.value?.phone ?? '';
-  String get bio => user.value?.bio ?? '';
-  String get location => user.value?.location ?? '';
-  String get location2 => user.value?.location2 ?? '';
-  String get avatar => user.value?.displayAvatar ?? '';
-  String get coverImage => user.value?.coverImage ?? '';
-  String get role => user.value?.role ?? 'user';
+  String get id => displayUser?.id ?? '';
+  String get firstName => displayUser?.firstName ?? '';
+  String get lastName => displayUser?.lastName ?? '';
+  String get fullName => displayUser?.fullName ?? '';
+  String get email => displayUser?.email ?? '';
+  String get phone => displayUser?.phone ?? '';
+  String get bio => displayUser?.bio ?? '';
+  String get location => displayUser?.location ?? '';
+  String get location2 => displayUser?.location2 ?? '';
+  String get avatar => displayUser?.displayAvatar ?? '';
+  String get coverImage => displayUser?.coverImage ?? '';
+  String get role => displayUser?.role ?? 'user';
+  String get status => displayUser?.status ?? 'active';
+  bool get isApproved => displayUser?.isProfileApprove ?? false;
+  bool get pushNotificationsEnabled => displayUser?.pushNotificationsEnabled ?? true;
+  bool get isActive => status.toLowerCase() == 'active';
   
   // Professional Data
-  String get barnName => user.value?.barnName ?? '';
-  int get yearsExperience => user.value?.yearsExperience ?? 0;
-  List<String> get selectedProgramTags => user.value?.programTags ?? [];
-  List<String> get selectedHorseShows => user.value?.showCircuits ?? [];
-  List<String> get selectedHorseShowIds => user.value?.horseShows ?? [];
-  String get trainerId => user.value?.trainerProfileId ?? '';
+  String get barnName => displayUser?.barnName ?? '';
+  int get yearsExperience => displayUser?.yearsExperience ?? 0;
+  List<String> get selectedProgramTags => displayUser?.programTags ?? [];
+  List<String> get selectedHorseShows => displayUser?.showCircuits ?? [];
+  List<String> get selectedHorseShowIds => displayUser?.horseShows ?? [];
+  String get trainerId => displayUser?.trainerProfileId ?? '';
 
   String get specialization {
     if (role == 'trainer') return 'Professional Horse Trainer';
@@ -218,7 +283,7 @@ class ProfileController extends GetxController {
   // Helper to group selected tags by their type name
   Map<String, List<String>> get groupedTrainerTags {
     final Map<String, List<String>> grouped = {};
-    final currentUser = user.value;
+    final currentUser = displayUser;
     if (currentUser == null || tagTypes.isEmpty) return grouped;
 
     final userTagIds = currentUser.tags;
@@ -249,5 +314,27 @@ class ProfileController extends GetxController {
   List<String> get disciplines {
     final grouped = groupedTrainerTags;
     return grouped['Discipline'] ?? grouped['Disciplines'] ?? [];
+  }
+
+  Future<void> togglePushNotifications(bool enabled) async {
+    try {
+      final response = await _apiService.putRequest(AppUrls.toggleNotifications, {
+        'enabled': enabled,
+      });
+
+      if (response.statusCode == 200) {
+        // Update local user object
+        if (user.value != null) {
+          final updatedData = Map<String, dynamic>.from(userData);
+          updatedData['pushNotificationsEnabled'] = enabled;
+          userData.value = updatedData;
+          user.value = UserModel.fromJson(updatedData);
+        }
+      } else {
+        _logger.e('Failed to toggle notifications: ${response.statusText}');
+      }
+    } catch (e) {
+      _logger.e('Error toggling push notifications: $e');
+    }
   }
 }

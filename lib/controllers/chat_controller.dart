@@ -59,96 +59,8 @@ class ChatController extends GetxController {
         conversations.value = data.map((json) => ChatConversation.fromJson(json)).toList();
       }
 
-      // Add dummy data for UI review if list is empty or for local testing
       if (conversations.isEmpty) {
-        conversations.addAll([
-          ChatConversation(
-            id: '1',
-            conversationId: 'c1',
-            lastMessage: 'Thanks so much, happy with that.',
-            date: DateTime.now().subtract(const Duration(minutes: 2)),
-            unread: 1,
-            otherUser: ChatOtherUser(
-              id: 'u1',
-              name: 'Lana Steiner',
-              avatar: 'https://i.pravatar.cc/150?u=lana',
-            ),
-          ),
-          ChatConversation(
-            id: '2',
-            conversationId: 'c2',
-            lastMessage: 'Got you a coffee',
-            date: DateTime.now().subtract(const Duration(minutes: 2)),
-            unread: 0,
-            otherUser: ChatOtherUser(
-              id: 'u2',
-              name: 'Demi Wilkinson',
-              avatar: 'https://i.pravatar.cc/150?u=demi',
-            ),
-          ),
-          ChatConversation(
-            id: '3',
-            conversationId: 'c3',
-            lastMessage: 'Great to see you again!',
-            date: DateTime.now().subtract(const Duration(hours: 3)),
-            unread: 0,
-            otherUser: ChatOtherUser(
-              id: 'u3',
-              name: 'Candice Wu',
-              avatar: 'https://i.pravatar.cc/150?u=candice',
-            ),
-          ),
-          ChatConversation(
-            id: '4',
-            conversationId: 'c4',
-            lastMessage: 'We should ask Oli about this...',
-            date: DateTime.now().subtract(const Duration(hours: 6)),
-            unread: 0,
-            otherUser: ChatOtherUser(
-              id: 'u4',
-              name: 'Natali Craig',
-              avatar: 'https://i.pravatar.cc/150?u=natali',
-            ),
-          ),
-          ChatConversation(
-            id: '5',
-            conversationId: 'c5',
-            lastMessage: 'Okay, see you then.',
-            date: DateTime.now().subtract(const Duration(hours: 12)),
-            unread: 0,
-            otherUser: ChatOtherUser(
-              id: 'u5',
-              name: 'Drew Cano',
-              avatar: 'https://i.pravatar.cc/150?u=drew',
-            ),
-          ),
-          ChatConversation(
-            id: 'r1',
-            conversationId: 'cr1',
-            status: 'request-pending',
-            lastMessage: 'I am interested in your horse booking.',
-            date: DateTime.now().subtract(const Duration(hours: 1)),
-            otherUser: ChatOtherUser(
-              id: 'ur1',
-              name: 'Mark Lee',
-              avatar: 'https://i.pravatar.cc/150?u=mark1',
-              role: 'Professional Horse Trainer',
-            ),
-          ),
-          ChatConversation(
-            id: 'r2',
-            conversationId: 'cr2',
-            status: 'request-pending',
-            lastMessage: 'Can we schedule a viewing for Starfire?',
-            date: DateTime.now().subtract(const Duration(hours: 2)),
-            otherUser: ChatOtherUser(
-              id: 'ur2',
-              name: 'Mark Lee',
-              avatar: 'https://i.pravatar.cc/150?u=mark2',
-              role: 'Professional Horse Trainer',
-            ),
-          ),
-        ]);
+        // No conversations found
       }
     } catch (e) {
       _logger.e('Error fetching conversations: $e');
@@ -163,106 +75,8 @@ class ChatController extends GetxController {
       isLoadingMessages.value = true;
       currentMessages.clear();
 
-      // INJECT DUMMY MESSAGES FOR LANA STEINER (c1)
-      if (convoId == 'c1') {
-        currentMessages.addAll([
-          ChatMessage(
-            id: 'm1',
-            conversationId: convoId,
-            content: 'Hi! Just checking if the bay 7yr jumper is still available to try this week at WEC?',
-            senderId: 'lana',
-            senderName: 'Lana Steiner',
-            timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm2',
-            conversationId: convoId,
-            content: 'Yes, he is. He\'ll be there through Sunday.',
-            senderId: 'me',
-            senderName: 'You',
-            timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm3',
-            conversationId: convoId,
-            content: 'Great — what height is he comfortable at right now?',
-            senderId: 'lana',
-            senderName: 'Lana Steiner',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm4',
-            conversationId: convoId,
-            content: 'Currently showing 1.20m but schooling higher at home. Very straight forward.',
-            senderId: 'me',
-            senderName: 'You',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 20)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm5',
-            conversationId: convoId,
-            content: 'Perfect. I may have a Jr rider who could try him Friday.',
-            senderId: 'lana',
-            senderName: 'Lana Steiner',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm6',
-            conversationId: convoId,
-            content: 'That works. Let me know what time and I\'ll coordinate.',
-            senderId: 'me',
-            senderName: 'You',
-            timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-            read: true,
-          ),
-        ]);
-        isLoadingMessages.value = false;
-        _socketService.emit('message:read', {'conversationId': convoId});
-        return;
-      }
-
-      // GENERIC DUMMY MESSAGES FOR OTHER CONVERSATIONS
-      if (convoId.startsWith('c')) {
-        currentMessages.addAll([
-          ChatMessage(
-            id: 'm1_${convoId}',
-            conversationId: convoId,
-            content: 'Hello! How are things going with the training?',
-            senderId: 'other',
-            senderName: 'Other User',
-            timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm2_${convoId}',
-            conversationId: convoId,
-            content: 'Everything is going great, thank you for asking!',
-            senderId: 'me',
-            senderName: 'You',
-            timestamp: DateTime.now().subtract(const Duration(hours: 4)),
-            read: true,
-          ),
-          ChatMessage(
-            id: 'm3_${convoId}',
-            conversationId: convoId,
-            content: 'Glad to hear it. Let me know if you need anything else.',
-            senderId: 'other',
-            senderName: 'Other User',
-            timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-            read: true,
-          ),
-        ]);
-        isLoadingMessages.value = false;
-        _socketService.emit('message:read', {'conversationId': convoId});
-        return;
-      }
-
-      final response = await _apiService.getRequest('${AppUrls.messagesByConversation}$convoId');
+      // Production API Call
+      final response = await _apiService.getRequest('${AppUrls.messagesByConversation}$convoId/messages');
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
         currentMessages.value = data.map((json) => ChatMessage.fromJson(json)).toList();
@@ -334,6 +148,22 @@ class ChatController extends GetxController {
       return false;
     } catch (e) {
       _logger.e('Error declining request: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteConversation(String conversationId) async {
+    try {
+      final response = await _apiService.deleteRequest(
+        '${AppUrls.conversations.replaceAll('/conversations', '/conversation')}/$conversationId',
+      );
+      if (response.statusCode == 200) {
+        conversations.removeWhere((c) => c.conversationId == conversationId);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _logger.e('Error deleting conversation: $e');
       return false;
     }
   }

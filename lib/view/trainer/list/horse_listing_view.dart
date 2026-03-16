@@ -7,6 +7,7 @@ import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
+import 'package:catch_ride/view/trainer/list/edit_horse_listing_view.dart';
 import 'package:catch_ride/view/barn_manager/barn_manager_availability_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -425,23 +426,7 @@ class _HorseListingViewState extends State<HorseListingView> {
               title: const CommonText('Edit Horse', fontSize: 16),
               onTap: () {
                 Navigator.pop(context);
-                // Edit logic
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.calendar_month, color: AppColors.textPrimary),
-              title: const CommonText('Manage Availability', fontSize: 16),
-              onTap: () {
-                Navigator.pop(context);
-                Get.to(() => BarnManagerAvailabilityView(horse: horse));
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.share_outlined, color: AppColors.textPrimary),
-              title: const CommonText('Share Listing', fontSize: 16),
-              onTap: () {
-                Navigator.pop(context);
-                // Share logic
+                Get.to(() => EditHorseListingView(horse: horse));
               },
             ),
           ],

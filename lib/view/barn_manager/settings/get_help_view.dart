@@ -1,6 +1,7 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/support_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/view/support/support_tickets_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -168,9 +169,9 @@ class _GetHelpViewState extends State<GetHelpView> {
 
                   const SizedBox(height: 32),
 
-                  // Need More Help Form
+                  // Raise a ticket Form
                   const CommonText(
-                    'Need More Help?',
+                    'Raise a ticket',
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -194,6 +195,37 @@ class _GetHelpViewState extends State<GetHelpView> {
                     hint: 'Describe the issue or question you\'re experiencing...',
                     maxLines: 4,
                   ),
+                  const SizedBox(height: 24),
+
+                  // View All Tickets
+                  GestureDetector(
+                    onTap: () {
+                      Get.to(() => const SupportTicketsView());
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1EDE7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.help_outline_rounded, size: 20, color: AppColors.textPrimary),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: CommonText(
+                              'View All Tickets',
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textPrimary),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   const SizedBox(height: 40),
                 ],
               ),

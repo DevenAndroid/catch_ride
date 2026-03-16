@@ -1,3 +1,5 @@
+import 'booking_model.dart';
+
 class ChatMessage {
   final String id;
   final String conversationId;
@@ -69,6 +71,7 @@ class ChatConversation {
   final String status;
   final ChatOtherUser? otherUser;
   final String? senderId; // The original requester
+  final BookingModel? booking; // Associated booking details
 
   ChatConversation({
     required this.id,
@@ -79,6 +82,7 @@ class ChatConversation {
     this.status = 'active',
     this.otherUser,
     this.senderId,
+    this.booking,
   });
 
   factory ChatConversation.fromJson(Map<String, dynamic> json) {
@@ -91,6 +95,7 @@ class ChatConversation {
       status: json['status'] ?? 'active',
       senderId: json['senderId'],
       otherUser: json['otherUser'] != null ? ChatOtherUser.fromJson(json['otherUser']) : null,
+      booking: json['booking'] != null ? BookingModel.fromJson(json['booking']) : null,
     );
   }
 }

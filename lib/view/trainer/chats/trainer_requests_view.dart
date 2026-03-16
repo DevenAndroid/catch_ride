@@ -6,6 +6,7 @@ import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 
 class TrainerRequestsView extends StatelessWidget {
   const TrainerRequestsView({super.key});
@@ -36,8 +37,9 @@ class TrainerRequestsView extends StatelessWidget {
         ),
       ),
       body: Obx(() {
+        final currentUserId = Get.find<ProfileController>().id;
         final requests = controller.conversations
-            .where((c) => c.status == 'request-pending')
+            .where((c) => c.status == 'request-pending' && c.senderId != currentUserId)
             .toList();
 
         if (requests.isEmpty) {
@@ -83,6 +85,7 @@ class RequestCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header - Light Cream Background
           Container(
@@ -107,14 +110,8 @@ class RequestCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const CommonText(
-                            "Trainer : ",
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
                           CommonText(
-                            name,
+                            "Requester : $name",
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -149,31 +146,32 @@ class RequestCard extends StatelessWidget {
                 children: [
                   Stack(
                     children: [
-                      CommonImageView( // Using CommonImageView for horse image
-                        url: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                      CommonImageView(
+                        url: request.booking?.horseImage ?? AppConstants.dummyImageUrl,
                         height: 80,
                         width: 80,
                         radius: 8,
                         fit: BoxFit.cover,
                         fallbackIcon: Icons.image,
                       ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const CommonText(
-                            "For Sale",
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                      if (request.booking?.type != null)
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: CommonText(
+                              request.booking!.type,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(width: 12),
@@ -184,24 +182,25 @@ class RequestCard extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const CommonText(
-                              "Starfire",
+                            CommonText(
+                              request.booking?.horseName ?? "Booking Request",
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF2F4F7),
-                                borderRadius: BorderRadius.circular(6),
+                            if (request.booking?.type != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF2F4F7),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: CommonText(
+                                  request.booking!.type,
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
-                              child: const CommonText(
-                                "For Sale",
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -209,9 +208,9 @@ class RequestCard extends StatelessWidget {
                           children: [
                             const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
                             const SizedBox(width: 4),
-                            const Expanded(
+                            Expanded(
                               child: CommonText(
-                                "Tampa, FL, United States",
+                                request.booking?.location ?? 'N/A',
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                                 maxLines: 1,
@@ -225,8 +224,8 @@ class RequestCard extends StatelessWidget {
                           children: [
                             const Icon(Icons.calendar_month_outlined, size: 14, color: AppColors.textSecondary),
                             const SizedBox(width: 4),
-                            const CommonText(
-                              "01 Apr - 07 Apr 2026",
+                            CommonText(
+                              request.booking?.date ?? 'N/A',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -240,7 +239,6 @@ class RequestCard extends StatelessWidget {
             ),
           ),
   
-          // Last Message Snippet (retained from original, but moved after horse details)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
@@ -254,10 +252,10 @@ class RequestCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  request.lastMessage ?? 'No message provided',
+                  request.booking?.notes ?? request.lastMessage ?? 'No message provided',
                   fontSize: 14,
                   color: AppColors.textPrimary,
-                  maxLines: 3,
+                  maxLines: 5,
                 ),
               ],
             ),

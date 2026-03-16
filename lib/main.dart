@@ -16,8 +16,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
 
-/*  SharedPreferences preferences = await SharedPreferences.getInstance();
-  preferences.clear();*/
+/*
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  preferences.clear();
+*/
 
   // Initialize Services
   Get.put(ApiService());

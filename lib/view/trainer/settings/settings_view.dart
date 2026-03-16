@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
 import '../list/add_new_listing_view.dart';
+import 'notifications_view.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -58,7 +59,7 @@ class SettingsView extends StatelessWidget {
               child: IconButton(
                 padding: EdgeInsets.zero,
                 icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
-                onPressed: () {},
+                onPressed: () => Get.to(() => const NotificationsView()),
               ),
             ),
           ),
