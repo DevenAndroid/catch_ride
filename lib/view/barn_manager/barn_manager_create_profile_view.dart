@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:form_field_validator/form_field_validator.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/profile_controller.dart';
 import 'barn_manager_application_submitted_view.dart';
@@ -24,10 +25,14 @@ class BarnManagerCreateProfileView extends StatefulWidget {
 
 class _BarnManagerCreateProfileViewState
     extends State<BarnManagerCreateProfileView> {
+  final _formKey = GlobalKey<FormState>();
   final AuthController _authController = Get.find<AuthController>();
   final ProfileController _profileController = Get.put(ProfileController());
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _yearsInIndustryController = TextEditingController();
+
 
   File? _profileImage;
   File? _bannerImage;
@@ -37,6 +42,8 @@ class _BarnManagerCreateProfileViewState
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
+    _bioController.dispose();
+    _yearsInIndustryController.dispose();
     super.dispose();
   }
 
@@ -99,8 +106,10 @@ class _BarnManagerCreateProfileViewState
                       color: AppColors.border.withOpacity(0.5),
                     ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const CommonText(
                         AppStrings.basicDetails,
@@ -220,6 +229,8 @@ class _BarnManagerCreateProfileViewState
                         label: AppStrings.fullName,
                         hintText: AppStrings.enterYourFullName,
                         isRequired: true,
+                        validator: RequiredValidator(
+                            errorText: 'Please enter your Full Name'),
                       ),
                       const SizedBox(height: 16),
                       const CommonText(
@@ -298,10 +309,59 @@ class _BarnManagerCreateProfileViewState
                                     width: 1.5,
                                   ),
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 16,
-                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 16),
+                      CommonTextField(
+                        controller: _bioController,
+                        label: 'About',
+                        hintText: 'Write a short bio',
+                        maxLines: 4,
+                      ),
+                      const SizedBox(height: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CommonText(
+                            'Years in industry',
+                            fontSize: AppTextSizes.size14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                          const SizedBox(height: 8),
+                          GestureDetector(
+                            onTap: () => _showSingleSelectBottomSheet(
+                              title: 'Years in industry',
+                              currentValue: _yearsInIndustryController.text,
+                              items: List.generate(51, (index) => index.toString()),
+                              onSelected: (val) {
+                                setState(() => _yearsInIndustryController.text = val);
+                              },
+                            ),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.white,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: CommonText(
+                                      _yearsInIndustryController.text.isEmpty ? 'Select years' : _yearsInIndustryController.text,
+                                      fontSize: 14,
+                                      color: _yearsInIndustryController.text.isEmpty
+                                          ? AppColors.textSecondary.withOpacity(0.5)
+                                          : AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
+                                ],
                               ),
                             ),
                           ),
@@ -309,6 +369,7 @@ class _BarnManagerCreateProfileViewState
                       ),
                     ],
                   ),
+                ),
                 ),
               ),
             ),
@@ -318,11 +379,7 @@ class _BarnManagerCreateProfileViewState
                 text: AppStrings.continueText,
                 isLoading: _authController.isLoading.value,
                 onPressed: () async {
-                  if (_fullNameController.text.isEmpty) {
-                    Get.snackbar('Error', 'Full Name is required',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white);
+                  if (!_formKey.currentState!.validate()) {
                     return;
                   }
 
@@ -348,6 +405,8 @@ class _BarnManagerCreateProfileViewState
                       'firstName': firstName,
                       'lastName': lastName,
                       'phone': _phoneController.text.trim(),
+                      'bio': _bioController.text.trim(),
+                      'yearsInIndustry': _yearsInIndustryController.text.trim(),
                     };
 
                     if (profileUrl != null) profileData['avatar'] = profileUrl;
@@ -363,6 +422,81 @@ class _BarnManagerCreateProfileViewState
           ],
         ),
       ),
+    );
+  }
+
+  void _showSingleSelectBottomSheet({
+    required String title,
+    required String currentValue,
+    required List<String> items,
+    required Function(String) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final isSelected = item == currentValue;
+                      return InkWell(
+                        onTap: () {
+                          onSelected(item);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
+                          child: Center(
+                            child: CommonText(
+                              item, 
+                              fontSize: 16, 
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -28,7 +28,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   final ProfileController profileController = Get.find<ProfileController>();
 
   final List<String> _receivedFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
-  final List<String> _sentFilters = ['Accepted', 'Rejected', 'Completed'];
+  final List<String> _sentFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
 
   List<String> get _currentFilters => _tabController.index == 0 ? _receivedFilters : _sentFilters;
 

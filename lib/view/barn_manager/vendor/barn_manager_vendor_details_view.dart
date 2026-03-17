@@ -1,3 +1,4 @@
+import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 
 import 'package:catch_ride/models/vendor_model.dart';
+import 'package:intl/intl.dart';
 
 class BarnManagerVendorDetailsView extends StatefulWidget {
   final VendorModel vendor;
@@ -19,11 +21,14 @@ class BarnManagerVendorDetailsView extends StatefulWidget {
 }
 
 class _BarnManagerVendorDetailsViewState extends State<BarnManagerVendorDetailsView> {
+  final BarnManagerBookingController bookingController = Get.find<BarnManagerBookingController>();
   final List<Map<String, String>> _addedServices = [];
   final TextEditingController _notesController = TextEditingController();
   String _selectedService = 'Grooming';
   String _selectedQty = '2';
   String _selectedLocation = 'WEF, Wellington';
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   @override
   void dispose() {
@@ -562,9 +567,15 @@ class _BarnManagerVendorDetailsViewState extends State<BarnManagerVendorDetailsV
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildDateField('Start Date', 'Select Date')),
+                      Expanded(child: _buildDateField('Start Date', _startDate != null ? DateFormat('dd MMM yyyy').format(_startDate!) : 'Select Date', onTap: () async {
+                        final date = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                        if (date != null) setBottomSheetState(() => _startDate = date);
+                      })),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDateField('End Date', 'Select Date')),
+                      Expanded(child: _buildDateField('End Date', _endDate != null ? DateFormat('dd MMM yyyy').format(_endDate!) : 'Select Date', onTap: () async {
+                        final date = await showDatePicker(context: context, initialDate: _startDate ?? DateTime.now(), firstDate: _startDate ?? DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                        if (date != null) setBottomSheetState(() => _endDate = date);
+                      })),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -621,10 +632,11 @@ class _BarnManagerVendorDetailsViewState extends State<BarnManagerVendorDetailsV
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: CommonButton(
+                        child: Obx(() => CommonButton(
                           text: 'Submit',
                           backgroundColor: AppColors.primaryDark,
-                          onPressed: () {
+                          isLoading: bookingController.isLoading.value,
+                          onPressed: () async {
                             // If user didn't click "Add Service" but filled fields, include them
                             if (_notesController.text.isNotEmpty || _addedServices.isEmpty) {
                                _addedServices.add({
@@ -634,12 +646,28 @@ class _BarnManagerVendorDetailsViewState extends State<BarnManagerVendorDetailsV
                                 'note': _notesController.text,
                               });
                             }
-                            Get.back();
-                            // Handle final submission with _addedServices list
+                            
+                            // Map to backend expectations
+                            final bookingData = {
+                              'vendorId': widget.vendor.id,
+                              'type': 'Vendor',
+                              'service': _selectedService,
+                              'date': _startDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+                              'endDate': _endDate?.toIso8601String(),
+                              'notes': _notesController.text,
+                              'price': 0, // Should be set by vendor or fetched
+                              'addedServices': _addedServices,
+                            };
+
+                            final success = await bookingController.createVendorBooking(bookingData);
+                            if (success) {
+                              Get.back(); // Close bottom sheet
+                              Get.back(); // Go back to vendor list
+                            }
                           },
                           height: 56,
                           borderRadius: 16,
-                        ),
+                        )),
                       ),
                     ],
                   ),
@@ -689,27 +717,30 @@ class _BarnManagerVendorDetailsViewState extends State<BarnManagerVendorDetailsV
     );
   }
 
-  Widget _buildDateField(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.w600),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.borderMedium),
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildDateField(String label, String value, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CommonText(label, fontSize: 14, fontWeight: FontWeight.w600),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.borderMedium),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(value, fontSize: 14, color: value == 'Select Date' ? Colors.black.withValues(alpha: 0.4) : Colors.black),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CommonText(value, fontSize: 14, color: Colors.black.withValues(alpha: 0.4)),
-              const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

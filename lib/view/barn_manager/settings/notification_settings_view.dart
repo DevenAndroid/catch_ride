@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 
 class NotificationSettingsView extends StatefulWidget {
@@ -13,7 +14,7 @@ class NotificationSettingsView extends StatefulWidget {
 }
 
 class _NotificationSettingsViewState extends State<NotificationSettingsView> {
-  bool _isPushEnabled = true;
+  final ProfileController profileController = Get.find<ProfileController>();
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.border.withOpacity(0.5)),
               ),
-              child: Row(
+              child: Obx(() => Row(
                 children: [
                   const Icon(
                     Icons.notifications_none,
@@ -70,15 +71,13 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                   ),
                   CupertinoSwitch(
                     activeColor: const Color(0xFF13CA8B),
-                    value: _isPushEnabled,
+                    value: profileController.pushNotificationsEnabled,
                     onChanged: (value) {
-                      setState(() {
-                        _isPushEnabled = value;
-                      });
+                      profileController.togglePushNotifications(value);
                     },
                   ),
                 ],
-              ),
+              )),
             ),
           ],
         ),

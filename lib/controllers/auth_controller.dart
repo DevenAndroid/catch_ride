@@ -414,7 +414,7 @@ class AuthController extends GetxController {
         } else if (isProfileSetup) {
           Get.offAll(() => const BarnManagerApplicationSubmittedView());
         } else {
-          Get.offAll(() => const SelectRoleView());
+          Get.offAll(() => const BarnManagerCreateProfileView());
         }
       } 
       else {

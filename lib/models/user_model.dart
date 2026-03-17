@@ -23,9 +23,13 @@ class UserModel {
   final bool isProfileSetup;
   final bool isProfileApprove;
   final bool pushNotificationsEnabled;
+  final bool twoFactorEnabled;
   final String status;
   final List<String> tags;
   final String? trainerProfileId;
+  final BarnManager? linkedBarnManager;
+  final TrainerLinkedModel? linkedTrainer;
+  final String? yearsInIndustry;
 
   UserModel({
     this.id,
@@ -53,8 +57,12 @@ class UserModel {
     this.isProfileSetup = false,
     this.isProfileApprove = false,
     this.pushNotificationsEnabled = true,
+    this.twoFactorEnabled = false,
     this.status = 'active',
     this.trainerProfileId,
+    this.linkedBarnManager,
+    this.linkedTrainer,
+    this.yearsInIndustry,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -101,8 +109,9 @@ class UserModel {
       location: json['location'] ?? trainerData?['location'],
       location2: json['location2'] ?? trainerData?['location2'],
       bio: json['bio'] ?? trainerData?['bio'] ?? trainerData?['description'],
-      barnName: json['barnName'] ?? trainerData?['barnName'],
+      barnName: json['barnName'] ?? trainerData?['barnName'] ?? json['barnManagerId']?['barnName'],
       yearsExperience: json['yearsExperience'] ?? trainerData?['yearsExperience'] ?? 0,
+      yearsInIndustry: json['yearsInIndustry'] ?? json['barnManagerId']?['yearsInIndustry'],
       programTags: List<String>.from(json['programTags'] ?? trainerData?['programTags'] ?? []),
       showCircuits: List<String>.from(json['showCircuits'] ?? trainerData?['showCircuits'] ?? []),
       horseShows: parsedHorseShows,
@@ -114,10 +123,17 @@ class UserModel {
       isProfileSetup: json['isProfileSetup'] ?? false,
       isProfileApprove: json['isProfileApprove'] ?? false,
       pushNotificationsEnabled: json['pushNotificationsEnabled'] ?? true,
+      twoFactorEnabled: json['twoFactorEnabled'] ?? false,
       status: json['status'] ?? 'active',
       trainerProfileId: trainerData != null 
           ? trainerData['_id'] 
           : json['trainerId'],
+      linkedBarnManager: trainerData != null && trainerData['linkedBarnManager'] != null
+          ? BarnManager.fromJson(trainerData['linkedBarnManager'])
+          : null,
+      linkedTrainer: json['role'] == 'barn_manager' && json['trainerId'] is Map
+          ? TrainerLinkedModel.fromJson(json['trainerId'])
+          : null,
     );
   }
 
@@ -148,6 +164,109 @@ class UserModel {
       'isProfileSetup': isProfileSetup,
       'isProfileApprove': isProfileApprove,
       'pushNotificationsEnabled': pushNotificationsEnabled,
+      'twoFactorEnabled': twoFactorEnabled,
+      'status': status,
+      if (linkedBarnManager != null) 'linkedBarnManager': linkedBarnManager!.toJson(),
+      if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
+    };
+  }
+}
+
+class TrainerLinkedModel {
+  final String? id;
+  final String? firstName;
+  final String? lastName;
+  final String email;
+  final String? avatar;
+  final String? bio;
+  final String? barnName;
+  final String? location;
+
+  TrainerLinkedModel({
+    this.id,
+    this.firstName,
+    this.lastName,
+    required this.email,
+    this.avatar,
+    this.bio,
+    this.barnName,
+    this.location,
+  });
+
+  String get fullName => (firstName != null && lastName != null) 
+      ? '$firstName $lastName'.trim() 
+      : firstName ?? lastName ?? email;
+
+  factory TrainerLinkedModel.fromJson(Map<String, dynamic> json) {
+    return TrainerLinkedModel(
+      id: json['_id'] ?? json['id'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      email: json['email'] ?? '',
+      avatar: json['profilePhoto'] ?? json['avatar'],
+      bio: json['bio'],
+      barnName: json['barnName'],
+      location: json['location'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) '_id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'profilePhoto': avatar,
+      'bio': bio,
+      'barnName': barnName,
+      'location': location,
+    };
+  }
+}
+
+class BarnManager {
+  final String? id;
+  final String? firstName;
+  final String? lastName;
+  final String email;
+  final String? avatar;
+  final String? bio;
+  final String status;
+
+  BarnManager({
+    this.id,
+    this.firstName,
+    this.lastName,
+    required this.email,
+    this.avatar,
+    this.bio,
+    this.status = 'pending',
+  });
+
+  String get fullName => (firstName != null && lastName != null) 
+      ? '$firstName $lastName'.trim() 
+      : firstName ?? lastName ?? email;
+
+  factory BarnManager.fromJson(Map<String, dynamic> json) {
+    return BarnManager(
+      id: json['_id'] ?? json['id'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+      email: json['email'] ?? '',
+      avatar: json['profilePhoto'] ?? json['avatar'],
+      bio: json['bio'],
+      status: json['status'] ?? 'pending',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) '_id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'profilePhoto': avatar,
+      'bio': bio,
       'status': status,
     };
   }

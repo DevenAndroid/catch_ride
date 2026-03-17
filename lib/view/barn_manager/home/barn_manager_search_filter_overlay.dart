@@ -68,7 +68,7 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
     {'name': 'Jumper', 'icon': 'assets/icons/jumper.svg', 'isSvg': true},
     {'name': 'Equitation', 'icon': 'assets/icons/equitation.svg', 'isSvg': true},
-    {'name': 'Vendors', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
+    {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
   @override

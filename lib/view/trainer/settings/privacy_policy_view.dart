@@ -1,10 +1,25 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/controllers/support_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 
-class PrivacyPolicyView extends StatelessWidget {
+class PrivacyPolicyView extends StatefulWidget {
   const PrivacyPolicyView({super.key});
+
+  @override
+  State<PrivacyPolicyView> createState() => _PrivacyPolicyViewState();
+}
+
+class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
+  final SupportController supportController = Get.put(SupportController());
+
+  @override
+  void initState() {
+    super.initState();
+    supportController.fetchPageContent('privacy-policy');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,50 +47,27 @@ class PrivacyPolicyView extends StatelessWidget {
           child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSection(
-              '1. Types data we collect',
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.',
-            ),
-            const SizedBox(height: 24),
-            _buildSection(
-              '2. Use of your personal data',
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.',
-            ),
-            const SizedBox(height: 24),
-            _buildSection(
-              '3. Disclosure of your personal data',
-              'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.\n\nEt harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.\n\nTemporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus',
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
+      body: Obx(() {
+        if (supportController.isLoadingPage.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-  Widget _buildSection(String title, String content) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(
-          title,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        const SizedBox(height: 12),
-        CommonText(
-          content,
-          fontSize: 14,
-          color: AppColors.textSecondary,
-          height: 1.6,
-        ),
-      ],
+        if (supportController.privacyPolicy.isEmpty) {
+          return const Center(child: CommonText('No content available', color: AppColors.textSecondary));
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: HtmlWidget(
+            supportController.privacyPolicy.value,
+            textStyle: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              height: 1.6,
+            ),
+          ),
+        );
+      }),
     );
   }
 }

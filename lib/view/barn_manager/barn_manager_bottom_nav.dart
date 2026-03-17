@@ -1,4 +1,4 @@
-import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_controller.dart';
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -51,7 +51,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
   Widget build(BuildContext context) {
     Get.put(ProfileController());
     Get.put(HorseController());
-    Get.put(BookingController());
+    Get.put(BarnManagerBookingController());
     
     return Scaffold(
       backgroundColor: AppColors.background,

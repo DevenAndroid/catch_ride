@@ -13,6 +13,7 @@ class ProfileController extends GetxController {
 
   final Rx<UserModel?> user = Rx<UserModel?>(null);
   final Rx<UserModel?> viewedUser = Rx<UserModel?>(null);
+  final Rx<UserModel?> linkedTrainerProfile = Rx<UserModel?>(null);
   final RxMap userData = <String, dynamic>{}.obs;
   final RxList<HorseModel> trainerHorses = <HorseModel>[].obs;
   final RxList<HorseModel> viewedUserHorses = <HorseModel>[].obs;
@@ -30,7 +31,7 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     fetchProfile().then((_) {
-      if (user.value?.role == 'trainer' && user.value?.trainerProfileId != null) {
+      if ((user.value?.role == 'trainer' || user.value?.role == 'barn_manager') && user.value?.trainerProfileId != null) {
         fetchTrainerHorses();
       }
     });
@@ -95,9 +96,14 @@ class ProfileController extends GetxController {
         user.value = UserModel.fromJson(data);
         _logger.i('Profile fetched successfully: ${user.value?.email}');
         
-        // Fetch horses if trainer
-        if (user.value?.role == 'trainer' && user.value?.trainerProfileId != null) {
+        // Fetch horses if trainer or barn manager
+        if ((user.value?.role == 'trainer' || user.value?.role == 'barn_manager') && user.value?.trainerProfileId != null) {
           fetchTrainerHorses();
+        }
+
+        // Fetch full trainer profile if barn manager
+        if (user.value?.role == 'barn_manager' && user.value?.trainerProfileId != null) {
+          fetchLinkedTrainerProfile(user.value!.trainerProfileId!);
         }
       } else {
         _logger.e('Failed to fetch profile: ${response.statusText}');
@@ -106,6 +112,41 @@ class ProfileController extends GetxController {
       _logger.e('Error fetching profile: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchLinkedTrainerProfile(String trainerId) async {
+    try {
+      final response = await _apiService.getRequest('${AppUrls.trainers}/$trainerId');
+      if (response.statusCode == 200) {
+        final data = response.body['data'] ?? {};
+        linkedTrainerProfile.value = UserModel(
+          id: data['_id'] ?? '',
+          firstName: data['firstName'] ?? '',
+          lastName: data['lastName'] ?? '',
+          email: data['email'] ?? '',
+          role: 'trainer',
+          phone: data['phone'] ?? '',
+          location: data['location'] ?? '',
+          bio: data['bio'] ?? '',
+          barnName: data['barnName'] ?? '',
+          yearsExperience: data['yearsExperience'] ?? 0,
+          avatar: data['profilePhoto'] ?? '',
+          coverImage: data['coverImage'] ?? '',
+          trainerProfileId: data['_id'],
+          isProfileApprove: data['isProfileApprove'] ?? false,
+          status: data['status'] ?? 'active',
+          instagram: data['instagram'] ?? '',
+          facebook: data['facebook'] ?? '',
+          website: data['website'] ?? '',
+          showCircuits: (data['horseShows'] as List?)?.map((e) => e['name'].toString()).toList() ?? [],
+          horseShows: (data['horseShows'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
+          tags: (data['tags'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
+        );
+        _logger.i('Linked trainer profile fetched successfully');
+      }
+    } catch (e) {
+      _logger.e('Error fetching linked trainer profile: $e');
     }
   }
 
@@ -269,9 +310,22 @@ class ProfileController extends GetxController {
   String get barnName => displayUser?.barnName ?? '';
   int get yearsExperience => displayUser?.yearsExperience ?? 0;
   List<String> get selectedProgramTags => displayUser?.programTags ?? [];
-  List<String> get selectedHorseShows => displayUser?.showCircuits ?? [];
+  List<String> get selectedHorseShows {
+    UserModel? target = displayUser;
+    if (user.value?.role == 'barn_manager' && linkedTrainerProfile.value != null) {
+      target = linkedTrainerProfile.value;
+    }
+    return target?.showCircuits ?? [];
+  }
   List<String> get selectedHorseShowIds => displayUser?.horseShows ?? [];
   String get trainerId => displayUser?.trainerProfileId ?? '';
+  String get yearsInIndustry => displayUser?.yearsInIndustry ?? '';
+  String get linkedTrainerBarnName {
+    if (user.value?.role == 'barn_manager') {
+      return linkedTrainerProfile.value?.barnName ?? user.value?.linkedTrainer?.barnName ?? '';
+    }
+    return '';
+  }
 
   String get specialization {
     if (role == 'trainer') return 'Professional Horse Trainer';
@@ -283,7 +337,13 @@ class ProfileController extends GetxController {
   // Helper to group selected tags by their type name
   Map<String, List<String>> get groupedTrainerTags {
     final Map<String, List<String>> grouped = {};
-    final currentUser = displayUser;
+    
+    // For barn managers, show tags from linked trainer
+    UserModel? currentUser = displayUser;
+    if (user.value?.role == 'barn_manager' && linkedTrainerProfile.value != null) {
+      currentUser = linkedTrainerProfile.value;
+    }
+
     if (currentUser == null || tagTypes.isEmpty) return grouped;
 
     final userTagIds = currentUser.tags;

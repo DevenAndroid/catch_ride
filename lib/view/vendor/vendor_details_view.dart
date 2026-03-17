@@ -9,6 +9,9 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 
 import 'package:catch_ride/models/vendor_model.dart';
+import 'package:intl/intl.dart';
+
+import '../../controllers/booking_controller.dart';
 
 class VendorDetailsView extends StatefulWidget {
   final VendorModel vendor;
@@ -19,11 +22,16 @@ class VendorDetailsView extends StatefulWidget {
 }
 
 class _VendorDetailsViewState extends State<VendorDetailsView> {
+  final BookingController bookingController = Get.find<BookingController>();
+
   final List<Map<String, String>> _addedServices = [];
   final TextEditingController _notesController = TextEditingController();
   String _selectedService = 'Grooming';
   String _selectedQty = '2';
   String _selectedLocation = 'WEF, Wellington';
+  
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   @override
   void dispose() {
@@ -565,9 +573,9 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildDateField('Start Date', 'Select Date')),
+                      Expanded(child: _buildDateField('Start Date', _startDate == null ? 'Select Date' : DateFormat('dd MMM yyyy').format(_startDate!), isStart: true, setState: setBottomSheetState)),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDateField('End Date', 'Select Date')),
+                      Expanded(child: _buildDateField('End Date', _endDate == null ? 'Select Date' : DateFormat('dd MMM yyyy').format(_endDate!), isStart: false, setState: setBottomSheetState)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -624,25 +632,31 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: CommonButton(
+                        child: Obx(() => CommonButton(
                           text: 'Submit',
                           backgroundColor: AppColors.primaryDark,
-                          onPressed: () {
-                            // If user didn't click "Add Service" but filled fields, include them
-                            if (_notesController.text.isNotEmpty || _addedServices.isEmpty) {
-                               _addedServices.add({
-                                'name': _selectedService,
-                                'qty': _selectedQty,
-                                'location': _selectedLocation,
-                                'note': _notesController.text,
-                              });
+                          isLoading: bookingController.isLoading.value,
+                          onPressed: () async {
+                            final bookingData = {
+                              'vendorId': widget.vendor.id,
+                              'type': 'Vendor',
+                              'service': _selectedService,
+                              'date': _startDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
+                              'endDate': _endDate?.toIso8601String(),
+                              'notes': _notesController.text,
+                              'price': 0, // Should be set by vendor or fetched
+                              'addedServices': _addedServices,
+                            };
+
+                            final success = await bookingController.createBooking(bookingData);
+                            if (success) {
+                              Get.back();
+                              Get.back(); // Back to list
                             }
-                            Get.back();
-                            // Handle final submission with _addedServices list
                           },
                           height: 56,
                           borderRadius: 16,
-                        ),
+                        )),
                       ),
                     ],
                   ),
@@ -692,24 +706,43 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
     );
   }
 
-  Widget _buildDateField(String label, String value) {
+  Widget _buildDateField(String label, String value, {required bool isStart, required Function setState}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: 14, fontWeight: FontWeight.w600),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.borderMedium),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CommonText(value, fontSize: 14, color: Colors.black.withValues(alpha: 0.4)),
-              const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
-            ],
+        GestureDetector(
+          onTap: () async {
+            final date = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime.now(),
+              lastDate: DateTime.now().add(const Duration(days: 365)),
+            );
+            if (date != null) {
+              setState(() {
+                if (isStart) {
+                  _startDate = date;
+                } else {
+                  _endDate = date;
+                }
+              });
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.borderMedium),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(value, fontSize: 14, color: value == 'Select Date' ? Colors.black.withValues(alpha: 0.4) : Colors.black),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+              ],
+            ),
           ),
         ),
       ],

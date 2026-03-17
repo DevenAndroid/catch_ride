@@ -4,7 +4,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
@@ -24,11 +24,11 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
   late TabController _tabController;
   int _selectedFilterIndex = 0; 
 
-  final BookingController bookingController = Get.find<BookingController>();
+  final BarnManagerBookingController bookingController = Get.find<BarnManagerBookingController>();
   final ProfileController profileController = Get.find<ProfileController>();
 
   final List<String> _receivedFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
-  final List<String> _sentFilters = ['Accepted', 'Rejected', 'Completed'];
+  final List<String> _sentFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
 
   List<String> get _currentFilters => _tabController.index == 0 ? _receivedFilters : _sentFilters;
 
