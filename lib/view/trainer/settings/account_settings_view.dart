@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/view/trainer/settings/change_password_view.dart';
 
+import '../../../controllers/auth_controller.dart';
+import '../../../controllers/settings_controller.dart';
+
 class AccountSettingsView extends StatefulWidget {
   const AccountSettingsView({super.key});
 
@@ -12,7 +15,15 @@ class AccountSettingsView extends StatefulWidget {
 }
 
 class _AccountSettingsViewState extends State<AccountSettingsView> {
-  bool _is2FAEnabled = true;
+  final SettingsController controller = Get.put(SettingsController());
+  final AuthController authController = Get.find<AuthController>();
+  bool _is2FAEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _is2FAEnabled = authController.currentUser.value?.twoFactorEnabled ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,79 +51,98 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
           child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader('Login'),
-            _buildSettingsCard([
-              _buildActionTile(
-                icon: Icons.person_outline_rounded,
-                title: 'Change Password',
-                actionText: 'Change',
-                actionColor: const Color(0xFF2E90FA),
-                onTap: () => Get.to(() => const ChangePasswordView()),
-              ),
-            ]),
-            const SizedBox(height: 24),
+      body: Obx(() => controller.isLoading.value 
+        ? const Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader('Login'),
+              _buildSettingsCard([
+                _buildActionTile(
+                  icon: Icons.person_outline_rounded,
+                  title: 'Change Password',
+                  actionText: 'Change',
+                  actionColor: const Color(0xFF2E90FA),
+                  onTap: () => Get.to(() => const ChangePasswordView()),
+                ),
+              ]),
+              const SizedBox(height: 24),
 
-            _buildSectionHeader('Social Account'),
-            _buildSettingsCard([
-              _buildActionTile(
-                icon: Icons.g_mobiledata_rounded, // Better if Google SVG, but using icon for now
-                title: 'Google',
-                actionText: 'Connect',
-                actionColor: const Color(0xFF17B26A),
-                onTap: () {},
-              ),
-              _buildActionTile(
-                icon: Icons.facebook_outlined,
-                title: 'Facebook',
-                actionText: 'Connect',
-                actionColor: const Color(0xFF17B26A),
-                onTap: () {},
-                showDivider: false,
-              ),
-            ]),
-            const SizedBox(height: 24),
+              _buildSectionHeader('Social Account'),
+              _buildSettingsCard([
+                _buildActionTile(
+                  icon: Icons.g_mobiledata_rounded,
+                  title: 'Google',
+                  actionText: 'Connect',
+                  actionColor: const Color(0xFF17B26A),
+                  onTap: () {
+                    Get.snackbar('Coming Soon', 'Google connection is coming soon', snackPosition: SnackPosition.BOTTOM);
+                  },
+                ),
+                _buildActionTile(
+                  icon: Icons.facebook_outlined,
+                  title: 'Facebook',
+                  actionText: 'Connect',
+                  actionColor: const Color(0xFF17B26A),
+                  onTap: () {
+                    Get.snackbar('Coming Soon', 'Facebook connection is coming soon', snackPosition: SnackPosition.BOTTOM);
+                  },
+                  showDivider: false,
+                ),
+              ]),
+              const SizedBox(height: 24),
 
-            _buildSectionHeader('Device History'),
-            _buildSettingsCard([
-              _buildDeviceTile(
-                icon: Icons.smartphone_rounded,
-                title: 'Iphone 14 Pro',
-                subtitle: '12 feb 2026 at 00:59',
-                onLogout: () {},
-              ),
-              _buildDeviceTile(
-                icon: Icons.laptop_mac_rounded,
-                title: 'Macbook Pro',
-                subtitle: '12 feb 2026 at 00:59',
-                onLogout: () {},
-                showDivider: false,
-              ),
-            ]),
-            const SizedBox(height: 24),
+              if (controller.activeSessions.isNotEmpty) ...[
+                _buildSectionHeader('Device History'),
+                _buildSettingsCard(
+                  controller.activeSessions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final session = entry.value;
+                    return _buildDeviceTile(
+                      icon: (session['deviceType']?.toString().toLowerCase() == 'ios' || session['deviceType']?.toString().toLowerCase() == 'android')
+                          ? Icons.smartphone_rounded
+                          : Icons.laptop_mac_rounded,
+                      title: session['deviceName'] ?? 'Unknown Device',
+                      subtitle: session['lastUsed'] ?? 'Just now',
+                      onLogout: () async {
+                        final success = await controller.terminateSession(session['token'] ?? '');
+                        if (success) {
+                          Get.snackbar('Success', 'Session terminated', snackPosition: SnackPosition.BOTTOM);
+                        }
+                      },
+                      showDivider: index < controller.activeSessions.length - 1,
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+              ],
 
-            _buildSectionHeader('Security & Account'),
-            _buildSettingsCard([
-              _buildToggleTile(
-                icon: Icons.shield_outlined,
-                title: 'Two-Factor Authentication',
-                value: _is2FAEnabled,
-                onChanged: (val) => setState(() => _is2FAEnabled = val),
-              ),
-              _buildActionTile(
-                icon: Icons.delete_outline_rounded,
-                title: 'Delete you Account',
-                trailIcon: Icons.arrow_forward_ios_rounded,
-                onTap: () => _showDeleteAccountDialog(context),
-                showDivider: false,
-              ),
-            ]),
-            const SizedBox(height: 40),
-          ],
+              _buildSectionHeader('Security & Account'),
+              _buildSettingsCard([
+                _buildToggleTile(
+                  icon: Icons.shield_outlined,
+                  title: 'Two-Factor Authentication',
+                  value: _is2FAEnabled,
+                  onChanged: (val) async {
+                    final success = await controller.toggle2FA(val);
+                    if (success) {
+                      setState(() => _is2FAEnabled = val);
+                    }
+                  },
+                ),
+                _buildActionTile(
+                  icon: Icons.delete_outline_rounded,
+                  title: 'Delete you Account',
+                  trailIcon: Icons.arrow_forward_ios_rounded,
+                  onTap: () => _showDeleteAccountDialog(context),
+                  showDivider: false,
+                ),
+              ]),
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
@@ -313,9 +343,15 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
             child: const CommonText('Cancel', color: AppColors.textSecondary),
           ),
           TextButton(
-            onPressed: () {
-              // Perform deletion
-              Get.back();
+            onPressed: () async {
+              final userId = authController.currentUser.value?.id ?? '';
+              final success = await controller.deleteAccount(userId);
+              if (success) {
+                Get.back();
+                authController.logout();
+              } else {
+                Get.snackbar('Error', 'Failed to delete account', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+              }
             },
             child: const CommonText('Delete', color: Color(0xFFD92D20), fontWeight: FontWeight.bold),
           ),

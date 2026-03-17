@@ -171,15 +171,16 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
         Get.to(() => TrainerHorseDetailView(horse: horse, isOwnHorse: isOwnHorse));
       },
       child: Container(
+        margin: const EdgeInsets.only(bottom: 4),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
@@ -193,8 +194,8 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                 children: [
                   CommonImageView(
                     url: (userAvatar != null && userAvatar.isNotEmpty) ? userAvatar : AppConstants.dummyImageUrl,
-                    height: 44,
-                    width: 44,
+                    height: 48,
+                    width: 48,
                     shape: BoxShape.circle,
                   ),
                   const SizedBox(width: 12),
@@ -205,18 +206,19 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                         CommonText(
                           userName,
                           fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                         ),
+                        const SizedBox(height: 1),
                         CommonText(
                           timePosted,
-                          fontSize: 13,
+                          fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.more_vert, color: AppColors.textPrimary),
+                  const Icon(Icons.more_vert, color: AppColors.textPrimary, size: 22),
                 ],
               ),
             ),
@@ -225,10 +227,9 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.zero),
                   child: CommonImageView(
                     url: mainImageUrl,
-                    height: 240,
+                    height: 250,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -239,59 +240,53 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: CommonText(
                       imageCount,
                       color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
               ],
             ),
 
-            // Action Row & Tags
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: tags.map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF2F4F7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: CommonText(
-                          tag,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      )).toList(),
+            // Tags
+            if (tags.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: tags.map((tag) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ),
-                  const Icon(Icons.share_outlined, color: AppColors.textPrimary, size: 24),
-                ],
+                    child: CommonText(
+                      tag,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  )).toList(),
+                ),
               ),
-            ),
 
             // Content
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
                     postTitle,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                     height: 1.3,
                   ),
@@ -300,17 +295,19 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     postDescription,
                     fontSize: 14,
                     color: AppColors.textSecondary,
-                    height: 1.4,
+                    height: 1.5,
                     maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, color: AppColors.textSecondary, size: 16),
+                      const Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16),
                       const SizedBox(width: 4),
                       CommonText(
                         location,
                         fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
                       ),
                     ],

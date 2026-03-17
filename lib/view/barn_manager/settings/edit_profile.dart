@@ -22,7 +22,10 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _barnNameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  String? _selectedYears;
+
 
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
@@ -51,15 +54,33 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
     _fullNameController.text = profileController.fullName;
     _phoneController.text = profileController.phone;
     _emailController.text = profileController.user.value?.email ?? '';
+    _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
     
+    // For years, we might need to find which option matches.
+    // BarnManager model usually stores it as string in the specific model
+    // which is synced to user.yearsExperience (int) for trainers, 
+    // but for barn managers we use 'yearsInIndustry' string field in backend.
+    final rawData = profileController.userData;
+    if (rawData['barnManagerId'] != null && rawData['barnManagerId']['yearsInIndustry'] != null) {
+      _selectedYears = rawData['barnManagerId']['yearsInIndustry'];
+    }
+
     // If profile is empty, fetch it
     if (profileController.userData.isEmpty) {
       profileController.fetchProfile().then((_) {
-        _fullNameController.text = profileController.fullName;
-        _phoneController.text = profileController.phone;
-        _emailController.text = profileController.user.value?.email ?? '';
-        _bioController.text = profileController.bio;
+        setState(() {
+          _fullNameController.text = profileController.fullName;
+          _phoneController.text = profileController.phone;
+          _emailController.text = profileController.user.value?.email ?? '';
+          _barnNameController.text = profileController.barnName;
+          _bioController.text = profileController.bio;
+          
+          final updatedRawData = profileController.userData;
+          if (updatedRawData['barnManagerId'] != null && updatedRawData['barnManagerId']['yearsInIndustry'] != null) {
+            _selectedYears = updatedRawData['barnManagerId']['yearsInIndustry'];
+          }
+        });
       });
     }
   }
@@ -69,6 +90,7 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
     _fullNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _barnNameController.dispose();
     _bioController.dispose();
     super.dispose();
   }
@@ -86,7 +108,7 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
-          'Basic info',
+          'Edit Profile',
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: Color(0xFF344054),
@@ -131,7 +153,7 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF2F4F7),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFEAECF0)),
+                                border: Border.all(color: const Color(0xFFEAECF0), width: 1),
                               ),
                               child: ClipOval(
                                 child: _profileImage != null
@@ -179,39 +201,30 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
                         height: 130,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: const Color(0xFFF9FAFB),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFEAECF0)),
                         ),
                         child: Stack(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: _bannerImage != null
-                                  ? Image.file(_bannerImage!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
-                                  : profileController.coverImage.isNotEmpty
-                                      ? CommonImageView(
-                                          url: profileController.coverImage,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                        )
-                                      : Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: CustomPaint(
-                                            painter: DashedBorderPainter(),
-                                            child: const SizedBox(
-                                              width: double.infinity,
-                                              height: double.infinity,
-                                              child: Center(
-                                                child: Icon(Icons.add, color: Color(0xFF667085), size: 24),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                            ),
+                            if (_bannerImage != null || profileController.coverImage.isNotEmpty)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: _bannerImage != null
+                                    ? Image.file(_bannerImage!, fit: BoxFit.cover, width: double.infinity, height: double.infinity)
+                                    : CommonImageView(
+                                        url: profileController.coverImage,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                      ),
+                              )
+                            else
+                              CustomPaint(
+                                painter: DashedBorderPainter(),
+                                child: const Center(
+                                  child: Icon(Icons.add, color: Color(0xFF667085), size: 24),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -223,7 +236,45 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
                     const SizedBox(height: 20),
                     _buildTextField('Email', _emailController, hint: 'Enter your email'),
                     const SizedBox(height: 20),
+                    _buildTextField('Barn Name', _barnNameController, hint: 'Enter your barn name'),
+                    const SizedBox(height: 20),
                     _buildTextField('About', _bioController, hint: 'Write a short bio', maxLines: 4),
+                    const SizedBox(height: 20),
+                    const CommonText('Years in industry', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF344054)),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () => _showSingleSelectBottomSheet(
+                        title: 'Years in industry',
+                        currentValue: _selectedYears ?? '',
+                        items: List.generate(51, (index) => index.toString()),
+                        onSelected: (val) {
+                          setState(() => _selectedYears = val);
+                        },
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFD0D5DD)),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CommonText(
+                                (_selectedYears == null || _selectedYears!.isEmpty) ? 'Select years' : _selectedYears!,
+                                fontSize: 15,
+                                color: (_selectedYears == null || _selectedYears!.isEmpty)
+                                    ? const Color(0xFF98A2B3)
+                                    : const Color(0xFF101828),
+                              ),
+                            ),
+                            const Icon(Icons.keyboard_arrow_down, color: Color(0xFF667085)),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -275,6 +326,7 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
         const CommonText('Phone Number', fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF344054)),
         const SizedBox(height: 8),
         Container(
+          height: 52,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -282,11 +334,14 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
           ),
           child: Row(
             children: [
-              Padding(
+              Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
+                decoration: const BoxDecoration(
+                  border: Border(right: BorderSide(color: Color(0xFFD0D5DD))),
+                ),
                 child: Row(
                   children: const [
-                    CommonText('+1', fontSize: 15, color: Color(0xFF101828)),
+                    CommonText('+91', fontSize: 15, color: Color(0xFF101828)),
                     SizedBox(width: 4),
                     Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF667085)),
                   ],
@@ -300,7 +355,7 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
                   decoration: const InputDecoration(
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
                     hintStyle: TextStyle(color: Color(0xFF98A2B3), fontSize: 15),
                   ),
                 ),
@@ -355,7 +410,9 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
                   'firstName': firstName,
                   'lastName': lastName,
                   'phone': _phoneController.text.trim(),
+                  'barnName': _barnNameController.text.trim(),
                   'bio': _bioController.text.trim(),
+                  'yearsInIndustry': _selectedYears,
                 });
 
                 if (success) {
@@ -382,6 +439,81 @@ class _EditBarnManagerProfileViewState extends State<EditBarnManagerProfileView>
           ),
         ],
       ),
+    );
+  }
+
+  void _showSingleSelectBottomSheet({
+    required String title,
+    required String currentValue,
+    required List<String> items,
+    required Function(String) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.95,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final isSelected = item == currentValue;
+                      return InkWell(
+                        onTap: () {
+                          onSelected(item);
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
+                          child: Center(
+                            child: CommonText(
+                              item, 
+                              fontSize: 16, 
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? const Color(0xFF00083B) : const Color(0xFF344054),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

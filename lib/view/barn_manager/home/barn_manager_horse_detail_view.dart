@@ -14,7 +14,7 @@ import 'package:video_player/video_player.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
-import '../../../controllers/booking_controller.dart';
+import '../../../controllers/barn_manager/barn_manager_booking_controller.dart';
 import '../../../services/api_service.dart';
 
 class BarnManagerHorseDetailView extends StatefulWidget {
@@ -87,7 +87,7 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
   }
 
   void _checkIfRequested() {
-    final bookingController = Get.find<BookingController>();
+    final bookingController = Get.find<BarnManagerBookingController>();
     final currentUserId = Get.find<ProfileController>().id;
     
     final existingBooking = bookingController.bookings.firstWhereOrNull(
@@ -900,7 +900,7 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
     DateTime? endDate;
     String selectedType = 'Trial';
     final TextEditingController messageController = TextEditingController();
-    final BookingController bookingController = Get.put(BookingController());
+    final BarnManagerBookingController bookingController = Get.find<BarnManagerBookingController>();
 
     showModalBottomSheet(
       context: context,

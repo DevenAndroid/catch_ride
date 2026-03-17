@@ -13,6 +13,9 @@ class SupportController extends GetxController {
   final isLoadingFaqs = false.obs;
   final isLoadingTickets = false.obs;
   final isSubmitting = false.obs;
+  final privacyPolicy = ''.obs;
+  final termsAndConditions = ''.obs;
+  final isLoadingPage = false.obs;
 
   @override
   void onInit() {
@@ -207,6 +210,32 @@ class SupportController extends GetxController {
       return false;
     } finally {
       isSubmitting.value = false;
+    }
+  }
+  
+  Future<void> fetchPageContent(String slug) async {
+    try {
+      isLoadingPage.value = true;
+      final response = await _apiService.getRequest('${AppUrls.pages}/slug/$slug');
+
+      if (response.statusCode == 200 && response.body != null) {
+        final dynamic body = response.body;
+        final dynamic data = body is Map ? body['data'] : null;
+
+        if (data is Map && data['content'] != null) {
+          if (slug == 'privacy-policy') {
+            privacyPolicy.value = data['content'];
+          } else if (slug == 'terms-and-conditions') {
+            termsAndConditions.value = data['content'];
+          }
+        }
+      } else {
+        _logger.e('Failed to load page $slug: ${response.statusCode}');
+      }
+    } catch (e) {
+      _logger.e('Error fetching page content for $slug: $e');
+    } finally {
+      isLoadingPage.value = false;
     }
   }
 }

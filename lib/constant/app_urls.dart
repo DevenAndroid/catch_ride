@@ -18,6 +18,9 @@ class AppUrls {
   static const String resendOtp = '/auth/resend-otp';
   static const String logout = '/auth/logout';
   static const String verifyToken = '/auth/verify';
+  static const String sessions = '/auth/my-sessions';
+  static const String terminateSession = '/auth/sessions/'; // + token
+  static const String toggle2FA = '/auth/2fa/toggle';
 
   // Horses
   static const String horses = '/horses';
@@ -49,6 +52,8 @@ class AppUrls {
   static const String toggleNotifications = '/profile/toggle-notifications';
   static const String upload = '/upload';
   static const String uploadProfileImage = '/profile/upload-image';
+  static const String changePassword = '/profile/password';
+  static const String deleteAccount = '/users/'; // + id
   
   // Support
   static const String faqs = '/faq';
@@ -63,4 +68,11 @@ class AppUrls {
   static const String notifications = '/notifications';
   static const String feedback = '/feedback';
 
+  static const String pages = '/pages';
+
+  // Barn Manager
+  static const String barnManagers = '/barn-managers';
+  static const String inviteBarnManager = '$barnManagers/invite';
+  static const String removeBarnManager = '$barnManagers/remove';
+  static const String createVendorBooking = bookings;
 }

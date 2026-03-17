@@ -1,4 +1,5 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/controllers/settings_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,7 @@ class ChangePasswordView extends StatefulWidget {
 }
 
 class _ChangePasswordViewState extends State<ChangePasswordView> {
+  final SettingsController controller = Get.find<SettingsController>();
   final TextEditingController _currentPasswordController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
@@ -138,10 +140,28 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
           ),
         ],
       ),
-      child: GestureDetector(
-        onTap: () {
-          // Logic for change password
-          Get.back();
+      child: Obx(() => GestureDetector(
+        onTap: controller.isLoading.value ? null : () async {
+          if (_currentPasswordController.text.isEmpty || 
+              _newPasswordController.text.isEmpty || 
+              _confirmPasswordController.text.isEmpty) {
+            Get.snackbar('Error', 'Please fill in all fields', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+            return;
+          }
+
+          if (_newPasswordController.text != _confirmPasswordController.text) {
+            Get.snackbar('Error', 'New passwords do not match', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+            return;
+          }
+
+          final success = await controller.changePassword(
+            _currentPasswordController.text, 
+            _newPasswordController.text
+          );
+
+          if (success) {
+            Get.back();
+          }
         },
         child: Container(
           height: 56,
@@ -149,16 +169,18 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
             color: const Color(0xFF000B48),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Center(
-            child: CommonText(
-              'Change Password',
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          child: Center(
+            child: controller.isLoading.value 
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const CommonText(
+                  'Change Password',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
           ),
         ),
-      ),
+      )),
     );
   }
 }

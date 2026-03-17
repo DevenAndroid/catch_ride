@@ -14,6 +14,7 @@ class CommonImageView extends StatelessWidget {
   final BoxShape shape;
   final IconData? fallbackIcon;
   final File? file;
+  final String? assetPath;
 
   const CommonImageView({
     super.key,
@@ -25,6 +26,7 @@ class CommonImageView extends StatelessWidget {
     this.shape = BoxShape.rectangle,
     this.fallbackIcon,
     this.file,
+    this.assetPath,
   });
 
   String _getProcessedUrl(String url) {
@@ -36,6 +38,25 @@ class CommonImageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (assetPath != null && assetPath!.isNotEmpty) {
+      return Container(
+        height: height,
+        width: width,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: AppColors.border.withOpacity(0.1),
+          shape: shape,
+          borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(radius),
+        ),
+        child: Image.asset(
+          assetPath!,
+          height: height,
+          width: width,
+          fit: fit,
+        ),
+      );
+    }
+
     if (file != null) {
       return Container(
         height: height,

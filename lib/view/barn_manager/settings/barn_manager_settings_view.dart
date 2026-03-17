@@ -184,7 +184,9 @@ class BarnManagerSettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           CommonText(
-            'Barn Manager at Winter Equestrian',
+            controller.linkedTrainerBarnName.isNotEmpty 
+                ? 'Barn Manager at ${controller.linkedTrainerBarnName}' 
+                : 'Barn Manager',
             fontSize: 14,
             color: const Color(0xFF667085),
             fontWeight: FontWeight.w400,

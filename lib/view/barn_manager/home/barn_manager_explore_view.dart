@@ -8,11 +8,13 @@ import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view
 import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_search_filter_overlay.dart';
 import 'package:get/get.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:catch_ride/view/barn_manager/vendor/barn_manager_vendor_details_view.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
-import '../../../../controllers/booking_controller.dart';
+import '../../../../controllers/barn_manager/barn_manager_booking_controller.dart';
+import '../../../models/horse_model.dart';
 import '../../../models/vendor_model.dart';
 
 class BarnManagerExploreView extends StatefulWidget {
@@ -31,6 +33,12 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
     {'name': 'Equitation', 'icon': 'assets/icons/equitation.svg', 'isSvg': true},
     {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchHorses();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +62,7 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   }
 
                   // Reactive trigger for booking status changes
-                  final bookingController = Get.put(BookingController());
+                  final bookingController = Get.find<BarnManagerBookingController>();
                   final _ = bookingController.bookings.length;
 
                   final bool isVendors = controller.selectedDiscipline.value == 'Services';
@@ -95,38 +103,54 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                     );
                   }
 
-                if (isVendors) {
+                  if (isVendors) {
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: controller.vendors.length,
+                      itemBuilder: (context, index) {
+                        final vendor = controller.vendors[index];
+                        return _buildVendorCard(
+                          vendor: vendor,
+                        );
+                      },
+                    );
+                  }
+
+                  if (controller.isGridView.value) {
+                    return MasonryGridView.count(
+                      padding: const EdgeInsets.all(16),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      itemCount: controller.horses.length,
+                      itemBuilder: (context, index) {
+                        final horse = controller.horses[index];
+                        return _buildMasonryHorseCard(horse, index);
+                      },
+                    );
+                  }
+
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: controller.vendors.length,
+                    itemCount: controller.horses.length,
                     itemBuilder: (context, index) {
-                      final vendor = controller.vendors[index];
-                      return _buildVendorCard(
-                        vendor: vendor,
+                      final horse = controller.horses[index];
+                      final isRequested = bookingController.bookings.any((b) =>
+                          b.horseId == horse.id &&
+                          b.status.toLowerCase() == 'pending');
+
+                      return HorseCard(
+                        horse: horse,
+                        isRequested: isRequested,
+                        onTap: () => Get.to(() => BarnManagerHorseDetailView(horse: horse)),
                       );
                     },
                   );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: controller.horses.length,
-                  itemBuilder: (context, index) {
-                    final horse = controller.horses[index];
-                    final isRequested = Get.find<BookingController>().bookings.any((b) => b.horseId == horse.id && b.status.toLowerCase() == 'pending');
-
-                    return HorseCard(
-                      horse: horse,
-                      isRequested: isRequested,
-                      onTap: () => Get.to(() => BarnManagerHorseDetailView(horse: horse)),
-                    );
-                  },
-                );
-              }),
+                }),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -171,19 +195,29 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     CommonText(
-                      "Bruce's Field",
+                      "How can we help you?",
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF101828),
                     ),
                     CommonText(
-                      "10 Jan - 18 Jan 2026",
+                      "Search horses, services and circuits",
                       fontSize: 12,
                       color: Color(0xFF667085),
                     ),
                   ],
                 ),
               ),
+              Obx(() => IconButton(
+                    onPressed: () => controller.isGridView.toggle(),
+                    icon: Icon(
+                      controller.isGridView.value
+                          ? Icons.list_rounded
+                          : Icons.grid_view_rounded,
+                      color: const Color(0xFF101828),
+                    ),
+                  )),
+              const SizedBox(width: 8),
             ],
           ),
         ),
@@ -193,69 +227,71 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
 
   Widget _buildFilters() {
     return Obx(() => Container(
-      height: 90,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEAECF0))),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(_categories.length, (index) {
-          final cat = _categories[index];
-          final isSelected = controller.selectedDiscipline.value == cat['name'];
-          
-          return GestureDetector(
-            onTap: () {
-              controller.updateDiscipline(cat['name']);
-            },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFFEAEEFF) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: cat['isSvg']
-                      ? SvgPicture.asset(
-                          cat['icon'],
-                          width: 24,
-                          height: 24,
-                          colorFilter: ColorFilter.mode(
-                            isSelected ? const Color(0xFF00083B) : const Color(0xFF667085),
-                            BlendMode.srcIn,
-                          ),
-                        )
-                      : Icon(
-                          cat['icon'] as IconData,
-                          size: 24,
-                          color: isSelected ? const Color(0xFF00083B) : const Color(0xFF667085),
-                        ),
+          height: 90,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: Color(0xFFEAECF0))),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_categories.length, (index) {
+              final cat = _categories[index];
+              final isSelected = controller.selectedDiscipline.value == cat['name'];
+
+              return GestureDetector(
+                onTap: () {
+                  controller.updateDiscipline(cat['name']);
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFFEAEEFF) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: cat['isSvg']
+                          ? SvgPicture.asset(
+                              cat['icon'],
+                              width: 24,
+                              height: 24,
+                              colorFilter: ColorFilter.mode(
+                                isSelected ? const Color(0xFF00083B) : const Color(0xFF667085),
+                                BlendMode.srcIn,
+                              ),
+                            )
+                          : Icon(
+                              cat['icon'] as IconData,
+                              size: 24,
+                              color: isSelected
+                                  ? const Color(0xFF00083B)
+                                  : const Color(0xFF667085),
+                            ),
+                    ),
+                    const SizedBox(height: 6),
+                    CommonText(
+                      cat['name'],
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected ? const Color(0xFF101828) : const Color(0xFF667085),
+                    ),
+                    const SizedBox(height: 8),
+                    if (isSelected)
+                      Container(
+                        width: 40,
+                        height: 2,
+                        color: const Color(0xFF1B235E),
+                      )
+                    else
+                      const SizedBox(height: 2),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                CommonText(
-                  cat['name'],
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? const Color(0xFF101828) : const Color(0xFF667085),
-                ),
-                const SizedBox(height: 8),
-                if (isSelected)
-                  Container(
-                    width: 40,
-                    height: 2,
-                    color: const Color(0xFF1B235E),
-                  )
-                else
-                  const SizedBox(height: 2),
-              ],
-            ),
-          );
-        }),
-      ),
-    ));
+              );
+            }),
+          ),
+        ));
   }
 
   Widget _buildVendorCard({
@@ -306,7 +342,8 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.location_on, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
+                      Icon(Icons.location_on,
+                          size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
                       const SizedBox(width: 8),
                       CommonText(
                         vendor.location ?? 'Wellington, FL',
@@ -319,7 +356,8 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
+                      Icon(Icons.person_outline,
+                          size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
                       const SizedBox(width: 8),
                       CommonText(
                         vendor.serviceType,
@@ -332,12 +370,13 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
+                      Icon(Icons.calendar_today_outlined,
+                          size: 16, color: AppColors.textSecondary.withValues(alpha: 0.7)),
                       const SizedBox(width: 8),
                       CommonText(
-                        vendor.serviceAvailability.isNotEmpty 
-                          ? '${vendor.serviceAvailability.first.startDate} - ${vendor.serviceAvailability.first.endDate}'
-                          : '10 Jan - 18 Jan 2026',
+                        vendor.serviceAvailability.isNotEmpty
+                            ? '${vendor.serviceAvailability.first.startDate} - ${vendor.serviceAvailability.first.endDate}'
+                            : '10 Jan - 18 Jan 2026',
                         fontSize: 14,
                         color: AppColors.textSecondary.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w500,
@@ -348,6 +387,85 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMasonryHorseCard(HorseModel horse, int index) {
+    // Generate varying heights to create the masonry effect
+    final double cardHeight = (index % 3 == 0)
+        ? 280
+        : (index % 2 == 0)
+            ? 200
+            : 240;
+
+    return GestureDetector(
+      onTap: () => Get.to(() => BarnManagerHorseDetailView(horse: horse)),
+      child: Container(
+        height: cardHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: horse.images.isNotEmpty
+                    ? horse.images[0]
+                    : (horse.photo ?? AppConstants.dummyImageUrl),
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: Colors.grey[100],
+                  child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: Colors.grey[100],
+                  child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 32, 12, 12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.8),
+                        Colors.black.withValues(alpha: 0.4),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                  child: Text(
+                    horse.name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

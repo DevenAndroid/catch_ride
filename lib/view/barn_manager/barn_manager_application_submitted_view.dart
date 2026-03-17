@@ -31,86 +31,85 @@ class _BarnManagerApplicationSubmittedViewState
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(flex: 2),
-
-              // Success Icon with halo (Maroon Theme)
+              const Spacer(flex: 3),
+              // Success Icon with halo (Maroon Theme - Exactly like mockup)
               Center(
                 child: Container(
-                  height: 110,
-                  width: 110,
+                  height: 100,
+                  width: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.secondary.withOpacity(0.3), // Halo
+                    color: AppColors.secondary.withOpacity(0.2), // Light outer halo
                   ),
                   child: Center(
                     child: Container(
-                      height: 85,
-                      width: 85,
+                      height: 75,
+                      width: 75,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.secondary, // Main Maroon
+                        color: AppColors.secondary, // Main Maroon circle
                       ),
                       child: const Icon(
-                        Icons.done_rounded,
-                        size: 50,
+                        Icons.check_rounded,
+                        size: 40,
                         color: Colors.white,
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
 
               // Welcome Text
               CommonText(
                 'Welcome ${name}!',
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
 
               // Success Subtitle
               const CommonText(
-                'Your profile has been submitted for review.',
+                'Your profile has been successfully set up.',
                 fontSize: 16,
                 color: AppColors.textSecondary,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
 
-              // Info Box (Matching Mockup)
+              // Info Box (Matching Mockup exactly)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 24.0,
+                  horizontal: 20.0,
+                  vertical: 18.0,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7F7), // Very light pink
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.infoBoxBg, 
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.secondary.withOpacity(0.4),
-                    width: 1.2,
+                    color: AppColors.secondary.withOpacity(0.5),
+                    width: 1.0,
                   ),
                 ),
                 child: const CommonText(
-                  'Your application is currently being verified by the administrator. You will be able to access all features once approved.',
-                  fontSize: 15,
+                  'You can now start exploring services and managing your bookings.',
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF4B5562),
+                  color: AppColors.textSecondary,
                   textAlign: TextAlign.center,
                 ),
               ),
 
-              const Spacer(flex: 3),
+              const Spacer(flex: 4),
 
               CommonButton(
                 text: 'Back to Login',
                 onPressed: () => _authController.logout(),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
             ],
           ),
         ),
