@@ -20,7 +20,9 @@ class AvailabilityModel {
   factory AvailabilityModel.fromJson(Map<String, dynamic> json) {
     return AvailabilityModel(
       id: json['_id'],
-      showId: json['showId'] != null ? (json['showId'] is String ? json['showId'] : json['showId']['_id']) : null,
+      showId: json['showId'] != null
+          ? (json['showId'] is String ? json['showId'] : json['showId']['_id'])
+          : null,
       cityState: json['cityState'] ?? '',
       showVenue: json['showVenue'] ?? '',
       startDate: json['startDate'] ?? '',

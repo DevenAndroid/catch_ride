@@ -26,7 +26,8 @@ class ExploreController extends GetxController {
   final RxBool isGridView = false.obs;
 
   // Suggested search items
-  final RxList<Map<String, String>> defaultLocations = <Map<String, String>>[].obs;
+  final RxList<Map<String, String>> defaultLocations =
+      <Map<String, String>>[].obs;
   final RxList<Map<String, String>> defaultVenues = <Map<String, String>>[].obs;
 
   @override
@@ -47,16 +48,16 @@ class ExploreController extends GetxController {
 
   Future<void> addToHistory(String query) async {
     if (query.trim().isEmpty) return;
-    
+
     // Remove if already exists to move to top
     recentSearches.remove(query);
     recentSearches.insert(0, query);
-    
+
     // Keep only last 5
     if (recentSearches.length > 5) {
       recentSearches.removeLast();
     }
-    
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('recent_searches', recentSearches);
   }
@@ -71,12 +72,12 @@ class ExploreController extends GetxController {
       isLoading.value = true;
       // Clear vendors when switching to horses
       vendors.clear();
-      
+
       final Map<String, String> queryParams = {};
 
       final currentUserId = _profileController.id;
       final trainerId = _profileController.trainerId;
-      
+
       // Filter for active and approved horses only in Explore
       queryParams['isActive'] = 'true';
       queryParams['status'] = 'approved,available';
@@ -106,18 +107,27 @@ class ExploreController extends GetxController {
       }
 
       if (startDate.value != null) {
-        queryParams['startDate'] = DateFormat('yyyy-MM-dd').format(startDate.value!);
+        queryParams['startDate'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(startDate.value!);
       }
 
       if (endDate.value != null) {
-        queryParams['endDate'] = DateFormat('yyyy-MM-dd').format(endDate.value!);
+        queryParams['endDate'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(endDate.value!);
       }
 
-      final response = await _apiService.getRequest(AppUrls.horses, query: queryParams);
+      final response = await _apiService.getRequest(
+        AppUrls.horses,
+        query: queryParams,
+      );
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        final List<HorseModel> newHorses = data.map((e) => HorseModel.fromJson(e)).toList();
+        final List<HorseModel> newHorses = data
+            .map((e) => HorseModel.fromJson(e))
+            .toList();
         horses.assignAll(newHorses);
         _logger.i('Fetched ${horses.length} horses');
       } else {
@@ -144,11 +154,16 @@ class ExploreController extends GetxController {
         queryParams['location'] = location.value;
       }
 
-      final response = await _apiService.getRequest(AppUrls.vendors, query: queryParams);
+      final response = await _apiService.getRequest(
+        AppUrls.vendors,
+        query: queryParams,
+      );
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        final List<VendorModel> newVendors = data.map((e) => VendorModel.fromJson(e)).toList();
+        final List<VendorModel> newVendors = data
+            .map((e) => VendorModel.fromJson(e))
+            .toList();
         vendors.assignAll(newVendors);
         _logger.i('Fetched ${vendors.length} vendors');
       } else {
@@ -173,11 +188,14 @@ class ExploreController extends GetxController {
 
   Future<void> fetchDefaultSearchMetadata() async {
     try {
-      final response = await _apiService.getRequest(AppUrls.horseShows, query: {'limit': '3'});
-      
+      final response = await _apiService.getRequest(
+        AppUrls.horseShows,
+        query: {'limit': '3'},
+      );
+
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        
+
         // Extract 3 unique locations (City, State)
         final List<Map<String, String>> locations = [];
         final List<Map<String, String>> venues = [];
@@ -196,10 +214,7 @@ class ExploreController extends GetxController {
 
           if (venue.isNotEmpty) {
             if (!venues.any((v) => v['name'] == venue)) {
-              venues.add({
-                'name': venue,
-                'subtitle': "$city, $state"
-              });
+              venues.add({'name': venue, 'subtitle': "$city, $state"});
             }
           }
         }

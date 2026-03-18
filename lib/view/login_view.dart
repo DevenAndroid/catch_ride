@@ -61,15 +61,15 @@ class _LoginViewState extends State<LoginView> {
                       const CommonText(
                         AppStrings.welcomeBack,
                         fontSize: AppTextSizes.size22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
                       const SizedBox(height: 8),
                       const CommonText(
                         AppStrings.welcomeBackSubtitle,
                         fontSize: AppTextSizes.size14,
-                          color: AppColors.textSecondary,
-                          textAlign: TextAlign.center,
+                        color: AppColors.textSecondary,
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 24),
 
@@ -79,8 +79,12 @@ class _LoginViewState extends State<LoginView> {
                         keyboardType: TextInputType.emailAddress,
                         controller: _authController.emailController,
                         validator: MultiValidator([
-                          RequiredValidator(errorText: 'Please enter your email'),
-                          EmailValidator(errorText: 'Please enter a valid email address'),
+                          RequiredValidator(
+                            errorText: 'Please enter your email',
+                          ),
+                          EmailValidator(
+                            errorText: 'Please enter a valid email address',
+                          ),
                         ]),
                       ),
                       const SizedBox(height: 16),
@@ -90,7 +94,9 @@ class _LoginViewState extends State<LoginView> {
                         hintText: AppStrings.emptyString,
                         obscureText: _obscurePassword,
                         controller: _authController.passwordController,
-                        validator: RequiredValidator(errorText: 'Please enter your password'),
+                        validator: RequiredValidator(
+                          errorText: 'Please enter your password',
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -115,30 +121,34 @@ class _LoginViewState extends State<LoginView> {
                           child: const CommonText(
                             AppStrings.forgetPassword,
                             fontSize: AppTextSizes.size14,
-                              color: Color(0xFFD92D20),
-                              fontWeight: FontWeight.w500,
+                            color: Color(0xFFD92D20),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
 
                       const SizedBox(height: 24),
-                      Obx(() => CommonButton(
-                        text: _authController.isLoading.value ? AppStrings.loggingIn : AppStrings.logIn,
-                        onPressed: _authController.isLoading.value 
-                          ? () {} 
-                          : () {
-                              if (_formKey.currentState!.validate()) {
-                                _authController.login();
-                              }
-                            },
-                      )),
+                      Obx(
+                        () => CommonButton(
+                          text: _authController.isLoading.value
+                              ? AppStrings.loggingIn
+                              : AppStrings.logIn,
+                          onPressed: _authController.isLoading.value
+                              ? () {}
+                              : () {
+                                  if (_formKey.currentState!.validate()) {
+                                    _authController.login();
+                                  }
+                                },
+                        ),
+                      ),
                       const SizedBox(height: 20),
 
                       const Center(
                         child: CommonText(
                           AppStrings.orLogInWith,
                           fontSize: AppTextSizes.size14,
-                            color: AppColors.textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -148,8 +158,7 @@ class _LoginViewState extends State<LoginView> {
                         icon: SvgPicture.asset("assets/icons/google_icon.svg"),
                         onPressed: () {
                           // Google Sign In Action
-                          Get.to(() => const SelectRoleView(),
-                          );
+                          Get.to(() => const SelectRoleView());
                         },
                       ),
                       const SizedBox(height: 12),
@@ -163,33 +172,33 @@ class _LoginViewState extends State<LoginView> {
                     ],
                   ),
                 ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CommonText(
-                    AppStrings.dontHaveAnAccount,
-                    fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Get.off(() => const CreateAccountView(),
-                      );
-                    },
-                    child: const CommonText(
-                      AppStrings.signUp,
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CommonText(
+                      AppStrings.dontHaveAnAccount,
                       fontSize: AppTextSizes.size14,
+                      color: AppColors.textSecondary,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Get.off(() => const CreateAccountView());
+                      },
+                      child: const CommonText(
+                        AppStrings.signUp,
+                        fontSize: AppTextSizes.size14,
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }

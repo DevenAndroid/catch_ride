@@ -27,34 +27,37 @@ class SupportController extends GetxController {
   Future<void> fetchFaqs({String? search}) async {
     try {
       isLoadingFaqs.value = true;
-      
+
       // Building query params - GetConnect query values work best as strings
       final Map<String, dynamic> query = {
         'status': 'active',
         'limit': (search != null && search.isNotEmpty ? '10' : '3'),
       };
-      
+
       if (search != null && search.isNotEmpty) {
         query['search'] = search;
       }
 
-      final response = await _apiService.getRequest(
-        AppUrls.faqs,
-        query: query,
-      );
+      final response = await _apiService.getRequest(AppUrls.faqs, query: query);
 
       if (response.statusCode == 200 && response.body != null) {
         final dynamic body = response.body;
         final dynamic data = body is Map ? body['data'] : null;
 
         if (data is List) {
-          faqs.assignAll(data.map((e) => Map<String, dynamic>.from(e)).toList());
+          faqs.assignAll(
+            data.map((e) => Map<String, dynamic>.from(e)).toList(),
+          );
         } else {
-          _logger.e('Unexpected data format (expected List): ${data.runtimeType}');
+          _logger.e(
+            'Unexpected data format (expected List): ${data.runtimeType}',
+          );
           faqs.clear();
         }
       } else {
-        _logger.e('Failed to load FAQs: ${response.statusText} (${response.statusCode})');
+        _logger.e(
+          'Failed to load FAQs: ${response.statusText} (${response.statusCode})',
+        );
         if (response.body != null) _logger.d('Response body: ${response.body}');
       }
     } catch (e) {
@@ -74,7 +77,9 @@ class SupportController extends GetxController {
         final dynamic data = body is Map ? body['data'] : null;
 
         if (data is List) {
-          tickets.assignAll(data.map((e) => Map<String, dynamic>.from(e)).toList());
+          tickets.assignAll(
+            data.map((e) => Map<String, dynamic>.from(e)).toList(),
+          );
         }
       }
     } catch (e) {
@@ -109,14 +114,18 @@ class SupportController extends GetxController {
         'priority': 'medium', // Default
       };
 
-      final response = await _apiService.postRequest(AppUrls.supportTickets, ticketData);
+      final response = await _apiService.postRequest(
+        AppUrls.supportTickets,
+        ticketData,
+      );
 
       _logger.i('📤 POST RESPONSE status: ${response.statusCode}');
-      
-      final bool isSuccess = response.isOk || 
-                            (response.body != null && 
-                             response.body is Map && 
-                             response.body['success'] == true);
+
+      final bool isSuccess =
+          response.isOk ||
+          (response.body != null &&
+              response.body is Map &&
+              response.body['success'] == true);
 
       if (isSuccess) {
         _logger.i('✅ Ticket submitted successfully');
@@ -128,7 +137,7 @@ class SupportController extends GetxController {
           colorText: Colors.white,
           duration: const Duration(seconds: 3),
         );
-        
+
         // Use a slight delay to ensure the server has processed the write
         // even though MongoDB is generally fast enough.
         Future.delayed(const Duration(milliseconds: 500), () => fetchTickets());
@@ -139,7 +148,7 @@ class SupportController extends GetxController {
         if (response.body != null && response.body is Map) {
           errorMsg = response.body['message'] ?? errorMsg;
         }
-        
+
         Get.snackbar(
           'Error',
           errorMsg,
@@ -180,7 +189,10 @@ class SupportController extends GetxController {
         if (rating != null) 'rating': rating,
       };
 
-      final response = await _apiService.postRequest(AppUrls.feedback, feedbackData);
+      final response = await _apiService.postRequest(
+        AppUrls.feedback,
+        feedbackData,
+      );
 
       if (response.isOk) {
         Get.snackbar(
@@ -212,11 +224,13 @@ class SupportController extends GetxController {
       isSubmitting.value = false;
     }
   }
-  
+
   Future<void> fetchPageContent(String slug) async {
     try {
       isLoadingPage.value = true;
-      final response = await _apiService.getRequest('${AppUrls.pages}/slug/$slug');
+      final response = await _apiService.getRequest(
+        '${AppUrls.pages}/slug/$slug',
+      );
 
       if (response.statusCode == 200 && response.body != null) {
         final dynamic body = response.body;

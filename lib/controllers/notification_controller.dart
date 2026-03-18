@@ -25,7 +25,9 @@ class NotificationController extends GetxController {
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        notifications.assignAll(data.map((e) => NotificationModel.fromJson(e)).toList());
+        notifications.assignAll(
+          data.map((e) => NotificationModel.fromJson(e)).toList(),
+        );
         _updateUnreadCount();
         _logger.i('Fetched ${notifications.length} notifications');
       } else {
@@ -44,11 +46,16 @@ class NotificationController extends GetxController {
 
   Future<void> markAsRead(String notificationId) async {
     try {
-      final response = await _apiService.putRequest('${AppUrls.notifications}/$notificationId/read', {});
+      final response = await _apiService.putRequest(
+        '${AppUrls.notifications}/$notificationId/read',
+        {},
+      );
       if (response.statusCode == 200) {
         final index = notifications.indexWhere((n) => n.id == notificationId);
         if (index != -1) {
-          notifications[index] = NotificationModel.fromJson(response.body['data']);
+          notifications[index] = NotificationModel.fromJson(
+            response.body['data'],
+          );
           _updateUnreadCount();
         }
       }
@@ -59,7 +66,10 @@ class NotificationController extends GetxController {
 
   Future<void> markAllAsRead() async {
     try {
-      final response = await _apiService.putRequest('${AppUrls.notifications}/read-all', {});
+      final response = await _apiService.putRequest(
+        '${AppUrls.notifications}/read-all',
+        {},
+      );
       if (response.statusCode == 200) {
         await fetchNotifications();
       }
@@ -70,7 +80,9 @@ class NotificationController extends GetxController {
 
   Future<void> deleteNotification(String notificationId) async {
     try {
-      final response = await _apiService.deleteRequest('${AppUrls.notifications}/$notificationId');
+      final response = await _apiService.deleteRequest(
+        '${AppUrls.notifications}/$notificationId',
+      );
       if (response.statusCode == 200) {
         notifications.removeWhere((n) => n.id == notificationId);
         _updateUnreadCount();

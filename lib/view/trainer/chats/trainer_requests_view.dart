@@ -39,12 +39,18 @@ class TrainerRequestsView extends StatelessWidget {
       body: Obx(() {
         final currentUserId = Get.find<ProfileController>().id;
         final requests = controller.conversations
-            .where((c) => c.status == 'request-pending' && c.senderId != currentUserId)
+            .where(
+              (c) =>
+                  c.status == 'request-pending' && c.senderId != currentUserId,
+            )
             .toList();
 
         if (requests.isEmpty) {
           return const Center(
-            child: CommonText('No pending requests', color: AppColors.textSecondary),
+            child: CommonText(
+              'No pending requests',
+              color: AppColors.textSecondary,
+            ),
           );
         }
 
@@ -69,7 +75,8 @@ class RequestCard extends StatelessWidget {
     final ChatController controller = Get.find<ChatController>();
     final String name = request.otherUser?.name ?? 'Unknown';
     final String role = request.otherUser?.role ?? 'User';
-    final String avatar = request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
+    final String avatar =
+        request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -131,7 +138,7 @@ class RequestCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Horse Details Section
           Padding(
             padding: const EdgeInsets.all(16),
@@ -140,14 +147,18 @@ class RequestCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.5),
+                ),
               ),
               child: Row(
                 children: [
                   Stack(
                     children: [
                       CommonImageView(
-                        url: request.booking?.horseImage ?? AppConstants.dummyImageUrl,
+                        url:
+                            request.booking?.horseImage ??
+                            AppConstants.dummyImageUrl,
                         height: 80,
                         width: 80,
                         radius: 8,
@@ -159,7 +170,10 @@ class RequestCard extends StatelessWidget {
                           top: 4,
                           right: 4,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(6),
@@ -190,7 +204,10 @@ class RequestCard extends StatelessWidget {
                             ),
                             if (request.booking?.type != null)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF2F4F7),
                                   borderRadius: BorderRadius.circular(6),
@@ -206,7 +223,11 @@ class RequestCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: CommonText(
@@ -222,7 +243,11 @@ class RequestCard extends StatelessWidget {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.calendar_month_outlined, size: 14, color: AppColors.textSecondary),
+                            const Icon(
+                              Icons.calendar_month_outlined,
+                              size: 14,
+                              color: AppColors.textSecondary,
+                            ),
                             const SizedBox(width: 4),
                             CommonText(
                               request.booking?.date ?? 'N/A',
@@ -238,7 +263,7 @@ class RequestCard extends StatelessWidget {
               ),
             ),
           ),
-  
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
@@ -252,7 +277,9 @@ class RequestCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  request.booking?.notes ?? request.lastMessage ?? 'No message provided',
+                  request.booking?.notes ??
+                      request.lastMessage ??
+                      'No message provided',
                   fontSize: 14,
                   color: AppColors.textPrimary,
                   maxLines: 5,
@@ -269,10 +296,12 @@ class RequestCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      final success = await controller.declineRequest(request.conversationId);
+                      final success = await controller.declineRequest(
+                        request.conversationId,
+                      );
                       if (success) {
                         Get.snackbar(
-                          'Success', 
+                          'Success',
                           'Request declined',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.black87,
@@ -282,7 +311,7 @@ class RequestCard extends StatelessWidget {
                         );
                       } else {
                         Get.snackbar(
-                          'Error', 
+                          'Error',
                           'Failed to decline request',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.redAccent,
@@ -314,10 +343,12 @@ class RequestCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      final success = await controller.acceptRequest(request.conversationId);
+                      final success = await controller.acceptRequest(
+                        request.conversationId,
+                      );
                       if (success) {
                         Get.snackbar(
-                          'Success', 
+                          'Success',
                           'Request accepted',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: const Color(0xFF17B26A),
@@ -333,7 +364,8 @@ class RequestCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: AppColors.secondary, // Updated to AppColors.secondary
+                        color: AppColors
+                            .secondary, // Updated to AppColors.secondary
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Center(

@@ -39,7 +39,7 @@ class _SelectRoleViewState extends State<SelectRoleView> {
       'value': AppStrings.serviceProvider,
       'backendValue': 'service_provider',
     },
-/*    {
+    /*    {
       'title': AppStrings.barnManager,
       'subtitle': AppStrings.manageBarnOperations,
       'value': AppStrings.barnManager,
@@ -107,48 +107,55 @@ class _SelectRoleViewState extends State<SelectRoleView> {
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Obx(() => CommonButton(
-                text: AppStrings.continueText,
-                isLoading: _authController.isLoading.value,
-                onPressed: () async {
-                  // Store selected role
-                  final roleData = _roles.firstWhere((r) => r['value'] == _selectedRole);
-                  final backendRole = roleData['backendValue']!;
-                  _authController.selectedRole.value = backendRole;
-
-                  // Update role via profile API
-                  final apiService = Get.find<ApiService>();
-                  try {
-                    _authController.isLoading.value = true;
-                    final response = await apiService.putRequest(
-                      AppUrls.updateRole,
-                      {'role': backendRole},
+              child: Obx(
+                () => CommonButton(
+                  text: AppStrings.continueText,
+                  isLoading: _authController.isLoading.value,
+                  onPressed: () async {
+                    // Store selected role
+                    final roleData = _roles.firstWhere(
+                      (r) => r['value'] == _selectedRole,
                     );
-                    if (response.statusCode == 200) {
-                      // Save role locally
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setString('role', backendRole);
+                    final backendRole = roleData['backendValue']!;
+                    _authController.selectedRole.value = backendRole;
 
-                      // Navigate based on role
-                      if (backendRole == 'trainer') {
-                        Get.to(() => const TrainerProfileSetupView());
-                      } else if (backendRole == 'barn_manager') {
-                        Get.to(() => const BarnManagerCreateProfileView());
+                    // Update role via profile API
+                    final apiService = Get.find<ApiService>();
+                    try {
+                      _authController.isLoading.value = true;
+                      final response = await apiService.putRequest(
+                        AppUrls.updateRole,
+                        {'role': backendRole},
+                      );
+                      if (response.statusCode == 200) {
+                        // Save role locally
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('role', backendRole);
+
+                        // Navigate based on role
+                        if (backendRole == 'trainer') {
+                          Get.to(() => const TrainerProfileSetupView());
+                        } else if (backendRole == 'barn_manager') {
+                          Get.to(() => const BarnManagerCreateProfileView());
+                        } else {
+                          // Service Provider - go to select services screen
+                          Get.to(() => const VendorSelectServicesView());
+                        }
                       } else {
-                        // Service Provider - go to select services screen
-                        Get.to(() => const VendorSelectServicesView());
-                      }
-                    } else {
-                      Get.snackbar(AppStrings.error, AppStrings.failedToSetRole,
+                        Get.snackbar(
+                          AppStrings.error,
+                          AppStrings.failedToSetRole,
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.red,
-                          colorText: Colors.white);
+                          colorText: Colors.white,
+                        );
+                      }
+                    } finally {
+                      _authController.isLoading.value = false;
                     }
-                  } finally {
-                    _authController.isLoading.value = false;
-                  }
-                },
-              )),
+                  },
+                ),
+              ),
             ),
           ],
         ),

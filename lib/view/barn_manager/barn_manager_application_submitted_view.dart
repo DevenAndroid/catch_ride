@@ -39,7 +39,9 @@ class _BarnManagerApplicationSubmittedViewState
                   width: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.secondary.withOpacity(0.2), // Light outer halo
+                    color: AppColors.secondary.withOpacity(
+                      0.2,
+                    ), // Light outer halo
                   ),
                   child: Center(
                     child: Container(
@@ -87,7 +89,7 @@ class _BarnManagerApplicationSubmittedViewState
                   vertical: 18.0,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.infoBoxBg, 
+                  color: AppColors.infoBoxBg,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: AppColors.secondary.withOpacity(0.5),
@@ -117,4 +119,3 @@ class _BarnManagerApplicationSubmittedViewState
     );
   }
 }
-

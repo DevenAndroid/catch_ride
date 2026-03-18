@@ -12,10 +12,13 @@ class ChangePasswordView extends StatefulWidget {
 }
 
 class _ChangePasswordViewState extends State<ChangePasswordView> {
-  final BarnManagerSettingsController controller = Get.find<BarnManagerSettingsController>();
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final BarnManagerSettingsController controller =
+      Get.find<BarnManagerSettingsController>();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _obscureCurrent = true;
   bool _obscureNew = true;
@@ -67,7 +70,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                     label: 'Current Password',
                     controller: _currentPasswordController,
                     obscureText: _obscureCurrent,
-                    onToggle: () => setState(() => _obscureCurrent = !_obscureCurrent),
+                    onToggle: () =>
+                        setState(() => _obscureCurrent = !_obscureCurrent),
                   ),
                   const SizedBox(height: 20),
                   _buildPasswordField(
@@ -81,7 +85,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                     label: 'Confirm Password',
                     controller: _confirmPasswordController,
                     obscureText: _obscureConfirm,
-                    onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                    onToggle: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                 ],
               ),
@@ -102,20 +107,42 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        CommonText(
+          label,
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: '******',
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
             suffixIcon: IconButton(
               icon: Icon(
-                obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                obscureText
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: AppColors.textSecondary,
                 size: 20,
               ),
@@ -140,47 +167,64 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
           ),
         ],
       ),
-      child: Obx(() => GestureDetector(
-        onTap: controller.isLoading.value ? null : () async {
-          if (_currentPasswordController.text.isEmpty || 
-              _newPasswordController.text.isEmpty || 
-              _confirmPasswordController.text.isEmpty) {
-            Get.snackbar('Error', 'Please fill in all fields', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
-            return;
-          }
+      child: Obx(
+        () => GestureDetector(
+          onTap: controller.isLoading.value
+              ? null
+              : () async {
+                  if (_currentPasswordController.text.isEmpty ||
+                      _newPasswordController.text.isEmpty ||
+                      _confirmPasswordController.text.isEmpty) {
+                    Get.snackbar(
+                      'Error',
+                      'Please fill in all fields',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
 
-          if (_newPasswordController.text != _confirmPasswordController.text) {
-            Get.snackbar('Error', 'New passwords do not match', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
-            return;
-          }
+                  if (_newPasswordController.text !=
+                      _confirmPasswordController.text) {
+                    Get.snackbar(
+                      'Error',
+                      'New passwords do not match',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
 
-          final success = await controller.changePassword(
-            _currentPasswordController.text, 
-            _newPasswordController.text
-          );
+                  final success = await controller.changePassword(
+                    _currentPasswordController.text,
+                    _newPasswordController.text,
+                  );
 
-          if (success) {
-            Get.back();
-          }
-        },
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: const Color(0xFF000B48),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: controller.isLoading.value 
-              ? const CircularProgressIndicator(color: Colors.white)
-              : const CommonText(
-                  'Change Password',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                  if (success) {
+                    Get.back();
+                  }
+                },
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: const Color(0xFF000B48),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: controller.isLoading.value
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const CommonText(
+                      'Change Password',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }

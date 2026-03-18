@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../utils/validators.dart';
+
 class EditBasicInfoView extends StatefulWidget {
   const EditBasicInfoView({super.key});
 
@@ -19,9 +21,10 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
   File? _profileImage;
   File? _bannerImage;
   final ImagePicker _picker = ImagePicker();
-  
+
   final ProfileController _profileController = Get.find<ProfileController>();
-  
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _aboutController;
@@ -30,7 +33,9 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: _profileController.fullName);
-    _phoneController = TextEditingController(text: _profileController.phone.replaceAll('+1', '').trim());
+    _phoneController = TextEditingController(
+      text: _profileController.phone.replaceAll('+1', '').trim(),
+    );
     _aboutController = TextEditingController(text: _profileController.bio);
   }
 
@@ -43,9 +48,13 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
   }
 
   Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final nameParts = _nameController.text.trim().split(' ');
     String firstName = nameParts.isNotEmpty ? nameParts.first : '';
-    String lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    String lastName = nameParts.length > 1
+        ? nameParts.sublist(1).join(' ')
+        : '';
 
     final Map<String, dynamic> updateData = {
       'firstName': firstName,
@@ -56,7 +65,7 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
 
     // 1. Update text data
     bool success = await _profileController.updateProfile(updateData);
-    
+
     // 2. Upload images if picked
     if (success) {
       if (_profileImage != null) {
@@ -65,20 +74,26 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
       if (_bannerImage != null) {
         await _profileController.uploadImage(_bannerImage!.path, 'cover');
       }
-      
+
       // 3. Final refresh and go back
       await _profileController.fetchProfile();
       Get.back();
-      
-      Get.snackbar('Success', 'Profile updated successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white);
+
+      Get.snackbar(
+        'Success',
+        'Profile updated successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
     } else {
-      Get.snackbar('Error', 'Failed to update profile',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to update profile',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -155,11 +170,13 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Obx(() => CommonButton(
-                  text: 'Save', 
-                  isLoading: _profileController.isLoading.value,
-                  onPressed: () => _saveProfile(),
-                )),
+                child: Obx(
+                  () => CommonButton(
+                    text: 'Save',
+                    isLoading: _profileController.isLoading.value,
+                    onPressed: () => _saveProfile(),
+                  ),
+                ),
               ),
             ],
           ),
@@ -169,198 +186,204 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
   }
 
   Widget _buildEditCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Profile Photo
-          const CommonText(
-            'Profile Photo',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.center,
-            child: GestureDetector(
-              onTap: () => _pickImage(true),
-              child: Stack(
-                children: [
-                  Container(
-                    height: 100,
-                    width: 100,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: _profileImage != null
-                        ? ClipOval(
-                            child: Image.file(
-                              _profileImage!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.person_outline,
-                            size: 50,
-                            color: AppColors.textSecondary,
-                          ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+    return Form(
+      key: _formKey,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.border.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile Photo
+            const CommonText(
+              'Profile Photo',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.center,
+              child: GestureDetector(
+                onTap: () => _pickImage(true),
+                child: Stack(
+                  children: [
+                    Container(
+                      height: 100,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 4),
-                        ],
+                        border: Border.all(color: AppColors.border),
                       ),
-                      child: const Icon(
-                        Icons.edit_outlined,
-                        size: 16,
-                        color: Colors.black87,
+                      child: _profileImage != null
+                          ? ClipOval(
+                              child: Image.file(
+                                _profileImage!,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.person_outline,
+                              size: 50,
+                              color: AppColors.textSecondary,
+                            ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 4),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.edit_outlined,
+                          size: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Banner Image
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const CommonText(
+                  'Banner Image',
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+                GestureDetector(
+                  onTap: () => _pickImage(false),
+                  child: const Icon(
+                    Icons.edit_outlined,
+                    size: 20,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => _pickImage(false),
+              child: CustomPaint(
+                painter: _bannerImage == null
+                    ? DashPainter(color: AppColors.border)
+                    : null,
+                child: Container(
+                  width: double.infinity,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: _bannerImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(_bannerImage!, fit: BoxFit.cover),
+                        )
+                      : const Center(
+                          child: Icon(
+                            Icons.add,
+                            color: AppColors.textSecondary,
+                            size: 32,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Full Name
+            CommonTextField(
+              controller: _nameController,
+              label: 'Full Name',
+              hintText: 'Enter your full name',
+              isRequired: true,
+            ),
+            const SizedBox(height: 16),
+
+            // Phone Number
+            const CommonText(
+              'Phone Number',
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  const CommonText(
+                    '+1',
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      validator: Validations.phoneValidator,
+                      maxLength: 10,
+                      decoration: const InputDecoration(
+                        counterText: "",
+                        hintText: 'Enter phone number',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-          // Banner Image
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const CommonText(
-                'Banner Image',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-              GestureDetector(
-                onTap: () => _pickImage(false),
-                child: const Icon(
-                  Icons.edit_outlined,
-                  size: 20,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () => _pickImage(false),
-            child: CustomPaint(
-              painter: _bannerImage == null
-                  ? DashPainter(color: AppColors.border)
-                  : null,
-              child: Container(
-                width: double.infinity,
-                height: 150,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: _bannerImage != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.file(_bannerImage!, fit: BoxFit.cover),
-                      )
-                    : const Center(
-                        child: Icon(
-                          Icons.add,
-                          color: AppColors.textSecondary,
-                          size: 32,
-                        ),
-                      ),
-              ),
+            // About
+            CommonTextField(
+              controller: _aboutController,
+              label: 'About',
+              hintText: 'Write a short bio',
+              maxLines: 4,
             ),
-          ),
-          const SizedBox(height: 24),
-
-          // Full Name
-          CommonTextField(
-            controller: _nameController,
-            label: 'Full Name',
-            hintText: 'Enter your full name',
-            isRequired: true,
-          ),
-          const SizedBox(height: 16),
-
-          // Phone Number
-          const CommonText(
-            'Phone Number',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              children: [
-                const CommonText(
-                  '+1',
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 18,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextFormField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter phone number',
-                      border: InputBorder.none,
-                      hintStyle: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // About
-          CommonTextField(
-            controller: _aboutController,
-            label: 'About',
-            hintText: 'Write a short bio',
-            maxLines: 4,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

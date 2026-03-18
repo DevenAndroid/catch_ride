@@ -11,34 +11,41 @@ class VendorSelectServicesView extends StatefulWidget {
   const VendorSelectServicesView({super.key});
 
   @override
-  State<VendorSelectServicesView> createState() => _VendorSelectServicesViewState();
+  State<VendorSelectServicesView> createState() =>
+      _VendorSelectServicesViewState();
 }
 
 class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
   final List<Map<String, String>> _services = [
     {
       'name': 'Grooming',
-      'image': 'https://images.unsplash.com/photo-1598974357801-cb9267104f2d?q=80&w=2670&auto=format&fit=crop',
+      'image':
+          'https://images.unsplash.com/photo-1598974357801-cb9267104f2d?q=80&w=2670&auto=format&fit=crop',
     },
     {
       'name': 'Braiding',
-      'image': 'https://images.unsplash.com/photo-1596245347206-897db67204ee?q=80&w=2576&auto=format&fit=crop',
+      'image':
+          'https://images.unsplash.com/photo-1596245347206-897db67204ee?q=80&w=2576&auto=format&fit=crop',
     },
     {
       'name': 'Clipping',
-      'image': 'https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?q=80&w=2574&auto=format&fit=crop',
+      'image':
+          'https://images.unsplash.com/photo-1628155930542-3c7a64e2c833?q=80&w=2574&auto=format&fit=crop',
     },
     {
       'name': 'Bodywork',
-      'image': 'https://images.unsplash.com/photo-1530268576251-d4190c6ca38a?q=80&w=2670&auto=format&fit=crop',
+      'image':
+          'https://images.unsplash.com/photo-1530268576251-d4190c6ca38a?q=80&w=2670&auto=format&fit=crop',
     },
     {
       'name': 'Shipping',
-      'image': 'https://images.unsplash.com/photo-1551062029-7ca656f5c888?q=80&w=2670&auto=format&fit=crop',
+      'image':
+          'https://images.unsplash.com/photo-1551062029-7ca656f5c888?q=80&w=2670&auto=format&fit=crop',
     },
     {
       'name': 'Farrier',
-      'image': 'https://images.unsplash.com/photo-1534067783941-51c9c23eccfd?q=80&w=2574&auto=format&fit=crop',
+      'image':
+          'https://images.unsplash.com/photo-1534067783941-51c9c23eccfd?q=80&w=2574&auto=format&fit=crop',
     },
   ];
 
@@ -72,7 +79,11 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.black,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
@@ -110,7 +121,9 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
                 itemCount: _services.length,
                 itemBuilder: (context, index) {
                   final service = _services[index];
-                  final isSelected = _selectedServices.contains(service['name']);
+                  final isSelected = _selectedServices.contains(
+                    service['name'],
+                  );
                   return _buildServiceCard(service, isSelected);
                 },
               ),
@@ -144,7 +157,9 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF00083D) : const Color(0xFFEAECF0),
+            color: isSelected
+                ? const Color(0xFF00083D)
+                : const Color(0xFFEAECF0),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
@@ -163,7 +178,9 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
               child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(14),
+                    ),
                     child: CachedNetworkImage(
                       imageUrl: service['image']!,
                       width: double.infinity,
@@ -177,7 +194,10 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
                       ),
                       errorWidget: (context, url, error) => Container(
                         color: const Color(0xFFF2F4F7),
-                        child: const Icon(Icons.error_outline, color: Color(0xFFD0D5DD)),
+                        child: const Icon(
+                          Icons.error_outline,
+                          color: Color(0xFFD0D5DD),
+                        ),
                       ),
                     ),
                   ),
@@ -191,7 +211,11 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
                           color: Color(0xFF00083D),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.check, size: 14, color: Colors.white),
+                        child: const Icon(
+                          Icons.check,
+                          size: 14,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                 ],
@@ -203,7 +227,9 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFFEDF2FE) : Colors.white,
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(14),
+                  ),
                 ),
                 alignment: Alignment.center,
                 child: CommonText(

@@ -31,7 +31,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
   void _loadHorses({bool refresh = true}) {
     final trainerId = profileController.trainerId;
     final userId = profileController.id;
-    
+
     if (trainerId.isNotEmpty) {
       horseController.fetchHorses(refresh: refresh, trainerId: trainerId);
     } else if (userId.isNotEmpty) {
@@ -40,8 +40,11 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      if (!horseController.isLoading.value && !horseController.isMoreLoading.value && horseController.hasNextPage.value) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!horseController.isLoading.value &&
+          !horseController.isMoreLoading.value &&
+          horseController.hasNextPage.value) {
         _loadHorses(refresh: false);
       }
     }
@@ -62,7 +65,11 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
         elevation: 0,
         centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
@@ -74,50 +81,62 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
       ),
       body: SafeArea(
         child: Obx(() {
-          if (horseController.isLoading.value && horseController.horses.isEmpty) {
+          if (horseController.isLoading.value &&
+              horseController.horses.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
           // Use static mock data if the list is empty (for review purposes)
-          final displayHorses = horseController.horses.isEmpty 
-            ? [
-                HorseModel(
-                  id: 'mock1',
-                  name: 'Golden Hour',
-                  breed: 'Warmblood',
-                  age: 8,
-                  gender: 'Gelding',
-                  listingTitle: 'Golden Hour - Top Children\'s Hunter',
-                  description: 'Lovely Children\'s Hunter with a great brain and an easy lead change. Brave, consistent, and forgiving...',
-                  location: 'Aiken, SC, USA',
-                  trainerName: 'John Snow',
-                  trainerAvatar: 'https://i.pravatar.cc/150?u=john',
-                  images: ['https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=800'],
-                  listingTypes: ['For Sale', 'Weekly Lease'],
-                ),
-                HorseModel(
-                  id: 'mock2',
-                  name: 'Valentino Z',
-                  breed: 'Zangersheide',
-                  age: 10,
-                  gender: 'Stallion',
-                  listingTitle: 'Valentino Z - Quick + Careful Jr/Am Ju...',
-                  description: 'Brave to the jumps and efficient around the track. Perfect for a Jr/Am rider looking to be competitive in the ring.',
-                  location: 'Tryon, NC',
-                  trainerName: 'John Snow',
-                  trainerAvatar: 'https://i.pravatar.cc/150?u=john',
-                  images: ['https://images.unsplash.com/photo-1598974357801-cbca100e65d3?q=80&w=800'],
-                  listingTypes: ['For Sale', 'Annual Lease'],
-                ),
-              ]
-            : horseController.horses;
+          final displayHorses = horseController.horses.isEmpty
+              ? [
+                  HorseModel(
+                    id: 'mock1',
+                    name: 'Golden Hour',
+                    breed: 'Warmblood',
+                    age: 8,
+                    gender: 'Gelding',
+                    listingTitle: 'Golden Hour - Top Children\'s Hunter',
+                    description:
+                        'Lovely Children\'s Hunter with a great brain and an easy lead change. Brave, consistent, and forgiving...',
+                    location: 'Aiken, SC, USA',
+                    trainerName: 'John Snow',
+                    trainerAvatar: 'https://i.pravatar.cc/150?u=john',
+                    images: [
+                      'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=800',
+                    ],
+                    listingTypes: ['For Sale', 'Weekly Lease'],
+                  ),
+                  HorseModel(
+                    id: 'mock2',
+                    name: 'Valentino Z',
+                    breed: 'Zangersheide',
+                    age: 10,
+                    gender: 'Stallion',
+                    listingTitle: 'Valentino Z - Quick + Careful Jr/Am Ju...',
+                    description:
+                        'Brave to the jumps and efficient around the track. Perfect for a Jr/Am rider looking to be competitive in the ring.',
+                    location: 'Tryon, NC',
+                    trainerName: 'John Snow',
+                    trainerAvatar: 'https://i.pravatar.cc/150?u=john',
+                    images: [
+                      'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?q=80&w=800',
+                    ],
+                    listingTypes: ['For Sale', 'Annual Lease'],
+                  ),
+                ]
+              : horseController.horses;
 
           return RefreshIndicator(
             onRefresh: () async => _loadHorses(),
             child: ListView.separated(
               controller: _scrollController,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              itemCount: displayHorses.length + (horseController.hasNextPage.value && horseController.horses.isNotEmpty ? 1 : 0),
+              itemCount:
+                  displayHorses.length +
+                  (horseController.hasNextPage.value &&
+                          horseController.horses.isNotEmpty
+                      ? 1
+                      : 0),
               separatorBuilder: (_, __) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 if (index == displayHorses.length) {
@@ -132,10 +151,20 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                 final horse = displayHorses[index];
                 return _buildPostCard(
                   horse: horse,
-                  userName: (horse.trainerName != null && horse.trainerName!.isNotEmpty) ? horse.trainerName! : profileController.fullName,
-                  userAvatar: (horse.trainerAvatar != null && horse.trainerAvatar!.isNotEmpty) ? horse.trainerAvatar! : profileController.avatar,
-                  timePosted: '16 days ago', 
-                  mainImageUrl: horse.images.isNotEmpty ? horse.images.first : AppConstants.dummyImageUrl,
+                  userName:
+                      (horse.trainerName != null &&
+                          horse.trainerName!.isNotEmpty)
+                      ? horse.trainerName!
+                      : profileController.fullName,
+                  userAvatar:
+                      (horse.trainerAvatar != null &&
+                          horse.trainerAvatar!.isNotEmpty)
+                      ? horse.trainerAvatar!
+                      : profileController.avatar,
+                  timePosted: '16 days ago',
+                  mainImageUrl: horse.images.isNotEmpty
+                      ? horse.images.first
+                      : AppConstants.dummyImageUrl,
                   imageCount: '1 / ${horse.images.length}',
                   tags: horse.listingTypes,
                   postTitle: horse.listingTitle ?? horse.name,
@@ -196,7 +225,9 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
   }) {
     return GestureDetector(
       onTap: () {
-        Get.to(() => TrainerHorseDetailView(horse: horse, isOwnHorse: isOwnHorse));
+        Get.to(
+          () => TrainerHorseDetailView(horse: horse, isOwnHorse: isOwnHorse),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -220,7 +251,9 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
               child: Row(
                 children: [
                   CommonImageView(
-                    url: (userAvatar != null && userAvatar.isNotEmpty) ? userAvatar : AppConstants.dummyImageUrl,
+                    url: (userAvatar != null && userAvatar.isNotEmpty)
+                        ? userAvatar
+                        : AppConstants.dummyImageUrl,
                     height: 44,
                     width: 44,
                     shape: BoxShape.circle,
@@ -265,7 +298,10 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   bottom: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.6),
                       borderRadius: BorderRadius.circular(16),
@@ -290,22 +326,33 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: tags.map((tag) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF2F4F7),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: CommonText(
-                          tag,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      )).toList(),
+                      children: tags
+                          .map(
+                            (tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF2F4F7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: CommonText(
+                                tag,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ),
-                  const Icon(Icons.share_outlined, color: AppColors.textPrimary, size: 24),
+                  const Icon(
+                    Icons.share_outlined,
+                    color: AppColors.textPrimary,
+                    size: 24,
+                  ),
                 ],
               ),
             ),
@@ -334,7 +381,11 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, color: AppColors.textSecondary, size: 16),
+                      const Icon(
+                        Icons.location_on,
+                        color: AppColors.textSecondary,
+                        size: 16,
+                      ),
                       const SizedBox(width: 4),
                       CommonText(
                         location,

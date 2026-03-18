@@ -70,7 +70,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                     true,
                   ),
                   const SizedBox(height: 40),
-                  
+
                   // Share Link Card
                   Container(
                     width: double.infinity,
@@ -78,7 +78,9 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.3),
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.04),
@@ -98,10 +100,15 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                         ),
                         const SizedBox(height: 12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
+                            border: Border.all(
+                              color: AppColors.border.withValues(alpha: 0.8),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -114,12 +121,16 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Get.snackbar('Success', 'Link copied to clipboard');
+                                  Get.snackbar(
+                                    'Success',
+                                    'Link copied to clipboard',
+                                  );
                                 },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: const CommonText(
                                   'Copy Link',
@@ -170,9 +181,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
               SizedBox(
                 height: 44,
                 width: 1,
-                child: CustomPaint(
-                  painter: DashedLinePainter(),
-                ),
+                child: CustomPaint(painter: DashedLinePainter()),
               ),
           ],
         ),
@@ -205,9 +214,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
   Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       child: GestureDetector(
         onTap: () {
           Get.snackbar('Success', 'Opening share options...');

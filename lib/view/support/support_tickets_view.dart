@@ -81,8 +81,10 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
   Widget _buildTicketCard(Map<String, dynamic> ticket) {
     final String category = ticket['category'] ?? 'General';
     final String subject = ticket['subject'] ?? '';
-    final String status = (ticket['status'] ?? 'Pending').toString().toLowerCase();
-    
+    final String status = (ticket['status'] ?? 'Pending')
+        .toString()
+        .toLowerCase();
+
     // Formatting date
     String formattedDate = '';
     try {

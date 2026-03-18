@@ -53,31 +53,33 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.border.withOpacity(0.5)),
               ),
-              child: Obx(() => Row(
-                children: [
-                  const Icon(
-                    Icons.notifications_none,
-                    size: 24,
-                    color: AppColors.textPrimary,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: CommonText(
-                      'Push Notification',
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+              child: Obx(
+                () => Row(
+                  children: [
+                    const Icon(
+                      Icons.notifications_none,
+                      size: 24,
                       color: AppColors.textPrimary,
                     ),
-                  ),
-                  CupertinoSwitch(
-                    activeColor: const Color(0xFF13CA8B),
-                    value: profileController.pushNotificationsEnabled,
-                    onChanged: (value) {
-                      profileController.togglePushNotifications(value);
-                    },
-                  ),
-                ],
-              )),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: CommonText(
+                        'Push Notification',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    CupertinoSwitch(
+                      activeColor: const Color(0xFF13CA8B),
+                      value: profileController.pushNotificationsEnabled,
+                      onChanged: (value) {
+                        profileController.togglePushNotifications(value);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

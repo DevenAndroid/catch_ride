@@ -40,7 +40,9 @@ class NotificationModel {
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
       id: json['_id'] ?? json['id'] ?? '',
-      userId: json['userId'] is Map ? (json['userId']['_id'] ?? '') : (json['userId'] ?? ''),
+      userId: json['userId'] is Map
+          ? (json['userId']['_id'] ?? '')
+          : (json['userId'] ?? ''),
       type: json['type'] ?? 'system',
       title: json['title'] ?? '',
       message: json['message'] ?? '',
@@ -54,8 +56,12 @@ class NotificationModel {
       relatedType: json['relatedType'],
       icon: json['icon'],
       metadata: json['metadata'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : DateTime.now(),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'])
+          : DateTime.now(),
     );
   }
 

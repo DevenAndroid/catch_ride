@@ -5,7 +5,7 @@ class DateUtil {
 
   static String formatDisplayDate(dynamic date) {
     if (date == null) return '';
-    
+
     DateTime? dateTime;
     if (date is DateTime) {
       dateTime = date;
@@ -18,10 +18,10 @@ class DateUtil {
         try {
           dateTime = DateFormat('dd MMM yyyy').parse(date);
         } catch (_) {
-           try {
+          try {
             dateTime = DateFormat('yyyy-MM-dd').parse(date);
           } catch (_) {
-             return date; // Return as is if we can't parse
+            return date; // Return as is if we can't parse
           }
         }
       }
@@ -44,9 +44,9 @@ class DateUtil {
 
   static String getTimeAgo(DateTime? date) {
     if (date == null) return 'N/A';
-    
+
     final duration = DateTime.now().difference(date);
-    
+
     if (duration.inDays > 30) {
       return formatDisplayDate(date);
     } else if (duration.inDays > 0) {

@@ -17,8 +17,10 @@ class OtpVerificationView extends StatefulWidget {
 
 class _OtpVerificationViewState extends State<OtpVerificationView> {
   final AuthController _authController = Get.find<AuthController>();
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   int _secondsRemaining = 60;
@@ -81,8 +83,11 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
@@ -149,9 +154,9 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: _focusNodes[index].hasFocus 
-                            ? AppColors.primary 
-                            : AppColors.border, 
+                        color: _focusNodes[index].hasFocus
+                            ? AppColors.primary
+                            : AppColors.border,
                         width: 1.5,
                       ),
                     ),
@@ -164,7 +169,7 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                       showCursor: false, // Keeps UI cleaner
                       maxLength: 1,
                       onTap: () {
-                        setState(() {}); 
+                        setState(() {});
                       },
                       style: const TextStyle(
                         fontSize: 22,
@@ -179,7 +184,8 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                         enabledBorder: InputBorder.none,
                         errorBorder: InputBorder.none,
                         disabledBorder: InputBorder.none,
-                        isCollapsed: true, // Crucial for removing internal padding
+                        isCollapsed:
+                            true, // Crucial for removing internal padding
                         filled: false,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -215,20 +221,25 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
               const SizedBox(height: 40),
 
               // Verify button
-              Obx(() => CommonButton(
-                    text: 'Verify',
-                    isLoading: _authController.isLoading.value,
-                    onPressed: () {
-                      if (_otp.length < 6) {
-                        Get.snackbar('Error', 'Please enter the full 6-digit code',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.red,
-                            colorText: Colors.white);
-                        return;
-                      }
-                      _authController.verifyEmail(widget.email, _otp);
-                    },
-                  )),
+              Obx(
+                () => CommonButton(
+                  text: 'Verify',
+                  isLoading: _authController.isLoading.value,
+                  onPressed: () {
+                    if (_otp.length < 6) {
+                      Get.snackbar(
+                        'Error',
+                        'Please enter the full 6-digit code',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+                    _authController.verifyEmail(widget.email, _otp);
+                  },
+                ),
+              ),
             ],
           ),
         ),

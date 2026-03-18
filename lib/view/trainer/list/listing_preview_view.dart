@@ -46,10 +46,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       _isYoutube = true;
       _youtubeController = YoutubePlayerController(
         initialVideoId: youtubeId,
-        flags: const YoutubePlayerFlags(
-          autoPlay: false,
-          mute: false,
-        ),
+        flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
       );
     } else {
       _isYoutube = false;
@@ -115,7 +112,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       children: [
         // Hero Image
         _buildImageSection(),
-        
+
         // Gradient Overlay
         Positioned.fill(
           child: Container(
@@ -145,7 +142,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                 color: Colors.white.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
           ),
         ),
@@ -167,15 +168,21 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                   const Icon(Icons.location_on, color: Color(0xFFEF4444), size: 16),
-                   const SizedBox(width: 4),
-                   CommonText(location, color: Colors.white, fontSize: 13),
+                  const Icon(
+                    Icons.location_on,
+                    color: Color(0xFFEF4444),
+                    size: 16,
+                  ),
+                  const SizedBox(width: 4),
+                  CommonText(location, color: Colors.white, fontSize: 13),
                 ],
               ),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
-                children: controller.selectedListingTypes.map((type) => _buildHeroTag(type)).toList(),
+                children: controller.selectedListingTypes
+                    .map((type) => _buildHeroTag(type))
+                    .toList(),
               ),
             ],
           ),
@@ -190,9 +197,16 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       decoration: BoxDecoration(
         color: const Color(0xFFEF4444).withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.2)),
+        border: Border.all(
+          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
+        ),
       ),
-      child: CommonText(tag, color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+      child: CommonText(
+        tag,
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 
@@ -213,14 +227,27 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonText(name, fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                CommonText(stables, fontSize: 13, color: AppColors.textSecondary),
+                CommonText(
+                  name,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+                CommonText(
+                  stables,
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: AppColors.textPrimary, size: 22),
+            icon: const Icon(
+              Icons.more_vert,
+              color: AppColors.textPrimary,
+              size: 22,
+            ),
           ),
         ],
       ),
@@ -258,12 +285,14 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
             }
             // Fallback for preview if empty
             // No fallback tags if empty
-            
+
             if (selectedTagNames.isEmpty) return const SizedBox.shrink();
             return Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: selectedTagNames.map((tag) => _buildDetailChip(tag)).toList(),
+              children: selectedTagNames
+                  .map((tag) => _buildDetailChip(tag))
+                  .toList(),
             );
           }),
           const SizedBox(height: 24),
@@ -279,7 +308,12 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         color: const Color(0xFFEEF2FF),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: CommonText(label, color: const Color(0xFF4338CA), fontSize: 12, fontWeight: FontWeight.w600),
+      child: CommonText(
+        label,
+        color: const Color(0xFF4338CA),
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 
@@ -289,57 +323,98 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: CommonText('Details', fontSize: 18, fontWeight: FontWeight.bold),
+          child: CommonText(
+            'Details',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         Container(
-           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-           decoration: BoxDecoration(
-             color: Colors.white,
-             borderRadius: BorderRadius.circular(16),
-             border: Border.all(color: AppColors.borderLight),
-             boxShadow: [
-               BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 8)),
-             ],
-           ),
-           child: Column(
-             children: [
-               _buildGridRow(
-                 'Horse name', controller.horseNameController.text.isEmpty ? 'N/A' : controller.horseNameController.text,
-                 'USEF', controller.usefNumberController.text.isEmpty ? 'N/A' : controller.usefNumberController.text,
-                 isExternal: true,
-               ),
-               const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1, color: AppColors.borderLight)),
-               _buildGridRow(
-                 'Age', controller.ageController.text.isEmpty ? 'N/A' : '${controller.ageController.text} Years',
-                 'Height', controller.heightController.text.isEmpty ? 'N/A' : controller.heightController.text,
-               ),
-               const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1, color: AppColors.borderLight)),
-               _buildGridRow(
-                 'Breed', controller.breedController.text.isEmpty ? 'N/A' : controller.breedController.text,
-                 'Color', controller.colorController.text.isEmpty ? 'N/A' : controller.colorController.text,
-               ),
-               const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1, color: AppColors.borderLight)),
-               _buildGridRow(
-                 'Discipline', controller.selectedDiscipline.value.isEmpty ? 'N/A' : controller.selectedDiscipline.value,
-                 '', '',
-               ),
-             ],
-           ),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.borderLight),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildGridRow(
+                'Horse name',
+                controller.horseNameController.text.isEmpty
+                    ? 'N/A'
+                    : controller.horseNameController.text,
+                'USEF',
+                controller.usefNumberController.text.isEmpty
+                    ? 'N/A'
+                    : controller.usefNumberController.text,
+                isExternal: true,
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(height: 1, color: AppColors.borderLight),
+              ),
+              _buildGridRow(
+                'Age',
+                controller.ageController.text.isEmpty
+                    ? 'N/A'
+                    : '${controller.ageController.text} Years',
+                'Height',
+                controller.heightController.text.isEmpty
+                    ? 'N/A'
+                    : controller.heightController.text,
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(height: 1, color: AppColors.borderLight),
+              ),
+              _buildGridRow(
+                'Breed',
+                controller.breedController.text.isEmpty
+                    ? 'N/A'
+                    : controller.breedController.text,
+                'Color',
+                controller.colorController.text.isEmpty
+                    ? 'N/A'
+                    : controller.colorController.text,
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(height: 1, color: AppColors.borderLight),
+              ),
+              _buildGridRow(
+                'Discipline',
+                controller.selectedDiscipline.value.isEmpty
+                    ? 'N/A'
+                    : controller.selectedDiscipline.value,
+                '',
+                '',
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildGridRow(String label1, String val1, String label2, String val2, {bool isExternal = false}) {
+  Widget _buildGridRow(
+    String label1,
+    String val1,
+    String label2,
+    String val2, {
+    bool isExternal = false,
+  }) {
     return Row(
       children: [
-        Expanded(
-          child: _buildGridItem(label1, val1),
-        ),
-        Expanded(
-          child: _buildGridItem(label2, val2, isExternal: isExternal),
-        ),
+        Expanded(child: _buildGridItem(label1, val1)),
+        Expanded(child: _buildGridItem(label2, val2, isExternal: isExternal)),
       ],
     );
   }
@@ -383,7 +458,12 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
     List<String> types = controller.selectedListingTypes.toList();
     if (types.isEmpty) {
       // Fallback for preview
-      types = ['For Sale', 'Weekly Lease', 'Annual Lease', 'Short Term or Circuit Lease'];
+      types = [
+        'For Sale',
+        'Weekly Lease',
+        'Annual Lease',
+        'Short Term or Circuit Lease',
+      ];
     }
 
     return Column(
@@ -391,52 +471,64 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       children: [
         const Padding(
           padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-          child: CommonText('Pricing', fontSize: 18, fontWeight: FontWeight.bold),
+          child: CommonText(
+            'Pricing',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         Container(
-           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-           decoration: BoxDecoration(
-             color: Colors.white,
-             borderRadius: BorderRadius.circular(16),
-             border: Border.all(color: AppColors.borderLight),
-             boxShadow: [
-               BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 8)),
-             ],
-           ),
-           child: Column(
-             children: List.generate((types.length / 2).ceil(), (index) {
-                final start = index * 2;
-                final end = (start + 2 < types.length) ? start + 2 : types.length;
-                final pair = types.sublist(start, end);
-                
-                return Column(
-                  children: [
-                    Row(
-                      children: pair.map((type) {
-                        final isInquire = controller.inquireForPrice[type] ?? false;
-                        final minPrice = controller.minPriceControllers[type]?.text ?? '';
-                        final maxPrice = controller.maxPriceControllers[type]?.text ?? '';
-                        
-                        // Show 'N/A' for empty fields in preview
-                        String priceText = 'N/A';
-                        if (isInquire) {
-                          priceText = 'Inquire';
-                        } else if (minPrice.isNotEmpty && maxPrice.isNotEmpty) {
-                          priceText = '\$ $minPrice - \$ $maxPrice';
-                        }
-                        
-                        return Expanded(
-                          child: _buildGridItem(type, priceText),
-                        );
-                      }).toList(),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.borderLight),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: List.generate((types.length / 2).ceil(), (index) {
+              final start = index * 2;
+              final end = (start + 2 < types.length) ? start + 2 : types.length;
+              final pair = types.sublist(start, end);
+
+              return Column(
+                children: [
+                  Row(
+                    children: pair.map((type) {
+                      final isInquire =
+                          controller.inquireForPrice[type] ?? false;
+                      final minPrice =
+                          controller.minPriceControllers[type]?.text ?? '';
+                      final maxPrice =
+                          controller.maxPriceControllers[type]?.text ?? '';
+
+                      // Show 'N/A' for empty fields in preview
+                      String priceText = 'N/A';
+                      if (isInquire) {
+                        priceText = 'Inquire';
+                      } else if (minPrice.isNotEmpty && maxPrice.isNotEmpty) {
+                        priceText = '\$ $minPrice - \$ $maxPrice';
+                      }
+
+                      return Expanded(child: _buildGridItem(type, priceText));
+                    }).toList(),
+                  ),
+                  if (index < (types.length / 2).ceil() - 1)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Divider(height: 1, color: AppColors.borderLight),
                     ),
-                    if (index < (types.length / 2).ceil() - 1)
-                      const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1, color: AppColors.borderLight)),
-                  ],
-                );
-             }),
-           ),
+                ],
+              );
+            }),
+          ),
         ),
       ],
     );
@@ -445,11 +537,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
   Widget _buildAvailabilitySection() {
     return Obx(() {
       final entries = controller.availabilityEntries;
-      
+
       final List<dynamic> displayEntries = entries.where((e) {
-        return e.showVenueController.text.isNotEmpty || 
-               e.cityStateController.text.isNotEmpty || 
-               e.startDateController.text.isNotEmpty;
+        return e.showVenueController.text.isNotEmpty ||
+            e.cityStateController.text.isNotEmpty ||
+            e.startDateController.text.isNotEmpty;
       }).toList();
 
       if (displayEntries.isEmpty) return const SizedBox.shrink();
@@ -459,7 +551,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-            child: CommonText('Availability', fontSize: 18, fontWeight: FontWeight.bold),
+            child: CommonText(
+              'Availability',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -469,7 +565,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.borderLight),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 8)),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
               ],
             ),
             child: ListView.separated(
@@ -491,7 +591,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                   location = entry['location'];
                 } else {
                   venue = entry.showVenueController.text;
-                  dates = '${entry.startDateController.text} - ${entry.endDateController.text}';
+                  dates =
+                      '${entry.startDateController.text} - ${entry.endDateController.text}';
                   location = entry.cityStateController.text;
                 }
 
@@ -502,21 +603,42 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CommonText(venue, fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                    CommonText(
+                      venue,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 10),
-                        CommonText(dates, fontSize: 14, color: AppColors.textSecondary),
+                        CommonText(
+                          dates,
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
                         const SizedBox(width: 10),
-                        CommonText(location, fontSize: 14, color: AppColors.textSecondary),
+                        CommonText(
+                          location,
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
                       ],
                     ),
                   ],
@@ -570,32 +692,32 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                       progressIndicatorColor: AppColors.primary,
                     )
                   : _videoPlayerController!.value.isInitialized
-                      ? GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _videoPlayerController!.value.isPlaying
-                                  ? _videoPlayerController!.pause()
-                                  : _videoPlayerController!.play();
-                            });
-                          },
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              AspectRatio(
-                                aspectRatio: _videoPlayerController!
-                                    .value.aspectRatio,
-                                child: VideoPlayer(_videoPlayerController!),
-                              ),
-                              if (!_videoPlayerController!.value.isPlaying)
-                                const Icon(
-                                  Icons.play_circle_fill,
-                                  color: Colors.white,
-                                  size: 64,
-                                ),
-                            ],
+                  ? GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _videoPlayerController!.value.isPlaying
+                              ? _videoPlayerController!.pause()
+                              : _videoPlayerController!.play();
+                        });
+                      },
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          AspectRatio(
+                            aspectRatio:
+                                _videoPlayerController!.value.aspectRatio,
+                            child: VideoPlayer(_videoPlayerController!),
                           ),
-                        )
-                      : const Center(child: CircularProgressIndicator()),
+                          if (!_videoPlayerController!.value.isPlaying)
+                            const Icon(
+                              Icons.play_circle_fill,
+                              color: Colors.white,
+                              size: 64,
+                            ),
+                        ],
+                      ),
+                    )
+                  : const Center(child: CircularProgressIndicator()),
             );
           }
         },

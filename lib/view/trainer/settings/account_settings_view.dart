@@ -51,99 +51,123 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
           child: Container(color: AppColors.border.withOpacity(0.5), height: 1),
         ),
       ),
-      body: Obx(() => controller.isLoading.value 
-        ? const Center(child: CircularProgressIndicator())
-        : SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader('Login'),
-              _buildSettingsCard([
-                _buildActionTile(
-                  icon: Icons.person_outline_rounded,
-                  title: 'Change Password',
-                  actionText: 'Change',
-                  actionColor: const Color(0xFF2E90FA),
-                  onTap: () => Get.to(() => const ChangePasswordView()),
-                ),
-              ]),
-              const SizedBox(height: 24),
+      body: Obx(
+        () => controller.isLoading.value
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionHeader('Login'),
+                    _buildSettingsCard([
+                      _buildActionTile(
+                        icon: Icons.person_outline_rounded,
+                        title: 'Change Password',
+                        actionText: 'Change',
+                        actionColor: const Color(0xFF2E90FA),
+                        onTap: () => Get.to(() => const ChangePasswordView()),
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
 
-              _buildSectionHeader('Social Account'),
-              _buildSettingsCard([
-                _buildActionTile(
-                  icon: Icons.g_mobiledata_rounded,
-                  title: 'Google',
-                  actionText: 'Connect',
-                  actionColor: const Color(0xFF17B26A),
-                  onTap: () {
-                    Get.snackbar('Coming Soon', 'Google connection is coming soon', snackPosition: SnackPosition.BOTTOM);
-                  },
-                ),
-                _buildActionTile(
-                  icon: Icons.facebook_outlined,
-                  title: 'Facebook',
-                  actionText: 'Connect',
-                  actionColor: const Color(0xFF17B26A),
-                  onTap: () {
-                    Get.snackbar('Coming Soon', 'Facebook connection is coming soon', snackPosition: SnackPosition.BOTTOM);
-                  },
-                  showDivider: false,
-                ),
-              ]),
-              const SizedBox(height: 24),
+                    _buildSectionHeader('Social Account'),
+                    _buildSettingsCard([
+                      _buildActionTile(
+                        icon: Icons.g_mobiledata_rounded,
+                        title: 'Google',
+                        actionText: 'Connect',
+                        actionColor: const Color(0xFF17B26A),
+                        onTap: () {
+                          Get.snackbar(
+                            'Coming Soon',
+                            'Google connection is coming soon',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        },
+                      ),
+                      _buildActionTile(
+                        icon: Icons.facebook_outlined,
+                        title: 'Facebook',
+                        actionText: 'Connect',
+                        actionColor: const Color(0xFF17B26A),
+                        onTap: () {
+                          Get.snackbar(
+                            'Coming Soon',
+                            'Facebook connection is coming soon',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        },
+                        showDivider: false,
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
 
-              if (controller.activeSessions.isNotEmpty) ...[
-                _buildSectionHeader('Device History'),
-                _buildSettingsCard(
-                  controller.activeSessions.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final session = entry.value;
-                    return _buildDeviceTile(
-                      icon: (session['deviceType']?.toString().toLowerCase() == 'ios' || session['deviceType']?.toString().toLowerCase() == 'android')
-                          ? Icons.smartphone_rounded
-                          : Icons.laptop_mac_rounded,
-                      title: session['deviceName'] ?? 'Unknown Device',
-                      subtitle: session['lastUsed'] ?? 'Just now',
-                      onLogout: () async {
-                        final success = await controller.terminateSession(session['token'] ?? '');
-                        if (success) {
-                          Get.snackbar('Success', 'Session terminated', snackPosition: SnackPosition.BOTTOM);
-                        }
-                      },
-                      showDivider: index < controller.activeSessions.length - 1,
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 24),
-              ],
+                    if (controller.activeSessions.isNotEmpty) ...[
+                      _buildSectionHeader('Device History'),
+                      _buildSettingsCard(
+                        controller.activeSessions.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final session = entry.value;
+                          return _buildDeviceTile(
+                            icon:
+                                (session['deviceType']
+                                            ?.toString()
+                                            .toLowerCase() ==
+                                        'ios' ||
+                                    session['deviceType']
+                                            ?.toString()
+                                            .toLowerCase() ==
+                                        'android')
+                                ? Icons.smartphone_rounded
+                                : Icons.laptop_mac_rounded,
+                            title: session['deviceName'] ?? 'Unknown Device',
+                            subtitle: session['lastUsed'] ?? 'Just now',
+                            onLogout: () async {
+                              final success = await controller.terminateSession(
+                                session['token'] ?? '',
+                              );
+                              if (success) {
+                                Get.snackbar(
+                                  'Success',
+                                  'Session terminated',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                              }
+                            },
+                            showDivider:
+                                index < controller.activeSessions.length - 1,
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
 
-              _buildSectionHeader('Security & Account'),
-              _buildSettingsCard([
-                _buildToggleTile(
-                  icon: Icons.shield_outlined,
-                  title: 'Two-Factor Authentication',
-                  value: _is2FAEnabled,
-                  onChanged: (val) async {
-                    final success = await controller.toggle2FA(val);
-                    if (success) {
-                      setState(() => _is2FAEnabled = val);
-                    }
-                  },
+                    _buildSectionHeader('Security & Account'),
+                    _buildSettingsCard([
+                      _buildToggleTile(
+                        icon: Icons.shield_outlined,
+                        title: 'Two-Factor Authentication',
+                        value: _is2FAEnabled,
+                        onChanged: (val) async {
+                          final success = await controller.toggle2FA(val);
+                          if (success) {
+                            setState(() => _is2FAEnabled = val);
+                          }
+                        },
+                      ),
+                      _buildActionTile(
+                        icon: Icons.delete_outline_rounded,
+                        title: 'Delete you Account',
+                        trailIcon: Icons.arrow_forward_ios_rounded,
+                        onTap: () => _showDeleteAccountDialog(context),
+                        showDivider: false,
+                      ),
+                    ]),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-                _buildActionTile(
-                  icon: Icons.delete_outline_rounded,
-                  title: 'Delete you Account',
-                  trailIcon: Icons.arrow_forward_ios_rounded,
-                  onTap: () => _showDeleteAccountDialog(context),
-                  showDivider: false,
-                ),
-              ]),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
+              ),
       ),
     );
   }
@@ -209,7 +233,11 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                 if (actionText != null)
                   TextButton(
                     onPressed: onTap,
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: CommonText(
                       actionText,
                       fontSize: 14,
@@ -350,10 +378,20 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                 Get.back();
                 authController.logout();
               } else {
-                Get.snackbar('Error', 'Failed to delete account', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+                Get.snackbar(
+                  'Error',
+                  'Failed to delete account',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
               }
             },
-            child: const CommonText('Delete', color: Color(0xFFD92D20), fontWeight: FontWeight.bold),
+            child: const CommonText(
+              'Delete',
+              color: Color(0xFFD92D20),
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),

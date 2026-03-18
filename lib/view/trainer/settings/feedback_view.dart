@@ -70,7 +70,7 @@ class _FeedbackViewState extends State<FeedbackView> {
                     height: 1.5,
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Category Selection
                   const CommonText(
                     'Category',
@@ -84,7 +84,9 @@ class _FeedbackViewState extends State<FeedbackView> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                      border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.5),
+                      ),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
@@ -98,7 +100,9 @@ class _FeedbackViewState extends State<FeedbackView> {
                             });
                           }
                         },
-                        items: _categories.map<DropdownMenuItem<String>>((String value) {
+                        items: _categories.map<DropdownMenuItem<String>>((
+                          String value,
+                        ) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: CommonText(value, fontSize: 15),
@@ -119,7 +123,10 @@ class _FeedbackViewState extends State<FeedbackView> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _subjectController,
-                    style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: AppColors.textPrimary,
+                    ),
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
@@ -131,15 +138,22 @@ class _FeedbackViewState extends State<FeedbackView> {
                       contentPadding: const EdgeInsets.all(16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: AppColors.border.withValues(alpha: 0.5),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: AppColors.border.withValues(alpha: 0.5),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.2,
+                        ),
                       ),
                     ),
                   ),
@@ -171,15 +185,22 @@ class _FeedbackViewState extends State<FeedbackView> {
                       contentPadding: const EdgeInsets.all(16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: AppColors.border.withValues(alpha: 0.5),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: AppColors.border.withValues(alpha: 0.5),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.2,
+                        ),
                       ),
                     ),
                   ),
@@ -196,68 +217,79 @@ class _FeedbackViewState extends State<FeedbackView> {
   Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
-      child: Obx(() => GestureDetector(
-        onTap: supportController.isSubmitting.value ? null : () async {
-          if (_subjectController.text.trim().isEmpty) {
-            Get.snackbar('Alert', 'Please enter a subject',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.orange,
-                colorText: Colors.white);
-            return;
-          }
-          if (_feedbackController.text.trim().isEmpty) {
-            Get.snackbar('Alert', 'Please enter your feedback',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.orange,
-                colorText: Colors.white);
-            return;
-          }
-          
-          bool success = await supportController.submitFeedback(
-            category: _selectedCategory,
-            subject: _subjectController.text.trim(),
-            message: _feedbackController.text.trim(),
-          );
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Obx(
+        () => GestureDetector(
+          onTap: supportController.isSubmitting.value
+              ? null
+              : () async {
+                  if (_subjectController.text.trim().isEmpty) {
+                    Get.snackbar(
+                      'Alert',
+                      'Please enter a subject',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+                  if (_feedbackController.text.trim().isEmpty) {
+                    Get.snackbar(
+                      'Alert',
+                      'Please enter your feedback',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
 
-          if (success) {
-            Get.back();
-          }
-        },
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: supportController.isSubmitting.value 
-                ? AppColors.primary.withValues(alpha: 0.5) 
-                : AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              if (!supportController.isSubmitting.value)
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-            ],
-          ),
-          child: Center(
-            child: supportController.isSubmitting.value
-                ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : const CommonText(
-                    'Submit Feedback',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  bool success = await supportController.submitFeedback(
+                    category: _selectedCategory,
+                    subject: _subjectController.text.trim(),
+                    message: _feedbackController.text.trim(),
+                  );
+
+                  if (success) {
+                    Get.back();
+                  }
+                },
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: supportController.isSubmitting.value
+                  ? AppColors.primary.withValues(alpha: 0.5)
+                  : AppColors.primary,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                if (!supportController.isSubmitting.value)
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
+              ],
+            ),
+            child: Center(
+              child: supportController.isSubmitting.value
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const CommonText(
+                      'Submit Feedback',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }

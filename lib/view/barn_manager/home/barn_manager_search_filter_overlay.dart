@@ -12,10 +12,12 @@ class BarnManagerSearchFilterOverlay extends StatefulWidget {
   const BarnManagerSearchFilterOverlay({super.key});
 
   @override
-  State<BarnManagerSearchFilterOverlay> createState() => _BarnManagerSearchFilterOverlayState();
+  State<BarnManagerSearchFilterOverlay> createState() =>
+      _BarnManagerSearchFilterOverlayState();
 }
 
-class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilterOverlay> {
+class _BarnManagerSearchFilterOverlayState
+    extends State<BarnManagerSearchFilterOverlay> {
   final ExploreController controller = Get.put(ExploreController());
   final TextEditingController _searchController = TextEditingController();
 
@@ -43,12 +45,12 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
     controller.searchQuery.value = _searchController.text;
     controller.startDate.value = _rangeStart;
     controller.endDate.value = _rangeEnd;
-    
+
     // Save to history if text is not empty
     if (_searchController.text.trim().isNotEmpty) {
       controller.addToHistory(_searchController.text.trim());
     }
-    
+
     controller.fetchHorses();
     Get.back();
   }
@@ -62,12 +64,16 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
       _rangeEnd = null;
     });
   }
-  
+
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
     {'name': 'Jumper', 'icon': 'assets/icons/jumper.svg', 'isSvg': true},
-    {'name': 'Equitation', 'icon': 'assets/icons/equitation.svg', 'isSvg': true},
+    {
+      'name': 'Equitation',
+      'icon': 'assets/icons/equitation.svg',
+      'isSvg': true,
+    },
     {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
@@ -82,12 +88,10 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
             onTap: () => Get.back(),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                color: Colors.black.withOpacity(0.1),
-              ),
+              child: Container(color: Colors.black.withOpacity(0.1)),
             ),
           ),
-          
+
           // Content
           SafeArea(
             child: Column(
@@ -95,10 +99,14 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                 _buildTopBar(),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
                     child: Column(
                       children: [
-                        if (_selectedSection == 'location') _buildLocationSection(),
+                        if (_selectedSection == 'location')
+                          _buildLocationSection(),
                         if (_selectedSection == 'date') _buildDateSection(),
                       ],
                     ),
@@ -108,7 +116,7 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
               ],
             ),
           ),
-          
+
           // Close Button
           Positioned(
             top: 20,
@@ -150,7 +158,9 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.chipBackground : Colors.transparent,
+                        color: isSelected
+                            ? AppColors.chipBackground
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: cat['isSvg']
@@ -159,22 +169,30 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                               width: 28,
                               height: 28,
                               colorFilter: ColorFilter.mode(
-                                isSelected ? AppColors.primary : AppColors.textPrimary,
+                                isSelected
+                                    ? AppColors.primary
+                                    : AppColors.textPrimary,
                                 BlendMode.srcIn,
                               ),
                             )
                           : Icon(
                               cat['icon'] as IconData,
                               size: 28,
-                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                     ),
                     const SizedBox(height: 8),
                     CommonText(
                       cat['name'],
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
                     ),
                     const SizedBox(height: 8),
                     if (isSelected)
@@ -186,7 +204,7 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                           borderRadius: BorderRadius.circular(2),
                         ),
                       )
-                    else 
+                    else
                       const SizedBox(height: 3),
                   ],
                 ),
@@ -200,7 +218,7 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
 
   Widget _buildLocationSection() {
     final bool isShowVenue = _locationType == 'Show Venue';
-    
+
     return Column(
       children: [
         // Main Location Card
@@ -232,14 +250,19 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Search horses, vendors and circuits',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5)),
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary.withOpacity(0.5),
+                    ),
                     border: InputBorder.none,
-                    prefixIcon: const Icon(Icons.search_rounded, color: Colors.black87),
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Toggle Switcher
               Container(
                 padding: const EdgeInsets.all(4),
@@ -250,66 +273,98 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                 child: Row(
                   children: [
                     Expanded(
-                      child: _buildToggleItem('City / Home', _locationType == 'City / Home'),
+                      child: _buildToggleItem(
+                        'City / Home',
+                        _locationType == 'City / Home',
+                      ),
                     ),
                     Expanded(
-                      child: _buildToggleItem('Show Venue', _locationType == 'Show Venue'),
+                      child: _buildToggleItem(
+                        'Show Venue',
+                        _locationType == 'Show Venue',
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-              
+
               // Suggested Items (Matching Design)
               Obx(() {
                 if (isShowVenue) {
-                   if (controller.defaultVenues.isEmpty) {
-                     return const Padding(
-                       padding: EdgeInsets.symmetric(vertical: 10),
-                       child: CommonText('No venues found', fontSize: 13, color: AppColors.textSecondary),
-                     );
-                   }
-                   return Column(
-                     children: controller.defaultVenues.map((v) => _buildLocationItem(
-                       v['name'] ?? '', 
-                       isVenue: true, 
-                       subtitle: v['subtitle']
-                     )).toList(),
-                   );
+                  if (controller.defaultVenues.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: CommonText(
+                        'No venues found',
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: controller.defaultVenues
+                        .map(
+                          (v) => _buildLocationItem(
+                            v['name'] ?? '',
+                            isVenue: true,
+                            subtitle: v['subtitle'],
+                          ),
+                        )
+                        .toList(),
+                  );
                 } else {
-                   if (controller.defaultLocations.isEmpty) {
-                     return const Padding(
-                       padding: EdgeInsets.symmetric(vertical: 10),
-                       child: CommonText('No locations found', fontSize: 13, color: AppColors.textSecondary),
-                     );
-                   }
-                   return Column(
-                     children: controller.defaultLocations.map((l) => _buildLocationItem(
-                       l['name'] ?? ''
-                     )).toList(),
-                   );
+                  if (controller.defaultLocations.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: CommonText(
+                        'No locations found',
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: controller.defaultLocations
+                        .map((l) => _buildLocationItem(l['name'] ?? ''))
+                        .toList(),
+                  );
                 }
               }),
-              
+
               const SizedBox(height: 20),
               const Align(
                 alignment: Alignment.centerLeft,
-                child: CommonText('Search History', fontSize: 13, fontWeight: FontWeight.bold),
+                child: CommonText(
+                  'Search History',
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 4),
-              Obx(() => Column(
-                children: controller.recentSearches.isEmpty 
-                  ? [const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: CommonText('No recent searches', fontSize: 13, color: AppColors.textSecondary),
-                    )]
-                  : controller.recentSearches.map((search) => _buildHistoryItem(search)).toList(),
-              )),
+              Obx(
+                () => Column(
+                  children: controller.recentSearches.isEmpty
+                      ? [
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: CommonText(
+                              'No recent searches',
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ]
+                      : controller.recentSearches
+                            .map((search) => _buildHistoryItem(search))
+                            .toList(),
+                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        
+
         // When Card
         GestureDetector(
           onTap: () => setState(() => _selectedSection = 'date'),
@@ -329,13 +384,19 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText('When', fontSize: 16, fontWeight: FontWeight.bold),
+                const CommonText(
+                  'When',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                 CommonText(
-                  _rangeStart != null 
-                    ? (_rangeEnd != null ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}' : DateFormat('dd MMM yyyy').format(_rangeStart!))
-                    : 'Add dates', 
-                  fontSize: 14, 
-                  color: AppColors.textSecondary.withOpacity(0.8)
+                  _rangeStart != null
+                      ? (_rangeEnd != null
+                            ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}'
+                            : DateFormat('dd MMM yyyy').format(_rangeStart!))
+                      : 'Add dates',
+                  fontSize: 14,
+                  color: AppColors.textSecondary.withOpacity(0.8),
                 ),
               ],
             ),
@@ -367,14 +428,22 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText('City / Home', fontSize: 16, fontWeight: FontWeight.bold),
-                const CommonText('Nearby', fontSize: 14, color: AppColors.textSecondary),
+                const CommonText(
+                  'City / Home',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                const CommonText(
+                  'Nearby',
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Detailed Date Picker Card
         Container(
           padding: const EdgeInsets.all(20),
@@ -392,7 +461,11 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CommonText('When', fontSize: 16, fontWeight: FontWeight.bold),
+              const CommonText(
+                'When',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -402,7 +475,7 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Calendar View Container
               Container(
                 padding: const EdgeInsets.all(20),
@@ -417,31 +490,54 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
-                          onTap: () => setState(() => _focusedDate = DateTime(_focusedDate.year, _focusedDate.month - 1)),
-                          child: Icon(Icons.chevron_left, color: AppColors.textSecondary.withOpacity(0.6)),
+                          onTap: () => setState(
+                            () => _focusedDate = DateTime(
+                              _focusedDate.year,
+                              _focusedDate.month - 1,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.chevron_left,
+                            color: AppColors.textSecondary.withOpacity(0.6),
+                          ),
                         ),
                         CommonText(
-                          '${_getMonthName(_focusedDate.month)} ${_focusedDate.year}', 
-                          fontSize: 15, 
-                          fontWeight: FontWeight.bold
+                          '${_getMonthName(_focusedDate.month)} ${_focusedDate.year}',
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
                         ),
                         GestureDetector(
-                          onTap: () => setState(() => _focusedDate = DateTime(_focusedDate.year, _focusedDate.month + 1)),
-                          child: Icon(Icons.chevron_right, color: AppColors.textSecondary.withOpacity(0.6)),
+                          onTap: () => setState(
+                            () => _focusedDate = DateTime(
+                              _focusedDate.year,
+                              _focusedDate.month + 1,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.chevron_right,
+                            color: AppColors.textSecondary.withOpacity(0.6),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Days Headers
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-                          .map((d) => CommonText(d, fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary))
+                          .map(
+                            (d) => CommonText(
+                              d,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          )
                           .toList(),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // The Grid
                     _buildCalendarGrid(),
                   ],
@@ -466,12 +562,14 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
         decoration: BoxDecoration(
           color: isActive ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: isActive ? [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-            )
-          ] : null,
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                  ),
+                ]
+              : null,
         ),
         child: Center(
           child: CommonText(
@@ -485,7 +583,11 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
     );
   }
 
-  Widget _buildLocationItem(String location, {bool isVenue = false, String? subtitle}) {
+  Widget _buildLocationItem(
+    String location, {
+    bool isVenue = false,
+    String? subtitle,
+  }) {
     return GestureDetector(
       onTap: () {
         if (isVenue) {
@@ -505,13 +607,17 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isVenue ? AppColors.chipBackground : AppColors.chipBackgroundRed,
+                color: isVenue
+                    ? AppColors.chipBackground
+                    : AppColors.chipBackgroundRed,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                isVenue ? Icons.location_city_rounded : Icons.near_me_rounded, 
-                size: 18, 
-                color: isVenue ? AppColors.accentBlue : AppColors.accentRedLight
+                isVenue ? Icons.location_city_rounded : Icons.near_me_rounded,
+                size: 18,
+                color: isVenue
+                    ? AppColors.accentBlue
+                    : AppColors.accentRedLight,
               ),
             ),
             const SizedBox(width: 16),
@@ -519,9 +625,17 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(location, fontSize: 15, fontWeight: FontWeight.w600),
+                  CommonText(
+                    location,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                   if (subtitle != null)
-                    CommonText(subtitle, fontSize: 12, color: AppColors.textSecondary),
+                    CommonText(
+                      subtitle,
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                 ],
               ),
             ),
@@ -541,7 +655,11 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            const Icon(Icons.history_rounded, size: 22, color: AppColors.textSecondary),
+            const Icon(
+              Icons.history_rounded,
+              size: 22,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(width: 16),
             CommonText(address, fontSize: 15, color: AppColors.textPrimary),
           ],
@@ -552,8 +670,18 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
 
   String _getMonthName(int month) {
     const names = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return names[month - 1];
   }
@@ -569,24 +697,38 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CommonText(
-            date != null ? DateFormat('dd MMM yyyy').format(date) : title, 
-            color: date != null ? AppColors.textPrimary : AppColors.textSecondary.withOpacity(0.6), 
-            fontSize: 14
+            date != null ? DateFormat('dd MMM yyyy').format(date) : title,
+            color: date != null
+                ? AppColors.textPrimary
+                : AppColors.textSecondary.withOpacity(0.6),
+            fontSize: 14,
           ),
-          const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.textSecondary),
+          const Icon(
+            Icons.calendar_month_outlined,
+            size: 18,
+            color: AppColors.textSecondary,
+          ),
         ],
       ),
     );
   }
 
   Widget _buildCalendarGrid() {
-    final daysInMonth = DateTime(_focusedDate.year, _focusedDate.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(_focusedDate.year, _focusedDate.month, 1).weekday;
-    
+    final daysInMonth = DateTime(
+      _focusedDate.year,
+      _focusedDate.month + 1,
+      0,
+    ).day;
+    final firstDayOfMonth = DateTime(
+      _focusedDate.year,
+      _focusedDate.month,
+      1,
+    ).weekday;
+
     // Adjust for Monday start (Flutter's weekday starts at 1 for Monday)
     // firstDayOfMonth: 1 = Mon, 7 = Sun
     int offset = firstDayOfMonth - 1; // 0 = Mon, 6 = Sun
-    
+
     final int itemCount = daysInMonth + offset;
     final int roundedItemCount = (itemCount / 7).ceil() * 7;
 
@@ -602,7 +744,11 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
       ),
       itemCount: 42, // Show a fixed 6-row grid (7 * 6) for consistency
       itemBuilder: (context, index) {
-        final daysInPrevMonth = DateTime(_focusedDate.year, _focusedDate.month, 0).day;
+        final daysInPrevMonth = DateTime(
+          _focusedDate.year,
+          _focusedDate.month,
+          0,
+        ).day;
         int dayNumber;
         bool isCurrentMonth = true;
 
@@ -627,18 +773,22 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
         }
 
         final date = DateTime(_focusedDate.year, _focusedDate.month, dayNumber);
-        
+
         bool isStart = _rangeStart != null && _isSameDay(date, _rangeStart!);
         bool isEnd = _rangeEnd != null && _isSameDay(date, _rangeEnd!);
-        bool inRange = _rangeStart != null && _rangeEnd != null && 
-                       date.isAfter(_rangeStart!) && date.isBefore(_rangeEnd!);
-        
+        bool inRange =
+            _rangeStart != null &&
+            _rangeEnd != null &&
+            date.isAfter(_rangeStart!) &&
+            date.isBefore(_rangeEnd!);
+
         bool isToday = _isSameDay(date, DateTime.now());
 
         return GestureDetector(
           onTap: () {
             setState(() {
-              if (_rangeStart == null || (_rangeStart != null && _rangeEnd != null)) {
+              if (_rangeStart == null ||
+                  (_rangeStart != null && _rangeEnd != null)) {
                 _rangeStart = date;
                 _rangeEnd = null;
               } else if (date.isBefore(_rangeStart!)) {
@@ -669,26 +819,35 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: (isStart || isEnd) ? AppColors.primary : Colors.transparent,
+                  color: (isStart || isEnd)
+                      ? AppColors.primary
+                      : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
                   child: CommonText(
                     dayNumber.toString(),
-                    color: (isStart || isEnd) ? Colors.white : AppColors.textPrimary,
-                    fontWeight: (isStart || isEnd) ? FontWeight.bold : FontWeight.w500,
+                    color: (isStart || isEnd)
+                        ? Colors.white
+                        : AppColors.textPrimary,
+                    fontWeight: (isStart || isEnd)
+                        ? FontWeight.bold
+                        : FontWeight.w500,
                     fontSize: 14,
                   ),
                 ),
               ),
               if (isToday)
                 Positioned(
-                 bottom: 4,
-                 child: Container(
-                   width: 4,
-                   height: 4,
-                   decoration: const BoxDecoration(color: AppColors.textSecondary, shape: BoxShape.circle),
-                 ),
+                  bottom: 4,
+                  child: Container(
+                    width: 4,
+                    height: 4,
+                    decoration: const BoxDecoration(
+                      color: AppColors.textSecondary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
             ],
           ),
@@ -720,7 +879,11 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
-                  child: CommonText('Clear all', color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                  child: CommonText(
+                    'Clear all',
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -741,7 +904,12 @@ class _BarnManagerSearchFilterOverlayState extends State<BarnManagerSearchFilter
                   children: [
                     Icon(Icons.search_rounded, color: Colors.white, size: 22),
                     SizedBox(width: 8),
-                    CommonText('Search', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    CommonText(
+                      'Search',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ],
                 ),
               ),

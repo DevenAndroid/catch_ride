@@ -51,7 +51,7 @@ class ProfileInformationView extends StatelessWidget {
           ),
           child: Obx(() {
             // Format joined date
-            String joinedDate = '2025'; 
+            String joinedDate = '2025';
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,13 +63,15 @@ class ProfileInformationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 CommonText(
-                  profileController.fullName.isNotEmpty ? profileController.fullName : 'User Name',
+                  profileController.fullName.isNotEmpty
+                      ? profileController.fullName
+                      : 'User Name',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
                 const SizedBox(height: 24),
-                
+
                 const CommonText(
                   'Email Address',
                   fontSize: 14,
@@ -77,7 +79,9 @@ class ProfileInformationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 CommonText(
-                  profileController.email.isNotEmpty ? profileController.email : 'lisa@example.com',
+                  profileController.email.isNotEmpty
+                      ? profileController.email
+                      : 'lisa@example.com',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -91,7 +95,9 @@ class ProfileInformationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 CommonText(
-                  profileController.phone.isNotEmpty ? profileController.phone : '+1 6587 4385 244',
+                  profileController.phone.isNotEmpty
+                      ? profileController.phone
+                      : '+1 6587 4385 244',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,

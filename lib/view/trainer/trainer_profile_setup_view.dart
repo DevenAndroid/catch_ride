@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../utils/validators.dart';
 
 class TrainerProfileSetupView extends StatefulWidget {
   const TrainerProfileSetupView({super.key});
@@ -25,11 +26,20 @@ class TrainerProfileSetupView extends StatefulWidget {
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final AuthController _authController = Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
-  
+
   // References controllers
-  final List<TextEditingController> _refNameControllers = List.generate(4, (_) => TextEditingController());
-  final List<TextEditingController> _refBusinessControllers = List.generate(4, (_) => TextEditingController());
-  final List<TextEditingController> _refRelationControllers = List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _refNameControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
+  final List<TextEditingController> _refBusinessControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
+  final List<TextEditingController> _refRelationControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
 
   // Professional details controllers
   final TextEditingController _federationIdController = TextEditingController();
@@ -40,7 +50,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   bool _confirm18 = false;
   bool _agreeTerms = false;
   bool _understandPlatform = false;
-  
+
   bool _useSelling = false;
   bool _useBuying = false;
   bool _useBooking = false;
@@ -51,7 +61,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   void initState() {
     super.initState();
   }
-
 
   @override
   void dispose() {
@@ -70,7 +79,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     _instagramController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -115,97 +123,108 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                    const CommonText(
-                      AppStrings.provideFollowingDetails,
-                      fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildCurrentStep(),
-                    const SizedBox(height: 40)
-                  ],
+                      const CommonText(
+                        AppStrings.provideFollowingDetails,
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildCurrentStep(),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-            // Bottom Button
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Obx(() => CommonButton(
-                text: AppStrings.next,
-                isLoading: _authController.isLoading.value,
-                onPressed: () async {
-                  // Helper for snackbars
-                  void showError(String msg) {
-                    Get.snackbar('Input Required', msg,
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white);
-                  }
+              // Bottom Button
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Obx(
+                  () => CommonButton(
+                    text: AppStrings.next,
+                    isLoading: _authController.isLoading.value,
+                    onPressed: () async {
+                      // Helper for snackbars
+                      void showError(String msg) {
+                        Get.snackbar(
+                          'Input Required',
+                          msg,
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      }
 
-                  // 1. Trigger Form Validation
-                  if (!_formKey.currentState!.validate()) {
-                    return;
-                  }
+                      // 1. Trigger Form Validation
+                      if (!_formKey.currentState!.validate()) {
+                        return;
+                      }
 
-                  // 2. Additional validation for custom widgets
-                  // References logic: ensuring at least 2 references are fully filled (Form handles fields, we just collect)
-                  final List<Map<String, String>> references = [];
-                  for (int i = 0; i < 2; i++) {
-                    references.add({
-                      'name': _refNameControllers[i].text.trim(),
-                      'business': _refBusinessControllers[i].text.trim(),
-                      'relationship': _refRelationControllers[i].text.trim(),
-                    });
-                  }
+                      // 2. Additional validation for custom widgets
+                      // References logic: ensuring at least 2 references are fully filled (Form handles fields, we just collect)
+                      final List<Map<String, String>> references = [];
+                      for (int i = 0; i < 2; i++) {
+                        references.add({
+                          'name': _refNameControllers[i].text.trim(),
+                          'business': _refBusinessControllers[i].text.trim(),
+                          'relationship': _refRelationControllers[i].text
+                              .trim(),
+                        });
+                      }
 
-                  // Federation selection check
-                  if (_selectedFederation == 'Select Federation') {
-                    showError('Please select a federation type');
-                    return;
-                  }
+                      // Federation selection check
+                      if (_selectedFederation == 'Select Federation') {
+                        showError('Please select a federation type');
+                        return;
+                      }
 
-                  // Primary use Validation
-                  final List<String> primaryUse = [];
-                  if (_useSelling) primaryUse.add('Selling / Leasing');
-                  if (_useBuying) primaryUse.add('Buying / Leasing');
-                  if (_useBooking) primaryUse.add('Booking Service Providers');
+                      // Primary use Validation
+                      final List<String> primaryUse = [];
+                      if (_useSelling) primaryUse.add('Selling / Leasing');
+                      if (_useBuying) primaryUse.add('Buying / Leasing');
+                      if (_useBooking)
+                        primaryUse.add('Booking Service Providers');
 
-                  if (primaryUse.isEmpty) {
-                    showError('Please select at least one choice for how you will use Catch-Ride');
-                    return;
-                  }
+                      if (primaryUse.isEmpty) {
+                        showError(
+                          'Please select at least one choice for how you will use Catch-Ride',
+                        );
+                        return;
+                      }
 
-                  // Compliance Checkboxes Validation
-                  if (!_confirm18 || !_agreeTerms || !_understandPlatform) {
-                    showError('Please confirm all three checkboxes at the bottom');
-                    return;
-                  }
+                      // Compliance Checkboxes Validation
+                      if (!_confirm18 || !_agreeTerms || !_understandPlatform) {
+                        showError(
+                          'Please confirm all three checkboxes at the bottom',
+                        );
+                        return;
+                      }
 
-                  // Compilation & Submission
-                  final Map<String, dynamic> applicationData = {
-                    'whyJoin': AppStrings.whyJoinText,
-                    'facebook': _facebookController.text.trim(),
-                    'website': _websiteController.text.trim(),
-                    'instagram': _instagramController.text.trim(),
-                    'federationId': _federationIdController.text.trim(),
-                    'federationType': _selectedFederation,
-                    'primaryUse': primaryUse,
-                    'references': references,
-                  };
+                      // Compilation & Submission
+                      final Map<String, dynamic> applicationData = {
+                        'whyJoin': AppStrings.whyJoinText,
+                        'facebook': _facebookController.text.trim(),
+                        'website': _websiteController.text.trim(),
+                        'instagram': _instagramController.text.trim(),
+                        'federationId': _federationIdController.text.trim(),
+                        'federationType': _selectedFederation,
+                        'primaryUse': primaryUse,
+                        'references': references,
+                      };
 
-                  await _authController.completeTrainerProfile(applicationData);
-                },
-              )),
-            ),
-          ],
+                      await _authController.completeTrainerProfile(
+                        applicationData,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
-
-
 
   Widget _buildCurrentStep() {
     return Column(
@@ -250,8 +269,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     );
   }
 
-
-
   Widget _buildWhyJoinCard() {
     return _buildCard(
       title: AppStrings.whyJoinCommunity,
@@ -285,7 +302,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             height: 1.4,
           ),
           const SizedBox(height: 20),
-          ...List.generate(2, (index) { // Showing 2 initially as per image, can be 4
+          ...List.generate(2, (index) {
+            // Showing 2 initially as per image, can be 4
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -332,13 +350,21 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             label: "Facebook",
             isRequired: true,
             hintText: AppStrings.facebookcomyourpage,
-            validator: RequiredValidator(errorText: 'Please enter your Facebook profile link'),
+            validator: MultiValidator([
+              RequiredValidator(
+                errorText: 'Please enter your Facebook profile link',
+              ),
+              Validations.facebookValidator,
+            ]),
           ),
           const SizedBox(height: 16),
           CommonTextField(
             controller: _websiteController,
             label: AppStrings.websiteUrl,
             hintText: AppStrings.httpsyourwebsitecom,
+            validator: (val) => (val == null || val.isEmpty)
+                ? null
+                : Validations.urlValidator(val),
             prefixIcon: const Icon(
               Icons.link,
               size: 20,
@@ -350,6 +376,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             controller: _instagramController,
             label: AppStrings.instagram,
             hintText: "@yourusername",
+            validator: (val) => (val == null || val.isEmpty)
+                ? null
+                : Validations.instagramValidator(val),
           ),
         ],
       ),
@@ -546,7 +575,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             value: value,
             onChanged: onChanged,
             activeColor: const Color(0xFF16A34A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
             side: const BorderSide(color: AppColors.border, width: 1.5),
           ),
         ),
@@ -561,5 +592,4 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       ],
     );
   }
-  }
-
+}

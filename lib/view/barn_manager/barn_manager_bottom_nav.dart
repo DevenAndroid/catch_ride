@@ -52,7 +52,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
     Get.put(ProfileController());
     Get.put(HorseController());
     Get.put(BarnManagerBookingController());
-    
+
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true, // Content flows behind the nav bar
@@ -63,7 +63,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
             padding: const EdgeInsets.only(bottom: 100),
             child: _views[_selectedIndex],
           ),
-          
+
           // Floating Bottom Nav
           Positioned(
             left: 16,
@@ -85,14 +85,25 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
                   ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 4,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildNavItem(0, 'Bookings', Icons.calendar_month_rounded),
+                      _buildNavItem(
+                        0,
+                        'Bookings',
+                        Icons.calendar_month_rounded,
+                      ),
                       _buildNavItem(1, 'Explore', Icons.search_rounded),
                       _buildNavItem(2, 'List', Icons.add_rounded),
-                      _buildNavItem(3, 'Inbox', Icons.chat_bubble_outline_rounded),
+                      _buildNavItem(
+                        3,
+                        'Inbox',
+                        Icons.chat_bubble_outline_rounded,
+                      ),
                       _buildNavItem(4, 'Profile', Icons.person_rounded),
                     ],
                   ),

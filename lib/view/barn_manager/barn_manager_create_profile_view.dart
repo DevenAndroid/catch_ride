@@ -11,6 +11,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:form_field_validator/form_field_validator.dart';
+import '../../utils/validators.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/profile_controller.dart';
 import 'barn_manager_application_submitted_view.dart';
@@ -31,8 +32,8 @@ class _BarnManagerCreateProfileViewState
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
-  final TextEditingController _yearsInIndustryController = TextEditingController();
-
+  final TextEditingController _yearsInIndustryController =
+      TextEditingController();
 
   File? _profileImage;
   File? _bannerImage;
@@ -110,314 +111,352 @@ class _BarnManagerCreateProfileViewState
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CommonText(
-                        AppStrings.basicDetails,
-                        fontSize: AppTextSizes.size18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 24),
-                      const CommonText(
-                        AppStrings.profilePhoto,
-                        fontSize: AppTextSizes.size14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 12),
-                      Align(
-                        alignment: Alignment.center,
-                        child: GestureDetector(
-                          onTap: () => _pickImage(true),
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 100,
-                                width: 100,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF2F4F7),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppColors.border.withOpacity(0.5),
-                                  ),
-                                ),
-                                child: _profileImage != null
-                                    ? ClipOval(
-                                        child: Image.file(
-                                          _profileImage!,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      )
-                                    : const Icon(
-                                        Icons.person_outline,
-                                        size: 50,
-                                        color: AppColors.textSecondary,
-                                      ),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
+                      children: [
+                        const CommonText(
+                          AppStrings.basicDetails,
+                          fontSize: AppTextSizes.size18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 24),
+                        const CommonText(
+                          AppStrings.profilePhoto,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.center,
+                          child: GestureDetector(
+                            onTap: () => _pickImage(true),
+                            child: Stack(
+                              children: [
+                                Container(
+                                  height: 100,
+                                  width: 100,
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: const Color(0xFFF2F4F7),
                                     shape: BoxShape.circle,
                                     border: Border.all(
                                       color: AppColors.border.withOpacity(0.5),
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
+                                  ),
+                                  child: _profileImage != null
+                                      ? ClipOval(
+                                          child: Image.file(
+                                            _profileImage!,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.person_outline,
+                                          size: 50,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppColors.border.withOpacity(
+                                          0.5,
+                                        ),
                                       ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    size: 18,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      const CommonText(
-                        AppStrings.bannerImage,
-                        fontSize: AppTextSizes.size14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 12),
-                      GestureDetector(
-                        onTap: () => _pickImage(false),
-                        child: CustomPaint(
-                          painter: _bannerImage == null
-                              ? DashPainter(color: AppColors.border)
-                              : null,
-                          child: Container(
-                            width: double.infinity,
-                            height: 140,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF9FAFB),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: _bannerImage != null
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.file(
-                                      _bannerImage!,
-                                      fit: BoxFit.cover,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                  )
-                                : const Center(
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.add,
-                                      color: AppColors.textSecondary,
-                                      size: 30,
+                                      size: 18,
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      CommonTextField(
-                        controller: _fullNameController,
-                        label: AppStrings.fullName,
-                        hintText: AppStrings.enterYourFullName,
-                        isRequired: true,
-                        validator: RequiredValidator(
-                            errorText: 'Please enter your Full Name'),
-                      ),
-                      const SizedBox(height: 16),
-                      const CommonText(
-                        AppStrings.phoneNumber,
-                        fontSize: AppTextSizes.size14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: AppColors.border),
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(12),
-                                bottomLeft: Radius.circular(12),
-                              ),
-                            ),
-                            child: Row(
-                              children: const [
-                                CommonText(
-                                  AppStrings.num91,
-                                  fontSize: AppTextSizes.size14,
-                                  color: AppColors.textPrimary,
-                                ),
-                                SizedBox(width: 4),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 16,
-                                  color: AppColors.textSecondary,
                                 ),
                               ],
                             ),
                           ),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _phoneController,
-                              keyboardType: TextInputType.phone,
-                              style: const TextStyle(
-                                fontSize: AppTextSizes.size14,
-                                color: AppColors.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: AppStrings.enterPhoneNumber,
-                                border: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(12),
-                                    bottomRight: Radius.circular(12),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: AppColors.border,
-                                  ),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(12),
-                                    bottomRight: Radius.circular(12),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: AppColors.border,
-                                  ),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(12),
-                                    bottomRight: Radius.circular(12),
-                                  ),
-                                  borderSide: BorderSide(
-                                    color: AppColors.primary,
-                                    width: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
-                      CommonTextField(
-                        controller: _bioController,
-                        label: 'About',
-                        hintText: 'Write a short bio',
-                        maxLines: 4,
-                      ),
-                      const SizedBox(height: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const CommonText(
-                            'Years in industry',
-                            fontSize: AppTextSizes.size14,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textPrimary,
-                          ),
-                          const SizedBox(height: 8),
-                          GestureDetector(
-                            onTap: () => _showSingleSelectBottomSheet(
-                              title: 'Years in industry',
-                              currentValue: _yearsInIndustryController.text,
-                              items: List.generate(51, (index) => index.toString()),
-                              onSelected: (val) {
-                                setState(() => _yearsInIndustryController.text = val);
-                              },
-                            ),
+                        ),
+                        const SizedBox(height: 24),
+                        const CommonText(
+                          AppStrings.bannerImage,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () => _pickImage(false),
+                          child: CustomPaint(
+                            painter: _bannerImage == null
+                                ? DashPainter(color: AppColors.border)
+                                : null,
                             child: Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              height: 140,
                               decoration: BoxDecoration(
-                                border: Border.all(color: AppColors.border),
+                                color: const Color(0xFFF9FAFB),
                                 borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: _bannerImage != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.file(
+                                        _bannerImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Icon(
+                                        Icons.add,
+                                        color: AppColors.textSecondary,
+                                        size: 30,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        CommonTextField(
+                          controller: _fullNameController,
+                          label: AppStrings.fullName,
+                          hintText: AppStrings.enterYourFullName,
+                          isRequired: true,
+                          validator: RequiredValidator(
+                            errorText: 'Please enter your Full Name',
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const CommonText(
+                          AppStrings.phoneNumber,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
                                 color: Colors.white,
+                                border: Border.all(color: AppColors.border),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  bottomLeft: Radius.circular(12),
+                                ),
                               ),
                               child: Row(
-                                children: [
-                                  Expanded(
-                                    child: CommonText(
-                                      _yearsInIndustryController.text.isEmpty ? 'Select years' : _yearsInIndustryController.text,
-                                      fontSize: 14,
-                                      color: _yearsInIndustryController.text.isEmpty
-                                          ? AppColors.textSecondary.withOpacity(0.5)
-                                          : AppColors.textPrimary,
-                                    ),
+                                children: const [
+                                  CommonText(
+                                    AppStrings.num91,
+                                    fontSize: AppTextSizes.size14,
+                                    color: AppColors.textPrimary,
                                   ),
-                                  const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: 16,
+                                    color: AppColors.textSecondary,
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            Expanded(
+                              child: TextFormField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                style: const TextStyle(
+                                  fontSize: AppTextSizes.size14,
+                                  color: AppColors.textPrimary,
+                                ),
+                                validator: Validations.phoneValidator,
+                                maxLength: 10,
+                                decoration: InputDecoration(
+                                  hintText: AppStrings.enterPhoneNumber,
+                                  border: const OutlineInputBorder(
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: AppColors.border,
+                                    ),
+                                  ),
+                                  enabledBorder: const OutlineInputBorder(
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: AppColors.border,
+                                    ),
+                                  ),
+                                  focusedBorder: const OutlineInputBorder(
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12),
+                                    ),
+                                    borderSide: BorderSide(
+                                      color: AppColors.primary,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        CommonTextField(
+                          controller: _bioController,
+                          label: 'About',
+                          hintText: 'Write a short bio',
+                          maxLines: 4,
+                        ),
+                        const SizedBox(height: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const CommonText(
+                              'Years in industry',
+                              fontSize: AppTextSizes.size14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              onTap: () => _showSingleSelectBottomSheet(
+                                title: 'Years in industry',
+                                currentValue: _yearsInIndustryController.text,
+                                items: List.generate(
+                                  51,
+                                  (index) => index.toString(),
+                                ),
+                                onSelected: (val) {
+                                  setState(
+                                    () => _yearsInIndustryController.text = val,
+                                  );
+                                },
+                              ),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 14,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColors.border),
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.white,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CommonText(
+                                        _yearsInIndustryController.text.isEmpty
+                                            ? 'Select years'
+                                            : _yearsInIndustryController.text,
+                                        fontSize: 14,
+                                        color:
+                                            _yearsInIndustryController
+                                                .text
+                                                .isEmpty
+                                            ? AppColors.textSecondary
+                                                  .withOpacity(0.5)
+                                            : AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: AppColors.textSecondary,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(20.0),
-              child: Obx(() => CommonButton(
-                text: AppStrings.continueText,
-                isLoading: _authController.isLoading.value,
-                onPressed: () async {
-                  if (!_formKey.currentState!.validate()) {
-                    return;
-                  }
-
-                  // Split Name
-                  final nameParts = _fullNameController.text.trim().split(' ');
-                  final firstName = nameParts.first;
-                  final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
-
-                  // Handle Image Uploads first if needed
-                  String? profileUrl;
-                  String? bannerUrl;
-                  
-                  _authController.isLoading.value = true;
-                  try {
-                    if (_profileImage != null) {
-                      profileUrl = await _profileController.uploadRawFile(_profileImage!.path);
-                    }
-                    if (_bannerImage != null) {
-                      bannerUrl = await _profileController.uploadRawFile(_bannerImage!.path);
+              child: Obx(
+                () => CommonButton(
+                  text: AppStrings.continueText,
+                  isLoading: _authController.isLoading.value,
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) {
+                      return;
                     }
 
-                    final Map<String, dynamic> profileData = {
-                      'firstName': firstName,
-                      'lastName': lastName,
-                      'phone': _phoneController.text.trim(),
-                      'bio': _bioController.text.trim(),
-                      'yearsInIndustry': _yearsInIndustryController.text.trim(),
-                    };
+                    // Split Name
+                    final nameParts = _fullNameController.text.trim().split(
+                      ' ',
+                    );
+                    final firstName = nameParts.first;
+                    final lastName = nameParts.length > 1
+                        ? nameParts.sublist(1).join(' ')
+                        : ' ';
 
-                    if (profileUrl != null) profileData['avatar'] = profileUrl;
-                    if (bannerUrl != null) profileData['coverImage'] = bannerUrl;
+                    // Handle Image Uploads first if needed
+                    String? profileUrl;
+                    String? bannerUrl;
 
-                    await _authController.completeBarnManagerProfile(profileData);
-                  } finally {
-                    _authController.isLoading.value = false;
-                  }
-                },
-              )),
+                    _authController.isLoading.value = true;
+                    try {
+                      if (_profileImage != null) {
+                        profileUrl = await _profileController.uploadRawFile(
+                          _profileImage!.path,
+                        );
+                      }
+                      if (_bannerImage != null) {
+                        bannerUrl = await _profileController.uploadRawFile(
+                          _bannerImage!.path,
+                        );
+                      }
+
+                      final Map<String, dynamic> profileData = {
+                        'firstName': firstName,
+                        'lastName': lastName,
+                        'phone': _phoneController.text.trim(),
+                        'bio': _bioController.text.trim(),
+                        'yearsInIndustry': _yearsInIndustryController.text
+                            .trim(),
+                      };
+
+                      if (profileUrl != null)
+                        profileData['avatar'] = profileUrl;
+                      if (bannerUrl != null)
+                        profileData['coverImage'] = bannerUrl;
+
+                      await _authController.completeBarnManagerProfile(
+                        profileData,
+                      );
+                    } finally {
+                      _authController.isLoading.value = false;
+                    }
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -457,8 +496,16 @@ class _BarnManagerCreateProfileViewState
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: CommonText(
+                    title,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const Divider(),
                 Expanded(
@@ -475,16 +522,25 @@ class _BarnManagerCreateProfileViewState
                         },
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade100),
+                            ),
                           ),
                           child: Center(
                             child: CommonText(
-                              item, 
-                              fontSize: 16, 
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                              item,
+                              fontSize: 16,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ),

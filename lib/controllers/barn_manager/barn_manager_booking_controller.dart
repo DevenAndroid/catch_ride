@@ -5,15 +5,17 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
 class BarnManagerBookingController extends BookingController {
-  
   Future<bool> createVendorBooking(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
-      final response = await Get.find<ApiService>().postRequest(AppUrls.createVendorBooking, data);
+      final response = await Get.find<ApiService>().postRequest(
+        AppUrls.createVendorBooking,
+        data,
+      );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Get.snackbar(
-          'Success', 
+          'Success',
           'Booking request sent successfully',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: const Color(0xFF17B26A),
@@ -22,9 +24,10 @@ class BarnManagerBookingController extends BookingController {
         fetchBookings(type: 'sent');
         return true;
       } else {
-        String msg = response.body?['message'] ?? 'Failed to send booking request';
+        String msg =
+            response.body?['message'] ?? 'Failed to send booking request';
         Get.snackbar(
-          'Error', 
+          'Error',
           msg,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.redAccent,
@@ -33,7 +36,11 @@ class BarnManagerBookingController extends BookingController {
         return false;
       }
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Error',
+        'Something went wrong',
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     } finally {
       isLoading.value = false;

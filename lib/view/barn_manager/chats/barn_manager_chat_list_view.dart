@@ -8,6 +8,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import '../../../constant/app_constants.dart';
 import '../../../controllers/profile_controller.dart';
 
 class BarnManagerInboxView extends StatefulWidget {
@@ -29,38 +30,38 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const CommonText(
-          'Inbox',
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 4),
+          child: CommonText(
+            'Inbox',
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 8),
             child: Obx(() {
               final currentUserId = Get.find<ProfileController>().id;
-              final hasRequests = chatController.conversations.any((c) => c.status == 'request-pending' && c.senderId != currentUserId);
-              final color = hasRequests ? const Color(0xFFF04438) : Colors.blue;
+              final hasRequests = chatController.conversations.any(
+                (c) =>
+                    c.status == 'request-pending' &&
+                    c.senderId != currentUserId,
+              );
 
               return TextButton(
                 onPressed: () => Get.to(() => const BarnManagerRequestsView()),
                 child: Row(
                   children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    CommonText(
+                    if (hasRequests)
+                      const Icon(Icons.circle, color: Colors.blue, size: 8),
+                    const SizedBox(width: 6),
+                    const CommonText(
                       'Requests',
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
                     ),
                   ],
                 ),
@@ -69,19 +70,20 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(80),
           child: Column(
             children: [
-              Container(color: AppColors.border, height: 1.0),
-              const SizedBox(height: 12),
+              const Divider(height: 1, color: Color(0xFFEAECF0)),
+              const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Container(
-                  height: 44,
-                  padding: const EdgeInsets.all(4),
+                  height: 52,
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF2F4F7),
-                    borderRadius: BorderRadius.circular(24),
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(color: const Color(0xFFEAECF0)),
                   ),
                   child: Row(
                     children: [
@@ -91,29 +93,50 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
           ),
         ),
       ),
       body: Obx(() {
-        if (chatController.isLoadingConversations.value) {
+        if (chatController.isLoadingConversations.value &&
+            chatController.conversations.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final conversations = chatController.conversations
-            .where((c) => c.status != 'request-pending')
-            .toList();
+        final String currentUserId = Get.find<ProfileController>().id;
+        final conversations = chatController.conversations.where((c) {
+          // 1. Filter out self-conversations
+          if (c.otherUser?.id == currentUserId) return false;
+
+          // 2. Tab filtering
+          bool belongsToTab = false;
+          if (_selectedTab == 0) {
+            belongsToTab = c.otherUser?.role == 'trainer' ||
+                c.otherUser?.role == 'barn_manager';
+          } else {
+            belongsToTab = c.otherUser?.role == 'service_provider' ||
+                c.otherUser?.role == 'vendor';
+          }
+          if (!belongsToTab) return false;
+
+          // 3. Status filtering
+          return c.status != 'request-pending' || c.senderId == currentUserId;
+        }).toList();
 
         if (conversations.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textSecondary.withOpacity(0.5)),
+                Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 64,
+                  color: AppColors.textSecondary.withOpacity(0.3),
+                ),
                 const SizedBox(height: 16),
-                const CommonText(
-                  'No messages yet',
+                CommonText(
+                  'No ${_selectedTab == 0 ? 'trainer' : 'service provider'} chats',
                   color: AppColors.textSecondary,
                   fontSize: 16,
                 ),
@@ -124,14 +147,14 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
 
         return ListView.separated(
           itemCount: conversations.length,
-          padding: const EdgeInsets.only(top: 8, bottom: 20),
-          separatorBuilder: (_, __) => Padding(
-            padding: const EdgeInsets.only(left: 80),
-            child: Container(color: const Color(0xFFF2F4F7), height: 1.0),
+          padding: EdgeInsets.zero,
+          separatorBuilder: (_, __) => const Padding(
+            padding: EdgeInsets.only(left: 88),
+            child: Divider(height: 1, color: Color(0xFFF2F4F7)),
           ),
           itemBuilder: (context, index) {
             final convo = conversations[index];
-            return _buildChatItem(convo, index == 0);
+            return _buildChatItem(convo);
           },
         );
       }),
@@ -142,60 +165,72 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
     final isSelected = _selectedTab == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  )
-                ]
-              : null,
+          color: isSelected ? const Color(0xFF8B4444) : Colors.transparent,
+          borderRadius: BorderRadius.circular(22),
         ),
         child: CommonText(
           label,
-          fontSize: 14,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isSelected ? const Color(0xFF101828) : const Color(0xFF667085),
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: isSelected ? Colors.white : const Color(0xFF667085),
         ),
       ),
     );
   }
 
-  Widget _buildChatItem(ChatConversation convo, bool isAssociatedTrainer) {
+  Widget _buildChatItem(ChatConversation convo) {
+    final profileController = Get.find<ProfileController>();
+    final me = profileController.user.value;
+    final isAssociatedTrainer =
+        me?.role == 'barn_manager' &&
+        convo.otherUser?.trainerId == me?.trainerProfileId;
+
     return InkWell(
-      onTap: () => Get.to(() => BarnManagerSingleChatView(
-            name: convo.otherUser?.name ?? 'Unknown',
-            image: convo.otherUser?.avatar ?? '',
-            conversationId: convo.conversationId,
-            otherId: convo.otherUser?.id,
-          )),
+      onTap: () => Get.to(
+        () => BarnManagerSingleChatView(
+          name: convo.otherUser?.name ?? 'Unknown',
+          image: convo.otherUser?.avatar ?? '',
+          conversationId: convo.conversationId,
+          otherId: convo.otherUser?.id,
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Stack(
+              clipBehavior: Clip.none,
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundImage: NetworkImage(convo.otherUser?.avatar ?? ''),
-                  backgroundColor: AppColors.inputBackground,
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        convo.otherUser?.avatar ?? AppConstants.dummyImageUrl,
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                    color: const Color(0xFFF2F4F7),
+                  ),
                 ),
                 if (convo.unread > 0)
                   Positioned(
                     right: 0,
-                    bottom: 0,
+                    top: 2,
                     child: Container(
-                      width: 14,
-                      height: 14,
+                      width: 12,
+                      height: 12,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF12B76A), // Green dot
+                        color: const Color(
+                          0xFF13CA8B,
+                        ), // Custom green indicator
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 2),
                       ),
@@ -203,7 +238,7 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
                   ),
               ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,40 +248,47 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
                     children: [
                       Expanded(
                         child: RichText(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           text: TextSpan(
-                            text: convo.otherUser?.name ?? 'Unknown',
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 17,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF101828),
-                              fontFamily: 'Inter',
+                              fontFamily: 'Outfit',
                             ),
                             children: [
+                              TextSpan(
+                                text: convo.otherUser?.name ?? 'Unknown',
+                              ),
                               if (isAssociatedTrainer)
                                 const TextSpan(
                                   text: ' (Associated Trainer)',
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.blue,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2E90FA),
                                   ),
                                 ),
                             ],
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       CommonText(
                         _formatTime(convo.date ?? DateTime.now()),
-                        fontSize: 12,
+                        fontSize: 13,
                         color: const Color(0xFF667085),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   CommonText(
-                    convo.lastMessage ?? '',
-                    fontSize: 14,
-                    color: const Color(0xFF667085),
+                    convo.lastMessage ?? 'No messages yet',
+                    fontSize: 15,
+                    color: const Color(
+                      0xFF535862,
+                    ), // Matches screenshot dark-gray snippet
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -263,12 +305,11 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} mins ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours} hours ago';
-    } else {
-      return DateFormat('dd MMM yyyy').format(date);
-    }
+    if (difference.inMinutes < 1) return 'now';
+    if (difference.inMinutes < 60) return '${difference.inMinutes} mins ago';
+    if (difference.inHours < 24) return '${difference.inHours} hours ago';
+    if (difference.inDays < 7) return '${difference.inDays} days ago';
+
+    return DateFormat('dd MMM').format(date);
   }
 }

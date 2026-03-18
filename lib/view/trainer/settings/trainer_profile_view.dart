@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../../utils/url_helper.dart';
 import 'edit_profile.dart';
 
 class TrainerProfileView extends StatefulWidget {
@@ -25,7 +26,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.trainerId != null && widget.trainerId != _controller.trainerId) {
+      if (widget.trainerId != null &&
+          widget.trainerId != _controller.trainerId) {
         _controller.fetchPublicTrainerProfile(widget.trainerId!);
       } else {
         // Clear viewed user if we're viewing our own profile
@@ -41,10 +43,15 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Obx(() {
-        final bool isViewingOther = widget.trainerId != null && widget.trainerId != _controller.user.value?.trainerProfileId;
-        final profile = isViewingOther ? _controller.viewedUser.value : _controller.user.value;
-        
-        if (_controller.isLoading.value || (isViewingOther && profile == null)) {
+        final bool isViewingOther =
+            widget.trainerId != null &&
+            widget.trainerId != _controller.user.value?.trainerProfileId;
+        final profile = isViewingOther
+            ? _controller.viewedUser.value
+            : _controller.user.value;
+
+        if (_controller.isLoading.value ||
+            (isViewingOther && profile == null)) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -57,7 +64,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         final hasWebsite = profile.website?.isNotEmpty ?? false;
         final hasSocials = hasInstagram || hasFacebook || hasWebsite;
         final hasBio = _controller.bio.isNotEmpty;
-        final isOwnProfile = widget.trainerId == null || widget.trainerId == _controller.user.value?.trainerProfileId;
+        final isOwnProfile =
+            widget.trainerId == null ||
+            widget.trainerId == _controller.user.value?.trainerProfileId;
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -71,258 +80,336 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Section
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(24),
-                      bottomRight: Radius.circular(24),
-                    ),
-                    child: CommonImageView(
-                      url: _controller.coverImage,
-                      height: 200,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-
-                  // Back Button
-                  Positioned(
-                    top: 50,
-                    left: 16,
-                    child: GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.chevron_left, size: 24, color: Colors.black),
-                      ),
-                    ),
-                  ),
-
-                  if (isOwnProfile)
-                  Positioned(
-                    top: 50,
-                    right: 16,
-                    child: PopupMenuButton<String>(
-                      onSelected: (value) {
-                        if (value == 'edit') {
-                          Get.to(() => const EditProfileView());
-                        }
-                      },
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      icon: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.more_vert, size: 24, color: Colors.black),
-                      ),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Row(
-                            children: [
-                              Icon(Icons.edit_outlined, size: 20, color: AppColors.textPrimary),
-                              SizedBox(width: 12),
-                              CommonText('Edit Profile', fontWeight: FontWeight.bold),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Profile Image Overlap
-                  Positioned(
-                    bottom: -65,
-                    left: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 15, offset: Offset(0, 5))
-                        ]
+              children: [
+                // Header Section
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(24),
+                        bottomRight: Radius.circular(24),
                       ),
                       child: CommonImageView(
-                        url: _controller.avatar,
-                        height: 110,
-                        width: 110,
-                        shape: BoxShape.circle,
+                        url: _controller.coverImage,
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 12),
+                    // Back Button
+                    Positioned(
+                      top: 50,
+                      left: 16,
+                      child: GestureDetector(
+                        onTap: () => Get.back(),
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.chevron_left,
+                            size: 24,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
 
-              // Profile Identity Section (Name & Info)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const SizedBox(width: 125),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CommonText(
-                                _controller.fullName.isEmpty ? 'N/A' : _controller.fullName,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
-                              ),
-                              const SizedBox(height: 4),
-                              CommonText(
-                                _controller.barnName.isEmpty ? 'N/A' : _controller.barnName,
-                                fontSize: 16,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
+                    if (isOwnProfile)
+                      Positioned(
+                        top: 50,
+                        right: 16,
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Get.to(() => const EditProfileView());
+                            }
+                          },
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          icon: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.more_vert,
+                              size: 24,
+                              color: Colors.black,
+                            ),
+                          ),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
                                 children: [
-                                  const Icon(Icons.location_on, size: 16, color: Colors.redAccent),
-                                  const SizedBox(width: 4),
-                                  CommonText(
-                                    _controller.location.isEmpty ? 'N/A' : _controller.location,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textSecondary,
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 20,
+                                    color: AppColors.textPrimary,
                                   ),
-                                  if (profile.location2?.isNotEmpty ?? false) ...[
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                      child: CommonText("|", color: Colors.grey),
+                                  SizedBox(width: 12),
+                                  CommonText(
+                                    'Edit Profile',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Profile Image Overlap
+                    Positioned(
+                      bottom: -65,
+                      left: 16,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 15,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: CommonImageView(
+                          url: _controller.avatar,
+                          height: 110,
+                          width: 110,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // Profile Identity Section (Name & Info)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const SizedBox(width: 125),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CommonText(
+                                  _controller.fullName.isEmpty
+                                      ? 'N/A'
+                                      : _controller.fullName,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
+                                const SizedBox(height: 4),
+                                CommonText(
+                                  _controller.barnName.isEmpty
+                                      ? 'N/A'
+                                      : _controller.barnName,
+                                  fontSize: 16,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Colors.redAccent,
                                     ),
+                                    const SizedBox(width: 4),
                                     CommonText(
-                                      profile.location2!,
+                                      _controller.location.isEmpty
+                                          ? 'N/A'
+                                          : _controller.location,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
                                     ),
-                                  ]
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                                  Wrap(
-                                    crossAxisAlignment: WrapCrossAlignment.center,
-                                    children: [
-                                      if (_controller.disciplines.isNotEmpty) ...[
-                                        CommonText(
-                                          _controller.disciplines.join(" / ") + (" Trainer"),
-                                          fontSize: 15,
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w600,
+                                    if (profile.location2?.isNotEmpty ??
+                                        false) ...[
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.0,
                                         ),
-                                        if (_controller.yearsExperience > 0)
-                                          const Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                            child: CommonText("·", color: AppColors.textSecondary, fontWeight: FontWeight.bold),
-                                          ),
-                                      ],
+                                        child: CommonText(
+                                          "|",
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      CommonText(
+                                        profile.location2!,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  children: [
+                                    if (_controller.disciplines.isNotEmpty) ...[
+                                      CommonText(
+                                        _controller.disciplines.join(" / ") +
+                                            (" Trainer"),
+                                        fontSize: 15,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                       if (_controller.yearsExperience > 0)
-                                        CommonText(
-                                          '${_controller.yearsExperience}+ Years',
-                                          fontSize: 15,
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w600,
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6.0,
+                                          ),
+                                          child: CommonText(
+                                            "·",
+                                            color: AppColors.textSecondary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                     ],
-                                  ),
+                                    if (_controller.yearsExperience > 0)
+                                      CommonText(
+                                        '${_controller.yearsExperience}+ Years',
+                                        fontSize: 15,
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      if (hasBio) ...[
+                        const SizedBox(height: 24),
+                        CommonText(
+                          _controller.bio,
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.6,
+                        ),
+                      ],
+
+                      if (hasSocials) ...[
+                        const SizedBox(height: 24),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              if (hasInstagram)
+                                _buildSocialButton(
+                                  'Instagram',
+                                  Icons.camera_alt_outlined,
+                                  const Color(0xFFD62976),
+                                  () {
+                                    UrlHelper.launchInstagram(
+                                      profile.instagram!,
+                                    );
+                                  },
+                                ),
+                              if (hasFacebook) ...[
+                                if (hasInstagram) const SizedBox(width: 12),
+                                _buildSocialButton(
+                                  'Facebook',
+                                  Icons.facebook,
+                                  const Color(0xFF1877F2),
+                                  () {
+                                    UrlHelper.launchFacebook(profile.facebook!);
+                                  },
+                                ),
+                              ],
+                              if (hasWebsite) ...[
+                                if (hasInstagram || hasFacebook)
+                                  const SizedBox(width: 12),
+                                _buildSocialButton(
+                                  'Website',
+                                  Icons.link,
+                                  Colors.black87,
+                                  () {
+                                    UrlHelper.launchWebsite(profile.website!);
+                                  },
+                                ),
+                              ],
                             ],
                           ),
                         ),
                       ],
-                    ),
 
-                    if (hasBio) ...[
-                      const SizedBox(height: 24),
-                      CommonText(
-                        _controller.bio,
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        height: 1.6,
-                      ),
-                    ],
+                      const SizedBox(height: 32),
 
-                    if (hasSocials) ...[
+                      _buildProfessionalInfoCard(),
+
                       const SizedBox(height: 24),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
+
+                      Obx(() {
+                        final horses = widget.trainerId != null
+                            ? _controller.viewedUserHorses
+                            : _controller.trainerHorses;
+                        if (horses.isEmpty) return const SizedBox.shrink();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (hasInstagram)
-                              _buildSocialButton('Instagram', Icons.camera_alt_outlined, const Color(0xFFD62976)),
-                            if (hasFacebook) ...[
-                              if (hasInstagram) const SizedBox(width: 12),
-                              _buildSocialButton('Facebook', Icons.facebook, const Color(0xFF1877F2)),
-                            ],
-                            if (hasWebsite) ...[
-                              if (hasInstagram || hasFacebook) const SizedBox(width: 12),
-                              _buildSocialButton('Website', Icons.link, Colors.black87),
-                            ],
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const CommonText(
+                                  'Available Horses',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
+                                if (isOwnProfile)
+                                  TextButton(
+                                    onPressed: () =>
+                                        Get.to(() => const ViewAllHorsesView()),
+                                    child: const CommonText(
+                                      'View all',
+                                      color: AppColors.linkBlue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            ...horses
+                                .map((horse) => _buildHorseCard(horse))
+                                .toList(),
                           ],
-                        ),
-                      ),
+                        );
+                      }),
+
+                      const SizedBox(height: 40),
                     ],
-
-                    const SizedBox(height: 32),
-
-                    _buildProfessionalInfoCard(),
-
-                    const SizedBox(height: 24),
-
-                    Obx(() {
-                      final horses = widget.trainerId != null ? _controller.viewedUserHorses : _controller.trainerHorses;
-                      if (horses.isEmpty) return const SizedBox.shrink();
-                      
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const CommonText(
-                                'Available Horses',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
-                              ),
-                              if (isOwnProfile)
-                              TextButton(
-                                onPressed: () => Get.to(() => const ViewAllHorsesView()), 
-                                child: const CommonText('View all', color: AppColors.linkBlue, fontWeight: FontWeight.bold)
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ...horses.map((horse) => _buildHorseCard(horse)).toList(),
-                        ],
-                      );
-                    }),
-                    
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ));
+        );
       }),
     );
   }
@@ -335,7 +422,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
       ..remove('Discipline')
       ..remove('Disciplines');
 
-    if (filteredTags.isEmpty && horseShows.isEmpty) return const SizedBox.shrink();
+    if (filteredTags.isEmpty && horseShows.isEmpty)
+      return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -356,11 +444,16 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...filteredTags.entries.map((entry) {
-            final isLast = filteredTags.keys.last == entry.key && horseShows.isEmpty;
+            final isLast =
+                filteredTags.keys.last == entry.key && horseShows.isEmpty;
             return _buildInfoRow(entry.key, entry.value.join(" · "), !isLast);
           }).toList(),
           if (horseShows.isNotEmpty)
-            _buildInfoRow('Horse Shows & Circuits Frequented', horseShows.join(" · "), false),
+            _buildInfoRow(
+              'Horse Shows & Circuits Frequented',
+              horseShows.join(" · "),
+              false,
+            ),
         ],
       ),
     );
@@ -375,36 +468,66 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(title, fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              CommonText(
+                title,
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
               const SizedBox(height: 6),
-              CommonText(content, fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              CommonText(
+                content,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
             ],
           ),
         ),
         if (showDivider)
-          Divider(color: AppColors.borderLight.withValues(alpha: 0.5), height: 1),
+          Divider(
+            color: AppColors.borderLight.withValues(alpha: 0.5),
+            height: 1,
+          ),
       ],
     );
   }
 
-  Widget _buildSocialButton(String label, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2))
-        ]
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(width: 8),
-          CommonText(label, fontSize: 15, fontWeight: FontWeight.w700, color: color == Colors.black87 ? AppColors.textPrimary : color),
-        ],
+  Widget _buildSocialButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppColors.borderLight),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(width: 8),
+            CommonText(
+              label,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: color == Colors.black87 ? AppColors.textPrimary : color,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -418,7 +541,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: AppColors.borderLight.withValues(alpha: 0.5),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -444,9 +569,19 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(horse.name, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  CommonText(
+                    horse.name,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                   const SizedBox(height: 2),
-                  CommonText("${horse.age}-year-old ${horse.breed}", fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  CommonText(
+                    "${horse.age}-year-old ${horse.breed}",
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   const SizedBox(height: 6),
                   CommonText(
                     horse.description ?? '',

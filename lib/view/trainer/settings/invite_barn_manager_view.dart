@@ -67,42 +67,51 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
         );
       }),
       bottomNavigationBar: Obx(() {
-        final hasBarnManager = _profileController.user.value?.linkedBarnManager != null;
+        final hasBarnManager =
+            _profileController.user.value?.linkedBarnManager != null;
         if (hasBarnManager) return const SizedBox.shrink();
-        
+
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Obx(() => CommonButton(
-              text: _controller.isLoading.value ? 'Sending...' : 'Send Invite Link',
-              onPressed: _controller.isLoading.value ? null : () async {
-                final email = _emailController.text.trim();
-                if (email.isEmpty || !GetUtils.isEmail(email)) {
-                  Get.snackbar(
-                    'Error', 
-                    'Please enter a valid email address',
-                    backgroundColor: const Color(0xFFF04438),
-                    colorText: Colors.white,
-                    snackPosition: SnackPosition.BOTTOM,
-                    margin: const EdgeInsets.all(16),
-                  );
-                  return;
-                }
-                
-                final success = await _controller.inviteBarnManager(email);
-                if (success) {
-                  _emailController.clear();
-                  Get.snackbar(
-                    'Success',
-                    'Invitation sent successfully',
-                    backgroundColor: const Color(0xFF13CA8B),
-                    colorText: Colors.white,
-                    snackPosition: SnackPosition.BOTTOM,
-                    margin: const EdgeInsets.all(16),
-                  );
-                }
-              },
-            )),
+            child: Obx(
+              () => CommonButton(
+                text: _controller.isLoading.value
+                    ? 'Sending...'
+                    : 'Send Invite Link',
+                onPressed: _controller.isLoading.value
+                    ? null
+                    : () async {
+                        final email = _emailController.text.trim();
+                        if (email.isEmpty || !GetUtils.isEmail(email)) {
+                          Get.snackbar(
+                            'Error',
+                            'Please enter a valid email address',
+                            backgroundColor: const Color(0xFFF04438),
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                            margin: const EdgeInsets.all(16),
+                          );
+                          return;
+                        }
+
+                        final success = await _controller.inviteBarnManager(
+                          email,
+                        );
+                        if (success) {
+                          _emailController.clear();
+                          Get.snackbar(
+                            'Success',
+                            'Invitation sent successfully',
+                            backgroundColor: const Color(0xFF13CA8B),
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                            margin: const EdgeInsets.all(16),
+                          );
+                        }
+                      },
+              ),
+            ),
           ),
         );
       }),
@@ -143,7 +152,11 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                   fontWeight: FontWeight.w600,
                 ),
                 PopupMenuButton(
-                  icon: const Icon(Icons.more_vert, size: 20, color: Colors.white),
+                  icon: const Icon(
+                    Icons.more_vert,
+                    size: 20,
+                    color: Colors.white,
+                  ),
                   onSelected: (value) {
                     if (value == 'remove') {
                       // Logic to remove logic will be implemented in future
@@ -160,7 +173,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
               ],
             ),
           ),
-          
+
           // Barn Image
           const CommonImageView(
             assetPath: 'assets/images/barn_manager_bg.png',
@@ -168,7 +181,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
             width: double.infinity,
             fit: BoxFit.cover,
           ),
-          
+
           // Profile & Info
           Transform.translate(
             offset: const Offset(0, -40),
@@ -187,8 +200,16 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                           shape: BoxShape.circle,
                         ),
                         child: CommonImageView(
-                          url: (manager.avatar != null && manager.avatar!.isNotEmpty) ? manager.avatar : null,
-                          assetPath: (manager.avatar == null || manager.avatar!.isEmpty) ? 'assets/images/demo_user_image.jpg' : null,
+                          url:
+                              (manager.avatar != null &&
+                                  manager.avatar!.isNotEmpty)
+                              ? manager.avatar
+                              : null,
+                          assetPath:
+                              (manager.avatar == null ||
+                                  manager.avatar!.isEmpty)
+                              ? 'assets/images/demo_user_image.jpg'
+                              : null,
                           height: 100,
                           width: 100,
                           shape: BoxShape.circle,
@@ -221,7 +242,8 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                   ),
                   const SizedBox(height: 10),
                   CommonText(
-                    manager.bio ?? "Invited Barn Manager. This space will show their bio once they set up their profile.",
+                    manager.bio ??
+                        "Invited Barn Manager. This space will show their bio once they set up their profile.",
                     fontSize: 14,
                     color: AppColors.textSecondary,
                     height: 1.5,
@@ -273,4 +295,3 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
     );
   }
 }
-

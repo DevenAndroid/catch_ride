@@ -82,15 +82,22 @@ class _FeedbackViewState extends State<FeedbackView> {
                       contentPadding: const EdgeInsets.all(16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: AppColors.border.withValues(alpha: 0.5),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+                        borderSide: BorderSide(
+                          color: AppColors.border.withValues(alpha: 0.5),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.2,
+                        ),
                       ),
                     ),
                   ),
@@ -107,23 +114,27 @@ class _FeedbackViewState extends State<FeedbackView> {
   Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       child: GestureDetector(
         onTap: () {
           if (_feedbackController.text.trim().isEmpty) {
-            Get.snackbar('Alert', 'Please enter your feedback',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.orange,
-                colorText: Colors.white);
+            Get.snackbar(
+              'Alert',
+              'Please enter your feedback',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.orange,
+              colorText: Colors.white,
+            );
             return;
           }
           Get.back();
-          Get.snackbar('Success', 'Thank you for your feedback!',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: const Color(0xFF17B26A),
-              colorText: Colors.white);
+          Get.snackbar(
+            'Success',
+            'Thank you for your feedback!',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFF17B26A),
+            colorText: Colors.white,
+          );
         },
         child: Container(
           height: 56,

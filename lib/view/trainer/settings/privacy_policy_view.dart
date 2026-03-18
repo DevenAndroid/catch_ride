@@ -53,7 +53,12 @@ class _PrivacyPolicyViewState extends State<PrivacyPolicyView> {
         }
 
         if (supportController.privacyPolicy.isEmpty) {
-          return const Center(child: CommonText('No content available', color: AppColors.textSecondary));
+          return const Center(
+            child: CommonText(
+              'No content available',
+              color: AppColors.textSecondary,
+            ),
+          );
         }
 
         return SingleChildScrollView(

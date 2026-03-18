@@ -56,7 +56,9 @@ class ChatController extends GetxController {
       final response = await _apiService.getRequest(AppUrls.conversations);
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
-        conversations.value = data.map((json) => ChatConversation.fromJson(json)).toList();
+        conversations.value = data
+            .map((json) => ChatConversation.fromJson(json))
+            .toList();
       }
 
       if (conversations.isEmpty) {
@@ -71,16 +73,28 @@ class ChatController extends GetxController {
 
   Future<void> fetchMessages(String convoId) async {
     try {
+      // Leave old room if any
+      if (activeConversationId.isNotEmpty && activeConversationId.value != convoId) {
+        _socketService.emit('conversation:leave', activeConversationId.value);
+      }
+
       activeConversationId.value = convoId;
       isLoadingMessages.value = true;
       currentMessages.clear();
 
+      // Join new room
+      _socketService.emit('conversation:join', convoId);
+
       // Production API Call
-      final response = await _apiService.getRequest('${AppUrls.messagesByConversation}$convoId/messages');
+      final response = await _apiService.getRequest(
+        '${AppUrls.messagesByConversation}$convoId/messages',
+      );
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
-        currentMessages.value = data.map((json) => ChatMessage.fromJson(json)).toList();
-        
+        currentMessages.value = data
+            .map((json) => ChatMessage.fromJson(json))
+            .toList();
+
         // Mark as read locally and on server
         _socketService.emit('message:read', {'conversationId': convoId});
       }
@@ -91,11 +105,19 @@ class ChatController extends GetxController {
     }
   }
 
+  void clearActiveConversation() {
+    if (activeConversationId.isNotEmpty) {
+      _socketService.emit('conversation:leave', activeConversationId.value);
+    }
+    activeConversationId.value = '';
+    currentMessages.clear();
+  }
+
   void sendMessage(String content, {String? receiverId}) {
     if (content.trim().isEmpty || activeConversationId.isEmpty) return;
 
     final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
-    
+
     // Create optimistic message
     final optimisticMsg = ChatMessage(
       id: tempId,
@@ -108,7 +130,7 @@ class ChatController extends GetxController {
     );
 
     currentMessages.add(optimisticMsg);
-    
+
     // Emit via socket
     _socketService.emit('message:send', {
       'conversationId': activeConversationId.value,
@@ -173,11 +195,15 @@ class ChatController extends GetxController {
   void _handleIncomingMessage(ChatMessage message) {
     if (message.conversationId == activeConversationId.value) {
       currentMessages.add(message);
-      _socketService.emit('message:read', {'conversationId': message.conversationId});
+      _socketService.emit('message:read', {
+        'conversationId': message.conversationId,
+      });
     }
-    
+
     // Update conversation list item
-    final index = conversations.indexWhere((c) => c.conversationId == message.conversationId);
+    final index = conversations.indexWhere(
+      (c) => c.conversationId == message.conversationId,
+    );
     if (index != -1) {
       // Move to top and update last message
       // Note: In a real app, you'd likely want to refresh the conversation list or update the object
@@ -198,23 +224,27 @@ class ChatController extends GetxController {
   void _handleStatusUpdate(String conversationId, String status) {
     if (conversationId == activeConversationId.value) {
       // Update local messages if they share this status
-      final updatedMessages = currentMessages.map((m) => ChatMessage(
-        id: m.id,
-        conversationId: m.conversationId,
-        senderId: m.senderId,
-        senderName: m.senderName,
-        senderRole: m.senderRole,
-        content: m.content,
-        timestamp: m.timestamp,
-        read: m.read,
-        flagged: m.flagged,
-        status: status,
-        type: m.type,
-      )).toList();
+      final updatedMessages = currentMessages
+          .map(
+            (m) => ChatMessage(
+              id: m.id,
+              conversationId: m.conversationId,
+              senderId: m.senderId,
+              senderName: m.senderName,
+              senderRole: m.senderRole,
+              content: m.content,
+              timestamp: m.timestamp,
+              read: m.read,
+              flagged: m.flagged,
+              status: status,
+              type: m.type,
+            ),
+          )
+          .toList();
       currentMessages.value = updatedMessages;
     }
     fetchConversations();
-    
+
     // Refresh bookings to reflect new status (confirmed/rejected)
     if (Get.isRegistered<BookingController>()) {
       final bc = Get.find<BookingController>();

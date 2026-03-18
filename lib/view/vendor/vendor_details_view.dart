@@ -29,7 +29,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
   String _selectedService = 'Grooming';
   String _selectedQty = '2';
   String _selectedLocation = 'WEF, Wellington';
-  
+
   DateTime? _startDate;
   DateTime? _endDate;
 
@@ -91,7 +91,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                 color: Colors.white.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                size: 20,
+                color: Colors.black,
+              ),
             ),
           ),
         ),
@@ -124,16 +128,34 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
         children: [
           Row(
             children: [
-              CommonText(widget.vendor.fullName, fontSize: 22, fontWeight: FontWeight.w700),
+              CommonText(
+                widget.vendor.fullName,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
               const SizedBox(width: 8),
               if (widget.vendor.yearsExperience != null)
-                CommonText('• ${widget.vendor.yearsExperience} years', fontSize: 16, color: AppColors.textSecondary),
+                CommonText(
+                  '• ${widget.vendor.yearsExperience} years',
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
             ],
           ),
           const SizedBox(height: 4),
           if (widget.vendor.phone != null)
-            CommonText(widget.vendor.phone!, fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-          CommonText(widget.vendor.email, fontSize: 14, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+            CommonText(
+              widget.vendor.phone!,
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          CommonText(
+            widget.vendor.email,
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
         ],
       ),
     );
@@ -156,7 +178,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.location_on, color: AppColors.accentRed, size: 20),
+              const Icon(
+                Icons.location_on,
+                color: AppColors.accentRed,
+                size: 20,
+              ),
               const SizedBox(width: 6),
               Expanded(
                 child: CommonText(
@@ -180,7 +206,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText('Details', fontSize: 20, fontWeight: FontWeight.w700),
+          const CommonText(
+            'Details',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(20),
@@ -201,7 +231,16 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildDetailRow('Services', widget.vendor.services.isNotEmpty ? widget.vendor.services.map((s) => s.name).join(", ") : widget.vendor.serviceType)),
+                    Expanded(
+                      child: _buildDetailRow(
+                        'Services',
+                        widget.vendor.services.isNotEmpty
+                            ? widget.vendor.services
+                                  .map((s) => s.name)
+                                  .join(", ")
+                            : widget.vendor.serviceType,
+                      ),
+                    ),
                     const SizedBox(width: 16),
                     Expanded(child: _buildDetailRow('Travel Preferences', '')),
                   ],
@@ -209,7 +248,10 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: AppColors.borderLight),
                 const SizedBox(height: 16),
-                _buildDetailRow('Operating Regions', widget.vendor.location ?? ''),
+                _buildDetailRow(
+                  'Operating Regions',
+                  widget.vendor.location ?? '',
+                ),
                 const SizedBox(height: 16),
                 const Divider(height: 1, color: AppColors.borderLight),
                 const SizedBox(height: 16),
@@ -227,9 +269,19 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+        CommonText(
+          label,
+          fontSize: 13,
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
         const SizedBox(height: 4),
-        CommonText(value, fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        CommonText(
+          value,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
       ],
     );
   }
@@ -240,15 +292,25 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: CommonText('Upcoming Availability', fontSize: 20, fontWeight: FontWeight.w700),
+          child: CommonText(
+            'Upcoming Availability',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         if (widget.vendor.serviceAvailability.isEmpty)
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: CommonText('No upcoming availability listed.', fontSize: 14, color: AppColors.textSecondary),
+            child: CommonText(
+              'No upcoming availability listed.',
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
           )
         else
-          ...widget.vendor.serviceAvailability.map((avail) => _buildAvailabilityCard(avail)),
+          ...widget.vendor.serviceAvailability.map(
+            (avail) => _buildAvailabilityCard(avail),
+          ),
       ],
     );
   }
@@ -256,9 +318,18 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
   Widget _buildDummyAvailabilityCard() {
     return Column(
       children: [
-        _buildAvailabilityItem('Mar 10 - Mar 18, 2026', 'Wellington, WEC Ocala'),
-        _buildAvailabilityItem('Mar 10 - Mar 18, 2026', 'Wellington, WEC Ocala'),
-        _buildAvailabilityItem('Mar 10 - Mar 18, 2026', 'Wellington, WEC Ocala'),
+        _buildAvailabilityItem(
+          'Mar 10 - Mar 18, 2026',
+          'Wellington, WEC Ocala',
+        ),
+        _buildAvailabilityItem(
+          'Mar 10 - Mar 18, 2026',
+          'Wellington, WEC Ocala',
+        ),
+        _buildAvailabilityItem(
+          'Mar 10 - Mar 18, 2026',
+          'Wellington, WEC Ocala',
+        ),
       ],
     );
   }
@@ -282,13 +353,27 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonText(dateRange, color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                CommonText(
+                  dateRange,
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: Colors.white),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                     const SizedBox(width: 4),
-                    CommonText(location, color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                    CommonText(
+                      location,
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ],
                 ),
               ],
@@ -320,7 +405,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.verified_outlined, size: 18, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.verified_outlined,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 10),
                     const Expanded(
                       child: CommonText(
@@ -341,7 +430,10 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
   }
 
   Widget _buildAvailabilityCard(VendorAvailability avail) {
-    return _buildAvailabilityItem('${avail.startDate ?? ""} - ${avail.endDate ?? ""}', avail.serviceRegion ?? 'General Area');
+    return _buildAvailabilityItem(
+      '${avail.startDate ?? ""} - ${avail.endDate ?? ""}',
+      avail.serviceRegion ?? 'General Area',
+    );
   }
 
   Widget _buildChip(String text) {
@@ -358,7 +450,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
           ),
         ],
       ),
-      child: CommonText(text, fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+      child: CommonText(
+        text,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
     );
   }
 
@@ -367,7 +464,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
       children: [
         Icon(icon, size: 18, color: AppColors.textSecondary),
         const SizedBox(width: 8),
-        CommonText(text, fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        CommonText(
+          text,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
       ],
     );
   }
@@ -388,11 +490,19 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
             children: [
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: AppColors.accentRed, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: AppColors.accentRed,
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(Icons.close, size: 14, color: Colors.white),
               ),
               const SizedBox(width: 12),
-              const CommonText('Cancelation Policy', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.errorPrimary),
+              const CommonText(
+                'Cancelation Policy',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.errorPrimary,
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -446,7 +556,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                 children: [
                   Icon(Icons.message_outlined, size: 20, color: Colors.white),
                   SizedBox(width: 10),
-                  CommonText('Message', color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                  CommonText(
+                    'Message',
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
                 ],
               ),
             ),
@@ -496,7 +611,9 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: CommonImageView(
-                            url: widget.vendor.profilePhoto ?? AppConstants.dummyImageUrl,
+                            url:
+                                widget.vendor.profilePhoto ??
+                                AppConstants.dummyImageUrl,
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
@@ -507,60 +624,114 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CommonText(widget.vendor.fullName, fontSize: 18, fontWeight: FontWeight.bold),
+                              CommonText(
+                                widget.vendor.fullName,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                               const SizedBox(height: 4),
-                              _buildIconTextSmall(Icons.location_on_outlined, widget.vendor.location ?? ''),
+                              _buildIconTextSmall(
+                                Icons.location_on_outlined,
+                                widget.vendor.location ?? '',
+                              ),
                               const SizedBox(height: 2),
-                              _buildIconTextSmall(Icons.person_outline, widget.vendor.services.isNotEmpty ? widget.vendor.services.map((s) => s.name).join(", ") : widget.vendor.serviceType),
+                              _buildIconTextSmall(
+                                Icons.person_outline,
+                                widget.vendor.services.isNotEmpty
+                                    ? widget.vendor.services
+                                          .map((s) => s.name)
+                                          .join(", ")
+                                    : widget.vendor.serviceType,
+                              ),
                               const SizedBox(height: 2),
                               if (widget.vendor.serviceAvailability.isNotEmpty)
-                                _buildIconTextSmall(Icons.calendar_today_outlined, '${widget.vendor.serviceAvailability.first.startDate} - ${widget.vendor.serviceAvailability.first.endDate}'),
+                                _buildIconTextSmall(
+                                  Icons.calendar_today_outlined,
+                                  '${widget.vendor.serviceAvailability.first.startDate} - ${widget.vendor.serviceAvailability.first.endDate}',
+                                ),
                             ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   if (_addedServices.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Column(
-                      children: _addedServices.map((service) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.primaryDark.withValues(alpha: 0.3)),
-                          color: AppColors.background,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                CommonText(service['name']!, fontWeight: FontWeight.bold, fontSize: 16),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(6),
+                      children: _addedServices
+                          .map(
+                            (service) => Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.primaryDark.withValues(
+                                    alpha: 0.3,
                                   ),
-                                  child: CommonText('Qty: ${service['qty']}', fontSize: 12, fontWeight: FontWeight.w600),
                                 ),
-                              ],
+                                color: AppColors.background,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      CommonText(
+                                        service['name']!,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: CommonText(
+                                          'Qty: ${service['qty']}',
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  _buildIconTextSmall(
+                                    Icons.location_on_outlined,
+                                    service['location']!,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _buildIconTextSmall(
+                                    Icons.calendar_today_outlined,
+                                    '01 Apr - 07 Apr 2026',
+                                  ),
+                                  if (service['note']!.isNotEmpty) ...[
+                                    const SizedBox(height: 10),
+                                    CommonText(
+                                      'NOTE : ${service['note']}',
+                                      fontSize: 13,
+                                      color: Colors.black.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            _buildIconTextSmall(Icons.location_on_outlined, service['location']!),
-                            const SizedBox(height: 4),
-                            _buildIconTextSmall(Icons.calendar_today_outlined, '01 Apr - 07 Apr 2026'),
-                            if (service['note']!.isNotEmpty) ...[
-                              const SizedBox(height: 10),
-                              CommonText('NOTE : ${service['note']}', fontSize: 13, color: Colors.black.withValues(alpha: 0.7), fontWeight: FontWeight.w500),
-                            ],
-                          ],
-                        ),
-                      )).toList(),
+                          )
+                          .toList(),
                     ),
                   ],
 
@@ -573,27 +744,56 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildDateField('Start Date', _startDate == null ? 'Select Date' : DateFormat('dd MMM yyyy').format(_startDate!), isStart: true, setState: setBottomSheetState)),
+                      Expanded(
+                        child: _buildDateField(
+                          'Start Date',
+                          _startDate == null
+                              ? 'Select Date'
+                              : DateFormat('dd MMM yyyy').format(_startDate!),
+                          isStart: true,
+                          setState: setBottomSheetState,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDateField('End Date', _endDate == null ? 'Select Date' : DateFormat('dd MMM yyyy').format(_endDate!), isStart: false, setState: setBottomSheetState)),
+                      Expanded(
+                        child: _buildDateField(
+                          'End Date',
+                          _endDate == null
+                              ? 'Select Date'
+                              : DateFormat('dd MMM yyyy').format(_endDate!),
+                          isStart: false,
+                          setState: setBottomSheetState,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const CommonText('Notes to Vendor', fontSize: 14, fontWeight: FontWeight.w600),
+                  const CommonText(
+                    'Notes to Vendor',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _notesController,
                     maxLines: 3,
                     decoration: InputDecoration(
                       hintText: 'Add a note for the service provider...',
-                      hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.4), fontSize: 14),
+                      hintStyle: TextStyle(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        fontSize: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderMedium,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderMedium,
+                        ),
                       ),
                     ),
                   ),
@@ -611,10 +811,20 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                           });
                           _notesController.clear();
                         });
-                        setState(() {}); // Update parent to reflect in next open if needed
+                        setState(
+                          () {},
+                        ); // Update parent to reflect in next open if needed
                       },
-                      icon: const Icon(Icons.add, size: 18, color: AppColors.linkBlue),
-                      label: const CommonText('Add Service', color: AppColors.linkBlue, fontWeight: FontWeight.w600),
+                      icon: const Icon(
+                        Icons.add,
+                        size: 18,
+                        color: AppColors.linkBlue,
+                      ),
+                      label: const CommonText(
+                        'Add Service',
+                        color: AppColors.linkBlue,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -632,31 +842,37 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Obx(() => CommonButton(
-                          text: 'Submit',
-                          backgroundColor: AppColors.primaryDark,
-                          isLoading: bookingController.isLoading.value,
-                          onPressed: () async {
-                            final bookingData = {
-                              'vendorId': widget.vendor.id,
-                              'type': 'Vendor',
-                              'service': _selectedService,
-                              'date': _startDate?.toIso8601String() ?? DateTime.now().toIso8601String(),
-                              'endDate': _endDate?.toIso8601String(),
-                              'notes': _notesController.text,
-                              'price': 0, // Should be set by vendor or fetched
-                              'addedServices': _addedServices,
-                            };
+                        child: Obx(
+                          () => CommonButton(
+                            text: 'Submit',
+                            backgroundColor: AppColors.primaryDark,
+                            isLoading: bookingController.isLoading.value,
+                            onPressed: () async {
+                              final bookingData = {
+                                'vendorId': widget.vendor.id,
+                                'type': 'Vendor',
+                                'service': _selectedService,
+                                'date':
+                                    _startDate?.toIso8601String() ??
+                                    DateTime.now().toIso8601String(),
+                                'endDate': _endDate?.toIso8601String(),
+                                'notes': _notesController.text,
+                                'price':
+                                    0, // Should be set by vendor or fetched
+                                'addedServices': _addedServices,
+                              };
 
-                            final success = await bookingController.createBooking(bookingData);
-                            if (success) {
-                              Get.back();
-                              Get.back(); // Back to list
-                            }
-                          },
-                          height: 56,
-                          borderRadius: 16,
-                        )),
+                              final success = await bookingController
+                                  .createBooking(bookingData);
+                              if (success) {
+                                Get.back();
+                                Get.back(); // Back to list
+                              }
+                            },
+                            height: 56,
+                            borderRadius: 16,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -665,7 +881,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
               ),
             ),
           );
-        }
+        },
       ),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -677,7 +893,15 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
       children: [
         Icon(icon, size: 14, color: AppColors.textSecondary),
         const SizedBox(width: 6),
-        Expanded(child: CommonText(text, fontSize: 12, color: AppColors.textSecondary, maxLines: 1, overflow: TextOverflow.ellipsis)),
+        Expanded(
+          child: CommonText(
+            text,
+            fontSize: 12,
+            color: AppColors.textSecondary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
@@ -697,8 +921,15 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CommonText(value, fontSize: 16, color: Colors.black.withValues(alpha: 0.6)),
-              const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+              CommonText(
+                value,
+                fontSize: 16,
+                color: Colors.black.withValues(alpha: 0.6),
+              ),
+              const Icon(
+                Icons.keyboard_arrow_down,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -706,7 +937,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
     );
   }
 
-  Widget _buildDateField(String label, String value, {required bool isStart, required Function setState}) {
+  Widget _buildDateField(
+    String label,
+    String value, {
+    required bool isStart,
+    required Function setState,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -739,8 +975,18 @@ class _VendorDetailsViewState extends State<VendorDetailsView> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CommonText(value, fontSize: 14, color: value == 'Select Date' ? Colors.black.withValues(alpha: 0.4) : Colors.black),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+                CommonText(
+                  value,
+                  fontSize: 14,
+                  color: value == 'Select Date'
+                      ? Colors.black.withValues(alpha: 0.4)
+                      : Colors.black,
+                ),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ),

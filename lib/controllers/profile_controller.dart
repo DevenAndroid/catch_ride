@@ -22,7 +22,8 @@ class ProfileController extends GetxController {
   // Metadata Lists
   final RxList<String> allProgramTags = <String>[].obs;
   final RxList<String> allHorseShows = <String>[].obs; // List of names
-  final RxList<Map<String, dynamic>> rawHorseShows = <Map<String, dynamic>>[].obs; // Full objects
+  final RxList<Map<String, dynamic>> rawHorseShows =
+      <Map<String, dynamic>>[].obs; // Full objects
   final RxList<String> allExperienceLevels = <String>[].obs;
   final RxList<Map<String, dynamic>> tagTypes = <Map<String, dynamic>>[].obs;
   final RxList<String> selectedTags = <String>[].obs;
@@ -31,7 +32,9 @@ class ProfileController extends GetxController {
   void onInit() {
     super.onInit();
     fetchProfile().then((_) {
-      if ((user.value?.role == 'trainer' || user.value?.role == 'barn_manager') && user.value?.trainerProfileId != null) {
+      if ((user.value?.role == 'trainer' ||
+              user.value?.role == 'barn_manager') &&
+          user.value?.trainerProfileId != null) {
         fetchTrainerHorses();
       }
     });
@@ -43,14 +46,16 @@ class ProfileController extends GetxController {
       final tId = user.value?.trainerProfileId;
       if (tId == null) return;
 
-      final response = await _apiService.getRequest(AppUrls.horses, query: {
-        'trainerId': tId,
-        'limit': '5'
-      });
+      final response = await _apiService.getRequest(
+        AppUrls.horses,
+        query: {'trainerId': tId, 'limit': '5'},
+      );
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        trainerHorses.assignAll(data.map((e) => HorseModel.fromJson(e)).toList());
+        trainerHorses.assignAll(
+          data.map((e) => HorseModel.fromJson(e)).toList(),
+        );
       }
     } catch (e) {
       _logger.e('Error fetching trainer horses: $e');
@@ -63,22 +68,38 @@ class ProfileController extends GetxController {
         _apiService.getRequest(AppUrls.programTags),
         _apiService.getRequest('${AppUrls.horseShows}?limit=100'),
         _apiService.getRequest(AppUrls.experienceLevels),
-        _apiService.getRequest('${AppUrls.tagTypesWithValues}?category=Trainer'),
+        _apiService.getRequest(
+          '${AppUrls.tagTypesWithValues}?category=Trainer',
+        ),
       ]);
 
       if (results[0].statusCode == 200) {
-        allProgramTags.assignAll((results[0].body['data'] as List).map((e) => e['name'] as String).toList());
+        allProgramTags.assignAll(
+          (results[0].body['data'] as List)
+              .map((e) => e['name'] as String)
+              .toList(),
+        );
       }
       if (results[1].statusCode == 200) {
         final List data = results[1].body['data'] ?? [];
         allHorseShows.assignAll(data.map((e) => e['name'] as String).toList());
-        rawHorseShows.assignAll(data.map((e) => e as Map<String, dynamic>).toList());
+        rawHorseShows.assignAll(
+          data.map((e) => e as Map<String, dynamic>).toList(),
+        );
       }
       if (results[2].statusCode == 200) {
-        allExperienceLevels.assignAll((results[2].body['data'] as List).map((e) => e['name'] as String).toList());
+        allExperienceLevels.assignAll(
+          (results[2].body['data'] as List)
+              .map((e) => e['name'] as String)
+              .toList(),
+        );
       }
       if (results[3].statusCode == 200) {
-        tagTypes.assignAll((results[3].body['data'] as List).map((e) => e as Map<String, dynamic>).toList());
+        tagTypes.assignAll(
+          (results[3].body['data'] as List)
+              .map((e) => e as Map<String, dynamic>)
+              .toList(),
+        );
       }
     } catch (e) {
       _logger.e('Error fetching metadata: $e');
@@ -89,20 +110,23 @@ class ProfileController extends GetxController {
     try {
       isLoading.value = true;
       final response = await _apiService.getRequest(AppUrls.profile);
-      
+
       if (response.statusCode == 200) {
         final data = response.body['data'] ?? {};
         userData.value = data;
         user.value = UserModel.fromJson(data);
         _logger.i('Profile fetched successfully: ${user.value?.email}');
-        
+
         // Fetch horses if trainer or barn manager
-        if ((user.value?.role == 'trainer' || user.value?.role == 'barn_manager') && user.value?.trainerProfileId != null) {
+        if ((user.value?.role == 'trainer' ||
+                user.value?.role == 'barn_manager') &&
+            user.value?.trainerProfileId != null) {
           fetchTrainerHorses();
         }
 
         // Fetch full trainer profile if barn manager
-        if (user.value?.role == 'barn_manager' && user.value?.trainerProfileId != null) {
+        if (user.value?.role == 'barn_manager' &&
+            user.value?.trainerProfileId != null) {
           fetchLinkedTrainerProfile(user.value!.trainerProfileId!);
         }
       } else {
@@ -117,7 +141,9 @@ class ProfileController extends GetxController {
 
   Future<void> fetchLinkedTrainerProfile(String trainerId) async {
     try {
-      final response = await _apiService.getRequest('${AppUrls.trainers}/$trainerId');
+      final response = await _apiService.getRequest(
+        '${AppUrls.trainers}/$trainerId',
+      );
       if (response.statusCode == 200) {
         final data = response.body['data'] ?? {};
         linkedTrainerProfile.value = UserModel(
@@ -139,9 +165,21 @@ class ProfileController extends GetxController {
           instagram: data['instagram'] ?? '',
           facebook: data['facebook'] ?? '',
           website: data['website'] ?? '',
-          showCircuits: (data['horseShows'] as List?)?.map((e) => e['name'].toString()).toList() ?? [],
-          horseShows: (data['horseShows'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
-          tags: (data['tags'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
+          showCircuits:
+              (data['horseShows'] as List?)
+                  ?.map((e) => e['name'].toString())
+                  .toList() ??
+              [],
+          horseShows:
+              (data['horseShows'] as List?)
+                  ?.map((e) => e['_id'].toString())
+                  .toList() ??
+              [],
+          tags:
+              (data['tags'] as List?)
+                  ?.map((e) => e['_id'].toString())
+                  .toList() ??
+              [],
         );
         _logger.i('Linked trainer profile fetched successfully');
       }
@@ -156,11 +194,13 @@ class ProfileController extends GetxController {
       viewedUser.value = null;
       viewedUserHorses.clear();
 
-      final response = await _apiService.getRequest('${AppUrls.trainers}/$trainerId');
-      
+      final response = await _apiService.getRequest(
+        '${AppUrls.trainers}/$trainerId',
+      );
+
       if (response.statusCode == 200) {
         final data = response.body['data'] ?? {};
-        
+
         // The /api/trainers/:id endpoint returns a Trainer object
         // We need to map it to a format the ProfileView can use, ideally UserModel
         final mappedUser = UserModel(
@@ -182,22 +222,36 @@ class ProfileController extends GetxController {
           instagram: data['instagram'] ?? '',
           facebook: data['facebook'] ?? '',
           website: data['website'] ?? '',
-          showCircuits: (data['horseShows'] as List?)?.map((e) => e['name'].toString()).toList() ?? [],
-          horseShows: (data['horseShows'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
-          tags: (data['tags'] as List?)?.map((e) => e['_id'].toString()).toList() ?? [],
+          showCircuits:
+              (data['horseShows'] as List?)
+                  ?.map((e) => e['name'].toString())
+                  .toList() ??
+              [],
+          horseShows:
+              (data['horseShows'] as List?)
+                  ?.map((e) => e['_id'].toString())
+                  .toList() ??
+              [],
+          tags:
+              (data['tags'] as List?)
+                  ?.map((e) => e['_id'].toString())
+                  .toList() ??
+              [],
         );
-        
+
         viewedUser.value = mappedUser;
-        
+
         // Fetch horses for this trainer
-        final horseResponse = await _apiService.getRequest(AppUrls.horses, query: {
-          'trainerId': trainerId,
-          'limit': '10'
-        });
+        final horseResponse = await _apiService.getRequest(
+          AppUrls.horses,
+          query: {'trainerId': trainerId, 'limit': '10'},
+        );
 
         if (horseResponse.statusCode == 200) {
           final List horseData = horseResponse.body['data'] ?? [];
-          viewedUserHorses.assignAll(horseData.map((e) => HorseModel.fromJson(e)).toList());
+          viewedUserHorses.assignAll(
+            horseData.map((e) => HorseModel.fromJson(e)).toList(),
+          );
         }
       }
     } catch (e) {
@@ -212,25 +266,31 @@ class ProfileController extends GetxController {
       isLoading.value = true;
       // PUT /profile — handles all field updates AND syncs trainer/vendor/barn-manager record
       final response = await _apiService.putRequest(AppUrls.profile, data);
-      
+
       if (response.statusCode == 200) {
         await fetchProfile(); // Refresh local data
         return true;
       } else {
         String message = response.body?['message'] ?? 'Update failed';
         _logger.e('Update failed: $message');
-        Get.snackbar('Error', message,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          message,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
       _logger.e('Error updating profile: $e');
-      Get.snackbar('Error', 'An unexpected error occurred',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return false;
     } finally {
       isLoading.value = false;
@@ -260,17 +320,20 @@ class ProfileController extends GetxController {
   Future<bool> uploadImage(String filePath, String type) async {
     try {
       isLoading.value = true;
-      
+
       // 1. Upload to general media storage
       final imageUrl = await uploadRawFile(filePath);
       if (imageUrl == null) return false;
 
       // 2. Link URL to profile
-      final response = await _apiService.postRequest(AppUrls.uploadProfileImage, {
-        'imageUrl': imageUrl,
-        'type': type, // 'avatar' or 'cover'
-      });
-      
+      final response = await _apiService.postRequest(
+        AppUrls.uploadProfileImage,
+        {
+          'imageUrl': imageUrl,
+          'type': type, // 'avatar' or 'cover'
+        },
+      );
+
       if (response.statusCode == 200) {
         await fetchProfile(); // Refresh local data
         return true;
@@ -303,26 +366,31 @@ class ProfileController extends GetxController {
   String get role => displayUser?.role ?? 'user';
   String get status => displayUser?.status ?? 'active';
   bool get isApproved => displayUser?.isProfileApprove ?? false;
-  bool get pushNotificationsEnabled => displayUser?.pushNotificationsEnabled ?? true;
+  bool get pushNotificationsEnabled =>
+      displayUser?.pushNotificationsEnabled ?? true;
   bool get isActive => status.toLowerCase() == 'active';
-  
+
   // Professional Data
   String get barnName => displayUser?.barnName ?? '';
   int get yearsExperience => displayUser?.yearsExperience ?? 0;
   List<String> get selectedProgramTags => displayUser?.programTags ?? [];
   List<String> get selectedHorseShows {
     UserModel? target = displayUser;
-    if (user.value?.role == 'barn_manager' && linkedTrainerProfile.value != null) {
+    if (user.value?.role == 'barn_manager' &&
+        linkedTrainerProfile.value != null) {
       target = linkedTrainerProfile.value;
     }
     return target?.showCircuits ?? [];
   }
+
   List<String> get selectedHorseShowIds => displayUser?.horseShows ?? [];
   String get trainerId => displayUser?.trainerProfileId ?? '';
   String get yearsInIndustry => displayUser?.yearsInIndustry ?? '';
   String get linkedTrainerBarnName {
     if (user.value?.role == 'barn_manager') {
-      return linkedTrainerProfile.value?.barnName ?? user.value?.linkedTrainer?.barnName ?? '';
+      return linkedTrainerProfile.value?.barnName ??
+          user.value?.linkedTrainer?.barnName ??
+          '';
     }
     return '';
   }
@@ -337,37 +405,38 @@ class ProfileController extends GetxController {
   // Helper to group selected tags by their type name
   Map<String, List<String>> get groupedTrainerTags {
     final Map<String, List<String>> grouped = {};
-    
+
     // For barn managers, show tags from linked trainer
     UserModel? currentUser = displayUser;
-    if (user.value?.role == 'barn_manager' && linkedTrainerProfile.value != null) {
+    if (user.value?.role == 'barn_manager' &&
+        linkedTrainerProfile.value != null) {
       currentUser = linkedTrainerProfile.value;
     }
 
     if (currentUser == null || tagTypes.isEmpty) return grouped;
 
     final userTagIds = currentUser.tags;
-    
+
     // Group selected values by their tag type
     for (var type in tagTypes) {
       final String typeName = type['name'] ?? 'General';
       final List values = type['values'] ?? [];
-      
+
       final List<String> selectedInThisType = [];
       for (var val in values) {
         final String valId = val['_id'] ?? '';
         final String valName = val['name'] ?? '';
-        
+
         if (userTagIds.contains(valId)) {
           selectedInThisType.add(valName);
         }
       }
-      
+
       if (selectedInThisType.isNotEmpty) {
         grouped[typeName] = selectedInThisType;
       }
     }
-    
+
     return grouped;
   }
 
@@ -378,9 +447,10 @@ class ProfileController extends GetxController {
 
   Future<void> togglePushNotifications(bool enabled) async {
     try {
-      final response = await _apiService.putRequest(AppUrls.toggleNotifications, {
-        'enabled': enabled,
-      });
+      final response = await _apiService.putRequest(
+        AppUrls.toggleNotifications,
+        {'enabled': enabled},
+      );
 
       if (response.statusCode == 200) {
         // Update local user object

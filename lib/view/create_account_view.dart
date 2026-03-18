@@ -60,7 +60,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ],
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center ,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const CommonText(
                         AppStrings.createAccount,
@@ -83,8 +83,12 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         hintText: AppStrings.enterYourEmail,
                         keyboardType: TextInputType.emailAddress,
                         validator: MultiValidator([
-                          RequiredValidator(errorText: 'Please enter your email'),
-                          EmailValidator(errorText: 'Please enter a valid email address'),
+                          RequiredValidator(
+                            errorText: 'Please enter your email',
+                          ),
+                          EmailValidator(
+                            errorText: 'Please enter a valid email address',
+                          ),
                         ]),
                       ),
                       const SizedBox(height: 16),
@@ -95,8 +99,14 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         hintText: AppStrings.emptyString,
                         obscureText: _obscurePassword,
                         validator: MultiValidator([
-                          RequiredValidator(errorText: 'Please enter your password'),
-                          MinLengthValidator(6, errorText: 'Please use at least 6 characters for your password'),
+                          RequiredValidator(
+                            errorText: 'Please enter your password',
+                          ),
+                          MinLengthValidator(
+                            6,
+                            errorText:
+                                'Please use at least 6 characters for your password',
+                          ),
                         ]),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -119,7 +129,14 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         label: AppStrings.confirmPassword,
                         hintText: AppStrings.emptyString,
                         obscureText: _obscureConfirmPassword,
-                        validator: (val) => MatchValidator(errorText: 'Passwords do not match, please check again').validateMatch(val ?? '', _authController.passwordController.text),
+                        validator: (val) =>
+                            MatchValidator(
+                              errorText:
+                                  'Passwords do not match, please check again',
+                            ).validateMatch(
+                              val ?? '',
+                              _authController.passwordController.text,
+                            ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirmPassword
@@ -129,83 +146,89 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
                       ),
 
                       const SizedBox(height: 24),
-                      Obx(() => CommonButton(
-                        text: AppStrings.getStarted,
-                        isLoading: _authController.isLoading.value,
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            // Store for potential OTP resend
-                            _authController.registrationEmail.value = _authController.emailController.text.trim();
-                            _authController.registrationPassword.value = _authController.passwordController.text;
+                      Obx(
+                        () => CommonButton(
+                          text: AppStrings.getStarted,
+                          isLoading: _authController.isLoading.value,
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              // Store for potential OTP resend
+                              _authController.registrationEmail.value =
+                                  _authController.emailController.text.trim();
+                              _authController.registrationPassword.value =
+                                  _authController.passwordController.text;
 
-                            // Call register API — will navigate to OTP screen on success
-                            await _authController.register({});
-                          }
-                        },
-                      )),
-                    const SizedBox(height: 20),
-
-                    const Center(
-                      child: CommonText(
-                        AppStrings.orSignUpWith,
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
+                              // Call register API — will navigate to OTP screen on success
+                              await _authController.register({});
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                    SocialButton(
-                      text: AppStrings.continueWithGoogle,
-                      icon: SvgPicture.asset("assets/icons/google_icon.svg"),
-                      onPressed: () {
-                        // Google Sign In Action
-                        Get.to(() => const SelectRoleView());
-                      },
+                      const Center(
+                        child: CommonText(
+                          AppStrings.orSignUpWith,
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      SocialButton(
+                        text: AppStrings.continueWithGoogle,
+                        icon: SvgPicture.asset("assets/icons/google_icon.svg"),
+                        onPressed: () {
+                          // Google Sign In Action
+                          Get.to(() => const SelectRoleView());
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      SocialButton(
+                        text: AppStrings.continueWithAppleId,
+                        icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
+                        onPressed: () {
+                          // Apple Sign In Action
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CommonText(
+                      AppStrings.alreadyHaveAnAccount,
+                      fontSize: AppTextSizes.size14,
+                      color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: 12),
-                    SocialButton(
-                      text: AppStrings.continueWithAppleId,
-                      icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
-                      onPressed: () {
-                        // Apple Sign In Action
+                    GestureDetector(
+                      onTap: () {
+                        Get.off(() => const LoginView());
                       },
+                      child: const CommonText(
+                        AppStrings.logIn,
+                        fontSize: AppTextSizes.size14,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CommonText(
-                    AppStrings.alreadyHaveAnAccount,
-                    fontSize: AppTextSizes.size14,
-                    color: AppColors.textSecondary,
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      Get.off(() => const LoginView());
-                    },
-                    child: const CommonText(
-                      AppStrings.logIn,
-                      fontSize: AppTextSizes.size14,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }

@@ -11,6 +11,7 @@ import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'trainer_past_bookings_view.dart';
 
 class TrainerBookingsView extends StatefulWidget {
   const TrainerBookingsView({super.key});
@@ -22,15 +23,26 @@ class TrainerBookingsView extends StatefulWidget {
 class _TrainerBookingsViewState extends State<TrainerBookingsView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedFilterIndex = 0; 
+  int _selectedFilterIndex = 0;
 
   final BookingController bookingController = Get.find<BookingController>();
   final ProfileController profileController = Get.find<ProfileController>();
 
-  final List<String> _receivedFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
-  final List<String> _sentFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
+  final List<String> _receivedFilters = [
+    'Accepted',
+    'Rejected',
+    'Pending',
+    'Canceled',
+  ];
+  final List<String> _sentFilters = [
+    'Accepted',
+    'Rejected',
+    'Pending',
+    'Canceled',
+  ];
 
-  List<String> get _currentFilters => _tabController.index == 0 ? _receivedFilters : _sentFilters;
+  List<String> get _currentFilters =>
+      _tabController.index == 0 ? _receivedFilters : _sentFilters;
 
   @override
   void initState() {
@@ -55,16 +67,24 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
       _selectedFilterIndex = 0;
     }
     final statusStr = filters[_selectedFilterIndex];
-    
+
     String apiStatus = statusStr.toLowerCase();
     if (statusStr == 'Accepted') apiStatus = 'confirmed';
     if (statusStr == 'Canceled') apiStatus = 'cancelled';
     // 'Completed', 'Rejected', 'Pending' map directly to lowercase
 
     if (_tabController.index == 0) {
-      bookingController.fetchBookings(type: 'received', status: apiStatus);
+      bookingController.fetchBookings(
+        type: 'received',
+        status: apiStatus,
+        time: 'upcoming',
+      );
     } else {
-      bookingController.fetchBookings(type: 'sent', status: apiStatus);
+      bookingController.fetchBookings(
+        type: 'sent',
+        status: apiStatus,
+        time: 'upcoming',
+      );
     }
   }
 
@@ -92,6 +112,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: const [
+          SizedBox(width: 8),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Column(
@@ -116,7 +139,10 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   Tab(text: 'Sent'),
                 ],
               ),
-              Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+              Container(
+                color: AppColors.border.withValues(alpha: 0.5),
+                height: 1,
+              ),
             ],
           ),
         ),
@@ -125,7 +151,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         children: [
           // Filter Chips
           _buildFilterSection(),
-          
+
           Expanded(
             child: Obx(() {
               if (bookingController.isLoading.value) {
@@ -137,7 +163,11 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 64,
+                        color: AppColors.textSecondary.withValues(alpha: 0.3),
+                      ),
                       const SizedBox(height: 16),
                       const CommonText(
                         'No bookings found',
@@ -191,22 +221,30 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.secondary : Colors.transparent,
+                    color: isSelected
+                        ? AppColors.secondary
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: AppColors.secondary.withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    ] : null,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.secondary.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Center(
                     child: CommonText(
                       _currentFilters[index],
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -234,10 +272,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: _buildBookingCard(
-            booking: booking,
-            status: displayStatus,
-          ),
+          child: _buildBookingCard(booking: booking, status: displayStatus),
         );
       },
     );
@@ -248,10 +283,10 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     required String status,
   }) {
     return GestureDetector(
-      onTap: () => Get.to(() => TrainerHorseDetailView(
-        horseId: booking.horseId,
-        fromBooking: true,
-      )),
+      onTap: () => Get.to(
+        () =>
+            TrainerHorseDetailView(horseId: booking.horseId, fromBooking: true),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
@@ -286,7 +321,10 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFECFDF3),
                           borderRadius: BorderRadius.circular(6),
@@ -324,7 +362,10 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(20),
@@ -350,7 +391,11 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF98A2B3)),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Color(0xFF98A2B3),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
@@ -366,7 +411,11 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_outlined, size: 15, color: Color(0xFF98A2B3)),
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 15,
+                        color: Color(0xFF98A2B3),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
@@ -379,6 +428,35 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       ),
                     ],
                   ),
+                  if (booking.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: booking.tags
+                            .map(
+                              (tag) => Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEEF2FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: CommonText(
+                                  tag,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF3730A3),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

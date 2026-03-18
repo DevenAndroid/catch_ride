@@ -53,12 +53,12 @@ class CommonButton extends StatelessWidget {
                 ),
               )
             : child ??
-                CommonText(
-                  text ?? "",
-                  color: textColor ?? Colors.white,
-                  fontSize: AppTextSizes.size16,
-                  fontWeight: FontWeight.w600,
-                ),
+                  CommonText(
+                    text ?? "",
+                    color: textColor ?? Colors.white,
+                    fontSize: AppTextSizes.size16,
+                    fontWeight: FontWeight.w600,
+                  ),
       ),
     );
   }

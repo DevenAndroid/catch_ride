@@ -24,10 +24,18 @@ class _EditBarnInfoViewState extends State<EditBarnInfoView> {
     super.initState();
     final String location = _profileController.location;
     final List<String> locationParts = location.split(',');
-    
-    _barnNameController = TextEditingController(text: _profileController.userData['barnName'] ?? '');
-    _locationIController = TextEditingController(text: locationParts.isNotEmpty ? locationParts.first.trim() : '');
-    _locationIIController = TextEditingController(text: locationParts.length > 1 ? locationParts.sublist(1).join(', ').trim() : '');
+
+    _barnNameController = TextEditingController(
+      text: _profileController.userData['barnName'] ?? '',
+    );
+    _locationIController = TextEditingController(
+      text: locationParts.isNotEmpty ? locationParts.first.trim() : '',
+    );
+    _locationIIController = TextEditingController(
+      text: locationParts.length > 1
+          ? locationParts.sublist(1).join(', ').trim()
+          : '',
+    );
   }
 
   @override
@@ -53,16 +61,22 @@ class _EditBarnInfoViewState extends State<EditBarnInfoView> {
     if (success) {
       await _profileController.fetchProfile();
       Get.back();
-      
-      Get.snackbar('Success', 'Barn information updated successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white);
+
+      Get.snackbar(
+        'Success',
+        'Barn information updated successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
     } else {
-      Get.snackbar('Error', 'Failed to update barn information',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to update barn information',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -122,11 +136,13 @@ class _EditBarnInfoViewState extends State<EditBarnInfoView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Obx(() => CommonButton(
-                  text: 'Save', 
-                  isLoading: _profileController.isLoading.value,
-                  onPressed: () => _saveBarnInfo(),
-                )),
+                child: Obx(
+                  () => CommonButton(
+                    text: 'Save',
+                    isLoading: _profileController.isLoading.value,
+                    onPressed: () => _saveBarnInfo(),
+                  ),
+                ),
               ),
             ],
           ),

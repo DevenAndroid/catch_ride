@@ -33,7 +33,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
       backgroundColor: Colors.white,
       body: Obx(() {
         final profile = _controller.user.value;
-        
+
         if (_controller.isLoading.value && profile == null) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -63,8 +63,8 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                         bottomRight: Radius.circular(24),
                       ),
                       child: CommonImageView(
-                        url: _controller.coverImage.isNotEmpty 
-                            ? _controller.coverImage 
+                        url: _controller.coverImage.isNotEmpty
+                            ? _controller.coverImage
                             : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
                         height: 200,
                         width: double.infinity,
@@ -84,7 +84,11 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                             color: Colors.white.withValues(alpha: 0.8),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.chevron_left, size: 24, color: Colors.black),
+                          child: const Icon(
+                            Icons.chevron_left,
+                            size: 24,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ),
@@ -98,23 +102,36 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                             Get.to(() => const EditBarnManagerProfileView());
                           }
                         },
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         icon: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.8),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.more_vert, size: 24, color: Colors.black),
+                          child: const Icon(
+                            Icons.more_vert,
+                            size: 24,
+                            color: Colors.black,
+                          ),
                         ),
                         itemBuilder: (context) => [
                           const PopupMenuItem(
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit_outlined, size: 20, color: AppColors.textPrimary),
+                                Icon(
+                                  Icons.edit_outlined,
+                                  size: 20,
+                                  color: AppColors.textPrimary,
+                                ),
                                 SizedBox(width: 12),
-                                CommonText('Edit Profile', fontWeight: FontWeight.bold),
+                                CommonText(
+                                  'Edit Profile',
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ],
                             ),
                           ),
@@ -129,11 +146,15 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                       child: Container(
                         padding: const EdgeInsets.all(5),
                         decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(color: Colors.black12, blurRadius: 15, offset: Offset(0, 5))
-                            ]
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 15,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
                         ),
                         child: CommonImageView(
                           url: _controller.avatar,
@@ -162,14 +183,18 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CommonText(
-                                  _controller.fullName.isEmpty ? 'N/A' : _controller.fullName,
+                                  _controller.fullName.isEmpty
+                                      ? 'N/A'
+                                      : _controller.fullName,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textPrimary,
                                 ),
                                 const SizedBox(height: 4),
                                 CommonText(
-                                  _controller.barnName.isEmpty ? 'N/A' : _controller.barnName,
+                                  _controller.barnName.isEmpty
+                                      ? 'N/A'
+                                      : _controller.barnName,
                                   fontSize: 16,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w500,
@@ -178,18 +203,30 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    const Icon(Icons.location_on, size: 16, color: Colors.redAccent),
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Colors.redAccent,
+                                    ),
                                     const SizedBox(width: 4),
                                     CommonText(
-                                      _controller.location.isEmpty ? 'N/A' : _controller.location,
+                                      _controller.location.isEmpty
+                                          ? 'N/A'
+                                          : _controller.location,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
                                     ),
-                                    if (profile.location2?.isNotEmpty ?? false) ...[
+                                    if (profile.location2?.isNotEmpty ??
+                                        false) ...[
                                       const Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                        child: CommonText("|", color: Colors.grey),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.0,
+                                        ),
+                                        child: CommonText(
+                                          "|",
+                                          color: Colors.grey,
+                                        ),
                                       ),
                                       CommonText(
                                         profile.location2!,
@@ -197,7 +234,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.textSecondary,
                                       ),
-                                    ]
+                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -210,10 +247,18 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                       color: AppColors.textSecondary,
                                       fontWeight: FontWeight.w600,
                                     ),
-                                    if (_controller.yearsInIndustry.isNotEmpty) ...[
+                                    if (_controller
+                                        .yearsInIndustry
+                                        .isNotEmpty) ...[
                                       const Padding(
-                                        padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                        child: CommonText("·", color: AppColors.textSecondary, fontWeight: FontWeight.bold),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.0,
+                                        ),
+                                        child: CommonText(
+                                          "·",
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       CommonText(
                                         '${_controller.yearsInIndustry}+ Years',
@@ -221,7 +266,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                    ]
+                                    ],
                                   ],
                                 ),
                               ],
@@ -248,7 +293,9 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                           width: double.infinity,
                           padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00083B), // Dark navy blue from mockup
+                            color: const Color(
+                              0xFF00083B,
+                            ), // Dark navy blue from mockup
                             borderRadius: BorderRadius.circular(24),
                           ),
                           child: Column(
@@ -278,7 +325,8 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           CommonText(
                                             profile.linkedTrainer!.fullName,
@@ -288,7 +336,8 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                           ),
                                           const SizedBox(height: 4),
                                           CommonText(
-                                            profile.linkedTrainer!.barnName ?? 'No Barn Specified',
+                                            profile.linkedTrainer!.barnName ??
+                                                'No Barn Specified',
                                             fontSize: 15,
                                             color: const Color(0xFF667085),
                                             fontWeight: FontWeight.w500,
@@ -296,16 +345,26 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                           const SizedBox(height: 6),
                                           Row(
                                             children: [
-                                              const Icon(Icons.location_on_outlined, size: 18, color: Color(0xFF2E90FA)),
+                                              const Icon(
+                                                Icons.location_on_outlined,
+                                                size: 18,
+                                                color: Color(0xFF2E90FA),
+                                              ),
                                               const SizedBox(width: 4),
                                               Expanded(
                                                 child: CommonText(
-                                                  profile.linkedTrainer!.location ?? "No Location Specified",
+                                                  profile
+                                                          .linkedTrainer!
+                                                          .location ??
+                                                      "No Location Specified",
                                                   fontSize: 13,
-                                                  color: const Color(0xFF2E90FA),
+                                                  color: const Color(
+                                                    0xFF2E90FA,
+                                                  ),
                                                   fontWeight: FontWeight.w500,
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
@@ -329,7 +388,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                       Obx(() {
                         final horses = _controller.trainerHorses;
                         if (horses.isEmpty) return const SizedBox.shrink();
-                        
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -343,17 +402,24 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                   color: AppColors.textPrimary,
                                 ),
                                 TextButton(
-                                  onPressed: () => Get.to(() => const ViewAllHorsesView()), 
-                                  child: const CommonText('View all', color: AppColors.linkBlue, fontWeight: FontWeight.bold)
+                                  onPressed: () =>
+                                      Get.to(() => const ViewAllHorsesView()),
+                                  child: const CommonText(
+                                    'View all',
+                                    color: AppColors.linkBlue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 12),
-                            ...horses.map((horse) => _buildHorseCard(horse)).toList(),
+                            ...horses
+                                .map((horse) => _buildHorseCard(horse))
+                                .toList(),
                           ],
                         );
                       }),
-                      
+
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -374,7 +440,8 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
       ..remove('Discipline')
       ..remove('Disciplines');
 
-    if (filteredTags.isEmpty && horseShows.isEmpty) return const SizedBox.shrink();
+    if (filteredTags.isEmpty && horseShows.isEmpty)
+      return const SizedBox.shrink();
 
     return Container(
       width: double.infinity,
@@ -395,11 +462,16 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...filteredTags.entries.map((entry) {
-            final isLast = filteredTags.keys.last == entry.key && horseShows.isEmpty;
+            final isLast =
+                filteredTags.keys.last == entry.key && horseShows.isEmpty;
             return _buildInfoRow(entry.key, entry.value.join(" · "), !isLast);
           }).toList(),
           if (horseShows.isNotEmpty)
-            _buildInfoRow('Horse Shows & Circuits Frequented', horseShows.join(" · "), false),
+            _buildInfoRow(
+              'Horse Shows & Circuits Frequented',
+              horseShows.join(" · "),
+              false,
+            ),
         ],
       ),
     );
@@ -414,14 +486,27 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(title, fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+              CommonText(
+                title,
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
               const SizedBox(height: 6),
-              CommonText(content, fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              CommonText(
+                content,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
             ],
           ),
         ),
         if (showDivider)
-          Divider(color: AppColors.borderLight.withValues(alpha: 0.5), height: 1),
+          Divider(
+            color: AppColors.borderLight.withValues(alpha: 0.5),
+            height: 1,
+          ),
       ],
     );
   }
@@ -435,7 +520,9 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: AppColors.borderLight.withValues(alpha: 0.5),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.03),
@@ -461,9 +548,19 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(horse.name, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  CommonText(
+                    horse.name,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                   const SizedBox(height: 2),
-                  CommonText("${horse.age}-year-old ${horse.breed}", fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  CommonText(
+                    "${horse.age}-year-old ${horse.breed}",
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   const SizedBox(height: 6),
                   CommonText(
                     horse.description ?? '',

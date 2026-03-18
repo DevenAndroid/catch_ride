@@ -20,7 +20,12 @@ class HorseController extends GetxController {
     // fetchHorses(); // Removed to prevent fetching all horses on init
   }
 
-  Future<void> fetchHorses({bool refresh = true, String? trainerId, String? ownerId, int limit = 10}) async {
+  Future<void> fetchHorses({
+    bool refresh = true,
+    String? trainerId,
+    String? ownerId,
+    int limit = 10,
+  }) async {
     if (refresh) {
       currentPage.value = 1;
       horses.clear();
@@ -36,7 +41,7 @@ class HorseController extends GetxController {
         'page': currentPage.value.toString(),
         'limit': limit.toString(),
       };
-      
+
       if (trainerId != null) {
         query['trainerId'] = trainerId;
       }
@@ -44,11 +49,16 @@ class HorseController extends GetxController {
         query['ownerId'] = ownerId;
       }
 
-      final response = await _apiService.getRequest(AppUrls.horses, query: query);
+      final response = await _apiService.getRequest(
+        AppUrls.horses,
+        query: query,
+      );
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        List<HorseModel> newHorses = data.map((e) => HorseModel.fromJson(e)).toList();
+        List<HorseModel> newHorses = data
+            .map((e) => HorseModel.fromJson(e))
+            .toList();
         final pagination = response.body['pagination'] ?? {};
 
         if (refresh) {

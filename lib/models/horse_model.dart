@@ -37,7 +37,7 @@ class HorseModel {
   final String? bookedByLocation;
   final String? bookingDates;
   final DateTime? createdAt;
-  
+
   String get displayDiscipline {
     if (discipline != null && discipline!.isNotEmpty) return discipline!;
     if (programTags.isNotEmpty) return programTags.first.name;
@@ -87,10 +87,12 @@ class HorseModel {
     String? tId;
     String? tName;
     String? tAvatar;
-    
+
     if (json['trainerId'] is Map) {
       tId = json['trainerId']['_id'];
-      tName = "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim();
+      tName =
+          "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}"
+              .trim();
       tAvatar = json['trainerId']['avatar'];
     } else {
       tId = json['trainerId'];
@@ -110,29 +112,32 @@ class HorseModel {
       videoLink: json['videoLink'],
       usefNumber: json['usefNumber'],
       listingTypes: List<String>.from(json['listingTypes'] ?? []),
-      showAvailability: (json['showAvailability'] as List?)
+      showAvailability:
+          (json['showAvailability'] as List?)
               ?.map((e) => AvailabilityModel.fromJson(e))
               .toList() ??
           [],
       discipline: json['discipline'],
-      programTags: (json['programTags'] as List?)
+      programTags:
+          (json['programTags'] as List?)
               ?.map((e) => TagModel.fromJson(e))
               .toList() ??
           [],
       experienceLevel: json['experienceLevel'] != null
           ? TagModel.fromJson(json['experienceLevel'])
           : null,
-      opportunityTags: (json['opportunityTags'] as List?)
+      opportunityTags:
+          (json['opportunityTags'] as List?)
               ?.map((e) => TagModel.fromJson(e))
               .toList() ??
           [],
-      personalityTags: (json['personalityTags'] as List?)
+      personalityTags:
+          (json['personalityTags'] as List?)
               ?.map((e) => TagModel.fromJson(e))
               .toList() ??
           [],
-      tags: (json['tags'] as List?)
-              ?.map((e) => TagModel.fromJson(e))
-              .toList() ??
+      tags:
+          (json['tags'] as List?)?.map((e) => TagModel.fromJson(e)).toList() ??
           [],
       description: json['description'],
       photo: json['photo'],
@@ -150,7 +155,9 @@ class HorseModel {
       bookedByName: json['bookedByName'],
       bookedByLocation: json['bookedByLocation'],
       bookingDates: json['bookingDates'],
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
     );
   }
 

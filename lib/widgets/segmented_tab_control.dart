@@ -52,10 +52,10 @@ class SegmentedTabControl extends StatelessWidget {
                 child: CommonText(
                   tabs[index],
                   fontSize: AppTextSizes.size14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
                 ),
               ),
             ),

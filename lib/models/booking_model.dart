@@ -19,6 +19,7 @@ class BookingModel {
   final String? horseImage;
   final String? location;
   final String? notes;
+  final List<String> tags;
 
   BookingModel({
     this.id,
@@ -39,13 +40,14 @@ class BookingModel {
     this.horseImage,
     this.location,
     this.notes,
+    this.tags = const [],
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     // Direct date extraction
     Object? dateVal = json['date'];
     String displayDate = 'N/A';
-    
+
     if (dateVal != null) {
       if (dateVal is String) {
         if (dateVal.contains('T')) {
@@ -68,25 +70,71 @@ class BookingModel {
       bookingNumber: json['bookingNumber'] ?? '',
       type: json['type'] ?? '',
       status: json['status'] ?? 'pending',
-      clientId: json['clientId'] is Map ? json['clientId']['_id'] : json['clientId'],
-      clientName: json['clientName'] ?? (json['clientId'] is Map ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}".trim() : null),
-      trainerId: json['trainerId'] is Map ? json['trainerId']['_id'] : json['trainerId'],
-      trainerName: (json['trainerName'] != null && json['trainerName'].toString().isNotEmpty) 
-          ? json['trainerName'] 
-          : (json['trainerId'] is Map ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() : null),
-      horseId: json['horseId'] is Map ? json['horseId']['_id'] : json['horseId'],
-      horseName: (json['horseName'] != null && json['horseName'].toString().isNotEmpty) 
-          ? json['horseName'] 
+      clientId: json['clientId'] is Map
+          ? json['clientId']['_id']
+          : json['clientId'],
+      clientName:
+          json['clientName'] ??
+          (json['clientId'] is Map
+              ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}"
+                    .trim()
+              : null),
+      trainerId: json['trainerId'] is Map
+          ? json['trainerId']['_id']
+          : json['trainerId'],
+      trainerName:
+          (json['trainerName'] != null &&
+              json['trainerName'].toString().isNotEmpty)
+          ? json['trainerName']
+          : (json['trainerId'] is Map
+                ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}"
+                      .trim()
+                : null),
+      horseId: json['horseId'] is Map
+          ? json['horseId']['_id']
+          : json['horseId'],
+      horseName:
+          (json['horseName'] != null && json['horseName'].toString().isNotEmpty)
+          ? json['horseName']
           : (json['horseId'] is Map ? json['horseId']['name'] : null),
       date: displayDate,
       startTime: json['startTime'],
       endTime: json['endTime'],
       price: json['price'] is num ? (json['price'] as num).toDouble() : 0.0,
       paymentStatus: json['paymentStatus'],
-      horseImage: json['horseImage'] ?? (json['horseId'] is Map ? (json['horseId']['images']?.isNotEmpty == true ? json['horseId']['images'].first : json['horseId']['photo']) : null),
-      location: (json['location'] != null && json['location'].toString().isNotEmpty) ? json['location'] : null,
+      horseImage:
+          json['horseImage'] ??
+          (json['horseId'] is Map
+              ? (json['horseId']['images']?.isNotEmpty == true
+                    ? json['horseId']['images'].first
+                    : json['horseId']['photo'])
+              : null),
+      location:
+          (json['location'] != null && json['location'].toString().isNotEmpty)
+          ? json['location']
+          : (json['horseId'] is Map ? json['horseId']['location'] : null),
       notes: json['notes'],
+      tags: _parseTags(json['horseId']),
     );
+  }
+
+  static List<String> _parseTags(dynamic horseData) {
+    if (horseData is! Map) return [];
+    final List<String> result = [];
+    for (final key in ['programTags', 'opportunityTags', 'personalityTags']) {
+      final list = horseData[key];
+      if (list is List) {
+        for (final t in list) {
+          if (t is Map) {
+            final name = t['name'] ?? t['_id'] ?? '';
+            if (name.toString().isNotEmpty) result.add(name.toString());
+          } else if (t is String && t.isNotEmpty) {
+            result.add(t);
+          }
+        }
+      }
+    }
+    return result;
   }
 
   Map<String, dynamic> toJson() {

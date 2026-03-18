@@ -9,12 +9,11 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService extends GetConnect implements GetxService {
-
   @override
   void onInit() {
     httpClient.baseUrl = AppUrls.baseUrl;
     httpClient.timeout = const Duration(seconds: 20);
-    
+
     // Request interceptor (for headers/auth)
     httpClient.addRequestModifier<dynamic>((request) async {
       httpClient.timeout = const Duration(seconds: 20);
@@ -35,16 +34,18 @@ class ApiService extends GetConnect implements GetxService {
       }
 
       bool isSessionError = (statusCode == 401);
-      
+
       // EXCEPTION: Don't trigger "Session Expired" on authentication paths
       // These endpoints return 401 for wrong credentials/invalid OTPs, not session expiry.
       if (url.toLowerCase().contains('/auth/')) {
         isSessionError = false;
       }
-      
+
       // Also check body content if statusCode wasn't 401 but message confirms session error
       if (!isSessionError && message != null) {
-        if (message.toLowerCase().contains('invalid or expired session token') || 
+        if (message.toLowerCase().contains(
+              'invalid or expired session token',
+            ) ||
             message.toLowerCase().contains('authentication required')) {
           isSessionError = true;
         }
@@ -63,7 +64,7 @@ class ApiService extends GetConnect implements GetxService {
         // Auto-logout on session error
         if (isSessionError) {
           debugPrint('⚠️ Session error detected. Triggering auto-logout.');
-          _triggerAutoLogout(); 
+          _triggerAutoLogout();
         }
       } else {
         debugPrint('✅ API SUCCESS [$statusCode] $method $url');
@@ -94,10 +95,10 @@ class ApiService extends GetConnect implements GetxService {
   // Helper to check token for non-auth paths
   Future<bool> _isAuthorized(String path) async {
     if (path.toLowerCase().contains('/auth/')) return true;
-    
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
-    
+
     if (token == null || token.isEmpty) {
       debugPrint('Request to $path blocked: No auth token');
       await _triggerAutoLogout();
@@ -123,7 +124,10 @@ class ApiService extends GetConnect implements GetxService {
   }
 
   // Generic methods with internal auth checks
-  Future<Response> getRequest(String path, {Map<String, dynamic>? query}) async {
+  Future<Response> getRequest(
+    String path, {
+    Map<String, dynamic>? query,
+  }) async {
     if (!await _isAuthorized(path)) {
       return const Response(statusCode: 401, statusText: 'Unauthorized');
     }

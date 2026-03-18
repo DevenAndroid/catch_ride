@@ -6,7 +6,7 @@ import 'package:logger/logger.dart';
 class SocketService extends GetxService {
   late io.Socket socket;
   final Logger _logger = Logger();
-  
+
   final RxBool isConnected = false.obs;
 
   @override
@@ -17,12 +17,13 @@ class SocketService extends GetxService {
 
   void initSocket() {
     _logger.i('Initializing Socket Connection to ${AppUrls.socketUrl}');
-    
-    socket = io.io(AppUrls.socketUrl, 
+
+    socket = io.io(
+      AppUrls.socketUrl,
       io.OptionBuilder()
-        .setTransports(['websocket']) // Use websocket for better performance
-        .disableAutoConnect() // Connect manually
-        .build()
+          .setTransports(['websocket']) // Use websocket for better performance
+          .disableAutoConnect() // Connect manually
+          .build(),
     );
 
     socket.onConnect((_) {
@@ -62,7 +63,9 @@ class SocketService extends GetxService {
         'userRole': userRole,
       });
     } else {
-      _logger.w('Cannot authenticate: Socket not connected. Will retry on connect.');
+      _logger.w(
+        'Cannot authenticate: Socket not connected. Will retry on connect.',
+      );
       socket.once('connect', (_) => authenticate(userId, userName, userRole));
     }
   }
