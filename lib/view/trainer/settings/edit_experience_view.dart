@@ -23,10 +23,16 @@ class _EditExperienceViewState extends State<EditExperienceView> {
   @override
   void initState() {
     super.initState();
-    _specialties = List<String>.from(_profileController.userData['programTags'] ?? []);
-    _circuits = List<String>.from(_profileController.userData['showCircuits'] ?? []);
-    _selectedYears = _profileController.userData['yearsExperience']?.toString() ?? 
-                    _profileController.userData['experience']?.toString() ?? 'Select years';
+    _specialties = List<String>.from(
+      _profileController.userData['programTags'] ?? [],
+    );
+    _circuits = List<String>.from(
+      _profileController.userData['showCircuits'] ?? [],
+    );
+    _selectedYears =
+        _profileController.userData['yearsExperience']?.toString() ??
+        _profileController.userData['experience']?.toString() ??
+        'Select years';
   }
 
   @override
@@ -47,16 +53,22 @@ class _EditExperienceViewState extends State<EditExperienceView> {
     if (success) {
       await _profileController.fetchProfile();
       Get.back();
-      
-      Get.snackbar('Success', 'Experience updated successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white);
+
+      Get.snackbar(
+        'Success',
+        'Experience updated successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
     } else {
-      Get.snackbar('Error', 'Failed to update experience',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Failed to update experience',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -74,7 +86,11 @@ class _EditExperienceViewState extends State<EditExperienceView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CommonText('Select Years of Experience', fontSize: 18, fontWeight: FontWeight.bold),
+            const CommonText(
+              'Select Years of Experience',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
@@ -155,11 +171,13 @@ class _EditExperienceViewState extends State<EditExperienceView> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Obx(() => CommonButton(
-                  text: 'Save', 
-                  isLoading: _profileController.isLoading.value,
-                  onPressed: () => _saveExperience(),
-                )),
+                child: Obx(
+                  () => CommonButton(
+                    text: 'Save',
+                    isLoading: _profileController.isLoading.value,
+                    onPressed: () => _saveExperience(),
+                  ),
+                ),
               ),
             ],
           ),
@@ -207,7 +225,9 @@ class _EditExperienceViewState extends State<EditExperienceView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CommonText(
-                    _selectedYears == 'Select years' ? _selectedYears : '$_selectedYears years',
+                    _selectedYears == 'Select years'
+                        ? _selectedYears
+                        : '$_selectedYears years',
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -247,7 +267,11 @@ class _EditExperienceViewState extends State<EditExperienceView> {
     );
   }
 
-  Widget _buildTagsInput(List<String> tags, String hint, TextEditingController controller) {
+  Widget _buildTagsInput(
+    List<String> tags,
+    String hint,
+    TextEditingController controller,
+  ) {
     return Container(
       padding: const EdgeInsets.all(8),
       width: double.infinity,

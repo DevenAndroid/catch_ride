@@ -69,12 +69,7 @@ class VendorServiceItem {
   final String? duration;
   final String? description;
 
-  VendorServiceItem({
-    this.name,
-    this.price,
-    this.duration,
-    this.description,
-  });
+  VendorServiceItem({this.name, this.price, this.duration, this.description});
 
   factory VendorServiceItem.fromJson(Map<String, dynamic> json) {
     return VendorServiceItem(

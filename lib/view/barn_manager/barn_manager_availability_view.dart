@@ -11,10 +11,12 @@ class BarnManagerAvailabilityView extends StatefulWidget {
   const BarnManagerAvailabilityView({super.key, required this.horse});
 
   @override
-  State<BarnManagerAvailabilityView> createState() => _BarnManagerAvailabilityViewState();
+  State<BarnManagerAvailabilityView> createState() =>
+      _BarnManagerAvailabilityViewState();
 }
 
-class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityView> {
+class _BarnManagerAvailabilityViewState
+    extends State<BarnManagerAvailabilityView> {
   late AvailabilityController controller;
 
   @override
@@ -23,7 +25,10 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
     controller = Get.put(AvailabilityController(horse: widget.horse));
   }
 
-  Future<void> _selectDateTime(BuildContext context, TextEditingController textController) async {
+  Future<void> _selectDateTime(
+    BuildContext context,
+    TextEditingController textController,
+  ) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -66,7 +71,11 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
         elevation: 0,
         centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1F2937), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF1F2937),
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
@@ -98,21 +107,26 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
                         color: Color(0xFF1F2937),
                       ),
                     ),
-                    Obx(() => ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: controller.entries.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 24),
-                          itemBuilder: (context, index) {
-                            final entry = controller.entries[index];
-                            return _buildAvailabilityCard(entry, index);
-                          },
-                        )),
+                    Obx(
+                      () => ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: controller.entries.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 24),
+                        itemBuilder: (context, index) {
+                          final entry = controller.entries[index];
+                          return _buildAvailabilityCard(entry, index);
+                        },
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Center(
                       child: TextButton.icon(
                         onPressed: () => controller.addEntry(),
-                        icon: const Icon(Icons.add_circle_outline, color: Color(0xFF101828)),
+                        icon: const Icon(
+                          Icons.add_circle_outline,
+                          color: Color(0xFF101828),
+                        ),
                         label: const CommonText(
                           'Add Entry',
                           color: Color(0xFF101828),
@@ -159,11 +173,13 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF101828),
                 ),
-                Obx(() => Switch(
-                  value: entry.isActive.value,
-                  onChanged: (val) => entry.isActive.value = val,
-                  activeColor: const Color(0xFF047857),
-                )),
+                Obx(
+                  () => Switch(
+                    value: entry.isActive.value,
+                    onChanged: (val) => entry.isActive.value = val,
+                    activeColor: const Color(0xFF047857),
+                  ),
+                ),
               ],
             ),
           ),
@@ -246,7 +262,9 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
         ),
         const SizedBox(height: 6),
         GestureDetector(
-          onTap: isDatePicker ? () => _selectDateTime(context, controller) : null,
+          onTap: isDatePicker
+              ? () => _selectDateTime(context, controller)
+              : null,
           child: AbsorbPointer(
             absorbing: isDatePicker,
             child: TextField(
@@ -254,20 +272,33 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
               style: const TextStyle(fontSize: 14, color: Color(0xFF101828)),
               decoration: InputDecoration(
                 hintText: hintText,
-                hintStyle: const TextStyle(color: Color(0xFFD0D5DD), fontSize: 14),
+                hintStyle: const TextStyle(
+                  color: Color(0xFFD0D5DD),
+                  fontSize: 14,
+                ),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFD0D5DD), width: 1),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFD0D5DD),
+                    width: 1,
+                  ),
                 ),
-                suffixIcon: isDatePicker 
-                    ? const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)) 
+                suffixIcon: isDatePicker
+                    ? const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 18,
+                        color: Color(0xFF667085),
+                      )
                     : null,
               ),
             ),
@@ -293,7 +324,9 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
                 onPressed: () => Get.back(),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFD0D5DD)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const CommonText(
                   'Cancel',
@@ -315,7 +348,9 @@ class _BarnManagerAvailabilityViewState extends State<BarnManagerAvailabilityVie
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00083B),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   elevation: 0,
                 ),
                 child: const CommonText(

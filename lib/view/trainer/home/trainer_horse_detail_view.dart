@@ -42,7 +42,7 @@ class TrainerHorseDetailView extends StatefulWidget {
 class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   bool _isRequested = false;
   HorseModel? horse;
-  
+
   // Image carousel state
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -94,15 +94,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Future<void> _checkIfRequested() async {
     final bookingController = Get.put(BookingController());
-    
+
     // Fetch latest sent bookings from server to sync with DB
     await bookingController.fetchBookings(type: 'sent');
-    
+
     final existingBooking = bookingController.sentBookings.firstWhereOrNull(
-      (b) => b.horseId == horse?.id && 
-             b.status.toLowerCase() == 'pending'
+      (b) => b.horseId == horse?.id && b.status.toLowerCase() == 'pending',
     );
-    
+
     setState(() {
       _isRequested = existingBooking != null;
     });
@@ -117,22 +116,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     _hasVideo = true;
     final String? youtubeId = YoutubePlayer.convertUrlToId(videoLink);
-    
+
     if (youtubeId != null) {
       _isYoutube = true;
       _youtubeController = YoutubePlayerController(
         initialVideoId: youtubeId,
-        flags: const YoutubePlayerFlags(
-          autoPlay: false,
-          mute: false,
-        ),
+        flags: const YoutubePlayerFlags(autoPlay: false, mute: false),
       );
     } else {
       _isYoutube = false;
-      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(videoLink))
-        ..initialize().then((_) {
-          setState(() {});
-        });
+      _videoPlayerController =
+          VideoPlayerController.networkUrl(Uri.parse(videoLink))
+            ..initialize().then((_) {
+              setState(() {});
+            });
     }
   }
 
@@ -140,10 +137,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final profileController = Get.find<ProfileController>();
     final horseTrainerId = horse?.trainerId;
     final profileTrainerId = profileController.trainerId;
-    
+
     debugPrint('DEBUG: Horse Trainer ID: $horseTrainerId');
     debugPrint('DEBUG: Profile Trainer ID: $profileTrainerId');
-    
+
     return horseTrainerId != null && horseTrainerId == profileTrainerId;
   }
 
@@ -178,7 +175,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
             if (!isHorseOwner)
               ListTile(
-                leading: const Icon(Icons.person_outline, color: AppColors.textPrimary),
+                leading: const Icon(
+                  Icons.person_outline,
+                  color: AppColors.textPrimary,
+                ),
                 title: const CommonText('Trainer Details', fontSize: 16),
                 onTap: () {
                   Navigator.pop(context);
@@ -194,9 +194,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (horse == null) {
@@ -215,30 +213,32 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       body: SafeArea(
         child: horse == null
             ? const Center(child: CircularProgressIndicator())
-            : Builder(builder: (context) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildPremiumHeader(),
-                            _buildTrainerSection(),
-                            _buildDescriptionAndTags(),
-                            _buildDetailsSection(),
-                            _buildAvailabilitySection(),
-                            if (!isHorseOwner) _buildCancelationPolicy(),
-                            const SizedBox(height: 20),
-                          ],
+            : Builder(
+                builder: (context) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildPremiumHeader(),
+                              _buildTrainerSection(),
+                              _buildDescriptionAndTags(),
+                              _buildDetailsSection(),
+                              _buildAvailabilitySection(),
+                              if (!isHorseOwner) _buildCancelationPolicy(),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    if (!isHorseOwner) _buildBottomAction(),
-                  ],
-                );
-              }),
+                      if (!isHorseOwner) _buildBottomAction(),
+                    ],
+                  );
+                },
+              ),
       ),
     );
   }
@@ -278,21 +278,35 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               Row(
                 children: [
                   if (horse!.listingTypes.isNotEmpty)
-                    _buildOverlayBadge(horse!.listingTypes.first, const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
+                    _buildOverlayBadge(
+                      horse!.listingTypes.first,
+                      const Color(0xFFFDE4E1),
+                      const Color(0xFFE11D48),
+                    ),
                   if (horse!.listingTypes.length > 1) ...[
                     const SizedBox(width: 8),
-                    _buildOverlayBadge(horse!.listingTypes[1], const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
+                    _buildOverlayBadge(
+                      horse!.listingTypes[1],
+                      const Color(0xFFFDE4E1),
+                      const Color(0xFFE11D48),
+                    ),
                   ],
                 ],
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, color: Colors.white, size: 16),
+                  const Icon(
+                    Icons.location_on_outlined,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: CommonText(
-                      (horse!.location == null || horse!.location!.isEmpty) ? 'N/A' : horse!.location!,
+                      (horse!.location == null || horse!.location!.isEmpty)
+                          ? 'N/A'
+                          : horse!.location!,
                       fontSize: 12,
                       color: Colors.white,
                       overflow: TextOverflow.ellipsis,
@@ -325,10 +339,17 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFF8B4242).withValues(alpha: 0.6), // Matched to mockup dark trans-red
+        color: const Color(
+          0xFF8B4242,
+        ).withValues(alpha: 0.6), // Matched to mockup dark trans-red
         borderRadius: BorderRadius.circular(8),
       ),
-      child: CommonText(text, fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      child: CommonText(
+        text,
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
     );
   }
 
@@ -350,8 +371,18 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(horse!.trainerName ?? 'N/A', fontSize: 16, fontWeight: FontWeight.bold),
-                  CommonText(horse!.location != null && horse!.location!.isNotEmpty ? 'Location - ${horse!.location}' : 'Location - N/A', fontSize: 13, color: AppColors.textSecondary),
+                  CommonText(
+                    horse!.trainerName ?? 'N/A',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  CommonText(
+                    horse!.location != null && horse!.location!.isNotEmpty
+                        ? 'Location - ${horse!.location}'
+                        : 'Location - N/A',
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
                 ],
               ),
             ),
@@ -369,9 +400,18 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.chat_bubble_outline, size: 16, color: Colors.white),
+                    Icon(
+                      Icons.chat_bubble_outline,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                     SizedBox(width: 8),
-                    CommonText('Message', color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                    CommonText(
+                      'Message',
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ],
                 ),
               ),
@@ -385,7 +425,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildDescriptionAndTags() {
-    final description = (horse!.description == null || horse!.description!.isEmpty) ? '' : horse!.description!;
+    final description =
+        (horse!.description == null || horse!.description!.isEmpty)
+        ? ''
+        : horse!.description!;
     final tags = [
       ...horse!.programTags.map((t) => t.name),
       ...horse!.opportunityTags.map((t) => t.name),
@@ -413,15 +456,27 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              children: tags.map((tag) => Container(
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF2F4F7),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: CommonText(tag, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF1D2939)),
-              )).toList(),
+              children: tags
+                  .map(
+                    (tag) => Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F4F7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: CommonText(
+                        tag,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1D2939),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ),
         ],
@@ -553,17 +608,17 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                        CommonText(
-                          horse!.trainerName ?? 'N/A',
-                          fontSize: AppTextSizes.size16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                        const CommonText(
-                          AppStrings.professionalHorseTrainer,
-                          fontSize: AppTextSizes.size14,
-                          color: AppColors.textSecondary,
-                        ),
+                      CommonText(
+                        horse!.trainerName ?? 'N/A',
+                        fontSize: AppTextSizes.size16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const CommonText(
+                        AppStrings.professionalHorseTrainer,
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textSecondary,
+                      ),
                     ],
                   ),
                 ),
@@ -654,32 +709,32 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           progressIndicatorColor: AppColors.primary,
                         )
                       : _videoPlayerController!.value.isInitialized
-                          ? GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _videoPlayerController!.value.isPlaying
-                                      ? _videoPlayerController!.pause()
-                                      : _videoPlayerController!.play();
-                                });
-                              },
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  AspectRatio(
-                                    aspectRatio: _videoPlayerController!
-                                        .value.aspectRatio,
-                                    child: VideoPlayer(_videoPlayerController!),
-                                  ),
-                                  if (!_videoPlayerController!.value.isPlaying)
-                                    const Icon(
-                                      Icons.play_circle_fill,
-                                      color: Colors.white,
-                                      size: 64,
-                                    ),
-                                ],
+                      ? GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _videoPlayerController!.value.isPlaying
+                                  ? _videoPlayerController!.pause()
+                                  : _videoPlayerController!.play();
+                            });
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AspectRatio(
+                                aspectRatio:
+                                    _videoPlayerController!.value.aspectRatio,
+                                child: VideoPlayer(_videoPlayerController!),
                               ),
-                            )
-                          : const Center(child: CircularProgressIndicator()),
+                              if (!_videoPlayerController!.value.isPlaying)
+                                const Icon(
+                                  Icons.play_circle_fill,
+                                  color: Colors.white,
+                                  size: 64,
+                                ),
+                            ],
+                          ),
+                        )
+                      : const Center(child: CircularProgressIndicator()),
                 );
               }
             },
@@ -737,21 +792,26 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-
   Widget _buildDetailsSection() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText('Details', fontSize: 18, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Details',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             child: GridView.count(
               shrinkWrap: true,
@@ -759,13 +819,43 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               crossAxisCount: 2,
               childAspectRatio: 2.2,
               children: [
-                _buildPremiumDetailItem('Horse name', horse!.name.isEmpty ? 'N/A' : horse!.name),
-                _buildPremiumDetailItem('USEF number', (horse!.usefNumber == null || horse!.usefNumber.toString().isEmpty) ? 'N/A' : horse!.usefNumber.toString()),
-                _buildPremiumDetailItem('Age', horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years'),
-                _buildPremiumDetailItem('Height', (horse!.height == null || horse!.height!.isEmpty) ? 'N/A' : horse!.height!),
-                _buildPremiumDetailItem('Breed', horse!.breed.isEmpty ? 'N/A' : horse!.breed),
-                _buildPremiumDetailItem('Color', (horse!.color == null || horse!.color!.isEmpty) ? 'N/A' : horse!.color!),
-                _buildPremiumDetailItem('Discipline', horse!.displayDiscipline.isEmpty ? 'N/A' : horse!.displayDiscipline),
+                _buildPremiumDetailItem(
+                  'Horse name',
+                  horse!.name.isEmpty ? 'N/A' : horse!.name,
+                ),
+                _buildPremiumDetailItem(
+                  'USEF number',
+                  (horse!.usefNumber == null ||
+                          horse!.usefNumber.toString().isEmpty)
+                      ? 'N/A'
+                      : horse!.usefNumber.toString(),
+                ),
+                _buildPremiumDetailItem(
+                  'Age',
+                  horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years',
+                ),
+                _buildPremiumDetailItem(
+                  'Height',
+                  (horse!.height == null || horse!.height!.isEmpty)
+                      ? 'N/A'
+                      : horse!.height!,
+                ),
+                _buildPremiumDetailItem(
+                  'Breed',
+                  horse!.breed.isEmpty ? 'N/A' : horse!.breed,
+                ),
+                _buildPremiumDetailItem(
+                  'Color',
+                  (horse!.color == null || horse!.color!.isEmpty)
+                      ? 'N/A'
+                      : horse!.color!,
+                ),
+                _buildPremiumDetailItem(
+                  'Discipline',
+                  horse!.displayDiscipline.isEmpty
+                      ? 'N/A'
+                      : horse!.displayDiscipline,
+                ),
               ],
             ),
           ),
@@ -794,14 +884,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText('Availability', fontSize: 18, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Availability',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -812,9 +908,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   children: [
                     if (index > 0) const SizedBox(height: 16),
                     _buildPremiumAvailabilityItem(
-                      'Location ${index + 1}', 
-                      show.showVenue, 
-                      DateUtil.formatRange(show.startDate, show.endDate)
+                      'Location ${index + 1}',
+                      show.showVenue,
+                      DateUtil.formatRange(show.startDate, show.endDate),
                     ),
                   ],
                 );
@@ -826,7 +922,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  Widget _buildPremiumAvailabilityItem(String title, String location, String dates) {
+  Widget _buildPremiumAvailabilityItem(
+    String title,
+    String location,
+    String dates,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -834,17 +934,33 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         const SizedBox(height: 8),
         Row(
           children: [
-            const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+            const Icon(
+              Icons.location_on_outlined,
+              size: 16,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(width: 8),
-            CommonText(location.isEmpty ? 'N/A' : location, fontSize: 14, fontWeight: FontWeight.w500),
+            CommonText(
+              location.isEmpty ? 'N/A' : location,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ],
         ),
         const SizedBox(height: 6),
         Row(
           children: [
-            const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(width: 8),
-            CommonText(dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates, fontSize: 14, fontWeight: FontWeight.bold),
+            CommonText(
+              dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ],
         ),
       ],
@@ -866,11 +982,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             children: [
               Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: Color(0xFFF04438), shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF04438),
+                  shape: BoxShape.circle,
+                ),
                 child: const Icon(Icons.close, size: 12, color: Colors.white),
               ),
               const SizedBox(width: 12),
-              const CommonText('Cancelation Policy', fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFB42318)),
+              const CommonText(
+                'Cancelation Policy',
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFB42318),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -890,11 +1014,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: CommonButton(
         text: _isRequested ? 'Your request is submitted' : 'Request a Trial',
-        backgroundColor: _isRequested ? Colors.grey : const Color(0xFF00083B), // Navy blue
+        backgroundColor: _isRequested
+            ? Colors.grey
+            : const Color(0xFF00083B), // Navy blue
         textColor: Colors.white,
         onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
       ),
@@ -912,7 +1044,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final bool hasExperience = experience != null;
     final bool hasPersonalities = personalities.isNotEmpty;
 
-    if (!hasPrograms && !hasOpportunities && !hasExperience && !hasPersonalities) {
+    if (!hasPrograms &&
+        !hasOpportunities &&
+        !hasExperience &&
+        !hasPersonalities) {
       return const SizedBox.shrink();
     }
 
@@ -922,19 +1057,27 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           Row(
             children: [
               if (hasPrograms)
-                Expanded(child: _buildTagCard('Program Tag', programs.first.name))
+                Expanded(
+                  child: _buildTagCard('Program Tag', programs.first.name),
+                )
               else if (hasOpportunities)
                 const Spacer(),
-              
+
               if (hasPrograms && hasOpportunities) const SizedBox(width: 12),
-              
+
               if (hasOpportunities)
-                Expanded(child: _buildTagCard('Opportunity Tag', opportunities.first.name))
+                Expanded(
+                  child: _buildTagCard(
+                    'Opportunity Tag',
+                    opportunities.first.name,
+                  ),
+                )
               else if (hasPrograms)
                 const Spacer(),
             ],
           ),
-        if ((hasPrograms || hasOpportunities) && (hasExperience || hasPersonalities))
+        if ((hasPrograms || hasOpportunities) &&
+            (hasExperience || hasPersonalities))
           const SizedBox(height: 12),
         if (hasExperience || hasPersonalities)
           Row(
@@ -947,7 +1090,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               if (hasExperience && hasPersonalities) const SizedBox(width: 12),
 
               if (hasPersonalities)
-                Expanded(child: _buildTagCard('Personality Tag', personalities.first.name))
+                Expanded(
+                  child: _buildTagCard(
+                    'Personality Tag',
+                    personalities.first.name,
+                  ),
+                )
               else if (hasExperience)
                 const Spacer(),
             ],
@@ -983,7 +1131,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       ),
     );
   }
-
 
   void _showBookingRequestBottomSheet() {
     DateTime? startDate;
@@ -1024,7 +1171,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 ),
               ),
               const SizedBox(height: 24),
-              const CommonText('Request a Trial', fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              const CommonText(
+                'Request a Trial',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
               const SizedBox(height: 16),
 
               // Horse Card
@@ -1032,10 +1184,16 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               const SizedBox(height: 20),
 
               // Single Date
-              const CommonText('Date', fontSize: 13, fontWeight: FontWeight.bold),
+              const CommonText(
+                'Date',
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
               const SizedBox(height: 8),
               _buildDateSelector(
-                startDate != null ? DateFormat('dd MMM yyyy').format(startDate!) : 'Select Date',
+                startDate != null
+                    ? DateFormat('dd MMM yyyy').format(startDate!)
+                    : 'Select Date',
                 () async {
                   final date = await showDatePicker(
                     context: context,
@@ -1044,7 +1202,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                   );
                   if (date != null) {
-                    setSheetState(() { 
+                    setSheetState(() {
                       startDate = date;
                       endDate = date; // For single date submission
                     });
@@ -1054,10 +1212,17 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               const SizedBox(height: 20),
 
               // Location
-              const CommonText('Location', fontSize: 13, fontWeight: FontWeight.bold),
+              const CommonText(
+                'Location',
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(12),
@@ -1065,7 +1230,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CommonText(horse?.location ?? "", fontSize: 14, color: AppColors.textPrimary),
+                    CommonText(
+                      horse?.location ?? "",
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
                   ],
                 ),
               ),
@@ -1074,10 +1243,21 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               // Message
               RichText(
                 text: const TextSpan(
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontFamily: 'Outfit'),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontFamily: 'Outfit',
+                  ),
                   children: [
                     TextSpan(text: 'Message '),
-                    TextSpan(text: '(optional)', style: TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary)),
+                    TextSpan(
+                      text: '(optional)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.normal,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1093,8 +1273,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   controller: messageController,
                   maxLines: 4,
                   decoration: InputDecoration(
-                    hintText: 'Please include your preferred time frame for the trial...',
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+                    hintText:
+                        'Please include your preferred time frame for the trial...',
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      fontSize: 14,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                   ),
@@ -1116,69 +1300,92 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           border: Border.all(color: AppColors.border),
                         ),
                         child: const Center(
-                          child: CommonText('Cancel', fontWeight: FontWeight.bold, fontSize: 16),
+                          child: CommonText(
+                            'Cancel',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Obx(() => GestureDetector(
-                      onTap: bookingController.isLoading.value ? null : () async {
-                        if (startDate == null) {
-                          Get.snackbar(
-                            'Error', 
-                            'Please select a date',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.redAccent,
-                            colorText: Colors.white,
-                            barBlur: 0,
-                            margin: const EdgeInsets.all(16),
-                          );
-                          return;
-                        }
+                    child: Obx(
+                      () => GestureDetector(
+                        onTap: bookingController.isLoading.value
+                            ? null
+                            : () async {
+                                if (startDate == null) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Please select a date',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.white,
+                                    barBlur: 0,
+                                    margin: const EdgeInsets.all(16),
+                                  );
+                                  return;
+                                }
 
-                        final success = await bookingController.createBooking({
-                          'horseId': horse!.id,
-                          'horseName': horse!.name,
-                          'trainerId': horse!.trainerId,
-                          'type': selectedType,
-                          'date': DateFormat('yyyy-MM-dd').format(startDate!),
-                          'location': horse?.location ?? 'N/A',
-                          'notes': messageController.text,
-                          'service': selectedType,
-                          'price': horse!.price ?? 0,
-                          'clientId': Get.find<ProfileController>().user.value?.id,
-                        });
+                                final success = await bookingController
+                                    .createBooking({
+                                      'horseId': horse!.id,
+                                      'horseName': horse!.name,
+                                      'trainerId': horse!.trainerId,
+                                      'type': selectedType,
+                                      'date': DateFormat(
+                                        'yyyy-MM-dd',
+                                      ).format(startDate!),
+                                      'location': horse?.location ?? 'N/A',
+                                      'notes': messageController.text,
+                                      'service': selectedType,
+                                      'price': horse!.price ?? 0,
+                                      'clientId': Get.find<ProfileController>()
+                                          .user
+                                          .value
+                                          ?.id,
+                                    });
 
-                        if (success) {
-                          Get.back(); // Close bottom sheet
-                          Get.snackbar(
-                            'Success', 
-                            'Booking request sent successfully',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: const Color(0xFF17B26A),
-                            colorText: Colors.white,
-                            barBlur: 0,
-                            margin: const EdgeInsets.all(16),
-                          );
-                          setState(() => _isRequested = true);
-                          _fetchHorseDetails(); // re-fetch to auto update based on requested state
-                        }
-                      },
-                      child: Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: bookingController.isLoading.value ? AppColors.inputBackground : AppColors.primary,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Center(
-                          child: bookingController.isLoading.value 
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const CommonText('Submit', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                if (success) {
+                                  Get.back(); // Close bottom sheet
+                                  Get.snackbar(
+                                    'Success',
+                                    'Booking request sent successfully',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: const Color(0xFF17B26A),
+                                    colorText: Colors.white,
+                                    barBlur: 0,
+                                    margin: const EdgeInsets.all(16),
+                                  );
+                                  setState(() => _isRequested = true);
+                                  _fetchHorseDetails(); // re-fetch to auto update based on requested state
+                                }
+                              },
+                        child: Container(
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: bookingController.isLoading.value
+                                ? AppColors.inputBackground
+                                : AppColors.primary,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Center(
+                            child: bookingController.isLoading.value
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const CommonText(
+                                    'Submit',
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                          ),
                         ),
                       ),
-                    )),
+                    ),
                   ),
                 ],
               ),
@@ -1191,8 +1398,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildBookingHorseCard() {
     final hasImages = horse != null && horse!.images.isNotEmpty;
-    final photoUrl = horse?.photo ?? (hasImages ? horse!.images.first : AppConstants.dummyImageUrl);
-    
+    final photoUrl =
+        horse?.photo ??
+        (hasImages ? horse!.images.first : AppConstants.dummyImageUrl);
+
     // Extract dynamic venue and dates
     String venueText = 'Venue - N/A';
     String dateRangeText = 'N/A';
@@ -1221,7 +1430,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -1243,39 +1452,83 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontFamily: 'Outfit'),
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Outfit',
+                    ),
                     children: [
                       TextSpan(text: horse?.name ?? 'Unknown'),
-                      TextSpan(text: ' - ${horse?.discipline ?? horse?.breed}', style: const TextStyle(fontWeight: FontWeight.normal, color: AppColors.textSecondary)),
+                      TextSpan(
+                        text: ' - ${horse?.discipline ?? horse?.breed}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 4),
-                CommonText(venueText, fontSize: 12, color: AppColors.textSecondary),
+                CommonText(
+                  venueText,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 13, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 13,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 6),
-                    Expanded(child: CommonText(horse?.location ?? 'N/A', fontSize: 12, color: AppColors.textSecondary, overflow: TextOverflow.ellipsis)),
+                    Expanded(
+                      child: CommonText(
+                        horse?.location ?? 'N/A',
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 12,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 6),
-                    Expanded(child: CommonText(dateRangeText, fontSize: 12, color: AppColors.textSecondary)),
+                    Expanded(
+                      child: CommonText(
+                        dateRangeText,
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     if (horse!.listingTypes.isNotEmpty)
-                      _buildOverlayBadge(horse!.listingTypes.first, const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
+                      _buildOverlayBadge(
+                        horse!.listingTypes.first,
+                        const Color(0xFFFDE4E1),
+                        const Color(0xFFE11D48),
+                      ),
                     if (horse!.listingTypes.length > 1) ...[
                       const SizedBox(width: 8),
-                      _buildOverlayBadge(horse!.listingTypes[1], const Color(0xFFFDE4E1), const Color(0xFFE11D48)),
+                      _buildOverlayBadge(
+                        horse!.listingTypes[1],
+                        const Color(0xFFFDE4E1),
+                        const Color(0xFFE11D48),
+                      ),
                     ],
                   ],
                 ),
@@ -1300,7 +1553,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             CommonText(hint, fontSize: 14, color: AppColors.textPrimary),
-            const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.textSecondary),
+            const Icon(
+              Icons.calendar_month_outlined,
+              size: 18,
+              color: AppColors.textSecondary,
+            ),
           ],
         ),
       ),

@@ -5,18 +5,18 @@ import '../profile_controller.dart';
 
 import 'package:flutter/material.dart';
 
-
 class BarnManagerController extends GetxController {
   final ApiService _apiService = Get.put(ApiService());
-  
+
   var isLoading = false.obs;
 
   Future<bool> inviteBarnManager(String email) async {
     try {
       isLoading.value = true;
-      final response = await _apiService.postRequest(AppUrls.inviteBarnManager, {
-        'email': email,
-      });
+      final response = await _apiService.postRequest(
+        AppUrls.inviteBarnManager,
+        {'email': email},
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (Get.isRegistered<ProfileController>()) {
@@ -29,7 +29,7 @@ class BarnManagerController extends GetxController {
           errorMsg = response.body['message'];
         }
         Get.snackbar(
-          'Error', 
+          'Error',
           errorMsg,
           backgroundColor: const Color(0xFFF04438),
           colorText: Colors.white,
@@ -40,7 +40,7 @@ class BarnManagerController extends GetxController {
       }
     } catch (e) {
       Get.snackbar(
-        'Error', 
+        'Error',
         'An unexpected error occurred',
         backgroundColor: const Color(0xFFF04438),
         colorText: Colors.white,
@@ -56,7 +56,10 @@ class BarnManagerController extends GetxController {
   Future<bool> removeBarnManager() async {
     try {
       isLoading.value = true;
-      final response = await _apiService.postRequest(AppUrls.removeBarnManager, {});
+      final response = await _apiService.postRequest(
+        AppUrls.removeBarnManager,
+        {},
+      );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (Get.isRegistered<ProfileController>()) {

@@ -35,9 +35,11 @@ class ChatMessage {
       senderName: json['senderName'] ?? 'Unknown',
       senderRole: json['senderRole'],
       content: json['content'] ?? '',
-      timestamp: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
-          : (json['timestamp'] != null ? DateTime.parse(json['timestamp']) : DateTime.now()),
+      timestamp: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : (json['timestamp'] != null
+                ? DateTime.parse(json['timestamp'])
+                : DateTime.now()),
       read: json['read'] ?? false,
       flagged: json['flagged'] ?? false,
       status: json['status'] ?? 'active',
@@ -94,8 +96,12 @@ class ChatConversation {
       unread: json['unread'] ?? 0,
       status: json['status'] ?? 'active',
       senderId: json['senderId'],
-      otherUser: json['otherUser'] != null ? ChatOtherUser.fromJson(json['otherUser']) : null,
-      booking: json['booking'] != null ? BookingModel.fromJson(json['booking']) : null,
+      otherUser: json['otherUser'] != null
+          ? ChatOtherUser.fromJson(json['otherUser'])
+          : null,
+      booking: json['booking'] != null
+          ? BookingModel.fromJson(json['booking'])
+          : null,
     );
   }
 }
@@ -105,12 +111,14 @@ class ChatOtherUser {
   final String name;
   final String? avatar;
   final String? role;
+  final String? trainerId;
 
   ChatOtherUser({
     required this.id,
     required this.name,
     this.avatar,
     this.role,
+    this.trainerId,
   });
 
   factory ChatOtherUser.fromJson(Map<String, dynamic> json) {
@@ -119,6 +127,7 @@ class ChatOtherUser {
       name: json['name'] ?? 'Unknown',
       avatar: json['avatar'],
       role: json['role'],
+      trainerId: json['trainerId'],
     );
   }
 }

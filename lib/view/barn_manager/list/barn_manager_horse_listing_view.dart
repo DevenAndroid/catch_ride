@@ -20,10 +20,12 @@ class BarnManagerHorseListingView extends StatefulWidget {
   const BarnManagerHorseListingView({super.key});
 
   @override
-  State<BarnManagerHorseListingView> createState() => _BarnManagerHorseListingViewState();
+  State<BarnManagerHorseListingView> createState() =>
+      _BarnManagerHorseListingViewState();
 }
 
-class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingView> {
+class _BarnManagerHorseListingViewState
+    extends State<BarnManagerHorseListingView> {
   final HorseController horseController = Get.find<HorseController>();
   final ProfileController profileController = Get.find<ProfileController>();
   final ScrollController _scrollController = ScrollController();
@@ -38,7 +40,7 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
   void _loadHorses({bool refresh = true}) {
     final trainerId = profileController.trainerId;
     final userId = profileController.id;
-    
+
     if (trainerId.isNotEmpty) {
       horseController.fetchHorses(refresh: refresh, trainerId: trainerId);
     } else if (userId.isNotEmpty) {
@@ -48,8 +50,11 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      if (!horseController.isLoading.value && !horseController.isMoreLoading.value && horseController.hasNextPage.value) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!horseController.isLoading.value &&
+          !horseController.isMoreLoading.value &&
+          horseController.hasNextPage.value) {
         _loadHorses(refresh: false);
       }
     }
@@ -60,7 +65,6 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
     _scrollController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +91,8 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() {
-                if (horseController.isLoading.value && horseController.horses.isEmpty) {
+                if (horseController.isLoading.value &&
+                    horseController.horses.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
@@ -98,10 +103,7 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            '🐴',
-                            style: TextStyle(fontSize: 72),
-                          ),
+                          const Text('🐴', style: TextStyle(fontSize: 72)),
                           const SizedBox(height: 20),
                           const CommonText(
                             'No horses found',
@@ -129,8 +131,13 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
                   onRefresh: () async => _loadHorses(),
                   child: ListView.separated(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: horseController.horses.length + (horseController.hasNextPage.value ? 1 : 0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemCount:
+                        horseController.horses.length +
+                        (horseController.hasNextPage.value ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       if (index == horseController.horses.length) {
@@ -145,14 +152,27 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
                       final horse = horseController.horses[index];
                       return HorseCard(
                         horse: horse,
-                        onTap: () => Get.to(() => BarnManagerHorseDetailView(horse: horse, isOwnHorse: false)),
+                        onTap: () => Get.to(
+                          () => BarnManagerHorseDetailView(
+                            horse: horse,
+                            isOwnHorse: false,
+                          ),
+                        ),
                         trailing: PopupMenuButton<String>(
                           elevation: 5,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: const Icon(Icons.more_vert, color: AppColors.textPrimary, size: 24),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.more_vert,
+                            color: AppColors.textPrimary,
+                            size: 24,
+                          ),
                           onSelected: (value) {
-                             if (value == 'availability') {
-                              Get.to(() => BarnManagerAvailabilityView(horse: horse));
+                            if (value == 'availability') {
+                              Get.to(
+                                () => BarnManagerAvailabilityView(horse: horse),
+                              );
                             }
                           },
                           itemBuilder: (context) => [
@@ -160,9 +180,16 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
                               value: 'availability',
                               child: Row(
                                 children: const [
-                                  Icon(Icons.calendar_month, size: 20, color: AppColors.textPrimary),
+                                  Icon(
+                                    Icons.calendar_month,
+                                    size: 20,
+                                    color: AppColors.textPrimary,
+                                  ),
                                   SizedBox(width: 8),
-                                  CommonText('Manage Availability', fontSize: 14),
+                                  CommonText(
+                                    'Manage Availability',
+                                    fontSize: 14,
+                                  ),
                                 ],
                               ),
                             ),
@@ -170,7 +197,11 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
                               value: 'share',
                               child: Row(
                                 children: const [
-                                  Icon(Icons.share, size: 20, color: AppColors.textPrimary),
+                                  Icon(
+                                    Icons.share,
+                                    size: 20,
+                                    color: AppColors.textPrimary,
+                                  ),
                                   SizedBox(width: 8),
                                   CommonText('Share', fontSize: 14),
                                 ],
@@ -189,5 +220,4 @@ class _BarnManagerHorseListingViewState extends State<BarnManagerHorseListingVie
       ),
     );
   }
-
 }

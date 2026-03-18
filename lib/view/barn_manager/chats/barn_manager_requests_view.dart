@@ -44,12 +44,18 @@ class BarnManagerRequestsView extends StatelessWidget {
       body: Obx(() {
         final currentUserId = Get.find<ProfileController>().id;
         final requests = controller.conversations
-            .where((c) => c.status == 'request-pending' && c.senderId != currentUserId)
+            .where(
+              (c) =>
+                  c.status == 'request-pending' && c.senderId != currentUserId,
+            )
             .toList();
 
         if (requests.isEmpty) {
           return const Center(
-            child: CommonText('No pending requests', color: AppColors.textSecondary),
+            child: CommonText(
+              'No pending requests',
+              color: AppColors.textSecondary,
+            ),
           );
         }
 
@@ -74,12 +80,15 @@ class BarnManagerRequestCard extends StatelessWidget {
     final ChatController controller = Get.find<ChatController>();
     final String name = request.otherUser?.name ?? 'Unknown';
     final String role = request.otherUser?.role ?? 'User';
-    final String avatar = request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
+    final String avatar =
+        request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F5F0), // Lighter version of the cream background
+        color: const Color(
+          0xFFF9F5F0,
+        ), // Lighter version of the cream background
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFE5D5C5).withOpacity(0.5)),
       ),
@@ -146,7 +155,9 @@ class BarnManagerRequestCard extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: CommonImageView(
-                        url: request.booking?.horseImage ?? AppConstants.dummyImageUrl,
+                        url:
+                            request.booking?.horseImage ??
+                            AppConstants.dummyImageUrl,
                         height: 90,
                         width: 90,
                         fit: BoxFit.cover,
@@ -168,7 +179,10 @@ class BarnManagerRequestCard extends StatelessWidget {
                               ),
                               if (request.booking?.type != null)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF2F4F7),
                                     borderRadius: BorderRadius.circular(8),
@@ -185,7 +199,11 @@ class BarnManagerRequestCard extends StatelessWidget {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(Icons.location_on_outlined, size: 18, color: Color(0xFF98A2B3)),
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 18,
+                                color: Color(0xFF98A2B3),
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: CommonText(
@@ -201,7 +219,11 @@ class BarnManagerRequestCard extends StatelessWidget {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
+                              const Icon(
+                                Icons.calendar_today_outlined,
+                                size: 16,
+                                color: Color(0xFF98A2B3),
+                              ),
                               const SizedBox(width: 6),
                               CommonText(
                                 request.booking?.date ?? 'N/A',
@@ -237,12 +259,17 @@ class BarnManagerRequestCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => controller.acceptRequest(request.conversationId),
+                    onPressed: () =>
+                        controller.acceptRequest(request.conversationId),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B4541), // Brownish red from image
+                      backgroundColor: const Color(
+                        0xFF8B4541,
+                      ), // Brownish red from image
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 0,
                     ),
                     child: const CommonText(
@@ -256,12 +283,15 @@ class BarnManagerRequestCard extends StatelessWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => controller.declineRequest(request.conversationId),
+                    onPressed: () =>
+                        controller.declineRequest(request.conversationId),
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Color(0xFFD0D5DD)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const CommonText(
                       'Reject',

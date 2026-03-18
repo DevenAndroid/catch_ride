@@ -22,6 +22,7 @@ import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
 import '../list/add_new_listing_view.dart';
+import '../bookings/trainer_past_bookings_view.dart';
 import 'notifications_view.dart';
 
 class SettingsView extends StatelessWidget {
@@ -54,11 +55,17 @@ class SettingsView extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                border: Border.all(
+                  color: AppColors.border.withValues(alpha: 0.5),
+                ),
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textPrimary, size: 24),
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: AppColors.textPrimary,
+                  size: 24,
+                ),
                 onPressed: () => Get.to(() => const NotificationsView()),
               ),
             ),
@@ -82,7 +89,9 @@ class SettingsView extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.cardColor,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppColors.border.withValues(alpha: 0.3),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -103,7 +112,10 @@ class SettingsView extends StatelessWidget {
                       ),
                       child: SvgPicture.asset(
                         "assets/images/logo.svg",
-                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -173,7 +185,7 @@ class SettingsView extends StatelessWidget {
               _buildSettingsTile(
                 icon: Icons.history_rounded,
                 title: 'Past Services and Trials',
-                onTap: () {},
+                onTap: () => Get.to(() => const TrainerPastBookingsView()),
                 showDivider: false,
               ),
             ]),
@@ -250,10 +262,14 @@ class SettingsView extends StatelessWidget {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.2),
+              ),
             ),
             child: CommonImageView(
-              url: controller.avatar.isNotEmpty ? controller.avatar : AppConstants.dummyImageUrl,
+              url: controller.avatar.isNotEmpty
+                  ? controller.avatar
+                  : AppConstants.dummyImageUrl,
               height: 90,
               width: 90,
               shape: BoxShape.circle,
@@ -409,7 +425,11 @@ class SettingsView extends StatelessWidget {
                   color: Color(0xFFFFF1F1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.logout_rounded, color: Color(0xFFD92D20), size: 28),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Color(0xFFD92D20),
+                  size: 28,
+                ),
               ),
               const SizedBox(height: 20),
               const CommonText(
@@ -432,7 +452,12 @@ class SettingsView extends StatelessWidget {
                           border: Border.all(color: AppColors.border),
                         ),
                         child: const Center(
-                          child: CommonText('Cancel', fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                          child: CommonText(
+                            'Cancel',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                     ),
@@ -455,7 +480,12 @@ class SettingsView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Center(
-                          child: CommonText('Logout', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          child: CommonText(
+                            'Logout',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),

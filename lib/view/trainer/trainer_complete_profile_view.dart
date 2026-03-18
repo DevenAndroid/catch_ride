@@ -13,18 +13,21 @@ import 'package:image_picker/image_picker.dart';
 import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import '../../utils/validators.dart';
 
 class TrainerCompleteProfileView extends StatefulWidget {
   const TrainerCompleteProfileView({super.key});
 
   @override
-  State<TrainerCompleteProfileView> createState() => _TrainerCompleteProfileViewState();
+  State<TrainerCompleteProfileView> createState() =>
+      _TrainerCompleteProfileViewState();
 }
 
-class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView> {
+class _TrainerCompleteProfileViewState
+    extends State<TrainerCompleteProfileView> {
   final ProfileController profileController = Get.put(ProfileController());
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -33,7 +36,8 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
   final TextEditingController _location1Controller = TextEditingController();
   final TextEditingController _location2Controller = TextEditingController();
   final TextEditingController _yearsController = TextEditingController();
-  final TextEditingController _searchCircuitsController = TextEditingController();
+  final TextEditingController _searchCircuitsController =
+      TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
@@ -68,13 +72,15 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
-    _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
-    
+    _yearsController.text = profileController.yearsExperience > 0
+        ? profileController.yearsExperience.toString()
+        : '';
+
     _selectedProgramTags.assignAll(profileController.selectedProgramTags);
     _selectedHorseShows.assignAll(profileController.selectedHorseShows);
     _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
-    
+
     if (profileController.userData.isEmpty) {
       profileController.fetchProfile().then((_) {
         _fullNameController.text = profileController.fullName;
@@ -82,7 +88,9 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
         _barnNameController.text = profileController.barnName;
         _bioController.text = profileController.bio;
         _location1Controller.text = profileController.location;
-        _yearsController.text = profileController.yearsExperience > 0 ? profileController.yearsExperience.toString() : '';
+        _yearsController.text = profileController.yearsExperience > 0
+            ? profileController.yearsExperience.toString()
+            : '';
         _selectedProgramTags.assignAll(profileController.selectedProgramTags);
         _selectedHorseShows.assignAll(profileController.selectedHorseShows);
         _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
@@ -118,7 +126,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
         elevation: 0,
         centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
@@ -137,22 +149,22 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                  _buildUploadImageSection(),
-                  const SizedBox(height: 16),
-                  _buildBasicDetailsSection(),
-                  const SizedBox(height: 16),
-                  _buildBarnInformationSection(),
-                  const SizedBox(height: 16),
-                  _buildExperienceSection(),
-                  const SizedBox(height: 16),
-                  _buildFrequentedCircuitsSection(),
-                  const SizedBox(height: 16),
-                  _buildDynamicTagsSection(),
-                  const SizedBox(height: 24),
-                ],
+                    _buildUploadImageSection(),
+                    const SizedBox(height: 16),
+                    _buildBasicDetailsSection(),
+                    const SizedBox(height: 16),
+                    _buildBarnInformationSection(),
+                    const SizedBox(height: 16),
+                    _buildExperienceSection(),
+                    const SizedBox(height: 16),
+                    _buildFrequentedCircuitsSection(),
+                    const SizedBox(height: 16),
+                    _buildDynamicTagsSection(),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
             ),
-          ),
           ),
           _buildBottomButton(),
         ],
@@ -160,8 +172,10 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     );
   }
 
-
-  Widget _buildSectionContainer({required String title, required List<Widget> children}) {
+  Widget _buildSectionContainer({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -174,7 +188,12 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(title, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          CommonText(
+            title,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
           const SizedBox(height: 20),
           ...children,
         ],
@@ -186,7 +205,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     return _buildSectionContainer(
       title: 'Upload Image',
       children: [
-        const CommonText('Profile Photo', fontSize: 13, color: AppColors.textPrimary),
+        const CommonText(
+          'Profile Photo',
+          fontSize: 13,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 12),
         Center(
           child: GestureDetector(
@@ -203,13 +226,17 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   child: ClipOval(
                     child: _profileImage != null
                         ? Image.file(_profileImage!, fit: BoxFit.cover)
-                        : profileController.avatar.isNotEmpty 
-                            ? CommonImageView(
-                                url: profileController.avatar,
-                                fit: BoxFit.cover,
-                                fallbackIcon: Icons.person_outline_rounded,
-                              )
-                            : const Icon(Icons.person_outline_rounded, size: 48, color: AppColors.textSecondary),
+                        : profileController.avatar.isNotEmpty
+                        ? CommonImageView(
+                            url: profileController.avatar,
+                            fit: BoxFit.cover,
+                            fallbackIcon: Icons.person_outline_rounded,
+                          )
+                        : const Icon(
+                            Icons.person_outline_rounded,
+                            size: 48,
+                            color: AppColors.textSecondary,
+                          ),
                   ),
                 ),
                 Positioned(
@@ -228,7 +255,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -236,13 +267,18 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           ),
         ),
         const SizedBox(height: 24),
-        const CommonText('Banner Image  (optional)', fontSize: 13, color: AppColors.textPrimary),
+        const CommonText(
+          'Banner Image  (optional)',
+          fontSize: 13,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () => _pickImage(false),
           child: CustomPaint(
-            painter: _bannerImage == null && profileController.coverImage.isEmpty 
-                ? DashPainter(color: AppColors.border, borderRadius: 12) 
+            painter:
+                _bannerImage == null && profileController.coverImage.isEmpty
+                ? DashPainter(color: AppColors.border, borderRadius: 12)
                 : null,
             child: Container(
               height: 140,
@@ -256,13 +292,17 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                 child: _bannerImage != null
                     ? Image.file(_bannerImage!, fit: BoxFit.cover)
                     : profileController.coverImage.isNotEmpty
-                        ? CommonImageView(
-                            url: profileController.coverImage,
-                            fit: BoxFit.cover,
-                          )
-                        : const Center(
-                            child: Icon(Icons.add, color: AppColors.textSecondary, size: 28),
-                          ),
+                    ? CommonImageView(
+                        url: profileController.coverImage,
+                        fit: BoxFit.cover,
+                      )
+                    : const Center(
+                        child: Icon(
+                          Icons.add,
+                          color: AppColors.textSecondary,
+                          size: 28,
+                        ),
+                      ),
               ),
             ),
           ),
@@ -276,11 +316,13 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       title: 'Basic Details',
       children: [
         _buildTextField(
-          'Full Name', 
-          _fullNameController, 
-          hint: 'Enter your full name', 
+          'Full Name',
+          _fullNameController,
+          hint: 'Enter your full name',
           isRequired: true,
-          validator: RequiredValidator(errorText: 'Please enter your full name'),
+          validator: RequiredValidator(
+            errorText: 'Please enter your full name',
+          ),
         ),
         const SizedBox(height: 20),
         _buildPhoneField(),
@@ -293,25 +335,27 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       title: 'Barn Information',
       children: [
         _buildTextField(
-          'Barn Name', 
-          _barnNameController, 
-          hint: 'Enter your business name', 
+          'Barn Name',
+          _barnNameController,
+          hint: 'Enter your business name',
           isRequired: true,
-          validator: RequiredValidator(errorText: 'Please enter your barn name'),
+          validator: RequiredValidator(
+            errorText: 'Please enter your barn name',
+          ),
         ),
         const SizedBox(height: 20),
         _buildTextField(
-          'Location I', 
-          _location1Controller, 
-          hint: 'Enter barn location', 
+          'Location I',
+          _location1Controller,
+          hint: 'Enter barn location',
           isRequired: true,
           validator: RequiredValidator(errorText: 'Please enter your location'),
         ),
         const SizedBox(height: 20),
         _buildTextField(
-          'Location II', 
-          _location2Controller, 
-          hint: 'Enter your business name', 
+          'Location II',
+          _location2Controller,
+          hint: 'Enter your business name',
           suffix: '(optional)',
         ),
       ],
@@ -325,9 +369,9 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
         _buildExperienceDropdown(),
         const SizedBox(height: 20),
         _buildTextField(
-          'Bio', 
-          _bioController, 
-          hint: 'Write a short bio', 
+          'Bio',
+          _bioController,
+          hint: 'Write a short bio',
           maxLines: 4,
           isRequired: true,
           validator: RequiredValidator(errorText: 'Please write a short bio'),
@@ -340,13 +384,17 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Years in Industry', fontSize: 13, color: AppColors.textPrimary),
+        const CommonText(
+          'Years in Industry',
+          fontSize: 13,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: () => _showSingleSelectBottomSheet(
             title: 'Years in Industry',
             currentValue: _yearsController.text,
-            items: List.generate(51, (index) => index.toString(),),
+            items: List.generate(51, (index) => index.toString()),
             onSelected: (val) {
               setState(() => _yearsController.text = val);
             },
@@ -363,14 +411,20 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
               children: [
                 Expanded(
                   child: CommonText(
-                    _yearsController.text.isEmpty ? 'Select years' : _yearsController.text,
+                    _yearsController.text.isEmpty
+                        ? 'Select years'
+                        : _yearsController.text,
                     fontSize: 14,
                     color: _yearsController.text.isEmpty
                         ? AppColors.textSecondary.withOpacity(0.5)
                         : AppColors.textPrimary,
                   ),
                 ),
-                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
               ],
             ),
           ),
@@ -382,7 +436,8 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
   void _showHorseShowsBottomSheet() {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows = RxList<Map<String, dynamic>>(allShows);
+    final RxList<Map<String, dynamic>> filteredShows =
+        RxList<Map<String, dynamic>>(allShows);
 
     showModalBottomSheet(
       context: context,
@@ -405,7 +460,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const CommonText('Horse Shows & Circuits', fontSize: 18, fontWeight: FontWeight.bold),
+                      const CommonText(
+                        'Horse Shows & Circuits',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -416,14 +475,26 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredShows.assignAll(allShows
-                          .where((s) => (s['name'] as String).toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredShows.assignAll(
+                        allShows
+                            .where(
+                              (s) => (s['name'] as String)
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'Search horse shows...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -434,28 +505,34 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: Obx(() => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: filteredShows.map((show) {
-                          final String id = show['_id'] ?? show['id'] ?? '';
-                          final String name = show['name'] ?? '';
-                          final isSelected = _selectedHorseShowIds.contains(id);
+                      child: Obx(
+                        () => Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: filteredShows.map((show) {
+                            final String id = show['_id'] ?? show['id'] ?? '';
+                            final String name = show['name'] ?? '';
+                            final isSelected = _selectedHorseShowIds.contains(
+                              id,
+                            );
 
-                          return GestureDetector(
-                            onTap: () {
-                              if (isSelected) {
-                                _selectedHorseShowIds.remove(id);
-                                _selectedHorseShows.remove(name);
-                              } else {
-                                _selectedHorseShowIds.add(id);
-                                _selectedHorseShows.add(name);
-                              }
-                            },
-                            child: isSelected ? _buildSelectedTag(name) : _buildTag(name),
-                          );
-                        }).toList(),
-                      )),
+                            return GestureDetector(
+                              onTap: () {
+                                if (isSelected) {
+                                  _selectedHorseShowIds.remove(id);
+                                  _selectedHorseShows.remove(name);
+                                } else {
+                                  _selectedHorseShowIds.add(id);
+                                  _selectedHorseShows.add(name);
+                                }
+                              },
+                              child: isSelected
+                                  ? _buildSelectedTag(name)
+                                  : _buildTag(name),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -499,8 +576,16 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: CommonText(
+                    title,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const Divider(),
                 Expanded(
@@ -517,16 +602,25 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                         },
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade100),
+                            ),
                           ),
                           child: Center(
                             child: CommonText(
-                              item, 
-                              fontSize: 16, 
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                              item,
+                              fontSize: 16,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -572,7 +666,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      CommonText(
+                        title,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -583,14 +681,25 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredItems.assignAll(allItems
-                          .where((s) => s.toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredItems.assignAll(
+                        allItems
+                            .where(
+                              (s) =>
+                                  s.toLowerCase().contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: hint ?? 'Search...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -605,23 +714,27 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: Obx(() => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: filteredItems.map((item) {
-                          final isSelected = selectedItems.contains(item);
-                          return GestureDetector(
-                            onTap: () {
-                              if (isSelected) {
-                                selectedItems.remove(item);
-                              } else {
-                                selectedItems.add(item);
-                              }
-                            },
-                            child: isSelected ? _buildSelectedTag(item) : _buildTag(item),
-                          );
-                        }).toList(),
-                      )),
+                      child: Obx(
+                        () => Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: filteredItems.map((item) {
+                            final isSelected = selectedItems.contains(item);
+                            return GestureDetector(
+                              onTap: () {
+                                if (isSelected) {
+                                  selectedItems.remove(item);
+                                } else {
+                                  selectedItems.add(item);
+                                }
+                              },
+                              child: isSelected
+                                  ? _buildSelectedTag(item)
+                                  : _buildTag(item),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -632,7 +745,6 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       },
     );
   }
-
 
   Widget _buildFrequentedCircuitsSection() {
     return _buildSectionContainer(
@@ -649,7 +761,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
             ),
             child: Row(
               children: [
-                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.search,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: CommonText(
@@ -683,7 +799,7 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
   Widget _buildDynamicTagsSection() {
     return Obx(() {
       if (profileController.tagTypes.isEmpty) return const SizedBox.shrink();
-      
+
       return Column(
         children: profileController.tagTypes.map((type) {
           final typeId = type['_id'] ?? '';
@@ -710,8 +826,12 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                           _selectedTags.remove(tagId);
                         } else {
                           // Remove others of same type
-                          final allTypeTagIds = values.map((v) => v['_id'] as String).toList();
-                          _selectedTags.removeWhere((id) => allTypeTagIds.contains(id));
+                          final allTypeTagIds = values
+                              .map((v) => v['_id'] as String)
+                              .toList();
+                          _selectedTags.removeWhere(
+                            (id) => allTypeTagIds.contains(id),
+                          );
                           _selectedTags.add(tagId);
                         }
                       } else {
@@ -722,7 +842,9 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                         }
                       }
                     },
-                    child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
+                    child: isSelected
+                        ? _buildSelectedTag(tagName)
+                        : _buildTag(tagName),
                   );
                 }).toList(),
               ),
@@ -762,7 +884,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      CommonText(
+                        title,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -773,14 +899,26 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredValues.assignAll(values
-                          .where((v) => (v['name'] as String).toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredValues.assignAll(
+                        values
+                            .where(
+                              (v) => (v['name'] as String)
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'Search $title...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -791,37 +929,45 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: Obx(() => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: filteredValues.map((val) {
-                          final tagId = val['_id'] ?? '';
-                          final tagName = val['name'] ?? '';
-                          final isSelected = _selectedTags.contains(tagId);
+                      child: Obx(
+                        () => Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: filteredValues.map((val) {
+                            final tagId = val['_id'] ?? '';
+                            final tagName = val['name'] ?? '';
+                            final isSelected = _selectedTags.contains(tagId);
 
-                          return GestureDetector(
-                            onTap: () {
-                              if (isSingleSelect) {
-                                if (isSelected) {
-                                  _selectedTags.remove(tagId);
+                            return GestureDetector(
+                              onTap: () {
+                                if (isSingleSelect) {
+                                  if (isSelected) {
+                                    _selectedTags.remove(tagId);
+                                  } else {
+                                    // Remove others of same type
+                                    final allTagIds = values
+                                        .map((v) => v['_id'] as String)
+                                        .toList();
+                                    _selectedTags.removeWhere(
+                                      (id) => allTagIds.contains(id),
+                                    );
+                                    _selectedTags.add(tagId);
+                                  }
                                 } else {
-                                  // Remove others of same type
-                                  final allTagIds = values.map((v) => v['_id'] as String).toList();
-                                  _selectedTags.removeWhere((id) => allTagIds.contains(id));
-                                  _selectedTags.add(tagId);
+                                  if (isSelected) {
+                                    _selectedTags.remove(tagId);
+                                  } else {
+                                    _selectedTags.add(tagId);
+                                  }
                                 }
-                              } else {
-                                if (isSelected) {
-                                  _selectedTags.remove(tagId);
-                                } else {
-                                  _selectedTags.add(tagId);
-                                }
-                              }
-                            },
-                            child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
-                          );
-                        }).toList(),
-                      )),
+                              },
+                              child: isSelected
+                                  ? _buildSelectedTag(tagName)
+                                  : _buildTag(tagName),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -833,9 +979,17 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     );
   }
 
-
-
-  Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType, String? Function(String?)? validator}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    bool isRequired = false,
+    int maxLines = 1,
+    String? suffix,
+    IconData? prefixIcon,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
     return CommonTextField(
       label: label,
       controller: controller,
@@ -843,7 +997,9 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
       isRequired: isRequired,
       maxLines: maxLines,
       suffixLabel: suffix,
-      prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary) : null,
+      prefixIcon: prefixIcon != null
+          ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary)
+          : null,
       keyboardType: keyboardType,
       validator: validator,
     );
@@ -853,7 +1009,11 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Phone Number', fontSize: 13, color: AppColors.textPrimary),
+        const CommonText(
+          'Phone Number',
+          fontSize: 13,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -866,9 +1026,17 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: const [
-                    CommonText('+1', fontSize: 14, color: AppColors.textPrimary),
+                    CommonText(
+                      '+1',
+                      fontSize: 14,
+                      color: AppColors.textPrimary,
+                    ),
                     SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -877,12 +1045,19 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(fontSize: 14),
-                  validator: RequiredValidator(errorText: 'Please enter your phone number'),
+                  validator: Validations.phoneValidator,
+                  maxLength: 10,
                   decoration: InputDecoration(
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary.withOpacity(0.5),
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -914,10 +1089,10 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
         border: Border.all(color: const Color(0xFF000B48), width: 1.5),
       ),
       child: CommonText(
-        text, 
-        fontSize: 14, 
-        color: const Color(0xFF000B48), 
-        fontWeight: FontWeight.bold
+        text,
+        fontSize: 14,
+        color: const Color(0xFF000B48),
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -935,90 +1110,123 @@ class _TrainerCompleteProfileViewState extends State<TrainerCompleteProfileView>
           ),
         ],
       ),
-      child: Obx(() => GestureDetector(
-        onTap: profileController.isLoading.value ? null : () async {
-          if (!_formKey.currentState!.validate()) {
-            return;
-          }
+      child: Obx(
+        () => GestureDetector(
+          onTap: profileController.isLoading.value
+              ? null
+              : () async {
+                  if (!_formKey.currentState!.validate()) {
+                    return;
+                  }
 
-          if (_profileImage == null && profileController.avatar.isEmpty) {
-            Get.snackbar('Error', 'Please upload a profile photo', backgroundColor: Colors.red, colorText: Colors.white);
-            return;
-          }
+                  if (_profileImage == null &&
+                      profileController.avatar.isEmpty) {
+                    Get.snackbar(
+                      'Error',
+                      'Please upload a profile photo',
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
 
-          // Dynamic Tag Validation
-          for (var type in profileController.tagTypes) {
-            if (type['isRequired'] == true) {
-              final typeName = type['name'] ?? 'Tag';
-              final values = (type['values'] as List? ?? []);
-              final allTypeTagIds = values.map((v) => v['_id'] as String).toList();
-              
-              final hasSelection = _selectedTags.any((id) => allTypeTagIds.contains(id));
-              if (!hasSelection) {
-                Get.snackbar(
-                  'Required Field', 
-                  'Please select at least one $typeName', 
-                  backgroundColor: Colors.red, 
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.TOP
-                );
-                return;
-              }
-            }
-          }
+                  // Dynamic Tag Validation
+                  for (var type in profileController.tagTypes) {
+                    if (type['isRequired'] == true) {
+                      final typeName = type['name'] ?? 'Tag';
+                      final values = (type['values'] as List? ?? []);
+                      final allTypeTagIds = values
+                          .map((v) => v['_id'] as String)
+                          .toList();
 
+                      final hasSelection = _selectedTags.any(
+                        (id) => allTypeTagIds.contains(id),
+                      );
+                      if (!hasSelection) {
+                        Get.snackbar(
+                          'Required Field',
+                          'Please select at least one $typeName',
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                          snackPosition: SnackPosition.TOP,
+                        );
+                        return;
+                      }
+                    }
+                  }
 
-          // 1. Upload Images
-          if (_profileImage != null) {
-            await profileController.uploadImage(_profileImage!.path, 'avatar');
-          }
-          if (_bannerImage != null) {
-            await profileController.uploadImage(_bannerImage!.path, 'cover');
-          }
+                  // 1. Upload Images
+                  if (_profileImage != null) {
+                    await profileController.uploadImage(
+                      _profileImage!.path,
+                      'avatar',
+                    );
+                  }
+                  if (_bannerImage != null) {
+                    await profileController.uploadImage(
+                      _bannerImage!.path,
+                      'cover',
+                    );
+                  }
 
-          // 2. Prepare Name
-          final nameParts = _fullNameController.text.trim().split(' ');
-          final firstName = nameParts.first;
-          final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : ' ';
+                  // 2. Prepare Name
+                  final nameParts = _fullNameController.text.trim().split(' ');
+                  final firstName = nameParts.first;
+                  final lastName = nameParts.length > 1
+                      ? nameParts.sublist(1).join(' ')
+                      : ' ';
 
-          // 3. Update Text Profile — include isProfileCompleted:true
-          final success = await profileController.updateProfile({
-            'firstName': firstName,
-            'lastName': lastName,
-            'phone': _phoneController.text.trim(),
-            'barnName': _barnNameController.text.trim(),
-            'bio': _bioController.text.trim(),
-            'location': _location1Controller.text.trim(),
-            'location2': _location2Controller.text.trim(),
-            'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
-            'programTags': _selectedProgramTags.toList(),
-            'showCircuits': _selectedHorseShows.toList(),
-            'horseShows': _selectedHorseShowIds.toList(),
-            'tags': _selectedTags.toList(),
-            'isProfileCompleted': true,
-          });
+                  // 3. Update Text Profile — include isProfileCompleted:true
+                  final success = await profileController.updateProfile({
+                    'firstName': firstName,
+                    'lastName': lastName,
+                    'phone': _phoneController.text.trim(),
+                    'barnName': _barnNameController.text.trim(),
+                    'bio': _bioController.text.trim(),
+                    'location': _location1Controller.text.trim(),
+                    'location2': _location2Controller.text.trim(),
+                    'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
+                    'programTags': _selectedProgramTags.toList(),
+                    'showCircuits': _selectedHorseShows.toList(),
+                    'horseShows': _selectedHorseShowIds.toList(),
+                    'tags': _selectedTags.toList(),
+                    'isProfileCompleted': true,
+                  });
 
-          if (success) {
-            // Save flag locally
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('isProfileCompleted', true);
-            // Navigate to trainer dashboard
-            Get.offAll(() => const TrainerBottomNav());
-          }
-        },
-        child: Container(
-          height: 52,
-          decoration: BoxDecoration(
-            color: const Color(0xFF000B48),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Center(
-            child: profileController.isLoading.value
-                ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const CommonText('Complete', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                  if (success) {
+                    // Save flag locally
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('isProfileCompleted', true);
+                    // Navigate to trainer dashboard
+                    Get.offAll(() => const TrainerBottomNav());
+                  }
+                },
+          child: Container(
+            height: 52,
+            decoration: BoxDecoration(
+              color: const Color(0xFF000B48),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: profileController.isLoading.value
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const CommonText(
+                      'Complete',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }

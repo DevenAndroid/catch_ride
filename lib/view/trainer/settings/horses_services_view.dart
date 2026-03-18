@@ -49,14 +49,8 @@ class HorsesServicesView extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _buildServiceTile(
-                title: 'List your horse',
-                onTap: () {},
-              ),
-              _buildServiceTile(
-                title: 'View your horses',
-                onTap: () {},
-              ),
+              _buildServiceTile(title: 'List your horse', onTap: () {}),
+              _buildServiceTile(title: 'View your horses', onTap: () {}),
               _buildServiceTile(
                 title: 'Past Services & Trials',
                 onTap: () {},
@@ -103,10 +97,7 @@ class HorsesServicesView extends StatelessWidget {
         if (showDivider)
           Padding(
             padding: const EdgeInsets.only(left: 20),
-            child: Divider(
-              height: 1,
-              color: AppColors.border.withOpacity(0.5),
-            ),
+            child: Divider(height: 1, color: AppColors.border.withOpacity(0.5)),
           ),
       ],
     );

@@ -1,11 +1,13 @@
 class AppStrings {
   // Automatically extracted strings
-  static const String agreeTerms = 'agree to the Terms of Service and Privacy Policy.';
+  static const String agreeTerms =
+      'agree to the Terms of Service and Privacy Policy.';
   static const String alreadyHaveAnAccount = 'Already have an account? ';
   static const String
   anIdealSmallPonyAndGreatForAChildAnIdealSmallPonyAndGreatForAChildanIdealSmallPonyAndGreatForAChildAnIdealSmallPonyAndGreatForAChild =
       'An ideal small pony and great for a Child An ideal small pony and great for a ChildAn ideal small pony and great for a Child An ideal small pony and great for a Child.';
-  static const String applicationSubmitted = 'Thank You for applying to Catch Ride.';
+  static const String applicationSubmitted =
+      'Thank You for applying to Catch Ride.';
   static const String aryaStark = 'Arya Stark';
   static const String availability = 'Availability';
   static const String bannerImage = 'Banner Image';
@@ -13,7 +15,8 @@ class AppStrings {
   static const String barnName = 'Barn Name';
   static const String basicDetails = 'Basic Details';
   static const String barnManager = 'Barn Manager';
-  static const String manageBarnOperations = 'Manage barn operations and coordinates with owners.';
+  static const String manageBarnOperations =
+      'Manage barn operations and coordinates with owners.';
   static const String bio = 'Bio';
   static const String failedToSetRole = 'Failed to set role. Please try again.';
   static const String bookings = 'Bookings';
@@ -25,7 +28,8 @@ class AppStrings {
   static const String chooseHowYouWillUseCatchRide =
       'Choose how you will use Catch Ride.';
   static const String completeYourApplication = 'Complete Your Application';
-  static const String confirm18Years = 'confirm that I am at least 18 years old';
+  static const String confirm18Years =
+      'confirm that I am at least 18 years old';
   static const String confirmPassword = 'Confirm Password';
   static const String continueText = 'Continue';
   static const String continueWithAppleId = 'Continue with Apple ID';
@@ -85,7 +89,7 @@ class AppStrings {
   static const String ocklawahaUsaUnitedStates =
       'Ocklawaha, USA, United States';
   static const String
-      onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount =
+  onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount =
       'If approved, you’ll receive a notification to activate your account.';
   static const String orLogInWith = 'Or Log In with';
   static const String orSignUpWith = 'Or sign up with';
@@ -132,7 +136,8 @@ class AppStrings {
   static const String welcomeBackSubtitle =
       'Sign in to access the Catch Ride professional network.';
   static const String well = 'Well|';
-  static const String whatIsPrimaryUse = 'What is your primary use for this app?';
+  static const String whatIsPrimaryUse =
+      'What is your primary use for this app?';
   static const String whyJoinCommunity = 'Why Join Our Community?';
   static const String whyJoinText =
       'Catch Ride is a private network built exclusively for trusted equestrian professionals.\n\nShare the types of horses, opportunities, and services you\'re looking for so we can connect you with the right programs and opportunities within the community.';

@@ -33,7 +33,8 @@ class SocialButton extends StatelessWidget {
           const SizedBox(width: 12),
           CommonText(
             text,
-            fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w500,
           ),
         ],
       ),

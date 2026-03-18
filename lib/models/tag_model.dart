@@ -4,12 +4,7 @@ class TagModel {
   final String? description;
   final bool? isActive;
 
-  TagModel({
-    this.id,
-    required this.name,
-    this.description,
-    this.isActive,
-  });
+  TagModel({this.id, required this.name, this.description, this.isActive});
 
   factory TagModel.fromJson(dynamic json) {
     if (json is String) {

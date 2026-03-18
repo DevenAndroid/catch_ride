@@ -8,6 +8,7 @@ import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_control
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
+import 'package:catch_ride/view/trainer/bookings/trainer_past_bookings_view.dart';
 import 'package:get/get.dart';
 
 import '../../../constant/app_constants.dart';
@@ -16,21 +17,34 @@ class BarnManagerBookingsView extends StatefulWidget {
   const BarnManagerBookingsView({super.key});
 
   @override
-  State<BarnManagerBookingsView> createState() => _BarnManagerBookingsViewState();
+  State<BarnManagerBookingsView> createState() =>
+      _BarnManagerBookingsViewState();
 }
 
 class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  int _selectedFilterIndex = 0; 
+  int _selectedFilterIndex = 0;
 
-  final BarnManagerBookingController bookingController = Get.find<BarnManagerBookingController>();
+  final BarnManagerBookingController bookingController =
+      Get.find<BarnManagerBookingController>();
   final ProfileController profileController = Get.find<ProfileController>();
 
-  final List<String> _receivedFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
-  final List<String> _sentFilters = ['Accepted', 'Rejected', 'Pending', 'Canceled'];
+  final List<String> _receivedFilters = [
+    'Accepted',
+    'Rejected',
+    'Pending',
+    'Canceled',
+  ];
+  final List<String> _sentFilters = [
+    'Accepted',
+    'Rejected',
+    'Pending',
+    'Canceled',
+  ];
 
-  List<String> get _currentFilters => _tabController.index == 0 ? _receivedFilters : _sentFilters;
+  List<String> get _currentFilters =>
+      _tabController.index == 0 ? _receivedFilters : _sentFilters;
 
   @override
   void initState() {
@@ -55,16 +69,24 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
       _selectedFilterIndex = 0;
     }
     final statusStr = filters[_selectedFilterIndex];
-    
+
     String apiStatus = statusStr.toLowerCase();
     if (statusStr == 'Accepted') apiStatus = 'confirmed';
     if (statusStr == 'Canceled') apiStatus = 'cancelled';
     // 'Completed', 'Rejected', 'Pending' map directly to lowercase
 
     if (_tabController.index == 0) {
-      bookingController.fetchBookings(type: 'received', status: apiStatus);
+      bookingController.fetchBookings(
+        type: 'received',
+        status: apiStatus,
+        time: 'upcoming',
+      );
     } else {
-      bookingController.fetchBookings(type: 'sent', status: apiStatus);
+      bookingController.fetchBookings(
+        type: 'sent',
+        status: apiStatus,
+        time: 'upcoming',
+      );
     }
   }
 
@@ -92,6 +114,9 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: const [
+          SizedBox(width: 8),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Column(
@@ -116,7 +141,10 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   Tab(text: 'Sent'),
                 ],
               ),
-              Container(color: AppColors.border.withValues(alpha: 0.5), height: 1),
+              Container(
+                color: AppColors.border.withValues(alpha: 0.5),
+                height: 1,
+              ),
             ],
           ),
         ),
@@ -125,7 +153,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
         children: [
           // Filter Chips
           _buildFilterSection(),
-          
+
           Expanded(
             child: Obx(() {
               if (bookingController.isLoading.value) {
@@ -137,7 +165,11 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 64,
+                        color: AppColors.textSecondary.withValues(alpha: 0.3),
+                      ),
                       const SizedBox(height: 16),
                       const CommonText(
                         'No bookings found',
@@ -191,22 +223,30 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.secondary : Colors.transparent,
+                    color: isSelected
+                        ? AppColors.secondary
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(30),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: AppColors.secondary.withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    ] : null,
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.secondary.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Center(
                     child: CommonText(
                       _currentFilters[index],
                       fontSize: 14,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -234,10 +274,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
-          child: _buildBookingCard(
-            booking: booking,
-            status: displayStatus,
-          ),
+          child: _buildBookingCard(booking: booking, status: displayStatus),
         );
       },
     );
@@ -248,10 +285,12 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     required String status,
   }) {
     return GestureDetector(
-      onTap: () => Get.to(() => BarnManagerHorseDetailView(
-        horseId: booking.horseId,
-        fromBooking: true,
-      )),
+      onTap: () => Get.to(
+        () => BarnManagerHorseDetailView(
+          horseId: booking.horseId,
+          fromBooking: true,
+        ),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
@@ -286,7 +325,10 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFECFDF3),
                           borderRadius: BorderRadius.circular(6),
@@ -324,7 +366,10 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF3F4F6),
                           borderRadius: BorderRadius.circular(20),
@@ -350,7 +395,11 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF98A2B3)),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Color(0xFF98A2B3),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
@@ -366,7 +415,11 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today_outlined, size: 15, color: Color(0xFF98A2B3)),
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 15,
+                        color: Color(0xFF98A2B3),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(

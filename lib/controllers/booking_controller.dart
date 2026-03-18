@@ -11,37 +11,45 @@ class BookingController extends GetxController {
 
   final RxList<BookingModel> receivedBookings = <BookingModel>[].obs;
   final RxList<BookingModel> sentBookings = <BookingModel>[].obs;
-  
+
   // Keep this for backward compatibility and reactive triggers in other views (like Explore/Detail)
-  final RxList<BookingModel> bookings = <BookingModel>[].obs; 
+  final RxList<BookingModel> bookings = <BookingModel>[].obs;
   final RxBool isLoading = false.obs;
 
-
-  Future<void> fetchBookings({String type = 'received', String? status}) async {
+  Future<void> fetchBookings({
+    String type = 'received',
+    String? status,
+    String? time,
+  }) async {
     try {
       isLoading.value = true;
-      final Map<String, String> query = {
-        'type': type,
-      };
+      final Map<String, String> query = {'type': type};
       if (status != null) query['status'] = status;
+      if (time != null) query['time'] = time;
 
-      final response = await _apiService.getRequest(AppUrls.myBookings, query: query);
+      final response = await _apiService.getRequest(
+        AppUrls.myBookings,
+        query: query,
+      );
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        final List<BookingModel> newBookings = 
-            data.map((e) => BookingModel.fromJson(e)).toList();
-        
+        final List<BookingModel> newBookings = data
+            .map((e) => BookingModel.fromJson(e))
+            .toList();
+
         if (type == 'received') {
           receivedBookings.assignAll(newBookings);
         } else {
           sentBookings.assignAll(newBookings);
         }
-        
+
         // Always update the master list for things like isRequested checks
         bookings.assignAll(type == 'sent' ? sentBookings : receivedBookings);
-        
-        _logger.i('Fetched ${newBookings.length} $type bookings with status $status');
+
+        _logger.i(
+          'Fetched ${newBookings.length} $type bookings (time: $time, status: $status)',
+        );
       } else {
         _logger.e('Failed to fetch bookings: ${response.statusText}');
       }
@@ -64,9 +72,10 @@ class BookingController extends GetxController {
         return true;
       } else {
         _logger.e('Failed to create booking: ${response.statusText}');
-        String msg = response.body?['message'] ?? 'Failed to send booking request';
+        String msg =
+            response.body?['message'] ?? 'Failed to send booking request';
         Get.snackbar(
-          'Error', 
+          'Error',
           msg,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.redAccent,
@@ -79,7 +88,7 @@ class BookingController extends GetxController {
     } catch (e) {
       _logger.e('Error creating booking: $e');
       Get.snackbar(
-        'Error', 
+        'Error',
         'Something went wrong',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.redAccent,

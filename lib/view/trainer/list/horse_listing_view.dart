@@ -42,7 +42,7 @@ class _HorseListingViewState extends State<HorseListingView> {
   void _loadHorses({bool refresh = true}) {
     final trainerId = profileController.trainerId;
     final userId = profileController.id;
-    
+
     if (trainerId.isNotEmpty) {
       horseController.fetchHorses(refresh: refresh, trainerId: trainerId);
     } else if (userId.isNotEmpty) {
@@ -52,8 +52,11 @@ class _HorseListingViewState extends State<HorseListingView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      if (!horseController.isLoading.value && !horseController.isMoreLoading.value && horseController.hasNextPage.value) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!horseController.isLoading.value &&
+          !horseController.isMoreLoading.value &&
+          horseController.hasNextPage.value) {
         _loadHorses(refresh: false);
       }
     }
@@ -64,7 +67,6 @@ class _HorseListingViewState extends State<HorseListingView> {
     _scrollController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +92,10 @@ class _HorseListingViewState extends State<HorseListingView> {
               child: GestureDetector(
                 onTap: () => Get.to(() => const AddNewListingView()),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -114,7 +119,10 @@ class _HorseListingViewState extends State<HorseListingView> {
                           "assets/images/logo.svg",
                           width: 32,
                           height: 32,
-                          colorFilter: const ColorFilter.mode(Color(0xFF00083B), BlendMode.srcIn),
+                          colorFilter: const ColorFilter.mode(
+                            Color(0xFF00083B),
+                            BlendMode.srcIn,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -137,7 +145,11 @@ class _HorseListingViewState extends State<HorseListingView> {
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: Color(0xFF667085), size: 24),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: Color(0xFF667085),
+                        size: 24,
+                      ),
                     ],
                   ),
                 ),
@@ -146,7 +158,8 @@ class _HorseListingViewState extends State<HorseListingView> {
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() {
-                if (horseController.isLoading.value && horseController.horses.isEmpty) {
+                if (horseController.isLoading.value &&
+                    horseController.horses.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
@@ -157,10 +170,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            '🐴',
-                            style: TextStyle(fontSize: 72),
-                          ),
+                          const Text('🐴', style: TextStyle(fontSize: 72)),
                           const SizedBox(height: 20),
                           const CommonText(
                             'Your stable is empty!',
@@ -180,7 +190,8 @@ class _HorseListingViewState extends State<HorseListingView> {
                           ),
                           const SizedBox(height: 32),
                           GestureDetector(
-                            onTap: () => Get.to(() => const AddNewListingView()),
+                            onTap: () =>
+                                Get.to(() => const AddNewListingView()),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 28,
@@ -200,7 +211,11 @@ class _HorseListingViewState extends State<HorseListingView> {
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
+                                  Icon(
+                                    Icons.add_circle_outline,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
                                   SizedBox(width: 8),
                                   CommonText(
                                     'List Your First Horse',
@@ -222,8 +237,13 @@ class _HorseListingViewState extends State<HorseListingView> {
                   onRefresh: () async => _loadHorses(),
                   child: ListView.separated(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    itemCount: horseController.horses.length + (horseController.hasNextPage.value ? 1 : 0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    itemCount:
+                        horseController.horses.length +
+                        (horseController.hasNextPage.value ? 1 : 0),
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       if (index == horseController.horses.length) {
@@ -254,11 +274,19 @@ class _HorseListingViewState extends State<HorseListingView> {
     final String? userAvatar = user?.displayAvatar;
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
     final String mainImageUrl = horse.photo ?? AppConstants.dummyImageUrl;
-    final String imageCount = horse.images.isNotEmpty ? "1 / ${horse.images.length}" : "1 / 1";
+    final String imageCount = horse.images.isNotEmpty
+        ? "1 / ${horse.images.length}"
+        : "1 / 1";
     final List<String> listingTypes = horse.listingTypes;
-    final String postTitle = "${horse.name.isEmpty ? 'N/A' : horse.name} - ${horse.displayDiscipline.isEmpty ? 'N/A' : horse.displayDiscipline}";
-    final String postDescription = (horse.description == null || horse.description!.isEmpty) ? "N/A" : horse.description!;
-    final String location = (horse.location == null || horse.location!.isEmpty) ? "N/A" : horse.location!;
+    final String postTitle =
+        "${horse.name.isEmpty ? 'N/A' : horse.name} - ${horse.displayDiscipline.isEmpty ? 'N/A' : horse.displayDiscipline}";
+    final String postDescription =
+        (horse.description == null || horse.description!.isEmpty)
+        ? "N/A"
+        : horse.description!;
+    final String location = (horse.location == null || horse.location!.isEmpty)
+        ? "N/A"
+        : horse.location!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -309,7 +337,10 @@ class _HorseListingViewState extends State<HorseListingView> {
                 ),
                 IconButton(
                   onPressed: () => _showHorseActions(horse),
-                  icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
+                  icon: const Icon(
+                    Icons.more_vert,
+                    color: AppColors.textPrimary,
+                  ),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -319,8 +350,10 @@ class _HorseListingViewState extends State<HorseListingView> {
 
           // Image
           GestureDetector(
-             onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse, isOwnHorse: true)),
-             child: Stack(
+            onTap: () => Get.to(
+              () => TrainerHorseDetailView(horse: horse, isOwnHorse: true),
+            ),
+            child: Stack(
               children: [
                 CommonImageView(
                   url: mainImageUrl,
@@ -332,7 +365,10 @@ class _HorseListingViewState extends State<HorseListingView> {
                   bottom: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
@@ -357,7 +393,9 @@ class _HorseListingViewState extends State<HorseListingView> {
               children: [
                 Wrap(
                   spacing: 8,
-                  children: listingTypes.map((type) => _buildTypeTag(type)).toList(),
+                  children: listingTypes
+                      .map((type) => _buildTypeTag(type))
+                      .toList(),
                 ),
                 const SizedBox(height: 12),
                 CommonText(
@@ -377,7 +415,11 @@ class _HorseListingViewState extends State<HorseListingView> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF6B7280)),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: Color(0xFF6B7280),
+                    ),
                     const SizedBox(width: 4),
                     CommonText(
                       location,
@@ -415,7 +457,9 @@ class _HorseListingViewState extends State<HorseListingView> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(

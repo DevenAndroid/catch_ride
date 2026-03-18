@@ -70,7 +70,9 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     // If tags are populated as objects, we want just the IDs
-    dynamic tagsList = json['tags'] ?? (json['trainerId'] is Map ? json['trainerId']['tags'] : []);
+    dynamic tagsList =
+        json['tags'] ??
+        (json['trainerId'] is Map ? json['trainerId']['tags'] : []);
     List<String> parsedTags = [];
     if (tagsList is List) {
       for (var t in tagsList) {
@@ -82,7 +84,9 @@ class UserModel {
       }
     }
 
-    dynamic horseShowsList = json['horseShows'] ?? (json['trainerId'] is Map ? json['trainerId']['horseShows'] : []);
+    dynamic horseShowsList =
+        json['horseShows'] ??
+        (json['trainerId'] is Map ? json['trainerId']['horseShows'] : []);
     List<String> parsedHorseShows = [];
     if (horseShowsList is List) {
       for (var h in horseShowsList) {
@@ -94,7 +98,9 @@ class UserModel {
       }
     }
 
-    final trainerData = json['trainerId'] is Map ? json['trainerId'] as Map<String, dynamic> : null;
+    final trainerData = json['trainerId'] is Map
+        ? json['trainerId'] as Map<String, dynamic>
+        : null;
 
     return UserModel(
       id: json['_id'] ?? json['id'],
@@ -109,11 +115,21 @@ class UserModel {
       location: json['location'] ?? trainerData?['location'],
       location2: json['location2'] ?? trainerData?['location2'],
       bio: json['bio'] ?? trainerData?['bio'] ?? trainerData?['description'],
-      barnName: json['barnName'] ?? trainerData?['barnName'] ?? json['barnManagerId']?['barnName'],
-      yearsExperience: json['yearsExperience'] ?? trainerData?['yearsExperience'] ?? 0,
-      yearsInIndustry: json['yearsInIndustry'] ?? json['barnManagerId']?['yearsInIndustry'],
-      programTags: List<String>.from(json['programTags'] ?? trainerData?['programTags'] ?? []),
-      showCircuits: List<String>.from(json['showCircuits'] ?? trainerData?['showCircuits'] ?? []),
+      barnName:
+          json['barnName'] ??
+          trainerData?['barnName'] ??
+          (json['barnManagerId'] is Map ? json['barnManagerId']['barnName'] : null),
+      yearsExperience:
+          json['yearsExperience'] ?? trainerData?['yearsExperience'] ?? 0,
+      yearsInIndustry:
+          json['yearsInIndustry'] ??
+          (json['barnManagerId'] is Map ? json['barnManagerId']['yearsInIndustry'] : null),
+      programTags: List<String>.from(
+        json['programTags'] ?? trainerData?['programTags'] ?? [],
+      ),
+      showCircuits: List<String>.from(
+        json['showCircuits'] ?? trainerData?['showCircuits'] ?? [],
+      ),
       horseShows: parsedHorseShows,
       tags: parsedTags,
       facebook: json['facebook'] ?? trainerData?['facebook'],
@@ -125,10 +141,11 @@ class UserModel {
       pushNotificationsEnabled: json['pushNotificationsEnabled'] ?? true,
       twoFactorEnabled: json['twoFactorEnabled'] ?? false,
       status: json['status'] ?? 'active',
-      trainerProfileId: trainerData != null 
-          ? trainerData['_id'] 
+      trainerProfileId: trainerData != null
+          ? trainerData['_id']
           : json['trainerId'],
-      linkedBarnManager: trainerData != null && trainerData['linkedBarnManager'] != null
+      linkedBarnManager:
+          trainerData != null && trainerData['linkedBarnManager'] != null
           ? BarnManager.fromJson(trainerData['linkedBarnManager'])
           : null,
       linkedTrainer: json['role'] == 'barn_manager' && json['trainerId'] is Map
@@ -166,7 +183,8 @@ class UserModel {
       'pushNotificationsEnabled': pushNotificationsEnabled,
       'twoFactorEnabled': twoFactorEnabled,
       'status': status,
-      if (linkedBarnManager != null) 'linkedBarnManager': linkedBarnManager!.toJson(),
+      if (linkedBarnManager != null)
+        'linkedBarnManager': linkedBarnManager!.toJson(),
       if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
     };
   }
@@ -193,8 +211,8 @@ class TrainerLinkedModel {
     this.location,
   });
 
-  String get fullName => (firstName != null && lastName != null) 
-      ? '$firstName $lastName'.trim() 
+  String get fullName => (firstName != null && lastName != null)
+      ? '$firstName $lastName'.trim()
       : firstName ?? lastName ?? email;
 
   factory TrainerLinkedModel.fromJson(Map<String, dynamic> json) {
@@ -243,8 +261,8 @@ class BarnManager {
     this.status = 'pending',
   });
 
-  String get fullName => (firstName != null && lastName != null) 
-      ? '$firstName $lastName'.trim() 
+  String get fullName => (firstName != null && lastName != null)
+      ? '$firstName $lastName'.trim()
       : firstName ?? lastName ?? email;
 
   factory BarnManager.fromJson(Map<String, dynamic> json) {

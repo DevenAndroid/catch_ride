@@ -23,7 +23,8 @@ class BarnManagerSingleChatView extends StatefulWidget {
   });
 
   @override
-  State<BarnManagerSingleChatView> createState() => _BarnManagerSingleChatViewState();
+  State<BarnManagerSingleChatView> createState() =>
+      _BarnManagerSingleChatViewState();
 }
 
 class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
@@ -85,6 +86,38 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                     color: const Color(0xFF101828),
                     maxLines: 1,
                   ),
+                  Obx(() {
+                    final convo = controller.conversations.firstWhereOrNull(
+                      (c) => c.conversationId == widget.conversationId,
+                    );
+                    final other = convo?.otherUser;
+                    final me = Get.find<ProfileController>().user.value;
+
+                    if (other != null && me != null) {
+                      // Case 1: I am BM, other is my Boss
+                      if (me.role == 'barn_manager' &&
+                          other.id == me.trainerProfileId) {
+                        return const CommonText(
+                          '(Associated Trainer)',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E90FA),
+                        );
+                      }
+                      // Case 2: I am Trainer, other is my BM
+                      if (me.role == 'trainer' &&
+                          other.role == 'barn_manager' &&
+                          other.trainerId == me.trainerProfileId) {
+                        return const CommonText(
+                          '(Associated Barn Manager)',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E90FA),
+                        );
+                      }
+                    }
+                    return const SizedBox.shrink();
+                  }),
                 ],
               ),
             ),
@@ -95,7 +128,9 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
         children: [
           // Status banners
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
+            final convo = controller.conversations.firstWhereOrNull(
+              (c) => c.conversationId == widget.conversationId,
+            );
             if (convo == null) return const SizedBox.shrink();
 
             final currentUserId = Get.find<ProfileController>().id;
@@ -116,9 +151,16 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                   Colors.orange.shade50,
                   Colors.orange,
                   actions: [
-                    _buildBannerButton('Decline', () => controller.declineRequest(widget.conversationId), isAction: false),
+                    _buildBannerButton(
+                      'Decline',
+                      () => controller.declineRequest(widget.conversationId),
+                      isAction: false,
+                    ),
                     const SizedBox(width: 8),
-                    _buildBannerButton('Accept', () => controller.acceptRequest(widget.conversationId)),
+                    _buildBannerButton(
+                      'Accept',
+                      () => controller.acceptRequest(widget.conversationId),
+                    ),
                   ],
                 );
               }
@@ -135,44 +177,60 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
 
           Expanded(
             child: Obx(() {
-              if (controller.isLoadingMessages.value && controller.currentMessages.isEmpty) {
+              if (controller.isLoadingMessages.value &&
+                  controller.currentMessages.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
               if (controller.currentMessages.isEmpty) {
                 return const Center(
-                  child: CommonText('No messages yet. Send a message to start!', color: AppColors.textSecondary),
+                  child: CommonText(
+                    'No messages yet. Send a message to start!',
+                    color: AppColors.textSecondary,
+                  ),
                 );
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: controller.currentMessages.length,
                 itemBuilder: (context, index) {
                   final msg = controller.currentMessages[index];
-                  final String currentUserId = Get.find<AuthController>().currentUser.value?.id ?? '';
-                  
-                  final bool isMe = msg.senderId == currentUserId || msg.senderName == 'You';
-                  
+                  final String currentUserId =
+                      Get.find<AuthController>().currentUser.value?.id ?? '';
+
+                  final bool isMe =
+                      msg.senderId == currentUserId || msg.senderName == 'You';
+
                   return ChatBubble(
                     message: msg.content,
                     isMe: isMe,
-                    time: isMe && index == controller.currentMessages.length - 1 ? 'Just now' : '',
-                    isRead: msg.read && index == controller.currentMessages.length - 1,
+                    time: isMe && index == controller.currentMessages.length - 1
+                        ? 'Just now'
+                        : '',
+                    isRead:
+                        msg.read &&
+                        index == controller.currentMessages.length - 1,
                   );
                 },
               );
             }),
           ),
-          
+
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
-            final bool canChat = convo?.status != 'request-declined' && 
-                               convo?.status != 'request-pending' && 
-                               convo?.status != 'request-blocked';
-            
+            final convo = controller.conversations.firstWhereOrNull(
+              (c) => c.conversationId == widget.conversationId,
+            );
+            final bool canChat =
+                convo?.status != 'request-declined' &&
+                convo?.status != 'request-pending' &&
+                convo?.status != 'request-blocked';
+
             if (!canChat) return const SizedBox.shrink();
-            
+
             return _buildMessageInput(textController, controller);
           }),
         ],
@@ -180,7 +238,13 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
     );
   }
 
-  Widget _buildStatusBanner(String title, String subtitle, Color bgColor, Color textColor, {List<Widget>? actions}) {
+  Widget _buildStatusBanner(
+    String title,
+    String subtitle,
+    Color bgColor,
+    Color textColor, {
+    List<Widget>? actions,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -194,17 +258,23 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
           if (actions != null) ...[
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: actions),
-          ]
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildBannerButton(String label, VoidCallback onTap, {bool isAction = true}) {
+  Widget _buildBannerButton(
+    String label,
+    VoidCallback onTap, {
+    bool isAction = true,
+  }) {
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
-        backgroundColor: isAction ? const Color(0xFF00083B) : const Color(0xFFF2F4F7),
+        backgroundColor: isAction
+            ? const Color(0xFF00083B)
+            : const Color(0xFFF2F4F7),
         foregroundColor: isAction ? Colors.white : const Color(0xFF344054),
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -214,7 +284,10 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
     );
   }
 
-  Widget _buildMessageInput(TextEditingController textController, ChatController controller) {
+  Widget _buildMessageInput(
+    TextEditingController textController,
+    ChatController controller,
+  ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       decoration: const BoxDecoration(
@@ -257,7 +330,10 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
             GestureDetector(
               onTap: () {
                 if (textController.text.isNotEmpty) {
-                  controller.sendMessage(textController.text, receiverId: widget.otherId);
+                  controller.sendMessage(
+                    textController.text,
+                    receiverId: widget.otherId,
+                  );
                   textController.clear();
                 }
               },

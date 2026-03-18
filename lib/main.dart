@@ -10,13 +10,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'my_app.dart';
 
 Future<void> main() async {
-
-
-
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
 
-/*
+  /*
   SharedPreferences preferences = await SharedPreferences.getInstance();
   preferences.clear();
 */
@@ -26,6 +23,6 @@ Future<void> main() async {
   Get.put(SocketService());
   Get.put(AuthController(), permanent: true);
   Get.lazyPut(() => ChatController(), fenix: true);
-  
+
   runApp(const MyApp());
 }

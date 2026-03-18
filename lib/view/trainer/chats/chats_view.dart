@@ -12,131 +12,222 @@ import 'package:intl/intl.dart';
 
 import '../../../controllers/profile_controller.dart';
 
-class TrainerChatsView extends StatelessWidget {
+class TrainerChatsView extends StatefulWidget {
   const TrainerChatsView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
+  State<TrainerChatsView> createState() => _TrainerChatsViewState();
+}
 
+class _TrainerChatsViewState extends State<TrainerChatsView> {
+  final ChatController chatController = Get.find<ChatController>();
+  final ProfileController profileController = Get.find<ProfileController>();
+  int _selectedTab = 0; // 0 for Trainers, 1 for Service Providers
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const CommonText(
-          'Inbox',
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 4),
+          child: CommonText(
+            'Inbox',
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
         actions: [
-          Obx(() {
-            final hasRequests = controller.conversations.any((c) => c.status == 'request-pending' && c.senderId != Get.find<ProfileController>().id);
-            final color = hasRequests ? const Color(0xFFF04438) : const Color(0xFF2E90FA); // Red for requests, Blue otherwise
-            
-            return TextButton(
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: TextButton(
               onPressed: () => Get.to(() => const TrainerRequestsView()),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: const Row(
                 children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: color,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
+                  Icon(Icons.circle, color: Colors.blue, size: 8),
+                  SizedBox(width: 6),
                   CommonText(
                     'Requests',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: color,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
                   ),
                 ],
               ),
-            );
-          }),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => controller.fetchConversations(),
-        child: Obx(() {
-          if (controller.isLoadingConversations.value && controller.conversations.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final currentUserId = Get.find<ProfileController>().id;
-          List<ChatConversation> activeConversations = controller.conversations
-              .where((c) => c.status != 'request-pending' || c.senderId == currentUserId)
-              .toList();
-
-
-
-          return ListView.separated(
-            padding: EdgeInsets.zero,
-            itemCount: activeConversations.length,
-            separatorBuilder: (context, index) => const Divider(
-              height: 1,
-              thickness: 1,
-              color: Color(0xFFF2F4F7),
             ),
-            itemBuilder: (context, index) {
-              final chat = activeConversations[index];
-              return _buildChatItem(context, chat);
-            },
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(80),
+          child: Column(
+            children: [
+              const Divider(height: 1, color: Color(0xFFEAECF0)),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  height: 52,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(26),
+                    border: Border.all(color: const Color(0xFFEAECF0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(child: _buildTab(0, 'Trainers')),
+                      Expanded(child: _buildTab(1, 'Service Providers')),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+      body: Obx(() {
+        if (chatController.isLoadingConversations.value &&
+            chatController.conversations.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final String currentUserId = profileController.id;
+        final conversations = chatController.conversations.where((c) {
+          // 1. Filter out self-conversations
+          if (c.otherUser?.id == currentUserId) return false;
+
+          // 2. Tab filtering (Trainers vs Service Providers)
+          bool belongsToTab = false;
+          if (_selectedTab == 0) {
+            belongsToTab = c.otherUser?.role == 'trainer' ||
+                c.otherUser?.role == 'barn_manager';
+          } else {
+            belongsToTab = c.otherUser?.role == 'service_provider' ||
+                c.otherUser?.role == 'vendor';
+          }
+          if (!belongsToTab) return false;
+
+          // 3. Status filtering (hide pending requests unless I am the sender)
+          return c.status != 'request-pending' || c.senderId == currentUserId;
+        }).toList();
+
+        if (conversations.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.chat_bubble_outline_rounded,
+                  size: 64,
+                  color: AppColors.textSecondary.withOpacity(0.3),
+                ),
+                const SizedBox(height: 16),
+                CommonText(
+                  'No ${_selectedTab == 0 ? 'trainer' : 'service provider'} chats',
+                  color: AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ],
+            ),
           );
-        }),
+        }
+
+        return ListView.separated(
+          itemCount: conversations.length,
+          padding: EdgeInsets.zero,
+          separatorBuilder: (_, __) => const Padding(
+            padding: EdgeInsets.only(left: 88),
+            child: Divider(height: 1, color: Color(0xFFF2F4F7)),
+          ),
+          itemBuilder: (context, index) {
+            final convo = conversations[index];
+            return _buildChatItem(convo);
+          },
+        );
+      }),
+    );
+  }
+
+  Widget _buildTab(int index, String label) {
+    final isSelected = _selectedTab == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTab = index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF8B4444) : Colors.transparent,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: CommonText(
+          label,
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: isSelected ? Colors.white : const Color(0xFF667085),
+        ),
       ),
     );
   }
 
-  Widget _buildChatItem(BuildContext context, ChatConversation chat) {
-    final String name = chat.otherUser?.name ?? 'Unknown';
-    final String message = chat.lastMessage ?? 'No messages yet';
-    final String image = chat.otherUser?.avatar ?? AppConstants.dummyImageUrl;
-    
-    // Better time formatting
-    String time = '';
-    if (chat.date != null) {
-      final diff = DateTime.now().difference(chat.date!);
-      if (diff.inMinutes < 60) {
-        time = '${diff.inMinutes} mins ago';
-      } else if (diff.inHours < 24) {
-        time = '${diff.inHours} hours ago';
-      } else {
-        time = DateFormat('dd MMM yyyy').format(chat.date!);
-      }
-    }
-
-    final bool isUnread = chat.unread > 0;
+  Widget _buildChatItem(ChatConversation convo) {
+    final me = profileController.user.value;
+    final isAssociatedBM =
+        convo.otherUser?.role == 'barn_manager' &&
+        convo.otherUser?.trainerId == me?.trainerProfileId;
 
     return InkWell(
-      onTap: () {
-        Get.to(() => SingleChatView(
-              name: name,
-              image: image,
-              conversationId: chat.conversationId,
-              otherId: chat.otherUser?.id,
-            ));
-      },
+      onTap: () => Get.to(
+        () => SingleChatView(
+          name: convo.otherUser?.name ?? 'Unknown',
+          image: convo.otherUser?.avatar ?? '',
+          conversationId: convo.conversationId,
+          otherId: convo.otherUser?.id,
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CommonImageView(
-              url: image,
-              height: 52,
-              width: 52,
-              shape: BoxShape.circle,
-              fallbackIcon: Icons.person,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        convo.otherUser?.avatar ?? AppConstants.dummyImageUrl,
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                    color: const Color(0xFFF2F4F7),
+                  ),
+                ),
+                if (convo.unread > 0)
+                  Positioned(
+                    right: 0,
+                    top: 2,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF13CA8B),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,43 +236,46 @@ class TrainerChatsView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: CommonText(
-                                name,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                        child: RichText(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF101828),
+                              fontFamily: 'Outfit',
+                            ),
+                            children: [
+                              TextSpan(
+                                text: convo.otherUser?.name ?? 'Unknown',
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            CommonText(
-                              time,
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (isUnread)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF17B26A), // Green dot
-                            shape: BoxShape.circle,
+                              if (isAssociatedBM)
+                                const TextSpan(
+                                  text: ' (Associated Barn Manager)',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF2E90FA),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      CommonText(
+                        _formatTime(convo.date ?? DateTime.now()),
+                        fontSize: 13,
+                        color: const Color(0xFF667085),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   CommonText(
-                    message,
+                    convo.lastMessage ?? 'No messages yet',
                     fontSize: 15,
-                    color: AppColors.textSecondary,
+                    color: const Color(0xFF535862),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -192,5 +286,17 @@ class TrainerChatsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatTime(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inMinutes < 1) return 'now';
+    if (difference.inMinutes < 60) return '${difference.inMinutes} mins ago';
+    if (difference.inHours < 24) return '${difference.inHours} hours ago';
+    if (difference.inDays < 7) return '${difference.inDays} days ago';
+
+    return DateFormat('dd MMM').format(date);
   }
 }

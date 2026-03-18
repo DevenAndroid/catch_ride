@@ -25,7 +25,7 @@ class _GetHelpViewState extends State<GetHelpView> {
     'Billing',
     'General',
     'Feedback',
-    'Other'
+    'Other',
   ];
 
   @override
@@ -57,10 +57,12 @@ class _GetHelpViewState extends State<GetHelpView> {
                 color: AppColors.textPrimary,
               ),
               const SizedBox(height: 10),
-              ..._categories.map((cat) => ListTile(
-                title: CommonText(cat, fontSize: 16),
-                onTap: () => Navigator.pop(context, cat),
-              )),
+              ..._categories.map(
+                (cat) => ListTile(
+                  title: CommonText(cat, fontSize: 16),
+                  onTap: () => Navigator.pop(context, cat),
+                ),
+              ),
               const SizedBox(height: 20),
             ],
           ),
@@ -121,9 +123,9 @@ class _GetHelpViewState extends State<GetHelpView> {
                   _buildResourceTile('Account access issues'),
                   _buildResourceTile('Creating or Editing Listings'),
                   _buildResourceTile('Connections & Messaging'),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Promo Banner
                   Container(
                     width: double.infinity,
@@ -141,7 +143,11 @@ class _GetHelpViewState extends State<GetHelpView> {
                     ),
                     child: Row(
                       children: [
-                        SvgPicture.asset("assets/images/logo.svg",height: 30,width: 30,),
+                        SvgPicture.asset(
+                          "assets/images/logo.svg",
+                          height: 30,
+                          width: 30,
+                        ),
                         const SizedBox(width: 14),
                         const Expanded(
                           child: Column(
@@ -162,7 +168,11 @@ class _GetHelpViewState extends State<GetHelpView> {
                             ],
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textSecondary),
+                        const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 14,
+                          color: AppColors.textSecondary,
+                        ),
                       ],
                     ),
                   ),
@@ -192,7 +202,8 @@ class _GetHelpViewState extends State<GetHelpView> {
                   _buildTextField(
                     label: 'Describe your issue',
                     controller: _descriptionController,
-                    hint: 'Describe the issue or question you\'re experiencing...',
+                    hint:
+                        'Describe the issue or question you\'re experiencing...',
                     maxLines: 4,
                   ),
                   const SizedBox(height: 24),
@@ -203,14 +214,21 @@ class _GetHelpViewState extends State<GetHelpView> {
                       Get.to(() => const SupportTicketsView());
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1EDE7),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.help_outline_rounded, size: 20, color: AppColors.textPrimary),
+                          const Icon(
+                            Icons.help_outline_rounded,
+                            size: 20,
+                            color: AppColors.textPrimary,
+                          ),
                           const SizedBox(width: 12),
                           const Expanded(
                             child: CommonText(
@@ -220,7 +238,11 @@ class _GetHelpViewState extends State<GetHelpView> {
                               color: AppColors.textPrimary,
                             ),
                           ),
-                          const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textPrimary),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppColors.textPrimary,
+                          ),
                         ],
                       ),
                     ),
@@ -255,10 +277,17 @@ class _GetHelpViewState extends State<GetHelpView> {
         style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
         decoration: InputDecoration(
           hintText: 'How can we help you?',
-          hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.6), fontSize: 16),
+          hintStyle: TextStyle(
+            color: AppColors.textSecondary.withValues(alpha: 0.6),
+            fontSize: 16,
+          ),
           prefixIcon: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Icon(Icons.search_rounded, color: AppColors.textPrimary, size: 24),
+            child: Icon(
+              Icons.search_rounded,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
           ),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -280,7 +309,11 @@ class _GetHelpViewState extends State<GetHelpView> {
                 color: Color(0xFFEFF4FF),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.question_mark_rounded, size: 14, color: Color(0xFF3538CD)),
+              child: const Icon(
+                Icons.question_mark_rounded,
+                size: 14,
+                color: Color(0xFF3538CD),
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -313,21 +346,34 @@ class _GetHelpViewState extends State<GetHelpView> {
           maxLines: maxLines,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 15),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            hintStyle: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              fontSize: 15,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+              borderSide: BorderSide(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
+              borderSide: BorderSide(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.2,
+              ),
             ),
           ),
         ),
@@ -353,7 +399,9 @@ class _GetHelpViewState extends State<GetHelpView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             child: Row(
               children: [
@@ -361,12 +409,15 @@ class _GetHelpViewState extends State<GetHelpView> {
                   child: CommonText(
                     controller.text.isEmpty ? hint : controller.text,
                     fontSize: 15,
-                    color: controller.text.isEmpty 
-                        ? AppColors.textSecondary.withValues(alpha: 0.5) 
+                    color: controller.text.isEmpty
+                        ? AppColors.textSecondary.withValues(alpha: 0.5)
                         : AppColors.textPrimary,
                   ),
                 ),
-                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ),
@@ -378,54 +429,56 @@ class _GetHelpViewState extends State<GetHelpView> {
   Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
-      child: Obx(() => GestureDetector(
-        onTap: _controller.isSubmitting.value 
-            ? null 
-            : () async {
-                final success = await _controller.submitTicket(
-                  subject: _subjectController.text,
-                  category: _categoryController.text,
-                  description: _descriptionController.text,
-                );
-                if (success) {
-                  _subjectController.clear();
-                  _categoryController.text = ''; 
-                  _descriptionController.clear();
-                }
-              },
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Center(
-            child: _controller.isSubmitting.value
-                ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                : const CommonText(
-                    'Submit',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: Obx(
+        () => GestureDetector(
+          onTap: _controller.isSubmitting.value
+              ? null
+              : () async {
+                  final success = await _controller.submitTicket(
+                    subject: _subjectController.text,
+                    category: _categoryController.text,
+                    description: _descriptionController.text,
+                  );
+                  if (success) {
+                    _subjectController.clear();
+                    _categoryController.text = '';
+                    _descriptionController.clear();
+                  }
+                },
+          child: Container(
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: _controller.isSubmitting.value
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const CommonText(
+                      'Submit',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+            ),
           ),
         ),
-      )),
+      ),
     );
   }
 }
-

@@ -24,7 +24,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   final _formKey = GlobalKey<FormState>();
   int _currentStep = 1;
 
-  Future<void> _selectDateTime(BuildContext context, TextEditingController textController) async {
+  Future<void> _selectDateTime(
+    BuildContext context,
+    TextEditingController textController,
+  ) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -55,7 +58,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   void _showVenueBottomSheet(AvailabilityEntry availabilityEntry) {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows = RxList<Map<String, dynamic>>(allShows);
+    final RxList<Map<String, dynamic>> filteredShows =
+        RxList<Map<String, dynamic>>(allShows);
 
     showModalBottomSheet(
       context: context,
@@ -78,7 +82,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const CommonText('Select Show Venue', fontSize: 18, fontWeight: FontWeight.bold),
+                      const CommonText(
+                        'Select Show Venue',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -89,14 +97,26 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredShows.assignAll(allShows
-                          .where((s) => (s['name'] as String).toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredShows.assignAll(
+                        allShows
+                            .where(
+                              (s) => (s['name'] as String)
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'Search horse shows...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -113,56 +133,77 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   ),
                   const SizedBox(height: 20),
                   Expanded(
-                    child: Obx(() => ListView.builder(
-                          controller: scrollController,
-                          itemCount: filteredShows.length,
-                          itemBuilder: (context, index) {
-                            final show = filteredShows[index];
-                            final name = show['name'] ?? '';
-                            final isSelected = availabilityEntry.showVenueController.text == name;
-                            return ListTile(
-                              title: CommonText(
-                                name, 
-                                fontSize: 15,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                              ),
-                              subtitle: CommonText(
-                                '${show['city'] ?? ''}, ${show['state'] ?? ''}',
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                              trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
-                              onTap: () {
-                                availabilityEntry.showVenueController.text = name;
-                                availabilityEntry.showIdController.text = show['_id'] ?? show['id'] ?? '';
-                                
-                                // Auto-fill fields
-                                final city = show['city'] ?? '';
-                                final state = show['state'] ?? '';
-                                if (city.isNotEmpty || state.isNotEmpty) {
-                                  availabilityEntry.cityStateController.text = '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
-                                }
+                    child: Obx(
+                      () => ListView.builder(
+                        controller: scrollController,
+                        itemCount: filteredShows.length,
+                        itemBuilder: (context, index) {
+                          final show = filteredShows[index];
+                          final name = show['name'] ?? '';
+                          final isSelected =
+                              availabilityEntry.showVenueController.text ==
+                              name;
+                          return ListTile(
+                            title: CommonText(
+                              name,
+                              fontSize: 15,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
+                            ),
+                            subtitle: CommonText(
+                              '${show['city'] ?? ''}, ${show['state'] ?? ''}',
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                            trailing: isSelected
+                                ? const Icon(
+                                    Icons.check,
+                                    color: AppColors.primary,
+                                  )
+                                : null,
+                            onTap: () {
+                              availabilityEntry.showVenueController.text = name;
+                              availabilityEntry.showIdController.text =
+                                  show['_id'] ?? show['id'] ?? '';
 
-                                final DateFormat formatter = DateFormat('dd MMM yyyy');
-                                if (show['startDate'] != null) {
-                                  try {
-                                    final start = DateTime.parse(show['startDate']);
-                                    availabilityEntry.startDateController.text = formatter.format(start);
-                                  } catch (_) {}
-                                }
-                                if (show['endDate'] != null) {
-                                  try {
-                                    final end = DateTime.parse(show['endDate']);
-                                    availabilityEntry.endDateController.text = formatter.format(end);
-                                  } catch (_) {}
-                                }
+                              // Auto-fill fields
+                              final city = show['city'] ?? '';
+                              final state = show['state'] ?? '';
+                              if (city.isNotEmpty || state.isNotEmpty) {
+                                availabilityEntry.cityStateController.text =
+                                    '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
+                              }
 
-                                Navigator.pop(context);
-                              },
-                            );
-                          },
-                        )),
+                              final DateFormat formatter = DateFormat(
+                                'dd MMM yyyy',
+                              );
+                              if (show['startDate'] != null) {
+                                try {
+                                  final start = DateTime.parse(
+                                    show['startDate'],
+                                  );
+                                  availabilityEntry.startDateController.text =
+                                      formatter.format(start);
+                                } catch (_) {}
+                              }
+                              if (show['endDate'] != null) {
+                                try {
+                                  final end = DateTime.parse(show['endDate']);
+                                  availabilityEntry.endDateController.text =
+                                      formatter.format(end);
+                                } catch (_) {}
+                              }
+
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -222,10 +263,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         color: AppColors.textPrimary,
                       ),
                       const SizedBox(height: 20),
-                      Form(
-                        key: _formKey,
-                        child: _buildHorseInformationForm(),
-                      ),
+                      Form(key: _formKey, child: _buildHorseInformationForm()),
                     ] else if (_currentStep == 2) ...[
                       const CommonText(
                         'Listing Type',
@@ -276,7 +314,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             },
                             child: Row(
                               children: const [
-                                Icon(Icons.add, color: Color(0xFF2C74EA), size: 18),
+                                Icon(
+                                  Icons.add,
+                                  color: Color(0xFF2C74EA),
+                                  size: 18,
+                                ),
                                 SizedBox(width: 4),
                                 CommonText(
                                   'Add Entry',
@@ -386,61 +428,63 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             ),
           ),
           const SizedBox(height: 12),
-          Obx(() => Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              ...controller.localImages.asMap().entries.map((entry) {
-                int index = entry.key;
-                File file = entry.value;
-                return Stack(
-                  children: [
-                    Container(
-                      width: 85,
-                      height: 85,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
+          Obx(
+            () => Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                ...controller.localImages.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  File file = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 85,
+                        height: 85,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(11),
+                          child: Image.file(file, fit: BoxFit.cover),
+                        ),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(11),
-                        child: Image.file(file, fit: BoxFit.cover),
-                      ),
-                    ),
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: GestureDetector(
-                        onTap: () => controller.removeLocalImage(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.edit_outlined,
-                            size: 14,
-                            color: AppColors.textPrimary,
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: GestureDetector(
+                          onTap: () => controller.removeLocalImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                );
-              }),
-              GestureDetector(
-                onTap: controller.pickImage,
-                child: _buildAddButton(),
-              ),
-            ],
-          )),
+                    ],
+                  );
+                }),
+                GestureDetector(
+                  onTap: controller.pickImage,
+                  child: _buildAddButton(),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
           RichText(
             text: TextSpan(
@@ -501,7 +545,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     );
   }
 
-
   Widget _buildAddButton() {
     return Container(
       width: 85,
@@ -537,7 +580,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 hintText: 'Children\'s Hunter',
                 isRequired: true,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Please enter the listing title';
+                  if (val == null || val.trim().isEmpty)
+                    return 'Please enter the listing title';
                   return null;
                 },
               ),
@@ -548,7 +592,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 hintText: 'Enter name',
                 isRequired: true,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Please enter the horse name';
+                  if (val == null || val.trim().isEmpty)
+                    return 'Please enter the horse name';
                   return null;
                 },
               ),
@@ -559,7 +604,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 hintText: 'Enter horse\'s location',
                 isRequired: true,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Please enter the location';
+                  if (val == null || val.trim().isEmpty)
+                    return 'Please enter the location';
                   return null;
                 },
               ),
@@ -592,7 +638,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 hintText: 'Enter breed',
                 isRequired: true,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Please enter the breed';
+                  if (val == null || val.trim().isEmpty)
+                    return 'Please enter the breed';
                   return null;
                 },
               ),
@@ -615,44 +662,46 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              Obx(() => GestureDetector(
-                onTap: () => _showSingleSelectBottomSheet(
-                  title: 'Select Discipline',
-                  currentValue: controller.selectedDiscipline.value,
-                  items: ['Hunter', 'Jumper', 'Equitation'],
-                  onSelected: (val) {
-                    controller.selectedDiscipline.value = val;
-                    controller.disciplineController.text = val;
-                  },
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: AppColors.inputBackground,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
+              Obx(
+                () => GestureDetector(
+                  onTap: () => _showSingleSelectBottomSheet(
+                    title: 'Select Discipline',
+                    currentValue: controller.selectedDiscipline.value,
+                    items: ['Hunter', 'Jumper', 'Equitation'],
+                    onSelected: (val) {
+                      controller.selectedDiscipline.value = val;
+                      controller.disciplineController.text = val;
+                    },
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CommonText(
-                        controller.selectedDiscipline.value.isEmpty 
-                            ? 'Select discipline' 
-                            : controller.selectedDiscipline.value,
-                        color: controller.selectedDiscipline.value.isEmpty 
-                            ? AppColors.textSecondary 
-                            : AppColors.textPrimary,
-                        fontSize: AppTextSizes.size14,
-                      ),
-                      const Icon(
-                        Icons.keyboard_arrow_down,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.inputBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CommonText(
+                          controller.selectedDiscipline.value.isEmpty
+                              ? 'Select discipline'
+                              : controller.selectedDiscipline.value,
+                          color: controller.selectedDiscipline.value.isEmpty
+                              ? AppColors.textSecondary
+                              : AppColors.textPrimary,
+                          fontSize: AppTextSizes.size14,
+                        ),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              )),
+              ),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Description',
@@ -661,7 +710,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 isRequired: true,
                 maxLines: 4,
                 validator: (val) {
-                  if (val == null || val.trim().isEmpty) return 'Please enter the description';
+                  if (val == null || val.trim().isEmpty)
+                    return 'Please enter the description';
                   return null;
                 },
               ),
@@ -753,19 +803,26 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           const SizedBox(height: 16),
           _buildListingTypeCard(
             title: 'Annual Lease',
-            isSelected: controller.selectedListingTypes.contains('Annual Lease'),
+            isSelected: controller.selectedListingTypes.contains(
+              'Annual Lease',
+            ),
             onTap: () => controller.toggleListingType('Annual Lease'),
           ),
           const SizedBox(height: 16),
           _buildListingTypeCard(
             title: 'Short Term or Circuit Lease',
-            isSelected: controller.selectedListingTypes.contains('Short Term or Circuit Lease'),
-            onTap: () => controller.toggleListingType('Short Term or Circuit Lease'),
+            isSelected: controller.selectedListingTypes.contains(
+              'Short Term or Circuit Lease',
+            ),
+            onTap: () =>
+                controller.toggleListingType('Short Term or Circuit Lease'),
           ),
           const SizedBox(height: 16),
           _buildListingTypeCard(
             title: 'Weekly Lease',
-            isSelected: controller.selectedListingTypes.contains('Weekly Lease'),
+            isSelected: controller.selectedListingTypes.contains(
+              'Weekly Lease',
+            ),
             onTap: () => controller.toggleListingType('Weekly Lease'),
           ),
         ],
@@ -779,7 +836,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     required VoidCallback onTap,
   }) {
     final isInquire = controller.inquireForPrice[title] ?? false;
-    
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -804,10 +861,14 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFE9F0FF) : const Color(0xFFF9FAFB),
+                color: isSelected
+                    ? const Color(0xFFE9F0FF)
+                    : const Color(0xFFF9FAFB),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF00084D) : const Color(0xFFD1D5DB),
+                  color: isSelected
+                      ? const Color(0xFF00084D)
+                      : const Color(0xFFD1D5DB),
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -818,7 +879,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     title,
                     fontSize: AppTextSizes.size16,
                     fontWeight: FontWeight.bold,
-                    color: isSelected ? const Color(0xFF00084D) : const Color(0xFF475467),
+                    color: isSelected
+                        ? const Color(0xFF00084D)
+                        : const Color(0xFF475467),
                   ),
                 ],
               ),
@@ -842,14 +905,22 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            color: isInquire ? const Color(0xFF00084D) : Colors.white,
+                            color: isInquire
+                                ? const Color(0xFF00084D)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
-                              color: isInquire ? const Color(0xFF00084D) : const Color(0xFFD0D5DD),
+                              color: isInquire
+                                  ? const Color(0xFF00084D)
+                                  : const Color(0xFFD0D5DD),
                             ),
                           ),
                           child: isInquire
-                              ? const Icon(Icons.check, size: 14, color: Colors.white)
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 14,
+                                  color: Colors.white,
+                                )
                               : null,
                         ),
                         const SizedBox(width: 10),
@@ -878,7 +949,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                               ),
                               const SizedBox(height: 8),
                               _buildPriceTextField(
-                                controller: controller.minPriceControllers[title]!,
+                                controller:
+                                    controller.minPriceControllers[title]!,
                                 hintText: 'Enter min price',
                               ),
                             ],
@@ -897,7 +969,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                               ),
                               const SizedBox(height: 8),
                               _buildPriceTextField(
-                                controller: controller.maxPriceControllers[title]!,
+                                controller:
+                                    controller.maxPriceControllers[title]!,
                                 hintText: 'Enter max price',
                               ),
                             ],
@@ -922,17 +995,14 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.number,
-      style: const TextStyle(
-        fontSize: 16,
-        color: AppColors.textPrimary,
-      ),
+      style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(
-          color: Color(0xFF667085),
-          fontSize: 16,
+        hintStyle: const TextStyle(color: Color(0xFF667085), fontSize: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         filled: true,
         fillColor: Colors.white,
         enabledBorder: OutlineInputBorder(
@@ -955,11 +1025,16 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           child: Center(child: CircularProgressIndicator()),
         );
       }
-      
+
       if (controller.tagTypes.isEmpty) {
         return const SizedBox(
           height: 100,
-          child: Center(child: CommonText('No tags available', color: AppColors.textSecondary)),
+          child: Center(
+            child: CommonText(
+              'No tags available',
+              color: AppColors.textSecondary,
+            ),
+          ),
         );
       }
 
@@ -967,9 +1042,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
         children: controller.tagTypes.map((type) {
           final String typeName = type['name'] ?? 'Tag';
           final List values = type['values'] ?? [];
-          final List<String> tagNames = values.map((v) => v['name'].toString()).toList();
+          final List<String> tagNames = values
+              .map((v) => v['name'].toString())
+              .toList();
           final Map<String, String> nameToId = {
-            for (var v in values) v['name'].toString(): v['_id'].toString()
+            for (var v in values) v['name'].toString(): v['_id'].toString(),
           };
           final String selectionType = type['selectionType'] ?? 'multiple';
           final bool isRequired = type['isRequired'] ?? false;
@@ -1024,7 +1101,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     text: '*',
                     style: TextStyle(color: Colors.red),
                   ),
-                if (!isRequired && (title.toLowerCase().contains('optional') || title == 'Opportunity Tag'))
+                if (!isRequired &&
+                    (title.toLowerCase().contains('optional') ||
+                        title == 'Opportunity Tag'))
                   const TextSpan(
                     text: ' (optional)',
                     style: TextStyle(
@@ -1049,8 +1128,12 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       controller.selectedTags.remove(id);
                     } else {
                       if (selectionType == 'single') {
-                        final allTypeIds = values.map((v) => v['_id'].toString()).toList();
-                        controller.selectedTags.removeWhere((tagId) => allTypeIds.contains(tagId));
+                        final allTypeIds = values
+                            .map((v) => v['_id'].toString())
+                            .toList();
+                        controller.selectedTags.removeWhere(
+                          (tagId) => allTypeIds.contains(tagId),
+                        );
                       }
                       controller.selectedTags.add(id);
                     }
@@ -1084,7 +1167,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       ),
     );
   }
-
 
   Widget _buildAvailabilityForm() {
     return Column(
@@ -1214,7 +1296,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
                                 readOnly: true,
-                                onTap: () => _selectDateTime(context, availabilityEntry.startDateController),
+                                onTap: () => _selectDateTime(
+                                  context,
+                                  availabilityEntry.startDateController,
+                                ),
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
                                   size: 20,
@@ -1229,7 +1314,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
                                 readOnly: true,
-                                onTap: () => _selectDateTime(context, availabilityEntry.endDateController),
+                                onTap: () => _selectDateTime(
+                                  context,
+                                  availabilityEntry.endDateController,
+                                ),
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
                                   size: 20,
@@ -1311,7 +1399,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       const SizedBox(width: 8),
                     ],
                     CommonText(
-                      isLastStep ? 'Preview' : (_currentStep > 1 ? 'Back' : 'Cancel'),
+                      isLastStep
+                          ? 'Preview'
+                          : (_currentStep > 1 ? 'Back' : 'Cancel'),
                       fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
@@ -1329,10 +1419,13 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   if (_currentStep == 1) {
                     if (!_formKey.currentState!.validate()) return;
                     if (controller.selectedDiscipline.value.isEmpty) {
-                      Get.snackbar('Required', 'Please select a discipline',
+                      Get.snackbar(
+                        'Required',
+                        'Please select a discipline',
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: Colors.redAccent,
-                        colorText: Colors.white);
+                        colorText: Colors.white,
+                      );
                       return;
                     }
                   } else if (_currentStep == 2) {
@@ -1341,10 +1434,13 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     if (!controller.validateStep3()) return;
                   } else if (_currentStep == 4) {
                     if (controller.localImages.isEmpty) {
-                      Get.snackbar('Required', 'Please upload at least one image',
+                      Get.snackbar(
+                        'Required',
+                        'Please upload at least one image',
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: Colors.redAccent,
-                        colorText: Colors.white);
+                        colorText: Colors.white,
+                      );
                       return;
                     }
                   }
@@ -1408,8 +1504,16 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: CommonText(
+                    title,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const Divider(),
                 Expanded(
@@ -1426,14 +1530,24 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         },
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade100),
+                            ),
                           ),
                           child: Row(
                             children: [
                               Expanded(child: CommonText(item, fontSize: 15)),
-                              if (isSelected) const Icon(Icons.check, color: AppColors.primary, size: 20),
+                              if (isSelected)
+                                const Icon(
+                                  Icons.check,
+                                  color: AppColors.primary,
+                                  size: 20,
+                                ),
                             ],
                           ),
                         ),

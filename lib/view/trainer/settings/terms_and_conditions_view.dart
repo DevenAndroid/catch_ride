@@ -53,7 +53,12 @@ class _TermsAndConditionsViewState extends State<TermsAndConditionsView> {
         }
 
         if (supportController.termsAndConditions.isEmpty) {
-          return const Center(child: CommonText('No content available', color: AppColors.textSecondary));
+          return const Center(
+            child: CommonText(
+              'No content available',
+              color: AppColors.textSecondary,
+            ),
+          );
         }
 
         return SingleChildScrollView(

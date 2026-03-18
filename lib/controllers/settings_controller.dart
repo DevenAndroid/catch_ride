@@ -33,7 +33,9 @@ class SettingsController extends GetxController {
 
   Future<bool> terminateSession(String token) async {
     try {
-      final response = await _apiService.deleteRequest('${AppUrls.terminateSession}$token');
+      final response = await _apiService.deleteRequest(
+        '${AppUrls.terminateSession}$token',
+      );
       if (response.statusCode == 200) {
         await fetchActiveSessions();
         return true;
@@ -47,10 +49,17 @@ class SettingsController extends GetxController {
 
   Future<bool> toggle2FA(bool enabled) async {
     try {
-      final response = await _apiService.postRequest(AppUrls.toggle2FA, {'enabled': enabled});
+      final response = await _apiService.postRequest(AppUrls.toggle2FA, {
+        'enabled': enabled,
+      });
       if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Two-Factor Authentication ${enabled ? 'enabled' : 'disabled'}',
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Two-Factor Authentication ${enabled ? 'enabled' : 'disabled'}',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
         return true;
       }
       return false;
@@ -60,7 +69,10 @@ class SettingsController extends GetxController {
     }
   }
 
-  Future<bool> changePassword(String currentPassword, String newPassword) async {
+  Future<bool> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     try {
       isLoading.value = true;
       final response = await _apiService.putRequest(AppUrls.changePassword, {
@@ -69,12 +81,22 @@ class SettingsController extends GetxController {
       });
 
       if (response.statusCode == 200) {
-        Get.snackbar('Success', 'Password changed successfully',
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Password changed successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
         return true;
       } else {
-        Get.snackbar('Error', response.body?['message'] ?? 'Failed to change password',
-            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          response.body?['message'] ?? 'Failed to change password',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return false;
       }
     } catch (e) {
@@ -88,7 +110,9 @@ class SettingsController extends GetxController {
   Future<bool> deleteAccount(String userId) async {
     try {
       isLoading.value = true;
-      final response = await _apiService.deleteRequest('${AppUrls.deleteAccount}$userId');
+      final response = await _apiService.deleteRequest(
+        '${AppUrls.deleteAccount}$userId',
+      );
       if (response.statusCode == 200) {
         return true;
       }

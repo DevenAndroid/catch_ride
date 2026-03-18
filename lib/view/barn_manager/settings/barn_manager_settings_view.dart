@@ -20,7 +20,6 @@ import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
 
-
 class BarnManagerSettingsView extends StatelessWidget {
   const BarnManagerSettingsView({super.key});
 
@@ -52,7 +51,11 @@ class BarnManagerSettingsView extends StatelessWidget {
               ),
               child: IconButton(
                 padding: EdgeInsets.zero,
-                icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF344054), size: 24),
+                icon: const Icon(
+                  Icons.notifications_none_outlined,
+                  color: Color(0xFF344054),
+                  size: 24,
+                ),
                 onPressed: () {},
               ),
             ),
@@ -170,7 +173,9 @@ class BarnManagerSettingsView extends StatelessWidget {
       child: Column(
         children: [
           CommonImageView(
-            url: controller.avatar.isNotEmpty ? controller.avatar : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+            url: controller.avatar.isNotEmpty
+                ? controller.avatar
+                : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
             height: 85,
             width: 85,
             shape: BoxShape.circle,
@@ -184,8 +189,8 @@ class BarnManagerSettingsView extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           CommonText(
-            controller.linkedTrainerBarnName.isNotEmpty 
-                ? 'Barn Manager at ${controller.linkedTrainerBarnName}' 
+            controller.linkedTrainerBarnName.isNotEmpty
+                ? 'Barn Manager at ${controller.linkedTrainerBarnName}'
                 : 'Barn Manager',
             fontSize: 14,
             color: const Color(0xFF667085),
@@ -378,7 +383,11 @@ class BarnManagerSettingsView extends StatelessWidget {
                   color: Color(0xFFFFF1F1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.logout_rounded, color: Color(0xFFD92D20), size: 28),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Color(0xFFD92D20),
+                  size: 28,
+                ),
               ),
               const SizedBox(height: 20),
               const CommonText(
@@ -401,7 +410,12 @@ class BarnManagerSettingsView extends StatelessWidget {
                           border: Border.all(color: AppColors.border),
                         ),
                         child: const Center(
-                          child: CommonText('Cancel', fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textPrimary),
+                          child: CommonText(
+                            'Cancel',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                     ),
@@ -424,7 +438,12 @@ class BarnManagerSettingsView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: const Center(
-                          child: CommonText('Logout', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                          child: CommonText(
+                            'Logout',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),

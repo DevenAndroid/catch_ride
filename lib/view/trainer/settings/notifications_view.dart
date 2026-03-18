@@ -34,17 +34,19 @@ class NotificationsView extends StatelessWidget {
           color: AppColors.textPrimary,
         ),
         actions: [
-          Obx(() => controller.unreadCount.value > 0 
-            ? TextButton(
-                onPressed: controller.markAllAsRead,
-                child: const CommonText(
-                  'Mark all as read',
-                  fontSize: 14,
-                  color: AppColors.linkBlue,
-                  fontWeight: FontWeight.w600,
-                ),
-              )
-            : const SizedBox.shrink()),
+          Obx(
+            () => controller.unreadCount.value > 0
+                ? TextButton(
+                    onPressed: controller.markAllAsRead,
+                    child: const CommonText(
+                      'Mark all as read',
+                      fontSize: 14,
+                      color: AppColors.linkBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
       body: Obx(() {
@@ -85,7 +87,10 @@ class NotificationsView extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationItem(NotificationModel notification, NotificationController controller) {
+  Widget _buildNotificationItem(
+    NotificationModel notification,
+    NotificationController controller,
+  ) {
     return GestureDetector(
       onTap: () {
         if (!notification.read) {
@@ -96,9 +101,15 @@ class NotificationsView extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: notification.read ? Colors.white : AppColors.background.withValues(alpha: 0.5),
+          color: notification.read
+              ? Colors.white
+              : AppColors.background.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: notification.read ? AppColors.border.withValues(alpha: 0.5) : AppColors.primary.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: notification.read
+                ? AppColors.border.withValues(alpha: 0.5)
+                : AppColors.primary.withValues(alpha: 0.1),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -113,7 +124,9 @@ class NotificationsView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: _getNotificationColor(notification.type).withValues(alpha: 0.1),
+                color: _getNotificationColor(
+                  notification.type,
+                ).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -176,25 +189,39 @@ class NotificationsView extends StatelessWidget {
 
   IconData _getNotificationIcon(String type) {
     switch (type) {
-      case 'booking': return Icons.calendar_today_rounded;
-      case 'message': return Icons.chat_bubble_outline_rounded;
-      case 'approval': return Icons.check_circle_outline_rounded;
-      case 'reminder': return Icons.alarm_rounded;
-      case 'payment': return Icons.payments_outlined;
-      case 'review': return Icons.star_border_rounded;
-      default: return Icons.notifications_none_rounded;
+      case 'booking':
+        return Icons.calendar_today_rounded;
+      case 'message':
+        return Icons.chat_bubble_outline_rounded;
+      case 'approval':
+        return Icons.check_circle_outline_rounded;
+      case 'reminder':
+        return Icons.alarm_rounded;
+      case 'payment':
+        return Icons.payments_outlined;
+      case 'review':
+        return Icons.star_border_rounded;
+      default:
+        return Icons.notifications_none_rounded;
     }
   }
 
   Color _getNotificationColor(String type) {
     switch (type) {
-      case 'booking': return Colors.blue;
-      case 'message': return Colors.green;
-      case 'approval': return AppColors.successPrimary;
-      case 'reminder': return Colors.orange;
-      case 'payment': return Colors.purple;
-      case 'review': return Colors.amber;
-      default: return AppColors.primary;
+      case 'booking':
+        return Colors.blue;
+      case 'message':
+        return Colors.green;
+      case 'approval':
+        return AppColors.successPrimary;
+      case 'reminder':
+        return Colors.orange;
+      case 'payment':
+        return Colors.purple;
+      case 'review':
+        return Colors.amber;
+      default:
+        return AppColors.primary;
     }
   }
 

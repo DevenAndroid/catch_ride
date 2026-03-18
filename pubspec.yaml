@@ -54,6 +54,7 @@ dependencies:
   chewie: ^1.13.0
   form_field_validator: ^1.1.0
   flutter_widget_from_html: ^0.17.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../../utils/validators.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -17,7 +18,7 @@ class EditProfileView extends StatefulWidget {
 class _EditProfileViewState extends State<EditProfileView> {
   final ProfileController profileController = Get.put(ProfileController());
   final _formKey = GlobalKey<FormState>();
-  
+
   // Controllers
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -29,7 +30,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _yearsController = TextEditingController();
-  final TextEditingController _searchCircuitsController = TextEditingController();
+  final TextEditingController _searchCircuitsController =
+      TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
@@ -59,8 +61,10 @@ class _EditProfileViewState extends State<EditProfileView> {
   @override
   void initState() {
     super.initState();
-    debugPrint('📝 EditProfileView: Initializing with ${profileController.yearsExperience} years, barn: ${profileController.barnName}');
-    
+    debugPrint(
+      '📝 EditProfileView: Initializing with ${profileController.yearsExperience} years, barn: ${profileController.barnName}',
+    );
+
     _fullNameController.text = profileController.fullName;
     _phoneController.text = profileController.phone;
     _barnNameController.text = profileController.barnName;
@@ -71,17 +75,19 @@ class _EditProfileViewState extends State<EditProfileView> {
     _facebookController.text = profileController.user.value?.facebook ?? '';
     _websiteController.text = profileController.user.value?.website ?? '';
     _instagramController.text = profileController.user.value?.instagram ?? '';
-    
+
     _selectedProgramTags.assignAll(profileController.selectedProgramTags);
     _selectedHorseShows.assignAll(profileController.selectedHorseShows);
     _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
-    
+
     // If profile is empty, fetch it
     if (profileController.userData.isEmpty) {
       profileController.fetchProfile().then((_) {
         if (mounted) {
-          debugPrint('🔄 EditProfileView: Re-initializing after fetch - ${profileController.yearsExperience} years');
+          debugPrint(
+            '🔄 EditProfileView: Re-initializing after fetch - ${profileController.yearsExperience} years',
+          );
           setState(() {
             _fullNameController.text = profileController.fullName;
             _phoneController.text = profileController.phone;
@@ -89,14 +95,22 @@ class _EditProfileViewState extends State<EditProfileView> {
             _bioController.text = profileController.bio;
             _location1Controller.text = profileController.location;
             _location2Controller.text = profileController.location2;
-            _facebookController.text = profileController.user.value?.facebook ?? '';
-            _websiteController.text = profileController.user.value?.website ?? '';
-            _instagramController.text = profileController.user.value?.instagram ?? '';
-            _yearsController.text = profileController.yearsExperience.toString();
-            
-            _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+            _facebookController.text =
+                profileController.user.value?.facebook ?? '';
+            _websiteController.text =
+                profileController.user.value?.website ?? '';
+            _instagramController.text =
+                profileController.user.value?.instagram ?? '';
+            _yearsController.text = profileController.yearsExperience
+                .toString();
+
+            _selectedProgramTags.assignAll(
+              profileController.selectedProgramTags,
+            );
             _selectedHorseShows.assignAll(profileController.selectedHorseShows);
-            _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
+            _selectedHorseShowIds.assignAll(
+              profileController.selectedHorseShowIds,
+            );
             _selectedTags.assignAll(profileController.user.value?.tags ?? []);
           });
         }
@@ -131,7 +145,11 @@ class _EditProfileViewState extends State<EditProfileView> {
           icon: const Icon(Icons.close, color: Colors.black),
           onPressed: () => Get.back(),
         ),
-        title: const CommonText('Edit Profile', fontSize: 18, fontWeight: FontWeight.bold),
+        title: const CommonText(
+          'Edit Profile',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         centerTitle: true,
       ),
       body: Form(
@@ -163,7 +181,10 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
-  Widget _buildSectionContainer({required String title, required List<Widget> children}) {
+  Widget _buildSectionContainer({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
@@ -183,7 +204,12 @@ class _EditProfileViewState extends State<EditProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(title, fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+          CommonText(
+            title,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
           const SizedBox(height: 20),
           ...children,
         ],
@@ -195,7 +221,12 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Basic Details',
       children: [
-        const CommonText('Profile Photo', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const CommonText(
+          'Profile Photo',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 12),
         Center(
           child: GestureDetector(
@@ -208,7 +239,9 @@ class _EditProfileViewState extends State<EditProfileView> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF2F4F7),
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                    border: Border.all(
+                      color: AppColors.border.withValues(alpha: 0.5),
+                    ),
                   ),
                   child: ClipOval(
                     child: _profileImage != null
@@ -228,10 +261,21 @@ class _EditProfileViewState extends State<EditProfileView> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+                      border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.5),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textPrimary),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      size: 18,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -239,7 +283,12 @@ class _EditProfileViewState extends State<EditProfileView> {
           ),
         ),
         const SizedBox(height: 24),
-        const CommonText('Banner image', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const CommonText(
+          'Banner image',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () => _pickImage(false),
@@ -249,25 +298,36 @@ class _EditProfileViewState extends State<EditProfileView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: _bannerImage != null
                   ? Image.file(_bannerImage!, fit: BoxFit.cover)
                   : profileController.coverImage.isNotEmpty
-                      ? CommonImageView(
-                          url: profileController.coverImage,
-                          fit: BoxFit.cover,
-                        )
-                      : const Center(
-                          child: Icon(Icons.add, color: AppColors.textSecondary, size: 28),
-                        ),
+                  ? CommonImageView(
+                      url: profileController.coverImage,
+                      fit: BoxFit.cover,
+                    )
+                  : const Center(
+                      child: Icon(
+                        Icons.add,
+                        color: AppColors.textSecondary,
+                        size: 28,
+                      ),
+                    ),
             ),
           ),
         ),
         const SizedBox(height: 24),
-        _buildTextField('Full Name', _fullNameController, hint: 'Enter your full name', isRequired: true),
+        _buildTextField(
+          'Full Name',
+          _fullNameController,
+          hint: 'Enter your full name',
+          isRequired: true,
+        ),
         const SizedBox(height: 20),
         _buildPhoneField(),
       ],
@@ -278,11 +338,26 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Barn Information',
       children: [
-        _buildTextField('Barn Name', _barnNameController, hint: 'Enter your business name', isRequired: true),
+        _buildTextField(
+          'Barn Name',
+          _barnNameController,
+          hint: 'Enter your business name',
+          isRequired: true,
+        ),
         const SizedBox(height: 20),
-        _buildTextField('Location I', _location1Controller, hint: 'Enter barn location', isRequired: true),
+        _buildTextField(
+          'Location I',
+          _location1Controller,
+          hint: 'Enter barn location',
+          isRequired: true,
+        ),
         const SizedBox(height: 20),
-        _buildTextField('Location II', _location2Controller, hint: 'Enter your business name', suffix: '(optional)'),
+        _buildTextField(
+          'Location II',
+          _location2Controller,
+          hint: 'Enter your business name',
+          suffix: '(optional)',
+        ),
       ],
     );
   }
@@ -301,26 +376,49 @@ class _EditProfileViewState extends State<EditProfileView> {
             },
           ),
           child: _buildDropdownField(
-            'Years in Industry', 
-            _yearsController.text.isEmpty ? 'Select years' : _yearsController.text
+            'Years in Industry',
+            _yearsController.text.isEmpty
+                ? 'Select years'
+                : _yearsController.text,
           ),
         ),
         const SizedBox(height: 20),
-        _buildTextField('Bio', _bioController, hint: 'Write a short bio', maxLines: 4),
+        _buildTextField(
+          'Bio',
+          _bioController,
+          hint: 'Write a short bio',
+          maxLines: 4,
+        ),
       ],
     );
   }
-
 
   Widget _buildSocialMediaSection() {
     return _buildSectionContainer(
       title: 'Social Media & Website',
       children: [
-        _buildTextField('Facebook', _facebookController, hint: 'facebook.com/yourpage', isRequired: true),
+        _buildTextField(
+          'Facebook',
+          _facebookController,
+          hint: 'facebook.com/yourpage',
+          isRequired: true,
+          validator: Validations.facebookValidator,
+        ),
         const SizedBox(height: 20),
-        _buildTextField('Website URI', _websiteController, hint: 'https://yourwebsite.com', prefixIcon: Icons.link_rounded),
+        _buildTextField(
+          'Website URI',
+          _websiteController,
+          hint: 'https://yourwebsite.com',
+          prefixIcon: Icons.link_rounded,
+          validator: Validations.urlValidator,
+        ),
         const SizedBox(height: 20),
-        _buildTextField('Instagram', _instagramController, hint: '@yourusername'),
+        _buildTextField(
+          'Instagram',
+          _instagramController,
+          hint: '@yourusername',
+          validator: Validations.instagramValidator,
+        ),
       ],
     );
   }
@@ -340,7 +438,11 @@ class _EditProfileViewState extends State<EditProfileView> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.search,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: CommonText(
@@ -377,7 +479,11 @@ class _EditProfileViewState extends State<EditProfileView> {
       children: [
         _buildDropdownField('Federation', 'USEF (United States)'),
         const SizedBox(height: 20),
-        _buildTextField('Federation ID Number', TextEditingController(), hint: 'ID Number'),
+        _buildTextField(
+          'Federation ID Number',
+          TextEditingController(),
+          hint: 'ID Number',
+        ),
       ],
     );
   }
@@ -385,7 +491,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   Widget _buildDynamicTagsSection() {
     return Obx(() {
       if (profileController.tagTypes.isEmpty) return const SizedBox.shrink();
-      
+
       return Column(
         children: profileController.tagTypes.map((type) {
           final typeId = type['_id'] ?? '';
@@ -412,8 +518,12 @@ class _EditProfileViewState extends State<EditProfileView> {
                           _selectedTags.remove(tagId);
                         } else {
                           // Remove others of same type
-                          final allTypeTagIds = values.map((v) => v['_id'] as String).toList();
-                          _selectedTags.removeWhere((id) => allTypeTagIds.contains(id));
+                          final allTypeTagIds = values
+                              .map((v) => v['_id'] as String)
+                              .toList();
+                          _selectedTags.removeWhere(
+                            (id) => allTypeTagIds.contains(id),
+                          );
                           _selectedTags.add(tagId);
                         }
                       } else {
@@ -424,7 +534,9 @@ class _EditProfileViewState extends State<EditProfileView> {
                         }
                       }
                     },
-                    child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
+                    child: isSelected
+                        ? _buildSelectedTag(tagName)
+                        : _buildTag(tagName),
                   );
                 }).toList(),
               ),
@@ -464,7 +576,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      CommonText(
+                        title,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -475,17 +591,31 @@ class _EditProfileViewState extends State<EditProfileView> {
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredValues.assignAll(values
-                          .where((v) => (v['name'] as String).toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredValues.assignAll(
+                        values
+                            .where(
+                              (v) => (v['name'] as String)
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'Search $title...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderMedium,
+                        ),
                       ),
                     ),
                   ),
@@ -493,37 +623,45 @@ class _EditProfileViewState extends State<EditProfileView> {
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: Obx(() => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: filteredValues.map((val) {
-                          final tagId = val['_id'] ?? '';
-                          final tagName = val['name'] ?? '';
-                          final isSelected = _selectedTags.contains(tagId);
+                      child: Obx(
+                        () => Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: filteredValues.map((val) {
+                            final tagId = val['_id'] ?? '';
+                            final tagName = val['name'] ?? '';
+                            final isSelected = _selectedTags.contains(tagId);
 
-                          return GestureDetector(
-                            onTap: () {
-                              if (isSingleSelect) {
-                                if (isSelected) {
-                                  _selectedTags.remove(tagId);
+                            return GestureDetector(
+                              onTap: () {
+                                if (isSingleSelect) {
+                                  if (isSelected) {
+                                    _selectedTags.remove(tagId);
+                                  } else {
+                                    // Remove others of same type
+                                    final allTagIds = values
+                                        .map((v) => v['_id'] as String)
+                                        .toList();
+                                    _selectedTags.removeWhere(
+                                      (id) => allTagIds.contains(id),
+                                    );
+                                    _selectedTags.add(tagId);
+                                  }
                                 } else {
-                                  // Remove others of same type
-                                  final allTagIds = values.map((v) => v['_id'] as String).toList();
-                                  _selectedTags.removeWhere((id) => allTagIds.contains(id));
-                                  _selectedTags.add(tagId);
+                                  if (isSelected) {
+                                    _selectedTags.remove(tagId);
+                                  } else {
+                                    _selectedTags.add(tagId);
+                                  }
                                 }
-                              } else {
-                                if (isSelected) {
-                                  _selectedTags.remove(tagId);
-                                } else {
-                                  _selectedTags.add(tagId);
-                                }
-                              }
-                            },
-                            child: isSelected ? _buildSelectedTag(tagName) : _buildTag(tagName),
-                          );
-                        }).toList(),
-                      )),
+                              },
+                              child: isSelected
+                                  ? _buildSelectedTag(tagName)
+                                  : _buildTag(tagName),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -534,17 +672,45 @@ class _EditProfileViewState extends State<EditProfileView> {
       },
     );
   }
-  Widget _buildTextField(String label, TextEditingController controller, {String? hint, bool isRequired = false, int maxLines = 1, String? suffix, IconData? prefixIcon, TextInputType? keyboardType, Function(String)? onChanged}) {
+
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? hint,
+    bool isRequired = false,
+    int maxLines = 1,
+    String? suffix,
+    IconData? prefixIcon,
+    TextInputType? keyboardType,
+    Function(String)? onChanged,
+    String? Function(String?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
           text: TextSpan(
-            style: const TextStyle(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.w600, fontFamily: 'Outfit'),
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'Outfit',
+            ),
             children: [
               TextSpan(text: label),
-              if (isRequired) const TextSpan(text: ' *', style: TextStyle(color: Colors.red)),
-              if (suffix != null) TextSpan(text: ' $suffix', style: const TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.normal)),
+              if (isRequired)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+              if (suffix != null)
+                TextSpan(
+                  text: ' $suffix',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
             ],
           ),
         ),
@@ -554,23 +720,52 @@ class _EditProfileViewState extends State<EditProfileView> {
           maxLines: maxLines,
           keyboardType: keyboardType,
           onChanged: onChanged,
-          validator: isRequired ? (value) {
-            if (value == null || value.trim().isEmpty) {
+          validator: (value) {
+            if (isRequired && (value == null || value.trim().isEmpty)) {
               return 'Please enter ${label.toLowerCase()}';
             }
+            if (validator != null && value != null && value.isNotEmpty) {
+              return validator(value);
+            }
             return null;
-          } : null,
+          },
           style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary) : null,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderMedium)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderMedium)),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-            errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 1.0)),
-            focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.red, width: 1.5)),
-            hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary)
+                : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.borderMedium),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.borderMedium),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 1.0),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.red, width: 1.5),
+            ),
+            hintStyle: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              fontSize: 14,
+            ),
             fillColor: Colors.white,
             filled: true,
           ),
@@ -584,7 +779,12 @@ class _EditProfileViewState extends State<EditProfileView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        CommonText(
+          label,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -597,11 +797,16 @@ class _EditProfileViewState extends State<EditProfileView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CommonText(
-                value, 
-                fontSize: 15, 
-                color: isPlaceholder ? AppColors.textSecondary.withValues(alpha: 0.5) : AppColors.textSecondary
+                value,
+                fontSize: 15,
+                color: isPlaceholder
+                    ? AppColors.textSecondary.withValues(alpha: 0.5)
+                    : AppColors.textSecondary,
               ),
-              const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+              const Icon(
+                Icons.keyboard_arrow_down,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
@@ -613,7 +818,12 @@ class _EditProfileViewState extends State<EditProfileView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Phone Number', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        const CommonText(
+          'Phone Number',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -627,9 +837,17 @@ class _EditProfileViewState extends State<EditProfileView> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: const [
-                    CommonText('+1', fontSize: 15, color: AppColors.textPrimary),
+                    CommonText(
+                      '+1',
+                      fontSize: 15,
+                      color: AppColors.textPrimary,
+                    ),
                     SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down, size: 18, color: AppColors.textSecondary),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                   ],
                 ),
               ),
@@ -638,18 +856,21 @@ class _EditProfileViewState extends State<EditProfileView> {
                 child: TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Required';
-                    }
-                    return null;
-                  },
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
+                  validator: Validations.phoneValidator,
+                  maxLength: 10,
                   decoration: InputDecoration(
+                    counterText: "",
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    hintStyle: TextStyle(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 14),
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
+                      fontSize: 14,
+                    ),
                   ),
                 ),
               ),
@@ -668,7 +889,12 @@ class _EditProfileViewState extends State<EditProfileView> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight),
       ),
-      child: CommonText(text, fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.normal),
+      child: CommonText(
+        text,
+        fontSize: 14,
+        color: AppColors.textPrimary,
+        fontWeight: FontWeight.normal,
+      ),
     );
   }
 
@@ -681,10 +907,10 @@ class _EditProfileViewState extends State<EditProfileView> {
         border: Border.all(color: const Color(0xFF000B48), width: 1.5),
       ),
       child: CommonText(
-        text, 
-        fontSize: 14, 
-        color: const Color(0xFF000B48), 
-        fontWeight: FontWeight.bold
+        text,
+        fontSize: 14,
+        color: const Color(0xFF000B48),
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -692,7 +918,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   void _showHorseShowsBottomSheet() {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows = RxList<Map<String, dynamic>>(allShows);
+    final RxList<Map<String, dynamic>> filteredShows =
+        RxList<Map<String, dynamic>>(allShows);
 
     showModalBottomSheet(
       context: context,
@@ -715,7 +942,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const CommonText('Horse Shows & Circuits', fontSize: 18, fontWeight: FontWeight.bold),
+                      const CommonText(
+                        'Horse Shows & Circuits',
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -726,17 +957,31 @@ class _EditProfileViewState extends State<EditProfileView> {
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredShows.assignAll(allShows
-                          .where((s) => (s['name'] as String).toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredShows.assignAll(
+                        allShows
+                            .where(
+                              (s) => (s['name'] as String)
+                                  .toLowerCase()
+                                  .contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: 'Search horse shows...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderMedium,
+                        ),
                       ),
                     ),
                   ),
@@ -744,28 +989,34 @@ class _EditProfileViewState extends State<EditProfileView> {
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: Obx(() => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: filteredShows.map((show) {
-                          final String id = show['_id'] ?? show['id'] ?? '';
-                          final String name = show['name'] ?? '';
-                          final isSelected = _selectedHorseShowIds.contains(id);
+                      child: Obx(
+                        () => Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: filteredShows.map((show) {
+                            final String id = show['_id'] ?? show['id'] ?? '';
+                            final String name = show['name'] ?? '';
+                            final isSelected = _selectedHorseShowIds.contains(
+                              id,
+                            );
 
-                          return GestureDetector(
-                            onTap: () {
-                              if (isSelected) {
-                                _selectedHorseShowIds.remove(id);
-                                _selectedHorseShows.remove(name);
-                              } else {
-                                _selectedHorseShowIds.add(id);
-                                _selectedHorseShows.add(name);
-                              }
-                            },
-                            child: isSelected ? _buildSelectedTag(name) : _buildTag(name),
-                          );
-                        }).toList(),
-                      )),
+                            return GestureDetector(
+                              onTap: () {
+                                if (isSelected) {
+                                  _selectedHorseShowIds.remove(id);
+                                  _selectedHorseShows.remove(name);
+                                } else {
+                                  _selectedHorseShowIds.add(id);
+                                  _selectedHorseShows.add(name);
+                                }
+                              },
+                              child: isSelected
+                                  ? _buildSelectedTag(name)
+                                  : _buildTag(name),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -809,8 +1060,16 @@ class _EditProfileViewState extends State<EditProfileView> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: CommonText(
+                    title,
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const Divider(),
                 Expanded(
@@ -827,16 +1086,25 @@ class _EditProfileViewState extends State<EditProfileView> {
                         },
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade100),
+                            ),
                           ),
                           child: Center(
                             child: CommonText(
-                              item, 
-                              fontSize: 16, 
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                              item,
+                              fontSize: 16,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
                             ),
                           ),
                         ),
@@ -882,7 +1150,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+                      CommonText(
+                        title,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
                         child: const Icon(Icons.close),
@@ -893,21 +1165,36 @@ class _EditProfileViewState extends State<EditProfileView> {
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredItems.assignAll(allItems
-                          .where((s) => s.toLowerCase().contains(val.toLowerCase()))
-                          .toList());
+                      filteredItems.assignAll(
+                        allItems
+                            .where(
+                              (s) =>
+                                  s.toLowerCase().contains(val.toLowerCase()),
+                            )
+                            .toList(),
+                      );
                     },
                     decoration: InputDecoration(
                       hintText: hint ?? 'Search...',
-                      prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.textSecondary,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderMedium,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.borderMedium),
+                        borderSide: const BorderSide(
+                          color: AppColors.borderMedium,
+                        ),
                       ),
                     ),
                   ),
@@ -915,23 +1202,27 @@ class _EditProfileViewState extends State<EditProfileView> {
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      child: Obx(() => Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: filteredItems.map((item) {
-                          final isSelected = selectedItems.contains(item);
-                          return GestureDetector(
-                            onTap: () {
-                              if (isSelected) {
-                                selectedItems.remove(item);
-                              } else {
-                                selectedItems.add(item);
-                              }
-                            },
-                            child: isSelected ? _buildSelectedTag(item) : _buildTag(item),
-                          );
-                        }).toList(),
-                      )),
+                      child: Obx(
+                        () => Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: filteredItems.map((item) {
+                            final isSelected = selectedItems.contains(item);
+                            return GestureDetector(
+                              onTap: () {
+                                if (isSelected) {
+                                  selectedItems.remove(item);
+                                } else {
+                                  selectedItems.add(item);
+                                }
+                              },
+                              child: isSelected
+                                  ? _buildSelectedTag(item)
+                                  : _buildTag(item),
+                            );
+                          }).toList(),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -968,100 +1259,139 @@ class _EditProfileViewState extends State<EditProfileView> {
                   border: Border.all(color: AppColors.borderMedium),
                 ),
                 child: const Center(
-                  child: CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  child: CommonText(
+                    'Cancel',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Obx(() => GestureDetector(
-              onTap: profileController.isLoading.value ? null : () async {
-                if (!_formKey.currentState!.validate()) {
-                  return;
-                }
+            child: Obx(
+              () => GestureDetector(
+                onTap: profileController.isLoading.value
+                    ? null
+                    : () async {
+                        if (!_formKey.currentState!.validate()) {
+                          return;
+                        }
 
-                // Dynamic Tag Validation
-                for (var type in profileController.tagTypes) {
-                  if (type['isRequired'] == true) {
-                    final typeName = type['name'] ?? 'Tag';
-                    final values = (type['values'] as List? ?? []);
-                    final allTypeTagIds = values.map((v) => v['_id'] as String).toList();
-                    
-                    final hasSelection = _selectedTags.any((id) => allTypeTagIds.contains(id));
-                    if (!hasSelection) {
-                      Get.snackbar(
-                        'Required Field', 
-                        'Please select at least one $typeName', 
-                        backgroundColor: Colors.red, 
-                        colorText: Colors.white,
-                        snackPosition: SnackPosition.TOP
-                      );
-                      return;
-                    }
-                  }
-                }
-                // 1. Upload Images if picked
-                if (_profileImage != null) {
-                  await profileController.uploadImage(_profileImage!.path, 'avatar');
-                }
-                if (_bannerImage != null) {
-                  await profileController.uploadImage(_bannerImage!.path, 'cover');
-                }
+                        // Dynamic Tag Validation
+                        for (var type in profileController.tagTypes) {
+                          if (type['isRequired'] == true) {
+                            final typeName = type['name'] ?? 'Tag';
+                            final values = (type['values'] as List? ?? []);
+                            final allTypeTagIds = values
+                                .map((v) => v['_id'] as String)
+                                .toList();
 
-                // 2. Prepare Name split
-                final nameParts = _fullNameController.text.trim().split(' ');
-                final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-                final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+                            final hasSelection = _selectedTags.any(
+                              (id) => allTypeTagIds.contains(id),
+                            );
+                            if (!hasSelection) {
+                              Get.snackbar(
+                                'Required Field',
+                                'Please select at least one $typeName',
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                                snackPosition: SnackPosition.TOP,
+                              );
+                              return;
+                            }
+                          }
+                        }
+                        // 1. Upload Images if picked
+                        if (_profileImage != null) {
+                          await profileController.uploadImage(
+                            _profileImage!.path,
+                            'avatar',
+                          );
+                        }
+                        if (_bannerImage != null) {
+                          await profileController.uploadImage(
+                            _bannerImage!.path,
+                            'cover',
+                          );
+                        }
 
-                // 3. Update Text Profile
-                final success = await profileController.updateProfile({
-                  'firstName': firstName,
-                  'lastName': lastName,
-                  'phone': _phoneController.text.trim(),
-                  'barnName': _barnNameController.text.trim(),
-                  'bio': _bioController.text.trim(),
-                  'location': _location1Controller.text.trim(),
-                  'location2': _location2Controller.text.trim(),
-                  'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
-                  'facebook': _facebookController.text.trim(),
-                  'website': _websiteController.text.trim(),
-                  'instagram': _instagramController.text.trim(),
-                  'programTags': _selectedProgramTags.toList(),
-                  'showCircuits': _selectedHorseShows.toList(),
-                  'horseShows': _selectedHorseShowIds.toList(),
-                  'tags': _selectedTags.toList(),
-                });
+                        // 2. Prepare Name split
+                        final nameParts = _fullNameController.text.trim().split(
+                          ' ',
+                        );
+                        final firstName = nameParts.isNotEmpty
+                            ? nameParts.first
+                            : '';
+                        final lastName = nameParts.length > 1
+                            ? nameParts.sublist(1).join(' ')
+                            : '';
 
-                if (success) {
-                  Get.snackbar('Success', 'Profile updated successfully',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.green,
-                      colorText: Colors.white,
-                      duration: const Duration(seconds: 2));
-                  await Future.delayed(const Duration(milliseconds: 1500));
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
-                }
-              },
-              child: Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryDark,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: profileController.isLoading.value
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : const CommonText('Save', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        // 3. Update Text Profile
+                        final success = await profileController.updateProfile({
+                          'firstName': firstName,
+                          'lastName': lastName,
+                          'phone': _phoneController.text.trim(),
+                          'barnName': _barnNameController.text.trim(),
+                          'bio': _bioController.text.trim(),
+                          'location': _location1Controller.text.trim(),
+                          'location2': _location2Controller.text.trim(),
+                          'yearsExperience':
+                              int.tryParse(_yearsController.text) ?? 0,
+                          'facebook': _facebookController.text.trim(),
+                          'website': _websiteController.text.trim(),
+                          'instagram': _instagramController.text.trim(),
+                          'programTags': _selectedProgramTags.toList(),
+                          'showCircuits': _selectedHorseShows.toList(),
+                          'horseShows': _selectedHorseShowIds.toList(),
+                          'tags': _selectedTags.toList(),
+                        });
+
+                        if (success) {
+                          Get.snackbar(
+                            'Success',
+                            'Profile updated successfully',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
+                            duration: const Duration(seconds: 2),
+                          );
+                          await Future.delayed(
+                            const Duration(milliseconds: 1500),
+                          );
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        }
+                      },
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryDark,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: profileController.isLoading.value
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const CommonText(
+                            'Save',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                  ),
                 ),
               ),
-            )),
+            ),
           ),
         ],
       ),

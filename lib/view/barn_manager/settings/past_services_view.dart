@@ -16,7 +16,11 @@ class PastServicesView extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF344054), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF344054),
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: const CommonText(
@@ -38,7 +42,8 @@ class PastServicesView extends StatelessWidget {
             trainer: 'Emily Johnson',
             location: 'Cypress, CA, United States',
             date: '20 Mar 2026',
-            imageUrl: 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+            imageUrl:
+                'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
           ),
           const SizedBox(height: 12),
           _buildServiceCard(
@@ -46,7 +51,8 @@ class PastServicesView extends StatelessWidget {
             trainer: 'Mark Lee',
             location: 'Tampa, FL, United States',
             date: '07 Apr 2026',
-            imageUrl: 'https://images.unsplash.com/photo-1598974357801-cbca100e6563?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+            imageUrl:
+                'https://images.unsplash.com/photo-1598974357801-cbca100e6563?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
           ),
           const SizedBox(height: 12),
           _buildServiceCard(
@@ -54,7 +60,8 @@ class PastServicesView extends StatelessWidget {
             trainer: 'Mark Lee',
             location: 'Tampa, FL, United States',
             date: '07 Apr 2026',
-            imageUrl: 'https://images.unsplash.com/photo-1598974357801-cbca100e6563?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+            imageUrl:
+                'https://images.unsplash.com/photo-1598974357801-cbca100e6563?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
           ),
         ],
       ),
@@ -98,7 +105,10 @@ class PastServicesView extends StatelessWidget {
                 top: 6,
                 left: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFECFDF3),
                     borderRadius: BorderRadius.circular(6),
@@ -133,7 +143,10 @@ class PastServicesView extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF2F4F7),
                         borderRadius: BorderRadius.circular(24),
@@ -157,7 +170,11 @@ class PastServicesView extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: Color(0xFF98A2B3)),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: Color(0xFF98A2B3),
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: CommonText(
@@ -173,7 +190,11 @@ class PastServicesView extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, size: 14, color: Color(0xFF98A2B3)),
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 14,
+                      color: Color(0xFF98A2B3),
+                    ),
                     const SizedBox(width: 6),
                     CommonText(
                       date,

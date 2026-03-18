@@ -61,7 +61,7 @@ class _SingleChatViewState extends State<SingleChatView> {
             size: 20,
           ),
           onPressed: () {
-            controller.activeConversationId.value = '';
+            controller.clearActiveConversation();
             Get.back();
           },
         ),
@@ -85,6 +85,38 @@ class _SingleChatViewState extends State<SingleChatView> {
                     color: AppColors.textPrimary,
                     maxLines: 1,
                   ),
+                  Obx(() {
+                    final convo = controller.conversations.firstWhereOrNull(
+                      (c) => c.conversationId == widget.conversationId,
+                    );
+                    final other = convo?.otherUser;
+                    final me = Get.find<ProfileController>().user.value;
+
+                    if (other != null && me != null) {
+                      // Case 1: I am BM, other is my Boss
+                      if (me.role == 'barn_manager' &&
+                          other.id == me.trainerProfileId) {
+                        return const CommonText(
+                          '(Associated Trainer)',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E90FA),
+                        );
+                      }
+                      // Case 2: I am Trainer, other is my BM
+                      if (me.role == 'trainer' &&
+                          other.role == 'barn_manager' &&
+                          other.trainerId == me.trainerProfileId) {
+                        return const CommonText(
+                          '(Associated Barn Manager)',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2E90FA),
+                        );
+                      }
+                    }
+                    return const SizedBox.shrink();
+                  }),
                 ],
               ),
             ),
@@ -95,7 +127,9 @@ class _SingleChatViewState extends State<SingleChatView> {
         children: [
           // Banner for Pending/Declined status
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
+            final convo = controller.conversations.firstWhereOrNull(
+              (c) => c.conversationId == widget.conversationId,
+            );
             if (convo == null) return const SizedBox.shrink();
 
             final currentUserId = Get.find<ProfileController>().id;
@@ -116,9 +150,16 @@ class _SingleChatViewState extends State<SingleChatView> {
                   Colors.orange.shade50,
                   Colors.orange,
                   actions: [
-                    _buildBannerButton('Decline', () => controller.declineRequest(widget.conversationId), isAction: false),
+                    _buildBannerButton(
+                      'Decline',
+                      () => controller.declineRequest(widget.conversationId),
+                      isAction: false,
+                    ),
                     const SizedBox(width: 8),
-                    _buildBannerButton('Accept', () => controller.acceptRequest(widget.conversationId)),
+                    _buildBannerButton(
+                      'Accept',
+                      () => controller.acceptRequest(widget.conversationId),
+                    ),
                   ],
                 );
               }
@@ -142,34 +183,50 @@ class _SingleChatViewState extends State<SingleChatView> {
 
           Expanded(
             child: Obx(() {
-              if (controller.isLoadingMessages.value && controller.currentMessages.isEmpty) {
+              if (controller.isLoadingMessages.value &&
+                  controller.currentMessages.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
 
               if (controller.currentMessages.isEmpty) {
                 return const Center(
-                  child: CommonText('No messages yet. Send a message to start!', color: AppColors.textSecondary),
+                  child: CommonText(
+                    'No messages yet. Send a message to start!',
+                    color: AppColors.textSecondary,
+                  ),
                 );
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: controller.currentMessages.length,
                 itemBuilder: (context, index) {
                   final msgIndex = index;
-                  if (msgIndex >= controller.currentMessages.length) return const SizedBox.shrink();
+                  if (msgIndex >= controller.currentMessages.length)
+                    return const SizedBox.shrink();
 
                   final msg = controller.currentMessages[msgIndex];
-                  final String currentUserId = Get.find<AuthController>().currentUser.value?.id ?? '';
-                  
-                  final bool isMe = msg.senderId == currentUserId || msg.senderName == 'You';
-                  final bool isSystem = msg.senderId == 'system' || msg.status == 'request-declined' || msg.status == 'request-blocked';
+                  final String currentUserId =
+                      Get.find<AuthController>().currentUser.value?.id ?? '';
+
+                  final bool isMe =
+                      msg.senderId == currentUserId || msg.senderName == 'You';
+                  final bool isSystem =
+                      msg.senderId == 'system' ||
+                      msg.status == 'request-declined' ||
+                      msg.status == 'request-blocked';
 
                   if (isSystem) {
                     return Center(
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF9FAFB),
                           borderRadius: BorderRadius.circular(20),
@@ -187,22 +244,25 @@ class _SingleChatViewState extends State<SingleChatView> {
                   return ChatBubble(
                     message: msg.content,
                     isMe: isMe,
-                    time: '', 
+                    time: '',
                     isRead: msg.read,
                   );
                 },
               );
             }),
           ),
-          
+
           Obx(() {
-            final convo = controller.conversations.firstWhereOrNull((c) => c.conversationId == widget.conversationId);
-            final bool canChat = convo?.status != 'request-declined' && 
-                               convo?.status != 'request-pending' && 
-                               convo?.status != 'request-blocked';
-            
+            final convo = controller.conversations.firstWhereOrNull(
+              (c) => c.conversationId == widget.conversationId,
+            );
+            final bool canChat =
+                convo?.status != 'request-declined' &&
+                convo?.status != 'request-pending' &&
+                convo?.status != 'request-blocked';
+
             if (!canChat) return const SizedBox.shrink();
-            
+
             return _buildMessageInput(textController, controller);
           }),
         ],
@@ -210,7 +270,13 @@ class _SingleChatViewState extends State<SingleChatView> {
     );
   }
 
-  Widget _buildStatusBanner(String title, String subtitle, Color bgColor, Color textColor, {List<Widget>? actions}) {
+  Widget _buildStatusBanner(
+    String title,
+    String subtitle,
+    Color bgColor,
+    Color textColor, {
+    List<Widget>? actions,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -224,13 +290,17 @@ class _SingleChatViewState extends State<SingleChatView> {
           if (actions != null) ...[
             const SizedBox(height: 12),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: actions),
-          ]
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildBannerButton(String label, VoidCallback onTap, {bool isAction = true}) {
+  Widget _buildBannerButton(
+    String label,
+    VoidCallback onTap, {
+    bool isAction = true,
+  }) {
     return ElevatedButton(
       onPressed: onTap,
       style: ElevatedButton.styleFrom(
@@ -243,12 +313,13 @@ class _SingleChatViewState extends State<SingleChatView> {
     );
   }
 
-  Widget _buildMessageInput(TextEditingController textController, ChatController controller) {
+  Widget _buildMessageInput(
+    TextEditingController textController,
+    ChatController controller,
+  ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
+      decoration: const BoxDecoration(color: Colors.white),
       child: SafeArea(
         child: Row(
           children: [
@@ -285,7 +356,10 @@ class _SingleChatViewState extends State<SingleChatView> {
             GestureDetector(
               onTap: () {
                 if (textController.text.isNotEmpty) {
-                  controller.sendMessage(textController.text, receiverId: widget.otherId);
+                  controller.sendMessage(
+                    textController.text,
+                    receiverId: widget.otherId,
+                  );
                   textController.clear();
                 }
               },

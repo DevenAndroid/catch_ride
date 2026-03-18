@@ -46,14 +46,11 @@ class CommonImageView extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.border.withOpacity(0.1),
           shape: shape,
-          borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(radius),
+          borderRadius: shape == BoxShape.circle
+              ? null
+              : BorderRadius.circular(radius),
         ),
-        child: Image.asset(
-          assetPath!,
-          height: height,
-          width: width,
-          fit: fit,
-        ),
+        child: Image.asset(assetPath!, height: height, width: width, fit: fit),
       );
     }
 
@@ -65,14 +62,11 @@ class CommonImageView extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.border.withOpacity(0.1),
           shape: shape,
-          borderRadius: shape == BoxShape.circle ? null : BorderRadius.circular(radius),
+          borderRadius: shape == BoxShape.circle
+              ? null
+              : BorderRadius.circular(radius),
         ),
-        child: Image.file(
-          file!,
-          height: height,
-          width: width,
-          fit: fit,
-        ),
+        child: Image.file(file!, height: height, width: width, fit: fit),
       );
     }
 

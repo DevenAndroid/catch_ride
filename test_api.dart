@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 void main() async {
   print('🧪 Starting Login API Integration Test...');
-  
+
   const String url = 'http://localhost:5000/api/auth/login';
   final Map<String, String> body = {
     'email': 'dev@test.com',
@@ -27,7 +27,7 @@ void main() async {
       final data = jsonDecode(response.body);
       final token = data['data']['token'];
       final userEmail = data['data']['user']['email'];
-      
+
       print('--- Verification Result ---');
       print('✅ Token received: $token');
       print('✅ User Email: $userEmail');

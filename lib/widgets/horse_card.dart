@@ -22,12 +22,23 @@ class HorseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final show = horse.showAvailability.isNotEmpty ? horse.showAvailability.first : null;
+    final show = horse.showAvailability.isNotEmpty
+        ? horse.showAvailability.first
+        : null;
     final String discipline = horse.displayDiscipline;
-    final String venue = (show?.showVenue == null || show!.showVenue!.isEmpty) ? 'N/A' : show.showVenue!;
-    final String datesStr = DateUtil.formatRange(show?.startDate, show?.endDate);
-    final String dates = (datesStr.isEmpty || datesStr.trim() == '-') ? 'N/A' : datesStr;
-    final String location = (horse.location == null || horse.location!.isEmpty) ? 'N/A' : horse.location!;
+    final String venue = (show?.showVenue == null || show!.showVenue!.isEmpty)
+        ? 'N/A'
+        : show.showVenue!;
+    final String datesStr = DateUtil.formatRange(
+      show?.startDate,
+      show?.endDate,
+    );
+    final String dates = (datesStr.isEmpty || datesStr.trim() == '-')
+        ? 'N/A'
+        : datesStr;
+    final String location = (horse.location == null || horse.location!.isEmpty)
+        ? 'N/A'
+        : horse.location!;
 
     return GestureDetector(
       onTap: onTap,
@@ -55,7 +66,7 @@ class HorseCard extends StatelessWidget {
               child: CachedNetworkImage(
                 imageUrl: horse.photo ?? AppConstants.dummyImageUrl,
                 width: 100,
-               // height: 100,
+                // height: 100,
                 fit: BoxFit.cover,
               ),
             ),
@@ -81,7 +92,9 @@ class HorseCard extends StatelessWidget {
                               color: Color(0xFF101828),
                             ),
                             children: [
-                              TextSpan(text: horse.name.isEmpty ? 'N/A' : horse.name),
+                              TextSpan(
+                                text: horse.name.isEmpty ? 'N/A' : horse.name,
+                              ),
                               TextSpan(
                                 text: ' - $discipline',
                                 style: const TextStyle(
@@ -108,7 +121,11 @@ class HorseCard extends StatelessWidget {
                   // Location
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined, size: 16, color: const Color(0xFF667085)),
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: const Color(0xFF667085),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CommonText(
@@ -125,7 +142,11 @@ class HorseCard extends StatelessWidget {
                   // Dates
                   Row(
                     children: [
-                      Icon(Icons.calendar_today_outlined, size: 16, color: const Color(0xFF667085)),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 16,
+                        color: const Color(0xFF667085),
+                      ),
                       const SizedBox(width: 8),
                       CommonText(
                         dates,
@@ -139,11 +160,23 @@ class HorseCard extends StatelessWidget {
                   Row(
                     children: [
                       if (isRequested)
-                        _buildTag('Requested', const Color(0xFFF9F5FF), const Color(0xFF7F56D9))
+                        _buildTag(
+                          'Requested',
+                          const Color(0xFFF9F5FF),
+                          const Color(0xFF7F56D9),
+                        )
                       else ...[
-                        _buildTag('For Sale', const Color(0xFF713B34), Colors.white),
+                        _buildTag(
+                          'For Sale',
+                          const Color(0xFF713B34),
+                          Colors.white,
+                        ),
                         const SizedBox(width: 8),
-                        _buildTag('Weekly Lease', const Color(0xFF713B34), Colors.white),
+                        _buildTag(
+                          'Weekly Lease',
+                          const Color(0xFF713B34),
+                          Colors.white,
+                        ),
                       ],
                     ],
                   ),

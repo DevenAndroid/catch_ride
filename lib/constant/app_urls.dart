@@ -29,7 +29,7 @@ class AppUrls {
   // Bookings
   static const String bookings = '/bookings';
   static const String myBookings = '$bookings/my';
-  
+
   // Trainers
   static const String trainers = '/trainers';
   static const String vendors = '/vendors';
@@ -40,7 +40,8 @@ class AppUrls {
   static const String opportunityTags = '$systemConfig/opportunity-tags';
   static const String experienceLevels = '$systemConfig/experience-levels';
   static const String personalityTags = '$systemConfig/personality-tags';
-  static const String tagTypesWithValues = '$systemConfig/tag-types/with-values';
+  static const String tagTypesWithValues =
+      '$systemConfig/tag-types/with-values';
 
   // Horse Shows
   static const String horseShows = '/horse-shows';
@@ -54,14 +55,17 @@ class AppUrls {
   static const String uploadProfileImage = '/profile/upload-image';
   static const String changePassword = '/profile/password';
   static const String deleteAccount = '/users/'; // + id
-  
+
   // Support
   static const String faqs = '/faq';
   static const String supportTickets = '/support-tickets';
   static const String conversations = '/messages/conversations';
-  static const String messagesByConversation = '/messages/conversation/'; // + id + '/messages'
-  static const String acceptChatRequest = '/messages/conversation/'; // + id + '/accept'
-  static const String declineChatRequest = '/messages/conversation/'; // + id + '/decline'
+  static const String messagesByConversation =
+      '/messages/conversation/'; // + id + '/messages'
+  static const String acceptChatRequest =
+      '/messages/conversation/'; // + id + '/accept'
+  static const String declineChatRequest =
+      '/messages/conversation/'; // + id + '/decline'
   static const String blockUser = '/messages/user/'; // + userId + '/block'
 
   // Notifications

@@ -23,7 +23,7 @@ class AddNewListingController extends GetxController {
   // Loading state
   var isTagsLoading = false.obs;
   var isPublishing = false.obs;
-  
+
   final ImagePicker _picker = ImagePicker();
   var localImages = <File>[].obs;
   var gender = 'Gelding'.obs;
@@ -45,7 +45,7 @@ class AddNewListingController extends GetxController {
   final usefNumberController = TextEditingController();
   final locationController = TextEditingController();
   var selectedDiscipline = ''.obs;
-  
+
   // Price and Inquire state for Step 2
   final Map<String, TextEditingController> minPriceControllers = {
     'Sale': TextEditingController(),
@@ -77,8 +77,10 @@ class AddNewListingController extends GetxController {
   Future<void> fetchTags() async {
     try {
       isTagsLoading.value = true;
-      
-      final response = await _apiService.getRequest('${AppUrls.tagTypesWithValues}?category=Horse');
+
+      final response = await _apiService.getRequest(
+        '${AppUrls.tagTypesWithValues}?category=Horse',
+      );
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
@@ -107,12 +109,12 @@ class AddNewListingController extends GetxController {
     selectedDiscipline.value = horse.discipline ?? '';
     disciplineController.text = horse.discipline ?? '';
     activeStatus.value = horse.isActive;
-    
+
     selectedListingTypes.assignAll(horse.listingTypes);
-    
+
     // Remote images (keep them as strings, might need a separate list for UI)
     uploadedImages.assignAll(horse.images);
-    
+
     // Availability
     availabilityEntries.clear();
     if (horse.showAvailability.isEmpty) {
@@ -132,11 +134,20 @@ class AddNewListingController extends GetxController {
 
     // Tags
     final allTagIds = <String>{};
-    for (var tag in horse.programTags) { if (tag.id != null) allTagIds.add(tag.id!); }
-    for (var tag in horse.opportunityTags) { if (tag.id != null) allTagIds.add(tag.id!); }
-    for (var tag in horse.personalityTags) { if (tag.id != null) allTagIds.add(tag.id!); }
-    for (var tag in horse.tags) { if (tag.id != null) allTagIds.add(tag.id!); }
-    if (horse.experienceLevel?.id != null) allTagIds.add(horse.experienceLevel!.id!);
+    for (var tag in horse.programTags) {
+      if (tag.id != null) allTagIds.add(tag.id!);
+    }
+    for (var tag in horse.opportunityTags) {
+      if (tag.id != null) allTagIds.add(tag.id!);
+    }
+    for (var tag in horse.personalityTags) {
+      if (tag.id != null) allTagIds.add(tag.id!);
+    }
+    for (var tag in horse.tags) {
+      if (tag.id != null) allTagIds.add(tag.id!);
+    }
+    if (horse.experienceLevel?.id != null)
+      allTagIds.add(horse.experienceLevel!.id!);
     selectedTags.assignAll(allTagIds);
 
     // Prices
@@ -155,10 +166,15 @@ class AddNewListingController extends GetxController {
     try {
       if (!validateStep5()) return;
       isPublishing.value = true;
-      Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
 
       // 1. Upload Images (New ones from local)
-      List<String> imageUrls = [...uploadedImages]; // Start with existing images
+      List<String> imageUrls = [
+        ...uploadedImages,
+      ]; // Start with existing images
       for (var imageFile in localImages) {
         final url = await _uploadFile(imageFile);
         if (url != null) imageUrls.add(url);
@@ -188,19 +204,28 @@ class AddNewListingController extends GetxController {
               'inquire': inquireForPrice[type] ?? false,
               'min': minPriceControllers[type]?.text,
               'max': maxPriceControllers[type]?.text,
-            }
+            },
         },
-        'showAvailability': availabilityEntries.map((e) => {
-          'showId': e.showIdController.text.isEmpty ? null : e.showIdController.text,
-          'cityState': e.cityStateController.text,
-          'showVenue': e.showVenueController.text,
-          'startDate': e.startDateController.text,
-          'endDate': e.endDateController.text,
-        }).toList(),
+        'showAvailability': availabilityEntries
+            .map(
+              (e) => {
+                'showId': e.showIdController.text.isEmpty
+                    ? null
+                    : e.showIdController.text,
+                'cityState': e.cityStateController.text,
+                'showVenue': e.showVenueController.text,
+                'startDate': e.startDateController.text,
+                'endDate': e.endDateController.text,
+              },
+            )
+            .toList(),
       };
 
-      final response = isEditMode 
-          ? await _apiService.putRequest('${AppUrls.horses}/${editingHorseId.value}', horseData)
+      final response = isEditMode
+          ? await _apiService.putRequest(
+              '${AppUrls.horses}/${editingHorseId.value}',
+              horseData,
+            )
           : await _apiService.postRequest(AppUrls.horses, horseData);
 
       Get.back(); // Remove loading dialog
@@ -215,11 +240,17 @@ class AddNewListingController extends GetxController {
             final profile = Get.find<ProfileController>();
             final tId = profile.trainerId;
             final uId = profile.id;
-            
+
             if (tId.isNotEmpty) {
-              Get.find<HorseController>().fetchHorses(refresh: true, trainerId: tId);
+              Get.find<HorseController>().fetchHorses(
+                refresh: true,
+                trainerId: tId,
+              );
             } else if (uId.isNotEmpty) {
-              Get.find<HorseController>().fetchHorses(refresh: true, ownerId: uId);
+              Get.find<HorseController>().fetchHorses(
+                refresh: true,
+                ownerId: uId,
+              );
             }
           }
           if (Get.isRegistered<ExploreController>()) {
@@ -230,26 +261,36 @@ class AddNewListingController extends GetxController {
         }
 
         Get.back(); // Return to previous screen
-        Get.snackbar('Success', 'Listing published successfully',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Success',
+          'Listing published successfully',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar('Error', response.body['message'] ?? 'Failed to publish listing',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          response.body['message'] ?? 'Failed to publish listing',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       Get.back(); // Remove loading dialog
-      Get.snackbar('Error', 'An unexpected error occurred: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isPublishing.value = false;
     }
   }
+
   Future<String?> _uploadFile(File file) async {
     try {
       final String fileName = path.basename(file.path);
@@ -291,9 +332,7 @@ class AddNewListingController extends GetxController {
 
   // Step 5
   var activeStatus = true.obs;
-  var availabilityEntries = <AvailabilityEntry>[
-    AvailabilityEntry(id: 1),
-  ].obs;
+  var availabilityEntries = <AvailabilityEntry>[AvailabilityEntry(id: 1)].obs;
 
   void addEntry() {
     int nextId = availabilityEntries.isEmpty
@@ -362,7 +401,7 @@ class AddNewListingController extends GetxController {
       if (!isInquire) {
         final minPrice = minPriceControllers[type]?.text.trim() ?? '';
         final maxPrice = maxPriceControllers[type]?.text.trim() ?? '';
-        
+
         if (minPrice.isEmpty) {
           _showError('Please enter the min price for $type');
           return false;
@@ -382,7 +421,7 @@ class AddNewListingController extends GetxController {
         final typeName = type['name'] ?? 'Tag';
         final List values = type['values'] ?? [];
         final allTypeIds = values.map((v) => v['_id'].toString()).toList();
-        
+
         final hasSelection = selectedTags.any((id) => allTypeIds.contains(id));
         if (!hasSelection) {
           _showError('Please select at least one $typeName');
@@ -392,23 +431,24 @@ class AddNewListingController extends GetxController {
     }
     return true;
   }
+
   bool validateStep5() {
     if (activeStatus.value) {
       if (availabilityEntries.isEmpty) {
         _showError('Please add at least one availability entry');
         return false;
       }
-      
+
       bool anyFilled = false;
       for (var entry in availabilityEntries) {
-        if (entry.showVenueController.text.trim().isNotEmpty || 
+        if (entry.showVenueController.text.trim().isNotEmpty ||
             entry.cityStateController.text.trim().isNotEmpty ||
             entry.startDateController.text.trim().isNotEmpty) {
           anyFilled = true;
           break;
         }
       }
-      
+
       if (!anyFilled) {
         _showError('Please fill in at least one availability entry detail');
         return false;
@@ -416,7 +456,6 @@ class AddNewListingController extends GetxController {
     }
     return true;
   }
-
 
   void _showError(String message) {
     Get.snackbar(
