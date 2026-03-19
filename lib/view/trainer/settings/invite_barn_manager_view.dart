@@ -157,10 +157,45 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                     size: 20,
                     color: Colors.white,
                   ),
-                  onSelected: (value) {
+                  onSelected: (value) async {
                     if (value == 'remove') {
-                      // Logic to remove logic will be implemented in future
-                      Get.snackbar('Info', 'Removal logic coming soon');
+                      final confirmRemoved = await Get.dialog<bool>(
+                        AlertDialog(
+                          title: const CommonText('Remove Barn Manager',
+                              fontWeight: FontWeight.bold, fontSize: 18),
+                          content: const CommonText(
+                            'Are you sure you want to remove this barn manager? They will be notified and their access will be disabled immediately.',
+                            fontSize: 14,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(result: false),
+                              child: const CommonText('Cancel',
+                                  color: AppColors.textSecondary),
+                            ),
+                            TextButton(
+                              onPressed: () => Get.back(result: true),
+                              child: const CommonText('Remove',
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirmRemoved == true) {
+                        final success = await _controller.removeBarnManager();
+                        if (success) {
+                          Get.snackbar(
+                            'Success',
+                            'Barn manager removed and notified',
+                            backgroundColor: const Color(0xFF13CA8B),
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                            margin: const EdgeInsets.all(16),
+                          );
+                        }
+                      }
                     }
                   },
                   itemBuilder: (context) => [

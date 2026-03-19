@@ -154,6 +154,7 @@ class ProfileController extends GetxController {
           role: 'trainer',
           phone: data['phone'] ?? '',
           location: data['location'] ?? '',
+          location2: data['location2'] ?? '',
           bio: data['bio'] ?? '',
           barnName: data['barnName'] ?? '',
           yearsExperience: data['yearsExperience'] ?? 0,
@@ -211,6 +212,7 @@ class ProfileController extends GetxController {
           role: 'trainer',
           phone: data['phone'] ?? '',
           location: data['location'] ?? '',
+          location2: data['location2'] ?? '',
           bio: data['bio'] ?? '',
           barnName: data['barnName'] ?? '',
           yearsExperience: data['yearsExperience'] ?? 0,
@@ -376,7 +378,9 @@ class ProfileController extends GetxController {
   List<String> get selectedProgramTags => displayUser?.programTags ?? [];
   List<String> get selectedHorseShows {
     UserModel? target = displayUser;
-    if (user.value?.role == 'barn_manager' &&
+    // Only fall back to linked trainer if we're NOT viewing another user
+    if (viewedUser.value == null &&
+        user.value?.role == 'barn_manager' &&
         linkedTrainerProfile.value != null) {
       target = linkedTrainerProfile.value;
     }
@@ -406,9 +410,10 @@ class ProfileController extends GetxController {
   Map<String, List<String>> get groupedTrainerTags {
     final Map<String, List<String>> grouped = {};
 
-    // For barn managers, show tags from linked trainer
+    // For barn managers, show tags from linked trainer if viewing own profile
     UserModel? currentUser = displayUser;
-    if (user.value?.role == 'barn_manager' &&
+    if (viewedUser.value == null &&
+        user.value?.role == 'barn_manager' &&
         linkedTrainerProfile.value != null) {
       currentUser = linkedTrainerProfile.value;
     }

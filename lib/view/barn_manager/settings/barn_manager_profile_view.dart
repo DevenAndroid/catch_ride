@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../trainer/home/trainer_horse_detail_view.dart';
+import '../../trainer/settings/trainer_profile_view.dart';
 import '../../trainer/settings/view_all_horses_view.dart';
 import 'edit_profile.dart';
 
@@ -210,31 +211,40 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                     ),
                                     const SizedBox(width: 4),
                                     CommonText(
-                                      _controller.location.isEmpty
-                                          ? 'N/A'
-                                          : _controller.location,
+                                      (() {
+                                        // Priority 1: Linked Trainer Location
+                                        if (profile.linkedTrainer != null) {
+                                          final l1 =
+                                              profile.linkedTrainer!.location;
+                                          final l2 =
+                                              profile.linkedTrainer!.location2;
+                                          if (l1 != null &&
+                                              l1.isNotEmpty &&
+                                              l2 != null &&
+                                              l2.isNotEmpty) {
+                                            return "$l1 | $l2";
+                                          }
+                                          if (l1?.isNotEmpty ?? false)
+                                            return l1!;
+                                          if (l2?.isNotEmpty ?? false)
+                                            return l2!;
+                                        }
+
+                                        // Priority 2: Barn Manager's own location
+                                        if (_controller.location.isNotEmpty) {
+                                          if (profile.location2?.isNotEmpty ??
+                                              false) {
+                                            return "${_controller.location} | ${profile.location2}";
+                                          }
+                                          return _controller.location;
+                                        }
+
+                                        return 'N/A';
+                                      })(),
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
                                     ),
-                                    if (profile.location2?.isNotEmpty ??
-                                        false) ...[
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6.0,
-                                        ),
-                                        child: CommonText(
-                                          "|",
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      CommonText(
-                                        profile.location2!,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -308,71 +318,99 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                 color: Colors.white,
                               ),
                               const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CommonImageView(
-                                      url: profile.linkedTrainer!.avatar ?? '',
-                                      height: 75,
-                                      width: 75,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          CommonText(
-                                            profile.linkedTrainer!.fullName,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                            color: const Color(0xFF101828),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          CommonText(
-                                            profile.linkedTrainer!.barnName ??
-                                                'No Barn Specified',
-                                            fontSize: 15,
-                                            color: const Color(0xFF667085),
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.location_on_outlined,
-                                                size: 18,
-                                                color: Color(0xFF2E90FA),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: CommonText(
-                                                  profile
-                                                          .linkedTrainer!
-                                                          .location ??
-                                                      "No Location Specified",
-                                                  fontSize: 13,
-                                                  color: const Color(
-                                                    0xFF2E90FA,
-                                                  ),
-                                                  fontWeight: FontWeight.w500,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                              GestureDetector(
+                                onTap: () {
+                                  if (profile.linkedTrainer?.id != null) {
+                                    Get.to(() => TrainerProfileView(
+                                          trainerId: profile.linkedTrainer!.id,
+                                        ));
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      CommonImageView(
+                                        url:
+                                            profile.linkedTrainer!.avatar ?? '',
+                                        height: 75,
+                                        width: 75,
+                                        shape: BoxShape.circle,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            CommonText(
+                                              profile.linkedTrainer!.fullName,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF101828),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            CommonText(
+                                              profile.linkedTrainer!.barnName ??
+                                                  'No Barn Specified',
+                                              fontSize: 15,
+                                              color: const Color(0xFF667085),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.location_on_outlined,
+                                                  size: 18,
+                                                  color: Color(0xFF2E90FA),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                    child: CommonText(
+                                                      (() {
+                                                        final l1 = profile
+                                                            .linkedTrainer!
+                                                            .location;
+                                                        final l2 = profile
+                                                            .linkedTrainer!
+                                                            .location2;
+                                                        if (l1 != null &&
+                                                            l1.isNotEmpty &&
+                                                            l2 != null &&
+                                                            l2.isNotEmpty) {
+                                                          return "$l1 | $l2";
+                                                        }
+                                                        final String finalLoc =
+                                                            (l1?.isNotEmpty ??
+                                                                    false)
+                                                                ? l1!
+                                                                : (l2?.isNotEmpty ??
+                                                                        false)
+                                                                    ? l2!
+                                                                    : "No Location Specified";
+                                                        return finalLoc;
+                                                      })(),
+                                                    fontSize: 13,
+                                                    color:
+                                                        const Color(0xFF2E90FA),
+                                                    fontWeight: FontWeight.w500,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

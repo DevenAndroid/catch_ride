@@ -6,11 +6,13 @@ import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/view/trainer/chats/trainer_requests_view.dart';
 import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
+import 'package:catch_ride/view/trainer/chats/barn_manager_conversations_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../../models/user_model.dart';
 
 class TrainerChatsView extends StatefulWidget {
   const TrainerChatsView({super.key});
@@ -90,66 +92,155 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
           ),
         ),
       ),
-      body: Obx(() {
-        if (chatController.isLoadingConversations.value &&
-            chatController.conversations.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final String currentUserId = profileController.id;
-        final conversations = chatController.conversations.where((c) {
-          // 1. Filter out self-conversations
-          if (c.otherUser?.id == currentUserId) return false;
-
-          // 2. Tab filtering (Trainers vs Service Providers)
-          bool belongsToTab = false;
-          if (_selectedTab == 0) {
-            belongsToTab = c.otherUser?.role == 'trainer' ||
-                c.otherUser?.role == 'barn_manager';
-          } else {
-            belongsToTab = c.otherUser?.role == 'service_provider' ||
-                c.otherUser?.role == 'vendor';
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await chatController.fetchConversations();
+          await profileController.fetchProfile();
+        },
+        child: Obx(() {
+          if (chatController.isLoadingConversations.value &&
+              chatController.conversations.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
           }
-          if (!belongsToTab) return false;
 
-          // 3. Status filtering (hide pending requests unless I am the sender)
-          return c.status != 'request-pending' || c.senderId == currentUserId;
-        }).toList();
+          final String currentUserId = profileController.id;
+          final me = profileController.user.value;
+          debugPrint('DEBUG: current role: ${me?.role}, linkedBM: ${me?.linkedBarnManager != null}, BM userId: ${me?.linkedBarnManager?.userId}');
+          
+          final conversations = chatController.conversations.where((c) {
+            if (c.otherUser?.id == currentUserId) return false;
 
-        if (conversations.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 64,
-                  color: AppColors.textSecondary.withOpacity(0.3),
+            bool belongsToTab = false;
+            if (_selectedTab == 0) {
+              belongsToTab = c.otherUser?.role == 'trainer' ||
+                  c.otherUser?.role == 'barn_manager';
+            } else {
+              belongsToTab = c.otherUser?.role == 'service_provider' ||
+                  c.otherUser?.role == 'vendor';
+            }
+            if (!belongsToTab) return false;
+
+            return c.status != 'request-pending' || c.senderId == currentUserId;
+          }).toList();
+
+          final bool showBMRow =
+              me?.linkedBarnManager != null &&
+              me?.linkedBarnManager?.userId != null;
+
+          if (conversations.isEmpty && !showBMRow) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 64,
+                        color: AppColors.textSecondary.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 16),
+                      CommonText(
+                        'No ${_selectedTab == 0 ? 'trainer' : 'service provider'} chats',
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                CommonText(
-                  'No ${_selectedTab == 0 ? 'trainer' : 'service provider'} chats',
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
-              ],
-            ),
+              ),
+            );
+          }
+
+          return ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: conversations.length + (showBMRow ? 1 : 0),
+            padding: EdgeInsets.zero,
+            separatorBuilder: (_, index) {
+              // If it's the divider after the BM row, we might want a different padding or color
+              return const Padding(
+                padding: EdgeInsets.only(left: 88),
+                child: Divider(height: 1, color: Color(0xFFF2F4F7)),
+              );
+            },
+            itemBuilder: (context, index) {
+              if (showBMRow && index == 0) {
+                return _buildBarnManagerRow(me!.linkedBarnManager!);
+              }
+              final convo = conversations[index - (showBMRow ? 1 : 0)];
+              return _buildChatItem(convo);
+            },
           );
-        }
+        }),
+      ),
+    );
+  }
 
-        return ListView.separated(
-          itemCount: conversations.length,
-          padding: EdgeInsets.zero,
-          separatorBuilder: (_, __) => const Padding(
-            padding: EdgeInsets.only(left: 88),
-            child: Divider(height: 1, color: Color(0xFFF2F4F7)),
+  Widget _buildBarnManagerRow(BarnManager bm) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      child: InkWell(
+        onTap:
+            () => Get.to(
+              () => BarnManagerConversationsListView(
+                barnManagerUserId: bm.userId!,
+                barnManagerName: bm.fullName,
+              ),
+            ),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F8FF), // Light blue background
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFE0E7FF), width: 1.5),
           ),
-          itemBuilder: (context, index) {
-            final convo = conversations[index];
-            return _buildChatItem(convo);
-          },
-        );
-      }),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE0E7FF),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: Color(0xFF4338CA),
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonText(
+                      'Barn Manger Conversations',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF101828),
+                    ),
+                    SizedBox(height: 4),
+                    CommonText(
+                      'View chats your barn manager has with trainers and providers.',
+                      fontSize: 13,
+                      color: Color(0xFF667085),
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Color(0xFF667085),
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -176,9 +267,6 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
 
   Widget _buildChatItem(ChatConversation convo) {
     final me = profileController.user.value;
-    final isAssociatedBM =
-        convo.otherUser?.role == 'barn_manager' &&
-        convo.otherUser?.trainerId == me?.trainerProfileId;
 
     return InkWell(
       onTap: () => Get.to(
@@ -250,10 +338,10 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
                               TextSpan(
                                 text: convo.otherUser?.name ?? 'Unknown',
                               ),
-                              if (isAssociatedBM)
-                                const TextSpan(
-                                  text: ' (Associated Barn Manager)',
-                                  style: TextStyle(
+                              if (convo.label != null)
+                                TextSpan(
+                                  text: ' ${convo.label}',
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF2E90FA),

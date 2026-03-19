@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/chat_bubble.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,6 +14,7 @@ class SingleChatView extends StatefulWidget {
   final String image;
   final String conversationId;
   final String? otherId;
+  final bool readOnly;
 
   const SingleChatView({
     super.key,
@@ -20,6 +22,7 @@ class SingleChatView extends StatefulWidget {
     required this.image,
     required this.conversationId,
     this.otherId,
+    this.readOnly = false,
   });
 
   @override
@@ -36,7 +39,9 @@ class _SingleChatViewState extends State<SingleChatView> {
     // Fetch full conversation data every time we enter the view
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchMessages(widget.conversationId);
-      controller.fetchConversations(); // Also refresh convo info for banners
+      if (!widget.readOnly) {
+        controller.fetchConversations(); // Also refresh convo info for banners
+      }
     });
   }
 
@@ -115,6 +120,15 @@ class _SingleChatViewState extends State<SingleChatView> {
                         );
                       }
                     }
+
+                    if (widget.readOnly) {
+                      return const CommonText(
+                        'Read-only View',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.redAccent,
+                      );
+                    }
                     return const SizedBox.shrink();
                   }),
                 ],
@@ -125,6 +139,32 @@ class _SingleChatViewState extends State<SingleChatView> {
       ),
       body: Column(
         children: [
+          // Offline Banner
+          Obx(() {
+            final isConnected = Get.find<SocketService>().isConnected.value;
+            if (isConnected) return const SizedBox.shrink();
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: Colors.red.shade400,
+              child: const Row(
+                children: [
+                  Icon(Icons.wifi_off_rounded, color: Colors.white, size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: CommonText(
+                      'Socket not connected. Some messages might not be real-time.',
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
           // Banner for Pending/Declined status
           Obx(() {
             final convo = controller.conversations.firstWhereOrNull(
@@ -261,7 +301,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                 convo?.status != 'request-pending' &&
                 convo?.status != 'request-blocked';
 
-            if (!canChat) return const SizedBox.shrink();
+            if (!canChat || widget.readOnly) return const SizedBox.shrink();
 
             return _buildMessageInput(textController, controller);
           }),

@@ -55,7 +55,9 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final pastBookings = bookingController.receivedBookings;
+        final pastBookings = bookingController.receivedBookings
+            .where((b) => b.status != 'pending')
+            .toList();
 
         if (pastBookings.isEmpty) {
           return Center(

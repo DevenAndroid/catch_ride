@@ -26,11 +26,13 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.trainerId != null &&
-          widget.trainerId != _controller.trainerId) {
+      final bool isTrainer = _controller.user.value?.role == 'trainer';
+      final bool isSameId = widget.trainerId == _controller.user.value?.trainerProfileId;
+
+      if (widget.trainerId != null && (!isTrainer || !isSameId)) {
         _controller.fetchPublicTrainerProfile(widget.trainerId!);
       } else {
-        // Clear viewed user if we're viewing our own profile
+        // Viewing own profile or no ID provided (which defaults to own profile)
         _controller.viewedUser.value = null;
         _controller.viewedUserHorses.clear();
         _controller.fetchProfile();
@@ -64,9 +66,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         final hasWebsite = profile.website?.isNotEmpty ?? false;
         final hasSocials = hasInstagram || hasFacebook || hasWebsite;
         final hasBio = _controller.bio.isNotEmpty;
-        final isOwnProfile =
-            widget.trainerId == null ||
-            widget.trainerId == _controller.user.value?.trainerProfileId;
+        final isOwnProfile = widget.trainerId == null ||
+            (widget.trainerId == _controller.user.value?.trainerProfileId &&
+                _controller.user.value?.role == 'trainer');
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -244,8 +246,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
                                     ),
-                                    if (profile.location2?.isNotEmpty ??
-                                        false) ...[
+                                    if (_controller.location2.isNotEmpty) ...[
                                       const Padding(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 6.0,
@@ -256,7 +257,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         ),
                                       ),
                                       CommonText(
-                                        profile.location2!,
+                                        _controller.location2,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.textSecondary,

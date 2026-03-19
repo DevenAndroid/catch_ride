@@ -98,66 +98,76 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
           ),
         ),
       ),
-      body: Obx(() {
-        if (chatController.isLoadingConversations.value &&
-            chatController.conversations.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final String currentUserId = Get.find<ProfileController>().id;
-        final conversations = chatController.conversations.where((c) {
-          // 1. Filter out self-conversations
-          if (c.otherUser?.id == currentUserId) return false;
-
-          // 2. Tab filtering
-          bool belongsToTab = false;
-          if (_selectedTab == 0) {
-            belongsToTab = c.otherUser?.role == 'trainer' ||
-                c.otherUser?.role == 'barn_manager';
-          } else {
-            belongsToTab = c.otherUser?.role == 'service_provider' ||
-                c.otherUser?.role == 'vendor';
+      body: RefreshIndicator(
+        onRefresh: () => chatController.fetchConversations(),
+        child: Obx(() {
+          if (chatController.isLoadingConversations.value &&
+              chatController.conversations.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
           }
-          if (!belongsToTab) return false;
 
-          // 3. Status filtering
-          return c.status != 'request-pending' || c.senderId == currentUserId;
-        }).toList();
+          final String currentUserId = Get.find<ProfileController>().id;
+          final conversations = chatController.conversations.where((c) {
+            // 1. Filter out self-conversations
+            if (c.otherUser?.id == currentUserId) return false;
 
-        if (conversations.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 64,
-                  color: AppColors.textSecondary.withOpacity(0.3),
+            // 2. Tab filtering
+            bool belongsToTab = false;
+            if (_selectedTab == 0) {
+              belongsToTab = c.otherUser?.role == 'trainer' ||
+                  c.otherUser?.role == 'barn_manager';
+            } else {
+              belongsToTab = c.otherUser?.role == 'service_provider' ||
+                  c.otherUser?.role == 'vendor';
+            }
+            if (!belongsToTab) return false;
+
+            // 3. Status filtering
+            return c.status != 'request-pending' || c.senderId == currentUserId;
+          }).toList();
+
+          if (conversations.isEmpty) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        size: 64,
+                        color: AppColors.textSecondary.withOpacity(0.3),
+                      ),
+                      const SizedBox(height: 16),
+                      CommonText(
+                        'No ${_selectedTab == 0 ? 'trainer' : 'service provider'} chats',
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                CommonText(
-                  'No ${_selectedTab == 0 ? 'trainer' : 'service provider'} chats',
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
-              ],
+              ),
+            );
+          }
+
+          return ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: conversations.length,
+            padding: EdgeInsets.zero,
+            separatorBuilder: (_, __) => const Padding(
+              padding: EdgeInsets.only(left: 88),
+              child: Divider(height: 1, color: Color(0xFFF2F4F7)),
             ),
+            itemBuilder: (context, index) {
+              final convo = conversations[index];
+              return _buildChatItem(convo);
+            },
           );
-        }
-
-        return ListView.separated(
-          itemCount: conversations.length,
-          padding: EdgeInsets.zero,
-          separatorBuilder: (_, __) => const Padding(
-            padding: EdgeInsets.only(left: 88),
-            child: Divider(height: 1, color: Color(0xFFF2F4F7)),
-          ),
-          itemBuilder: (context, index) {
-            final convo = conversations[index];
-            return _buildChatItem(convo);
-          },
-        );
-      }),
+        }),
+      ),
     );
   }
 
@@ -185,9 +195,6 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
   Widget _buildChatItem(ChatConversation convo) {
     final profileController = Get.find<ProfileController>();
     final me = profileController.user.value;
-    final isAssociatedTrainer =
-        me?.role == 'barn_manager' &&
-        convo.otherUser?.trainerId == me?.trainerProfileId;
 
     return InkWell(
       onTap: () => Get.to(
@@ -261,10 +268,10 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
                               TextSpan(
                                 text: convo.otherUser?.name ?? 'Unknown',
                               ),
-                              if (isAssociatedTrainer)
-                                const TextSpan(
-                                  text: ' (Associated Trainer)',
-                                  style: TextStyle(
+                              if (convo.label != null)
+                                TextSpan(
+                                  text: ' ${convo.label}',
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF2E90FA),

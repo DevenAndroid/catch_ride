@@ -237,85 +237,77 @@ class _BarnManagerCreateProfileViewState
                           ),
                         ),
                         const SizedBox(height: 16),
-                        const CommonText(
-                          AppStrings.phoneNumber,
-                          fontSize: AppTextSizes.size14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textPrimary,
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const CommonText(
+                              'Phone Number',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                            const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 16,
-                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                border: Border.all(color: AppColors.border),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(12),
-                                  bottomLeft: Radius.circular(12),
-                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border:
+                                    Border.all(color: AppColors.borderMedium),
                               ),
                               child: Row(
-                                children: const [
-                                  CommonText(
-                                    AppStrings.num91,
-                                    fontSize: AppTextSizes.size14,
-                                    color: AppColors.textPrimary,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Row(
+                                      children: const [
+                                        CommonText(
+                                          '+1',
+                                          fontSize: 15,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 18,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    size: 16,
-                                    color: AppColors.textSecondary,
+                                  Container(
+                                    width: 1,
+                                    height: 24,
+                                    color: AppColors.borderMedium,
+                                  ),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _phoneController,
+                                      keyboardType: TextInputType.phone,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                      validator: Validations.phoneValidator,
+                                      maxLength: 10,
+                                      decoration: InputDecoration(
+                                        counterText: "",
+                                        hintText: 'Enter phone number',
+                                        border: InputBorder.none,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                            ),
+                                        hintStyle: TextStyle(
+                                          color: AppColors.textSecondary
+                                              .withValues(alpha: 0.5),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-                            ),
-                            Expanded(
-                              child: TextFormField(
-                                controller: _phoneController,
-                                keyboardType: TextInputType.phone,
-                                style: const TextStyle(
-                                  fontSize: AppTextSizes.size14,
-                                  color: AppColors.textPrimary,
-                                ),
-                                validator: Validations.phoneValidator,
-                                maxLength: 10,
-                                decoration: InputDecoration(
-                                  hintText: AppStrings.enterPhoneNumber,
-                                  border: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.only(
-                                      topRight: Radius.circular(12),
-                                      bottomRight: Radius.circular(12),
-                                    ),
-                                    borderSide: BorderSide(
-                                      color: AppColors.border,
-                                    ),
-                                  ),
-                                  enabledBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.only(
-                                      topRight: Radius.circular(12),
-                                      bottomRight: Radius.circular(12),
-                                    ),
-                                    borderSide: BorderSide(
-                                      color: AppColors.border,
-                                    ),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderRadius: BorderRadius.only(
-                                      topRight: Radius.circular(12),
-                                      bottomRight: Radius.circular(12),
-                                    ),
-                                    borderSide: BorderSide(
-                                      color: AppColors.primary,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                ),
                               ),
                             ),
                           ],

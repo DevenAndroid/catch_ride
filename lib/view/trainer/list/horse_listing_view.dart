@@ -138,7 +138,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                             ),
                             const SizedBox(height: 2),
                             CommonText(
-                              'Create a listing to share availability.',
+                              'Create a listing to share availability',
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),

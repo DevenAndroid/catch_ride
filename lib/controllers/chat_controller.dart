@@ -3,8 +3,10 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
+import '../constant/app_colors.dart';
 import 'booking_controller.dart';
 
 class ChatController extends GetxController {
@@ -71,6 +73,28 @@ class ChatController extends GetxController {
     }
   }
 
+  Future<List<ChatConversation>> fetchConversationsForUser(String userId) async {
+    try {
+      final response = await _apiService.getRequest(
+        AppUrls.conversations,
+        query: {'userId': userId},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.body['data'] ?? [];
+        final list = data
+            .map((json) => ChatConversation.fromJson(json))
+            .toList();
+        // Sort by date (desc)
+        list.sort((a, b) => (b.date ?? DateTime.now()).compareTo(a.date ?? DateTime.now()));
+        return list;
+      }
+      return [];
+    } catch (e) {
+      _logger.e('Error fetching conversations for user $userId: $e');
+      return [];
+    }
+  }
+
   Future<void> fetchMessages(String convoId) async {
     try {
       // Leave old room if any
@@ -115,6 +139,17 @@ class ChatController extends GetxController {
 
   void sendMessage(String content, {String? receiverId}) {
     if (content.trim().isEmpty || activeConversationId.isEmpty) return;
+
+    if (!_socketService.isConnected.value) {
+      Get.snackbar(
+        'Connection Error',
+        'You are currently offline. Please check your internet connection and try again.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
     final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
 

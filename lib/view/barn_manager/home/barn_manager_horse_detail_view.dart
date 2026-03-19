@@ -3,6 +3,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
 import 'package:flutter/material.dart';
+import 'package:catch_ride/utils/date_util.dart';
+import 'package:catch_ride/view/barn_manager/home/barn_manager_search_filter_overlay.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -16,6 +18,8 @@ import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../controllers/barn_manager/barn_manager_booking_controller.dart';
 import '../../../services/api_service.dart';
+import '../../trainer/settings/trainer_profile_view.dart';
+import '../../trainer/list/edit_horse_listing_view.dart';
 
 class BarnManagerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
@@ -32,12 +36,10 @@ class BarnManagerHorseDetailView extends StatefulWidget {
   });
 
   @override
-  State<BarnManagerHorseDetailView> createState() =>
-      _BarnManagerHorseDetailViewState();
+  State<BarnManagerHorseDetailView> createState() => _BarnManagerHorseDetailViewState();
 }
 
-class _BarnManagerHorseDetailViewState
-    extends State<BarnManagerHorseDetailView> {
+class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView> {
   bool _isRequested = false;
   HorseModel? horse;
 
@@ -65,10 +67,12 @@ class _BarnManagerHorseDetailViewState
   }
 
   Future<void> _fetchHorseDetails() async {
+    final id = horse?.id ?? widget.horseId;
+    if (id == null) return;
     try {
       setState(() => _isLoading = true);
-      final ApiService api = Get.find<ApiService>();
-      final response = await api.getRequest('/horses/${widget.horseId}');
+      final ApiService api = Get.put(ApiService());
+      final response = await api.getRequest('/horses/$id');
       if (response.statusCode == 200) {
         final data = response.body['data'];
         if (data != null) {
@@ -88,22 +92,27 @@ class _BarnManagerHorseDetailViewState
     }
   }
 
-  void _checkIfRequested() {
-    final bookingController = Get.find<BarnManagerBookingController>();
-    final currentUserId = Get.find<ProfileController>().id;
+  Future<void> _checkIfRequested() async {
+    final bookingController = Get.put(BarnManagerBookingController());
 
-    final existingBooking = bookingController.bookings.firstWhereOrNull(
+    // Fetch latest sent bookings from server to sync with DB
+    await bookingController.fetchBookings(type: 'sent');
+
+    final existingBooking = bookingController.sentBookings.firstWhereOrNull(
       (b) => b.horseId == horse?.id && b.status.toLowerCase() == 'pending',
     );
 
-    if (existingBooking != null) {
-      setState(() => _isRequested = true);
-    }
+    setState(() {
+      _isRequested = existingBooking != null;
+    });
   }
 
   void _initVideo() {
     final String? videoLink = horse!.videoLink;
-    if (videoLink == null || videoLink.isEmpty) return;
+    if (videoLink == null || videoLink.isEmpty || videoLink == 'N/A') {
+      _hasVideo = false;
+      return;
+    }
 
     _hasVideo = true;
     final String? youtubeId = YoutubePlayer.convertUrlToId(videoLink);
@@ -124,12 +133,62 @@ class _BarnManagerHorseDetailViewState
     }
   }
 
+  bool get isHorseOwner {
+    final profileController = Get.find<ProfileController>();
+    final horseTrainerId = horse?.trainerId;
+    final profileTrainerId = profileController.trainerId;
+
+    debugPrint('DEBUG: Horse Trainer ID: $horseTrainerId');
+    debugPrint('DEBUG: Profile Trainer ID: $profileTrainerId');
+
+    return horseTrainerId != null && horseTrainerId == profileTrainerId;
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
     _youtubeController?.dispose();
     _videoPlayerController?.dispose();
     super.dispose();
+  }
+
+  void _showMoreOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isHorseOwner)
+              ListTile(
+                leading: const Icon(Icons.edit, color: AppColors.textPrimary),
+                title: const CommonText('Edit Listing', fontSize: 16),
+                onTap: () {
+                  Navigator.pop(context);
+                  Get.to(() => EditHorseListingView(horse: horse!));
+                },
+              ),
+            if (!isHorseOwner)
+              ListTile(
+                leading: const Icon(
+                  Icons.person_outline,
+                  color: AppColors.textPrimary,
+                ),
+                title: const CommonText('Trainer Details', fontSize: 16),
+                onTap: () {
+                  Navigator.pop(context);
+                  Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
+                },
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -157,6 +216,7 @@ class _BarnManagerHorseDetailViewState
             : Builder(
                 builder: (context) {
                   return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: SingleChildScrollView(
@@ -168,13 +228,13 @@ class _BarnManagerHorseDetailViewState
                               _buildDescriptionAndTags(),
                               _buildDetailsSection(),
                               _buildAvailabilitySection(),
-                              _buildCancelationPolicy(),
+                              if (!isHorseOwner) _buildCancelationPolicy(),
                               const SizedBox(height: 20),
                             ],
                           ),
                         ),
                       ),
-                      _buildBottomAction(),
+                      if (!isHorseOwner) _buildBottomAction(),
                     ],
                   );
                 },
@@ -184,7 +244,6 @@ class _BarnManagerHorseDetailViewState
   }
 
   Widget _buildPremiumHeader() {
-    final tags = horse!.listingTypes;
     return Stack(
       children: [
         _buildImageSection(),
@@ -197,7 +256,7 @@ class _BarnManagerHorseDetailViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildCircleButton(Icons.arrow_back_ios_new, () => Get.back()),
-              _buildCircleButton(Icons.more_vert, () {}),
+              _buildCircleButton(Icons.more_vert, () => _showMoreOptions()),
             ],
           ),
         ),
@@ -224,12 +283,14 @@ class _BarnManagerHorseDetailViewState
                       const Color(0xFFFDE4E1),
                       const Color(0xFFE11D48),
                     ),
-                  const SizedBox(width: 8),
-                  _buildOverlayBadge(
-                    'Weekly Lease',
-                    const Color(0xFFFDE4E1),
-                    const Color(0xFFE11D48),
-                  ),
+                  if (horse!.listingTypes.length > 1) ...[
+                    const SizedBox(width: 8),
+                    _buildOverlayBadge(
+                      horse!.listingTypes[1],
+                      const Color(0xFFFDE4E1),
+                      const Color(0xFFE11D48),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 12),
@@ -243,8 +304,9 @@ class _BarnManagerHorseDetailViewState
                   const SizedBox(width: 4),
                   Expanded(
                     child: CommonText(
-                      horse!.location ??
-                          '931 Powderhouse Rd SE, Aiken, SC 29803, USA',
+                      (horse!.location == null || horse!.location!.isEmpty)
+                          ? 'N/A'
+                          : horse!.location!,
                       fontSize: 12,
                       color: Colors.white,
                       overflow: TextOverflow.ellipsis,
@@ -265,7 +327,7 @@ class _BarnManagerHorseDetailViewState
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 20, color: Colors.black),
@@ -279,7 +341,7 @@ class _BarnManagerHorseDetailViewState
       decoration: BoxDecoration(
         color: const Color(
           0xFF8B4242,
-        ).withOpacity(0.6), // Matched to mockup dark trans-red
+        ).withValues(alpha: 0.6), // Matched to mockup dark trans-red
         borderRadius: BorderRadius.circular(8),
       ),
       child: CommonText(
@@ -304,279 +366,362 @@ class _BarnManagerHorseDetailViewState
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonText(
-                  horse!.trainerName ?? 'John Snow',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                CommonText(
-                  'Barn - Winter Equestrian',
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              height: 40,
-              width: 110,
-              decoration: BoxDecoration(
-                color: const Color(0xFF8B4242),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            child: GestureDetector(
+              onTap: () => Get.to(() => TrainerProfileView(trainerId: horse?.trainerId)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 16,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 8),
                   CommonText(
-                    'Message',
-                    color: Colors.white,
-                    fontSize: 13,
+                    horse!.trainerName ?? 'N/A',
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                  ),
+                  CommonText(
+                    horse!.location != null && horse!.location!.isNotEmpty
+                        ? 'Location - ${horse!.location}'
+                        : 'Location - N/A',
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
                   ),
                 ],
               ),
             ),
           ),
+          if (!isHorseOwner)
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                height: 40,
+                width: 110,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B4242),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.chat_bubble_outline,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                    SizedBox(width: 8),
+                    CommonText(
+                      'Message',
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           const SizedBox(width: 8),
-          const Icon(Icons.more_vert, color: AppColors.textSecondary),
+          if (!isHorseOwner)
+            const Icon(Icons.more_vert, color: AppColors.textSecondary),
         ],
       ),
     );
   }
 
   Widget _buildDescriptionAndTags() {
+    final description =
+        (horse!.description == null || horse!.description!.isEmpty)
+        ? ''
+        : horse!.description!;
+    final tags = [
+      ...horse!.programTags.map((t) => t.name),
+      ...horse!.opportunityTags.map((t) => t.name),
+      ...horse!.personalityTags.map((t) => t.name),
+    ];
+
+    if (description.isEmpty && tags.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: CommonText(
-            horse!.description ??
-                'An ideal small pony and great for a Child An ideal small pony and great for a Child...',
-            fontSize: 14,
-            color: AppColors.textPrimary.withOpacity(0.7),
-            height: 1.5,
+        if (description.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: CommonText(
+              description,
+              fontSize: 14,
+              color: AppColors.textPrimary.withValues(alpha: 0.7),
+              height: 1.5,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children:
-                ['Big Equitation', 'Firesale', 'Division Pony', 'Brave / Bold']
-                    .map(
-                      (tag) => Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF2F4F7),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: CommonText(
-                          tag,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1D2939),
-                        ),
+        if (tags.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: tags
+                  .map(
+                    (tag) => Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                    )
-                    .toList(),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F4F7),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: CommonText(
+                        tag,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1D2939),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildBookedByHeader() {
+  Widget _buildDetailsSection() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const CommonText(
+            'Details',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(
-                0xFFFFF7F5,
-              ), // Light reddish background from design
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFDE4E1)),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 2.2,
               children: [
-                const CommonText(
-                  'Booked by',
-                  fontSize: AppTextSizes.size12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                _buildPremiumDetailItem(
+                  'Horse name',
+                  horse!.name.isEmpty ? 'N/A' : horse!.name,
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonImageView(
-                      url: horse!.bookedByAvatar ?? AppConstants.dummyImageUrl,
-                      height: 50,
-                      width: 50,
-                      shape: BoxShape.circle,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CommonText(
-                            horse!.bookedByName ?? 'Mark Lee',
-                            fontSize: AppTextSizes.size16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.location_on_outlined,
-                                color: AppColors.textSecondary,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: CommonText(
-                                  horse!.bookedByLocation ??
-                                      'Cypress, CA, United States',
-                                  fontSize: AppTextSizes.size12,
-                                  color: AppColors.textSecondary,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today_outlined,
-                                color: AppColors.textSecondary,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 4),
-                              CommonText(
-                                horse!.bookingDates ?? '01 Apr - 07 Apr 2026',
-                                fontSize: AppTextSizes.size12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const CommonText(
-                        'For Sale',
-                        fontSize: AppTextSizes.size12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
+                _buildPremiumDetailItem(
+                  'USEF number',
+                  (horse!.usefNumber == null ||
+                          horse!.usefNumber.toString().isEmpty)
+                      ? 'N/A'
+                      : horse!.usefNumber.toString(),
+                ),
+                _buildPremiumDetailItem(
+                  'Age',
+                  horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years',
+                ),
+                _buildPremiumDetailItem(
+                  'Height',
+                  (horse!.height == null || horse!.height!.isEmpty)
+                      ? 'N/A'
+                      : horse!.height!,
+                ),
+                _buildPremiumDetailItem(
+                  'Breed',
+                  horse!.breed.isEmpty ? 'N/A' : horse!.breed,
+                ),
+                _buildPremiumDetailItem(
+                  'Color',
+                  (horse!.color == null || horse!.color!.isEmpty)
+                      ? 'N/A'
+                      : horse!.color!,
+                ),
+                _buildPremiumDetailItem(
+                  'Discipline',
+                  horse!.displayDiscipline.isEmpty
+                      ? 'N/A'
+                      : horse!.displayDiscipline,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const CommonImageView(
-                url: AppConstants.dummyImageUrl,
-                height: 44,
-                width: 44,
-                shape: BoxShape.circle,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText(
-                      horse!.trainerName ?? 'Unknown Trainer',
-                      fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                    const CommonText(
-                      AppStrings.professionalHorseTrainer,
-                      fontSize: AppTextSizes.size14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.more_vert, color: AppColors.textPrimary),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildPremiumDetailItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(label, fontSize: 13, color: AppColors.textSecondary),
+        const SizedBox(height: 4),
+        CommonText(value, fontSize: 15, fontWeight: FontWeight.bold),
+        const SizedBox(height: 4),
+        Container(height: 1, color: AppColors.border.withValues(alpha: 0.3)),
+      ],
+    );
+  }
+
+  Widget _buildAvailabilitySection() {
+    if (horse!.showAvailability.isEmpty) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonImageView(
-            url: horse!.trainerAvatar ?? AppConstants.dummyImageUrl,
-            height: 44,
-            width: 44,
-            shape: BoxShape.circle,
+          const CommonText(
+            'Availability',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonText(
-                  horse!.trainerName ?? 'Unknown Trainer',
-                  fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-                const CommonText(
-                  AppStrings.professionalHorseTrainer,
-                  fontSize: AppTextSizes.size12,
-                  color: AppColors.textSecondary,
-                ),
-              ],
+              children: horse!.showAvailability.asMap().entries.map((entry) {
+                final index = entry.key;
+                final show = entry.value;
+                return Column(
+                  children: [
+                    if (index > 0) const SizedBox(height: 16),
+                    _buildPremiumAvailabilityItem(
+                      'Location ${index + 1}',
+                      show.showVenue,
+                      DateUtil.formatRange(show.startDate, show.endDate),
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ),
-          const Icon(Icons.more_vert, color: AppColors.textPrimary),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumAvailabilityItem(
+    String title,
+    String location,
+    String dates,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(title, fontSize: 13, color: AppColors.textSecondary),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(
+              Icons.location_on_outlined,
+              size: 16,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            CommonText(
+              location.isEmpty ? 'N/A' : location,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            CommonText(
+              dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCancelationPolicy() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF3F2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFDE4E1)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF04438),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 12, color: Colors.white),
+              ),
+              const SizedBox(width: 12),
+              const CommonText(
+                'Cancelation Policy',
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFB42318),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const CommonText(
+            'The reservation is non-refundable and non-transferable.',
+            fontSize: 13,
+            color: Color(0xFFB42318),
+            height: 1.5,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomAction() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: CommonButton(
+        text: _isRequested ? 'Your request is submitted' : 'Request a Trial',
+        backgroundColor: _isRequested
+            ? Colors.grey
+            : const Color(0xFF00083B), // Navy blue
+        textColor: Colors.white,
+        onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
       ),
     );
   }
@@ -661,7 +806,7 @@ class _BarnManagerHorseDetailViewState
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: Colors.black.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: CommonText(
@@ -676,350 +821,12 @@ class _BarnManagerHorseDetailViewState
     );
   }
 
-  // Methods removed in favor of premium builder
-
-  Widget _buildUsefNumberBanner() {
-    final usef = horse!.usefNumber;
-    if (usef == null || usef.toString().isEmpty || usef == 'N/A') {
-      return const SizedBox.shrink();
-    }
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFFF3F4F6), // Light gray background
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const CommonText(
-            AppStrings.horseUsefNumber,
-            fontSize: AppTextSizes.size14,
-            color: AppColors.textSecondary,
-          ),
-          CommonText(
-            usef.toString(),
-            fontSize: AppTextSizes.size14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CommonText(
-            'Details',
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border.withOpacity(0.5)),
-            ),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 2.2,
-              children: [
-                _buildPremiumDetailItem('Horse name', horse!.name),
-                _buildPremiumDetailItem(
-                  'USEF number',
-                  horse!.usefNumber ?? '5w3bnd67',
-                ),
-                _buildPremiumDetailItem('Age', '${horse!.age} Years'),
-                _buildPremiumDetailItem('Height', horse!.height ?? '16.2hh'),
-                _buildPremiumDetailItem('Breed', horse!.breed),
-                _buildPremiumDetailItem('Color', horse!.color ?? 'Brown'),
-                _buildPremiumDetailItem('Discipline', horse!.displayDiscipline),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumDetailItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(label, fontSize: 13, color: AppColors.textSecondary),
-        const SizedBox(height: 4),
-        CommonText(value, fontSize: 15, fontWeight: FontWeight.bold),
-        const SizedBox(height: 4),
-        Container(height: 1, color: AppColors.border.withOpacity(0.3)),
-      ],
-    );
-  }
-
-  Widget _buildAvailabilitySection() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CommonText(
-            'Availability',
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.border.withOpacity(0.5)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPremiumAvailabilityItem(
-                  'Location 1',
-                  'Ocklawaha, USA, United States',
-                  '05 Feb - 10 Feb 2026',
-                ),
-                const SizedBox(height: 16),
-                _buildPremiumAvailabilityItem(
-                  'Location 2',
-                  'Ocklawaha, USA, United States',
-                  '05 Feb - 10 Feb 2026',
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumAvailabilityItem(
-    String title,
-    String location,
-    String dates,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(title, fontSize: 13, color: AppColors.textSecondary),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(
-              Icons.location_on_outlined,
-              size: 16,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            CommonText(location, fontSize: 14, fontWeight: FontWeight.w500),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            const Icon(
-              Icons.calendar_today_outlined,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            CommonText(dates, fontSize: 14, fontWeight: FontWeight.bold),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCancelationPolicy() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFEF3F2),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFDE4E1)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF04438),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, size: 12, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              const CommonText(
-                'Cancelation Policy',
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFB42318),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const CommonText(
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,',
-            fontSize: 13,
-            color: Color(0xFFB42318),
-            height: 1.5,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomAction() {
-    final profileController = Get.find<ProfileController>();
-    final currentTrainerId = profileController.user.value?.trainerProfileId;
-    final isOwnHorse =
-        widget.isOwnHorse ||
-        (horse?.trainerId != null && horse?.trainerId == currentTrainerId);
-
-    if (isOwnHorse) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: CommonButton(
-        text: _isRequested ? 'Requested' : 'Request a Trial',
-        backgroundColor: _isRequested ? Colors.grey : const Color(0xFF00083B),
-        textColor: Colors.white,
-        onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
-      ),
-    );
-  }
-
-  Widget _buildTagsGridSection() {
-    final programs = horse!.programTags;
-    final opportunities = horse!.opportunityTags;
-    final experience = horse!.experienceLevel;
-    final personalities = horse!.personalityTags;
-
-    final bool hasPrograms = programs.isNotEmpty;
-    final bool hasOpportunities = opportunities.isNotEmpty;
-    final bool hasExperience = experience != null;
-    final bool hasPersonalities = personalities.isNotEmpty;
-
-    if (!hasPrograms &&
-        !hasOpportunities &&
-        !hasExperience &&
-        !hasPersonalities) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      children: [
-        if (hasPrograms || hasOpportunities)
-          Row(
-            children: [
-              if (hasPrograms)
-                Expanded(
-                  child: _buildTagCard('Program Tag', programs.first.name),
-                )
-              else if (hasOpportunities)
-                const Spacer(),
-
-              if (hasPrograms && hasOpportunities) const SizedBox(width: 12),
-
-              if (hasOpportunities)
-                Expanded(
-                  child: _buildTagCard(
-                    'Opportunity Tag',
-                    opportunities.first.name,
-                  ),
-                )
-              else if (hasPrograms)
-                const Spacer(),
-            ],
-          ),
-        if ((hasPrograms || hasOpportunities) &&
-            (hasExperience || hasPersonalities))
-          const SizedBox(height: 12),
-        if (hasExperience || hasPersonalities)
-          Row(
-            children: [
-              if (hasExperience)
-                Expanded(child: _buildTagCard('Experience', experience.name))
-              else if (hasPersonalities)
-                const Spacer(),
-
-              if (hasExperience && hasPersonalities) const SizedBox(width: 12),
-
-              if (hasPersonalities)
-                Expanded(
-                  child: _buildTagCard(
-                    'Personality Tag',
-                    personalities.first.name,
-                  ),
-                )
-              else if (hasExperience)
-                const Spacer(),
-            ],
-          ),
-      ],
-    );
-  }
-
-  Widget _buildTagCard(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CommonText(
-            label,
-            fontSize: AppTextSizes.size12,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 4),
-          CommonText(
-            value,
-            fontSize: AppTextSizes.size14,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showBookingRequestBottomSheet() {
     DateTime? startDate;
-    DateTime? endDate;
     String selectedType = 'Trial';
+    String? selectedLocation;
     final TextEditingController messageController = TextEditingController();
-    final BarnManagerBookingController bookingController =
-        Get.find<BarnManagerBookingController>();
+    final BarnManagerBookingController bookingController = Get.put(BarnManagerBookingController());
 
     showModalBottomSheet(
       context: context,
@@ -1047,117 +854,48 @@ class _BarnManagerHorseDetailViewState
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border.withOpacity(0.6),
+                    color: AppColors.border.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
+              const CommonText(
+                'Request a Trial',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              const SizedBox(height: 16),
 
               // Horse Card
               _buildBookingHorseCard(),
               const SizedBox(height: 20),
 
-              // Type Toggle
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF2F4F7),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildTypeToggleItem(
-                        'Trial',
-                        selectedType == 'Trial',
-                        () {
-                          setSheetState(() => selectedType = 'Trial');
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildTypeToggleItem(
-                        'Weekly Lease',
-                        selectedType == 'Weekly Lease',
-                        () {
-                          setSheetState(() => selectedType = 'Weekly Lease');
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+              // Single Date
+              const CommonText(
+                'Date',
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 20),
-
-              // Dates
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CommonText(
-                          'Start Date',
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDateSelector(
-                          startDate != null
-                              ? DateFormat('dd MMM yyyy').format(startDate!)
-                              : 'Select Date',
-                          () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate: startDate ?? DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setSheetState(() => startDate = date);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CommonText(
-                          'End Date',
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildDateSelector(
-                          endDate != null
-                              ? DateFormat('dd MMM yyyy').format(endDate!)
-                              : 'Select Date',
-                          () async {
-                            final date = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  endDate ?? startDate ?? DateTime.now(),
-                              firstDate: startDate ?? DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (date != null) {
-                              setSheetState(() => endDate = date);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 8),
+              _buildDateSelector(
+                startDate != null
+                    ? DateFormat('dd MMM yyyy').format(startDate!)
+                    : 'Select Date',
+                () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: startDate ?? DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (date != null) {
+                    setSheetState(() {
+                      startDate = date;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 20),
 
@@ -1169,27 +907,43 @@ class _BarnManagerHorseDetailViewState
               ),
               const SizedBox(height: 8),
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 14,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CommonText(
-                      'WEF, Wellington',
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedLocation,
+                    isExpanded: true,
+                    items: horse!.showAvailability
+                        .map((show) => show.showVenue)
+                        .where((venue) => venue.isNotEmpty)
+                        .toSet() // Unique venues
+                        .map((venue) => DropdownMenuItem(
+                              value: venue,
+                              child: CommonText(
+                                venue,
+                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                              ),
+                            ))
+                        .toList(),
+                    hint: const CommonText(
+                      'Select Location',
                       fontSize: 14,
-                      color: AppColors.textPrimary,
-                    ),
-                    Icon(
-                      Icons.keyboard_arrow_down,
                       color: AppColors.textSecondary,
                     ),
-                  ],
+                    onChanged: (val) {
+                      setSheetState(() {
+                        selectedLocation = val;
+                      });
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -1217,7 +971,7 @@ class _BarnManagerHorseDetailViewState
               ),
               const SizedBox(height: 8),
               Container(
-                height: 100,
+                height: 120,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.border),
@@ -1227,9 +981,10 @@ class _BarnManagerHorseDetailViewState
                   controller: messageController,
                   maxLines: 4,
                   decoration: InputDecoration(
-                    hintText: 'Write here...',
+                    hintText:
+                        'Please include your preferred time frame for the trial...',
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.5),
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
                       fontSize: 14,
                     ),
                     border: InputBorder.none,
@@ -1269,10 +1024,23 @@ class _BarnManagerHorseDetailViewState
                         onTap: bookingController.isLoading.value
                             ? null
                             : () async {
-                                if (startDate == null || endDate == null) {
+                                if (startDate == null) {
                                   Get.snackbar(
                                     'Error',
-                                    'Please select both start and end dates',
+                                    'Please select a date',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.white,
+                                    barBlur: 0,
+                                    margin: const EdgeInsets.all(16),
+                                  );
+                                  return;
+                                }
+
+                                if (selectedLocation == null) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Please select a location',
                                     snackPosition: SnackPosition.BOTTOM,
                                     backgroundColor: Colors.redAccent,
                                     colorText: Colors.white,
@@ -1291,10 +1059,7 @@ class _BarnManagerHorseDetailViewState
                                       'date': DateFormat(
                                         'yyyy-MM-dd',
                                       ).format(startDate!),
-                                      'endDate': DateFormat(
-                                        'yyyy-MM-dd',
-                                      ).format(endDate!),
-                                      'location': 'WEF, Wellington',
+                                      'location': selectedLocation ?? 'N/A',
                                       'notes': messageController.text,
                                       'service': selectedType,
                                       'price': horse!.price ?? 0,
@@ -1316,6 +1081,7 @@ class _BarnManagerHorseDetailViewState
                                     margin: const EdgeInsets.all(16),
                                   );
                                   setState(() => _isRequested = true);
+                                  _fetchHorseDetails(); // re-fetch to auto update based on requested state
                                 }
                               },
                         child: Container(
@@ -1352,22 +1118,51 @@ class _BarnManagerHorseDetailViewState
   }
 
   Widget _buildBookingHorseCard() {
+    final hasImages = horse != null && horse!.images.isNotEmpty;
+    final photoUrl =
+        horse?.photo ??
+        (hasImages ? horse!.images.first : AppConstants.dummyImageUrl);
+
+    // Extract dynamic venue and dates
+    String venueText = 'Venue - N/A';
+    String dateRangeText = 'N/A';
+    if (horse != null && horse!.showAvailability.isNotEmpty) {
+      final firstShow = horse!.showAvailability.first;
+      if (firstShow.showVenue.isNotEmpty) {
+        venueText = firstShow.showVenue;
+      }
+      if (firstShow.startDate.isNotEmpty && firstShow.endDate.isNotEmpty) {
+        dateRangeText = '${firstShow.startDate} - ${firstShow.endDate}';
+      } else if (firstShow.startDate.isNotEmpty) {
+        dateRangeText = firstShow.startDate;
+      } else if (firstShow.endDate.isNotEmpty) {
+        dateRangeText = firstShow.endDate;
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: const CommonImageView(
-              url: AppConstants.dummyImageUrl,
-              width: 80,
-              height: 80,
+            child: CommonImageView(
+              url: photoUrl,
+              width: 90,
+              height: 90,
               fit: BoxFit.cover,
             ),
           ),
@@ -1376,118 +1171,92 @@ class _BarnManagerHorseDetailViewState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    RichText(
-                      text: const TextSpan(
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                          fontFamily: 'Outfit',
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Outfit',
+                    ),
+                    children: [
+                      TextSpan(text: horse?.name ?? 'Unknown'),
+                      TextSpan(
+                        text: ' - ${horse?.discipline ?? horse?.breed}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.normal,
+                          color: AppColors.textSecondary,
                         ),
-                        children: [
-                          TextSpan(text: 'Whirlwind'),
-                          TextSpan(
-                            text: ' • Jumper',
-                            style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                CommonText(
+                  venueText,
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 13,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: CommonText(
+                        horse?.location ?? 'N/A',
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF2F4F7),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const CommonText(
-                        'Lease',
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: CommonText(
+                        dateRangeText,
+                        fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                const CommonText(
-                  'Venue – Bruce\'s Field',
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(height: 6),
-                const Row(
+                const SizedBox(height: 8),
+                Row(
                   children: [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                    SizedBox(width: 6),
-                    CommonText(
-                      '10 Jan - 18 Jan 2026',
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                const Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                    SizedBox(width: 6),
-                    CommonText(
-                      'Winterfell, USA, United States',
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
+                    if (horse!.listingTypes.isNotEmpty)
+                      _buildOverlayBadge(
+                        horse!.listingTypes.first,
+                        const Color(0xFFFDE4E1),
+                        const Color(0xFFE11D48),
+                      ),
+                    if (horse!.listingTypes.length > 1) ...[
+                      const SizedBox(width: 8),
+                      _buildOverlayBadge(
+                        horse!.listingTypes[1],
+                        const Color(0xFFFDE4E1),
+                        const Color(0xFFE11D48),
+                      ),
+                    ],
                   ],
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTypeToggleItem(String title, bool isActive, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: isActive
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                  ),
-                ]
-              : null,
-        ),
-        child: Center(
-          child: CommonText(
-            title,
-            fontSize: 14,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
-          ),
-        ),
       ),
     );
   }

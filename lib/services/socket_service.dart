@@ -21,8 +21,11 @@ class SocketService extends GetxService {
     socket = io.io(
       AppUrls.socketUrl,
       io.OptionBuilder()
-          .setTransports(['websocket']) // Use websocket for better performance
-          .disableAutoConnect() // Connect manually
+          .setTransports(['websocket'])
+          .enableAutoConnect()
+          .enableReconnection()
+          .setReconnectionDelay(3000)
+          .setReconnectionAttempts(50)
           .build(),
     );
 
