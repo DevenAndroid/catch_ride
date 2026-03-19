@@ -1011,14 +1011,16 @@ class _TrainerCompleteProfileViewState
       children: [
         const CommonText(
           'Phone Number',
-          fontSize: 13,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.borderMedium),
           ),
           child: Row(
             children: [
@@ -1028,34 +1030,36 @@ class _TrainerCompleteProfileViewState
                   children: const [
                     CommonText(
                       '+1',
-                      fontSize: 14,
+                      fontSize: 15,
                       color: AppColors.textPrimary,
                     ),
                     SizedBox(width: 4),
                     Icon(
                       Icons.keyboard_arrow_down,
-                      size: 20,
+                      size: 18,
                       color: AppColors.textSecondary,
                     ),
                   ],
                 ),
               ),
+              Container(width: 1, height: 24, color: AppColors.borderMedium),
               Expanded(
                 child: TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  style: const TextStyle(fontSize: 14),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textPrimary,
+                  ),
                   validator: Validations.phoneValidator,
                   maxLength: 10,
                   decoration: InputDecoration(
+                    counterText: "",
                     hintText: 'Enter phone number',
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.5),
+                      color: AppColors.textSecondary.withValues(alpha: 0.5),
                       fontSize: 14,
                     ),
                   ),

@@ -140,6 +140,7 @@ class AuthController extends GetxController {
           setup,
           approve,
           data['status'] ?? 'active',
+          data['trainerId']?.toString(), // Pass the trainerId
         );
       } else {
         // If API fails (e.g., token expired/invalid), force logout
@@ -213,14 +214,30 @@ class AuthController extends GetxController {
           isProfileSetup,
           isProfileApprove,
           user['status'] ?? 'active',
+          user['trainerId']?.toString(), // Pass the trainerId
         );
       } else if (response.statusCode == 403) {
+        final message = response.body?['message'] ?? 'Verification Required';
+
+        if (message.contains('not currently associated')) {
+          isLoading.value = false;
+          Get.snackbar(
+            'Profile Unlinked',
+            'Your profile is not linked with any trainer. Please contact your trainer for an invitation.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 5),
+          );
+          return;
+        }
+
         // Email not verified — send them to OTP screen
         final email = emailController.text.trim();
         registrationEmail.value = email;
         Get.snackbar(
           'Verification Required',
-          'A new OTP has been sent to your email.',
+          message,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.orange,
           colorText: Colors.white,
@@ -422,14 +439,29 @@ class AuthController extends GetxController {
     bool isProfileSetup,
     bool isProfileApprove,
     String status,
+    String? trainerId,
   ) {
     debugPrint(
-      'Navigating: role=$role, completed=$isProfileCompleted, setup=$isProfileSetup, approve=$isProfileApprove, status=$status',
+      'Navigating: role=$role, completed=$isProfileCompleted, setup=$isProfileSetup, approve=$isProfileApprove, status=$status, trainerId=$trainerId',
     );
 
     if (role == 'trainer' ||
         role == 'barn_manager' ||
         role == 'service_provider') {
+      
+      // Special check for Barn Manager linkage
+      if (role == 'barn_manager' && (trainerId == null || trainerId.isEmpty)) {
+        logout(sessionExpired: false);
+        Get.snackbar(
+          'Profile Unlinked',
+          'Your profile is not linked with any trainer. Please contact your trainer for an invitation.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 5),
+        );
+        return;
+      }
       // Check if active and approved for dashboard access
       if (isProfileCompleted) {
         if (status.toLowerCase() == 'active' && isProfileApprove) {

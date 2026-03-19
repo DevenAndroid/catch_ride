@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class UserModel {
   final String? id;
   final String firstName;
@@ -101,6 +103,22 @@ class UserModel {
     final trainerData = json['trainerId'] is Map
         ? json['trainerId'] as Map<String, dynamic>
         : null;
+    final barnManagerData = json['barnManagerId'] is Map
+        ? json['barnManagerId'] as Map<String, dynamic>
+        : null;
+    final vendorData = json['vendorId'] is Map
+        ? json['vendorId'] as Map<String, dynamic>
+        : null;
+
+    // Determine professional/fallback data based on role
+    Map<String, dynamic>? proData;
+    if (json['role'] == 'trainer') {
+      proData = trainerData;
+    } else if (json['role'] == 'barn_manager') {
+      proData = barnManagerData;
+    } else if (json['role'] == 'service_provider') {
+      proData = vendorData;
+    }
 
     return UserModel(
       id: json['_id'] ?? json['id'],
@@ -108,42 +126,38 @@ class UserModel {
       lastName: json['lastName'] ?? '',
       email: json['email'] ?? '',
       role: json['role'] ?? 'user',
-      avatar: json['avatar'] ?? trainerData?['profilePhoto'],
-      photo: json['photo'] ?? trainerData?['profilePhoto'],
-      coverImage: json['coverImage'] ?? trainerData?['coverImage'],
-      phone: json['phone'] ?? trainerData?['phone'],
-      location: json['location'] ?? trainerData?['location'],
-      location2: json['location2'] ?? trainerData?['location2'],
-      bio: json['bio'] ?? trainerData?['bio'] ?? trainerData?['description'],
-      barnName:
-          json['barnName'] ??
-          trainerData?['barnName'] ??
-          (json['barnManagerId'] is Map ? json['barnManagerId']['barnName'] : null),
-      yearsExperience:
-          json['yearsExperience'] ?? trainerData?['yearsExperience'] ?? 0,
-      yearsInIndustry:
-          json['yearsInIndustry'] ??
-          (json['barnManagerId'] is Map ? json['barnManagerId']['yearsInIndustry'] : null),
+      avatar: json['avatar'] ??
+          (proData != null ? proData['profilePhoto'] ?? proData['avatar'] : null),
+      photo: json['photo'] ??
+          (proData != null ? proData['profilePhoto'] ?? proData['avatar'] : null),
+      coverImage: json['coverImage'] ?? (proData != null ? proData['coverImage'] : null),
+      phone: json['phone'] ?? (proData != null ? proData['phone'] : null),
+      location: json['location'] ?? (proData != null ? proData['location'] : null),
+      location2: json['location2'] ?? (proData != null ? proData['location2'] : null),
+      bio: json['bio'] ?? (proData != null ? proData['bio'] ?? proData['description'] : null),
+      barnName: json['barnName'] ??
+          (proData != null ? proData['barnName'] : null) ??
+          (json['role'] == 'barn_manager' && trainerData != null ? trainerData['barnName'] : null),
+      yearsExperience: json['yearsExperience'] ?? (proData != null ? proData['yearsExperience'] : null) ?? 0,
+      yearsInIndustry: json['yearsInIndustry'] ?? (proData != null ? proData['yearsInIndustry'] : null),
       programTags: List<String>.from(
-        json['programTags'] ?? trainerData?['programTags'] ?? [],
+        json['programTags'] ?? (proData != null ? proData['programTags'] : null) ?? [],
       ),
       showCircuits: List<String>.from(
-        json['showCircuits'] ?? trainerData?['showCircuits'] ?? [],
+        json['showCircuits'] ?? (proData != null ? proData['showCircuits'] : null) ?? [],
       ),
       horseShows: parsedHorseShows,
       tags: parsedTags,
-      facebook: json['facebook'] ?? trainerData?['facebook'],
-      instagram: json['instagram'] ?? trainerData?['instagram'],
-      website: json['website'] ?? trainerData?['website'],
+      facebook: json['facebook'] ?? (proData != null ? proData['facebook'] : null),
+      instagram: json['instagram'] ?? (proData != null ? proData['instagram'] : null),
+      website: json['website'] ?? (proData != null ? proData['website'] : null),
       isProfileCompleted: json['isProfileCompleted'] ?? false,
       isProfileSetup: json['isProfileSetup'] ?? false,
       isProfileApprove: json['isProfileApprove'] ?? false,
       pushNotificationsEnabled: json['pushNotificationsEnabled'] ?? true,
       twoFactorEnabled: json['twoFactorEnabled'] ?? false,
       status: json['status'] ?? 'active',
-      trainerProfileId: trainerData != null
-          ? trainerData['_id']
-          : json['trainerId'],
+      trainerProfileId: trainerData != null ? trainerData['_id'] : json['trainerId'],
       linkedBarnManager:
           trainerData != null && trainerData['linkedBarnManager'] != null
           ? BarnManager.fromJson(trainerData['linkedBarnManager'])
@@ -199,6 +213,7 @@ class TrainerLinkedModel {
   final String? bio;
   final String? barnName;
   final String? location;
+  final String? location2;
 
   TrainerLinkedModel({
     this.id,
@@ -209,6 +224,7 @@ class TrainerLinkedModel {
     this.bio,
     this.barnName,
     this.location,
+    this.location2,
   });
 
   String get fullName => (firstName != null && lastName != null)
@@ -225,6 +241,7 @@ class TrainerLinkedModel {
       bio: json['bio'],
       barnName: json['barnName'],
       location: json['location'],
+      location2: json['location2'],
     );
   }
 
@@ -238,6 +255,7 @@ class TrainerLinkedModel {
       'bio': bio,
       'barnName': barnName,
       'location': location,
+      'location2': location2,
     };
   }
 }
@@ -249,6 +267,7 @@ class BarnManager {
   final String email;
   final String? avatar;
   final String? bio;
+  final String? userId; // The User ID (not profile ID) for fetch chats
   final String status;
 
   BarnManager({
@@ -258,6 +277,7 @@ class BarnManager {
     required this.email,
     this.avatar,
     this.bio,
+    this.userId,
     this.status = 'pending',
   });
 
@@ -266,6 +286,8 @@ class BarnManager {
       : firstName ?? lastName ?? email;
 
   factory BarnManager.fromJson(Map<String, dynamic> json) {
+    final parsedId = json['userId'] is Map ? json['userId']['_id'] : json['userId'];
+    debugPrint('DEBUG: BarnManager.fromJson - userId: $parsedId');
     return BarnManager(
       id: json['_id'] ?? json['id'],
       firstName: json['firstName'],
@@ -273,6 +295,7 @@ class BarnManager {
       email: json['email'] ?? '',
       avatar: json['profilePhoto'] ?? json['avatar'],
       bio: json['bio'],
+      userId: parsedId,
       status: json['status'] ?? 'pending',
     );
   }
@@ -285,6 +308,7 @@ class BarnManager {
       'email': email,
       'profilePhoto': avatar,
       'bio': bio,
+      'userId': userId,
       'status': status,
     };
   }

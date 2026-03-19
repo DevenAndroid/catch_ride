@@ -72,8 +72,10 @@ class ChatConversation {
   final int unread;
   final String status;
   final ChatOtherUser? otherUser;
-  final String? senderId; // The original requester
-  final BookingModel? booking; // Associated booking details
+  final String? senderId; 
+  final BookingModel? booking; 
+  final bool pinned;
+  final String? label;
 
   ChatConversation({
     required this.id,
@@ -85,6 +87,8 @@ class ChatConversation {
     this.otherUser,
     this.senderId,
     this.booking,
+    this.pinned = false,
+    this.label,
   });
 
   factory ChatConversation.fromJson(Map<String, dynamic> json) {
@@ -102,6 +106,8 @@ class ChatConversation {
       booking: json['booking'] != null
           ? BookingModel.fromJson(json['booking'])
           : null,
+      pinned: json['pinned'] ?? false,
+      label: json['label'],
     );
   }
 }
@@ -112,6 +118,8 @@ class ChatOtherUser {
   final String? avatar;
   final String? role;
   final String? trainerId;
+  final String? barnManagerId;
+  final String? vendorId;
 
   ChatOtherUser({
     required this.id,
@@ -119,6 +127,8 @@ class ChatOtherUser {
     this.avatar,
     this.role,
     this.trainerId,
+    this.barnManagerId,
+    this.vendorId,
   });
 
   factory ChatOtherUser.fromJson(Map<String, dynamic> json) {
@@ -128,6 +138,8 @@ class ChatOtherUser {
       avatar: json['avatar'],
       role: json['role'],
       trainerId: json['trainerId'],
+      barnManagerId: json['barnManagerId'],
+      vendorId: json['vendorId'],
     );
   }
 }

@@ -1136,6 +1136,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     DateTime? startDate;
     DateTime? endDate;
     String selectedType = 'Trial';
+    String? selectedLocation;
     final TextEditingController messageController = TextEditingController();
     final BookingController bookingController = Get.put(BookingController());
 
@@ -1219,23 +1220,43 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
               const SizedBox(height: 8),
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 14,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   border: Border.all(color: AppColors.border),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CommonText(
-                      horse?.location ?? "",
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: selectedLocation,
+                    isExpanded: true,
+                    items: horse!.showAvailability
+                        .map((show) => show.showVenue)
+                        .where((venue) => venue.isNotEmpty)
+                        .toSet() // Unique venues
+                        .map((venue) => DropdownMenuItem(
+                              value: venue,
+                              child: CommonText(
+                                venue,
+                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                              ),
+                            ))
+                        .toList(),
+                    hint: const CommonText(
+                      'Select Location',
                       fontSize: 14,
-                      color: AppColors.textPrimary,
+                      color: AppColors.textSecondary,
                     ),
-                  ],
+                    onChanged: (val) {
+                      setSheetState(() {
+                        selectedLocation = val;
+                      });
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -1329,6 +1350,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   return;
                                 }
 
+                                if (selectedLocation == null) {
+                                  Get.snackbar(
+                                    'Error',
+                                    'Please select a location',
+                                    snackPosition: SnackPosition.BOTTOM,
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.white,
+                                    barBlur: 0,
+                                    margin: const EdgeInsets.all(16),
+                                  );
+                                  return;
+                                }
+
                                 final success = await bookingController
                                     .createBooking({
                                       'horseId': horse!.id,
@@ -1338,7 +1372,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                       'date': DateFormat(
                                         'yyyy-MM-dd',
                                       ).format(startDate!),
-                                      'location': horse?.location ?? 'N/A',
+                                      'location': selectedLocation ?? 'N/A',
                                       'notes': messageController.text,
                                       'service': selectedType,
                                       'price': horse!.price ?? 0,

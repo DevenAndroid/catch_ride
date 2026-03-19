@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/chat_bubble.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -126,6 +127,32 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
       ),
       body: Column(
         children: [
+          // Offline Banner
+          Obx(() {
+            final isConnected = Get.find<SocketService>().isConnected.value;
+            if (isConnected) return const SizedBox.shrink();
+
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: Colors.red.shade400,
+              child: const Row(
+                children: [
+                  Icon(Icons.wifi_off_rounded, color: Colors.white, size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: CommonText(
+                      'Socket not connected. Some messages might not be real-time.',
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+
           // Status banners
           Obx(() {
             final convo = controller.conversations.firstWhereOrNull(
