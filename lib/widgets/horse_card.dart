@@ -157,28 +157,38 @@ class HorseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   // Tags/Badges
-                  Row(
-                    children: [
-                      if (isRequested)
-                        _buildTag(
-                          'Requested',
-                          const Color(0xFFF9F5FF),
-                          const Color(0xFF7F56D9),
-                        )
-                      else ...[
-                        _buildTag(
-                          'For Sale',
-                          const Color(0xFF713B34),
-                          Colors.white,
-                        ),
-                        const SizedBox(width: 8),
-                        _buildTag(
-                          'Weekly Lease',
-                          const Color(0xFF713B34),
-                          Colors.white,
-                        ),
+                   SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        if (isRequested)
+                          _buildTag(
+                            'Requested',
+                            const Color(0xFFF9F5FF),
+                            const Color(0xFF7F56D9),
+                          )
+                        else
+                          ...horse.listingTypes
+                              .asMap()
+                              .entries
+                              .map(
+                                (entry) => Padding(
+                                  padding: EdgeInsets.only(
+                                    right: entry.key ==
+                                            horse.listingTypes.length - 1
+                                        ? 0
+                                        : 8,
+                                  ),
+                                  child: _buildTag(
+                                    entry.value,
+                                    const Color(0xFF713B34),
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              .toList(),
                       ],
-                    ],
+                    ),
                   ),
                 ],
               ),

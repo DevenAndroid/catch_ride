@@ -97,8 +97,41 @@ class BookingController extends GetxController {
         margin: const EdgeInsets.all(16),
       );
       return false;
-    } finally {
-      isLoading.value = false;
+      } finally {
+        isLoading.value = false;
+      }
     }
-  }
+
+    Future<bool> updateBookingStatus(String bookingId, String status) async {
+      try {
+        isLoading.value = true;
+        final response = await _apiService.putRequest(
+          '${AppUrls.bookings}/$bookingId',
+          {'status': status},
+        );
+
+        if (response.statusCode == 200) {
+          _logger.i('Booking status updated to $status');
+          Get.snackbar(
+            'Success',
+            'Booking ${status == 'confirmed' ? 'accepted' : 'declined'} successfully',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: const Color(0xFF17B26A),
+            colorText: Colors.white,
+          );
+          // Refresh both lists to move the booking to the correct section
+          fetchBookings(type: 'received');
+          fetchBookings(type: 'sent');
+          return true;
+        } else {
+          _logger.e('Failed to update booking status: ${response.statusText}');
+          return false;
+        }
+      } catch (e) {
+        _logger.e('Error updating booking status: $e');
+        return false;
+      } finally {
+        isLoading.value = false;
+      }
+    }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AppUrls {
   static String get host {
@@ -8,8 +9,23 @@ class AppUrls {
     return 'localhost';
   }
 
-  static String get baseUrl => 'http://$host:5000/api';
-  static String get socketUrl => 'http://$host:5000';
+  static bool isLive = false;
+
+  static String get baseUrl {
+    try {
+
+      if (isLive) return 'https://api.catchrideapp.com/api';
+    } catch (_) {}
+    return 'http://$host:5000/api';
+  }
+
+  static String get socketUrl {
+    try {
+
+      if (isLive) return 'https://api.catchrideapp.com';
+    } catch (_) {}
+    return 'http://$host:5000';
+  }
 
   // Auth
   static const String login = '/auth/login';
@@ -17,6 +33,7 @@ class AppUrls {
   static const String verifyEmail = '/auth/verify-email';
   static const String resendOtp = '/auth/resend-otp';
   static const String logout = '/auth/logout';
+  static const String googleLogin = '/auth/google';
   static const String verifyToken = '/auth/verify';
   static const String sessions = '/auth/my-sessions';
   static const String terminateSession = '/auth/sessions/'; // + token

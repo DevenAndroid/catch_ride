@@ -275,23 +275,29 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 color: Colors.white,
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  if (horse!.listingTypes.isNotEmpty)
-                    _buildOverlayBadge(
-                      horse!.listingTypes.first,
-                      const Color(0xFFFDE4E1),
-                      const Color(0xFFE11D48),
-                    ),
-                  if (horse!.listingTypes.length > 1) ...[
-                    const SizedBox(width: 8),
-                    _buildOverlayBadge(
-                      horse!.listingTypes[1],
-                      const Color(0xFFFDE4E1),
-                      const Color(0xFFE11D48),
-                    ),
-                  ],
-                ],
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: horse!.listingTypes
+                      .asMap()
+                      .entries
+                      .map(
+                        (entry) => Padding(
+                          padding: EdgeInsets.only(
+                            right:
+                                entry.key == horse!.listingTypes.length - 1
+                                    ? 0
+                                    : 8,
+                          ),
+                          child: _buildOverlayBadge(
+                            entry.value,
+                            const Color(0xFFFDE4E1),
+                            const Color(0xFFE11D48),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
               const SizedBox(height: 12),
               Row(
@@ -1548,23 +1554,29 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    if (horse!.listingTypes.isNotEmpty)
-                      _buildOverlayBadge(
-                        horse!.listingTypes.first,
-                        const Color(0xFFFDE4E1),
-                        const Color(0xFFE11D48),
-                      ),
-                    if (horse!.listingTypes.length > 1) ...[
-                      const SizedBox(width: 8),
-                      _buildOverlayBadge(
-                        horse!.listingTypes[1],
-                        const Color(0xFFFDE4E1),
-                        const Color(0xFFE11D48),
-                      ),
-                    ],
-                  ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: horse!.listingTypes
+                        .asMap()
+                        .entries
+                        .map(
+                          (entry) => Padding(
+                            padding: EdgeInsets.only(
+                              right:
+                                  entry.key == horse!.listingTypes.length - 1
+                                      ? 0
+                                      : 8,
+                            ),
+                            child: _buildOverlayBadge(
+                              entry.value,
+                              const Color(0xFFFDE4E1),
+                              const Color(0xFFE11D48),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
               ],
             ),

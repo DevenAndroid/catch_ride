@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/profile_controller.dart';
+import '../settings/trainer_profile_view.dart';
 
 class SingleChatView extends StatefulWidget {
   final String name;
@@ -70,71 +71,82 @@ class _SingleChatViewState extends State<SingleChatView> {
             Get.back();
           },
         ),
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundImage: widget.image.startsWith('http')
-                  ? NetworkImage(widget.image)
-                  : const NetworkImage('https://via.placeholder.com/150'),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CommonText(
-                    widget.name,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    maxLines: 1,
-                  ),
-                  Obx(() {
-                    final convo = controller.conversations.firstWhereOrNull(
-                      (c) => c.conversationId == widget.conversationId,
-                    );
-                    final other = convo?.otherUser;
-                    final me = Get.find<ProfileController>().user.value;
-
-                    if (other != null && me != null) {
-                      // Case 1: I am BM, other is my Boss
-                      if (me.role == 'barn_manager' &&
-                          other.id == me.trainerProfileId) {
-                        return const CommonText(
-                          '(Associated Trainer)',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF2E90FA),
-                        );
-                      }
-                      // Case 2: I am Trainer, other is my BM
-                      if (me.role == 'trainer' &&
-                          other.role == 'barn_manager' &&
-                          other.trainerId == me.trainerProfileId) {
-                        return const CommonText(
-                          '(Associated Barn Manager)',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF2E90FA),
-                        );
-                      }
-                    }
-
-                    if (widget.readOnly) {
-                      return const CommonText(
-                        'Read-only View',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.redAccent,
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
+        title: GestureDetector(
+          onTap: () {
+            final convo = controller.conversations.firstWhereOrNull(
+              (c) => c.conversationId == widget.conversationId,
+            );
+            final other = convo?.otherUser;
+            if (other != null && other.trainerId != null) {
+              Get.to(() => TrainerProfileView(trainerId: other.trainerId));
+            }
+          },
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: widget.image.startsWith('http')
+                    ? NetworkImage(widget.image)
+                    : const NetworkImage('https://via.placeholder.com/150'),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonText(
+                      widget.name,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      maxLines: 1,
+                    ),
+                    Obx(() {
+                      final convo = controller.conversations.firstWhereOrNull(
+                        (c) => c.conversationId == widget.conversationId,
+                      );
+                      final other = convo?.otherUser;
+                      final me = Get.find<ProfileController>().user.value;
+
+                      if (other != null && me != null) {
+                        // Case 1: I am BM, other is my Boss
+                        if (me.role == 'barn_manager' &&
+                            other.id == me.trainerProfileId) {
+                          return const CommonText(
+                            '(Associated Trainer)',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2E90FA),
+                          );
+                        }
+                        // Case 2: I am Trainer, other is my BM
+                        if (me.role == 'trainer' &&
+                            other.role == 'barn_manager' &&
+                            other.trainerId == me.trainerProfileId) {
+                          return const CommonText(
+                            '(Associated Barn Manager)',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2E90FA),
+                          );
+                        }
+                      }
+
+                      if (widget.readOnly) {
+                        return const CommonText(
+                          'Read-only View',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.redAccent,
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       body: Column(
@@ -377,11 +389,6 @@ class _SingleChatViewState extends State<SingleChatView> {
                     hintStyle: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 16,
-                    ),
-                    suffixIcon: Icon(
-                      Icons.attach_file_rounded,
-                      color: AppColors.textSecondary,
-                      size: 22,
                     ),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
