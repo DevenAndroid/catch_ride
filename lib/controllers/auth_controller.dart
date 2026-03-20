@@ -11,9 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart' as gsi;
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/user_model.dart';
 import '../services/socket_service.dart';
+import '../services/notification_service.dart';
 import '../controllers/profile_controller.dart';
 import '../view/barn_manager/barn_manager_application_submitted_view.dart';
 import '../view/barn_manager/barn_manager_create_profile_view.dart';
@@ -24,6 +27,8 @@ import '../view/trainer/trainer_profile_setup_view.dart';
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final box = GetStorage();
+  late final gsi.GoogleSignIn _googleSignIn;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -35,11 +40,13 @@ class AuthController extends GetxController {
   final RxString registrationPassword = ''.obs;
 
   final RxBool isLoading = false.obs;
+  final RxBool isLoggedIn = false.obs;
   final Rxn<UserModel> currentUser = Rxn<UserModel>();
 
   @override
   void onInit() {
     super.onInit();
+    _googleSignIn = gsi.GoogleSignIn();
     _loadUserFromStorage();
   }
 
@@ -52,7 +59,7 @@ class AuthController extends GetxController {
     // Minimal user object for initial load, can be refreshed by a profile API call
     if (email != null && role != null) {
       if (token != null) _apiService.setToken(token);
-
+      isLoggedIn.value = true;
       currentUser.value = UserModel(
         firstName: '',
         // We don't store first/last name in prefs currently
@@ -71,6 +78,13 @@ class AuthController extends GetxController {
         email,
         role,
       );
+      
+      // Update notification token if service is ready
+      if (Get.isRegistered<NotificationService>()) {
+        Get.find<NotificationService>().updateToken();
+      }
+    } else {
+      isLoggedIn.value = false;
     }
   }
 
@@ -208,6 +222,12 @@ class AuthController extends GetxController {
           user['role'],
         );
 
+        isLoggedIn.value = true;
+        // Update notification token if service is ready
+        if (Get.isRegistered<NotificationService>()) {
+          Get.find<NotificationService>().updateToken();
+        }
+
         _navigateBasedOnRole(
           role,
           isProfileCompleted,
@@ -278,6 +298,102 @@ class AuthController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ─── GOOGLE LOGIN ────────────────────────────────────────────────────────────
+  Future<void> signInWithGoogle() async {
+    try {
+      isLoading.value = true;
+      
+      // 1. Google Account Selection
+      final gsi.GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        isLoading.value = false;
+        return; // User canceled
+      }
+
+      // 2. Obtain Credentials
+      final gsi.GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // 3. Firebase Authentication
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser != null) {
+        // 4. Get ID Token for Backend Verification
+        final String? idToken = await firebaseUser.getIdToken();
+        
+        if (idToken == null) throw Exception("Failed to get ID Token");
+
+        // 5. Backend Verification
+        final response = await _apiService.postRequest(AppUrls.googleLogin, {
+          'idToken': idToken,
+        });
+
+        if (response.statusCode == 200) {
+          final responseData = response.body['data'];
+          final token = responseData['token'];
+          final user = responseData['user'];
+          final String role = user['role'] ?? 'user';
+          
+          final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
+          final bool isProfileSetup = user['isProfileSetup'] ?? false;
+          final bool isProfileApprove = user['isProfileApprove'] ?? false;
+
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', token);
+          await prefs.setString('role', role);
+          await prefs.setString('userEmail', user['email'] ?? '');
+          await prefs.setBool('isProfileCompleted', isProfileCompleted);
+          await prefs.setBool('isProfileSetup', isProfileSetup);
+          await prefs.setBool('isProfileApprove', isProfileApprove);
+          await prefs.setString('status', user['status'] ?? 'active');
+          box.write('userId', user['_id'] ?? user['id']);
+
+          currentUser.value = UserModel.fromJson(user);
+          _apiService.setToken(token);
+
+          // Socket Auth
+          Get.find<SocketService>().authenticate(
+            user['_id'] ?? user['id'],
+            user['email'] ?? '',
+            user['role'] ?? '',
+          );
+
+          isLoggedIn.value = true;
+          
+          if (Get.isRegistered<NotificationService>()) {
+            Get.find<NotificationService>().updateToken();
+          }
+
+          // If role is still 'user', force them to SelectRoleView
+          if (role == 'user') {
+            Get.offAll(() => const SelectRoleView());
+          } else {
+            _navigateBasedOnRole(
+              role,
+              isProfileCompleted,
+              isProfileSetup,
+              isProfileApprove,
+              user['status'] ?? 'active',
+              user['trainerId']?.toString(),
+            );
+          }
+        } else {
+          String message = response.body?['message'] ?? 'Google login failed';
+          Get.snackbar('Login Failed', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        }
+      }
+    } catch (e) {
+      debugPrint('Google Sign-In error: $e');
+      Get.snackbar('Error', 'Google login failed: ${e.toString()}', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -625,6 +741,7 @@ class AuthController extends GetxController {
 
       // Reset API state
       _apiService.clearToken();
+      isLoggedIn.value = false;
 
       // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());

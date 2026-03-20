@@ -8,10 +8,11 @@ import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_control
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
-import 'package:catch_ride/view/trainer/bookings/trainer_past_bookings_view.dart';
 import 'package:get/get.dart';
 
 import '../../../constant/app_constants.dart';
+import '../../../widgets/common_button.dart';
+
 
 class BarnManagerBookingsView extends StatefulWidget {
   const BarnManagerBookingsView({super.key});
@@ -432,6 +433,48 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                       ),
                     ],
                   ),
+                  // Accepted/Rejected By Info below the date
+                  if (booking.acceptedByName != null &&
+                      (booking.status == 'confirmed' ||
+                          booking.status == 'cancelled' ||
+                          booking.status == 'Accepted' ||
+                          booking.status == 'Rejected' ||
+                          booking.status == 'Declined'))
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6.0),
+                      child: CommonText(
+                        '${(booking.status == 'confirmed' || booking.status == 'Accepted') ? 'Accepted' : 'Rejected'} By: ${booking.acceptedByRole == 'trainer' ? 'Trainer' : 'Barn Manager'} (${booking.acceptedByName})',
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+
+                  // Accept/Decline Action Buttons for Pending Received Bookings
+                  if (booking.status.toLowerCase() == 'pending' && _tabController.index == 0) ... [
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: CommonButton(
+                            text: 'Decline',
+                            backgroundColor: Colors.white,
+                            textColor: AppColors.accentRed,
+                            onPressed: () => bookingController.updateBookingStatus(booking.id ?? '', 'cancelled'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: CommonButton(
+                            text: 'Accept',
+                            backgroundColor: AppColors.primary,
+                            textColor: Colors.white,
+                            onPressed: () => bookingController.updateBookingStatus(booking.id ?? '', 'confirmed'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),

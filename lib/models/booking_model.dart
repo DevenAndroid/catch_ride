@@ -19,6 +19,9 @@ class BookingModel {
   final String? horseImage;
   final String? location;
   final String? notes;
+  final String? acceptedById;
+  final String? acceptedByName;
+  final String? acceptedByRole;
   final List<String> tags;
 
   BookingModel({
@@ -41,6 +44,9 @@ class BookingModel {
     this.location,
     this.notes,
     this.tags = const [],
+    this.acceptedById,
+    this.acceptedByName,
+    this.acceptedByRole,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -63,6 +69,12 @@ class BookingModel {
       } else {
         displayDate = dateVal.toString();
       }
+    }
+
+    String? acceptedByN;
+    if (json['acceptedById'] is Map) {
+      final map = json['acceptedById'];
+      acceptedByN = "${map['firstName'] ?? ''} ${map['lastName'] ?? ''}".trim();
     }
 
     return BookingModel(
@@ -115,6 +127,9 @@ class BookingModel {
           : (json['horseId'] is Map ? json['horseId']['location'] : null),
       notes: json['notes'],
       tags: _parseTags(json['horseId']),
+      acceptedById: json['acceptedById'] is Map ? json['acceptedById']['_id'] : json['acceptedById'],
+      acceptedByName: acceptedByN,
+      acceptedByRole: json['acceptedByRole'],
     );
   }
 
@@ -157,6 +172,7 @@ class BookingModel {
       'horseImage': horseImage,
       'location': location,
       'notes': notes,
+      'tags': tags,
     };
   }
 }

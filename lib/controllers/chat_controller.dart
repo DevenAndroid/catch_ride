@@ -229,7 +229,26 @@ class ChatController extends GetxController {
 
   void _handleIncomingMessage(ChatMessage message) {
     if (message.conversationId == activeConversationId.value) {
-      currentMessages.add(message);
+      // 1. Check if ID already exists (common if we get double-emitted or if _handleSentConfirmation already replaced it)
+      bool exists = currentMessages.any((m) => m.id == message.id);
+
+      // 2. For the SENDER: check if we have a matching optimistic message (same content)
+      // that is still in "temp" status. Replace it to avoid flickering.
+      final String currentUserId = _authController.currentUser.value?.id ?? '';
+      if (!exists && message.senderId == currentUserId) {
+        final optimisticIndex = currentMessages.indexWhere(
+          (m) => m.id.startsWith('temp-') && m.content == message.content,
+        );
+        if (optimisticIndex != -1) {
+          currentMessages[optimisticIndex] = message;
+          exists = true;
+        }
+      }
+
+      if (!exists) {
+        currentMessages.add(message);
+      }
+
       _socketService.emit('message:read', {
         'conversationId': message.conversationId,
       });
@@ -249,9 +268,18 @@ class ChatController extends GetxController {
   }
 
   void _handleSentConfirmation(String tempId, ChatMessage message) {
+    // 1. Remove any other instances of this real ID that might have arrived before the confirmation
+    currentMessages.removeWhere((m) => m.id == message.id && m.id != tempId);
+
+    // 2. Find and replace the optimistic message
     final index = currentMessages.indexWhere((m) => m.id == tempId);
     if (index != -1) {
       currentMessages[index] = message;
+    } else {
+      // If the optimistic message is gone but we didn't find the real ID yet, add it
+      if (!currentMessages.any((m) => m.id == message.id)) {
+        currentMessages.add(message);
+      }
     }
     fetchConversations(); // Sync last message in sidebar
   }

@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "804782276759",
+    "project_id": "catch-ride95",
+    "storage_bucket": "catch-ride95.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804782276759:android:c3c90264b9b5a9dc5ae9d2",
+        "android_client_info": {
+          "package_name": "com.app.catchride"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "804782276759-8kmv3ccbp33rtph8lmo5bm8tiilevci7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.catchride",
+            "certificate_hash": "8580c28e14724336fa9a2042d25fea33ee5badb3"
+          }
+        },
+        {
+          "client_id": "804782276759-ngr7onn8cmdlrok2fvgjo8ciac6rog81.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCi1DoXvdJSa7Cv-Nj-4Jr0Vs3HBHXWYK0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "804782276759-ngr7onn8cmdlrok2fvgjo8ciac6rog81.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "804782276759-o5rar3l72b4sutke8n9qq9v84u21hvds.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.app.catchride"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
