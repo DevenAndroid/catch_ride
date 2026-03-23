@@ -100,73 +100,77 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                       ),
                     ),
 
-                    // Back Button
+                    // Header Buttons (Back and More/Edit)
                     Positioned(
-                      top: 50,
+                      top: MediaQuery.of(context).padding.top + 10,
                       left: 16,
-                      child: GestureDetector(
-                        onTap: () => Get.back(),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.chevron_left,
-                            size: 24,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    if (isOwnProfile)
-                      Positioned(
-                        top: 50,
-                        right: 16,
-                        child: PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              Get.to(() => const EditProfileView());
-                            }
-                          },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          icon: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.more_vert,
-                              size: 24,
-                              color: Colors.black,
-                            ),
-                          ),
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.edit_outlined,
-                                    size: 20,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                  SizedBox(width: 12),
-                                  CommonText(
-                                    'Edit Profile',
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ],
+                      right: 16,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Back Button
+                          GestureDetector(
+                            onTap: () => Get.back(),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.chevron_left,
+                                size: 24,
+                                color: Colors.black,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+
+                          // More Menu Button
+                          if (isOwnProfile)
+                            PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  Get.to(() => const EditProfileView());
+                                }
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.more_vert,
+                                  size: 24,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit_outlined,
+                                        size: 20,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                      SizedBox(width: 12),
+                                      CommonText(
+                                        'Edit Profile',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
+                    ),
 
                     // Profile Image Overlap
                     Positioned(

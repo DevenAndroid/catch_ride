@@ -183,13 +183,15 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       ),
                       const SizedBox(height: 20),
 
-                      SocialButton(
-                        text: AppStrings.continueWithGoogle,
-                        icon: SvgPicture.asset("assets/icons/google_icon.svg"),
-                        onPressed: () {
-                          // Google Sign In Action
-                          Get.to(() => const SelectRoleView());
-                        },
+                      Obx(
+                        () => SocialButton(
+                          text: AppStrings.continueWithGoogle,
+                          icon:
+                              SvgPicture.asset("assets/icons/google_icon.svg"),
+                          onPressed: _authController.isLoading.value
+                              ? () {}
+                              : () => _authController.signInWithGoogle(),
+                        ),
                       ),
                       const SizedBox(height: 12),
                       SocialButton(

@@ -120,6 +120,7 @@ class HorseCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   // Location
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         Icons.location_on_outlined,
@@ -127,7 +128,7 @@ class HorseCard extends StatelessWidget {
                         color: const Color(0xFF667085),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
+                      Flexible(
                         child: CommonText(
                           location,
                           fontSize: 14,
@@ -141,6 +142,7 @@ class HorseCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   // Dates
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         Icons.calendar_today_outlined,
@@ -148,10 +150,12 @@ class HorseCard extends StatelessWidget {
                         color: const Color(0xFF667085),
                       ),
                       const SizedBox(width: 8),
-                      CommonText(
-                        dates,
-                        fontSize: 14,
-                        color: const Color(0xFF667085),
+                      Flexible(
+                        child: CommonText(
+                          dates,
+                          fontSize: 14,
+                          color: const Color(0xFF667085),
+                        ),
                       ),
                     ],
                   ),

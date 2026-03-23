@@ -418,11 +418,13 @@ class _BarnManagerCreateProfileViewState
                       if (_profileImage != null) {
                         profileUrl = await _profileController.uploadRawFile(
                           _profileImage!.path,
+                          type: 'profile',
                         );
                       }
                       if (_bannerImage != null) {
                         bannerUrl = await _profileController.uploadRawFile(
                           _bannerImage!.path,
+                          type: 'profile',
                         );
                       }
 
