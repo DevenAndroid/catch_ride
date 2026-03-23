@@ -299,13 +299,18 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<String?> uploadRawFile(String filePath) async {
+  Future<String?> uploadRawFile(String filePath, {String? type}) async {
     try {
       final formData = FormData({
         'media': MultipartFile(filePath, filename: filePath.split('/').last),
       });
 
-      final response = await _apiService.postRequest(AppUrls.upload, formData);
+      String url = AppUrls.upload;
+      if (type != null) {
+        url += "?type=$type";
+      }
+
+      final response = await _apiService.postRequest(url, formData);
 
       if (response.statusCode == 200) {
         return response.body['data']['url'];
@@ -324,7 +329,7 @@ class ProfileController extends GetxController {
       isLoading.value = true;
 
       // 1. Upload to general media storage
-      final imageUrl = await uploadRawFile(filePath);
+      final imageUrl = await uploadRawFile(filePath, type: 'profile');
       if (imageUrl == null) return false;
 
       // 2. Link URL to profile

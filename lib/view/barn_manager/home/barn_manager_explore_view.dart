@@ -73,24 +73,6 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   final bool isVendors =
                       controller.selectedDiscipline.value == 'Services';
 
-                  if (isVendors && controller.vendors.isEmpty) {
-                    return CustomScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: CommonText(
-                              'No vendors available',
-                              fontSize: AppTextSizes.size16,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-
                   if (!isVendors && controller.horses.isEmpty) {
                     return CustomScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -110,13 +92,21 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   }
 
                   if (isVendors) {
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: controller.vendors.length,
-                      itemBuilder: (context, index) {
-                        final vendor = controller.vendors[index];
-                        return _buildVendorCard(vendor: vendor);
-                      },
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CommonText(
+                              'Services coming soon!',
+                              fontSize: AppTextSizes.size18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   }
 

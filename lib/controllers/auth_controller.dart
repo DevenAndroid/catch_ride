@@ -322,14 +322,15 @@ class AuthController extends GetxController {
         idToken: googleAuth.idToken,
       );
 
-      // 3. Firebase Authentication
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      // 3. Firebase Authentication (useful for Firebase-related services, keep it if needed)
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
       final User? firebaseUser = userCredential.user;
 
       if (firebaseUser != null) {
-        // 4. Get ID Token for Backend Verification
-        final String? idToken = await firebaseUser.getIdToken();
-        
+        // 4. Send the GOOGLE ID Token (from googleAuth) as your backend expects a Google token, not a Firebase token
+        final String? idToken = googleAuth.idToken;
+
         if (idToken == null) throw Exception("Failed to get ID Token");
 
         // 5. Backend Verification
@@ -391,9 +392,16 @@ class AuthController extends GetxController {
           Get.snackbar('Login Failed', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
         }
       }
-    } catch (e) {
-      debugPrint('Google Sign-In error: $e');
-      Get.snackbar('Error', 'Google login failed: ${e.toString()}', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+    } catch (e, stackTrace) {
+      debugPrint('❌ Google Sign-In error: $e');
+      debugPrint('Stacktrace: $stackTrace');
+      Get.snackbar(
+        'Error',
+        'Google login failed: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isLoading.value = false;
     }

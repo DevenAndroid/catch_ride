@@ -302,7 +302,10 @@ class AddNewListingController extends GetxController {
         ),
       });
 
-      final response = await _apiService.postRequest(AppUrls.upload, formData);
+      final response = await _apiService.postRequest(
+        "${AppUrls.upload}?type=horse",
+        formData,
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response.body['data']['url'];
       }
