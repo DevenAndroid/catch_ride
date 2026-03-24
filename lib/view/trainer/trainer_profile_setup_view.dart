@@ -329,7 +329,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                 CommonTextField(
                   controller: _refRelationControllers[index],
                   label: AppStrings.relationship,
-                  hintText: AppStrings.enterBusinessName, // As per image hint
+                  hintText: AppStrings.enterRelationshipName, // As per image hint
                 ),
                 if (index < 1) const SizedBox(height: 24),
               ],

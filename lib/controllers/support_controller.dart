@@ -195,13 +195,6 @@ class SupportController extends GetxController {
       );
 
       if (response.isOk) {
-        Get.snackbar(
-          'Success',
-          'Thank you for your feedback!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF17B26A),
-          colorText: Colors.white,
-        );
         return true;
       } else {
         String errorMsg = 'Failed to submit feedback';

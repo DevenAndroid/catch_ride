@@ -252,6 +252,14 @@ class _FeedbackViewState extends State<FeedbackView> {
 
                   if (success) {
                     Get.back();
+                    Get.snackbar(
+                      'Success',
+                      'Thank you for your feedback!',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: const Color(0xFF17B26A),
+                      colorText: Colors.white,
+                      duration: const Duration(seconds: 3),
+                    );
                   }
                 },
           child: Container(

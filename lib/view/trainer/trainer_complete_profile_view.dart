@@ -337,7 +337,7 @@ class _TrainerCompleteProfileViewState
         _buildTextField(
           'Barn Name',
           _barnNameController,
-          hint: 'Enter your business name',
+          hint: 'Enter your barn name',
           isRequired: true,
           validator: RequiredValidator(
             errorText: 'Please enter your barn name',
@@ -355,7 +355,7 @@ class _TrainerCompleteProfileViewState
         _buildTextField(
           'Location II',
           _location2Controller,
-          hint: 'Enter your business name',
+          hint: 'Enter barn location',
           suffix: '(optional)',
         ),
       ],
