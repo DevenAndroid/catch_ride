@@ -51,7 +51,7 @@ class ProfileInformationView extends StatelessWidget {
           ),
           child: Obx(() {
             // Format joined date
-            String joinedDate = '2025';
+            String joinedDate = profileController.joinedDate;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -376,6 +376,7 @@ class ProfileController extends GetxController {
   bool get pushNotificationsEnabled =>
       displayUser?.pushNotificationsEnabled ?? true;
   bool get isActive => status.toLowerCase() == 'active';
+  String get joinedDate => displayUser?.createdAt?.year.toString() ?? '2025';
 
   // Professional Data
   String get barnName => displayUser?.barnName ?? '';

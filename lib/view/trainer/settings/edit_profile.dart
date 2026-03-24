@@ -341,7 +341,7 @@ class _EditProfileViewState extends State<EditProfileView> {
         _buildTextField(
           'Barn Name',
           _barnNameController,
-          hint: 'Enter your business name',
+          hint: 'Enter your barn name',
           isRequired: true,
         ),
         const SizedBox(height: 20),
@@ -355,7 +355,7 @@ class _EditProfileViewState extends State<EditProfileView> {
         _buildTextField(
           'Location II',
           _location2Controller,
-          hint: 'Enter your business name',
+          hint: 'Enter barn location',
           suffix: '(optional)',
         ),
       ],

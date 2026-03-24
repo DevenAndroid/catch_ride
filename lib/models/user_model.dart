@@ -32,6 +32,7 @@ class UserModel {
   final BarnManager? linkedBarnManager;
   final TrainerLinkedModel? linkedTrainer;
   final String? yearsInIndustry;
+  final DateTime? createdAt;
 
   UserModel({
     this.id,
@@ -65,6 +66,7 @@ class UserModel {
     this.linkedBarnManager,
     this.linkedTrainer,
     this.yearsInIndustry,
+    this.createdAt,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -165,6 +167,7 @@ class UserModel {
       linkedTrainer: json['role'] == 'barn_manager' && json['trainerId'] is Map
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
     );
   }
 
@@ -200,6 +203,7 @@ class UserModel {
       if (linkedBarnManager != null)
         'linkedBarnManager': linkedBarnManager!.toJson(),
       if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
+      if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
   }
 }

@@ -44,6 +44,7 @@ class AppStrings {
   static const String email = 'Email';
   static const String emptyString = '******';
   static const String enterBusinessName = 'Enter business name';
+  static const String enterRelationshipName = 'Enter relationship name';
   static const String enterBarnLocation = 'Enter barn location';
   static const String enterPhoneNumber = 'Enter phone number';
   static const String enterYourBusinessName = 'Enter your business name';
@@ -100,7 +101,7 @@ class AppStrings {
   static const String phoneNumber = 'Phone Number';
   static const String pleaseFillInAllFields = 'Please fill in all fields';
   static const String pleaseProvideFourReferences =
-      'Please provide four professional references who can speak to your experience and reliability.';
+      'Please provide two professional references who can speak to your experience and reliability.';
   static const String professionalHorseTrainer = 'Professional Horse Trainer';
   static const String profilePhoto = 'Profile Photo';
   static const String profileSetup = 'Profile setup';
