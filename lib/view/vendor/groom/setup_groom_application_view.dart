@@ -1,0 +1,505 @@
+import 'dart:io';
+import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/vendor/groom/setup_groom_application_controller.dart';
+import 'package:catch_ride/widgets/common_button.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class SetupGroomApplicationView extends StatelessWidget {
+  const SetupGroomApplicationView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.put(SetupGroomApplicationController());
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const CommonText(
+          'Grooming Application',
+          fontSize: AppTextSizes.size22,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 18),
+          onPressed: () => Get.back(),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Form(
+          key: controller.formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommonTextField(
+                label: 'Full Name',
+                isRequired: true,
+                controller: controller.fullNameController,
+                hintText: 'Enter your full name',
+                validator: (value) {
+                   if (value == null || value.isEmpty) return "Please enter your full name";
+                   return null;
+                },
+              ),
+              const SizedBox(height: 24),
+
+              CommonTextField(
+                label: 'Why Join Our Community?',
+                controller: controller.joinCommunityController,
+                hintText: 'Tell us why you would like to join and what you bring to the network.',
+                maxLines: 4,
+              ),
+              const SizedBox(height: 24),
+
+              _buildGroupedSection(
+                'Home Base Location',
+                children: [
+                  CommonTextField(
+                    label: 'City',
+                    controller: controller.cityController,
+                    hintText: 'Select city',
+                  ),
+                  const SizedBox(height: 16),
+                  CommonTextField(
+                    label: 'State/Province',
+                    isRequired: true,
+                    controller: controller.stateProvinceController,
+                    hintText: 'Select state/province',
+                  ),
+                  const SizedBox(height: 16),
+                  CommonTextField(
+                    label: 'Country',
+                    isRequired: true,
+                    controller: controller.countryController,
+                    hintText: 'Select country',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Experience'),
+              Obx(() => _buildDropdown(
+                value: controller.experience.value,
+                options: controller.experienceOptions,
+                onChanged: (val) => controller.experience.value = val,
+                hint: 'Select years of experience',
+              )),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Disciplines'),
+              Obx(() => _buildChipsList(
+                options: controller.disciplineOptions,
+                selectedItems: controller.selectedDisciplines,
+                onSelected: (item, selected) {
+                  if (selected) {
+                    controller.selectedDisciplines.add(item);
+                  } else {
+                    controller.selectedDisciplines.remove(item);
+                  }
+                },
+              )),
+              Obx(() {
+                if (controller.selectedDisciplines.contains('Other')) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: CommonTextField(
+                      label: '', // No separate label needed for sub-field
+                      controller: controller.otherDisciplineController,
+                      hintText: 'Write here...',
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Typical Level of Horses'),
+              Obx(() => _buildChipsList(
+                options: controller.horseLevelOptions,
+                selectedItems: controller.selectedHorseLevels,
+                onSelected: (item, selected) {
+                  if (selected) {
+                    controller.selectedHorseLevels.add(item);
+                  } else {
+                    controller.selectedHorseLevels.remove(item);
+                  }
+                },
+              )),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Regions Covered'),
+              const CommonText(
+                'Select regions you are reasonably sure to maintain activity in for the current time.',
+                fontSize: AppTextSizes.size12,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 12),
+              Obx(() => _buildMultiSelectDropdown(
+                options: controller.regionOptions,
+                selectedItems: controller.selectedRegions,
+                hint: 'Select regions',
+                onToggle: (item) {
+                  if (controller.selectedRegions.contains(item)) {
+                    controller.selectedRegions.remove(item);
+                  } else {
+                    controller.selectedRegions.add(item);
+                  }
+                },
+              )),
+              const SizedBox(height: 24),
+
+              _buildGroupedSection(
+                'Social Media & Website',
+                description: 'Please include at least one profile for verification.',
+                children: [
+                   CommonTextField(
+                    label: 'Facebook',
+                    controller: controller.facebookController,
+                    hintText: 'facebook.com/yourpage',
+                    prefixIcon: const Icon(Icons.facebook, size: 20),
+                  ),
+                  const SizedBox(height: 16),
+                  CommonTextField(
+                    label: 'Instagram',
+                    controller: controller.instagramController,
+                    hintText: '@your.username',
+                    prefixIcon: const Icon(Icons.camera_alt_outlined, size: 20),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Add Photos'),
+              const CommonText(
+                'Upload photos that showcase your work and skills.',
+                fontSize: AppTextSizes.size12,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 12),
+              Obx(() => _buildPhotoGrid(controller)),
+              const SizedBox(height: 24),
+
+              _buildTrainerReferences(controller),
+              const SizedBox(height: 24),
+
+              _buildSectionHeader('Experience Highlights (optional)'),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: CommonTextField(
+                      label: '',
+                      controller: controller.highlightsController,
+                      hintText: 'Write here...',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12), // Align with textfield
+                    child: TextButton(
+                      onPressed: controller.addHighlight,
+                      child: const CommonText('Add New', color: AppColors.primary, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+              Obx(() => Wrap(
+                spacing: 8,
+                children: controller.highlightsList.map((h) => Chip(
+                  label: CommonText(h, fontSize: AppTextSizes.size12),
+                  onDeleted: () => controller.highlightsList.remove(h),
+                )).toList(),
+              )),
+              const SizedBox(height: 24),
+
+              _buildCheckboxes(controller),
+              const SizedBox(height: 32),
+
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: CommonButton(
+                  text: 'Submit Application',
+                  onPressed: controller.submitApplication,
+                  height: 56,
+                  backgroundColor: const Color(0xff050b33),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          CommonText(
+            title,
+            fontSize: AppTextSizes.size16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+          if (isRequired)
+            const CommonText(
+              ' *',
+              fontSize: AppTextSizes.size16,
+              color: Colors.red,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupedSection(String title, {String? description, required List<Widget> children}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(title),
+          if (description != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: CommonText(description, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+            ),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown({String? value, required List<String> options, required Function(String?) onChanged, required String hint}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          hint: CommonText(hint, color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
+          isExpanded: true,
+          items: options.map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChipsList({required List<String> options, required List<String> selectedItems, required Function(String, bool) onSelected}) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((opt) {
+        final isSelected = selectedItems.contains(opt);
+        return FilterChip(
+          label: CommonText(opt, color: isSelected ? Colors.white : AppColors.textPrimary, fontSize: AppTextSizes.size12),
+          selected: isSelected,
+          onSelected: (val) => onSelected(opt, val),
+          selectedColor: const Color(0xff050b33),
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight),
+          ),
+          showCheckmark: false,
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMultiSelectDropdown({required List<String> options, required List<String> selectedItems, required String hint, required Function(String) onToggle}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (selectedItems.isEmpty)
+            CommonText(hint, color: AppColors.textSecondary, fontSize: AppTextSizes.size14)
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: selectedItems.map((item) => Chip(
+                label: CommonText(item, fontSize: AppTextSizes.size12),
+                onDeleted: () => onToggle(item),
+                visualDensity: VisualDensity.compact,
+              )).toList(),
+            ),
+          const Divider(),
+          ...options.map((opt) => CheckboxListTile(
+            title: CommonText(opt, fontSize: AppTextSizes.size14),
+            value: selectedItems.contains(opt),
+            onChanged: (val) => onToggle(opt),
+            controlAffinity: ListTileControlAffinity.trailing,
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhotoGrid(SetupGroomApplicationController controller) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          ...controller.photos.asMap().entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(entry.value, width: 80, height: 80, fit: BoxFit.cover),
+                  ),
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: GestureDetector(
+                      onTap: () => controller.removeImage(entry.key),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        child: const Icon(Icons.close, size: 12, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          GestureDetector(
+            onTap: controller.pickImage,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.borderLight),
+                borderRadius: BorderRadius.circular(8),
+                color: AppColors.lightGray,
+              ),
+              child: const Icon(Icons.add, color: AppColors.textSecondary),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 80, 
+            height: 80, 
+            decoration: BoxDecoration(
+              color: AppColors.lightGray, 
+              borderRadius: BorderRadius.circular(8)
+            ), 
+            child: const Icon(Icons.add, color: Colors.grey)
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrainerReferences(SetupGroomApplicationController controller) {
+    return _buildGroupedSection(
+      'Professional References',
+      description: 'Please provide two professional references we may contact regarding your experience and reliability.',
+      children: [
+        _buildTrainerReferenceInputs(controller, 1),
+        const SizedBox(height: 24),
+        _buildTrainerReferenceInputs(controller, 2),
+      ],
+    );
+  }
+
+  Widget _buildTrainerReferenceInputs(SetupGroomApplicationController controller, int number) {
+    final nameCtrl = number == 1 ? controller.ref1FullNameController : controller.ref2FullNameController;
+    final busCtrl = number == 1 ? controller.ref1BusinessNameController : controller.ref2BusinessNameController;
+    final relCtrl = number == 1 ? controller.ref1RelationshipController : controller.ref2RelationshipController;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText('Trainer Reference $number', color: AppColors.accentRed, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
+        const SizedBox(height: 12),
+        CommonTextField(
+           label: 'Full Name',
+           controller: nameCtrl, 
+           hintText: 'Enter full name'
+        ),
+        const SizedBox(height: 16),
+        CommonTextField(
+           label: 'Business Name',
+           controller: busCtrl, 
+           hintText: 'Enter business name'
+        ),
+        const SizedBox(height: 16),
+        CommonTextField(
+           label: 'Relationship',
+           controller: relCtrl, 
+           hintText: 'Enter business name' // Placeholder matching screenshot precisely
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCheckboxes(SetupGroomApplicationController controller) {
+    return Column(
+      children: [
+        Obx(() => _buildCheckboxTile(
+          'I confirm that I am at least 18 years of age.',
+          controller.is18OrOlder.value,
+          (val) => controller.is18OrOlder.value = val!,
+        )),
+        Obx(() => _buildCheckboxTile(
+          'I agree to the Terms of Service and Privacy Policy.',
+          controller.agreeToTerms.value,
+          (val) => controller.agreeToTerms.value = val!,
+        )),
+        Obx(() => _buildCheckboxTile(
+          'I understand that my professional references may be contacted regarding my history, competence, and reliability.',
+          controller.confirmReferences.value,
+          (val) => controller.confirmReferences.value = val!,
+        )),
+      ],
+    );
+  }
+
+  Widget _buildCheckboxTile(String title, bool value, Function(bool?) onChanged) {
+    return CheckboxListTile(
+      value: value,
+      onChanged: onChanged,
+      title: CommonText(title, fontSize: AppTextSizes.size12),
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      activeColor: AppColors.primary,
+    );
+  }
+}
