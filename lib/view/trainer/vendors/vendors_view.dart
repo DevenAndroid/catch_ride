@@ -28,42 +28,42 @@ class _VendorsViewState extends State<VendorsView> {
       'services': 'Shipping, Braider',
       'exp': 'Exp: 8 Years',
       'rating': '4.8',
-      'image': AppConstants.dummyImageUrl,
+      'image': null,
     },
     {
       'name': 'Candice David',
       'services': 'Shipping, Braider',
       'exp': 'Exp: 8 Years',
       'rating': '4.8',
-      'image': AppConstants.dummyImageUrl,
+      'image': null,
     },
     {
       'name': 'Jamie Hook',
       'services': 'Shipping, Braider',
       'exp': 'Exp: 8 Years',
       'rating': '4.8',
-      'image': AppConstants.dummyImageUrl,
+      'image': null,
     },
     {
       'name': 'Ria Gabrial',
       'services': 'Shipping, Braider',
       'exp': 'Exp: 8 Years',
       'rating': '4.8',
-      'image': AppConstants.dummyImageUrl,
+      'image': null,
     },
     {
       'name': 'Jamie Hook',
       'services': 'Shipping, Braider',
       'exp': 'Exp: 8 Years',
       'rating': '4.8',
-      'image': AppConstants.dummyImageUrl,
+      'image': null,
     },
     {
       'name': 'Ria Gabrial',
       'services': 'Shipping, Braider',
       'exp': 'Exp: 8 Years',
       'rating': '4.8',
-      'image': AppConstants.dummyImageUrl,
+      'image': null,
     },
   ];
 
@@ -210,7 +210,9 @@ class _VendorsViewState extends State<VendorsView> {
                   height: 80,
                   width: 80,
                   shape: BoxShape.circle,
+                  isUserImage: true,
                 ),
+
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

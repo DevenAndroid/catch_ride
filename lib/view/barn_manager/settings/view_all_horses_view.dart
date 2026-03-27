@@ -164,7 +164,8 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   timePosted: '16 days ago',
                   mainImageUrl: horse.images.isNotEmpty
                       ? horse.images.first
-                      : AppConstants.dummyImageUrl,
+                      : '',
+
                   imageCount: '1 / ${horse.images.length}',
                   tags: horse.listingTypes,
                   postTitle: horse.listingTitle ?? horse.name,
@@ -253,11 +254,13 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   CommonImageView(
                     url: (userAvatar != null && userAvatar.isNotEmpty)
                         ? userAvatar
-                        : AppConstants.dummyImageUrl,
+                        : '',
                     height: 44,
                     width: 44,
                     shape: BoxShape.circle,
+                    isUserImage: true,
                   ),
+
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

@@ -267,13 +267,13 @@ class SettingsView extends StatelessWidget {
               ),
             ),
             child: CommonImageView(
-              url: controller.avatar.isNotEmpty
-                  ? controller.avatar
-                  : AppConstants.dummyImageUrl,
+              url: controller.avatar,
               height: 90,
               width: 90,
               shape: BoxShape.circle,
+              isUserImage: true,
             ),
+
           ),
           const SizedBox(height: 16),
           CommonText(

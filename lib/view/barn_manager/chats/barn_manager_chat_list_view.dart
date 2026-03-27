@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../constant/app_constants.dart';
 import '../../../controllers/profile_controller.dart';
+import '../../../widgets/common_image_view.dart';
 
 class BarnManagerInboxView extends StatefulWidget {
   const BarnManagerInboxView({super.key});
@@ -213,20 +214,14 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
+                CommonImageView(
+                  url: convo.otherUser?.avatar,
                   width: 56,
                   height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(
-                        convo.otherUser?.avatar ?? AppConstants.dummyImageUrl,
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                    color: const Color(0xFFF2F4F7),
-                  ),
+                  shape: BoxShape.circle,
+                  isUserImage: true,
                 ),
+
                 if (convo.unread > 0)
                   Positioned(
                     right: 0,

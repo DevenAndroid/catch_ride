@@ -365,11 +365,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       child: Row(
         children: [
           CommonImageView(
-            url: horse!.trainerAvatar ?? AppConstants.dummyImageUrl,
+            url: horse!.trainerAvatar,
             height: 48,
             width: 48,
             shape: BoxShape.circle,
+            isUserImage: true,
           ),
+
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -520,11 +522,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CommonImageView(
-                      url: horse!.bookedByAvatar ?? AppConstants.dummyImageUrl,
+                      url: horse!.bookedByAvatar,
                       height: 50,
                       width: 50,
                       shape: BoxShape.circle,
+                      isUserImage: true,
                     ),
+
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -602,11 +606,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           Row(
             children: [
               const CommonImageView(
-                url: AppConstants.dummyImageUrl,
+                url: null,
                 height: 44,
                 width: 44,
                 shape: BoxShape.circle,
+                isUserImage: true,
               ),
+
               const SizedBox(width: 12),
               Expanded(
                 child: GestureDetector(
@@ -643,11 +649,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       child: Row(
         children: [
           CommonImageView(
-            url: horse!.trainerAvatar ?? AppConstants.dummyImageUrl,
+            url: horse!.trainerAvatar,
             height: 44,
             width: 44,
             shape: BoxShape.circle,
+            isUserImage: true,
           ),
+
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -679,10 +687,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     if (totalItems == 0) {
       return const CommonImageView(
-        url: AppConstants.dummyImageUrl,
+        url: null,
         height: 240,
         width: double.infinity,
       );
+
     }
 
     return Stack(
@@ -1440,7 +1449,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final hasImages = horse != null && horse!.images.isNotEmpty;
     final photoUrl =
         horse?.photo ??
-        (hasImages ? horse!.images.first : AppConstants.dummyImageUrl);
+        (hasImages ? horse!.images.first : '');
+
 
     // Extract dynamic venue and dates
     String venueText = 'Venue - N/A';

@@ -316,8 +316,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   fit: StackFit.expand,
                   children: [
                     CommonImageView(
-                      url: booking.horseImage ?? AppConstants.dummyImageUrl,
+                      url: booking.horseImage,
                     ),
+
                     Positioned(
                       top: 8,
                       left: 8,

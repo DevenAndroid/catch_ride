@@ -285,20 +285,14 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
+                CommonImageView(
+                  url: convo.otherUser?.avatar,
                   width: 56,
                   height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(
-                        convo.otherUser?.avatar ?? AppConstants.dummyImageUrl,
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                    color: const Color(0xFFF2F4F7),
-                  ),
+                  shape: BoxShape.circle,
+                  isUserImage: true,
                 ),
+
                 if (convo.unread > 0)
                   Positioned(
                     right: 0,

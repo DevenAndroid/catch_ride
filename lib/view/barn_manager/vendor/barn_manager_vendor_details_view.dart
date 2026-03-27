@@ -75,7 +75,7 @@ class _BarnManagerVendorDetailsViewState
       clipBehavior: Clip.none,
       children: [
         CommonImageView(
-          url: widget.vendor.coverImage ?? AppConstants.dummyImageUrl,
+          url: widget.vendor.coverImage,
           width: double.infinity,
           height: 240,
           fit: BoxFit.cover,
@@ -109,11 +109,13 @@ class _BarnManagerVendorDetailsViewState
               shape: BoxShape.circle,
             ),
             child: CommonImageView(
-              url: widget.vendor.profilePhoto ?? AppConstants.dummyImageUrl,
+              url: widget.vendor.profilePhoto,
               width: 100,
               height: 100,
               shape: BoxShape.circle,
+              isUserImage: true,
             ),
+
           ),
         ),
       ],
@@ -611,13 +613,13 @@ class _BarnManagerVendorDetailsViewState
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: CommonImageView(
-                            url:
-                                widget.vendor.profilePhoto ??
-                                AppConstants.dummyImageUrl,
+                            url: widget.vendor.profilePhoto,
                             width: 80,
                             height: 80,
                             fit: BoxFit.cover,
+                            isUserImage: true,
                           ),
+
                         ),
                         const SizedBox(width: 16),
                         Expanded(
