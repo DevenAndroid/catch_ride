@@ -6,6 +6,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:flutter/material.dart';
 
+import 'common_image_view.dart';
+
 class HorseCard extends StatelessWidget {
   final HorseModel horse;
   final VoidCallback onTap;
@@ -63,13 +65,14 @@ class HorseCard extends StatelessWidget {
             // Image
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: CachedNetworkImage(
-                imageUrl: horse.photo ?? AppConstants.dummyImageUrl,
+              child: CommonImageView(
+                url: horse.photo,
                 width: 100,
-                // height: 100,
+                height: 100,
                 fit: BoxFit.cover,
               ),
             ),
+
             const SizedBox(width: 12),
             // Details
             Expanded(

@@ -320,8 +320,9 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   fit: StackFit.expand,
                   children: [
                     CommonImageView(
-                      url: booking.horseImage ?? AppConstants.dummyImageUrl,
+                      url: booking.horseImage,
                     ),
+
                     Positioned(
                       top: 8,
                       left: 8,

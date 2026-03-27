@@ -16,6 +16,7 @@ import 'package:catch_ride/widgets/horse_card.dart';
 import '../../../../controllers/barn_manager/barn_manager_booking_controller.dart';
 import '../../../models/horse_model.dart';
 import '../../../models/vendor_model.dart';
+import '../../../widgets/common_image_view.dart';
 
 class BarnManagerExploreView extends StatefulWidget {
   const BarnManagerExploreView({super.key});
@@ -330,13 +331,15 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
             // Square Image with rounded corners
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: CachedNetworkImage(
-                imageUrl: vendor.profilePhoto ?? AppConstants.dummyImageUrl,
+              child: CommonImageView(
+                url: vendor.profilePhoto,
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
+                isUserImage: true,
               ),
             ),
+
             const SizedBox(width: 16),
             // Details
             Expanded(
@@ -439,25 +442,13 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
-                imageUrl: horse.images.isNotEmpty
+              CommonImageView(
+                url: horse.images.isNotEmpty
                     ? horse.images[0]
-                    : (horse.photo ?? AppConstants.dummyImageUrl),
+                    : (horse.photo ?? ''),
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[100],
-                  child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[100],
-                  child: const Icon(
-                    Icons.image_not_supported_outlined,
-                    color: Colors.grey,
-                  ),
-                ),
               ),
+
               Positioned(
                 bottom: 0,
                 left: 0,

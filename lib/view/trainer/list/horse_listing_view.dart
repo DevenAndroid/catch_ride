@@ -273,7 +273,7 @@ class _HorseListingViewState extends State<HorseListingView> {
     final String userName = user?.fullName ?? 'N/A';
     final String? userAvatar = user?.displayAvatar;
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
-    final String mainImageUrl = horse.photo ?? AppConstants.dummyImageUrl;
+    final String? mainImageUrl = horse.photo;
     final String imageCount = horse.images.isNotEmpty
         ? "1 / ${horse.images.length}"
         : "1 / 1";
@@ -314,8 +314,9 @@ class _HorseListingViewState extends State<HorseListingView> {
                   height: 40,
                   width: 40,
                   shape: BoxShape.circle,
-                  fallbackIcon: Icons.person,
+                  isUserImage: true,
                 ),
+
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

@@ -80,8 +80,8 @@ class BarnManagerRequestCard extends StatelessWidget {
     final ChatController controller = Get.find<ChatController>();
     final String name = request.otherUser?.name ?? 'Unknown';
     final String role = request.otherUser?.role ?? 'User';
-    final String avatar =
-        request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
+    final String avatar = request.otherUser?.avatar ?? '';
+
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -106,7 +106,9 @@ class BarnManagerRequestCard extends StatelessWidget {
                   width: 48,
                   shape: BoxShape.circle,
                   fallbackIcon: Icons.person,
+                  isUserImage: true,
                 ),
+
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -155,9 +157,8 @@ class BarnManagerRequestCard extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: CommonImageView(
-                        url:
-                            request.booking?.horseImage ??
-                            AppConstants.dummyImageUrl,
+                        url: request.booking?.horseImage,
+
                         height: 90,
                         width: 90,
                         fit: BoxFit.cover,

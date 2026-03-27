@@ -365,11 +365,13 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
       child: Row(
         children: [
           CommonImageView(
-            url: horse!.trainerAvatar ?? AppConstants.dummyImageUrl,
+            url: horse!.trainerAvatar,
             height: 48,
             width: 48,
             shape: BoxShape.circle,
+            isUserImage: true,
           ),
+
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
@@ -738,10 +740,11 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
 
     if (totalItems == 0) {
       return const CommonImageView(
-        url: AppConstants.dummyImageUrl,
+        url: null,
         height: 240,
         width: double.infinity,
       );
+
     }
 
     return Stack(
@@ -1127,7 +1130,8 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
     final hasImages = horse != null && horse!.images.isNotEmpty;
     final photoUrl =
         horse?.photo ??
-        (hasImages ? horse!.images.first : AppConstants.dummyImageUrl);
+        (hasImages ? horse!.images.first : '');
+
 
     // Extract dynamic venue and dates
     String venueText = 'Venue - N/A';

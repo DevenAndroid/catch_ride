@@ -15,6 +15,7 @@ class CommonImageView extends StatelessWidget {
   final IconData? fallbackIcon;
   final File? file;
   final String? assetPath;
+  final bool isUserImage;
 
   const CommonImageView({
     super.key,
@@ -27,6 +28,7 @@ class CommonImageView extends StatelessWidget {
     this.fallbackIcon,
     this.file,
     this.assetPath,
+    this.isUserImage = false,
   });
 
   String _getProcessedUrl(String url) {
@@ -70,13 +72,11 @@ class CommonImageView extends StatelessWidget {
       );
     }
 
-    if ((url == null || url!.isEmpty) && fallbackIcon != null) {
+    if (url == null || url!.isEmpty) {
       return _buildPlaceholder();
     }
 
-    final imageUrl = (url != null && url!.isNotEmpty)
-        ? _getProcessedUrl(url!)
-        : AppConstants.dummyImageUrl;
+    final imageUrl = _getProcessedUrl(url!);
 
     return Container(
       height: height,
@@ -121,13 +121,13 @@ class CommonImageView extends StatelessWidget {
             ? null
             : BorderRadius.circular(radius),
       ),
-      child: Center(
-        child: Icon(
-          fallbackIcon ?? Icons.broken_image_outlined,
-          color: AppColors.textSecondary,
-          size: height != null ? height! * 0.5 : 24,
-        ),
+      child: Image.asset(
+        isUserImage ? AppConstants.userPlaceholder : AppConstants.horsePlaceholder,
+        height: height,
+        width: width,
+        fit: fit,
       ),
     );
   }
 }
+

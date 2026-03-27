@@ -132,8 +132,9 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> {
               height: 90,
               width: 90,
               child: CommonImageView(
-                url: booking.horseImage ?? AppConstants.dummyImageUrl,
+                url: booking.horseImage,
               ),
+
             ),
           ),
           const SizedBox(width: 16),

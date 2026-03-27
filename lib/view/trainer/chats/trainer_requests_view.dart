@@ -75,8 +75,7 @@ class RequestCard extends StatelessWidget {
     final ChatController controller = Get.find<ChatController>();
     final String name = request.otherUser?.name ?? 'Unknown';
     final String role = request.otherUser?.role ?? 'User';
-    final String avatar =
-        request.otherUser?.avatar ?? AppConstants.dummyImageUrl;
+    final String? avatar = request.otherUser?.avatar;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -108,8 +107,9 @@ class RequestCard extends StatelessWidget {
                   height: 40,
                   width: 40,
                   shape: BoxShape.circle,
-                  fallbackIcon: Icons.person,
+                  isUserImage: true,
                 ),
+
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -156,15 +156,13 @@ class RequestCard extends StatelessWidget {
                   Stack(
                     children: [
                       CommonImageView(
-                        url:
-                            request.booking?.horseImage ??
-                            AppConstants.dummyImageUrl,
+                        url: request.booking?.horseImage,
                         height: 80,
                         width: 80,
                         radius: 8,
                         fit: BoxFit.cover,
-                        fallbackIcon: Icons.image,
                       ),
+
                       if (request.booking?.type != null)
                         Positioned(
                           top: 4,

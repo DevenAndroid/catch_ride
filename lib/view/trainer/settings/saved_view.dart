@@ -42,7 +42,7 @@ class SavedView extends StatelessWidget {
           _buildSavedPostCard(
             userName: 'Arya Stark',
             userTitle: 'Professional Horse Trainer',
-            mainImageUrl: AppConstants.dummyImageUrl,
+            mainImageUrl: '',
             imageCount: '1 / 12',
             tags: ['For sale', 'Weekly Lease'],
             postTitle: 'Speedy mare - Dressage Star',
@@ -54,7 +54,7 @@ class SavedView extends StatelessWidget {
           _buildSavedPostCard(
             userName: 'Arya Stark',
             userTitle: 'Professional Horse Trainer',
-            mainImageUrl: AppConstants.dummyImageUrl,
+            mainImageUrl: '',
             imageCount: '1 / 12',
             tags: ['For sale', 'Weekly Lease'],
             postTitle: 'Speedy mare - Dressage Star',
@@ -95,11 +95,13 @@ class SavedView extends StatelessWidget {
               child: Row(
                 children: [
                   const CommonImageView(
-                    url: AppConstants.dummyImageUrl,
+                    url: null,
                     height: 40,
                     width: 40,
                     shape: BoxShape.circle,
+                    isUserImage: true,
                   ),
+
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
