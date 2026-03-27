@@ -1,7 +1,7 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/support_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/view/support/support_tickets_view.dart';
+import 'package:catch_ride/view/trainer/settings/support_tickets_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
