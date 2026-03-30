@@ -5,6 +5,8 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
+import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
 
 class VendorSelectServicesView extends StatefulWidget {
   const VendorSelectServicesView({super.key});
@@ -104,8 +106,30 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
                 onPressed: _selectedServices.isEmpty
                     ? null
                     : () {
-                        // Using Get.put() as per .cursorrules for retrieval
-                        Get.put(AuthController()).navigateAfterRoleSet();
+                        // All selected services in original order
+                        final selected = _services
+                            .where((s) => _selectedServices.contains(s))
+                            .toList();
+
+                        if (selected.isNotEmpty) {
+                          final firstService = selected.first;
+                          final remaining = selected.skip(1).toList();
+
+                          if (firstService == 'Grooming') {
+                            Get.to(
+                              () => const SetupGroomApplicationView(),
+                              arguments: {'remainingServices': remaining},
+                            );
+                          } else if (firstService == 'Braiding') {
+                            Get.to(
+                              () => const BraidingApplicationView(),
+                              arguments: {'remainingServices': remaining},
+                            );
+                          } else {
+                            // Default fallback
+                            Get.put(AuthController()).navigateAfterRoleSet();
+                          }
+                        }
                       },
                 backgroundColor: AppColors.primary,
                 borderRadius: 12,

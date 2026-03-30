@@ -13,6 +13,7 @@ class CommonButton extends StatelessWidget {
   final double? borderRadius;
   final Color? backgroundColor;
   final Color? textColor;
+  final Color? borderColor;
   final Widget? child;
 
   const CommonButton({
@@ -25,6 +26,7 @@ class CommonButton extends StatelessWidget {
     this.borderRadius,
     this.backgroundColor,
     this.textColor,
+    this.borderColor,
     this.child,
   });
 
@@ -41,6 +43,7 @@ class CommonButton extends StatelessWidget {
               ? (backgroundColor ?? AppColors.primary).withValues(alpha: 0.7)
               : (backgroundColor ?? AppColors.primary),
           borderRadius: BorderRadius.circular(borderRadius ?? 12),
+          border: borderColor != null ? Border.all(color: borderColor!) : null,
         ),
         alignment: Alignment.center,
         child: isLoading

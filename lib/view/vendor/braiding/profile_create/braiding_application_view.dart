@@ -1,25 +1,25 @@
 import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-import 'package:catch_ride/controllers/vendor/groom/setup_groom_application_controller.dart';
+import 'package:catch_ride/controllers/vendor/braiding/braiding_application_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SetupGroomApplicationView extends StatelessWidget {
-  const SetupGroomApplicationView({super.key});
+class BraidingApplicationView extends StatelessWidget {
+  const BraidingApplicationView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(SetupGroomApplicationController());
+    final controller = Get.put(BraidingApplicationController());
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const CommonText(
-          'Grooming Application',
+          'Braiding Application',
           fontSize: AppTextSizes.size22,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -85,15 +85,20 @@ class SetupGroomApplicationView extends StatelessWidget {
               const SizedBox(height: 24),
 
               _buildSectionHeader('Experience'),
-              Obx(() => _buildDropdown(
-                value: controller.experience.value,
-                options: controller.experienceOptions,
-                onChanged: (val) => controller.experience.value = val,
-                hint: 'Select years of experience',
-              )),
+              Obx(() => _buildExperienceTrigger(
+                    value: controller.experience.value,
+                    hint: 'Select years of experience',
+                    onTap: () => _showExperienceBottomSheet(
+                      context: context,
+                      title: 'Experience',
+                      currentValue: controller.experience.value,
+                      options: controller.experienceOptions,
+                      onSelected: (val) => controller.experience.value = val,
+                    ),
+                  )),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Disciplines'),
+              _buildSectionHeader('Specific Braiding Services'),
               Obx(() => _buildChipsList(
                 options: controller.disciplineOptions,
                 selectedItems: controller.selectedDisciplines,
@@ -176,9 +181,9 @@ class SetupGroomApplicationView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Add Photos'),
+              _buildSectionHeader('Photos of your Work'),
               const CommonText(
-                'Upload photos that showcase your work and skills.',
+                'Upload photos that showcase your braiding skills.',
                 fontSize: AppTextSizes.size12,
                 color: AppColors.textSecondary,
               ),
@@ -189,34 +194,52 @@ class SetupGroomApplicationView extends StatelessWidget {
               _buildTrainerReferences(controller),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Experience Highlights (optional)'),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              _buildGroupedSection(
+                'Experience Highlights (optional)',
                 children: [
-                  Expanded(
-                    child: CommonTextField(
-                      label: '',
-                      controller: controller.highlightsController,
-                      hintText: 'Write here...',
+                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: CommonTextField(
+                          label: '',
+                          controller: controller.highlightsController,
+                          hintText: 'Write here...',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: controller.addHighlight,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add, color: AppColors.primary, size: 18),
+                          SizedBox(width: 4),
+                          CommonText(
+                            'Add More',
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: AppTextSizes.size14,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12), // Align with textfield
-                    child: TextButton(
-                      onPressed: controller.addHighlight,
-                      child: const CommonText('Add New', color: AppColors.primary, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+                  Obx(() => Wrap(
+                        spacing: 8,
+                        children: controller.highlightsList
+                            .map((h) => Chip(
+                                  label: CommonText(h, fontSize: AppTextSizes.size12),
+                                  onDeleted: () => controller.highlightsList.remove(h),
+                                ))
+                            .toList(),
+                      )),
                 ],
               ),
-              Obx(() => Wrap(
-                spacing: 8,
-                children: controller.highlightsList.map((h) => Chip(
-                  label: CommonText(h, fontSize: AppTextSizes.size12),
-                  onDeleted: () => controller.highlightsList.remove(h),
-                )).toList(),
-              )),
               const SizedBox(height: 24),
 
               _buildCheckboxes(controller),
@@ -228,7 +251,7 @@ class SetupGroomApplicationView extends StatelessWidget {
                   text: 'Submit Application',
                   onPressed: controller.submitApplication,
                   height: 56,
-                  backgroundColor: const Color(0xff050b33),
+                  backgroundColor: AppColors.primaryDark,
                 ),
               ),
             ],
@@ -295,6 +318,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight),
       ),
@@ -310,6 +334,118 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
+  Widget _buildExperienceTrigger({String? value, required String hint, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: CommonText(
+                value ?? hint,
+                fontSize: AppTextSizes.size14,
+                color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.textSecondary,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showExperienceBottomSheet({
+    required BuildContext context,
+    required String title,
+    String? currentValue,
+    required List<String> options,
+    required Function(String) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.5,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: CommonText(
+                    title,
+                    fontSize: AppTextSizes.size18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final item = options[index];
+                      final isSelected = item == currentValue;
+                      return InkWell(
+                        onTap: () {
+                          onSelected(item);
+                          Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
+                          child: Center(
+                            child: CommonText(
+                              item,
+                              fontSize: AppTextSizes.size16,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildChipsList({required List<String> options, required List<String> selectedItems, required Function(String, bool) onSelected}) {
     return Wrap(
       spacing: 8,
@@ -320,7 +456,7 @@ class SetupGroomApplicationView extends StatelessWidget {
           label: CommonText(opt, color: isSelected ? Colors.white : AppColors.textPrimary, fontSize: AppTextSizes.size12),
           selected: isSelected,
           onSelected: (val) => onSelected(opt, val),
-          selectedColor: const Color(0xff050b33),
+          selectedColor: AppColors.primaryDark,
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
@@ -368,7 +504,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildPhotoGrid(SetupGroomApplicationController controller) {
+  Widget _buildPhotoGrid(BraidingApplicationController controller) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -426,7 +562,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildTrainerReferences(SetupGroomApplicationController controller) {
+  Widget _buildTrainerReferences(BraidingApplicationController controller) {
     return _buildGroupedSection(
       'Professional References',
       description: 'Please provide two professional references we may contact regarding your experience and reliability.',
@@ -438,7 +574,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildTrainerReferenceInputs(SetupGroomApplicationController controller, int number) {
+  Widget _buildTrainerReferenceInputs(BraidingApplicationController controller, int number) {
     final nameCtrl = number == 1 ? controller.ref1FullNameController : controller.ref2FullNameController;
     final busCtrl = number == 1 ? controller.ref1BusinessNameController : controller.ref2BusinessNameController;
     final relCtrl = number == 1 ? controller.ref1RelationshipController : controller.ref2RelationshipController;
@@ -463,13 +599,13 @@ class SetupGroomApplicationView extends StatelessWidget {
         CommonTextField(
            label: 'Relationship',
            controller: relCtrl, 
-           hintText: 'Enter business name' // Placeholder matching screenshot precisely
+           hintText: 'Enter business name' 
         ),
       ],
     );
   }
 
-  Widget _buildCheckboxes(SetupGroomApplicationController controller) {
+  Widget _buildCheckboxes(BraidingApplicationController controller) {
     return Column(
       children: [
         Obx(() => _buildCheckboxTile(
