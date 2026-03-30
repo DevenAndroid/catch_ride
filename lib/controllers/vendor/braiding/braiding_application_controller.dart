@@ -1,12 +1,11 @@
 import 'dart:io';
 import 'package:catch_ride/controllers/auth_controller.dart';
-import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-class SetupGroomApplicationController extends GetxController {
+class BraidingApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   // Form Fields
@@ -22,13 +21,14 @@ class SetupGroomApplicationController extends GetxController {
   final experience = RxnString();
   final List<String> experienceOptions = List.generate(51, (index) => index.toString());
 
-  // Disciplines
+  // Disciplines (specific for braiding)
   final selectedDisciplines = <String>[].obs;
   final otherDisciplineController = TextEditingController();
   final List<String> disciplineOptions = [
-    'Grooming',
-    'Hunter Jumper',
-    'Dressage',
+    'Manes Only',
+    'Tails Only',
+    'Full Braid',
+    'Show Prep',
     'Other',
   ];
 
@@ -36,7 +36,7 @@ class SetupGroomApplicationController extends GetxController {
   final selectedHorseLevels = <String>[].obs;
   final List<String> horseLevelOptions = [
     '4/5/6/7',
-    '8/9/10', // Example based on screenshot
+    '8/9/10',
     'Grand Prix',
     'Young Horses',
   ];
@@ -125,11 +125,12 @@ class SetupGroomApplicationController extends GetxController {
           colorText: Colors.white,
         );
         return;
-      } */
-    // Submit logic 
+      }
+    } */
+    // Submit logic
     Get.snackbar(
       'Success',
-      'Your grooming application has been submitted successfully.',
+      'Your braiding application has been submitted successfully.',
       backgroundColor: Colors.green,
       colorText: Colors.white,
     );
@@ -138,17 +139,7 @@ class SetupGroomApplicationController extends GetxController {
         Get.arguments?['remainingServices'] as List<String>? ?? [];
 
     if (remaining.isNotEmpty) {
-      final nextService = remaining.first;
-      final nextRemaining = remaining.skip(1).toList();
-
-      // Sequential Redirection
-      if (nextService == 'Braiding') {
-        Get.off(() => const BraidingApplicationView(), arguments: {
-          'remainingServices': nextRemaining,
-        });
-      } else {
-        Get.offAll(() => const VendorApplicationSubmitView());
-      }
+      Get.offAll(() => const VendorApplicationSubmitView());
     } else {
       // Final Redirection
       Get.offAll(() => const VendorApplicationSubmitView());

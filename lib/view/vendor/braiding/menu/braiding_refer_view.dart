@@ -1,0 +1,132 @@
+import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class BraidingReferView extends StatefulWidget {
+  const BraidingReferView({super.key});
+
+  @override
+  State<BraidingReferView> createState() => _BraidingReferViewState();
+}
+
+class _BraidingReferViewState extends State<BraidingReferView> {
+  final String referralLink = 'catchride.com/r/yourusername';
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: const CommonText('Refer a New Member', fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CommonText('How it works?', fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                  const SizedBox(height: 24),
+                  _buildStep(1, 'Share Your Link', 'Send your referral link to friends or contacts you’d like to invite.', false),
+                  _buildStep(2, 'They Sign Up', 'Your friend opens the link and creates their account in the app.', false),
+                  _buildStep(3, 'Start Using the App', 'Once registered, they can set up their profile and begin using the platform.', true),
+                  const SizedBox(height: 40),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CommonText('Share Link', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border.withValues(alpha: 0.8)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(child: CommonText(referralLink, fontSize: 14, color: AppColors.textSecondary)),
+                              TextButton(
+                                onPressed: () => Get.snackbar('Success', 'Link copied to clipboard'),
+                                child: const CommonText('Copy Link', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _buildBottomButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep(int number, String title, String description, bool isLast) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: const BoxDecoration(color: Color(0xFFEFF4FF), shape: BoxShape.circle),
+              child: Center(child: CommonText(number.toString(), color: const Color(0xFF444CE7), fontWeight: FontWeight.bold, fontSize: 14)),
+            ),
+            if (!isLast) Container(height: 44, width: 1, color: const Color(0xFFD0D5DD)),
+          ],
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommonText(title, fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
+              const SizedBox(height: 4),
+              CommonText(description, fontSize: 14, color: AppColors.textSecondary, height: 1.4),
+              if (!isLast) const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      decoration: const BoxDecoration(color: Colors.white),
+      child: GestureDetector(
+        onTap: () => Get.snackbar('Success', 'Opening share options...'),
+        child: Container(
+          height: 56,
+          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)),
+          child: const Center(child: CommonText('Share', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+        ),
+      ),
+    );
+  }
+}
