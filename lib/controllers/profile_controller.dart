@@ -216,7 +216,16 @@ class ProfileController extends GetxController {
           bio: data['bio'] ?? '',
           barnName: data['barnName'] ?? '',
           yearsExperience: data['yearsExperience'] ?? 0,
-          avatar: data['profilePhoto'] ?? '',
+          avatar: data['profilePhoto'] ??
+              data['profile_photo'] ??
+              data['avatar'] ??
+              data['photo'] ??
+              data['profilePic'] ??
+              data['profile_pic'] ??
+              data['image'] ??
+              data['avatarUrl'] ??
+              data['profileImageUrl'] ??
+              '',
           coverImage: data['coverImage'] ?? '',
           trainerProfileId: data['_id'],
           isProfileApprove: data['isProfileApprove'] ?? false,

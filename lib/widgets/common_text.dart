@@ -28,6 +28,8 @@ class CommonText extends StatelessWidget {
   final TextWidthBasis? textWidthBasis;
   final TextHeightBehavior? textHeightBehavior;
 
+  final List<Shadow>? shadows;
+
   const CommonText(
     this.text, {
     super.key,
@@ -50,7 +52,9 @@ class CommonText extends StatelessWidget {
     this.semanticsLabel,
     this.textWidthBasis,
     this.textHeightBehavior,
+    this.shadows,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +67,9 @@ class CommonText extends StatelessWidget {
       height: height,
       decoration: decoration,
       fontStyle: fontStyle,
+      shadows: shadows,
     );
+
 
     if (style != null) {
       baseStyle = baseStyle.merge(style);

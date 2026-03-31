@@ -263,7 +263,7 @@ class AddNewListingController extends GetxController {
         Get.back(); // Return to previous screen
         Get.snackbar(
           'Success',
-          'Listing published successfully',
+          'Changes saved successfully',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,

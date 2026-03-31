@@ -9,7 +9,7 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = true ;
+  static bool isLive = false ;
 
   static String get baseUrl {
     try {
@@ -50,6 +50,8 @@ class AppUrls {
   // Trainers
   static const String trainers = '/trainers';
   static const String vendors = '/vendors';
+  static const String availableServices = '$vendors/available-services';
+  static const String myVendorProfile = '$vendors/me';
 
   // System Config (Tags)
   static const String systemConfig = '/system-config';

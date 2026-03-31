@@ -37,24 +37,10 @@ class _BarnManagerAvailabilityViewState
     );
 
     if (pickedDate != null) {
-      if (!context.mounted) return;
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-
-      if (pickedTime != null) {
-        final DateTime finalDateTime = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-        textController.text = DateFormat('dd MMM yyyy').format(finalDateTime);
-      }
+      textController.text = DateFormat('dd MMM yyyy').format(pickedDate);
     }
   }
+
 
   @override
   void dispose() {

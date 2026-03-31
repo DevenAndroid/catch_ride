@@ -32,6 +32,7 @@ class UserModel {
   final BarnManager? linkedBarnManager;
   final TrainerLinkedModel? linkedTrainer;
   final String? yearsInIndustry;
+  final List<String> roles;
   final DateTime? createdAt;
 
   UserModel({
@@ -40,6 +41,7 @@ class UserModel {
     required this.lastName,
     required this.email,
     required this.role,
+    this.roles = const [],
     this.avatar,
     this.photo,
     this.coverImage,
@@ -128,6 +130,7 @@ class UserModel {
       lastName: json['lastName'] ?? '',
       email: json['email'] ?? '',
       role: json['role'] ?? 'user',
+      roles: json['roles'] != null ? List<String>.from(json['roles']) : ['user'],
       avatar: json['avatar'] ??
           (proData != null ? proData['profilePhoto'] ?? proData['avatar'] : null),
       photo: json['photo'] ??
@@ -178,6 +181,7 @@ class UserModel {
       'lastName': lastName,
       'email': email,
       'role': role,
+      'roles': roles,
       'avatar': avatar,
       'photo': photo,
       'coverImage': coverImage,

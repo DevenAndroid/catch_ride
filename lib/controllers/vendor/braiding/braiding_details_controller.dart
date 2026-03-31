@@ -1,4 +1,5 @@
-import 'package:catch_ride/view/vendor/braiding/braiding_bottom_nav.dart';
+
+import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -60,7 +61,7 @@ class BraidingDetailsController extends GetxController {
   void submit() {
     Get.offAll(() => const ProfileCompletedView(
           subtitle: 'Your braiding services are now live',
-          destinationWidget: BraidingBottomNav(),
+          destinationWidget: GroomBottomNav(),
         ));
   }
 

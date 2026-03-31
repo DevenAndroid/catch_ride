@@ -1,22 +1,111 @@
 import 'dart:io';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
-import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
 import 'package:flutter/material.dart';
+import 'package:catch_ride/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:collection/collection.dart';
+
+import '../../../view/vendor/vendor_application_submit_view.dart';
 
 class SetupGroomApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
+  final apiService = Get.find<ApiService>();
 
   // Form Fields
   final fullNameController = TextEditingController();
   final joinCommunityController = TextEditingController();
-  
   // Location
-  final cityController = TextEditingController();
-  final stateProvinceController = TextEditingController();
-  final countryController = TextEditingController();
+  final countryController = TextEditingController(text: 'USA');
+  final states = <Map<String, dynamic>>[].obs;
+  final cities = <Map<String, dynamic>>[].obs;
+  
+  final selectedState = Rxn<Map<String, dynamic>>();
+  final selectedCity = Rxn<Map<String, dynamic>>();
+
+  final isLoadingStates = false.obs;
+  final isLoadingCities = false.obs;
+  final isLoadingTags = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fullNameController.text = Get.find<AuthController>().currentUser.value?.fullName ?? '';
+    fetchStates();
+    fetchDynamicTags();
+  }
+
+  Future<void> fetchStates() async {
+    isLoadingStates.value = true;
+    try {
+      final Response response = await apiService.getRequest('/locations/states');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        states.value = List<Map<String, dynamic>>.from(response.body['data']);
+      }
+    } catch (e) {
+      debugPrint('Error fetching states: $e');
+    } finally {
+      isLoadingStates.value = false;
+    }
+  }
+
+  Future<void> fetchCities(String stateCode) async {
+    isLoadingCities.value = true;
+    selectedCity.value = null;
+    cities.clear();
+    try {
+      final Response response = await apiService.getRequest('/locations/states/$stateCode/cities');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        cities.value = List<Map<String, dynamic>>.from(response.body['data']);
+      }
+    } catch (e) {
+      debugPrint('Error fetching cities: $e');
+    } finally {
+      isLoadingCities.value = false;
+    }
+  }
+
+  void onStateSelected(Map<String, dynamic> state) {
+    selectedState.value = state;
+    fetchCities(state['isoCode']);
+  }
+
+  void onCitySelected(Map<String, dynamic> city) {
+    selectedCity.value = city;
+  }
+  
+  Future<void> fetchDynamicTags() async {
+    isLoadingTags.value = true;
+    try {
+      final Response response = await apiService.getRequest('/system-config/tag-types/with-values?category=Grooming');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final List types = response.body['data'];
+        
+        // Populate Disciplines
+        final disciplineType = types.firstWhereOrNull((t) => t['name'] == 'Disciplines');
+        if (disciplineType != null) {
+          disciplineOptions.value = List<String>.from(disciplineType['values'].map((v) => v['name']));
+          if (!disciplineOptions.contains('Other')) disciplineOptions.add('Other');
+        }
+
+        // Populate Level of Horses
+        final horseLevelType = types.firstWhereOrNull((t) => t['name'] == 'Typical Level of Horses');
+        if (horseLevelType != null) {
+          horseLevelOptions.value = List<String>.from(horseLevelType['values'].map((v) => v['name']));
+        }
+        // Populate Regions Covered
+        final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
+        if (regionType != null) {
+          regionOptions.value = List<String>.from(regionType['values'].map((v) => v['name']));
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching tags: $e');
+    } finally {
+      isLoadingTags.value = false;
+    }
+  }
 
   // Experience
   final experience = RxnString();
@@ -25,30 +114,15 @@ class SetupGroomApplicationController extends GetxController {
   // Disciplines
   final selectedDisciplines = <String>[].obs;
   final otherDisciplineController = TextEditingController();
-  final List<String> disciplineOptions = [
-    'Grooming',
-    'Hunter Jumper',
-    'Dressage',
-    'Other',
-  ];
+  final disciplineOptions = <String>[].obs;
 
   // Level of Horses
   final selectedHorseLevels = <String>[].obs;
-  final List<String> horseLevelOptions = [
-    '4/5/6/7',
-    '8/9/10', // Example based on screenshot
-    'Grand Prix',
-    'Young Horses',
-  ];
+  final horseLevelOptions = <String>[].obs;
 
   // Regions
   final selectedRegions = <String>[].obs;
-  final List<String> regionOptions = [
-    'Northwest (Hamp)',
-    'Florida (Wellington - Ocala - Gulf coast)',
-    'Southwest (Hamp/NJ/Union Brown)',
-    'Southeast (Aiken / Tryon / Wills Park / Chatt Hills)',
-  ];
+  final regionOptions = <String>[].obs;
 
   // Social Media
   final facebookController = TextEditingController();
@@ -79,13 +153,18 @@ class SetupGroomApplicationController extends GetxController {
   final ref2RelationshipController = TextEditingController();
 
   // Experience Highlights
-  final highlightsController = TextEditingController();
-  final highlightsList = <String>[].obs;
+  final highlightsControllers = <TextEditingController>[TextEditingController()].obs;
 
   void addHighlight() {
-    if (highlightsController.text.isNotEmpty) {
-      highlightsList.add(highlightsController.text);
-      highlightsController.clear();
+    highlightsControllers.add(TextEditingController());
+  }
+
+  void removeHighlight(int index) {
+    if (highlightsControllers.length > 1) {
+      highlightsControllers[index].dispose();
+      highlightsControllers.removeAt(index);
+    } else {
+      highlightsControllers[index].clear();
     }
   }
 
@@ -98,9 +177,6 @@ class SetupGroomApplicationController extends GetxController {
   void onClose() {
     fullNameController.dispose();
     joinCommunityController.dispose();
-    cityController.dispose();
-    stateProvinceController.dispose();
-    countryController.dispose();
     otherDisciplineController.dispose();
     facebookController.dispose();
     instagramController.dispose();
@@ -110,48 +186,135 @@ class SetupGroomApplicationController extends GetxController {
     ref2FullNameController.dispose();
     ref2BusinessNameController.dispose();
     ref2RelationshipController.dispose();
-    highlightsController.dispose();
+    for (var ctrl in highlightsControllers) {
+      ctrl.dispose();
+    }
+    countryController.dispose();
     super.onClose();
   }
 
-  void submitApplication() {
-    // Note: Temporarily removed validation for smooth UI testing/redirection
-    /* if (formKey.currentState!.validate()) {
-      if (!is18OrOlder.value || !agreeToTerms.value) {
-        Get.snackbar(
-          'Incomplete',
-          'Please agree to the terms and privacy policy.',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      } */
-    // Submit logic 
-    Get.snackbar(
-      'Success',
-      'Your grooming application has been submitted successfully.',
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-    );
+  Future<void> submitApplication() async {
+    // 1. Basic Form Validation
+    if (!(formKey.currentState?.validate() ?? false)) return;
 
-    final List<String> remaining =
-        Get.arguments?['remainingServices'] as List<String>? ?? [];
+    // 2. Custom Validation for Reactive selections (using "Please" as per rules)
+    if (selectedState.value == null || selectedCity.value == null) {
+      Get.snackbar('Missing Info', 'Please select your home base city and state', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
 
-    if (remaining.isNotEmpty) {
-      final nextService = remaining.first;
-      final nextRemaining = remaining.skip(1).toList();
+    if (experience.value == null) {
+      Get.snackbar('Missing Info', 'Please select your grooming experience level', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
 
-      // Sequential Redirection
-      if (nextService == 'Braiding') {
-        Get.off(() => const BraidingApplicationView(), arguments: {
-          'remainingServices': nextRemaining,
-        });
+    if (selectedDisciplines.isEmpty) {
+      Get.snackbar('Missing Info', 'Please select at least one discipline', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (selectedHorseLevels.isEmpty) {
+      Get.snackbar('Missing Info', 'Please select the typical level of horses you handle', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (selectedRegions.isEmpty) {
+      Get.snackbar('Missing Info', 'Please select at least one region you cover', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (!is18OrOlder.value) {
+      Get.snackbar('Age Verification', 'Please confirm that you are at least 18 years of age', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (!agreeToTerms.value) {
+      Get.snackbar('Terms & Privacy', 'Please agree to the Terms of Service and Privacy Policy', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    if (!confirmReferences.value) {
+      Get.snackbar('References', 'Please confirm that we may contact your professional references', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    isLoadingStates.value = true; // Use as general loading state
+    try {
+      // Prepare Data
+      final applicationData = {
+        'fullName': fullNameController.text,
+        'whyJoin': joinCommunityController.text,
+        'homeBase': {
+          'country': countryController.text,
+          'state': selectedState.value?['name'],
+          'city': selectedCity.value?['name'],
+        },
+        'experience': experience.value,
+        'disciplines': selectedDisciplines.toList(),
+        'otherDiscipline': otherDisciplineController.text,
+        'horseLevels': selectedHorseLevels.toList(),
+        'regions': selectedRegions.toList(),
+        'references': [
+          {
+            'fullName': ref1FullNameController.text,
+            'businessName': ref1BusinessNameController.text,
+            'relationship': ref1RelationshipController.text,
+          },
+          {
+            'fullName': ref2FullNameController.text,
+            'businessName': ref2BusinessNameController.text,
+            'relationship': ref2RelationshipController.text,
+          }
+        ],
+        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+      };
+
+      final profileData = {
+        'socialMedia': {
+          'facebook': facebookController.text,
+          'instagram': instagramController.text,
+        }
+      };
+
+      final response = await apiService.postRequest('/vendors/setup-service', {
+        'serviceType': 'Grooming',
+        'applicationData': applicationData,
+        'profileData': profileData,
+      });
+
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        // Update Local User State
+        final authController = Get.find<AuthController>();
+        if (authController.currentUser.value != null) {
+          // Trigger reactivity
+          authController.currentUser.refresh();
+        }
+
+        Get.snackbar('Success', 'Your grooming application has been submitted successfully.', backgroundColor: Colors.green, colorText: Colors.white);
+
+        // Handle Redirection
+        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+
+        if (remaining.isNotEmpty) {
+          final nextService = remaining.first;
+          final nextRemaining = remaining.skip(1).toList();
+
+          if (nextService == 'Braiding') {
+            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+            Get.offAll(() => const VendorApplicationSubmitView());
+          }
+        } else {
+          Get.offAll(() => const VendorApplicationSubmitView());
+        }
       } else {
-        Get.offAll(() => const VendorApplicationSubmitView());
+        Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: Colors.red, colorText: Colors.white);
       }
-    } else {
-      // Final Redirection
-      Get.offAll(() => const VendorApplicationSubmitView());
+    } catch (e) {
+      debugPrint('Error submitting application: $e');
+      Get.snackbar('Error', 'Please check your connection and try again.', backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isLoadingStates.value = false;
     }
   }
 }

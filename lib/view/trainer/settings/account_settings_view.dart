@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/view/trainer/settings/change_password_view.dart';
 
+import 'package:catch_ride/utils/date_util.dart';
+
 import '../../../controllers/auth_controller.dart';
 import '../../../controllers/settings_controller.dart';
 
@@ -109,20 +111,12 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                         controller.activeSessions.asMap().entries.map((entry) {
                           final index = entry.key;
                           final session = entry.value;
+                          final String device = session['device'] ?? 'Unknown Device';
+                                              
                           return _buildDeviceTile(
-                            icon:
-                                (session['deviceType']
-                                            ?.toString()
-                                            .toLowerCase() ==
-                                        'ios' ||
-                                    session['deviceType']
-                                            ?.toString()
-                                            .toLowerCase() ==
-                                        'android')
-                                ? Icons.smartphone_rounded
-                                : Icons.laptop_mac_rounded,
-                            title: session['deviceName'] ?? 'Unknown Device',
-                            subtitle: session['lastUsed'] ?? 'Just now',
+                            icon: Icons.smartphone_rounded,
+                            title: device,
+                            subtitle: DateUtil.formatDateTime(session['lastActive'] ?? session['createdAt']),
                             onLogout: () async {
                               final success = await controller.terminateSession(
                                 session['token'] ?? '',

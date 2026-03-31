@@ -362,7 +362,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                   width: double.infinity,
                   fit: BoxFit.cover,
                 ),
-                Positioned(
+          /*      Positioned(
                   bottom: 12,
                   right: 12,
                   child: Container(
@@ -381,7 +381,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
+                ),*/
               ],
             ),
           ),
@@ -468,7 +468,7 @@ class _HorseListingViewState extends State<HorseListingView> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit, color: AppColors.textPrimary),
-              title: const CommonText('Edit Horse', fontSize: 16),
+              title: const CommonText('Edit listing', fontSize: 16),
               onTap: () {
                 Navigator.pop(context);
                 Get.to(() => EditHorseListingView(horse: horse));

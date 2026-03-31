@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
+import 'package:catch_ride/view/trainer/list/edit_horse_listing_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
@@ -246,11 +247,49 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.more_vert,
-                    color: AppColors.textPrimary,
-                    size: 22,
-                  ),
+                      IconButton(
+                        onPressed: () {
+                          Get.bottomSheet(
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(25),
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(
+                                      Icons.edit_outlined,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                    title: const CommonText(
+                                      'Edit Listing',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    onTap: () {
+                                      Get.back();
+                                      Get.to(
+                                        () => EditHorseListingView(horse: horse),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: AppColors.textPrimary,
+                          size: 22,
+                        ),
+                      ),
                 ],
               ),
             ),
@@ -266,7 +305,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
+             /*   Positioned(
                   bottom: 12,
                   right: 12,
                   child: Container(
@@ -285,7 +324,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
+                ),*/
               ],
             ),
 

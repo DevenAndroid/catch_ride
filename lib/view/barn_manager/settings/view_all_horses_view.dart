@@ -87,44 +87,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
           }
 
           // Use static mock data if the list is empty (for review purposes)
-          final displayHorses = horseController.horses.isEmpty
-              ? [
-                  HorseModel(
-                    id: 'mock1',
-                    name: 'Golden Hour',
-                    breed: 'Warmblood',
-                    age: 8,
-                    gender: 'Gelding',
-                    listingTitle: 'Golden Hour - Top Children\'s Hunter',
-                    description:
-                        'Lovely Children\'s Hunter with a great brain and an easy lead change. Brave, consistent, and forgiving...',
-                    location: 'Aiken, SC, USA',
-                    trainerName: 'John Snow',
-                    trainerAvatar: 'https://i.pravatar.cc/150?u=john',
-                    images: [
-                      'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=800',
-                    ],
-                    listingTypes: ['For Sale', 'Weekly Lease'],
-                  ),
-                  HorseModel(
-                    id: 'mock2',
-                    name: 'Valentino Z',
-                    breed: 'Zangersheide',
-                    age: 10,
-                    gender: 'Stallion',
-                    listingTitle: 'Valentino Z - Quick + Careful Jr/Am Ju...',
-                    description:
-                        'Brave to the jumps and efficient around the track. Perfect for a Jr/Am rider looking to be competitive in the ring.',
-                    location: 'Tryon, NC',
-                    trainerName: 'John Snow',
-                    trainerAvatar: 'https://i.pravatar.cc/150?u=john',
-                    images: [
-                      'https://images.unsplash.com/photo-1598974357801-cbca100e65d3?q=80&w=800',
-                    ],
-                    listingTypes: ['For Sale', 'Annual Lease'],
-                  ),
-                ]
-              : horseController.horses;
+          final displayHorses = horseController.horses;
 
           return RefreshIndicator(
             onRefresh: () async => _loadHorses(),
@@ -166,11 +129,11 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       ? horse.images.first
                       : '',
 
-                  imageCount: '1 / ${horse.images.length}',
+                 // imageCount: '1 / ${horse.images.length}',
                   tags: horse.listingTypes,
                   postTitle: horse.listingTitle ?? horse.name,
                   postDescription: horse.description ?? '',
-                  location: horse.location ?? 'Ocala, FL',
+                  location: horse.location ?? '',
                   isOwnHorse: true,
                 );
               },
@@ -217,7 +180,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
     String? userAvatar,
     required String timePosted,
     required String mainImageUrl,
-    required String imageCount,
+    // required String imageCount,
     required List<String> tags,
     required String postTitle,
     required String postDescription,
@@ -297,26 +260,26 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: CommonText(
-                      imageCount,
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                // Positioned(
+                //   bottom: 12,
+                //   right: 12,
+                //   child: Container(
+                //     padding: const EdgeInsets.symmetric(
+                //       horizontal: 10,
+                //       vertical: 6,
+                //     ),
+                //     decoration: BoxDecoration(
+                //       color: Colors.black.withValues(alpha: 0.6),
+                //       borderRadius: BorderRadius.circular(16),
+                //     ),
+                //     child: CommonText(
+                //       imageCount,
+                //       color: Colors.white,
+                //       fontSize: 12,
+                //       fontWeight: FontWeight.w600,
+                //     ),
+                //   ),
+                // ),
               ],
             ),
 
