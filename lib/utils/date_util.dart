@@ -59,4 +59,20 @@ class DateUtil {
       return 'Just now';
     }
   }
+  static String formatDateTime(dynamic date) {
+    if (date == null) return '';
+
+    DateTime? dateTime;
+    if (date is DateTime) {
+      dateTime = date;
+    } else if (date is String) {
+      if (date.isEmpty) return '';
+      dateTime = DateTime.tryParse(date);
+    }
+
+    if (dateTime != null) {
+      return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);
+    }
+    return date.toString();
+  }
 }

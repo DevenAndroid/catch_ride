@@ -7,49 +7,15 @@ import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
+import 'package:catch_ride/controllers/vendor/vendor_select_services_controller.dart';
 
-class VendorSelectServicesView extends StatefulWidget {
+class VendorSelectServicesView extends StatelessWidget {
   const VendorSelectServicesView({super.key});
 
   @override
-  State<VendorSelectServicesView> createState() =>
-      _VendorSelectServicesViewState();
-}
-
-class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
-  final List<String> _services = [
-    'Grooming',
-    'Braiding',
-    'Clipping',
-    'Farrier',
-    'Bodywork',
-    'Shipping',
-  ];
-
-  final Set<String> _selectedServices = {};
-
-  void _toggleService(String serviceName) {
-    setState(() {
-      if (_selectedServices.contains(serviceName)) {
-        _selectedServices.remove(serviceName);
-      } else {
-        if (_selectedServices.length < 2) {
-          _selectedServices.add(serviceName);
-        } else {
-          Get.snackbar(
-            'Limit Reached',
-            'You can select a maximum of 2 services.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-          );
-        }
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(VendorSelectServicesController());
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -76,75 +42,55 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
         ),
       ),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 24, 20, 16),
-              child: CommonText(
-                'Select maximum 2 services.',
-                fontSize: AppTextSizes.size16,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                itemCount: _services.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final serviceName = _services[index];
-                  final isSelected = _selectedServices.contains(serviceName);
-                  return _buildServiceTile(serviceName, isSelected);
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-              child: CommonButton(
-                text: 'Continue',
-                onPressed: _selectedServices.isEmpty
-                    ? null
-                    : () {
-                        // All selected services in original order
-                        final selected = _services
-                            .where((s) => _selectedServices.contains(s))
-                            .toList();
-
-                        if (selected.isNotEmpty) {
-                          final firstService = selected.first;
-                          final remaining = selected.skip(1).toList();
-
-                          if (firstService == 'Grooming') {
-                            Get.to(
-                              () => const SetupGroomApplicationView(),
-                              arguments: {'remainingServices': remaining},
-                            );
-                          } else if (firstService == 'Braiding') {
-                            Get.to(
-                              () => const BraidingApplicationView(),
-                              arguments: {'remainingServices': remaining},
-                            );
-                          } else {
-                            // Default fallback
-                            Get.put(AuthController()).navigateAfterRoleSet();
-                          }
-                        }
-                      },
-                backgroundColor: AppColors.primary,
-                borderRadius: 12,
-                height: 56,
-              ),
-            ),
-          ],
+        child: Obx(
+          () => controller.isLoading.value
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 24, 20, 16),
+                      child: CommonText(
+                        'Select maximum 2 services.',
+                        fontSize: AppTextSizes.size16,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        itemCount: controller.services.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final serviceName = controller.services[index];
+                          final isSelected = controller.selectedServices.contains(serviceName);
+                          return _buildServiceTile(controller, serviceName, isSelected);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      child: CommonButton(
+                        text: 'Continue',
+                        isLoading: controller.isLoading.value,
+                        onPressed: controller.selectedServices.isEmpty
+                            ? null
+                            : () => controller.submitServices(),
+                        backgroundColor: AppColors.primary,
+                        borderRadius: 12,
+                        height: 56,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
   }
 
-  Widget _buildServiceTile(String serviceName, bool isSelected) {
+  Widget _buildServiceTile(VendorSelectServicesController controller, String serviceName, bool isSelected) {
     return GestureDetector(
-      onTap: () => _toggleService(serviceName),
+      onTap: () => controller.toggleService(serviceName),
       child: Container(
         height: 64,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -198,6 +144,6 @@ class _VendorSelectServicesViewState extends State<VendorSelectServicesView> {
       ),
     );
   }
-
 }
+
 

@@ -14,6 +14,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart' as gsi;
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:device_info_plus/device_info_plus.dart';
+import 'dart:io';
+
 import '../models/user_model.dart';
 import '../services/socket_service.dart';
 import '../services/notification_service.dart';
@@ -23,6 +26,8 @@ import '../view/barn_manager/barn_manager_create_profile_view.dart';
 import '../view/create_account_view.dart';
 import '../view/trainer/trainer_complete_profile_view.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
+import '../view/vendor/vendor_application_submit_view.dart';
+import '../view/vendor/complete_profile_view.dart';
 
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -184,9 +189,24 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
+      String deviceName = 'Unknown';
+      try {
+        final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        if (Platform.isAndroid) {
+          final androidInfo = await deviceInfo.androidInfo;
+          deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
+        } else if (Platform.isIOS) {
+          final iosInfo = await deviceInfo.iosInfo;
+          deviceName = iosInfo.name;
+        }
+      } catch (e) {
+        debugPrint('Error getting device info: $e');
+      }
+
       final response = await _apiService.postRequest(AppUrls.login, {
         'email': emailController.text.trim(),
         'password': passwordController.text,
+        'deviceName': deviceName,
       });
 
       if (response.statusCode == 200) {
@@ -333,9 +353,24 @@ class AuthController extends GetxController {
 
         if (idToken == null) throw Exception("Failed to get ID Token");
 
+        String deviceName = 'Unknown';
+        try {
+          final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+          if (Platform.isAndroid) {
+            final androidInfo = await deviceInfo.androidInfo;
+            deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
+          } else if (Platform.isIOS) {
+            final iosInfo = await deviceInfo.iosInfo;
+            deviceName = iosInfo.name;
+          }
+        } catch (e) {
+          debugPrint('Error getting device info: $e');
+        }
+
         // 5. Backend Verification
         final response = await _apiService.postRequest(AppUrls.googleLogin, {
           'idToken': idToken,
+          'deviceName': deviceName,
         });
 
         if (response.statusCode == 200) {
@@ -629,6 +664,20 @@ class AuthController extends GetxController {
           Get.offAll(() => const BarnManagerApplicationSubmittedView());
         } else {
           Get.offAll(() => const BarnManagerCreateProfileView());
+        }
+      } else if (role == 'service_provider') {
+        if (isProfileCompleted) {
+          // Final stage: Dashboard
+          Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
+        } else if (isProfileApprove) {
+          // Approval stage: Fill out remaining profile details
+          Get.offAll(() => const CompleteProfileView());
+        } else if (isProfileSetup) {
+          // Selection stage: Waiting for admin approval
+          Get.offAll(() => const VendorApplicationSubmitView());
+        } else {
+          // Initial stage: Select services/roles
+          Get.offAll(() => const SelectRoleView());
         }
       } else {
         Get.offAll(() => const SelectRoleView());

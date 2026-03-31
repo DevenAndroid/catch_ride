@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/add_new_listing_controller.dart';
+import 'package:catch_ride/view/trainer/list/listing_preview_view.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -53,24 +54,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     );
 
     if (pickedDate != null) {
-      if (!context.mounted) return;
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-      );
-
-      if (pickedTime != null) {
-        final DateTime finalDateTime = DateTime(
-          pickedDate.year,
-          pickedDate.month,
-          pickedDate.day,
-          pickedTime.hour,
-          pickedTime.minute,
-        );
-        textController.text = DateFormat('dd MMM yyyy').format(finalDateTime);
-      }
+      textController.text = DateFormat('dd MMM yyyy').format(pickedDate);
     }
   }
+
 
   void _showVenueBottomSheet(AvailabilityEntry availabilityEntry) {
     final TextEditingController searchController = TextEditingController();
@@ -1437,9 +1424,9 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
             child: GestureDetector(
               onTap: () {
                 if (isLastStep) {
-                  // You might need to implement ListingPreviewView for edit as well,
-                  // but for now I'll just match the navigation if the view exists
-                  // Get.to(() => const ListingPreviewView());
+                  Get.to(() => ListingPreviewView(
+                        controllerTag: 'edit_${widget.horse.id}',
+                      ));
                 } else if (_currentStep > 1) {
                   setState(() {
                     _currentStep--;

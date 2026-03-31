@@ -32,10 +32,43 @@ class CommonImageView extends StatelessWidget {
   });
 
   String _getProcessedUrl(String url) {
-    if (url.startsWith('http') && url.contains('localhost')) {
-      return url.replaceFirst('localhost', AppUrls.host);
+    if (url.isEmpty) return url;
+    
+    // Normalize slashes
+    url = url.replaceAll('\\', '/');
+
+    // Handle protocol-relative URLs
+    if (url.startsWith('//')) {
+      url = 'https:$url';
     }
-    return url;
+    
+    // If it's already a full URL, handle localhost/mapping
+    if (url.startsWith('http')) {
+      final String currentHost = AppUrls.host;
+      
+      // If we are in live mode, any local host in the data should be replaced by the live domain
+      if (AppUrls.isLive) {
+        return url
+            .replaceFirst('localhost', 'api.catchrideapp.com')
+            .replaceFirst('127.0.0.1', 'api.catchrideapp.com')
+            .replaceFirst('10.0.2.2', 'api.catchrideapp.com');
+      }
+      
+      // Otherwise map to current host constant
+      return url
+          .replaceFirst('localhost', currentHost)
+          .replaceFirst('127.0.0.1', currentHost)
+          .replaceFirst('10.0.2.2', currentHost);
+    }
+    
+    // If it's a relative path, prepend the socketUrl (without /api suffix)
+    String baseUrl = AppUrls.socketUrl;
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+    }
+    
+    final path = url.startsWith('/') ? url : '/$url';
+    return '$baseUrl$path';
   }
 
   @override

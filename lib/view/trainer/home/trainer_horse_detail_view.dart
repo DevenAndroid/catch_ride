@@ -144,6 +144,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     return horseTrainerId != null && horseTrainerId == profileTrainerId;
   }
 
+  bool _isTrainerOwnHorse() => isHorseOwner;
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -228,6 +230,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                               _buildDescriptionAndTags(),
                               _buildDetailsSection(),
                               _buildAvailabilitySection(),
+                              if (isHorseOwner && horse!.bookedByName != null)
+                                _buildBookedByHeader(),
                               if (!isHorseOwner) _buildCancelationPolicy(),
                               const SizedBox(height: 20),
                             ],
@@ -360,12 +364,28 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildTrainerSection() {
+    final profileController = Get.find<ProfileController>();
+    final isOwnHorse = _isTrainerOwnHorse();
+    
+    // If it's the trainer's own horse, use their profile data as fallback
+    final String? trainerAvatar = (isOwnHorse && (horse!.trainerAvatar == null || horse!.trainerAvatar!.isEmpty))
+        ? profileController.user.value?.displayAvatar
+        : horse!.trainerAvatar;
+        
+    final String trainerName = (isOwnHorse && (horse!.trainerName == null || horse!.trainerName == 'N/A'))
+        ? profileController.fullName
+        : (horse!.trainerName ?? 'N/A');
+
+    final String? trainerLocation = (isOwnHorse && (horse!.location == null || horse!.location!.isEmpty))
+        ? profileController.location
+        : horse!.location;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
         children: [
           CommonImageView(
-            url: horse!.trainerAvatar,
+            url: trainerAvatar,
             height: 48,
             width: 48,
             shape: BoxShape.circle,
@@ -375,18 +395,18 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () => Get.to(() => TrainerProfileView()),
+              onTap: () => Get.to(() => TrainerProfileView(trainerId: horse?.trainerId)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    horse!.trainerName ?? 'N/A',
+                    trainerName,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                   CommonText(
-                    horse!.location != null && horse!.location!.isNotEmpty
-                        ? 'Location - ${horse!.location}'
+                    trainerLocation != null && trainerLocation!.isNotEmpty
+                        ? 'Location - $trainerLocation'
                         : 'Location - N/A',
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -494,6 +514,18 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildBookedByHeader() {
+    final profileController = Get.find<ProfileController>();
+    final currentUserId = profileController.id;
+    final isBookedByMe = horse!.bookedById == currentUserId;
+
+    final String? bAvatar = (isBookedByMe && (horse!.bookedByAvatar == null || horse!.bookedByAvatar!.isEmpty))
+        ? profileController.user.value?.displayAvatar
+        : horse!.bookedByAvatar;
+        
+    final String bName = (isBookedByMe && (horse!.bookedByName == null || horse!.bookedByName == 'N/A'))
+        ? profileController.fullName
+        : (horse!.bookedByName ?? '');
+
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
       child: Column(
@@ -522,7 +554,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CommonImageView(
-                      url: horse!.bookedByAvatar,
+                      url: bAvatar,
                       height: 50,
                       width: 50,
                       shape: BoxShape.circle,
@@ -535,13 +567,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CommonText(
-                            horse!.bookedByName ?? '',
+                            bName,
                             fontSize: AppTextSizes.size16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                           const SizedBox(height: 4),
-                          if (horse!.bookedByLocation != null)
+                          if (horse!.bookedByLocation != null || (isBookedByMe && profileController.location.isNotEmpty))
                             Row(
                               children: [
                                 const Icon(
@@ -552,7 +584,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: CommonText(
-                                    horse!.bookedByLocation!,
+                                    isBookedByMe ? profileController.location : (horse!.bookedByLocation ?? 'N/A'),
                                     fontSize: AppTextSizes.size12,
                                     color: AppColors.textSecondary,
                                     overflow: TextOverflow.ellipsis,
@@ -605,8 +637,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           const SizedBox(height: 16),
           Row(
             children: [
-              const CommonImageView(
-                url: null,
+              CommonImageView(
+                url: horse!.trainerAvatar,
                 height: 44,
                 width: 44,
                 shape: BoxShape.circle,

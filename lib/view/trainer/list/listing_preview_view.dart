@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/add_new_listing_controller.dart';
@@ -10,14 +12,15 @@ import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class ListingPreviewView extends StatefulWidget {
-  const ListingPreviewView({super.key});
+  final String? controllerTag;
+  const ListingPreviewView({super.key, this.controllerTag});
 
   @override
   State<ListingPreviewView> createState() => _ListingPreviewViewState();
 }
 
 class _ListingPreviewViewState extends State<ListingPreviewView> {
-  final controller = Get.find<AddNewListingController>();
+  late final AddNewListingController controller;
   final profileController = Get.find<ProfileController>();
 
   final PageController _pageController = PageController();
@@ -32,6 +35,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
   @override
   void initState() {
     super.initState();
+    controller = Get.put(AddNewListingController(), tag: widget.controllerTag);
     _initVideo();
   }
 
@@ -100,96 +104,146 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
   }
 
   Widget _buildHeroSection() {
-    final images = controller.localImages;
-    final String title = controller.listingTitleController.text.isEmpty
-        ? 'N/A'
-        : controller.listingTitleController.text;
-    final String location = controller.locationController.text.isEmpty
-        ? 'N/A'
-        : controller.locationController.text;
+    return Obx(() {
+      final List<dynamic> allImages = [
+        ...controller.uploadedImages,
+        ...controller.localImages,
+      ];
+      final int totalItems = allImages.length + (_hasVideo ? 1 : 0);
 
-    return Stack(
-      children: [
-        // Hero Image
-        _buildImageSection(),
+      final String title = controller.listingTitleController.text.isEmpty
+          ? 'N/A'
+          : controller.listingTitleController.text;
+      final String location = controller.locationController.text.isEmpty
+          ? 'N/A'
+          : controller.locationController.text;
 
-        // Gradient Overlay
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.2),
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.7),
-                ],
-              ),
+      return Stack(
+        children: [
+          // Hero Image Carousel
+          _buildImageSection(allImages, totalItems),
+
+          // Header Controls
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildCircleButton(Icons.arrow_back_ios_new, () => Get.back()),
+                // _buildCircleButton(Icons.more_vert, () => {}), // Not needed in preview
+              ],
             ),
           ),
-        ),
 
-        // Back Button
-        Positioned(
-          top: MediaQuery.of(context).padding.top + 10,
-          left: 16,
-          child: GestureDetector(
-            onTap: () => Get.back(),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ),
-        ),
-
-        // Text Overlays
-        Positioned(
-          bottom: 20,
-          left: 16,
-          right: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CommonText(
-                title,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on,
-                    color: Color(0xFFEF4444),
-                    size: 16,
+          // Title & Badges Overlay
+          Positioned(
+            bottom: 16,
+            left: 16,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonText(
+                  title,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: const [
+                    Shadow(
+                      color: Colors.black45,
+                      offset: Offset(0, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: controller.selectedListingTypes
+                        .toList()
+                        .asMap()
+                        .entries
+                        .map(
+                          (entry) => Padding(
+                            padding: EdgeInsets.only(
+                              right: entry.key ==
+                                      controller.selectedListingTypes.length - 1
+                                  ? 0
+                                  : 8,
+                            ),
+                            child: _buildOverlayBadge(entry.value),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  const SizedBox(width: 4),
-                  CommonText(location, color: Colors.white, fontSize: 13),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                children: controller.selectedListingTypes
-                    .map((type) => _buildHeroTag(type))
-                    .toList(),
-              ),
-            ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: CommonText(
+                        location,
+                        fontSize: 12,
+                        color: Colors.white,
+                        overflow: TextOverflow.ellipsis,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black45,
+                            offset: Offset(0, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildCircleButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.8),
+          shape: BoxShape.circle,
         ),
-      ],
+        child: Icon(icon, size: 20, color: Colors.black),
+      ),
     );
   }
+
+  Widget _buildOverlayBadge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF8B4242).withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: CommonText(
+        text,
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      ),
+    );
+  }
+
 
   Widget _buildHeroTag(String tag) {
     return Container(
@@ -217,10 +271,10 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         children: [
           CommonImageView(
             url: avatar,
-            height: 44,
-            width: 44,
+            height: 48,
+            width: 48,
             shape: BoxShape.circle,
-            fallbackIcon: Icons.person,
+            isUserImage: true,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -230,7 +284,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                 CommonText(
                   name,
                   fontSize: 16,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
                 CommonText(
@@ -241,18 +295,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.more_vert,
-              color: AppColors.textPrimary,
-              size: 22,
-            ),
-          ),
         ],
       ),
     );
   }
+
 
   Widget _buildDescriptionAndTags() {
     final String description = controller.descriptionController.text.isEmpty
@@ -303,19 +350,20 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   Widget _buildDetailChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
-        borderRadius: BorderRadius.circular(20),
+        color: const Color(0xFFF2F4F7),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: CommonText(
         label,
-        color: const Color(0xFF4338CA),
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xFF1D2939),
       ),
     );
   }
+
 
   Widget _buildDetailsCard() {
     return Column(
@@ -651,77 +699,125 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
     });
   }
 
-  Widget _buildImageSection() {
-    final images = controller.localImages;
-    final int totalItems = images.length + (_hasVideo ? 1 : 0);
-
+  Widget _buildImageSection(List<dynamic> allImages, int totalItems) {
     if (totalItems == 0) {
       return Container(
-        height: 380,
+        height: 420,
         width: double.infinity,
         color: Colors.grey[200],
         child: const Icon(Icons.image, size: 100, color: Colors.grey),
       );
     }
 
-    return SizedBox(
-      height: 420,
-      child: PageView.builder(
-        controller: _pageController,
-        onPageChanged: (index) {
-          setState(() {
-            _currentPage = index;
-          });
-        },
-        itemCount: totalItems,
-        itemBuilder: (context, index) {
-          if (index < images.length) {
-            return CommonImageView(
-              file: images[index],
-              height: 420,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            );
-          } else {
-            return Container(
-              color: Colors.black,
-              child: _isYoutube
-                  ? YoutubePlayer(
-                      controller: _youtubeController!,
-                      showVideoProgressIndicator: true,
-                      progressIndicatorColor: AppColors.primary,
-                    )
-                  : _videoPlayerController!.value.isInitialized
-                  ? GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _videoPlayerController!.value.isPlaying
-                              ? _videoPlayerController!.pause()
-                              : _videoPlayerController!.play();
-                        });
-                      },
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          AspectRatio(
-                            aspectRatio:
-                                _videoPlayerController!.value.aspectRatio,
-                            child: VideoPlayer(_videoPlayerController!),
-                          ),
-                          if (!_videoPlayerController!.value.isPlaying)
-                            const Icon(
-                              Icons.play_circle_fill,
-                              color: Colors.white,
-                              size: 64,
-                            ),
-                        ],
-                      ),
-                    )
-                  : const Center(child: CircularProgressIndicator()),
-            );
-          }
-        },
-      ),
+    return Stack(
+      children: [
+        SizedBox(
+          height: 420,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: totalItems,
+            itemBuilder: (context, index) {
+              if (index < allImages.length) {
+                final image = allImages[index];
+                if (image is String) {
+                  return CommonImageView(
+                    url: image,
+                    height: 420,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  );
+                }
+                return CommonImageView(
+                  file: image as File,
+                  height: 420,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                );
+              } else {
+                return Container(
+                  color: Colors.black,
+                  child: _isYoutube
+                      ? YoutubePlayer(
+                          controller: _youtubeController!,
+                          showVideoProgressIndicator: true,
+                          progressIndicatorColor: AppColors.primary,
+                        )
+                      : _videoPlayerController!.value.isInitialized
+                          ? GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _videoPlayerController!.value.isPlaying
+                                      ? _videoPlayerController!.pause()
+                                      : _videoPlayerController!.play();
+                                });
+                              },
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  AspectRatio(
+                                    aspectRatio: _videoPlayerController!
+                                        .value.aspectRatio,
+                                    child: VideoPlayer(_videoPlayerController!),
+                                  ),
+                                  if (!_videoPlayerController!.value.isPlaying)
+                                    const Icon(
+                                      Icons.play_circle_fill,
+                                      color: Colors.white,
+                                      size: 64,
+                                    ),
+                                ],
+                              ),
+                            )
+                          : const Center(child: CircularProgressIndicator()),
+                );
+              }
+            },
+          ),
+        ),
+        // Gradient Overlay matched with Detail View style
+        IgnorePointer(
+          child: Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.0, 0.4, 1.0],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.7),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (totalItems > 1)
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: CommonText(
+                '${_currentPage + 1} / $totalItems',
+                color: Colors.white,
+                fontSize: AppTextSizes.size12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+      ],
     );
   }
+
 }
