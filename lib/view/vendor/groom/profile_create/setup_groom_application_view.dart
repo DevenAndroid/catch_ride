@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/groom/setup_groom_application_controller.dart';
+import 'package:catch_ride/utils/validators.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -225,6 +226,7 @@ class SetupGroomApplicationView extends StatelessWidget {
                     controller: controller.facebookController,
                     hintText: 'facebook.com/yourpage',
                     prefixIcon: const Icon(Icons.facebook, size: 20),
+                    validator: (value) => (value != null && value.isNotEmpty) ? Validations.facebookValidator(value) : null,
                   ),
                   const SizedBox(height: 16),
                   CommonTextField(
@@ -232,6 +234,7 @@ class SetupGroomApplicationView extends StatelessWidget {
                     controller: controller.instagramController,
                     hintText: '@your.username',
                     prefixIcon: const Icon(Icons.camera_alt_outlined, size: 20),
+                    validator: (value) => (value != null && value.isNotEmpty) ? Validations.instagramValidator(value) : null,
                   ),
                 ],
               ),

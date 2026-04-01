@@ -193,6 +193,22 @@ class SetupGroomApplicationController extends GetxController {
     super.onClose();
   }
 
+  Future<String?> _uploadPhoto(File file) async {
+    try {
+      final formData = FormData({
+        'media': MultipartFile(file, filename: file.path.split('/').last),
+        'type': 'grooming',
+      });
+      final response = await apiService.postRequest('/upload?type=grooming', formData);
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        return response.body['data']['filename'];
+      }
+    } catch (e) {
+      debugPrint('Error uploading photo: $e');
+    }
+    return null;
+  }
+
   Future<void> submitApplication() async {
     // 1. Basic Form Validation
     if (!(formKey.currentState?.validate() ?? false)) return;
@@ -243,6 +259,8 @@ class SetupGroomApplicationController extends GetxController {
       // Prepare Data
       final applicationData = {
         'fullName': fullNameController.text,
+        'phone': Get.find<AuthController>().currentUser.value?.phone ?? '', // Fallback to auth phone, but override with form if possible
+        'phoneNumber': Get.find<AuthController>().currentUser.value?.phone ?? '', // Also included for backwards compat if needed
         'whyJoin': joinCommunityController.text,
         'homeBase': {
           'country': countryController.text,
@@ -268,6 +286,14 @@ class SetupGroomApplicationController extends GetxController {
         ],
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
       };
+
+      // 3. Upload Photos
+      final List<String> photoKeys = [];
+      for (var photo in photos) {
+        final key = await _uploadPhoto(photo);
+        if (key != null) photoKeys.add(key);
+      }
+      applicationData['media'] = photoKeys;
 
       final profileData = {
         'socialMedia': {

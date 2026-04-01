@@ -67,7 +67,13 @@ class CommonImageView extends StatelessWidget {
       baseUrl = baseUrl.substring(0, baseUrl.length - 1);
     }
     
-    final path = url.startsWith('/') ? url : '/$url';
+    // Ensure relative paths from local storage include 'uploads/' if missing
+    String processedPath = url;
+    if (!processedPath.startsWith('uploads/') && !processedPath.startsWith('/uploads/')) {
+      processedPath = processedPath.startsWith('/') ? 'uploads$processedPath' : 'uploads/$processedPath';
+    }
+    
+    final path = processedPath.startsWith('/') ? processedPath : '/$processedPath';
     return '$baseUrl$path';
   }
 

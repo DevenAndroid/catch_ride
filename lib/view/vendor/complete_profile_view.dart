@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_complete_profile_controller.dart';
@@ -134,6 +135,7 @@ class CompleteProfileView extends StatelessWidget {
           controller: controller.fullNameController,
           hintText: 'Enter your full name',
           isRequired: true,
+          validator: RequiredValidator(errorText: 'Please enter your full name'),
         ),
         const SizedBox(height: 20),
         _buildPhoneField(controller),
@@ -149,6 +151,8 @@ class CompleteProfileView extends StatelessWidget {
           controller: controller.aboutController,
           hintText: 'Write a short bio',
           maxLines: 4,
+          isRequired: true,
+          validator: RequiredValidator(errorText: 'Please write a short bio about yourself'),
         ),
       ],
     );
@@ -185,10 +189,20 @@ class CompleteProfileView extends StatelessWidget {
                   controller: controller.phoneNumberController,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                  maxLength: 10,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  validator: MultiValidator([
+                    RequiredValidator(errorText: 'Please enter your phone number'),
+                    MinLengthValidator(10, errorText: 'Please enter a valid 10-digit phone number'),
+                    PatternValidator(r'^\d{10}$', errorText: 'Please enter a valid 10-digit phone number')
+                  ]),
                   decoration: const InputDecoration(
                     hintText: 'Enter phone number',
                     hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                     border: InputBorder.none,
+                    counterText: '', // Hide default counter
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
                 ),
@@ -204,63 +218,91 @@ class CompleteProfileView extends StatelessWidget {
     return _buildContainer(
       title: 'Payment Methods',
       children: [
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 2.5,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-          ),
-          itemCount: controller.paymentOptions.length,
-          itemBuilder: (context, index) {
-            final option = controller.paymentOptions[index];
-            return Obx(() {
-              final isSelected = controller.selectedPaymentMethods.contains(option['name']);
-              return GestureDetector(
-                onTap: () => controller.togglePaymentMethod(option['name'] as String),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFFEDF2FF) : Colors.white,
-                    border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      _buildPaymentIcon(option['icon']),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: CommonText(
-                          option['name'] as String,
-                          fontSize: AppTextSizes.size14,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        Obx(() {
+          if (controller.isPaymentLoading.value) {
+            return const Center(child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(),
+            ));
+          }
+          return GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 2.5,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: controller.paymentOptions.length,
+            itemBuilder: (context, index) {
+              final option = controller.paymentOptions[index];
+              return Obx(() {
+                final isSelected = controller.selectedPaymentMethods.contains(option['name']);
+                return GestureDetector(
+                  onTap: () => controller.togglePaymentMethod(option['name'] as String),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFFEDF2FF) : Colors.white,
+                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        _buildPaymentIcon(option),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: CommonText(
+                            option['name'] as String,
+                            fontSize: AppTextSizes.size14,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            });
-          },
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-          label: '',
-          controller: controller.otherPaymentController,
-          hintText: 'Write here...',
-          maxLines: 4,
-        ),
+                );
+              });
+            },
+          );
+        }),
+        Obx(() {
+          if (controller.selectedPaymentMethods.contains('Other')) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: CommonTextField(
+                label: '',
+                controller: controller.otherPaymentController,
+                hintText: 'Enter payment details (e.g., Venmo handle)...',
+                maxLines: 2,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
       ],
     );
   }
 
-  Widget _buildPaymentIcon(dynamic icon) {
-    if (icon is IconData) {
-      return Icon(icon, size: 24, color: AppColors.primary);
+  Widget _buildPaymentIcon(Map<String, dynamic> option) {
+    if (option['isUrl'] == true) {
+      if (option['icon'] != null && option['icon'].toString().isNotEmpty) {
+        return SizedBox(
+          width: 24,
+          height: 24,
+          child: CommonImageView(
+            url: option['icon'],
+            fit: BoxFit.contain,
+          ),
+        );
+      }
+    } else {
+      final icon = option['icon'];
+      if (icon is IconData) {
+        return Icon(icon, size: 24, color: AppColors.primary);
+      }
     }
-    // Handle image assets if paths provided
     return const Icon(Icons.payment, size: 24, color: AppColors.primary);
   }
 

@@ -7,6 +7,7 @@ import 'package:catch_ride/view/select_role_view.dart';
 import 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart';
 import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 import 'package:catch_ride/view/barn_manager/barn_manager_bottom_nav.dart';
+import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -629,7 +630,7 @@ class AuthController extends GetxController {
           } else if (role == 'barn_manager') {
             Get.offAll(() => const BarnManagerBottomNav());
           } else {
-            Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
+            Get.offAll(() => const GroomBottomNav());
           }
         } else {
           // Profile exists but not active/approved
@@ -668,7 +669,7 @@ class AuthController extends GetxController {
       } else if (role == 'service_provider') {
         if (isProfileCompleted) {
           // Final stage: Dashboard
-          Get.offAll(() => const TrainerBottomNav(initialIndex: 0));
+          Get.offAll(() => const GroomBottomNav());
         } else if (isProfileApprove) {
           // Approval stage: Fill out remaining profile details
           Get.offAll(() => const CompleteProfileView());
