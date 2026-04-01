@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/vendor/groom/edit_vendor_profile_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +18,7 @@ class EditVendorProfileView extends StatefulWidget {
 
 class _EditVendorProfileViewState extends State<EditVendorProfileView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _paymentMethods = ['Venmo', 'Zelle', 'Cash', 'Credit Card', 'ACH/Bank Transfer', 'Other'];
-  final List<String> _selectedPayments = ['Venmo', 'Zelle', 'Other'];
+  final controller = Get.put(EditVendorProfileController());
 
   @override
   void initState() {
@@ -41,19 +42,31 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
         ),
         title: const CommonText('Edit Profile', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
       ),
-      body: Column(
-        children: [
-          _buildTabs(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: _tabController.index == 0 
-                  ? Column(children: [_buildBasicDetails(), const SizedBox(height: 20), _buildPaymentMethods(), const SizedBox(height: 20), _buildExperienceHighlights(), const SizedBox(height: 40)])
-                  : _buildGroomingTab(),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Column(
+          children: [
+            _buildTabs(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: _tabController.index == 0 
+                    ? Column(children: [
+                        _buildBasicDetails(), 
+                        const SizedBox(height: 20), 
+                        _buildPaymentMethods(), 
+                        const SizedBox(height: 20), 
+                        _buildExperienceHighlights(), 
+                        const SizedBox(height: 40)
+                      ])
+                    : _buildGroomingTab(),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
       bottomNavigationBar: _buildBottomButtons(),
     );
   }
@@ -90,14 +103,14 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
           const SizedBox(height: 24),
           _buildBannerSection(),
           const SizedBox(height: 24),
-          const CommonTextField(label: 'Full Name', hintText: 'Enter your full name', isRequired: true),
+          CommonTextField(label: 'Full Name', hintText: 'Enter your full name', isRequired: true, controller: controller.fullNameController),
           const SizedBox(height: 20),
           _buildFieldLabel('Phone Number'),
           _buildPhoneField(),
           const SizedBox(height: 20),
-          const CommonTextField(label: 'Business Name', hintText: 'Enter your business name', suffixLabel: '(optional)'),
+          CommonTextField(label: 'Business Name', hintText: 'Enter your business name', suffixLabel: '(optional)', controller: controller.businessNameController),
           const SizedBox(height: 20),
-          const CommonTextField(label: 'About', hintText: 'Write a short bio', maxLines: 4),
+          CommonTextField(label: 'About', hintText: 'Write a short bio', maxLines: 4, controller: controller.aboutController),
         ],
       ),
     );
@@ -112,19 +125,32 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
         Center(
           child: Stack(
             children: [
-              Container(
+              Obx(() => Container(
                 width: 100,
                 height: 100,
-                decoration: BoxDecoration(color: const Color(0xFFF3F4F6), shape: BoxShape.circle),
-                child: const Icon(Icons.person_outline, size: 50, color: Colors.grey),
-              ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6), 
+                  shape: BoxShape.circle,
+                  image: controller.newProfileImage.value != null 
+                      ? DecorationImage(image: FileImage(controller.newProfileImage.value!), fit: BoxFit.cover)
+                      : (controller.profilePhotoUrl.isNotEmpty 
+                          ? DecorationImage(image: NetworkImage(controller.profilePhotoUrl.value), fit: BoxFit.cover)
+                          : null),
+                ),
+                child: (controller.newProfileImage.value == null && controller.profilePhotoUrl.isEmpty) 
+                    ? const Icon(Icons.person_outline, size: 50, color: Colors.grey)
+                    : null,
+              )),
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
-                  child: const Icon(Icons.edit_outlined, size: 16, color: Colors.black),
+                child: GestureDetector(
+                  onTap: controller.pickProfileImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
+                    child: const Icon(Icons.edit_outlined, size: 16, color: Colors.black),
+                  ),
                 ),
               ),
             ],
@@ -140,22 +166,32 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            CommonText('Banner Image', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
-            Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+          children: [
+            const CommonText('Banner Image', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+            GestureDetector(
+              onTap: controller.pickCoverImage,
+              child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+            ),
           ],
         ),
         const SizedBox(height: 12),
-        Container(
+        Obx(() => Container(
           height: 120,
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.borderLight, style: BorderStyle.solid), // Should be dashed in pure CSS, using solid for now
+            border: Border.all(color: AppColors.borderLight, style: BorderStyle.solid),
+            image: controller.newCoverImage.value != null 
+                ? DecorationImage(image: FileImage(controller.newCoverImage.value!), fit: BoxFit.cover)
+                : (controller.coverImageUrl.isNotEmpty 
+                    ? DecorationImage(image: NetworkImage(controller.coverImageUrl.value), fit: BoxFit.cover)
+                    : null),
           ),
-          child: const Center(child: Icon(Icons.add, color: AppColors.textSecondary)),
-        ),
+          child: (controller.newCoverImage.value == null && controller.coverImageUrl.isEmpty)
+              ? const Center(child: Icon(Icons.add, color: AppColors.textSecondary))
+              : null,
+        )),
       ],
     );
   }
@@ -177,9 +213,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
             ],
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: TextField(
-              decoration: InputDecoration(hintText: 'Enter phone number', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
+              controller: controller.phoneController,
+              decoration: const InputDecoration(hintText: 'Enter phone number', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
             ),
           ),
         ],
@@ -193,46 +230,49 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
+          Obx(() => Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: _paymentMethods.map((method) => _buildPaymentChip(method)).toList(),
-          ),
-          const SizedBox(height: 20),
-          const CommonTextField(label: '', hintText: 'Write here...', maxLines: 3),
+            children: controller.paymentOptions.map((method) => _buildPaymentChip(method)).toList(),
+          )),
         ],
       ),
     );
   }
 
   Widget _buildPaymentChip(String method) {
-    final isSelected = _selectedPayments.contains(method);
-    return Container(
-      width: (Get.width - 80) / 2, // Precise 2-column layout
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isSelected ? const Color(0xFF000B48) : AppColors.borderLight, width: 1.5),
-        boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))] : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _getPaymentIcon(method),
-          const SizedBox(width: 8),
-          Expanded(
-            child: CommonText(
-              method,
-              fontSize: AppTextSizes.size14,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-              maxLines: 1, // Keep it one line to maintain premium feel, but truncate if needed
-            ),
+    return Obx(() {
+      final isSelected = controller.selectedPayments.contains(method);
+      return GestureDetector(
+        onTap: () => controller.togglePayment(method),
+        child: Container(
+          width: (Get.width - 80) / 2,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: isSelected ? const Color(0xFF000B48) : AppColors.borderLight, width: 1.5),
+            boxShadow: isSelected ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))] : null,
           ),
-        ],
-      ),
-    );
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _getPaymentIcon(method),
+              const SizedBox(width: 8),
+              Expanded(
+                child: CommonText(
+                  method,
+                  fontSize: AppTextSizes.size14,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget _getPaymentIcon(String method) {
@@ -248,7 +288,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isCircle ? color : color.withValues(alpha: 0.1),
+        color: isCircle ? color : color.withOpacity(0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: isCircle ? Colors.white : color, size: 20),
@@ -261,10 +301,27 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonTextField(label: '', hintText: 'Write here...'),
+          Obx(() => Column(
+            children: controller.highlightControllers.asMap().entries.map((entry) {
+              final index = entry.key;
+              final ctrl = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Expanded(child: CommonTextField(label: '', hintText: 'Write here...', controller: ctrl)),
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, color: Colors.grey, size: 20),
+                      onPressed: () => controller.removeHighlight(index),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          )),
           const SizedBox(height: 12),
           GestureDetector(
-            onTap: () {},
+            onTap: controller.addHighlight,
             child: const CommonText('+ Add More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           ),
         ],
@@ -308,12 +365,12 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       title: 'Home Base Location',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          CommonTextField(label: 'City', hintText: 'Select city', suffixIcon: Icon(Icons.keyboard_arrow_down)),
-          SizedBox(height: 16),
-          CommonTextField(label: 'State/Province', hintText: 'Select state/province', isRequired: true, suffixIcon: Icon(Icons.keyboard_arrow_down)),
-          SizedBox(height: 16),
-          CommonTextField(label: 'Country', hintText: 'Select Country', isRequired: true, suffixIcon: Icon(Icons.keyboard_arrow_down)),
+        children: [
+          CommonTextField(label: 'City', hintText: 'Select city', controller: controller.cityController),
+          const SizedBox(height: 16),
+          CommonTextField(label: 'State/Province', hintText: 'Select state/province', isRequired: true, controller: controller.stateController),
+          const SizedBox(height: 16),
+          CommonTextField(label: 'Country', hintText: 'Select Country', isRequired: true, controller: controller.countryController),
         ],
       ),
     );
@@ -322,7 +379,15 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
   Widget _buildExperienceSection() {
     return _buildCard(
       title: 'Experience',
-      child: const CommonTextField(label: '', hintText: 'Select years of experience', suffixIcon: Icon(Icons.keyboard_arrow_down)),
+      child: Obx(() => _buildDropdownTrigger(
+        value: controller.experience.value,
+        hint: 'Select years of experience',
+        onTap: () => _showPickerBottomSheet(
+          title: 'Experience (Years)', 
+          options: controller.experienceOptions, 
+          onSelected: (val) => controller.experience.value = val
+        ),
+      )),
     );
   }
 
@@ -332,18 +397,26 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
+          Obx(() => Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              _buildChoiceChip('Eventing', false),
-              _buildChoiceChip('Hunter/Jumper', false),
-              _buildChoiceChip('Dressage', true),
-              _buildChoiceChip('Other', true),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const CommonTextField(label: '', hintText: 'Write here...', maxLines: 3),
+            children: controller.disciplineOptions.map((disc) {
+              final isSelected = controller.selectedDisciplines.contains(disc);
+              return GestureDetector(
+                onTap: () => controller.toggleDiscipline(disc),
+                child: _buildChoiceChip(disc, isSelected),
+              );
+            }).toList(),
+          )),
+          Obx(() {
+            if (controller.selectedDisciplines.contains('Other')) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: CommonTextField(label: '', hintText: 'Write here...', controller: controller.otherDisciplineController, maxLines: 3),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );
@@ -352,16 +425,17 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
   Widget _buildHorseLevelSection() {
     return _buildCard(
       title: 'Typical Level of Horses',
-      child: Wrap(
+      child: Obx(() => Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: [
-          _buildChoiceChip('AAAA Circuit', false),
-          _buildChoiceChip('FEI', false),
-          _buildChoiceChip('Grand Prix', false),
-          _buildChoiceChip('Young horses', true),
-        ],
-      ),
+        children: controller.horseLevelOptions.map((level) {
+          final isSelected = controller.selectedHorseLevels.contains(level);
+          return GestureDetector(
+            onTap: () => controller.toggleHorseLevel(level),
+            child: _buildChoiceChip(level, isSelected),
+          );
+        }).toList(),
+      )),
     );
   }
 
@@ -373,13 +447,22 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
         children: [
           const CommonText('Select the regions you work. Community work in availability details will be added later.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
-          _buildRemovableTag('Northeast (Hamp...'),
-          const SizedBox(height: 8),
-          _buildRemovableTag('Florida (Wellington • Ocala • Gulf Coast)', showRemove: true),
-          const SizedBox(height: 8),
-          _buildRemovableTag('Southeast (Thermal • AZ winter circuit)', showRemove: true),
-          const SizedBox(height: 8),
-          _buildRemovableTag('Southwest (Kilen • Tigard • Wills Park)', showRemove: true),
+          _buildDropdownTrigger(
+            hint: 'Select Regions...',
+            onTap: () => _showMultiSelectBottomSheet(
+              title: 'Select Regions',
+              options: controller.regionOptions,
+              selectedItems: controller.selectedRegions,
+              onToggle: (v) => controller.toggleRegion(v),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Obx(() => Column(
+            children: controller.selectedRegions.map((region) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildRemovableTag(region, showRemove: true, onRemove: () => controller.toggleRegion(region)),
+            )).toList(),
+          )),
         ],
       ),
     );
@@ -390,12 +473,12 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       title: 'Social Media & Website',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          CommonText('Please include at least one profile link or portfolio.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-          SizedBox(height: 16),
-          CommonTextField(label: 'Facebook', hintText: 'facebook.com/yourpage'),
-          SizedBox(height: 16),
-          CommonTextField(label: 'Instagram', hintText: '@yourusername', prefixIcon: Icon(Icons.alternate_email, size: 18)),
+        children: [
+          const CommonText('Please include at least one profile link or portfolio.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
+          CommonTextField(label: 'Facebook', hintText: 'facebook.com/yourpage', controller: controller.facebookController),
+          const SizedBox(height: 16),
+          CommonTextField(label: 'Instagram', hintText: '@yourusername', prefixIcon: const Icon(Icons.alternate_email, size: 18), controller: controller.instagramController),
         ],
       ),
     );
@@ -409,15 +492,21 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
         children: [
           const CommonText('Upload photos to showcase your work and details', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
-          Row(
+          Obx(() => Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              _buildPhotoUploadBox(imageUrl: 'https://i.pravatar.cc/100?u=horse1'),
-              const SizedBox(width: 12),
-              _buildPhotoUploadBox(),
-              const SizedBox(width: 12),
-              _buildPhotoUploadBox(),
+              ...controller.existingPhotos.asMap().entries.map((entry) => _buildPhotoUploadBox(
+                imageUrl: entry.value, 
+                onRemove: () => controller.removeExistingPhoto(entry.key)
+              )),
+              ...controller.newPhotos.asMap().entries.map((entry) => _buildPhotoUploadBox(
+                imageFile: entry.value, 
+                onRemove: () => controller.removeNewPhoto(entry.key)
+              )),
+              _buildPhotoUploadBox(onTap: controller.addGroomingPhoto),
             ],
-          ),
+          )),
         ],
       ),
     );
@@ -426,62 +515,68 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
   Widget _buildBarnSupportSection() {
     return _buildCard(
       title: 'Show & Barn Support',
-      child: Wrap(
+      child: Obx(() => Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: [
-          _buildChoiceChip('Show Grooming', false),
-          _buildChoiceChip('Monthly Jobs', false),
-          _buildChoiceChip('Fill In Daily Grooming Support', true),
-          _buildChoiceChip('Weekly Jobs', false),
-          _buildChoiceChip('Seasonal Jobs', false),
-          _buildChoiceChip('Travel Jobs', false),
-        ],
-      ),
+        children: controller.supportOptions.map((opt) {
+          final isSelected = controller.selectedSupport.contains(opt);
+          return GestureDetector(
+            onTap: () => controller.selectedSupport.contains(opt) ? controller.selectedSupport.remove(opt) : controller.selectedSupport.add(opt),
+            child: _buildChoiceChip(opt, isSelected),
+          );
+        }).toList(),
+      )),
     );
   }
 
   Widget _buildHorseHandlingSection() {
     return _buildCard(
       title: 'Horse Handling',
-      child: Wrap(
+      child: Obx(() => Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: [
-          _buildChoiceChip('Lunging', false),
-          _buildChoiceChip('Non Riding exercise only', false),
-        ],
-      ),
+        children: controller.handlingOptions.map((opt) {
+          final isSelected = controller.selectedHandling.contains(opt);
+          return GestureDetector(
+            onTap: () => controller.selectedHandling.contains(opt) ? controller.selectedHandling.remove(opt) : controller.selectedHandling.add(opt),
+            child: _buildChoiceChip(opt, isSelected),
+          );
+        }).toList(),
+      )),
     );
   }
 
   Widget _buildAdditionalSkillsSection() {
     return _buildCard(
       title: 'Additional Skills',
-      child: Wrap(
+      child: Obx(() => Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: [
-          _buildChoiceChip('Braiding', false),
-          _buildChoiceChip('Clipping', false),
-        ],
-      ),
+        children: controller.additionalSkillsOptions.map((opt) {
+          final isSelected = controller.selectedAdditionalSkills.contains(opt);
+          return GestureDetector(
+            onTap: () => controller.selectedAdditionalSkills.contains(opt) ? controller.selectedAdditionalSkills.remove(opt) : controller.selectedAdditionalSkills.add(opt),
+            child: _buildChoiceChip(opt, isSelected),
+          );
+        }).toList(),
+      )),
     );
   }
 
   Widget _buildTravelPreferencesSection() {
     return _buildCard(
       title: 'Travel Preferences',
-      child: Wrap(
+      child: Obx(() => Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: [
-          _buildChoiceChip('Local Only', false),
-          _buildChoiceChip('Regional', false),
-          _buildChoiceChip('Nationwide', false),
-          _buildChoiceChip('International', false),
-        ],
-      ),
+        children: controller.travelOptions.map((opt) {
+          final isSelected = controller.selectedTravel.contains(opt);
+          return GestureDetector(
+            onTap: () => controller.selectedTravel.contains(opt) ? controller.selectedTravel.remove(opt) : controller.selectedTravel.add(opt),
+            child: _buildChoiceChip(opt, isSelected),
+          );
+        }).toList(),
+      )),
     );
   }
 
@@ -491,15 +586,46 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonTextField(label: '', hintText: 'Select Cancellation', suffixIcon: Icon(Icons.keyboard_arrow_down)),
+          Obx(() => _buildDropdownTrigger(
+            value: controller.cancellationPolicy.value, 
+            hint: 'Select Cancellation',
+            onTap: () => _showPickerBottomSheet(
+              title: 'Cancellation Policy', 
+              options: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (7 days+)'], 
+              onSelected: (val) => controller.cancellationPolicy.value = val
+            ),
+          )),
           const SizedBox(height: 12),
-          Row(
+          Obx(() => Row(
             children: [
-              Checkbox(value: false, onChanged: (v) {}, materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              Checkbox(
+                value: controller.isCustomCancellation.value, 
+                onChanged: (v) => controller.isCustomCancellation.value = v ?? false, 
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap
+              ),
               const CommonText('Custom', fontSize: AppTextSizes.size14),
             ],
-          ),
+          )),
         ],
+      ),
+    );
+  }
+
+  // Helper Custom Widgets
+  Widget _buildDropdownTrigger({String? value, required String hint, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CommonText(value ?? hint, color: value == null ? Colors.grey : AppColors.textPrimary, fontSize: AppTextSizes.size14),
+            const Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 20),
+          ],
+        ),
       ),
     );
   }
@@ -516,7 +642,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
     );
   }
 
-  Widget _buildRemovableTag(String label, {bool showRemove = false}) {
+  Widget _buildRemovableTag(String label, {bool showRemove = false, VoidCallback? onRemove}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -528,23 +654,48 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Row(
         children: [
           Expanded(child: CommonText(label, fontSize: AppTextSizes.size14)),
-          if (showRemove) const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+          if (showRemove) GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary)
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPhotoUploadBox({String? imageUrl}) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-        image: imageUrl != null ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) : null,
-      ),
-      child: imageUrl == null ? const Icon(Icons.add, color: AppColors.textSecondary) : null,
+  Widget _buildPhotoUploadBox({String? imageUrl, File? imageFile, VoidCallback? onTap, VoidCallback? onRemove}) {
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.lightGray,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+              image: imageFile != null 
+                  ? DecorationImage(image: FileImage(imageFile), fit: BoxFit.cover)
+                  : (imageUrl != null ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover) : null),
+            ),
+            child: (imageUrl == null && imageFile == null) ? const Icon(Icons.add, color: AppColors.textSecondary) : null,
+          ),
+        ),
+        if (imageUrl != null || imageFile != null)
+          Positioned(
+            right: -2,
+            top: -2,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                child: const Icon(Icons.close, color: Colors.white, size: 10),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -556,7 +707,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -600,11 +751,86 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
              ),
              const SizedBox(width: 16),
              Expanded(
-               child: CommonButton(
-                 text: 'Save',
-                 onPressed: () => Get.back(),
-               ),
+               child: Obx(() => CommonButton(
+                 text: controller.isSaving.value ? 'Saving...' : 'Save',
+                 onPressed: controller.isSaving.value ? null : controller.saveProfile,
+                 isLoading: controller.isSaving.value,
+               )),
              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Pickers
+  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+          ),
+          const Divider(),
+          Flexible(
+            child: ListView(
+              shrinkWrap: true,
+              children: options.map((opt) => ListTile(
+                title: Center(child: CommonText(opt)),
+                onTap: () {
+                  onSelected(opt);
+                  Navigator.pop(ctx);
+                },
+              )).toList(),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      )
+    );
+  }
+
+  void _showMultiSelectBottomSheet({required String title, required List<String> options, required List<String> selectedItems, required Function(String) onToggle}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scroll) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                controller: scroll,
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final opt = options[index];
+                  return Obx(() => CheckboxListTile(
+                    title: CommonText(opt),
+                    value: selectedItems.contains(opt),
+                    onChanged: (v) => onToggle(opt),
+                    activeColor: AppColors.primary,
+                  ));
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: CommonButton(text: 'Done', onPressed: () => Navigator.pop(ctx)),
+            ),
           ],
         ),
       ),

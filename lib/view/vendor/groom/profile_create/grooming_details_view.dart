@@ -46,9 +46,9 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildGroomingServices(controller),
-              const SizedBox(height: 24),
               _buildRateSection(controller),
+              const SizedBox(height: 24),
+              _buildGroomingServices(controller),
               const SizedBox(height: 24),
               _buildSupportSection(controller),
               const SizedBox(height: 24),
@@ -93,14 +93,15 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
               }).toList(),
             )),
         const SizedBox(height: 12),
-        _buildActionLink('Add Skill', onTap: () => _showAddSkillBottomSheet(context, controller)),
+        _buildActionLink('+ Add Service', onTap: () => _showAddServiceBottomSheet(context, controller)),
       ],
     );
   }
 
   Widget _buildRateSection(GroomingDetailsController controller) {
     return _buildSectionContainer(
-      title: 'Rate',
+      title: 'Rates',
+      description: 'Set your standard rates below, so how you quickly work',
       children: [
         _buildPriceField('Daily Rate', controller.dailyRateController),
         const SizedBox(height: 20),
@@ -116,13 +117,13 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       title: 'Show & Barn Support',
       children: [
         Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: controller.supportOptions.map((item) {
-                final isSelected = controller.selectedSupport.contains(item);
-                return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleSupport(item));
-              }).toList(),
-            )),
+          spacing: 8,
+          runSpacing: 8,
+          children: controller.supportOptions.map((item) {
+            final isSelected = controller.selectedSupport.contains(item);
+            return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleSupport(item));
+          }).toList(),
+        )),
       ],
     );
   }
@@ -132,13 +133,13 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       title: 'Horse Handling',
       children: [
         Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: controller.handlingOptions.map((item) {
-                final isSelected = controller.selectedHandling.contains(item);
-                return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleHandling(item));
-              }).toList(),
-            )),
+          spacing: 8,
+          runSpacing: 8,
+          children: controller.handlingOptions.map((item) {
+            final isSelected = controller.selectedHandling.contains(item);
+            return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleHandling(item));
+          }).toList(),
+        )),
       ],
     );
   }
@@ -146,44 +147,58 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildAdditionalServices(GroomingDetailsController controller) {
     return _buildSectionContainer(
       title: 'Additional Services',
+      description: 'Optional services offered in addition to your standard work',
       children: [
         Obx(() => Column(
-              children: controller.additionalServices.map((service) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Obx(() => Checkbox(
-                            value: service['isSelected'].value,
-                            onChanged: (val) => service['isSelected'].value = val!,
-                            activeColor: AppColors.primary,
-                          )),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CommonText(service['name'] as String, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                            CommonText('Per horse', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 100,
-                        child: CommonTextField(
-                          label: '',
-                          controller: service['price'] as TextEditingController,
-                          prefixIcon: const Padding(padding: EdgeInsets.all(12.0), child: CommonText('\$', fontSize: AppTextSizes.size14)),
-                          keyboardType: TextInputType.number, hintText: '',
-                        ),
-                      ),
-                    ],
+          children: controller.additionalServices.map((service) {
+            final isSelected = service['isSelected'].value;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFEDF2FF).withOpacity(0.5) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight),
+              ),
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: isSelected,
+                    onChanged: (val) => service['isSelected'].value = val!,
+                    activeColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
-                );
-              }).toList(),
-            )),
-        const SizedBox(height: 12),
-        _buildActionLink('Add Skill', onTap: () => _showAddSkillBottomSheet(context, controller)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommonText(service['name'] as String, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                        CommonText('Per horse', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 90,
+                    child: CommonTextField(
+                      label: '',
+                      controller: service['price'] as TextEditingController,
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                        child: CommonText('\$', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                      ),
+                      keyboardType: TextInputType.number,
+                      hintText: '0',
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        )),
+        const SizedBox(height: 8),
+        _buildActionLink('Add Service', onTap: () => _showAddServiceBottomSheet(context, controller, isAdditional: true)),
       ],
     );
   }
@@ -193,51 +208,66 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       title: 'Travel Preferences',
       children: [
         Obx(() => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: controller.travelOptions.map((item) {
-                final isSelected = controller.selectedTravel.contains(item);
-                return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleTravel(item));
-              }).toList(),
-            )),
+          spacing: 8,
+          runSpacing: 8,
+          children: controller.travelOptions.map((item) {
+            final isSelected = controller.selectedTravel.contains(item);
+            return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleTravel(item));
+          }).toList(),
+        )),
       ],
     );
   }
 
   Widget _buildReadOnlyInfo(GroomingDetailsController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabelValue('Location', controller.location.value),
-        const SizedBox(height: 20),
-        _buildLabelValue('Years of Experience', controller.experience.value),
-        const SizedBox(height: 20),
-        _buildChipsList('Disciplines', controller.disciplinesSelected),
-        const SizedBox(height: 20),
-        _buildChipsList('Typical Level of Horses', controller.horseLevels),
-        const SizedBox(height: 20),
-        _buildSectionHeader('General operating regions'),
-        Obx(() => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: controller.operatingRegions
-                  .map((r) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
-                          child: CommonText(r, fontSize: AppTextSizes.size12),
-                        ),
-                      ))
-                  .toList(),
-            )),
-      ],
-    );
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabelValue('Location', controller.location.value),
+          const SizedBox(height: 20),
+          _buildLabelValue('Years of Experience', controller.experience.value),
+          const SizedBox(height: 20),
+          _buildChipsList('Disciplines', controller.disciplinesSelected),
+          const SizedBox(height: 20),
+          _buildChipsList('Typical Level of Horses', controller.horseLevels),
+          const SizedBox(height: 20),
+          _buildSectionHeader('General operating regions'),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: controller.operatingRegions
+                .map((r) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGray.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+                ),
+                child: CommonText(r, fontSize: AppTextSizes.size12),
+              ),
+            ))
+                .toList(),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildCancellationPolicy(GroomingDetailsController controller) {
     return _buildSectionContainer(
-      title: 'Cancellation policy',
+      title: 'Cancellation Policy',
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -247,23 +277,24 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           ),
           child: DropdownButtonHideUnderline(
             child: Obx(() => DropdownButton<String>(
-                  value: controller.cancellationPolicy.value,
-                  hint: const CommonText('Select Cancellation', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-                  isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-                  items: ['Flexible', 'Moderate', 'Strict'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
-                  onChanged: (val) => controller.cancellationPolicy.value = val,
-                )),
+              value: controller.cancellationPolicy.value,
+              hint: const CommonText('Select Cancellation', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+              items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
+              onChanged: (val) => controller.cancellationPolicy.value = val,
+            )),
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Obx(() => Checkbox(
-                  value: controller.isCustomCancellation.value,
-                  onChanged: (val) => controller.isCustomCancellation.value = val!,
-                  activeColor: AppColors.primary,
-                )),
+              value: controller.isCustomCancellation.value,
+              onChanged: (val) => controller.isCustomCancellation.value = val!,
+              activeColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            )),
             const CommonText('Custom', fontSize: AppTextSizes.size14),
           ],
         ),
@@ -271,15 +302,15 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
     );
   }
 
-  void _showAddSkillBottomSheet(BuildContext context, GroomingDetailsController controller) {
+  void _showAddServiceBottomSheet(BuildContext context, GroomingDetailsController controller, {bool isAdditional = false}) {
     Get.bottomSheet(
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       Container(
-        padding: EdgeInsets.only(top: 10, left: 20, right: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+        padding: EdgeInsets.only(top: 10, left: 24, right: 24, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -287,34 +318,60 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           children: [
             Center(
               child: Container(
-                width: 50,
-                height: 4,
-                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(10)),
               ),
             ),
+            const SizedBox(height: 32),
+            CommonText(isAdditional ? 'Additional Services' : 'Add Service', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
+            if (isAdditional) ...[
+              const SizedBox(height: 4),
+              const CommonText('Set your standard rate for this service.', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+            ],
             const SizedBox(height: 24),
-            CommonText('Add Skill', fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
-            const SizedBox(height: 24),
-            const CommonText('Skill', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-            const SizedBox(height: 8),
+            const CommonText('Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+            const SizedBox(height: 10),
             CommonTextField(
               label: '',
-              controller: controller.addSkillInputController,
-              hintText: 'Enter your skill',
+              controller: controller.addServiceInputController,
+              hintText: 'i.e. braiding, clipping',
             ),
-            const SizedBox(height: 32),
+            if (isAdditional) ...[
+              const SizedBox(height: 24),
+              const CommonText('Price per horse', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+              const SizedBox(height: 10),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.lightGray.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: CommonTextField(
+                  label: '',
+                  controller: controller.addServicePriceInputController,
+                  hintText: 'Enter price',
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    child: CommonText('\$', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+            const SizedBox(height: 40),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      controller.addSkillInputController.clear();
+                      controller.addServiceInputController.clear();
+                      controller.addServicePriceInputController.clear();
                       Get.back();
                     },
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: AppColors.borderLight),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      side: BorderSide(color: Colors.grey[300]!),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     ),
                     child: const CommonText('Cancel', fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600),
                   ),
@@ -325,7 +382,14 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                     text: 'Save',
                     backgroundColor: AppColors.primary,
                     onPressed: () {
-                      controller.addSkill(controller.addSkillInputController.text);
+                      if (isAdditional) {
+                        controller.addAdditionalService(
+                          controller.addServiceInputController.text,
+                          controller.addServicePriceInputController.text,
+                        );
+                      } else {
+                        controller.addGroomingService(controller.addServiceInputController.text);
+                      }
                       Get.back();
                     },
                   ),
@@ -395,35 +459,35 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: AppColors.lightGray.withOpacity(0.5), borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CommonTextField(
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: CommonTextField(
                 label: '',
                 controller: controller,
-                hintText: 'enter price',
-                prefixIcon: const Padding(padding: EdgeInsets.all(12.0), child: CommonText('\$', fontSize: AppTextSizes.size14)),
+                hintText: 'Enter Price',
+                prefixIcon: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: CommonText('\$', fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600),
+                ),
                 keyboardType: TextInputType.number,
               ),
-              if (showDaysToggle) ...[
-                const SizedBox(height: 12),
-                const CommonText('Choose your week length', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _buildToggleBtn('5 days week', daysRx!.value == 5, () => daysRx.value = 5),
-                    const SizedBox(width: 12),
-                    _buildToggleBtn('6 days week', daysRx.value == 6, () => daysRx.value = 6),
-                  ],
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
+        if (showDaysToggle && daysRx != null) ...[
+          const SizedBox(height: 16),
+          CommonText('Select your standard schedule', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 10),
+          Obx(() => Row(
+            children: [
+              _buildToggleBtn('5 days week', daysRx.value == 5, () => daysRx.value = 5),
+              const SizedBox(width: 12),
+              _buildToggleBtn('6 days week', daysRx.value == 6, () => daysRx.value = 6),
+            ],
+          )),
+        ],
       ],
     );
   }
@@ -431,16 +495,19 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildToggleBtn(String text, bool isSelected, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.secondary : AppColors.lightGray,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? const Color(0xFFF0E6E6).withOpacity(0.8) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isSelected ? AppColors.secondary : AppColors.borderLight),
         ),
         child: CommonText(
           text,
-          fontSize: AppTextSizes.size12,
-          color: isSelected ? Colors.white : AppColors.textSecondary,
+          fontSize: AppTextSizes.size14,
+          color: isSelected ? AppColors.secondary : AppColors.textSecondary,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );
@@ -480,10 +547,10 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           runSpacing: 8,
           children: items
               .map((it) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
-                    child: CommonText(it, fontSize: AppTextSizes.size12),
-                  ))
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
+            child: CommonText(it, fontSize: AppTextSizes.size12),
+          ))
               .toList(),
         ),
       ],

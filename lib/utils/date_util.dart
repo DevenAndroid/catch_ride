@@ -42,6 +42,23 @@ class DateUtil {
     return '$s - $e';
   }
 
+  static String formatDate(dynamic date, {String format = displayFormat}) {
+    if (date == null) return '';
+
+    DateTime? dateTime;
+    if (date is DateTime) {
+      dateTime = date;
+    } else if (date is String) {
+      if (date.isEmpty) return '';
+      dateTime = DateTime.tryParse(date);
+    }
+
+    if (dateTime != null) {
+      return DateFormat(format).format(dateTime);
+    }
+    return date.toString();
+  }
+
   static String getTimeAgo(DateTime? date) {
     if (date == null) return 'N/A';
 

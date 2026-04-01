@@ -1,7 +1,9 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/view/vendor/groom/profile/payment_methods.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,45 +27,58 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(GroomViewProfileController());
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  _buildBio(),
-                  const SizedBox(height: 16),
-                  _buildSocials(),
-                  const SizedBox(height: 16),
-                  _buildPaymentMethods(),
-                  const SizedBox(height: 24),
-                  _buildTabs(),
-                  const SizedBox(height: 20),
-                  _buildDetailsCard(),
-                  const SizedBox(height: 24),
-                  _buildPhotosSection(),
-                  const SizedBox(height: 24),
-                  _buildAvailabilitySection(),
-                  const SizedBox(height: 24),
-                  _buildCancellationPolicy(),
-                  const SizedBox(height: 40),
-                ],
-              ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return RefreshIndicator(
+          onRefresh: controller.fetchProfile,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(controller),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildBio(controller),
+                      const SizedBox(height: 16),
+                      _buildHighlights(controller),
+                      const SizedBox(height: 16),
+                      _buildSocials(controller),
+                      const SizedBox(height: 16),
+                      _buildPaymentMethods(controller),
+                      const SizedBox(height: 24),
+                      _buildTabs(),
+                      const SizedBox(height: 20),
+                      _buildDetailsCard(controller),
+                      const SizedBox(height: 24),
+                      _buildPhotosSection(controller),
+                      const SizedBox(height: 24),
+                      _buildAvailabilitySection(controller),
+                      const SizedBox(height: 24),
+                      _buildCancellationPolicy(controller),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(GroomViewProfileController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -73,8 +88,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
             SizedBox(
               height: 220,
               width: double.infinity,
-              child: const CommonImageView(
-                url: 'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=2071&auto=format&fit=crop',
+              child: CommonImageView(
+                url: controller.coverImage,
                 fit: BoxFit.cover,
               ),
             ),
@@ -91,7 +106,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
               right: 16,
               child: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.5), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.5), shape: BoxShape.circle),
                 child: const Icon(Icons.more_vert, color: Colors.black, size: 20),
               ),
             ),
@@ -101,9 +116,12 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: const CircleAvatar(
-                  radius: 50,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=thomas'),
+                child: CommonImageView(
+                  url: controller.profilePhoto,
+                  height: 100,
+                  width: 100,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
                 ),
               ),
             ),
@@ -114,19 +132,19 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CommonText('Thomas Martin', fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
+              CommonText(controller.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
               const SizedBox(height: 1),
-              const CommonText('Westbridge Equestrian', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              CommonText(controller.businessNameDisplay, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
               const SizedBox(height: 4),
               Row(
-                children: const [
-                  Icon(Icons.location_on, color: Color(0xFFE11D48), size: 14),
-                  SizedBox(width: 4),
-                  CommonText('Denver, Colorado, USA', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                children: [
+                  const Icon(Icons.location_on, color: Color(0xFFE11D48), size: 14),
+                  const SizedBox(width: 4),
+                  Obx(() => CommonText(controller.locationStr.value, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 4),
-              const CommonText('Grooming  •  10+ Years', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              Obx(() => CommonText('Grooming  •  ${controller.experienceStr.value}', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -134,11 +152,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
     );
   }
 
-  Widget _buildBio() {
-    return const Padding(
-      padding: EdgeInsets.only(top: 10),
+  Widget _buildBio(GroomViewProfileController controller) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
       child: CommonText(
-        'Experienced A/AA circuit groom with a strong background in the hunter/jumper industry. I\'ve worked with high-volume show barns across major circuits including Wellington, Ocala, Tryon, and the Northeast, managing daily care for multiple horses in a fast-paced, high-standard environment.',
+        controller.bioDisplay,
         fontSize: AppTextSizes.size14,
         color: AppColors.textSecondary,
         height: 1.5,
@@ -146,12 +164,19 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
     );
   }
 
-  Widget _buildSocials() {
-    return Row(
+  Widget _buildSocials(GroomViewProfileController controller) {
+    if (controller.instagramUrl.isEmpty && controller.facebookUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Column(
       children: [
-        _buildSocialButton('Instagram', Icons.camera_alt_outlined, AppColors.accentRedLight),
-        const SizedBox(width: 12),
-        _buildSocialButton('Facebook', Icons.facebook, AppColors.linkBlue),
+        Row(
+          children: [
+            if (controller.instagramUrl.isNotEmpty) _buildSocialButton('Instagram', Icons.camera_alt_outlined, AppColors.accentRedLight),
+            if (controller.instagramUrl.isNotEmpty && controller.facebookUrl.isNotEmpty) const SizedBox(width: 12),
+            if (controller.facebookUrl.isNotEmpty) _buildSocialButton('Facebook', Icons.facebook, AppColors.linkBlue),
+          ],
+        ),
       ],
     );
   }
@@ -174,19 +199,74 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
     );
   }
 
-  Widget _buildPaymentMethods() {
+  Widget _buildPaymentMethods(GroomViewProfileController controller) {
     return GestureDetector(
       onTap: () => Get.to(() => const PaymentMethods()),
-      child: Row(
-        children: [
-          Image.network('https://cdn-icons-png.flaticon.com/512/174/174883.png', width: 24, height: 24),
-          const SizedBox(width: 8),
-          Image.network('https://cdn-icons-png.flaticon.com/512/5968/5968397.png', width: 24, height: 24),
-          const SizedBox(width: 8),
-          const CommonText('View all payment methods', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-          const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
-        ],
-      ),
+      child: Obx(() {
+        final methods = controller.paymentMethods;
+        if (methods.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return Row(
+          children: [
+            SizedBox(
+              width: methods.length > 1 ? (22.0 + (methods.take(3).length - 1) * 15.0) : 26,
+              height: 26,
+              child: Stack(
+                children: [
+                  ...methods.take(3).toList().asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final pm = entry.value;
+                    
+                    IconData icon = Icons.payments_outlined;
+                    Color color = AppColors.secondary;
+                    
+                    if (pm.toLowerCase().contains('venmo')) {
+                      icon = Icons.account_balance_wallet_outlined;
+                      color = const Color(0xFF3D95CE);
+                    } else if (pm.toLowerCase().contains('paypal')) {
+                      icon = Icons.payment;
+                      color = const Color(0xFF003087);
+                    } else if (pm.toLowerCase().contains('zelle')) {
+                      icon = Icons.currency_exchange;
+                      color = const Color(0xFF671BC4);
+                    } else if (pm.toLowerCase().contains('cash')) {
+                      icon = Icons.money;
+                      color = const Color(0xFF22C55E);
+                    } else if (pm.toLowerCase().contains('card')) {
+                      icon = Icons.credit_card;
+                      color = const Color(0xFF1E3A8A);
+                    }
+                    
+                    return Positioned(
+                      left: index * 15.0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1),
+                        ),
+                        child: Icon(icon, size: 20, color: color),
+                      ),
+                    );
+                  }).toList().reversed, // Reverse to show first on top if needed, or normal for standard stack
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            CommonText(
+              methods.length > 3 
+                ? 'View all ${methods.length} payment methods' 
+                : 'View payment methods',
+              fontSize: AppTextSizes.size12, 
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+            const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+          ],
+        );
+      }),
     );
   }
 
@@ -203,12 +283,12 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
             Tab(child: CommonText('Grooming', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold)),
           ],
         ),
-        const Divider(height: 1, thickness: 1),
+        const Divider(height: 1, thickness: 1, color: AppColors.dividerColor),
       ],
     );
   }
 
-  Widget _buildDetailsCard() {
+  Widget _buildDetailsCard(GroomViewProfileController controller) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -216,7 +296,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,63 +306,78 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildRateItem('\$ 4k', 'Day Rate'),
-              _buildRateItem('\$ 12k', 'Week Rate (6d)'),
-              _buildRateItem('\$ 30k', 'Month Rate'),
+              _buildRateItem('\$ ${controller.dailyRate}', 'Day Rate'),
+              _buildRateItem('\$ ${controller.weeklyRate}', 'Week Rate (${controller.weeklyDays}d)'),
+              _buildRateItem('\$ ${controller.monthlyRate}', 'Month Rate (${controller.monthlyDays}d)'),
             ],
           ),
           const SizedBox(height: 20),
-          _buildCheckItem('Tacking & Untacking'),
-          _buildCheckItem('Wrapping & Bandaging'),
-          _buildCheckItem('Stall Upkeep & Daily Care'),
+          ..._buildCapabilityItems(controller),
           const SizedBox(height: 20),
           const CommonText('Additional Services', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
-          _buildAdditionalService('Hunter Braiding Mane', '\$ 12k / horse'),
-          _buildAdditionalService('Jumper Braiding', '\$ 12k / horse'),
+          if (controller.additionalServices.isEmpty)
+            const CommonText('No additional services', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+          ...controller.additionalServices.map((s) => _buildAdditionalService(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
           const SizedBox(height: 16),
-          const SizedBox(height: 16),
-          Obx(() {
-            if (_showMoreDetails.value) {
-              return Column(
-                children: [
-                  const Divider(height: 32),
-                  _buildTwoColumnDetails(
-                    'Location', 'Denver, Colorado, USA.',
-                    'Years of Experience', '10+ Years',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTwoColumnDetails(
-                    'Disciplines', 'Dressage, Eventing',
-                    'Typical Level of Horses', 'Local Only, Regional',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSingleColumnDetail('Show & Barn Support', 'Fill-In Daily Grooming Support'),
-                  const SizedBox(height: 20),
-                  _buildTwoColumnDetails(
-                    'Horse Handling', 'Lunging, Flat Riding',
-                    'Additional Skills', 'Braiding',
-                  ),
-                  const SizedBox(height: 20),
-                  _buildSingleColumnDetail('Travel Preferences', 'Local Only, Regional'),
-                  const SizedBox(height: 20),
-                  _buildSingleColumnDetail('Operating Regions', 'Ocala, Tryon, Lexington, Mid- Atlantic (VA/MD/PA)'),
-                  const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: () => _showMoreDetails.value = false,
-                    child: const CommonText('View Less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              );
-            }
-            return GestureDetector(
-              onTap: () => _showMoreDetails.value = true,
-              child: const CommonText('View More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-            );
-          }),
+          _buildViewMoreSection(controller),
         ],
       ),
     );
+  }
+
+  List<Widget> _buildCapabilityItems(GroomViewProfileController controller) {
+    final List<String> items = {
+      ...controller.groomingServices,
+      ...controller.supportOptions,
+      ...controller.handlingOptions,
+    }.toList();
+    return items.map((it) => _buildCheckItem(it)).toList();
+  }
+
+  Widget _buildViewMoreSection(GroomViewProfileController controller) {
+    return Obx(() {
+      if (_showMoreDetails.value) {
+        return Column(
+          children: [
+            const Divider(height: 32, color: AppColors.dividerColor),
+            _buildTwoColumnDetails(
+              'Location',
+              controller.locationStr.value,
+              'Years of Experience',
+              controller.experienceStr.value,
+            ),
+            const SizedBox(height: 20),
+            _buildTwoColumnDetails(
+              'Disciplines',
+              controller.disciplinesSelected.isEmpty ? 'N/A' : controller.disciplinesSelected.join(', '),
+              'Horse Levels',
+              controller.horseLevels.isEmpty ? 'N/A' : controller.horseLevels.join(', '),
+            ),
+            const SizedBox(height: 20),
+            _buildSingleColumnDetail('Show & Barn Support', controller.supportOptions.isEmpty ? 'N/A' : controller.supportOptions.join(', ')),
+            const SizedBox(height: 20),
+            _buildTwoColumnDetails(
+              'Horse Handling',
+              controller.handlingOptions.isEmpty ? 'N/A' : controller.handlingOptions.join(', '),
+              'Travel Preferences',
+              controller.travelPreferences.isEmpty ? 'N/A' : controller.travelPreferences.join(', '),
+            ),
+            const SizedBox(height: 20),
+            _buildSingleColumnDetail('Operating Regions', controller.operatingRegions.isEmpty ? 'N/A' : controller.operatingRegions.join(', ')),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () => _showMoreDetails.value = false,
+              child: const CommonText('View Less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+            ),
+          ],
+        );
+      }
+      return GestureDetector(
+        onTap: () => _showMoreDetails.value = true,
+        child: const CommonText('View More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+      );
+    });
   }
 
   Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
@@ -307,7 +402,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
         CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
         const SizedBox(height: 6),
         CommonText(value, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        const Divider(height: 24),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
@@ -348,19 +443,23 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
     );
   }
 
-  Widget _buildPhotosSection() {
+  Widget _buildPhotosSection(GroomViewProfileController controller) {
+    final media = controller.allMedia;
+    if (media.isEmpty) return const SizedBox.shrink();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const CommonText('Photos', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildPhotoItem('https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=200'),
-            _buildPhotoItem('https://images.unsplash.com/photo-1598974357801-cbca100e65d3?q=80&w=200'),
-            _buildPhotoItem('https://images.unsplash.com/photo-1534073737927-85f1ebff1f5d?q=80&w=200'),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: media.map((url) => Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: _buildPhotoItem(url),
+            )).toList(),
+          ),
         ),
       ],
     );
@@ -376,7 +475,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
     );
   }
 
-  Widget _buildAvailabilitySection() {
+  Widget _buildAvailabilitySection(GroomViewProfileController controller) {
     return Column(
       children: [
         Row(
@@ -387,24 +486,37 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
           ],
         ),
         const SizedBox(height: 16),
-        _buildAvailabilityCard(
-          dates: 'Mar 10 - Mar 18, 2026',
-          location: 'Wellington, WEC Ocala',
-          tags: ['Show Week Support', 'Fill In/ Daily Show Support'],
-          maxHorses: 'Max 5 Horses',
-          maxDays: 'Max 8 Days',
-          note: 'Prefer mornings. Experience with warmbloods.',
-        ),
-        const SizedBox(height: 12),
-        _buildAvailabilityCard(
-          dates: 'Mar 10 - Mar 18, 2026',
-          location: 'Wellington, WEC Ocala',
-          tags: ['Show Week Support', 'Fill In/ Daily Show Support', 'Hunter Braiding Mane'],
-          maxHorses: 'Max 5 Horses',
-          maxDays: 'Max 8 Days',
-          note: 'Prefer mornings. Experience with warmbloods.',
-          showMore: true,
-        ),
+        Obx(() {
+          if (controller.isAvailabilityLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (controller.availabilityList.isEmpty) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
+              child: const Center(child: CommonText('No upcoming availability found.', fontSize: AppTextSizes.size14, color: AppColors.textSecondary)),
+            );
+          }
+          return Column(
+            children: controller.availabilityList.map((avail) {
+              final String startDate = avail['startDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['startDate'])) : 'N/A';
+              final String endDate = avail['endDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['endDate'])) : '';
+              final String range = endDate.isNotEmpty ? '$startDate - $endDate' : startDate;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildAvailabilityCard(
+                  dates: range,
+                  location: avail['location']?['city'] != null ? '${avail['location']['city']}, ${avail['location']['state'] ?? ''}' : 'Multiple Locations',
+                  tags: List<String>.from(avail['serviceTypes'] ?? ['Grooming']),
+                  maxHorses: 'Max ${avail['maxBookings'] ?? 1} Horses',
+                  maxDays: 'Available',
+                  note: avail['notes'] ?? 'Contact vendor for more details.',
+                ),
+              );
+            }).toList(),
+          );
+        }),
       ],
     );
   }
@@ -494,8 +606,9 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
     );
   }
 
-  Widget _buildCancellationPolicy() {
+  Widget _buildCancellationPolicy(GroomViewProfileController controller) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFEF2F2),
@@ -503,23 +616,53 @@ class _GroomViewProfileState extends State<GroomViewProfile> with SingleTickerPr
         border: Border.all(color: const Color(0xFFFEE2E2)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: const [
               Icon(Icons.cancel_outlined, color: Colors.red, size: 20),
               SizedBox(width: 8),
-              CommonText('Cancelation Policy', color: Colors.red, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+              CommonText('Cancellation Policy', color: Colors.red, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
             ],
           ),
           const SizedBox(height: 12),
+          CommonText(
+            controller.cancellationPolicy,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF8B4444),
+          ),
+          const SizedBox(height: 4),
           const CommonText(
-            'Cancellations must be made at least 24 hours in advance. Late cancellations may incur a fee or may not be eligible for a refund.',
+            'Late cancellations may incur a fee or may not be eligible for a refund as per vendor rules.',
             fontSize: AppTextSizes.size12,
             color: Color(0xFF8B4444),
             height: 1.4,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildHighlights(GroomViewProfileController controller) {
+    if (controller.highlights.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText('Professional Highlights', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+        const SizedBox(height: 12),
+        ...controller.highlights.map((h) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              const Icon(Icons.star_outline, size: 18, color: AppColors.secondary),
+              const SizedBox(width: 8),
+              Expanded(child: CommonText(h, fontSize: AppTextSizes.size14, color: AppColors.textSecondary)),
+            ],
+          ),
+        )),
+      ],
     );
   }
 }
