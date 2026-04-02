@@ -5,8 +5,23 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class PastClientsView extends StatelessWidget {
+import '../../../../controllers/booking_controller.dart';
+
+class PastClientsView extends StatefulWidget {
   const PastClientsView({super.key});
+
+  @override
+  State<PastClientsView> createState() => _PastClientsViewState();
+}
+
+class _PastClientsViewState extends State<PastClientsView> {
+  final controller = Get.put(BookingController());
+
+  @override
+  void initState() {
+    super.initState();
+    controller.fetchBookings(type: 'received', time: 'past', status: 'confirmed');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,37 +36,34 @@ class PastClientsView extends StatelessWidget {
         ),
         title: const CommonText('Past Clients', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          _buildClientCard(
-            name: 'Emma Caldwell',
-            service: 'Grooming',
-            location: 'Tampa, FL, USA',
-            date: '01 Apr - 07 Apr 2026',
-            note: 'Looking for a reliable groom!',
-            imageUrl: 'https://i.pravatar.cc/100?u=emma',
-          ),
-          const SizedBox(height: 16),
-          _buildClientCard(
-            name: 'Mark Lee',
-            service: 'Braiding',
-            location: 'Tampa, FL, USA',
-            date: '01 Apr - 07 Apr 2026',
-            note: 'Looking for a reliable groom!',
-            imageUrl: 'https://i.pravatar.cc/100?u=mark',
-          ),
-          const SizedBox(height: 16),
-          _buildClientCard(
-            name: 'Mark Lee',
-            service: 'Grooming',
-            location: 'Tampa, FL, USA',
-            date: '01 Apr - 07 Apr 2026',
-            note: 'Looking for a reliable groom!',
-            imageUrl: 'https://i.pravatar.cc/100?u=mark',
-          ),
-        ],
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.receivedBookings.isEmpty) {
+          return const Center(child: CommonText('No past clients found', color: AppColors.textSecondary));
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: controller.receivedBookings.length,
+          itemBuilder: (context, index) {
+            final booking = controller.receivedBookings[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildClientCard(
+                name: booking.clientName ?? booking.trainerName ?? 'N/A',
+                service: booking.type.toUpperCase(),
+                location: booking.location ?? 'N/A',
+                date: booking.date,
+                note: booking.notes ?? 'No notes provided',
+                imageUrl: booking.horseImage ?? '',
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 
@@ -68,7 +80,7 @@ class PastClientsView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +90,13 @@ class PastClientsView extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: CommonImageView(url: imageUrl, width: 60, height: 60, fit: BoxFit.cover),
+                child: CommonImageView(
+                  url: imageUrl,
+                  width: 60,
+                  height: 60,
+                  fit: BoxFit.cover,
+                  isUserImage: true,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -89,7 +107,7 @@ class PastClientsView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
-                          child: CommonText('Trainer : $name', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                          child: CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -123,22 +141,27 @@ class PastClientsView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          CommonText('NOTE : $note', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+          CommonText('Note: $note', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
           const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF8B4444)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF8B4444)),
-                SizedBox(width: 8),
-                CommonText('Message', color: Color(0xFF8B4444), fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-              ],
+          GestureDetector(
+            onTap: () {
+              // Navigation to chat or client details
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFF8B4444)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF8B4444)),
+                  SizedBox(width: 8),
+                  CommonText('Message', color: Color(0xFF8B4444), fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                ],
+              ),
             ),
           ),
         ],

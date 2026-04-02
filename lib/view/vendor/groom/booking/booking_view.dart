@@ -1,7 +1,11 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/models/booking_model.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class BookingView extends StatefulWidget {
   const BookingView({super.key});
@@ -11,34 +15,18 @@ class BookingView extends StatefulWidget {
 }
 
 class _BookingViewState extends State<BookingView> {
+  final controller = Get.put(BookingController());
   int _selectedTab = 0; // 0 for Upcoming, 1 for Past Clients
 
-  final List<Map<String, dynamic>> _bookings = [
-    {
-      'trainer': 'Emma Caldwell',
-      'location': 'Tampa, FL, USA',
-      'dates': '01 Apr - 07 Apr 2026',
-      'service': 'Grooming',
-      'note': 'Looking for a reliable groom!',
-      'avatar': 'https://i.pravatar.cc/150?u=1'
-    },
-    {
-      'trainer': 'Mark Lee',
-      'location': 'Tampa, FL, USA',
-      'dates': '01 Apr - 07 Apr 2026',
-      'service': 'Braiding',
-      'note': 'Looking for a reliable braider!',
-      'avatar': 'https://i.pravatar.cc/150?u=2'
-    },
-    {
-      'trainer': 'Mark Lee',
-      'location': 'Tampa, FL, USA',
-      'dates': '01 Apr - 07 Apr 2026',
-      'service': 'Grooming',
-      'note': 'Looking for a reliable groom!',
-      'avatar': 'https://i.pravatar.cc/150?u=2'
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  void _fetchData() {
+    controller.fetchBookings(type: 'received');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,38 +41,62 @@ class _BookingViewState extends State<BookingView> {
           fontWeight: FontWeight.bold,
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Container(
-              height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(26),
-                border: Border.all(color: AppColors.borderLight),
-              ),
-              child: Row(
-                children: [
-                  _buildTab('Upcoming', 0),
-                  _buildTab('Past Clients', 1),
-                ],
+      body: Obx(() {
+        if (controller.isLoading.value && controller.receivedBookings.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final filteredBookings = controller.receivedBookings.where((b) {
+          if (_selectedTab == 0) {
+            return b.status.toLowerCase() == 'pending' || b.status.toLowerCase() == 'confirmed';
+          } else {
+            return b.status.toLowerCase() == 'completed';
+          }
+        }).toList();
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  children: [
+                    _buildTab('Upcoming', 0),
+                    _buildTab('Past Clients', 1),
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: _bookings.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final booking = _bookings[index];
-                return _buildBookingCard(booking);
-              },
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async => _fetchData(),
+                child: filteredBookings.isEmpty
+                  ? ListView(
+                      children: [
+                        SizedBox(height: Get.height * 0.2),
+                        const Center(child: CommonText('No bookings found', color: AppColors.textSecondary)),
+                      ],
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                      itemCount: filteredBookings.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final booking = filteredBookings[index];
+                        return _buildBookingCard(booking);
+                      },
+                    ),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 
@@ -110,7 +122,7 @@ class _BookingViewState extends State<BookingView> {
     );
   }
 
-  Widget _buildBookingCard(Map<String, dynamic> booking) {
+  Widget _buildBookingCard(BookingModel booking) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -127,9 +139,12 @@ class _BookingViewState extends State<BookingView> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 34,
-                backgroundImage: NetworkImage(booking['avatar']),
+              CommonImageView(
+                url: booking.horseImage ?? '',
+                height: 68,
+                width: 68,
+                shape: BoxShape.circle,
+                isUserImage: true,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -137,7 +152,7 @@ class _BookingViewState extends State<BookingView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CommonText(
-                      'Trainer : ${booking['trainer']}',
+                      'Trainer : ${booking.trainerName ?? 'N/A'}',
                       fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -146,7 +161,7 @@ class _BookingViewState extends State<BookingView> {
                       children: [
                         const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
                         const SizedBox(width: 4),
-                        CommonText(booking['location'], fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                        Expanded(child: CommonText(booking.location ?? 'N/A', fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -154,7 +169,7 @@ class _BookingViewState extends State<BookingView> {
                       children: [
                         const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 6),
-                        CommonText(booking['dates'], fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                        CommonText(booking.date, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
                       ],
                     ),
                   ],
@@ -168,24 +183,28 @@ class _BookingViewState extends State<BookingView> {
                   border: Border.all(color: AppColors.borderLight),
                 ),
                 child: CommonText(
-                  booking['service'],
+                  booking.type,
                   fontSize: AppTextSizes.size12,
                   color: AppColors.textSecondary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          CommonText(
-            'NOTE : ${booking['note']}',
-            fontSize: AppTextSizes.size14,
-            color: AppColors.textPrimary,
-          ),
+          if (booking.notes != null && booking.notes!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            CommonText(
+              'NOTE : ${booking.notes}',
+              fontSize: AppTextSizes.size14,
+              color: AppColors.textPrimary,
+            ),
+          ],
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Navigate to chat or handle message
+              },
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.secondary),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

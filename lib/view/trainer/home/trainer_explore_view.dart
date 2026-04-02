@@ -308,7 +308,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
 
   Widget _buildVendorCard({required VendorModel vendor}) {
     return GestureDetector(
-      onTap: () => Get.to(() => VendorDetailsView(vendor: vendor)),
+      // onTap: () => Get.to(() => VendorDetailsView(vendor: vendor)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),

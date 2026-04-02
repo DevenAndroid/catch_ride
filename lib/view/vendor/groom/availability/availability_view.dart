@@ -1,5 +1,7 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
+import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/view/vendor/groom/availability/add_availability_block_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -14,12 +16,15 @@ class AvailabilityView extends StatefulWidget {
 
 class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final _isAcceptingRequests = true.obs;
+  final controller = Get.put(VendorAvailabilityController());
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {}); // Re-build to filter correctly when tab changes
+    });
   }
 
   @override
@@ -52,45 +57,60 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
           )
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTabs(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CommonText('Manage your availability for trainers to discover', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
-                  const SizedBox(height: 16),
-                  _buildToggleCard(),
-                  const SizedBox(height: 24),
-                  const CommonText('Availability Blocks', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                  const SizedBox(height: 16),
-                  _buildAvailabilityCard(
-                    dates: 'Mar 10 - Mar 18, 2026',
-                    location: 'Wellington, WEC Ocala',
-                    tags: ['Show Week Support', 'Fill In/ Daily Show Support'],
-                    maxHorses: 'Max 6 Horses',
-                    maxDays: 'Max 8 Days',
-                    note: 'Prefer mornings. Experience with warmbloods.',
+      body: Obx(() {
+        final currentService = _tabController.index == 0 ? 'Grooming' : 'Braiding';
+        final filteredBlocks = controller.availabilityBlocks.where(
+          (b) => b.serviceTypes.contains(currentService)
+        ).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTabs(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async => controller.fetchAvailability(),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const CommonText('Manage your availability for trainers to discover', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                      const SizedBox(height: 16),
+                      _buildToggleCard(),
+                      const SizedBox(height: 24),
+                      const CommonText('Availability Blocks', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 16),
+                      if (controller.isLoading.value && controller.availabilityBlocks.isEmpty)
+                        const Center(child: CircularProgressIndicator())
+                      else if (filteredBlocks.isEmpty)
+                        SizedBox(
+                          height: 200,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.calendar_today_outlined, size: 48, color: Colors.grey[300]),
+                                const SizedBox(height: 16),
+                                const CommonText('No availability blocks for this service', color: AppColors.textSecondary),
+                              ],
+                            ),
+                          ),
+                        )
+                      else
+                        ...filteredBlocks.map((b) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildAvailabilityCard(b),
+                        )).toList(),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  _buildAvailabilityCard(
-                    dates: 'Mar 10 - Mar 18, 2026',
-                    location: 'Wellington, WEC Ocala',
-                    tags: ['Show Week Support', 'Fill In/ Daily Show Support', 'Hunter Braiding Mane'],
-                    maxHorses: 'Max 6 Horses',
-                    maxDays: 'Max 8 Days',
-                    note: 'Prefer mornings. Experience with warmbloods.',
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 
@@ -133,8 +153,8 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
             ],
           ),
           Obx(() => Switch(
-            value: _isAcceptingRequests.value,
-            onChanged: (val) => _isAcceptingRequests.value = val,
+            value: controller.isAcceptingRequests.value,
+            onChanged: (val) => controller.toggleAcceptingRequests(val),
             activeColor: Colors.white,
             activeTrackColor: Colors.green,
           )),
@@ -143,14 +163,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
     );
   }
 
-  Widget _buildAvailabilityCard({
-    required String dates,
-    required String location,
-    required List<String> tags,
-    required String maxHorses,
-    required String maxDays,
-    required String note,
-  }) {
+  Widget _buildAvailabilityCard(VendorAvailabilityModel b) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -172,12 +185,12 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CommonText(dates, color: Colors.white, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                    CommonText(b.dateDisplay, color: Colors.white, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
                     Row(
                       children: [
                         const Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
                         const SizedBox(width: 4),
-                        CommonText(location, color: Colors.white70, fontSize: AppTextSizes.size12),
+                        CommonText(b.locationDisplay, color: Colors.white70, fontSize: AppTextSizes.size12),
                       ],
                     ),
                   ],
@@ -188,7 +201,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                     if (value == 'edit') {
                       // Handled edit
                     } else if (value == 'delete') {
-                      // Handled delete
+                      if (b.id != null) controller.deleteAvailabilityBlock(b.id!);
                     }
                   },
                   itemBuilder: (BuildContext context) => [
@@ -225,7 +238,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: tags.map((t) => Container(
+                  children: b.serviceTypes.map((t) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
                     child: CommonText(t, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
@@ -236,21 +249,23 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                   children: [
                     const Icon(Icons.pie_chart_outline, size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
-                    CommonText(maxHorses, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                    CommonText('Max ${b.maxBookings} Horses', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
                     const SizedBox(width: 20),
                     const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
-                    CommonText(maxDays, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                    CommonText('Available', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.chat_bubble_outline, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Expanded(child: CommonText(note, fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
-                  ],
-                ),
+                if (b.notes != null && b.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(Icons.chat_bubble_outline, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Expanded(child: CommonText(b.notes!, fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -259,3 +274,4 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
     );
   }
 }
+

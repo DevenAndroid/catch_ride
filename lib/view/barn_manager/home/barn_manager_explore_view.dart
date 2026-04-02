@@ -11,7 +11,6 @@ import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:catch_ride/view/barn_manager/vendor/barn_manager_vendor_details_view.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
 import '../../../../controllers/barn_manager/barn_manager_booking_controller.dart';
 import '../../../models/horse_model.dart';
@@ -310,7 +309,7 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
 
   Widget _buildVendorCard({required VendorModel vendor}) {
     return GestureDetector(
-      onTap: () => Get.to(() => BarnManagerVendorDetailsView(vendor: vendor)),
+  //    onTap: () => Get.to(() => BarnManagerVendorDetailsView(vendor: vendor)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),

@@ -1,6 +1,9 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/widgets/common_button.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,31 +11,10 @@ import 'package:get/get.dart';
 class RequestsView extends StatelessWidget {
   const RequestsView({super.key});
 
-  final List<Map<String, dynamic>> _requests = const [
-    {
-      'role': 'Barn Manager',
-      'name': 'Sarah Jones',
-      'barn': 'Willow Crest Stables',
-      'location': 'Tampa, FL, USA',
-      'dates': '01 Apr - 07 Apr 2026',
-      'service': 'Grooming',
-      'note': 'Prefer mornings.',
-      'avatar': 'https://i.pravatar.cc/150?u=sarah'
-    },
-    {
-      'role': 'Trainer',
-      'name': 'Mark Lee',
-      'barn': 'Willow Crest Stables',
-      'location': 'Tampa, FL, USA',
-      'dates': '01 Apr - 07 Apr 2026',
-      'service': 'Grooming',
-      'note': 'Prefer mornings.',
-      'avatar': 'https://i.pravatar.cc/150?u=mark'
-    },
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<ChatController>();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -44,22 +26,50 @@ class RequestsView extends StatelessWidget {
         ),
         title: const CommonText('Requests', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
       ),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(20),
-        itemCount: _requests.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 20),
-        itemBuilder: (context, index) {
-          final request = _requests[index];
-          return _buildRequestCard(request);
-        },
-      ),
+      body: Obx(() {
+        final pendingRequests = controller.conversations.where((c) {
+          final otherUserRole = c.otherUser?.role?.toLowerCase();
+          final isTargetRole = otherUserRole == 'trainer' || otherUserRole == 'barn_manager';
+          return c.status == 'request-pending' && isTargetRole;
+        }).toList();
+
+        if (controller.isLoadingConversations.value && pendingRequests.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (pendingRequests.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.mail_outline, size: 64, color: Colors.grey[300]),
+                const SizedBox(height: 16),
+                const CommonText('No pending requests', color: AppColors.textSecondary),
+              ],
+            ),
+          );
+        }
+
+        return ListView.separated(
+          padding: const EdgeInsets.all(20),
+          itemCount: pendingRequests.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 20),
+          itemBuilder: (context, index) {
+            final request = pendingRequests[index];
+            return _buildRequestCard(request, controller);
+          },
+        );
+      }),
     );
   }
 
-  Widget _buildRequestCard(Map<String, dynamic> request) {
+  Widget _buildRequestCard(ChatConversation convo, ChatController controller) {
+    final other = convo.otherUser;
+    final booking = convo.booking;
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF9F6ED), // Off-white/Beige as in design
+        color: const Color(0xFFF9F6ED),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
@@ -72,14 +82,33 @@ class RequestsView extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                CircleAvatar(radius: 26, backgroundImage: NetworkImage(request['avatar'])),
+                CommonImageView(
+                  url: other?.avatar ?? '',
+                  height: 52,
+                  width: 52,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
+                ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText('${request['role']} : ${request['name']}', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                    CommonText(request['barn'], fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
-                  ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CommonText(
+                        '${other?.role ?? 'User'} : ${other?.name ?? 'Unknown'}',
+                        fontSize: AppTextSizes.size16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      if (booking?.location != null)
+                        CommonText(
+                          booking!.location!,
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textSecondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -93,35 +122,55 @@ class RequestsView extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16),
-                            const SizedBox(width: 4),
-                            CommonText(request['location'], fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 14),
-                            const SizedBox(width: 6),
-                            CommonText(request['dates'], fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: CommonText(
+                                  booking?.location ?? 'Location N/A',
+                                  fontSize: AppTextSizes.size12,
+                                  color: AppColors.textSecondary,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 14),
+                              const SizedBox(width: 6),
+                              CommonText(
+                                booking?.date ?? 'Date N/A',
+                                fontSize: AppTextSizes.size12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.borderLight)),
-                      child: CommonText(request['service'], fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                      child: CommonText(
+                        booking?.type ?? 'Service',
+                        fontSize: AppTextSizes.size12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                CommonText('Note - ${request['note']}', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                if (booking?.notes != null && booking!.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  CommonText('Note - ${booking!.notes}', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                ],
                 const SizedBox(height: 20),
                 Row(
                   children: [
@@ -131,7 +180,7 @@ class RequestsView extends StatelessWidget {
                         backgroundColor: Colors.white,
                         textColor: AppColors.textPrimary,
                         borderColor: AppColors.borderMedium,
-                        onPressed: () {},
+                        onPressed: () => controller.declineRequest(convo.conversationId),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -139,7 +188,7 @@ class RequestsView extends StatelessWidget {
                       child: CommonButton(
                         text: 'Accept',
                         backgroundColor: AppColors.secondary,
-                        onPressed: () {},
+                        onPressed: () => controller.acceptRequest(convo.conversationId),
                       ),
                     ),
                   ],

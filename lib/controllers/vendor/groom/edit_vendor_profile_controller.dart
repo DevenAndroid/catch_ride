@@ -3,6 +3,7 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -26,6 +27,7 @@ class EditVendorProfileController extends GetxController {
   // Payment Methods
   final RxList<String> paymentOptions = <String>['Venmo', 'Zelle', 'Cash', 'Credit Card', 'ACH/Bank Transfer', 'Other'].obs;
   final RxList<String> selectedPayments = <String>[].obs;
+  final otherPaymentController = TextEditingController();
 
   // Experience Highlights
   final RxList<TextEditingController> highlightControllers = <TextEditingController>[].obs;
@@ -69,6 +71,7 @@ class EditVendorProfileController extends GetxController {
   // Cancellation
   final RxnString cancellationPolicy = RxnString();
   final RxBool isCustomCancellation = false.obs;
+  final customCancellationController = TextEditingController();
 
   // Photos
   final RxList<String> existingPhotos = <String>[].obs;
@@ -136,6 +139,9 @@ class EditVendorProfileController extends GetxController {
           
           cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
           isCustomCancellation.value = profileData['cancellationPolicy']?['isCustom'] ?? false;
+          if (isCustomCancellation.value) {
+            customCancellationController.text = cancellationPolicy.value ?? '';
+          }
           
           existingPhotos.assignAll(List<String>.from(profileData['media'] ?? []));
         }
@@ -305,7 +311,7 @@ class EditVendorProfileController extends GetxController {
               'additionalSkills': selectedAdditionalSkills.toList(),
               'travelPreferences': selectedTravel.toList(),
               'cancellationPolicy': {
-                'policy': cancellationPolicy.value,
+                'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
                 'isCustom': isCustomCancellation.value,
               },
               'media': groomingMedia,
@@ -327,7 +333,28 @@ class EditVendorProfileController extends GetxController {
       final serviceResponse = await _apiService.putRequest('/vendors/$realVendorId', groomingPayload);
       
       if (serviceResponse.statusCode == 200) {
+        // Update local AuthController state for immediate UI reflection in Menu/Personal Info
+        if (_authController.currentUser.value != null) {
+          final updatedUser = _authController.currentUser.value!.copyWith(
+            firstName: fullNameController.text.split(' ').first,
+            lastName: fullNameController.text.contains(' ') ? fullNameController.text.split(' ').skip(1).join(' ') : '',
+            phone: phoneController.text,
+            bio: aboutController.text,
+            avatar: profilePhoto,
+            photo: profilePhoto,
+            coverImage: coverImage,
+          );
+          _authController.currentUser.value = updatedUser;
+          _authController.currentUser.refresh();
+        }
+
         _authController.currentUser.refresh();
+        
+        // Refresh the view profile controller if it's active
+        if (Get.isRegistered<GroomViewProfileController>()) {
+          Get.find<GroomViewProfileController>().fetchProfile();
+        }
+
         Get.back();
         Get.snackbar('Success', 'Profile updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
       } else {
