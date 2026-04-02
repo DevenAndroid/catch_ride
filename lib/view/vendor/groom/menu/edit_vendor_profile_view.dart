@@ -23,7 +23,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
     });
@@ -61,7 +61,9 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
                         _buildExperienceHighlights(), 
                         const SizedBox(height: 40)
                       ])
-                    : _buildGroomingTab(),
+                    : _tabController.index == 1 
+                        ? _buildGroomingTab()
+                        : _buildBraidingTab(),
               ),
             ),
           ],
@@ -85,6 +87,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
             tabs: const [
               Tab(child: CommonText('Details', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold)),
               Tab(child: CommonText('Grooming', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold)),
+              Tab(child: CommonText('Braiding', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold)),
             ],
           ),
           const Divider(height: 1, thickness: 1),
@@ -230,11 +233,31 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(() => Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: controller.paymentOptions.map((method) => _buildPaymentChip(method)).toList(),
+          const CommonText('Select the payment methods you accept.', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+          const SizedBox(height: 20),
+          Obx(() => GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: controller.paymentOptions.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 2.4, // Match balance between width and content
+            ),
+            itemBuilder: (context, index) {
+              return _buildPaymentChip(controller.paymentOptions[index]);
+            },
           )),
+          Obx(() {
+            if (controller.selectedPayments.contains('Other')) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: CommonTextField(label: '', hintText: 'Write here...', controller: controller.otherPaymentController, maxLines: 4),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );
@@ -246,26 +269,33 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       return GestureDetector(
         onTap: () => controller.togglePayment(method),
         child: Container(
-          width: (Get.width - 80) / 2,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
+            color: isSelected ? const Color(0xFFF3F4FF) : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isSelected ? const Color(0xFF000B48) : AppColors.borderLight, width: 1.5),
-            boxShadow: isSelected ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))] : null,
+            border: Border.all(
+              color: isSelected ? const Color(0xFF1E1B4B) : AppColors.borderLight, 
+              width: isSelected ? 1.5 : 1,
+            ),
+            boxShadow: [
+               BoxShadow(
+                 color: Colors.black.withOpacity(isSelected ? 0.08 : 0.03),
+                 blurRadius: 8,
+                 offset: const Offset(0, 2),
+               )
+            ],
           ),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
             children: [
               _getPaymentIcon(method),
               const SizedBox(width: 8),
               Expanded(
                 child: CommonText(
                   method,
-                  fontSize: AppTextSizes.size14,
+                  fontSize: AppTextSizes.size12,
                   color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                  maxLines: 1,
+                  fontWeight: FontWeight.w600,
+                  maxLines: 2,
                 ),
               ),
             ],
@@ -276,22 +306,26 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
   }
 
   Widget _getPaymentIcon(String method) {
-    if (method == 'Venmo') return _buildCircleIcon(Icons.bolt, const Color(0xFF008CFF));
-    if (method == 'Zelle') return _buildCircleIcon(Icons.bolt, const Color(0xFF673AB7));
-    if (method == 'Cash') return _buildCircleIcon(Icons.account_balance_wallet, const Color(0xFF10B981));
+    if (method == 'Venmo') return _buildCircleIcon(null, const Color(0xFF008CFF), text: 'V');
+    if (method == 'Zelle') return _buildCircleIcon(null, const Color(0xFF673AB7), text: 'Z');
+    if (method == 'Cash') return _buildCircleIcon(Icons.money, const Color(0xFF10B981));
     if (method == 'Credit Card') return _buildCircleIcon(Icons.credit_card, const Color(0xFF001F3F));
     if (method == 'ACH/Bank Transfer') return _buildCircleIcon(Icons.account_balance, const Color(0xFF78350F));
-    return _buildCircleIcon(Icons.add, Colors.grey, isCircle: true);
+    return _buildCircleIcon(Icons.add, const Color(0xFF64748B));
   }
 
-  Widget _buildCircleIcon(IconData icon, Color color, {bool isCircle = false}) {
+  Widget _buildCircleIcon(IconData? icon, Color color, {String? text}) {
     return Container(
-      padding: const EdgeInsets.all(4),
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
-        color: isCircle ? color : color.withOpacity(0.1),
+        color: color,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: isCircle ? Colors.white : color, size: 20),
+      alignment: Alignment.center,
+      child: text != null 
+        ? Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16, fontStyle: FontStyle.italic))
+        : Icon(icon, color: Colors.white, size: 18),
     );
   }
 
@@ -360,6 +394,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
     );
   }
 
+  Widget _buildBraidingTab() {
+    return const Center(child: CommonText('Braiding Tab Content', fontSize: AppTextSizes.size16));
+  }
+
   Widget _buildHomeBaseLocation() {
     return _buildCard(
       title: 'Home Base Location',
@@ -397,6 +435,8 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const CommonText('Select the disciplines you most commonly work with.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
           Obx(() => Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -425,17 +465,24 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
   Widget _buildHorseLevelSection() {
     return _buildCard(
       title: 'Typical Level of Horses',
-      child: Obx(() => Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: controller.horseLevelOptions.map((level) {
-          final isSelected = controller.selectedHorseLevels.contains(level);
-          return GestureDetector(
-            onTap: () => controller.toggleHorseLevel(level),
-            child: _buildChoiceChip(level, isSelected),
-          );
-        }).toList(),
-      )),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText('Select the level of horses you most commonly work with.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
+          Obx(() => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: controller.horseLevelOptions.map((level) {
+              final isSelected = controller.selectedHorseLevels.contains(level);
+              return GestureDetector(
+                onTap: () => controller.toggleHorseLevel(level),
+                child: _buildChoiceChip(level, isSelected),
+              );
+            }).toList(),
+          )),
+        ],
+      ),
     );
   }
 
@@ -586,6 +633,8 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const CommonText('Set your cancellation preferences for bookings.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
           Obx(() => _buildDropdownTrigger(
             value: controller.cancellationPolicy.value, 
             hint: 'Select Cancellation',
@@ -596,14 +645,35 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
             ),
           )),
           const SizedBox(height: 12),
-          Obx(() => Row(
+          Obx(() => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Checkbox(
-                value: controller.isCustomCancellation.value, 
-                onChanged: (v) => controller.isCustomCancellation.value = v ?? false, 
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap
+              Row(
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: controller.isCustomCancellation.value, 
+                      onChanged: (v) => controller.isCustomCancellation.value = v ?? false, 
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      activeColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const CommonText('Custom', fontSize: AppTextSizes.size14),
+                ],
               ),
-              const CommonText('Custom', fontSize: AppTextSizes.size14),
+              if (controller.isCustomCancellation.value) ...[
+                const SizedBox(height: 16),
+                CommonTextField(
+                  label: '',
+                  hintText: 'Write here...',
+                  controller: controller.customCancellationController,
+                  maxLines: 4,
+                ),
+              ],
             ],
           )),
         ],
@@ -635,10 +705,15 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView> with Sing
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: isSelected ? const Color(0xFFEFF6FF) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight),
+        borderRadius: BorderRadius.circular(50),
+        border: Border.all(color: isSelected ? const Color(0xFF1E1B4B) : AppColors.borderLight, width: isSelected ? 1.5 : 1),
       ),
-      child: CommonText(label, fontSize: AppTextSizes.size12, color: isSelected ? AppColors.primary : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+      child: CommonText(
+        label, 
+        fontSize: AppTextSizes.size12,
+        color: isSelected ? const Color(0xFF1E1B4B) : AppColors.textSecondary, 
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400
+      ),
     );
   }
 

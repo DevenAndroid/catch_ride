@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,33 @@ class ServicesRatesView extends StatefulWidget {
 }
 
 class _ServicesRatesViewState extends State<ServicesRatesView> {
+  final controller = Get.put(GroomViewProfileController());
+
+  final dailyController = TextEditingController();
+  final weeklyController = TextEditingController();
+  final monthlyController = TextEditingController();
+  
+  final RxString weeklyDays = '5'.obs;
+  final RxString monthlyDays = '5'.obs;
+  
+  final RxList<Map<String, dynamic>> additionalServices = <Map<String, dynamic>>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    await controller.fetchProfile();
+    dailyController.text = controller.dailyRate;
+    weeklyController.text = controller.weeklyRate;
+    monthlyController.text = controller.monthlyRate;
+    weeklyDays.value = controller.weeklyDays;
+    monthlyDays.value = controller.monthlyDays;
+    additionalServices.assignAll(controller.additionalServices);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,24 +56,30 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
         ),
         title: const CommonText('Services & Rates', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildGroomingServicesCard(),
-            const SizedBox(height: 20),
-            _buildRateCard(),
-            const SizedBox(height: 20),
-            _buildAdditionalServicesCard(),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              _buildGroomingServicesCard(),
+              const SizedBox(height: 20),
+              _buildRateCard(),
+              const SizedBox(height: 20),
+              _buildAdditionalServicesCard(),
+              const SizedBox(height: 40),
+            ],
+          ),
+        );
+      }),
       bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
   Widget _buildGroomingServicesCard() {
+    final services = controller.groomingServices;
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,16 +88,14 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
           const SizedBox(height: 4),
           const CommonText('Select your grooming skills', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
           const SizedBox(height: 20),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _buildSkillChip('Grooming & Turnout', false),
-              _buildSkillChip('Wrapping & Bandaging', true),
-              _buildSkillChip('Stall Upkeep & Daily Care', false),
-              _buildSkillChip('Show Prep (non braiding)', false),
-            ],
-          ),
+          if (services.isEmpty)
+            const CommonText('No services listed', color: AppColors.textSecondary)
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: services.map((s) => _buildSkillChip(s, true)).toList(),
+            ),
           const SizedBox(height: 16),
           _buildAddSkillButton(),
         ],
@@ -78,17 +110,17 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
         children: [
           const CommonText('Rate', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
           const SizedBox(height: 20),
-          _buildRateInput('Daily Rate'),
+          _buildRateInput('Daily Rate', dailyController),
           const SizedBox(height: 20),
-          _buildRateInput('Weekly Rate', showLengthToggle: true),
+          _buildRateInput('Weekly Rate', weeklyController, showLengthToggle: true, isWeekly: true),
           const SizedBox(height: 20),
-          _buildRateInput('Monthly Rate', showLengthToggle: true),
+          _buildRateInput('Monthly Rate', monthlyController, showLengthToggle: true, isWeekly: false),
         ],
       ),
     );
   }
 
-  Widget _buildRateInput(String label, {bool showLengthToggle = false}) {
+  Widget _buildRateInput(String label, TextEditingController txtController, {bool showLengthToggle = false, bool isWeekly = true}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -118,13 +150,14 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
                     decoration: const BoxDecoration(
                       border: Border(right: BorderSide(color: AppColors.borderLight)),
                     ),
-                    child: const CommonText('\$50', fontSize: AppTextSizes.size18, color: AppColors.textPrimary),
+                    child: const CommonText('\$', fontSize: AppTextSizes.size18, color: AppColors.textPrimary),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TextField(
-                        decoration: InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
+                        controller: txtController,
+                        decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -137,13 +170,22 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
             const SizedBox(height: 16),
             const CommonText('Choose your week length', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildLengthToggle('5 days week', true),
-                const SizedBox(width: 8),
-                _buildLengthToggle('6 days week', false),
-              ],
-            ),
+            Obx(() {
+              final days = isWeekly ? weeklyDays.value : monthlyDays.value;
+              return Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => isWeekly ? weeklyDays.value = '5' : monthlyDays.value = '5',
+                    child: _buildLengthToggle('5 days week', days == '5'),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () => isWeekly ? weeklyDays.value = '6' : monthlyDays.value = '6',
+                    child: _buildLengthToggle('6 days week', days == '6'),
+                  ),
+                ],
+              );
+            }),
           ],
         ],
       ),
@@ -157,11 +199,26 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
         children: [
           const CommonText('Additional Services', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
           const SizedBox(height: 20),
-          _buildServiceItem('Body Clipping', 'Per horse', '150', true),
-          const SizedBox(height: 12),
-          _buildServiceItem('Trace Clipping', 'Per horse', '75', false),
-          const SizedBox(height: 12),
-          _buildServiceItem('Tacking & Untacking', 'Per horse', '20', false),
+          Obx(() => additionalServices.isEmpty
+              ? const CommonText('No additional services', color: AppColors.textSecondary)
+              : Column(
+                  children: additionalServices.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final s = entry.value;
+                    return Column(
+                      children: [
+                        _buildServiceItem(
+                          s['name'] ?? 'Service',
+                          s['description'] ?? 'Per horse',
+                          s['price']?.toString() ?? '0',
+                          true,
+                          onDelete: () => additionalServices.removeAt(index),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    );
+                  }).toList(),
+                )),
           const SizedBox(height: 16),
           _buildAddSkillButton(),
         ],
@@ -192,7 +249,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
     );
   }
 
-  Widget _buildServiceItem(String title, String subtitle, String price, bool isSelected) {
+  Widget _buildServiceItem(String title, String subtitle, String price, bool isSelected, {VoidCallback? onDelete}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -202,7 +259,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
       ),
       child: Row(
         children: [
-          Checkbox(value: isSelected, onChanged: (v) {}, activeColor: const Color(0xFF000B48)),
+          Icon(Icons.check_circle, color: isSelected ? const Color(0xFF000B48) : Colors.grey, size: 24),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -221,6 +278,11 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
             ),
             child: CommonText('\$ $price', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: isSelected ? AppColors.textPrimary : Colors.grey),
           ),
+          if (onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+              onPressed: onDelete,
+            ),
         ],
       ),
     );
@@ -236,6 +298,9 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
   }
 
   void _showAddSkillBS() {
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -251,7 +316,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
             const SizedBox(height: 24),
             const CommonText('Add Skill', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            const CommonTextField(label: 'Skill', hintText: 'Enter your skill'),
+            CommonTextField(label: 'Skill', hintText: 'Enter your skill', controller: nameController),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
@@ -279,13 +344,14 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
                           decoration: const BoxDecoration(
                             border: Border(right: BorderSide(color: AppColors.borderLight)),
                           ),
-                          child: const CommonText('\$30', fontSize: AppTextSizes.size18, color: AppColors.textPrimary),
+                          child: const CommonText('\$', fontSize: AppTextSizes.size18, color: AppColors.textPrimary),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: TextField(
-                              decoration: InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
+                              controller: priceController,
+                              decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -312,7 +378,16 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
                 Expanded(
                   child: CommonButton(
                     text: 'Save',
-                    onPressed: () => Get.back(),
+                    onPressed: () {
+                      if (nameController.text.isNotEmpty && priceController.text.isNotEmpty) {
+                        additionalServices.add({
+                          'name': nameController.text,
+                          'price': priceController.text,
+                          'description': 'Per horse',
+                        });
+                        Get.back();
+                      }
+                    },
                   ),
                 ),
               ],
@@ -327,7 +402,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
 
   Widget _buildBottomButtons() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.borderLight))),
       child: SafeArea(
         child: Row(
@@ -345,7 +420,19 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
             Expanded(
               child: CommonButton(
                 text: 'Save',
-                onPressed: () => Get.back(),
+                onPressed: () async {
+                  final success = await controller.updateGroomingRates(
+                    daily: dailyController.text,
+                    weekly: weeklyController.text,
+                    weeklyDays: weeklyDays.value,
+                    monthly: monthlyController.text,
+                    monthlyDays: monthlyDays.value,
+                    additional: additionalServices.toList(),
+                  );
+                  if (success) {
+                    Get.back();
+                  }
+                },
               ),
             ),
           ],

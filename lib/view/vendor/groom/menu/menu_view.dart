@@ -1,11 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
-import 'package:catch_ride/view/vendor/groom/menu/groom_feedback_view.dart';
-import 'package:catch_ride/view/vendor/groom/menu/groom_help_view.dart';
-import 'package:catch_ride/view/vendor/groom/menu/groom_privacy_view.dart';
-import 'package:catch_ride/view/vendor/groom/menu/groom_refer_view.dart';
-import 'package:catch_ride/view/vendor/groom/menu/groom_terms_view.dart';
-import 'package:catch_ride/view/vendor/groom/menu/login_security_view.dart';
-import 'package:catch_ride/view/vendor/groom/menu/notification_settings_view.dart';
+
 import 'package:catch_ride/view/vendor/groom/menu/past_clients_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/personal_info_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/services_rates_view.dart';
@@ -18,6 +12,13 @@ import 'package:get/get.dart';
 
 import '../../../../constant/app_colors.dart';
 import '../../../../constant/app_text_sizes.dart';
+import '../../../barn_manager/settings/account_settings_view.dart';
+import '../../../barn_manager/settings/feedback_view.dart';
+import '../../../barn_manager/settings/get_help_view.dart';
+import '../../../barn_manager/settings/notification_settings_view.dart';
+import '../../../barn_manager/settings/privacy_policy_view.dart';
+import '../../../barn_manager/settings/terms_and_conditions_view.dart';
+import '../../../trainer/settings/refer_new_member_view.dart';
 import '../availability/availability_view.dart';
 import '../profile/groom_view_profile.dart';
 
@@ -54,7 +55,7 @@ class MenuView extends StatelessWidget {
             _buildMenuCard([
               _buildMenuItem(Icons.person_outline, 'Personal Information', onTap: () => Get.to(() => const PersonalInfoView())),
               _buildMenuItem(Icons.edit_note, 'Edit Profile', onTap: () => Get.to(() => const EditVendorProfileView())),
-              _buildMenuItem(Icons.bookmark_border, 'Login & Security', onTap: () => Get.to(() => const LoginSecurityView())),
+              _buildMenuItem(Icons.bookmark_border, 'Login & Security', onTap: () => Get.to(() => const AccountSettingsView())),
               _buildMenuItem(Icons.notifications_outlined, 'Notifications', onTap: () => Get.to(() => const NotificationSettingsView())),
               _buildMenuItem(Icons.settings_outlined, 'Privacy and sharing'),
             ]),
@@ -69,15 +70,15 @@ class MenuView extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('Referrals'),
             _buildMenuCard([
-              _buildMenuItem(Icons.group_add_outlined, 'Refer a New Member', onTap: () => Get.to(() => const GroomReferView())),
+              _buildMenuItem(Icons.group_add_outlined, 'Refer a New Member', onTap: () => Get.to(() => const ReferNewMemberView())),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('Support'),
             _buildMenuCard([
-              _buildMenuItem(Icons.help_outline, 'Get Help', onTap: () => Get.to(() => const GroomHelpView())),
-              _buildMenuItem(Icons.message_outlined, 'Share your feedback', onTap: () => Get.to(() => const GroomFeedbackView())),
-              _buildMenuItem(Icons.article_outlined, 'Privacy policy', onTap: () => Get.to(() => const GroomPrivacyView())),
-              _buildMenuItem(Icons.description_outlined, 'Terms & conditions', onTap: () => Get.to(() => const GroomTermsView())),
+              _buildMenuItem(Icons.help_outline, 'Get Help', onTap: () => Get.to(() => const GetHelpView())),
+              _buildMenuItem(Icons.message_outlined, 'Share your feedback', onTap: () => Get.to(() => const FeedbackView())),
+              _buildMenuItem(Icons.article_outlined, 'Privacy policy', onTap: () => Get.to(() => const PrivacyPolicyView())),
+              _buildMenuItem(Icons.description_outlined, 'Terms & conditions', onTap: () => Get.to(() => const TermsAndConditionsView())),
             ]),
             const SizedBox(height: 32),
             _buildLogoutButton(),
@@ -89,32 +90,36 @@ class MenuView extends StatelessWidget {
   }
 
   Widget _buildPromoCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(color: Color(0xFF000B48), shape: BoxShape.circle),
-            child: const Icon(Icons.catching_pokemon, color: Colors.white, size: 24), // Placeholder for horse icon
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                CommonText('Add Your Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                CommonText('Manage your availability blocks', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-              ],
+    return GestureDetector(
+      onTap: () => Get.to(() => const AvailabilityView()),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderLight),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(color: Color(0xFF000B48), shape: BoxShape.circle),
+              child: const Icon(Icons.catching_pokemon, color: Colors.white, size: 24),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  CommonText('Add Your Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                  CommonText('Manage your availability blocks', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+          ],
+        ),
       ),
     );
   }

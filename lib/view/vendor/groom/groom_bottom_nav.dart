@@ -1,10 +1,12 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/view/vendor/groom/booking/booking_view.dart';
 import 'package:catch_ride/view/vendor/groom/availability/availability_view.dart';
 import 'package:catch_ride/view/vendor/groom/chat/groom_chat_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/menu_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'profile/groom_view_profile.dart';
 
@@ -18,12 +20,13 @@ class GroomBottomNav extends StatefulWidget {
 
 class _GroomBottomNavState extends State<GroomBottomNav> {
   late int _selectedIndex;
+  final AuthController _authController = Get.find<AuthController>();
 
   final List<Widget> _views = [
     const GroomViewProfile(),
     const BookingView(),
     const AvailabilityView(),
-    const GroomChatView(),
+     GroomChatView(),
     const MenuView(),
   ];
 
@@ -45,7 +48,7 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
           border: Border(top: BorderSide(color: Colors.grey.shade200)),
         ),
         child: SafeArea(
-          child: Row(
+          child: Obx(() => Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, 'Profile', Icons.person, isAvatar: true),
@@ -54,7 +57,7 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
               _buildNavItem(3, 'Inbox', Icons.chat_bubble_outline),
               _buildNavItem(4, 'Menu', Icons.menu),
             ],
-          ),
+          )),
         ),
       ),
     );
@@ -62,6 +65,9 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
 
   Widget _buildNavItem(int index, String label, IconData icon, {bool isAvatar = false}) {
     final isSelected = _selectedIndex == index;
+    final user = _authController.currentUser.value;
+    final avatarUrl = user?.displayAvatar ?? '';
+
     return GestureDetector(
       onTap: () => setState(() => _selectedIndex = index),
       child: Container(
@@ -73,14 +79,14 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isAvatar)
+            if (isAvatar && avatarUrl.isNotEmpty)
                Container(
                 width: 24,
                 height: 24,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: NetworkImage('https://i.pravatar.cc/150?u=groom'),
+                    image: NetworkImage(avatarUrl),
                     fit: BoxFit.cover,
                   ),
                 ),

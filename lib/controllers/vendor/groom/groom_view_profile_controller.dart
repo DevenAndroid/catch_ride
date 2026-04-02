@@ -141,4 +141,48 @@ class GroomViewProfileController extends GetxController {
     ...List<String>.from(groomingData['media'] ?? []),
     ...List<String>.from(applicationData['media'] ?? []),
   }.toList();
+
+  Future<bool> updateGroomingRates({
+    required String daily,
+    required String weekly,
+    required String weeklyDays,
+    required String monthly,
+    required String monthlyDays,
+    required List<Map<String, dynamic>> additional,
+  }) async {
+    try {
+      isLoading.value = true;
+      final vendorId = vendorData['_id'];
+      
+      final payload = {
+        'servicesData': {
+          'grooming': {
+            'profileData': {
+              'rates': {
+                'daily': daily,
+                'weekly': {'price': weekly, 'days': int.tryParse(weeklyDays) ?? 5},
+                'monthly': {'price': monthly, 'days': int.tryParse(monthlyDays) ?? 5},
+              },
+              'additionalServices': additional,
+            }
+          }
+        }
+      };
+
+      final response = await _apiService.putRequest('/vendors/$vendorId', payload);
+      if (response.statusCode == 200) {
+        await fetchProfile();
+        Get.snackbar('Success', 'Rates updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+        return true;
+      } else {
+        Get.snackbar('Error', response.body['message'] ?? 'Failed to update rates', backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Update rates error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }
