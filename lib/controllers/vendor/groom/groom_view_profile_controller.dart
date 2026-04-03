@@ -9,8 +9,11 @@ class GroomViewProfileController extends GetxController {
 
   final RxBool isLoading = false.obs;
   final RxMap<String, dynamic> vendorData = <String, dynamic>{}.obs;
-  final RxMap<String, dynamic> groomingData = <String, dynamic>{}.obs;
-  final RxMap<String, dynamic> applicationData = <String, dynamic>{}.obs;
+  
+  // Multi-service support
+  final RxList<dynamic> allAssignedServices = <dynamic>[].obs;
+  final RxInt currentServiceIndex = 0.obs;
+
   final RxList<Map<String, dynamic>> additionalServices = <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> availabilityList = <Map<String, dynamic>>[].obs;
   final RxBool isAvailabilityLoading = false.obs;
@@ -40,44 +43,55 @@ class GroomViewProfileController extends GetxController {
         // Vendor level fields
         paymentMethods.assignAll(List<String>.from(data['paymentMethods'] ?? []));
 
-        // Extract grooming specific data
+        // Extract all assigned services
         final List assignedServices = data['assignedServices'] ?? [];
-        final groomingService = assignedServices.firstWhereOrNull(
-          (s) => s['serviceType'] == 'Grooming',
-        );
+        allAssignedServices.assignAll(assignedServices);
 
-        if (groomingService != null) {
-          // 1. Process Profile Data
-          final profile = groomingService['profile'] ?? {};
-          final profileDataMap = profile['profileData'] ?? {};
-          groomingData.value = profileDataMap;
-
-          final List services = profileDataMap['additionalServices'] ?? [];
-          additionalServices.assignAll(services.cast<Map<String, dynamic>>());
-          
-          // 2. Process Application Data
-          final application = groomingService['application'] ?? {};
-          final appDataMap = application['applicationData'] ?? {};
-          applicationData.value = appDataMap;
-          
-          // Map application fields
-          final city = appDataMap['homeBase']?['city'] ?? '';
-          final state = appDataMap['homeBase']?['state'] ?? '';
-          locationStr.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
-          
-          experienceStr.value = appDataMap['experience'] != null ? '${appDataMap['experience']} Years' : 'N/A';
-          disciplinesSelected.assignAll(List<String>.from(appDataMap['disciplines'] ?? []));
-          horseLevels.assignAll(List<String>.from(appDataMap['horseLevels'] ?? []));
-          operatingRegions.assignAll(List<String>.from(appDataMap['regions'] ?? []));
-        }
-
+        // Update active data based on current index
+        _updateActiveServiceData();
+        
         // Fetch availability
         fetchAvailability(data['_id']);
       }
     } catch (e) {
-      debugPrint('Error fetching grooming profile: $e');
+      debugPrint('Error fetching vendor profile: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  void _updateActiveServiceData() {
+    if (allAssignedServices.isEmpty) return;
+    
+    final currentIndex = currentServiceIndex.value >= allAssignedServices.length ? 0 : currentServiceIndex.value;
+    final activeService = allAssignedServices[currentIndex];
+
+    // 1. Process Profile Data
+    final profile = activeService['profile'] ?? {};
+    final profileDataMap = profile['profileData'] ?? {};
+    
+    final List services = profileDataMap['additionalServices'] ?? [];
+    additionalServices.assignAll(services.cast<Map<String, dynamic>>());
+    
+    // 2. Process Application Data
+    final application = activeService['application'] ?? {};
+    final appDataMap = application['applicationData'] ?? {};
+    
+    // Map application fields
+    final city = appDataMap['homeBase']?['city'] ?? '';
+    final state = appDataMap['homeBase']?['state'] ?? '';
+    locationStr.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
+    
+    experienceStr.value = appDataMap['experience'] != null ? '${appDataMap['experience']} Years' : 'N/A';
+    disciplinesSelected.assignAll(List<String>.from(appDataMap['disciplines'] ?? []));
+    horseLevels.assignAll(List<String>.from(appDataMap['horseLevels'] ?? []));
+    operatingRegions.assignAll(List<String>.from(appDataMap['regions'] ?? []));
+  }
+
+  void selectService(int index) {
+    if (index >= 0 && index < allAssignedServices.length) {
+      currentServiceIndex.value = index;
+      _updateActiveServiceData();
     }
   }
 
@@ -113,33 +127,43 @@ class GroomViewProfileController extends GetxController {
     return Get.find<AuthController>().currentUser.value?.coverImage ?? '';
   }
   
+  // Active Service Getters
+  dynamic get _activeService => allAssignedServices.isNotEmpty 
+      ? allAssignedServices[currentServiceIndex.value >= allAssignedServices.length ? 0 : currentServiceIndex.value] 
+      : null;
+      
+  Map<String, dynamic> get _activeProfileData => _activeService?['profile']?['profileData'] ?? {};
+  Map<String, dynamic> get _activeApplicationData => _activeService?['application']?['applicationData'] ?? {};
+
+  String get activeServiceType => _activeService?['serviceType'] ?? 'N/A';
+
   // Rates
-  String get dailyRate => groomingData['rates']?['daily'] ?? 'N/A';
-  String get weeklyRate => groomingData['rates']?['weekly']?['price'] ?? 'N/A';
-  String get weeklyDays => groomingData['rates']?['weekly']?['days']?.toString() ?? '5';
-  String get monthlyRate => groomingData['rates']?['monthly']?['price'] ?? 'N/A';
-  String get monthlyDays => groomingData['rates']?['monthly']?['days']?.toString() ?? '5';
+  String get dailyRate => _activeProfileData['rates']?['daily'] ?? 'N/A';
+  String get weeklyRate => _activeProfileData['rates']?['weekly']?['price'] ?? 'N/A';
+  String get weeklyDays => _activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
+  String get monthlyRate => _activeProfileData['rates']?['monthly']?['price'] ?? 'N/A';
+  String get monthlyDays => _activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
 
   // Capabilities
-  List<String> get groomingServices => List<String>.from(groomingData['services'] ?? []);
-  List<String> get supportOptions => List<String>.from(groomingData['capabilities']?['support'] ?? []);
-  List<String> get handlingOptions => List<String>.from(groomingData['capabilities']?['handling'] ?? []);
+  List<dynamic> get groomingServices => List<dynamic>.from(_activeProfileData['services'] ?? []);
+  List<String> get supportOptions => List<String>.from(_activeProfileData['capabilities']?['support'] ?? []);
+  List<String> get handlingOptions => List<String>.from(_activeProfileData['capabilities']?['handling'] ?? []);
   
   // Social Media
-  String get instagramUrl => groomingData['socialMedia']?['instagram'] ?? '';
-  String get facebookUrl => groomingData['socialMedia']?['facebook'] ?? '';
+  String get instagramUrl => _activeProfileData['socialMedia']?['instagram'] ?? '';
+  String get facebookUrl => _activeProfileData['socialMedia']?['facebook'] ?? '';
   
   // Travel & Policy
-  List<String> get travelPreferences => List<String>.from(groomingData['travelPreferences'] ?? []);
-  String get cancellationPolicy => groomingData['cancellationPolicy']?['policy'] ?? 'Flexible (24+ hrs)';
+  List<String> get travelPreferences => List<String>.from(_activeProfileData['travelPreferences'] ?? []);
+  String get cancellationPolicy => _activeProfileData['cancellationPolicy']?['policy'] ?? 'Flexible (24+ hrs)';
   
   // Experience Highlights
   List<String> get highlights => List<String>.from(vendorData['highlights'] ?? []);
   
   // Combined Media
   List<String> get allMedia => {
-    ...List<String>.from(groomingData['media'] ?? []),
-    ...List<String>.from(applicationData['media'] ?? []),
+    ...List<String>.from(_activeProfileData['media'] ?? []),
+    ...List<String>.from(_activeApplicationData['media'] ?? []),
   }.toList();
 
   Future<bool> updateGroomingRates({

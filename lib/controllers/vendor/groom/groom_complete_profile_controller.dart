@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../view/vendor/braiding/profile_create/braiding_application_view.dart';
 import '../../../view/vendor/braiding/profile_create/braiding_details_view.dart';
+import '../../../view/vendor/groom/groom_bottom_nav.dart';
 
 class GroomCompleteProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -175,9 +176,16 @@ class GroomCompleteProfileController extends GetxController {
         Get.snackbar('Success', 'Profile updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
         
         final authController = Get.find<AuthController>();
-        authController.currentUser.refresh();
-        
-        Get.to(() => const GroomingDetailsView());
+        await authController.updateUserMetadata();
+
+        final services = authController.currentUser.value?.vendorServices ?? [];
+        if (services.contains('Grooming')) {
+          Get.off(() => const GroomingDetailsView());
+        } else if (services.contains('Braiding')) {
+          Get.off(() => const BraidingDetailsView());
+        } else {
+          Get.offAll(() => const GroomBottomNav());
+        }
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Failed to update profile', backgroundColor: Colors.red, colorText: Colors.white);
       }

@@ -13,6 +13,8 @@ class EditVendorProfileController extends GetxController {
 
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
+  final RxList assignedServices = [].obs;
+  final RxInt selectedServiceIndex = 0.obs; // 0 for Details, 1+ for services
 
   // Basic Details Section
   final fullNameController = TextEditingController();
@@ -68,6 +70,10 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> travelOptions = <String>['Local Only', 'Regional', 'Nationwide', 'International'].obs;
   final RxList<String> selectedTravel = <String>[].obs;
 
+  // Braiding Tab Specifics
+  final RxList braidingServices = [].obs;
+  final braidingServiceInputController = TextEditingController();
+
   // Cancellation
   final RxnString cancellationPolicy = RxnString();
   final RxBool isCustomCancellation = false.obs;
@@ -111,40 +117,10 @@ class EditVendorProfileController extends GetxController {
         }
 
         // Service level data
-        final List assignedServices = data['assignedServices'] ?? [];
-        final groomingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Grooming');
-
-        if (groomingService != null) {
-          final profileData = groomingService['profile']?['profileData'] ?? {};
-          final appData = groomingService['application']?['applicationData'] ?? {};
-
-          // Home Base
-          cityController.text = appData['homeBase']?['city'] ?? '';
-          stateController.text = appData['homeBase']?['state'] ?? '';
-          countryController.text = appData['homeBase']?['country'] ?? 'USA';
-
-          experience.value = appData['experience']?.toString();
-          selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? []));
-          otherDisciplineController.text = appData['otherDiscipline'] ?? '';
-          selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? []));
-          selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
-          
-          facebookController.text = profileData['socialMedia']?['facebook'] ?? '';
-          instagramController.text = profileData['socialMedia']?['instagram'] ?? '';
-          
-          selectedSupport.assignAll(List<String>.from(profileData['capabilities']?['support'] ?? []));
-          selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
-          selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
-          selectedTravel.assignAll(List<String>.from(profileData['travelPreferences'] ?? []));
-          
-          cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
-          isCustomCancellation.value = profileData['cancellationPolicy']?['isCustom'] ?? false;
-          if (isCustomCancellation.value) {
-            customCancellationController.text = cancellationPolicy.value ?? '';
-          }
-          
-          existingPhotos.assignAll(List<String>.from(profileData['media'] ?? []));
-        }
+        final List services = data['assignedServices'] ?? [];
+        assignedServices.assignAll(services);
+        
+        populateServiceData();
       }
     } catch (e) {
       debugPrint('Error fetching profile data: $e');
@@ -152,6 +128,62 @@ class EditVendorProfileController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  void populateServiceData() {
+    final services = assignedServices;
+    
+    // Find the active service based on selected index or default to Grooming/first
+    var activeService;
+    if (selectedServiceIndex.value > 0 && selectedServiceIndex.value <= services.length) {
+      activeService = services[selectedServiceIndex.value - 1];
+    } else {
+      activeService = services.firstWhereOrNull((s) => s['serviceType'] == 'Grooming') ?? (services.isNotEmpty ? services.first : null);
+    }
+
+    if (activeService != null) {
+      final profileData = activeService['profile']?['profileData'] ?? {};
+      final appData = activeService['application']?['applicationData'] ?? {};
+
+      // Home Base
+      cityController.text = appData['homeBase']?['city'] ?? '';
+      stateController.text = appData['homeBase']?['state'] ?? '';
+      countryController.text = appData['homeBase']?['country'] ?? 'USA';
+
+      experience.value = appData['experience']?.toString();
+      selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? []));
+      otherDisciplineController.text = appData['otherDiscipline'] ?? '';
+      selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? []));
+      selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
+      
+      facebookController.text = profileData['socialMedia']?['facebook'] ?? '';
+      instagramController.text = profileData['socialMedia']?['instagram'] ?? '';
+      
+      // Capabilities based on service type
+      if (activeService['serviceType'] == 'Grooming') {
+        selectedSupport.assignAll(List<String>.from(profileData['capabilities']?['support'] ?? []));
+        selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
+        selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
+      } else if (activeService['serviceType'] == 'Braiding') {
+        final List bServices = profileData['services'] ?? [];
+        braidingServices.assignAll(bServices.map((s) => {
+          'name': s['name'] ?? '',
+          'price': TextEditingController(text: s['price']?.toString() ?? ''),
+          'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+        }).toList());
+      }
+
+      selectedTravel.assignAll(List<String>.from(profileData['travelPreferences'] ?? []));
+      
+      cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
+      isCustomCancellation.value = profileData['cancellationPolicy']?['isCustom'] ?? false;
+      if (isCustomCancellation.value) {
+        customCancellationController.text = cancellationPolicy.value ?? '';
+      }
+      
+      existingPhotos.assignAll(List<String>.from(profileData['media'] ?? []));
+    }
+  }
+
 
   Future<void> fetchDynamicTags() async {
     try {
@@ -234,6 +266,22 @@ class EditVendorProfileController extends GetxController {
   void removeExistingPhoto(int index) => existingPhotos.removeAt(index);
   void removeNewPhoto(int index) => newPhotos.removeAt(index);
 
+  void addBraidingService(String name) {
+    if (name.isNotEmpty) {
+      braidingServices.add({
+        'name': name,
+        'price': TextEditingController(text: '0'),
+        'isSelected': true.obs,
+      });
+      braidingServiceInputController.clear();
+    }
+  }
+
+  void toggleBraidingService(int index) {
+    final service = braidingServices[index];
+    service['isSelected'].value = !service['isSelected'].value;
+  }
+
   Future<String?> _uploadFile(File file, String type) async {
     try {
       final formData = FormData({
@@ -283,41 +331,86 @@ class EditVendorProfileController extends GetxController {
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
       };
 
-      final groomingPayload = {
-        'servicesData': {
-          'grooming': {
-            'applicationData': {
-              'homeBase': {
-                'city': cityController.text,
-                'state': stateController.text,
-                'country': countryController.text,
-              },
-              'experience': experience.value,
-              'disciplines': selectedDisciplines.toList(),
-              'otherDiscipline': otherDisciplineController.text,
-              'horseLevels': selectedHorseLevels.toList(),
-              'regions': selectedRegions.toList(),
-              'media': groomingMedia,
+      // 1.5 Helper for Braiding Services payload
+      final braidingServicesPayload = braidingServices.map((s) => {
+        'name': s['name'],
+        'price': s['price'].text,
+        'isSelected': s['isSelected'].value,
+      }).toList();
+
+      final servicesData = <String, dynamic>{};
+
+      // Construct grooming payload if assigned
+      if (assignedServices.any((s) => s['serviceType'] == 'Grooming')) {
+        servicesData['grooming'] = {
+          'applicationData': {
+            'homeBase': {
+              'city': cityController.text,
+              'state': stateController.text,
+              'country': countryController.text,
             },
-            'profileData': {
-              'socialMedia': {
-                'facebook': facebookController.text,
-                'instagram': instagramController.text,
-              },
-              'capabilities': {
-                'support': selectedSupport.toList(),
-                'handling': selectedHandling.toList(),
-              },
-              'additionalSkills': selectedAdditionalSkills.toList(),
-              'travelPreferences': selectedTravel.toList(),
-              'cancellationPolicy': {
-                'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-                'isCustom': isCustomCancellation.value,
-              },
-              'media': groomingMedia,
-            }
+            'experience': experience.value,
+            'disciplines': selectedDisciplines.toList(),
+            'otherDiscipline': otherDisciplineController.text,
+            'horseLevels': selectedHorseLevels.toList(),
+            'regions': selectedRegions.toList(),
+            'media': groomingMedia,
+          },
+          'profileData': {
+            'socialMedia': {
+              'facebook': facebookController.text,
+              'instagram': instagramController.text,
+            },
+            'capabilities': {
+              'support': selectedSupport.toList(),
+              'handling': selectedHandling.toList(),
+            },
+            'additionalSkills': selectedAdditionalSkills.toList(),
+            'travelPreferences': selectedTravel.toList(),
+            'cancellationPolicy': {
+              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+            },
+            'media': groomingMedia,
           }
-        }
+        };
+      }
+
+      // Construct braiding payload if assigned
+      if (assignedServices.any((s) => s['serviceType'] == 'Braiding')) {
+        servicesData['braiding'] = {
+          'applicationData': {
+            'homeBase': {
+              'city': cityController.text,
+              'state': stateController.text,
+              'country': countryController.text,
+            },
+            'experience': experience.value,
+            'disciplines': selectedDisciplines.toList(),
+            'otherDiscipline': otherDisciplineController.text,
+            'horseLevels': selectedHorseLevels.toList(),
+            'regions': selectedRegions.toList(),
+            'media': groomingMedia,
+          },
+          'profileData': {
+            'socialMedia': {
+              'facebook': facebookController.text,
+              'instagram': instagramController.text,
+            },
+            'services': braidingServicesPayload,
+            'additionalSkills': selectedAdditionalSkills.toList(),
+            'travelPreferences': selectedTravel.toList(),
+            'cancellationPolicy': {
+              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+            },
+            'media': groomingMedia,
+          }
+        };
+      }
+
+      final servicesPayload = {
+        'servicesData': servicesData,
       };
 
       // 3. Update Vendor Profile
@@ -330,7 +423,7 @@ class EditVendorProfileController extends GetxController {
       final meResponse = await _apiService.getRequest('/vendors/me');
       final realVendorId = meResponse.body['data']['_id'];
 
-      final serviceResponse = await _apiService.putRequest('/vendors/$realVendorId', groomingPayload);
+      final serviceResponse = await _apiService.putRequest('/vendors/$realVendorId', servicesPayload);
       
       if (serviceResponse.statusCode == 200) {
         // Update local AuthController state for immediate UI reflection in Menu/Personal Info

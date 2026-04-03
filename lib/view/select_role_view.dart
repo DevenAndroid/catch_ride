@@ -33,12 +33,12 @@ class _SelectRoleViewState extends State<SelectRoleView> {
       'value': AppStrings.trainer,
       'backendValue': 'trainer',
     },
-    {
+/*    {
       'title': AppStrings.serviceProvider,
       'subtitle': AppStrings.offerServicesAndAcceptBookings,
       'value': AppStrings.serviceProvider,
       'backendValue': 'service_provider',
-    },
+    },*/
     /*    {
       'title': AppStrings.barnManager,
       'subtitle': AppStrings.manageBarnOperations,

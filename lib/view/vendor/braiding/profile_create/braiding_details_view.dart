@@ -53,11 +53,12 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
               const SizedBox(height: 24),
               _buildCancellationPolicy(controller),
               const SizedBox(height: 32),
-              CommonButton(
+              Obx(() => CommonButton(
                 text: 'Continue',
+                isLoading: controller.isSubmitting.value,
                 backgroundColor: AppColors.primary,
                 onPressed: controller.submit,
-              ),
+              )),
               const SizedBox(height: 20),
             ],
           ),
@@ -167,7 +168,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
       children: [
         Obx(() => Wrap(
               spacing: 8,
-              runSpacing: 8,
+              runSpacing: 12,
               children: controller.travelOptions.map((item) {
                 final isSelected = controller.selectedTravel.contains(item);
                 return _buildSelectableChip(item, isSelected: isSelected, onTap: () => controller.toggleTravel(item));
@@ -178,38 +179,25 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
   }
 
   Widget _buildReadOnlyInfo(BraidingDetailsController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabelValue('Location', controller.location.value),
-        const SizedBox(height: 24),
-        _buildLabelValue('Years of Experience', controller.experience.value),
-        const SizedBox(height: 24),
-        _buildChipsList('Disciplines', controller.disciplines),
-        const SizedBox(height: 24),
-        _buildChipsList('Typical Level of Horses', controller.horseLevels),
-        const SizedBox(height: 24),
-        _buildSectionContainer(
-          title: 'General operating regions',
-          children: [
-            Obx(() => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: controller.operatingRegions
-                      .map((r) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(8)),
-                              child: CommonText(r, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
-                            ),
-                          ))
-                      .toList(),
-                )),
-          ],
-        ),
-      ],
-    );
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabelValue('Location', controller.location.value),
+          const SizedBox(height: 24),
+          _buildLabelValue('Years of experience', controller.experience.value),
+          const SizedBox(height: 24),
+          _buildChipsList('Disciplines', controller.disciplines),
+          const SizedBox(height: 24),
+          _buildChipsList('Typical level of horses', controller.horseLevels),
+          const SizedBox(height: 24),
+          _buildChipsList('Regions covered', controller.operatingRegions),
+        ],
+      );
+    });
   }
 
   Widget _buildCancellationPolicy(BraidingDetailsController controller) {
@@ -225,10 +213,10 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
           child: DropdownButtonHideUnderline(
             child: Obx(() => DropdownButton<String>(
                   value: controller.cancellationPolicy.value,
-                  hint: const CommonText('Select Cancellation', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
+                  hint: const CommonText('Select cancellation policy', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
                   isExpanded: true,
                   icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-                  items: ['Flexible', 'Moderate', 'Strict'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
+                  items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
                   onChanged: (val) => controller.cancellationPolicy.value = val,
                 )),
           ),
@@ -259,6 +247,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                   ? Padding(
                       padding: const EdgeInsets.only(top: 16),
                       child: TextField(
+                        controller: controller.customCancellationController,
                         maxLines: 4,
                         decoration: InputDecoration(
                           hintText: 'Write here...',
@@ -382,16 +371,18 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isSelected ? AppColors.primary : Colors.white,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.borderLight, width: 1),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight, width: 1),
+          boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))] : null,
         ),
         child: CommonText(
           text,
-          fontSize: AppTextSizes.size12,
-          color: AppColors.textPrimary,
+          fontSize: AppTextSizes.size14,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          color: isSelected ? Colors.white : AppColors.textSecondary,
         ),
       ),
     );
@@ -405,18 +396,17 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
   }
 
   Widget _buildLabelValue(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return _buildSectionContainer(
+      title: label,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: CommonText(label, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.bold),
-        ),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(12)),
-          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6), 
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
       ],
     );

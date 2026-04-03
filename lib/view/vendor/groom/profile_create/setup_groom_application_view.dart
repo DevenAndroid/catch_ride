@@ -308,15 +308,16 @@ class SetupGroomApplicationView extends StatelessWidget {
               _buildCheckboxes(controller),
               const SizedBox(height: 32),
 
-              Padding(
+              Obx(() => Padding(
                 padding: const EdgeInsets.only(bottom: 24),
                 child: CommonButton(
                   text: 'Submit Application',
+                  isLoading: controller.isSubmitting.value,
                   onPressed: controller.submitApplication,
                   height: 56,
                   backgroundColor: AppColors.primaryDark,
                 ),
-              ),
+              )),
             ],
           ),
         ),
@@ -776,16 +777,6 @@ class SetupGroomApplicationView extends StatelessWidget {
               ),
               child: const Icon(Icons.add, color: AppColors.textSecondary),
             ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            width: 80, 
-            height: 80, 
-            decoration: BoxDecoration(
-              color: AppColors.lightGray, 
-              borderRadius: BorderRadius.circular(8)
-            ), 
-            child: const Icon(Icons.add, color: Colors.grey)
           ),
         ],
       ),

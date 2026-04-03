@@ -1,4 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/view/trainer/settings/notifications_view.dart';
 
 import 'package:catch_ride/view/vendor/groom/menu/past_clients_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/personal_info_view.dart';
@@ -34,12 +35,15 @@ class MenuView extends StatelessWidget {
         elevation: 0,
         title: const CommonText('Menu', fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
-              child: const Icon(Icons.notifications_none, color: Colors.black, size: 24),
+          InkWell(
+            onTap: ()=> Get.to(() => const NotificationsView()),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
+                child: const Icon(Icons.notifications_none, color: Colors.black, size: 24),
+              ),
             ),
           )
         ],

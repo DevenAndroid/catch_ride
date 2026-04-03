@@ -33,6 +33,7 @@ class UserModel {
   final TrainerLinkedModel? linkedTrainer;
   final String? yearsInIndustry;
   final List<String> roles;
+  final List<String> vendorServices;
   final DateTime? createdAt;
 
   UserModel({
@@ -42,6 +43,7 @@ class UserModel {
     required this.email,
     required this.role,
     this.roles = const [],
+    this.vendorServices = const [],
     this.avatar,
     this.photo,
     this.coverImage,
@@ -114,6 +116,17 @@ class UserModel {
         ? json['vendorId'] as Map<String, dynamic>
         : null;
 
+    List<String> parsedServices = [];
+    if (vendorData != null && vendorData['assignedServices'] is List) {
+       for (var s in (vendorData['assignedServices'] as List)) {
+         if (s is Map && s['serviceType'] != null) {
+           parsedServices.add(s['serviceType'] as String);
+         } else if (s is String) {
+            parsedServices.add(s);
+         }
+       }
+    }
+
     // Determine professional/fallback data based on role
     Map<String, dynamic>? proData;
     if (json['role'] == 'trainer') {
@@ -163,6 +176,7 @@ class UserModel {
       twoFactorEnabled: json['twoFactorEnabled'] ?? false,
       status: json['status'] ?? 'active',
       trainerProfileId: trainerData != null ? trainerData['_id'] : json['trainerId'],
+      vendorServices: parsedServices,
       linkedBarnManager:
           trainerData != null && trainerData['linkedBarnManager'] != null
           ? BarnManager.fromJson(trainerData['linkedBarnManager'])
@@ -218,6 +232,7 @@ class UserModel {
     String? email,
     String? role,
     List<String>? roles,
+    List<String>? vendorServices,
     String? avatar,
     String? photo,
     String? coverImage,
@@ -253,6 +268,7 @@ class UserModel {
       email: email ?? this.email,
       role: role ?? this.role,
       roles: roles ?? this.roles,
+      vendorServices: vendorServices ?? this.vendorServices,
       avatar: avatar ?? this.avatar,
       photo: photo ?? this.photo,
       coverImage: coverImage ?? this.coverImage,

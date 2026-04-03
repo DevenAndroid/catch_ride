@@ -1,11 +1,14 @@
-
+import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class BraidingDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
+  final apiService = Get.find<ApiService>();
 
   // Core Braiding Services
   final braidingServices = <Map<String, dynamic>>[
@@ -23,9 +26,7 @@ class BraidingDetailsController extends GetxController {
       braidingServices.add({
         'name': name,
         'isSelected': true.obs,
-        'dayPrice': TextEditingController(),
-        'weekPrice': TextEditingController(),
-        'monthPrice': TextEditingController(),
+        'price': TextEditingController(),
       });
       addServiceInputController.clear();
     }
@@ -43,26 +44,113 @@ class BraidingDetailsController extends GetxController {
     }
   }
 
-  // Read-only mock data for UI
-  final location = 'Denver, Colorado, USA'.obs;
-  final experience = '4 years'.obs;
-  final disciplines = ['Eventing', 'Hunter/Jumper', 'Dressage'].obs;
-  final horseLevels = ['A/AA Circuit', 'Grand Prix', 'Young horses', 'FEI'].obs;
-  final operatingRegions = [
-    'Florida (Wellington - Ocala - Gulf Coast)',
-    'Southwest (Thermal - AZ winter circuit)',
-    'Southeast (Aiken - Tryon - Wills Park - Chatt Hills)',
-  ].obs;
+  // Pre-filled / Read-only info from Application
+  final location = 'N/A'.obs;
+  final experience = 'N/A'.obs;
+  final disciplines = <String>[].obs;
+  final horseLevels = <String>[].obs;
+  final operatingRegions = <String>[].obs;
+  final isLoading = false.obs; // For initial fetching
+  final isSubmitting = false.obs; // For form submission
 
   // Cancellation Policy
   final cancellationPolicy = RxnString();
   final isCustomCancellation = false.obs;
+  final customCancellationController = TextEditingController();
 
-  void submit() {
-    Get.offAll(() => const ProfileCompletedView(
+  @override
+  void onInit() {
+    super.onInit();
+    fetchBraidingData();
+  }
+
+  Future<void> fetchBraidingData() async {
+    isLoading.value = true;
+    try {
+      final response = await apiService.getRequest('/vendors/me');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final vendor = response.body['data'];
+        
+        // Find Braiding service
+        final List assignedServices = vendor['assignedServices'] ?? [];
+        final braidingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Braiding');
+
+        if (braidingService != null && braidingService['application'] != null) {
+          final applicationData = braidingService['application']['applicationData'] ?? {};
+          
+          final city = applicationData['homeBase']?['city'] ?? '';
+          final state = applicationData['homeBase']?['state'] ?? '';
+          location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
+          
+          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} Years' : 'N/A';
+          disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
+          horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
+          operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+        } else {
+          // Fallback to vendor level fields
+          location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
+          experience.value = vendor['experience'] ?? 'N/A';
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching braiding data: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> submit() async {
+    isSubmitting.value = true;
+    try {
+      final vendorResponse = await apiService.getRequest('/vendors/me');
+      if (vendorResponse.statusCode != 200 || vendorResponse.body['success'] != true) {
+        Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: Colors.red, colorText: Colors.white);
+        return;
+      }
+      final vendorId = vendorResponse.body['data']['_id'];
+
+      final body = {
+        'servicesData': {
+          'braiding': {
+            'services': braidingServices
+                .where((s) => s['isSelected'].value == true)
+                .map((s) => {
+                      'name': s['name'],
+                      'price': (s['price'] as TextEditingController).text,
+                    })
+                .toList(),
+            'travelPreferences': selectedTravel.toList(),
+            'cancellationPolicy': {
+              'policy': cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+              'customText': customCancellationController.text,
+            },
+            'isProfileCompleted': true,
+          }
+        },
+        'isProfileSetup': true,
+        'isProfileCompleted': true,
+      };
+
+      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final authController = Get.find<AuthController>();
+        await authController.updateUserMetadata();
+
+        Get.offAll(() => const ProfileCompletedView(
           subtitle: 'Your braiding services are now live',
           destinationWidget: GroomBottomNav(),
         ));
+      } else {
+        final errorMsg = response.body['message'] ?? 'Failed to update braiding profile';
+        Get.snackbar('Error', errorMsg, backgroundColor: Colors.red, colorText: Colors.white);
+      }
+    } catch (e) {
+      debugPrint('Error submitting braiding details: $e');
+      Get.snackbar('Error', 'An unexpected error occurred', backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isSubmitting.value = false;
+    }
   }
 
   @override
@@ -70,6 +158,7 @@ class BraidingDetailsController extends GetxController {
     for (var service in braidingServices) {
       (service['price'] as TextEditingController).dispose();
     }
+    customCancellationController.dispose();
     addServiceInputController.dispose();
     super.onClose();
   }
