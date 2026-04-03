@@ -53,7 +53,7 @@ class BraidingApplicationView extends StatelessWidget {
               CommonTextField(
                 label: 'Why Join Our Community?',
                 controller: controller.joinCommunityController,
-                hintText: 'Tell us why you would like to join and what you bring to the network.',
+                hintText: 'Tell us about your braiding services, the circuits or shows you typically work, and your availability throughout the season.',
                 maxLines: 4,
               ),
               const SizedBox(height: 24),
@@ -62,102 +62,160 @@ class BraidingApplicationView extends StatelessWidget {
                 'Home Base Location',
                 children: [
                   CommonTextField(
-                    label: 'City',
-                    controller: controller.cityController,
-                    hintText: 'Select city',
-                  ),
-                  const SizedBox(height: 16),
-                  CommonTextField(
-                    label: 'State/Province',
-                    isRequired: true,
-                    controller: controller.stateProvinceController,
-                    hintText: 'Select state/province',
-                  ),
-                  const SizedBox(height: 16),
-                  CommonTextField(
                     label: 'Country',
                     isRequired: true,
+                    readOnly: true,
                     controller: controller.countryController,
-                    hintText: 'Select country',
+                    hintText: 'Select Country',
                   ),
+                  const SizedBox(height: 16),
+
+                  _buildSectionHeader('State/Province', isRequired: true),
+                  Obx(() => _buildBottomTrigger(
+                    value: controller.selectedState.value?['name'],
+                    hint: 'Select state / province',
+                    isLoading: controller.isLoadingStates.value,
+                    onTap: () => _showLocationBottomSheet(
+                      context: context,
+                      title: 'Select State',
+                      options: controller.states,
+                      onSelected: (val) => controller.onStateSelected(val),
+                    ),
+                  )),
+                  const SizedBox(height: 16),
+
+                  _buildSectionHeader('City', isRequired: true),
+                  Obx(() => _buildBottomTrigger(
+                    value: controller.selectedCity.value?['name'],
+                    hint: controller.selectedState.value == null 
+                        ? 'Select state first' 
+                        : 'Select city',
+                    isLoading: controller.isLoadingCities.value,
+                    onTap: controller.selectedState.value == null 
+                        ? null 
+                        : () => _showLocationBottomSheet(
+                      context: context,
+                      title: 'Select City',
+                      options: controller.cities,
+                      onSelected: (val) => controller.onCitySelected(val),
+                    ),
+                  )),
                 ],
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Experience'),
-              Obx(() => _buildExperienceTrigger(
-                    value: controller.experience.value,
-                    hint: 'Select years of experience',
-                    onTap: () => _showExperienceBottomSheet(
+              _buildSectionHeader('Experience', isRequired: true),
+              Obx(() => _buildBottomTrigger(
+                value: controller.experience.value == null ? null : '${controller.experience.value} Years',
+                hint: 'Select Years of Experience',
+                onTap: () => _showExperienceBottomSheet(
+                  context: context,
+                  title: 'Experience',
+                  currentValue: controller.experience.value,
+                  options: controller.experienceOptions,
+                  onSelected: (val) => controller.experience.value = val,
+                ),
+              )),
+              const SizedBox(height: 24),
+
+              _buildGroupedSection(
+                'Disciplines',
+                description: 'Select the disciplines you most commonly work with.',
+                children: [
+                  Obx(() => _buildChipsList(
+                    options: controller.disciplineOptions,
+                    selectedItems: controller.selectedDisciplines,
+                    onSelected: (item, selected) {
+                      if (selected) {
+                        controller.selectedDisciplines.add(item);
+                      } else {
+                        controller.selectedDisciplines.remove(item);
+                      }
+                    },
+                  )),
+                  Obx(() {
+                    if (controller.selectedDisciplines.contains('Other')) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: CommonTextField(
+                          label: '', // No separate label needed for sub-field
+                          controller: controller.otherDisciplineController,
+                          hintText: 'Write here...',
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              _buildGroupedSection(
+                'Typical Level of Horses',
+                description: 'Select the types of horses you most frequently work with.',
+                children: [
+                  Obx(() => _buildChipsList(
+                    options: controller.horseLevelOptions,
+                    selectedItems: controller.selectedHorseLevels,
+                    onSelected: (item, selected) {
+                      if (selected) {
+                        controller.selectedHorseLevels.add(item);
+                      } else {
+                        controller.selectedHorseLevels.remove(item);
+                      }
+                    },
+                  )),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              _buildGroupedSection(
+                'Regions Covered',
+                description: 'Select the regions you most commonly work in.',
+                children: [
+                  Obx(() => _buildBottomTrigger(
+                    value: '', 
+                    hint: 'Select regions...',
+                    isLoading: controller.isLoadingTags.value,
+                    onTap: () => _showMultiSelectBottomSheet(
                       context: context,
-                      title: 'Experience',
-                      currentValue: controller.experience.value,
-                      options: controller.experienceOptions,
-                      onSelected: (val) => controller.experience.value = val,
+                      title: 'Select Regions',
+                      options: controller.regionOptions,
+                      selectedItems: controller.selectedRegions,
+                      onToggle: (val) {
+                        if (controller.selectedRegions.contains(val)) {
+                          controller.selectedRegions.remove(val);
+                        } else {
+                          controller.selectedRegions.add(val);
+                        }
+                      },
                     ),
                   )),
-              const SizedBox(height: 24),
-
-              _buildSectionHeader('Specific Braiding Services'),
-              Obx(() => _buildChipsList(
-                options: controller.disciplineOptions,
-                selectedItems: controller.selectedDisciplines,
-                onSelected: (item, selected) {
-                  if (selected) {
-                    controller.selectedDisciplines.add(item);
-                  } else {
-                    controller.selectedDisciplines.remove(item);
-                  }
-                },
-              )),
-              Obx(() {
-                if (controller.selectedDisciplines.contains('Other')) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: CommonTextField(
-                      label: '', // No separate label needed for sub-field
-                      controller: controller.otherDisciplineController,
-                      hintText: 'Write here...',
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-              const SizedBox(height: 24),
-
-              _buildSectionHeader('Typical Level of Horses'),
-              Obx(() => _buildChipsList(
-                options: controller.horseLevelOptions,
-                selectedItems: controller.selectedHorseLevels,
-                onSelected: (item, selected) {
-                  if (selected) {
-                    controller.selectedHorseLevels.add(item);
-                  } else {
-                    controller.selectedHorseLevels.remove(item);
-                  }
-                },
-              )),
-              const SizedBox(height: 24),
-
-              _buildSectionHeader('Regions Covered'),
-              const CommonText(
-                'Select regions you are reasonably sure to maintain activity in for the current time.',
-                fontSize: AppTextSizes.size12,
-                color: AppColors.textSecondary,
+                  const SizedBox(height: 16),
+                  Obx(() => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: controller.selectedRegions.map((region) => Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: CommonText(region, fontSize: AppTextSizes.size12, color: AppColors.textPrimary)),
+                          GestureDetector(
+                            onTap: () => controller.selectedRegions.remove(region),
+                            child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )).toList(),
+                  )),
+                ],
               ),
-              const SizedBox(height: 12),
-              Obx(() => _buildMultiSelectDropdown(
-                options: controller.regionOptions,
-                selectedItems: controller.selectedRegions,
-                hint: 'Select regions',
-                onToggle: (item) {
-                  if (controller.selectedRegions.contains(item)) {
-                    controller.selectedRegions.remove(item);
-                  } else {
-                    controller.selectedRegions.add(item);
-                  }
-                },
-              )),
               const SizedBox(height: 24),
 
               _buildGroupedSection(
@@ -168,26 +226,26 @@ class BraidingApplicationView extends StatelessWidget {
                     label: 'Facebook',
                     controller: controller.facebookController,
                     hintText: 'facebook.com/yourpage',
-                    prefixIcon: const Icon(Icons.facebook, size: 20),
                   ),
                   const SizedBox(height: 16),
                   CommonTextField(
                     label: 'Instagram',
                     controller: controller.instagramController,
                     hintText: '@your.username',
-                    prefixIcon: const Icon(Icons.camera_alt_outlined, size: 20),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Photos of your Work'),
+              _buildSectionHeader('Add Photos'),
               const CommonText(
-                'Upload photos that showcase your braiding skills.',
+                'Upload photos that showcase your work and skills.',
                 fontSize: AppTextSizes.size12,
                 color: AppColors.textSecondary,
               ),
               const SizedBox(height: 12),
+              const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+              const SizedBox(height: 8),
               Obx(() => _buildPhotoGrid(controller)),
               const SizedBox(height: 24),
 
@@ -197,18 +255,31 @@ class BraidingApplicationView extends StatelessWidget {
               _buildGroupedSection(
                 'Experience Highlights (optional)',
                 children: [
-                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: CommonTextField(
-                          label: '',
-                          controller: controller.highlightsController,
-                          hintText: 'Write here...',
+                   Obx(() => Column(
+                    children: controller.highlightsControllers.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final ctrl = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: CommonTextField(
+                                label: '',
+                                controller: ctrl,
+                                hintText: 'Write here...',
+                              ),
+                            ),
+                            if (controller.highlightsControllers.length > 1)
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
+                                onPressed: () => controller.removeHighlight(index),
+                              ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
+                      );
+                    }).toList(),
+                  )),
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: controller.addHighlight,
@@ -217,7 +288,7 @@ class BraidingApplicationView extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.add, color: AppColors.primary, size: 18),
+                          Icon(Icons.add, color: AppColors.primary, size: 18), // Used add link color
                           SizedBox(width: 4),
                           CommonText(
                             'Add More',
@@ -229,15 +300,6 @@ class BraidingApplicationView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Obx(() => Wrap(
-                        spacing: 8,
-                        children: controller.highlightsList
-                            .map((h) => Chip(
-                                  label: CommonText(h, fontSize: AppTextSizes.size12),
-                                  onDeleted: () => controller.highlightsList.remove(h),
-                                ))
-                            .toList(),
-                      )),
                 ],
               ),
               const SizedBox(height: 24),
@@ -245,15 +307,16 @@ class BraidingApplicationView extends StatelessWidget {
               _buildCheckboxes(controller),
               const SizedBox(height: 32),
 
-              Padding(
+              Obx(() => Padding(
                 padding: const EdgeInsets.only(bottom: 24),
                 child: CommonButton(
                   text: 'Submit Application',
+                  isLoading: controller.isSubmitting.value,
                   onPressed: controller.submitApplication,
                   height: 56,
                   backgroundColor: AppColors.primaryDark,
                 ),
-              ),
+              )),
             ],
           ),
         ),
@@ -314,27 +377,7 @@ class BraidingApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdown({String? value, required List<String> options, required Function(String?) onChanged, required String hint}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          hint: CommonText(hint, color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-          isExpanded: true,
-          items: options.map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExperienceTrigger({String? value, required String hint, required VoidCallback onTap}) {
+  Widget _buildBottomTrigger({String? value, required String hint, required VoidCallback? onTap, bool isLoading = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -354,14 +397,97 @@ class BraidingApplicationView extends StatelessWidget {
                 color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
               ),
             ),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+              )
+            else
+              const Icon(
+                Icons.keyboard_arrow_down,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showLocationBottomSheet({
+    required BuildContext context,
+    required String title,
+    required List<Map<String, dynamic>> options,
+    required Function(Map<String, dynamic>) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: CommonText(
+                    title,
+                    fontSize: AppTextSizes.size18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: ListView.builder(
+                    controller: scrollController,
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final item = options[index];
+                      return InkWell(
+                        onTap: () {
+                          onSelected(item);
+                          Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                          ),
+                          child: CommonText(
+                            item['name'] ?? '',
+                            fontSize: AppTextSizes.size16,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -468,39 +594,85 @@ class BraidingApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildMultiSelectDropdown({required List<String> options, required List<String> selectedItems, required String hint, required Function(String) onToggle}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
+  void _showMultiSelectBottomSheet({
+    required BuildContext context,
+    required String title,
+    required List<String> options,
+    required List<String> selectedItems,
+    required Function(String) onToggle,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (selectedItems.isEmpty)
-            CommonText(hint, color: AppColors.textSecondary, fontSize: AppTextSizes.size14)
-          else
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: selectedItems.map((item) => Chip(
-                label: CommonText(item, fontSize: AppTextSizes.size12),
-                onDeleted: () => onToggle(item),
-                visualDensity: VisualDensity.compact,
-              )).toList(),
-            ),
-          const Divider(),
-          ...options.map((opt) => CheckboxListTile(
-            title: CommonText(opt, fontSize: AppTextSizes.size14),
-            value: selectedItems.contains(opt),
-            onChanged: (val) => onToggle(opt),
-            controlAffinity: ListTileControlAffinity.trailing,
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          )),
-        ],
-      ),
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          builder: (_, scrollController) {
+            return Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(
+                        title,
+                        fontSize: AppTextSizes.size18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const CommonText('Done', color: AppColors.primary, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(),
+                Expanded(
+                  child: Obx(() {
+                    final itemCount = options.length;
+                    return ListView.builder(
+                      controller: scrollController,
+                      itemCount: itemCount,
+                      itemBuilder: (context, index) {
+                        final item = options[index];
+                        return Obx(() {
+                          final isSelected = selectedItems.contains(item);
+                          return CheckboxListTile(
+                            title: CommonText(item, fontSize: AppTextSizes.size14),
+                            value: isSelected,
+                            onChanged: (val) => onToggle(item),
+                            activeColor: AppColors.primary,
+                            controlAffinity: ListTileControlAffinity.trailing,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                          );
+                        });
+                      },
+                    );
+                  }),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -547,16 +719,6 @@ class BraidingApplicationView extends StatelessWidget {
               child: const Icon(Icons.add, color: AppColors.textSecondary),
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            width: 80, 
-            height: 80, 
-            decoration: BoxDecoration(
-              color: AppColors.lightGray, 
-              borderRadius: BorderRadius.circular(8)
-            ), 
-            child: const Icon(Icons.add, color: Colors.grey)
-          ),
         ],
       ),
     );
@@ -565,7 +727,7 @@ class BraidingApplicationView extends StatelessWidget {
   Widget _buildTrainerReferences(BraidingApplicationController controller) {
     return _buildGroupedSection(
       'Professional References',
-      description: 'Please provide two professional references we may contact regarding your experience and reliability.',
+      description: 'Provide references here regarding your experience, professionalism, and reliability.',
       children: [
         _buildTrainerReferenceInputs(controller, 1),
         const SizedBox(height: 24),
@@ -587,19 +749,19 @@ class BraidingApplicationView extends StatelessWidget {
         CommonTextField(
            label: 'Full Name',
            controller: nameCtrl, 
-           hintText: 'Enter full name'
+           hintText: 'Enter Full Name'
         ),
         const SizedBox(height: 16),
         CommonTextField(
            label: 'Business Name',
            controller: busCtrl, 
-           hintText: 'Enter business name'
+           hintText: 'Enter Business Name'
         ),
         const SizedBox(height: 16),
         CommonTextField(
            label: 'Relationship',
            controller: relCtrl, 
-           hintText: 'Enter business name' 
+           hintText: 'Enter Relationship Name' 
         ),
       ],
     );

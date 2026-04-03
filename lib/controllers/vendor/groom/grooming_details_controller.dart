@@ -6,6 +6,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../view/vendor/braiding/profile_create/braiding_details_view.dart';
+
 class GroomingDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.find<ApiService>();
@@ -111,11 +113,13 @@ class GroomingDetailsController extends GetxController {
   final disciplinesSelected = <String>[].obs;
   final horseLevels = <String>[].obs;
   final operatingRegions = <String>[].obs;
-  final isLoading = false.obs;
+  final isLoading = false.obs; // For initial fetching
+  final isSubmitting = false.obs; // For form submission
 
   // Cancellation Policy
   final cancellationPolicy = RxnString();
   final isCustomCancellation = false.obs;
+  final customCancellationController = TextEditingController();
 
   @override
   void onInit() {
@@ -159,7 +163,7 @@ class GroomingDetailsController extends GetxController {
   }
 
   Future<void> submit() async {
-    isLoading.value = true;
+    isSubmitting.value = true;
     try {
       final vendorResponse = await apiService.getRequest('/vendors/me');
       if (vendorResponse.statusCode != 200 || vendorResponse.body['success'] != true) {
@@ -197,8 +201,10 @@ class GroomingDetailsController extends GetxController {
             'cancellationPolicy': {
               'policy': cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
+              'customText': customCancellationController.text,
             },
             'travelPreferences': selectedTravel.toList(),
+            'isProfileCompleted': true,
           }
         },
         'isProfileSetup': true,
@@ -207,29 +213,25 @@ class GroomingDetailsController extends GetxController {
 
       final response = await apiService.putRequest('/vendors/$vendorId', body);
       if (response.statusCode == 200 && response.body['success'] == true) {
-        // Update local session state at every place for consistency
-        final authController = Get.put(AuthController());
-        if (authController.currentUser.value != null) {
-          authController.currentUser.value = authController.currentUser.value!.copyWith(
-            isProfileCompleted: true,
-            isProfileSetup: true,
-          );
+        final authController = Get.find<AuthController>();
+        await authController.updateUserMetadata();
+
+        final services = authController.currentUser.value?.vendorServices ?? [];
+        
+        // If user has Braiding, go there next (assuming we are coming from Grooming setup)
+        if (services.contains('Braiding')) {
+           Get.off(() => const BraidingDetailsView());
+        } else {
+           Get.offAll(() => const GroomBottomNav());
         }
-
-        final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isProfileCompleted', true);
-        await prefs.setBool('isProfileSetup', true);
-
-        Get.offAll(() => const GroomBottomNav());
       } else {
         final errorMsg = response.body['message'] ?? 'Failed to update grooming profile';
         Get.snackbar('Error', errorMsg, backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
-      debugPrint('Error submitting grooming details: $e');
       Get.snackbar('Error', 'Something went wrong. Please try again.', backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
-      isLoading.value = false;
+      isSubmitting.value = false;
     }
   }
 
@@ -238,8 +240,8 @@ class GroomingDetailsController extends GetxController {
     dailyRateController.dispose();
     weeklyRateController.dispose();
     monthlyRateController.dispose();
-    addServiceInputController.dispose();
     addServicePriceInputController.dispose();
+    customCancellationController.dispose();
     for (var service in groomingServices) {
       (service['dailyPrice'] as TextEditingController).dispose();
       (service['weeklyPrice'] as TextEditingController).dispose();

@@ -141,7 +141,7 @@ class AppStrings {
       'What is your primary use for this app?';
   static const String whyJoinCommunity = 'Why Join Our Community?';
   static const String whyJoinText =
-      'Catch Ride is a private network built exclusively for trusted equestrian professionals.\n\nShare the types of horses, opportunities, and services you\'re looking for so we can connect you with the right programs and opportunities within the community.';
+      'Catch Ride is a private network of trusted equestrian professionals.\n\nShare what you’re looking for — horses, opportunities, or services — so we can connect you with the right programs and opportunities.';
   static const String writeAShortBio = 'Write a short bio';
   static const String yearsInIndustry = 'Years in industry';
   static const String yourApplicationIsUnderReview =

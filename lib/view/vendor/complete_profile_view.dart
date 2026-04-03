@@ -53,11 +53,12 @@ class CompleteProfileView extends StatelessWidget {
                 const SizedBox(height: 24),
                 _buildHighlightsSection(controller),
                 const SizedBox(height: 32),
-                CommonButton(
+                Obx(() => CommonButton(
                   text: 'Next',
+                  isLoading: controller.isLoading.value,
                   backgroundColor: AppColors.primary,
                   onPressed: controller.submit,
-                ),
+                )),
                 const SizedBox(height: 20),
               ],
             ),

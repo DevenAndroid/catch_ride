@@ -9,7 +9,7 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = false ;
+  static bool isLive = true ;
 
   static String get baseUrl {
     try {
@@ -34,6 +34,7 @@ class AppUrls {
   static const String resendOtp = '/auth/resend-otp';
   static const String logout = '/auth/logout';
   static const String googleLogin = '/auth/google';
+  static const String appleLogin = '/auth/apple';
   static const String verifyToken = '/auth/verify';
   static const String sessions = '/auth/my-sessions';
   static const String terminateSession = '/auth/sessions/'; // + token

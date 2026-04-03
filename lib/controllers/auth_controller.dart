@@ -14,6 +14,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_sign_in/google_sign_in.dart' as gsi;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
@@ -91,6 +92,28 @@ class AuthController extends GetxController {
       }
     } else {
       isLoggedIn.value = false;
+    }
+  }
+
+  // ─── UPDATE USER METADATA (Refresh profile state) ──────────────────────────
+  Future<void> updateUserMetadata() async {
+    try {
+      final response = await _apiService.getRequest(AppUrls.profile);
+      if (response.statusCode == 200) {
+        final data = response.body['data'];
+        currentUser.value = UserModel.fromJson(data);
+        
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('role', data['role'] ?? '');
+        await prefs.setBool('isProfileSetup', data['isProfileSetup'] ?? false);
+        await prefs.setBool('isProfileApprove', data['isProfileApprove'] ?? false);
+        await prefs.setBool('isProfileCompleted', data['isProfileCompleted'] ?? false);
+        await prefs.setString('status', data['status'] ?? 'active');
+        
+        debugPrint('User metadata updated: isProfileSetup=${data['isProfileSetup']}');
+      }
+    } catch (e) {
+      debugPrint('Error updating user metadata: $e');
     }
   }
 
@@ -329,7 +352,11 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
       
-      // 1. Google Account Selection
+      // 1. Google Account Selection (Force account picker by signing out first)
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+      
       final gsi.GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         isLoading.value = false;
@@ -434,6 +461,127 @@ class AuthController extends GetxController {
       Get.snackbar(
         'Error',
         'Google login failed: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // ─── APPLE LOGIN ─────────────────────────────────────────────────────────────
+  Future<void> signInWithApple() async {
+    try {
+      isLoading.value = true;
+
+      // 1. Apple Credential Request
+      final AuthorizationCredentialAppleID appleCredential =
+          await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final String? idToken = appleCredential.identityToken;
+      if (idToken == null) throw Exception("Failed to get Apple ID Token");
+
+      // 2. Obtain Firebase Credential
+      final AuthCredential credential = OAuthProvider('apple.com').credential(
+        idToken: idToken,
+        rawNonce: '', 
+      );
+
+      // 3. Firebase Authentication
+      final UserCredential userCredential =
+          await _auth.signInWithCredential(credential);
+      final User? firebaseUser = userCredential.user;
+
+      if (firebaseUser != null) {
+        String deviceName = 'Unknown';
+        try {
+          final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+          if (Platform.isAndroid) {
+            final androidInfo = await deviceInfo.androidInfo;
+            deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
+          } else if (Platform.isIOS) {
+            final iosInfo = await deviceInfo.iosInfo;
+            deviceName = iosInfo.name;
+          }
+        } catch (e) {
+          debugPrint('Error getting device info: $e');
+        }
+
+        // 4. Backend Verification
+        final response = await _apiService.postRequest(AppUrls.appleLogin, {
+          'idToken': idToken,
+          'deviceName': deviceName,
+          'firstName': appleCredential.givenName ?? '',
+          'lastName': appleCredential.familyName ?? '',
+        });
+
+        if (response.statusCode == 200) {
+          final responseData = response.body['data'];
+          final token = responseData['token'];
+          final user = responseData['user'];
+          final String role = user['role'] ?? 'user';
+
+          final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
+          final bool isProfileSetup = user['isProfileSetup'] ?? false;
+          final bool isProfileApprove = user['isProfileApprove'] ?? false;
+
+          final SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', token);
+          await prefs.setString('role', role);
+          await prefs.setString('userEmail', user['email'] ?? '');
+          await prefs.setBool('isProfileCompleted', isProfileCompleted);
+          await prefs.setBool('isProfileSetup', isProfileSetup);
+          await prefs.setBool('isProfileApprove', isProfileApprove);
+          await prefs.setString('status', user['status'] ?? 'active');
+          box.write('userId', user['_id'] ?? user['id']);
+
+          currentUser.value = UserModel.fromJson(user);
+          _apiService.setToken(token);
+
+          // Socket Auth
+          Get.find<SocketService>().authenticate(
+            user['_id'] ?? user['id'],
+            user['email'] ?? '',
+            user['role'] ?? '',
+          );
+
+          isLoggedIn.value = true;
+
+          if (Get.isRegistered<NotificationService>()) {
+            Get.find<NotificationService>().updateToken();
+          }
+
+          if (role == 'user') {
+            Get.offAll(() => const SelectRoleView());
+          } else {
+            _navigateBasedOnRole(
+              role,
+              isProfileCompleted,
+              isProfileSetup,
+              isProfileApprove,
+              user['status'] ?? 'active',
+              user['trainerId']?.toString(),
+            );
+          }
+        } else {
+          String message = response.body?['message'] ?? 'Apple login failed';
+          Get.snackbar('Login Failed', message,
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white);
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Apple Sign-In error: $e');
+      Get.snackbar(
+        'Error',
+        'Apple login failed: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.red,
         colorText: Colors.white,
@@ -793,13 +941,35 @@ class AuthController extends GetxController {
         }
       }
 
-      // Clear all SharedPreferences (token, role, email, profileStatus, etc.)
+      // 1. Google Sign Out (Forces account selection next time)
+      try {
+        if (await _googleSignIn.isSignedIn()) {
+          await _googleSignIn.signOut();
+          debugPrint('Google signed out');
+        }
+      } catch (e) {
+        debugPrint('Error signing out from Google: $e');
+      }
+
+      // 2. Firebase Sign Out
+      try {
+        await _auth.signOut();
+        debugPrint('Firebase signed out');
+      } catch (e) {
+        debugPrint('Error signing out from Firebase: $e');
+      }
+
+      // 3. Clear all SharedPreferences (token, role, email, profileStatus, etc.)
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      // Reset API state
+      // 4. Reset API state
       _apiService.clearToken();
       isLoggedIn.value = false;
+
+      // Reset controllers data if necessary
+      emailController.clear();
+      passwordController.clear();
 
       // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());

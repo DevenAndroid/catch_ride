@@ -197,9 +197,9 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       SocialButton(
                         text: AppStrings.continueWithAppleId,
                         icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
-                        onPressed: () {
-                          // Apple Sign In Action
-                        },
+                        onPressed: _authController.isLoading.value
+                            ? () {}
+                            : () => _authController.signInWithApple(),
                       ),
                     ],
                   ),

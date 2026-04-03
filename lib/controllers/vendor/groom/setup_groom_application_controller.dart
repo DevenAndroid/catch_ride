@@ -172,6 +172,7 @@ class SetupGroomApplicationController extends GetxController {
   final is18OrOlder = false.obs;
   final agreeToTerms = false.obs;
   final confirmReferences = false.obs;
+  final isSubmitting = false.obs;
 
   @override
   void onClose() {
@@ -254,7 +255,7 @@ class SetupGroomApplicationController extends GetxController {
       return;
     }
 
-    isLoadingStates.value = true; // Use as general loading state
+    isSubmitting.value = true;
     try {
       // Prepare Data
       final applicationData = {
@@ -309,12 +310,9 @@ class SetupGroomApplicationController extends GetxController {
       });
 
       if (response.statusCode == 200 && response.body['success'] == true) {
-        // Update Local User State
+        // Update Local User State from server
         final authController = Get.find<AuthController>();
-        if (authController.currentUser.value != null) {
-          // Trigger reactivity
-          authController.currentUser.refresh();
-        }
+        await authController.updateUserMetadata();
 
         Get.snackbar('Success', 'Your grooming application has been submitted successfully.', backgroundColor: Colors.green, colorText: Colors.white);
 
@@ -340,7 +338,7 @@ class SetupGroomApplicationController extends GetxController {
       debugPrint('Error submitting application: $e');
       Get.snackbar('Error', 'Please check your connection and try again.', backgroundColor: Colors.red, colorText: Colors.white);
     } finally {
-      isLoadingStates.value = false;
+      isSubmitting.value = false;
     }
   }
 }

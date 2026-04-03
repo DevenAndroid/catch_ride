@@ -62,6 +62,16 @@ class NotificationService extends GetxService {
 
   Future<void> updateToken() async {
     try {
+      // On iOS, we must have an APNS token before requesting the FCM token.
+      // This is often null on simulators or before the user has fully registered.
+      if (Platform.isIOS) {
+        final apnsToken = await _fcm.getAPNSToken();
+        if (apnsToken == null) {
+          _logger.w('APNS token not yet available. Skipping FCM token update.');
+          return;
+        }
+      }
+
       String? token = await _fcm.getToken();
       if (token != null) {
         _logger.i('FCM Token: $token');

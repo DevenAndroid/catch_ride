@@ -62,11 +62,12 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
               const SizedBox(height: 24),
               _buildCancellationPolicy(controller),
               const SizedBox(height: 32),
-              CommonButton(
+              Obx(() => CommonButton(
                 text: 'Continue',
+                isLoading: controller.isSubmitting.value,
                 backgroundColor: AppColors.primary,
                 onPressed: controller.submit,
-              ),
+              )),
               const SizedBox(height: 20),
             ],
           ),
@@ -298,6 +299,27 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
             const CommonText('Custom', fontSize: AppTextSizes.size14),
           ],
         ),
+        Obx(() => AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: controller.isCustomCancellation.value
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: TextField(
+                        controller: controller.customCancellationController,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: 'Write here...',
+                          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                      ),
+                    )
+                  : const SizedBox(height: 0, width: double.infinity),
+            )),
       ],
     );
   }
