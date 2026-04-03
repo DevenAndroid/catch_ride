@@ -490,7 +490,7 @@ class AuthController extends GetxController {
       // 2. Obtain Firebase Credential
       final AuthCredential credential = OAuthProvider('apple.com').credential(
         idToken: idToken,
-        rawNonce: '', 
+        accessToken: appleCredential.authorizationCode,
       );
 
       // 3. Firebase Authentication
