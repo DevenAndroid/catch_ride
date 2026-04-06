@@ -29,6 +29,7 @@ class UserModel {
   final String status;
   final List<String> tags;
   final String? trainerProfileId;
+  final String? vendorProfileId;
   final BarnManager? linkedBarnManager;
   final TrainerLinkedModel? linkedTrainer;
   final String? yearsInIndustry;
@@ -67,6 +68,7 @@ class UserModel {
     this.twoFactorEnabled = false,
     this.status = 'active',
     this.trainerProfileId,
+    this.vendorProfileId,
     this.linkedBarnManager,
     this.linkedTrainer,
     this.yearsInIndustry,
@@ -175,7 +177,8 @@ class UserModel {
       pushNotificationsEnabled: json['pushNotificationsEnabled'] ?? true,
       twoFactorEnabled: json['twoFactorEnabled'] ?? false,
       status: json['status'] ?? 'active',
-      trainerProfileId: trainerData != null ? trainerData['_id'] : json['trainerId'],
+      trainerProfileId: trainerData != null ? trainerData['_id'] : (json['trainerId'] is String ? json['trainerId'] : null),
+      vendorProfileId: vendorData != null ? vendorData['_id'] : (json['vendorId'] is String ? json['vendorId'] : null),
       vendorServices: parsedServices,
       linkedBarnManager:
           trainerData != null && trainerData['linkedBarnManager'] != null
@@ -218,6 +221,8 @@ class UserModel {
       'pushNotificationsEnabled': pushNotificationsEnabled,
       'twoFactorEnabled': twoFactorEnabled,
       'status': status,
+      if (trainerProfileId != null) 'trainerId' : trainerProfileId,
+      if (vendorProfileId != null) 'vendorId' : vendorProfileId,
       if (linkedBarnManager != null)
         'linkedBarnManager': linkedBarnManager!.toJson(),
       if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
@@ -292,6 +297,7 @@ class UserModel {
       twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
       status: status ?? this.status,
       trainerProfileId: trainerProfileId ?? this.trainerProfileId,
+      vendorProfileId: vendorProfileId ?? this.vendorProfileId,
       linkedBarnManager: linkedBarnManager ?? this.linkedBarnManager,
       linkedTrainer: linkedTrainer ?? this.linkedTrainer,
       yearsInIndustry: yearsInIndustry ?? this.yearsInIndustry,

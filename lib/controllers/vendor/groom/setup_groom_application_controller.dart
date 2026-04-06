@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
+import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:get/get.dart';
@@ -11,7 +12,7 @@ import '../../../view/vendor/vendor_application_submit_view.dart';
 
 class SetupGroomApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
-  final apiService = Get.find<ApiService>();
+  final apiService = Get.put(ApiService());
 
   // Form Fields
   final fullNameController = TextEditingController();
@@ -31,7 +32,8 @@ class SetupGroomApplicationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fullNameController.text = Get.find<AuthController>().currentUser.value?.fullName ?? '';
+    final authController = Get.put(AuthController());
+    fullNameController.text = authController.currentUser.value?.fullName ?? '';
     fetchStates();
     fetchDynamicTags();
   }
@@ -257,11 +259,12 @@ class SetupGroomApplicationController extends GetxController {
 
     isSubmitting.value = true;
     try {
+      final authController = Get.put(AuthController());
       // Prepare Data
       final applicationData = {
         'fullName': fullNameController.text,
-        'phone': Get.find<AuthController>().currentUser.value?.phone ?? '', // Fallback to auth phone, but override with form if possible
-        'phoneNumber': Get.find<AuthController>().currentUser.value?.phone ?? '', // Also included for backwards compat if needed
+        'phone': authController.currentUser.value?.phone ?? '', // Fallback to auth phone, but override with form if possible
+        'phoneNumber': authController.currentUser.value?.phone ?? '', // Also included for backwards compat if needed
         'whyJoin': joinCommunityController.text,
         'homeBase': {
           'country': countryController.text,
@@ -311,7 +314,7 @@ class SetupGroomApplicationController extends GetxController {
 
       if (response.statusCode == 200 && response.body['success'] == true) {
         // Update Local User State from server
-        final authController = Get.find<AuthController>();
+        final authController = Get.put(AuthController());
         await authController.updateUserMetadata();
 
         Get.snackbar('Success', 'Your grooming application has been submitted successfully.', backgroundColor: Colors.green, colorText: Colors.white);
@@ -325,6 +328,8 @@ class SetupGroomApplicationController extends GetxController {
 
           if (nextService == 'Braiding') {
             Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Clipping') {
+            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
           } else {
             Get.offAll(() => const VendorApplicationSubmitView());
           }

@@ -4,11 +4,12 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
+import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 
 class VendorSelectServicesController extends GetxController {
-  final ApiService _apiService = Get.find<ApiService>();
-  final AuthController _authController = Get.find<AuthController>();
+  final ApiService _apiService = Get.put(ApiService());
+  final AuthController _authController = Get.put(AuthController());
 
   var isLoading = false.obs;
   var services = <String>[].obs;
@@ -86,6 +87,11 @@ class VendorSelectServicesController extends GetxController {
         } else if (firstService == 'Braiding') {
           Get.to(
             () => const BraidingApplicationView(),
+            arguments: {'remainingServices': remaining},
+          );
+        } else if (firstService == 'Clipping') {
+          Get.to(
+            () => const ClippingApplicationView(),
             arguments: {'remainingServices': remaining},
           );
         } else {

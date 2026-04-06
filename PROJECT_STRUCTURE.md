@@ -54,4 +54,5 @@ lib/
 1. **Separation of Concerns**: UI code stays in `view/`, while logic and state stay in `controllers/`.
 2. **Standardized UI**: Always use `Common` widgets instead of raw Flutter widgets to maintain theme consistency.
 3. **Reactive Binding**: Wrap specific reactive elements in `Obx` (avoid wrapping large chunks of static UI).
-4. **Naming Convention**: Features are grouped by role first, then by functional name.
+5. **Strictly No Mock Data**: Never use hardcoded dummy names (e.g., "Vikram Bana", "Charlotte Hayes"), placeholder rates, or dummy experience counts. All data must be reactive and pulled directly from the API.
+6. **Data Fallbacks**: If a non-essential data field (e.g., bio, rates) is missing from the API, use "N/A" as the standard fallback instead of an empty space or hardcoded placeholder.

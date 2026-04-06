@@ -209,4 +209,36 @@ class GroomViewProfileController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  Future<bool> updateBraidingServices(List<Map<String, dynamic>> services) async {
+    try {
+      isLoading.value = true;
+      final vendorId = vendorData['_id'];
+      
+      final payload = {
+        'servicesData': {
+          'braiding': {
+            'profileData': {
+              'services': services,
+            }
+          }
+        }
+      };
+
+      final response = await _apiService.putRequest('/vendors/$vendorId', payload);
+      if (response.statusCode == 200) {
+        await fetchProfile();
+        Get.snackbar('Success', 'Braiding services updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+        return true;
+      } else {
+        Get.snackbar('Error', response.body['message'] ?? 'Failed to update services', backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Update braiding services error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }

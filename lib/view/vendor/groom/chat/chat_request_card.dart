@@ -1,101 +1,14 @@
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:catch_ride/controllers/profile_controller.dart';
 
-class TrainerRequestsView extends StatelessWidget {
-  const TrainerRequestsView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        title: const CommonText(
-          'Requests',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-      ),
-      body: Obx(() {
-        final currentUserId = Get.find<ProfileController>().id;
-        final requests = controller.conversations
-            .where(
-              (c) =>
-                  c.status == 'request-pending' && c.senderId != currentUserId,
-            )
-            .toList();
-
-        return Stack(
-          children: [
-            if (controller.isLoadingConversations.value && requests.isEmpty)
-              const Center(child: CircularProgressIndicator())
-            else if (requests.isEmpty)
-              RefreshIndicator(
-                onRefresh: () async => controller.fetchConversations(),
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  children: [
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.7,
-                      child: const Center(
-                        child: CommonText(
-                          'No pending requests',
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              RefreshIndicator(
-                onRefresh: () async => controller.fetchConversations(),
-                child: ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  itemCount: requests.length,
-                  itemBuilder: (context, index) {
-                    return RequestCard(request: requests[index]);
-                  },
-                ),
-              ),
-            if (controller.isUpdatingStatus.value)
-              Container(
-                color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-          ],
-        );
-      }),
-    );
-  }
-}
-
-class RequestCard extends StatelessWidget {
+class ChatRequestCard extends StatelessWidget {
   final ChatConversation request;
-  const RequestCard({super.key, required this.request});
+  const ChatRequestCard({super.key, required this.request});
 
   @override
   Widget build(BuildContext context) {
@@ -140,15 +53,11 @@ class RequestCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          CommonText(
-                            "Requester : $name",
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ],
+                      CommonText(
+                        "Requester : $name",
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
                       const SizedBox(height: 2),
                       CommonText(
@@ -345,17 +254,17 @@ class RequestCard extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Center(
-                        child: CommonText(
-                          'Reject',
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                    ),
+                    child: const Center(
+                      child: CommonText(
+                        'Reject',
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
                   ),
+                ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -384,17 +293,17 @@ class RequestCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xff12937E),
                         borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: CommonText(
-                          'Accept',
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        ),
+                        child: const Center(
+                          child: CommonText(
+                            'Accept',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ),
               ],
             ),

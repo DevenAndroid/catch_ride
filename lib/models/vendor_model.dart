@@ -48,7 +48,13 @@ class VendorModel {
       coverImage: json['coverImage'],
       businessName: json['businessName'] ?? '',
       serviceType: json['serviceType'] ?? '',
-      location: json['location'],
+      location: json['location'] ??
+                (json['homeBase'] is Map
+                    ? '${json['homeBase']['city'] ?? ''}${json['homeBase']['city'] != null && json['homeBase']['state'] != null ? ', ' : ''}${json['homeBase']['state'] ?? ''}'
+                    : json['homeBase']) ??
+                (json['city'] != null
+                    ? '${json['city']}${json['state'] != null ? ', ${json['state']}' : ''}'
+                    : null),
       bio: json['bio'],
       yearsExperience: json['yearsExperience'],
       rating: (json['rating'] ?? 0).toDouble(),
@@ -95,11 +101,22 @@ class VendorAvailability {
   });
 
   factory VendorAvailability.fromJson(Map<String, dynamic> json) {
+    String formatDate(String? dateStr) {
+      if (dateStr == null || dateStr.isEmpty) return '';
+      try {
+        DateTime dt = DateTime.parse(dateStr);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return '${months[dt.month - 1]} ${dt.day}';
+      } catch (e) {
+        return dateStr.split('T')[0];
+      }
+    }
+
     return VendorAvailability(
-      id: json['id'],
+      id: json['_id'] ?? json['id'],
       serviceRegion: json['serviceRegion'],
-      startDate: json['startDate'],
-      endDate: json['endDate'],
+      startDate: formatDate(json['startDate'] ?? json['specificDate']),
+      endDate: formatDate(json['endDate'] ?? json['specificDate']),
     );
   }
 }

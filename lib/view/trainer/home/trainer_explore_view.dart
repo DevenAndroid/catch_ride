@@ -91,30 +91,42 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   }
 
                   if (isVendors) {
-                    return CustomScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: CommonText(
-                              'Services coming soon!',
-                              fontSize: AppTextSizes.size18,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
+                    if (controller.vendors.isEmpty) {
+                      return CustomScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        slivers: [
+                          const SliverToBoxAdapter(
+                            child: SizedBox(height: 100),
+                          ),
+                          SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: Center(
+                              child: CommonText(
+                                'No service providers found',
+                                fontSize: AppTextSizes.size16,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: controller.vendors.length,
+                      itemBuilder: (context, index) {
+                        final vendor = controller.vendors[index];
+                        return _buildVendorCard(vendor: vendor);
+                      },
                     );
                   }
 
                   if (controller.isGridView.value) {
                     return MasonryGridView.count(
-                      padding: const EdgeInsets.all(16),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
+                      padding: const EdgeInsets.all(12),
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 4,
+                      crossAxisSpacing: 4,
                       itemCount: controller.horses.length,
                       itemBuilder: (context, index) {
                         final horse = controller.horses[index];
@@ -209,7 +221,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   ],
                 ),
               ),
-              Obx(
+/*              Obx(
                 () => IconButton(
                   onPressed: () => controller.isGridView.toggle(),
                   icon: Icon(
@@ -220,7 +232,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 8),*/
             ],
           ),
         ),
@@ -254,9 +266,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFEAEEFF)
-                          : Colors.transparent,
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: cat['isSvg']
@@ -291,12 +301,15 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   const SizedBox(height: 8),
                   if (isSelected)
                     Container(
-                      width: 40,
-                      height: 2,
-                      color: const Color(0xFF1B235E),
+                      width: 50,
+                      height: 2.5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B235E),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     )
                   else
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 2.5),
                 ],
               ),
             );
@@ -308,7 +321,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
 
   Widget _buildVendorCard({required VendorModel vendor}) {
     return GestureDetector(
-      // onTap: () => Get.to(() => VendorDetailsView(vendor: vendor)),
+      onTap: () => Get.to(() => const VendorDetailsView(), arguments: {'id': vendor.id}),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
@@ -352,23 +365,25 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     color: AppColors.textPrimary,
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                      ),
-                      const SizedBox(width: 8),
-                      CommonText(
-                        vendor.location ?? '',
-                        fontSize: 14,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
+                  if (vendor.location != null && vendor.location!.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(width: 8),
+                        CommonText(
+                          vendor.location!,
+                          fontSize: 14,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
                   Row(
                     children: [
                       Icon(
@@ -378,7 +393,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       ),
                       const SizedBox(width: 8),
                       CommonText(
-                        vendor.serviceType,
+                        vendor.serviceType.isEmpty ||
+                                vendor.serviceType.toLowerCase() == 'other'
+                            ? 'Service Provider'
+                            : vendor.serviceType,
                         fontSize: 14,
                         color: AppColors.textSecondary.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w500,
@@ -386,24 +404,26 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                      ),
-                      const SizedBox(width: 8),
-                      CommonText(
-                        vendor.serviceAvailability.isNotEmpty
-                            ? '${vendor.serviceAvailability.first.startDate} - ${vendor.serviceAvailability.first.endDate}'
-                            : '',
-                        fontSize: 14,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ],
-                  ),
+                  if (vendor.serviceAvailability.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 16,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(width: 8),
+                        CommonText(
+                          vendor.serviceAvailability.first.startDate ==
+                                  vendor.serviceAvailability.first.endDate
+                              ? (vendor.serviceAvailability.first.startDate ?? '')
+                              : '${vendor.serviceAvailability.first.startDate ?? ''} - ${vendor.serviceAvailability.first.endDate ?? ''}',
+                          fontSize: 14,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -415,18 +435,23 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
 
   Widget _buildMasonryHorseCard(HorseModel horse, int index) {
     // Generate varying heights to create the masonry effect
-    final double cardHeight = (index % 3 == 0)
-        ? 280
+    // Generate varying heights to create the masonry effect for 3 columns
+    final double cardHeight = (index % 5 == 0)
+        ? 260
+        : (index % 4 == 0)
+        ? 180
+        : (index % 3 == 0)
+        ? 240
         : (index % 2 == 0)
         ? 200
-        : 240;
+        : 220;
 
     return GestureDetector(
       onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
       child: Container(
         height: cardHeight,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -436,7 +461,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
           child: Stack(
             fit: StackFit.expand,
             children: [

@@ -987,10 +987,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               color: AppColors.textSecondary,
             ),
             const SizedBox(width: 8),
-            CommonText(
-              location.isEmpty ? 'N/A' : location,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+            Expanded(
+              child: CommonText(
+                location.isEmpty ? 'N/A' : location,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -1003,10 +1006,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               color: AppColors.textSecondary,
             ),
             const SizedBox(width: 8),
-            CommonText(
-              dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+            Expanded(
+              child: CommonText(
+                dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

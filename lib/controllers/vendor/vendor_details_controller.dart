@@ -1,3 +1,4 @@
+import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -9,8 +10,9 @@ class VendorDetailsController extends GetxController {
   final RxString vendorId = ''.obs;
   final RxBool isLoading = true.obs;
   final RxMap vendorData = {}.obs;
-  final RxList availabilityList = [].obs;
+  final RxList<VendorAvailabilityModel> availabilityList = <VendorAvailabilityModel>[].obs;
   final RxBool isAvailabilityLoading = false.obs;
+  final RxBool canMessage = false.obs;
 
   // Tabs management
   final RxInt selectedTabIndex = 0.obs;
@@ -19,70 +21,26 @@ class VendorDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final String? id = Get.parameters['id'] ?? Get.arguments?['id'];
+    final args = Get.arguments;
+    String? id;
+    if (args != null && args is Map) {
+      id = args['id'] ?? args['vendorId'];
+    }
+    id ??= Get.parameters['id'];
+
     if (id != null) {
       vendorId.value = id;
-      _setMockData(); // Use mock data for UI demo as requested by image
       fetchVendorDetails(id);
       fetchAvailability(id);
     } else {
-      _setMockData(); // Ensure UI looks correct even without ID for now
       isLoading.value = false;
     }
   }
 
   void _setMockData() {
-    vendorData.value = {
-      'firstName': 'Charlotte',
-      'lastName': 'Hayes',
-      'businessName': 'Ring Ready Grooming',
-      'bio': 'Experienced A/AA circuit groom with a strong background in the hunter/jumper industry. I\'ve worked with high-volume show barns across major circuits including Wellington, Ocala, Tryon, and the Northeast, managing daily care for multiple horses in a fast-paced, high-standard environment.',
-      'profilePhoto': '',
-      'coverImage': '',
-      'paymentMethods': ['Venmo', 'Zelle', 'Cash'],
-      'homeBase': {'city': 'Denver', 'state': 'Colorado', 'country': 'USA'},
-      'socialMedia': {'instagram': 'https://instagram.com', 'facebook': 'https://facebook.com'},
-      'assignedServices': [
-        {
-          'serviceType': 'Grooming',
-          'profile': {
-            'rates': {'dayRate': 250, 'weekRate': 1200, 'monthRate': 4500, 'weekDays': 6, 'monthDays': 24},
-            'profileData': {
-              'capabilities': {'support': ['Tacking & Untacking', 'Wrapping & Bandaging', 'Stall Upkeep & Daily Care']},
-              'additionalServices': [
-                {'name': 'Hunter Braiding Mane', 'price': 80},
-                {'name': 'Jumper Braiding', 'price': 60}
-              ],
-              'media': ['', '', ''],
-              'cancellationPolicy': {'policy': 'Cancellations must be made at least 24 hours in advance. Late cancellations may incur a fee or may not be eligible for a refund.'}
-            }
-          }
-        },
-        {'serviceType': 'Braiding'}
-      ]
-    };
-    
-    availabilityList.assignAll([
-      {
-        'startDate': '2026-03-10',
-        'endDate': '2026-03-18',
-        'location': {'city': 'Wellington', 'state': 'WEC Ocala'},
-        'serviceTypes': ['Show Week Support', 'Fill In Daily Show Support'],
-        'maxBookings': 6,
-        'maxDays': 5,
-        'notes': 'Prefer mornings. Experience with young horses.'
-      },
-      {
-        'startDate': '2026-03-10',
-        'endDate': '2026-03-18',
-        'location': {'city': 'Wellington', 'state': 'WEC Ocala'},
-        'serviceTypes': ['Show Week Support', 'Fill In Daily Show Support', 'Hunter Braiding Mane'],
-        'maxBookings': 6,
-        'maxDays': 5,
-        'notes': 'Prefer mornings. Experience with young horses.'
-      }
-    ]);
-    availableServices.assignAll(['Grooming', 'Braiding']);
+    // Keeping this empty or minimal to avoid showing wrong data
+    vendorData.value = {};
+    availableServices.clear();
   }
 
   Future<void> fetchVendorDetails(String id) async {
@@ -99,6 +57,9 @@ class VendorDetailsController extends GetxController {
         if (availableServices.isNotEmpty) {
           selectedTabIndex.value = 0;
         }
+        
+        // Check if user can message (has accepted booking)
+        fetchBookingStatus(id);
       }
     } catch (e) {
       debugPrint('Error fetching vendor details: $e');
@@ -107,12 +68,32 @@ class VendorDetailsController extends GetxController {
     }
   }
 
+  Future<void> fetchBookingStatus(String id) async {
+    try {
+      final response = await _apiService.getRequest('/bookings/check-status/$id');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        // canMessage is true only if there is an accepted booking
+        canMessage.value = response.body['data']?['status'] == 'accepted';
+      }
+    } catch (e) {
+      debugPrint('Error checking booking status: $e');
+      canMessage.value = false;
+    }
+  }
+
   Future<void> fetchAvailability(String id) async {
     isAvailabilityLoading.value = true;
     try {
-      final response = await _apiService.getRequest('/availability/vendor/$id');
+      final response = await _apiService.getRequest('/availability/vendors/$id');
       if (response.statusCode == 200 && response.body['success'] == true) {
-        availabilityList.assignAll(response.body['data'] ?? []);
+        final List data = response.body['data'] ?? [];
+        final list = data.map((e) => VendorAvailabilityModel.fromJson(e)).toList();
+        
+        // Sort by date (most recent first for 'last 3') or whatever order user prefers
+        list.sort((a, b) => (b.startDate ?? b.specificDate ?? DateTime.now())
+            .compareTo(a.startDate ?? a.specificDate ?? DateTime.now()));
+            
+        availabilityList.assignAll(list);
       }
     } catch (e) {
       debugPrint('Error fetching availability: $e');
@@ -122,54 +103,57 @@ class VendorDetailsController extends GetxController {
   }
 
   // Getters for display
+  // Getters for display
   String get fullName => '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
-  String get businessName => vendorData['businessName'] ?? 'Independent';
+  String get businessName => vendorData['businessName'] ?? 'N/A';
   String get profilePhoto => vendorData['profilePhoto'] ?? '';
   String get coverImage => vendorData['coverImage'] ?? '';
-  String get bio => vendorData['bio'] ?? '';
-  String get location => vendorData['homeBase'] != null 
-      ? '${vendorData['homeBase']['city'] ?? ''}, ${vendorData['homeBase']['state'] ?? ''}, ${vendorData['homeBase']['country'] ?? ''}'
-      : 'N/A';
+  String get bio => vendorData['bio'] ?? 'No bio provided.';
   
+  // Active Service Getters
+  dynamic get _activeService => (vendorData['assignedServices'] as List?)?.firstWhereOrNull(
+      (s) => s['serviceType'] == (availableServices.isNotEmpty ? availableServices[selectedTabIndex.value] : null));
+
+  Map<String, dynamic> get _activeProfileData => _activeService?['profile']?['profileData'] ?? {};
+  Map<String, dynamic> get _activeApplicationData => _activeService?['application']?['applicationData'] ?? {};
+  
+  String get homeCity => (vendorData['homeBase'] ?? _activeApplicationData['homeBase'])?['city'] ?? '';
+  String get homeState => (vendorData['homeBase'] ?? _activeApplicationData['homeBase'])?['state'] ?? '';
+  String get homeCountry => (vendorData['homeBase'] ?? _activeApplicationData['homeBase'])?['country'] ?? 'USA';
+
+  String get location => homeCity.isNotEmpty && homeState.isNotEmpty 
+      ? '$homeCity, $homeState, $homeCountry' 
+      : 'N/A';
+
+  String get experienceStr => (vendorData['experience'] ?? _activeApplicationData['experience'])?.toString() ?? 'N/A';
+
   List<String> get paymentMethods => List<String>.from(vendorData['paymentMethods'] ?? []);
-  String get instagramUrl => vendorData['socialMedia']?['instagram'] ?? '';
-  String get facebookUrl => vendorData['socialMedia']?['facebook'] ?? '';
+  String get instagramUrl => _activeProfileData['socialMedia']?['instagram'] ?? '';
+  String get facebookUrl => _activeProfileData['socialMedia']?['facebook'] ?? '';
 
-  // Get current active service data
-  Map get activeServiceData {
-    if (availableServices.isEmpty) return {};
-    final String serviceType = availableServices[selectedTabIndex.value];
-    final List services = vendorData['assignedServices'] ?? [];
-    return services.firstWhereOrNull((s) => s['serviceType'] == serviceType) ?? {};
-  }
+  // Service specific getters (Rates & Services)
+  String get dailyRate => _activeProfileData['rates']?['daily'] ?? 'N/A';
+  String get weeklyRate => _activeProfileData['rates']?['weekly']?['price']?.toString() ?? 'N/A';
+  String get weeklyDays => _activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
+  String get monthlyRate => _activeProfileData['rates']?['monthly']?['price']?.toString() ?? 'N/A';
+  String get monthlyDays => _activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
 
-  // Service specific getters
-  String get dailyRate => activeServiceData['profile']?['rates']?['dayRate']?.toString() ?? '0';
-  String get weeklyRate => activeServiceData['profile']?['rates']?['weekRate']?.toString() ?? '0';
-  String get monthlyRate => activeServiceData['profile']?['rates']?['monthRate']?.toString() ?? '0';
-  int get weeklyDays => activeServiceData['profile']?['rates']?['weekDays'] ?? 6;
-  int get monthlyDays => activeServiceData['profile']?['rates']?['monthDays'] ?? 24;
+  List<dynamic> get coreServices => List<dynamic>.from(_activeProfileData['services'] ?? []);
+  List<String> get supportOptions => List<String>.from(_activeProfileData['capabilities']?['support'] ?? []);
+  List<String> get handlingOptions => List<String>.from(_activeProfileData['capabilities']?['handling'] ?? []);
+  List<String> get disciplinesSelected => List<String>.from(_activeApplicationData['disciplines'] ?? []);
+  List<String> get horseLevels => List<String>.from(_activeApplicationData['horseLevels'] ?? []);
+  List<String> get operatingRegions => List<String>.from(_activeApplicationData['regions'] ?? []);
+  List<String> get travelPreferences => List<String>.from(_activeProfileData['travelPreferences'] ?? []);
 
-  List<String> get includedServices {
-    final profile = activeServiceData['profile']?['profileData'] ?? {};
-    final List<String> items = [];
-    if (profile['capabilities']?['support'] != null) items.addAll(List<String>.from(profile['capabilities']['support']));
-    if (profile['capabilities']?['handling'] != null) items.addAll(List<String>.from(profile['capabilities']['handling']));
-    return items;
-  }
-
-  List get additionalServices {
-    final profile = activeServiceData['profile']?['profileData'] ?? {};
-    return profile['additionalServices'] ?? [];
-  }
+  List get additionalServices => _activeProfileData['additionalServices'] ?? [];
 
   List<String> get photos {
-    final profile = activeServiceData['profile']?['profileData'] ?? {};
-    return List<String>.from(profile['media'] ?? []);
+    return {
+      ...List<String>.from(_activeProfileData['media'] ?? []),
+      ...List<String>.from(_activeApplicationData['media'] ?? []),
+    }.toList();
   }
 
-  String get cancellationPolicy {
-    final profile = activeServiceData['profile']?['profileData'] ?? {};
-    return profile['cancellationPolicy']?['policy'] ?? 'Standard 24-hour notice required.';
-  }
+  String get cancellationPolicy => _activeProfileData['cancellationPolicy']?['policy'] ?? 'Flexible (24+ hrs)';
 }

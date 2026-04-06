@@ -17,6 +17,7 @@ class VendorAvailabilityModel {
   final int maxBookings;
   final int currentBookings;
   final String? notes;
+  final List<String> showVenues;
 
   VendorAvailabilityModel({
     this.id,
@@ -35,14 +36,23 @@ class VendorAvailabilityModel {
     this.maxBookings = 1,
     this.currentBookings = 0,
     this.notes,
+    this.showVenues = const [],
   });
 
   factory VendorAvailabilityModel.fromJson(Map<String, dynamic> json) {
+    var rawVenues = json['showVenues'];
+    List<String> parsedVenues = [];
+    if (rawVenues is List) {
+      parsedVenues = List<String>.from(rawVenues);
+    } else if (rawVenues is String && rawVenues.isNotEmpty) {
+      parsedVenues = [rawVenues];
+    }
+
     return VendorAvailabilityModel(
       id: json['_id'],
-      vendorId: json['vendorId'] is Map ? json['vendorId']['_id'] : json['vendorId'],
-      vendorName: json['vendorName'] ?? '',
-      availabilityType: json['availabilityType'] ?? 'one-time',
+      vendorId: (json['vendorId'] is Map ? json['vendorId']['_id'] : json['vendorId'])?.toString() ?? '',
+      vendorName: json['vendorName']?.toString() ?? 'Unknown Vendor',
+      availabilityType: json['availabilityType']?.toString() ?? 'one-time',
       dayOfWeek: json['dayOfWeek'],
       timeSlots: (json['timeSlots'] as List?)
           ?.map((e) => TimeSlot.fromJson(e))
@@ -57,6 +67,7 @@ class VendorAvailabilityModel {
       maxBookings: json['maxBookings'] ?? 1,
       currentBookings: json['currentBookings'] ?? 0,
       notes: json['notes'],
+      showVenues: parsedVenues,
     );
   }
 
@@ -78,6 +89,7 @@ class VendorAvailabilityModel {
       'maxBookings': maxBookings,
       'currentBookings': currentBookings,
       'notes': notes,
+      'showVenues': showVenues,
     };
   }
 
@@ -96,6 +108,7 @@ class VendorAvailabilityModel {
   }
 
   String get locationDisplay {
+    if (showVenues.isNotEmpty) return showVenues.join(', ');
     if (location == null) return 'N/A';
     return '${location!.city}, ${location!.state}'.trim();
   }

@@ -41,25 +41,29 @@ class CommunityStandardsView extends StatelessWidget {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 40.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildSection(
-                    '1. Types data we collect',
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.',
-                  ),
+                  _buildCenteredSection('Be Reliable', 'Show up on time, prepared, and consistent'),
                   const SizedBox(height: 32),
-                  _buildSection(
-                    '2. Use of your personal data',
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.',
-                  ),
+                  _buildCenteredSection('Be Professional', 'Clear communication, respectful, easy to work with'),
                   const SizedBox(height: 32),
-                  _buildSection(
-                    '3. Disclosure of your personal data',
-                    'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.\n\nEt harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.\n\nTemporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.',
+                  _buildCenteredSection('Be Honest', 'Represent skills, experience, and services accurately'),
+                  const SizedBox(height: 32),
+                  _buildCenteredSection('Deliver Quality', 'Work should meet a professional show standard'),
+                  const SizedBox(height: 32),
+                  _buildCenteredSection('Communicate Clearly', 'Confirm details, pricing, and expectations upfront'),
+                  const SizedBox(height: 32),
+                  _buildCenteredSection('Operate with Clarity', 'Key terms, pricing, and expectations should be confirmed in writing'),
+                  const SizedBox(height: 100),
+                  const CommonText(
+                    'This is a private network of professionals. Access is maintained by upholding these standards',
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    textAlign: TextAlign.center,
+                    fontStyle: FontStyle.italic,
                   ),
-                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -81,22 +85,22 @@ class CommunityStandardsView extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(String title, String content) {
+  Widget _buildCenteredSection(String title, String content) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(
           title,
-          fontSize: AppTextSizes.size16,
+          fontSize: 16,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
+          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         CommonText(
           content,
-          fontSize: AppTextSizes.size14,
-          color: AppColors.textSecondary.withOpacity(0.8),
-          height: 1.5,
+          fontSize: 14,
+          color: AppColors.textSecondary,
+          textAlign: TextAlign.center,
         ),
       ],
     );

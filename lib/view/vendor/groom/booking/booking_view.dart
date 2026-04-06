@@ -140,7 +140,7 @@ class _BookingViewState extends State<BookingView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CommonImageView(
-                url: booking.horseImage ?? '',
+                url: booking.trainerImage ?? booking.horseImage ?? '',
                 height: 68,
                 width: 68,
                 shape: BoxShape.circle,
@@ -156,6 +156,14 @@ class _BookingViewState extends State<BookingView> {
                       fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.bold,
                     ),
+                    if (booking.horseName != null) ...[
+                      const SizedBox(height: 2),
+                      CommonText(
+                        'Horse : ${booking.horseName}',
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -198,33 +206,35 @@ class _BookingViewState extends State<BookingView> {
               color: AppColors.textPrimary,
             ),
           ],
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                // Navigate to chat or handle message
-              },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.secondary),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.chat_bubble_outline, color: AppColors.secondary, size: 20),
-                  SizedBox(width: 8),
-                  CommonText(
-                    'Message',
-                    color: AppColors.secondary,
-                    fontSize: AppTextSizes.size16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ],
+          if (booking.status.toLowerCase() == 'confirmed') ...[
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  // Navigate to chat or handle message
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.secondary),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.chat_bubble_outline, color: AppColors.secondary, size: 20),
+                    SizedBox(width: 8),
+                    CommonText(
+                      'Message',
+                      color: AppColors.secondary,
+                      fontSize: AppTextSizes.size16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

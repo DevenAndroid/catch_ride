@@ -1,3 +1,4 @@
+import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../view/vendor/braiding/profile_create/braiding_details_view.dart';
+import '../../../view/vendor/clipping/profile_create/clipping_detail_view.dart';
 
 class GroomingDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -167,7 +169,7 @@ class GroomingDetailsController extends GetxController {
     try {
       final vendorResponse = await apiService.getRequest('/vendors/me');
       if (vendorResponse.statusCode != 200 || vendorResponse.body['success'] != true) {
-        Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
         return;
       }
       final vendorId = vendorResponse.body['data']['_id'];
@@ -218,18 +220,19 @@ class GroomingDetailsController extends GetxController {
 
         final services = authController.currentUser.value?.vendorServices ?? [];
         
-        // If user has Braiding, go there next (assuming we are coming from Grooming setup)
         if (services.contains('Braiding')) {
            Get.off(() => const BraidingDetailsView());
+        } else if (services.contains('Clipping')) {
+           Get.off(() => const ClippingDetailView());
         } else {
            Get.offAll(() => const GroomBottomNav());
         }
       } else {
         final errorMsg = response.body['message'] ?? 'Failed to update grooming profile';
-        Get.snackbar('Error', errorMsg, backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar('Error', errorMsg, backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong. Please try again.', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Error', 'Something went wrong. Please try again.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
     } finally {
       isSubmitting.value = false;
     }

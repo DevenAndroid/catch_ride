@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_textfield.dart';
+import '../../braiding/profile/braiding_service_rates_tab.dart';
 
 class ServicesRatesView extends StatefulWidget {
   const ServicesRatesView({super.key});
@@ -15,8 +16,10 @@ class ServicesRatesView extends StatefulWidget {
   State<ServicesRatesView> createState() => _ServicesRatesViewState();
 }
 
-class _ServicesRatesViewState extends State<ServicesRatesView> {
+class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProviderStateMixin {
   final controller = Get.put(GroomViewProfileController());
+  TabController? _tabController;
+  final RxBool isTabReady = false.obs;
 
   final dailyController = TextEditingController();
   final weeklyController = TextEditingController();
@@ -35,12 +38,32 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
 
   Future<void> _initData() async {
     await controller.fetchProfile();
+    final services = controller.allAssignedServices;
+    if (services.isNotEmpty) {
+      _tabController = TabController(length: services.length, vsync: this);
+      _tabController!.addListener(() {
+        controller.currentServiceIndex.value = _tabController!.index;
+        _updateLocalFields();
+      });
+      isTabReady.value = true;
+    }
+    
+    _updateLocalFields();
+  }
+
+  void _updateLocalFields() {
     dailyController.text = controller.dailyRate;
     weeklyController.text = controller.weeklyRate;
     monthlyController.text = controller.monthlyRate;
     weeklyDays.value = controller.weeklyDays;
     monthlyDays.value = controller.monthlyDays;
     additionalServices.assignAll(controller.additionalServices);
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -55,26 +78,55 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
           onPressed: () => Get.back(),
         ),
         title: const CommonText('Services & Rates', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(controller.allAssignedServices.length <= 1 ? 0 : 48),
+          child: Obx(() {
+            if (!isTabReady.value || controller.allAssignedServices.length <= 1) return const SizedBox.shrink();
+            return TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: AppColors.primary,
+              tabs: controller.allAssignedServices.map((s) => Tab(text: s['serviceType'].toString().capitalizeFirst)).toList(),
+            );
+          }),
+        ),
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              _buildGroomingServicesCard(),
-              const SizedBox(height: 20),
-              _buildRateCard(),
-              const SizedBox(height: 20),
-              _buildAdditionalServicesCard(),
-              const SizedBox(height: 40),
-            ],
-          ),
+        
+        final assigned = controller.allAssignedServices;
+        if (assigned.isEmpty) return const Center(child: CommonText('No services assigned'));
+        if (assigned.length > 1 && !isTabReady.value) return const SizedBox.shrink();
+
+        return TabBarView(
+          controller: _tabController,
+          children: assigned.map((s) {
+            final type = s['serviceType'].toString().toLowerCase();
+            if (type.contains('braid')) {
+              return const SingleChildScrollView(
+                padding: EdgeInsets.all(20),
+                child: BraidingServiceRatesTab(),
+              );
+            }
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _buildGroomingServicesCard(),
+                  const SizedBox(height: 20),
+                  _buildRateCard(),
+                  const SizedBox(height: 20),
+                  _buildAdditionalServicesCard(),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            );
+          }).toList(),
         );
       }),
-      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -94,7 +146,15 @@ class _ServicesRatesViewState extends State<ServicesRatesView> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: services.map((s) => _buildSkillChip(s, true)).toList(),
+              children: services.map((s) {
+                String label = '';
+                if (s is Map) {
+                  label = s['name'] ?? s['service'] ?? s['title'] ?? 'Service';
+                } else {
+                  label = s?.toString() ?? 'Service';
+                }
+                return _buildSkillChip(label, true);
+              }).toList(),
             ),
           const SizedBox(height: 16),
           _buildAddSkillButton(),
