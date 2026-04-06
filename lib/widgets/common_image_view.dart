@@ -42,6 +42,15 @@ class CommonImageView extends StatelessWidget {
       url = 'https:$url';
     }
     
+    // If it's an already signed AWS S3 URL from the DB, the signature might be expired.
+    // We strip it down to the relative uploads/ path so our backend can issue a fresh redirect.
+    if (url.contains('s3.us-east-1.amazonaws.com') && url.contains('uploads/')) {
+      final index = url.indexOf('uploads/');
+      if (index != -1) {
+        url = url.substring(index).split('?').first;
+      }
+    }
+
     // If it's already a full URL, handle localhost/mapping
     if (url.startsWith('http')) {
       final String currentHost = AppUrls.host;

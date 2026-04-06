@@ -10,10 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../controllers/profile_controller.dart';
+
 class GroomChatView extends StatelessWidget {
   GroomChatView({super.key});
 
   final controller = Get.put(ChatController());
+  final profileController = Get.put(ProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -47,20 +50,41 @@ class GroomChatView extends StatelessWidget {
         }
 
         // Filter: Active conversations only + Trainers/Barn Managers only
+        final String currentUserId = profileController.id;
         final filteredChats = controller.conversations.where((c) {
+          // 1. Filter out self-conversations (if any)
+          if (c.otherUser?.id == currentUserId) return false;
+
+          // 2. Role filter: Groom sees Trainers/Barn Managers in their inbox
           final otherUserRole = c.otherUser?.role?.toLowerCase();
-          final isTargetRole = otherUserRole == 'trainer' || otherUserRole == 'barn_manager';
-          return c.status == 'active' && isTargetRole;
+          final isTargetRole = otherUserRole == 'trainer' || otherUserRole == 'barn_manager' || otherUserRole == 'user';
+          if (!isTargetRole) return false;
+
+          // 3. Status filter: Show everything that isn't a PENDING request from OTHERS
+          return c.status != 'request-pending' || c.senderId == currentUserId;
         }).toList();
 
         if (filteredChats.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+          return RefreshIndicator(
+            onRefresh: () async => controller.fetchConversations(),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               children: [
-                Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey[300]),
-                const SizedBox(height: 16),
-                const CommonText('No active chats', color: AppColors.textSecondary),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.chat_bubble_outline,
+                            size: 64, color: Colors.grey[300]),
+                        const SizedBox(height: 16),
+                        const CommonText('No active chats',
+                            color: AppColors.textSecondary),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           );

@@ -23,7 +23,7 @@ class ExploreController extends GetxController {
   final Rxn<DateTime> startDate = Rxn<DateTime>();
   final Rxn<DateTime> endDate = Rxn<DateTime>();
   final RxList<String> recentSearches = <String>[].obs;
-  final RxBool isGridView = false.obs;
+  final RxBool isGridView = true.obs;
 
   // Suggested search items
   final RxList<Map<String, String>> defaultLocations =

@@ -20,6 +20,7 @@ class ChatController extends GetxController {
   final RxBool isLoadingConversations = false.obs;
   final RxBool isLoadingMessages = false.obs;
   final RxString activeConversationId = ''.obs;
+  final RxBool isUpdatingStatus = false.obs;
 
   @override
   void onInit() {
@@ -175,37 +176,45 @@ class ChatController extends GetxController {
     });
   }
 
-  Future<bool> acceptRequest(String conversationId) async {
+  Future<bool> acceptRequest(String conversationId, {String? bookingId}) async {
     try {
+      isUpdatingStatus.value = true;
       final response = await _apiService.postRequest(
         '${AppUrls.acceptChatRequest}$conversationId/accept',
-        {},
+        {'bookingId': bookingId},
       );
       if (response.statusCode == 200) {
         _handleStatusUpdate(conversationId, 'request-accepted');
+        await fetchConversations();
         return true;
       }
       return false;
     } catch (e) {
       _logger.e('Error accepting request: $e');
       return false;
+    } finally {
+      isUpdatingStatus.value = false;
     }
   }
 
-  Future<bool> declineRequest(String conversationId) async {
+  Future<bool> declineRequest(String conversationId, {String? bookingId}) async {
     try {
+      isUpdatingStatus.value = true;
       final response = await _apiService.postRequest(
         '${AppUrls.declineChatRequest}$conversationId/decline',
-        {},
+        {'bookingId': bookingId},
       );
       if (response.statusCode == 200) {
         _handleStatusUpdate(conversationId, 'request-declined');
+        await fetchConversations();
         return true;
       }
       return false;
     } catch (e) {
       _logger.e('Error declining request: $e');
       return false;
+    } finally {
+      isUpdatingStatus.value = false;
     }
   }
 

@@ -1,49 +1,67 @@
-import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
-import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BraidingDetailsController extends GetxController {
-  final formKey = GlobalKey<FormState>();
-  final apiService = Get.find<ApiService>();
+import '../../../constant/app_colors.dart';
 
-  // Core Braiding Services
-  final braidingServices = <Map<String, dynamic>>[
-    {'name': 'Hunter Mane Only', 'isSelected': false.obs, 'price': TextEditingController()},
-    {'name': 'Hunter Tail Only', 'isSelected': false.obs, 'price': TextEditingController()},
-    {'name': 'Jumper Braids', 'isSelected': false.obs, 'price': TextEditingController()},
-    {'name': 'Dressage Braids', 'isSelected': false.obs, 'price': TextEditingController()},
-    {'name': 'Mane Pull / Clean Up', 'isSelected': false.obs, 'price': TextEditingController()},
+class ClippingDetailsController extends GetxController {
+  final formKey = GlobalKey<FormState>();
+  final apiService = Get.put(ApiService());
+
+  // Core Clipping Services
+  final clippingServices = <Map<String, dynamic>>[
+    {'name': 'Full Body Clip', 'isSelected': false.obs, 'price': TextEditingController()},
+    {'name': 'Hunter Clip', 'isSelected': false.obs, 'price': TextEditingController()},
+    {'name': 'Trace Clip', 'isSelected': false.obs, 'price': TextEditingController()},
+    {'name': 'Bib Clip', 'isSelected': false.obs, 'price': TextEditingController()},
+    {'name': 'Irish Clip', 'isSelected': false.obs, 'price': TextEditingController()},
+    {'name': 'Touch Ups', 'isSelected': false.obs, 'price': TextEditingController()},
+  ].obs;
+
+  // Add-Ons
+  final addOnServices = <Map<String, dynamic>>[
+    {'name': 'Bath & Clip Prep', 'isSelected': false.obs, 'price': TextEditingController()},
+    {'name': 'Show Clean Up (Face, ears, legs, fetlocks)', 'isSelected': false.obs, 'price': TextEditingController()},
   ].obs;
 
   final addServiceInputController = TextEditingController();
+  final addServicePriceController = TextEditingController();
 
-  void addBraidingService(String name) {
+  void addClippingService(String name, String price) {
     if (name.isNotEmpty) {
-      braidingServices.add({
+      clippingServices.add({
         'name': name,
         'isSelected': true.obs,
-        'price': TextEditingController(),
+        'price': TextEditingController(text: price),
       });
       addServiceInputController.clear();
+      addServicePriceController.clear();
     }
   }
 
   // Travel Preferences
   final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
-  final selectedTravel = <String>{}.obs;
+  final travelFees = <String, Map<String, dynamic>>{}.obs;
 
-  void toggleTravel(String item) {
-    if (selectedTravel.contains(item)) {
-      selectedTravel.remove(item);
-    } else {
-      selectedTravel.add(item);
-    }
+  // Temporary controllers for Travel Fee Bottom Sheet
+  final travelFeePriceController = TextEditingController();
+  final travelFeeNotesController = TextEditingController();
+  final selectedTravelFeeType = 'No travel fee'.obs;
+
+  void updateTravelFee(String option, String type, String price, String notes) {
+    travelFees[option] = {
+      'type': type,
+      'price': price,
+      'notes': notes,
+    };
+  }
+
+  void removeTravelPreference(String option) {
+    travelFees.remove(option);
   }
 
   // Pre-filled / Read-only info from Application
@@ -63,39 +81,40 @@ class BraidingDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchBraidingData();
+    fetchClippingData();
   }
 
-  Future<void> fetchBraidingData() async {
+  Future<void> fetchClippingData() async {
     isLoading.value = true;
     try {
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
         
-        // Find Braiding service
+        // Find Clipping service from assigned services
         final List assignedServices = vendor['assignedServices'] ?? [];
-        final braidingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Braiding');
+        final clippingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Clipping');
 
-        if (braidingService != null && braidingService['application'] != null) {
-          final applicationData = braidingService['application']['applicationData'] ?? {};
+        if (clippingService != null && clippingService['application'] != null) {
+          final applicationData = clippingService['application']['applicationData'] ?? {};
           
           final city = applicationData['homeBase']?['city'] ?? '';
           final state = applicationData['homeBase']?['state'] ?? '';
-          location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
+          final country = applicationData['homeBase']?['country'] ?? 'USA';
+          location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, $country' : 'N/A';
           
-          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} Years' : 'N/A';
+          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} years' : 'N/A';
           disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
         } else {
-          // Fallback to vendor level fields
+          // Fallback to vendor top level fields if not using the application-specific data yet
           location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
-          experience.value = vendor['experience'] ?? 'N/A';
+          experience.value = vendor['experience'] != null ? '${vendor['experience']} years' : 'N/A';
         }
       }
     } catch (e) {
-      debugPrint('Error fetching braiding data: $e');
+      debugPrint('Error fetching clipping data: $e');
     } finally {
       isLoading.value = false;
     }
@@ -113,15 +132,25 @@ class BraidingDetailsController extends GetxController {
 
       final body = {
         'servicesData': {
-          'braiding': {
-            'services': braidingServices
+          'clipping': {
+            'services': [
+              ...clippingServices
+                .where((s) => s['isSelected'].value == true)
+                .map((s) => {
+                      'name': s['name'],
+                      'price': (s['price'] as TextEditingController).text,
+                    }),
+              ...addOnServices
                 .where((s) => s['isSelected'].value == true)
                 .map((s) => {
                       'name': s['name'],
                       'price': (s['price'] as TextEditingController).text,
                     })
-                .toList(),
-            'travelPreferences': selectedTravel.toList(),
+            ],
+            'travelPreferences': travelFees.entries.map((e) => {
+              'region': e.key,
+              'feeStructure': e.value,
+            }).toList(),
             'cancellationPolicy': {
               'policy': cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
@@ -136,24 +165,19 @@ class BraidingDetailsController extends GetxController {
 
       final response = await apiService.putRequest('/vendors/$vendorId', body);
       if (response.statusCode == 200 && response.body['success'] == true) {
-        final authController = Get.find<AuthController>();
+        final authController = Get.put(AuthController());
         await authController.updateUserMetadata();
 
-        final services = authController.currentUser.value?.vendorServices ?? [];
-        if (services.contains('Clipping')) {
-          Get.off(() => const ClippingDetailView());
-        } else {
-          Get.offAll(() => const ProfileCompletedView(
-            subtitle: 'Your braiding services are now live',
-            destinationWidget: GroomBottomNav(),
-          ));
-        }
+        Get.offAll(() => const ProfileCompletedView(
+          subtitle: 'Your clipping services are now live',
+          destinationWidget: GroomBottomNav(),
+        ));
       } else {
-        final errorMsg = response.body['message'] ?? 'Failed to update braiding profile';
+        final errorMsg = response.body['message'] ?? 'Failed to update clipping profile';
         Get.snackbar('Error', errorMsg, backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }
     } catch (e) {
-      debugPrint('Error submitting braiding details: $e');
+      debugPrint('Error submitting clipping details: $e');
       Get.snackbar('Error', 'An unexpected error occurred', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
     } finally {
       isSubmitting.value = false;
@@ -162,11 +186,17 @@ class BraidingDetailsController extends GetxController {
 
   @override
   void onClose() {
-    for (var service in braidingServices) {
+    for (var service in clippingServices) {
+      (service['price'] as TextEditingController).dispose();
+    }
+    for (var service in addOnServices) {
       (service['price'] as TextEditingController).dispose();
     }
     customCancellationController.dispose();
     addServiceInputController.dispose();
+    addServicePriceController.dispose();
+    travelFeePriceController.dispose();
+    travelFeeNotesController.dispose();
     super.onClose();
   }
 }

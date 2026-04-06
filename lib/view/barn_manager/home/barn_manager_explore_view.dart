@@ -112,10 +112,10 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
 
                   if (controller.isGridView.value) {
                     return MasonryGridView.count(
-                      padding: const EdgeInsets.all(16),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
+                      padding: const EdgeInsets.all(12),
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 4,
+                      crossAxisSpacing: 4,
                       itemCount: controller.horses.length,
                       itemBuilder: (context, index) {
                         final horse = controller.horses[index];
@@ -210,7 +210,7 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   ],
                 ),
               ),
-              Obx(
+          /*    Obx(
                 () => IconButton(
                   onPressed: () => controller.isGridView.toggle(),
                   icon: Icon(
@@ -221,7 +221,7 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 8),*/
             ],
           ),
         ),
@@ -255,9 +255,7 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFEAEEFF)
-                          : Colors.transparent,
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: cat['isSvg']
@@ -292,12 +290,15 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
                   const SizedBox(height: 8),
                   if (isSelected)
                     Container(
-                      width: 40,
-                      height: 2,
-                      color: const Color(0xFF1B235E),
+                      width: 50,
+                      height: 2.5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1B235E),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     )
                   else
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 2.5),
                 ],
               ),
             );
@@ -416,18 +417,23 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
 
   Widget _buildMasonryHorseCard(HorseModel horse, int index) {
     // Generate varying heights to create the masonry effect
-    final double cardHeight = (index % 3 == 0)
-        ? 280
+    // Generate varying heights to create the masonry effect for 3 columns
+    final double cardHeight = (index % 5 == 0)
+        ? 260
+        : (index % 4 == 0)
+        ? 180
+        : (index % 3 == 0)
+        ? 240
         : (index % 2 == 0)
         ? 200
-        : 240;
+        : 220;
 
     return GestureDetector(
       onTap: () => Get.to(() => BarnManagerHorseDetailView(horse: horse)),
       child: Container(
         height: cardHeight,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -437,7 +443,7 @@ class _BarnManagerExploreViewState extends State<BarnManagerExploreView> {
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.zero,
           child: Stack(
             fit: StackFit.expand,
             children: [

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
+import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -183,6 +184,8 @@ class GroomCompleteProfileController extends GetxController {
           Get.off(() => const GroomingDetailsView());
         } else if (services.contains('Braiding')) {
           Get.off(() => const BraidingDetailsView());
+        } else if (services.contains('Clipping')) {
+          Get.off(() => const ClippingDetailView());
         } else {
           Get.offAll(() => const GroomBottomNav());
         }

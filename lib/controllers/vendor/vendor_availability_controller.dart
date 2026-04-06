@@ -8,6 +8,8 @@ import 'package:get/get.dart';
 class VendorAvailabilityController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final AuthController _authController = Get.find<AuthController>();
+  
+  AuthController get authController => _authController;
 
   final RxBool isLoading = false.obs;
   final RxList<VendorAvailabilityModel> availabilityBlocks = <VendorAvailabilityModel>[].obs;
@@ -23,10 +25,13 @@ class VendorAvailabilityController extends GetxController {
   Future<void> fetchAvailability() async {
     isLoading.value = true;
     try {
-      final String? userId = _authController.currentUser.value?.id;
-      if (userId == null) return;
+      final String? vendorId = _authController.currentUser.value?.vendorProfileId;
+      if (vendorId == null) {
+        debugPrint('DEBUG: vendorId is null, cannot fetch availability');
+        return;
+      }
 
-      final response = await _apiService.getRequest('/availability/vendors/$userId');
+      final response = await _apiService.getRequest('/availability/vendors/$vendorId');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final List data = response.body['data'] ?? [];
         availabilityBlocks.assignAll(data.map((e) => VendorAvailabilityModel.fromJson(e)).toList());
@@ -87,7 +92,6 @@ class VendorAvailabilityController extends GetxController {
       isLoading.value = true;
       final response = await _apiService.postRequest('/availability/vendors', payload);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.snackbar('Success', 'Availability block added!', backgroundColor: Colors.green, colorText: Colors.white);
         await fetchAvailability(); // Refresh the list
       } else {
         Get.snackbar('Error', response.body?['message'] ?? 'Failed to add block', backgroundColor: Colors.red, colorText: Colors.white);
@@ -95,6 +99,24 @@ class VendorAvailabilityController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error creating availability block: $e');
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> updateAvailabilityBlock(String id, Map<String, dynamic> payload) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.putRequest('/availability/vendors/$id', payload);
+      if (response.statusCode == 200) {
+        await fetchAvailability(); // Refresh list to reflect changes
+      } else {
+        Get.snackbar('Error', response.body?['message'] ?? 'Failed to update block', backgroundColor: Colors.red, colorText: Colors.white);
+        throw Exception('Failed to update availability block');
+      }
+    } catch (e) {
+      debugPrint('Error updating availability block: $e');
       rethrow;
     } finally {
       isLoading.value = false;

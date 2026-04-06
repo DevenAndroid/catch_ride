@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/view/vendor/groom/profile/payment_methods.dart';
+import 'package:catch_ride/view/vendor/upcoming_availability.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -549,12 +550,15 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
   Widget _buildAvailabilitySection(GroomViewProfileController controller) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            CommonText('Upcoming Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-            Icon(Icons.chevron_right, color: AppColors.textSecondary),
-          ],
+        GestureDetector(
+          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {'vendorId': controller.vendorData['_id']}),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              CommonText('Upcoming Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+              Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Obx(() {
@@ -569,7 +573,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             );
           }
           return Column(
-            children: controller.availabilityList.map((avail) {
+            children: controller.availabilityList.take(3).map((avail) {
               final String startDate = avail['startDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['startDate'])) : 'N/A';
               final String endDate = avail['endDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['endDate'])) : '';
               final String range = endDate.isNotEmpty ? '$startDate - $endDate' : startDate;

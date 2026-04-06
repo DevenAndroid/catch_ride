@@ -1,16 +1,16 @@
 import 'dart:io';
-
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
-import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
+import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:collection/collection.dart';
+import 'package:catch_ride/constant/app_colors.dart';
 
-class BraidingApplicationController extends GetxController {
+class ClippingApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.put(ApiService());
 
@@ -81,7 +81,7 @@ class BraidingApplicationController extends GetxController {
   Future<void> fetchDynamicTags() async {
     isLoadingTags.value = true;
     try {
-      final Response response = await apiService.getRequest('/system-config/tag-types/with-values?category=Braiding');
+      final Response response = await apiService.getRequest('/system-config/tag-types/with-values?category=Clipping');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final List types = response.body['data'];
         
@@ -103,7 +103,6 @@ class BraidingApplicationController extends GetxController {
           regionOptions.value = List<String>.from(regionType['values'].map((v) => v['name']));
         }
       } else {
-        // Fallback to defaults from screenshot if API fails
         _setFallbackOptions();
       }
     } catch (e) {
@@ -116,15 +115,15 @@ class BraidingApplicationController extends GetxController {
 
   void _setFallbackOptions() {
     if (disciplineOptions.isEmpty) {
-      disciplineOptions.value = ['Jumper', 'Dressage', 'Eventing', 'Hunter', 'Other'];
+      disciplineOptions.value = ['Hunter / Jumper', 'Dressage', 'Eventing', 'Other'];
     }
     if (horseLevelOptions.isEmpty) {
-      horseLevelOptions.value = ['Grand Prix', 'FEI / International', 'A/AA Circuit', 'Young Horses'];
+      horseLevelOptions.value = ['Grand Prix', 'Young Horses', 'FEI', 'A/AA Circuit'];
     }
     if (regionOptions.isEmpty) {
       regionOptions.value = [
         'Texas (Split Rock / Texas Circuits)',
-        'Florida (Wellington - Ocala - Gulf coast)',
+        'Florida (Wellington / Ocala / Gulf coast)',
         'Southwest (Thermal / AZ winter circuits)',
         'Southeast (Aiken / Tryon / Wills Park / Chatt Hills)',
       ];
@@ -222,9 +221,9 @@ class BraidingApplicationController extends GetxController {
     try {
       final formData = FormData({
         'media': MultipartFile(file, filename: file.path.split('/').last),
-        'type': 'braiding',
+        'type': 'clipping',
       });
-      final response = await apiService.postRequest('/upload?type=braiding', formData);
+      final response = await apiService.postRequest('/upload?type=clipping', formData);
       if (response.statusCode == 200 && response.body['success'] == true) {
         return response.body['data']['filename'];
       }
@@ -235,57 +234,55 @@ class BraidingApplicationController extends GetxController {
   }
 
   Future<void> submitApplication() async {
-    // 1. Basic Form Validation
     if (!(formKey.currentState?.validate() ?? false)) return;
 
-    // 2. Custom Validation
     if (selectedState.value == null || selectedCity.value == null) {
-      Get.snackbar('Missing Info', 'Please select your home base city and state', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Missing Info', 'Please select your home base city and state', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (experience.value == null) {
-      Get.snackbar('Missing Info', 'Please select your braiding experience level', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Missing Info', 'Please select your experience level', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (selectedDisciplines.isEmpty) {
-      Get.snackbar('Missing Info', 'Please select at least one discipline', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Missing Info', 'Please select at least one discipline', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (selectedHorseLevels.isEmpty) {
-      Get.snackbar('Missing Info', 'Please select the typical level of horses you handle', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Missing Info', 'Please select the typical level of horses you handle', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (selectedRegions.isEmpty) {
-      Get.snackbar('Missing Info', 'Please select at least one region you cover', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Missing Info', 'Please select at least one region you cover', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (!is18OrOlder.value) {
-      Get.snackbar('Age Verification', 'Please confirm that you are at least 18 years of age', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Age Verification', 'Please confirm that you are at least 18 years of age', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (!agreeToTerms.value) {
-      Get.snackbar('Terms & Privacy', 'Please agree to the Terms of Service and Privacy Policy', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Terms & Privacy', 'Please agree to the Terms of Service and Privacy Policy', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     if (!confirmReferences.value) {
-      Get.snackbar('References', 'Please confirm that we may contact your professional references', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('References', 'Please confirm that we may contact your professional references', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       return;
     }
 
     isSubmitting.value = true;
     try {
       final authController = Get.put(AuthController());
-      // Prepare Data
       final applicationData = {
         'fullName': fullNameController.text,
         'phone': authController.currentUser.value?.phone ?? '', 
+        'phoneNumber': authController.currentUser.value?.phone ?? '', 
         'whyJoin': joinCommunityController.text,
         'homeBase': {
           'country': countryController.text,
@@ -312,7 +309,6 @@ class BraidingApplicationController extends GetxController {
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
       };
 
-      // 3. Upload Photos
       final List<String> photoKeys = [];
       for (var photo in photos) {
         final key = await _uploadPhoto(photo);
@@ -328,17 +324,16 @@ class BraidingApplicationController extends GetxController {
       };
 
       final response = await apiService.postRequest('/vendors/setup-service', {
-        'serviceType': 'Braiding',
+        'serviceType': 'Clipping',
         'applicationData': applicationData,
         'profileData': profileData,
       });
 
       if (response.statusCode == 200 && response.body['success'] == true) {
-        // Update Local User State from server
         final authController = Get.put(AuthController());
         await authController.updateUserMetadata();
 
-        Get.snackbar('Success', 'Your braiding application has been submitted successfully.', backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar('Success', 'Your clipping application has been submitted successfully.', backgroundColor: AppColors.successPrimary, colorText: AppColors.cardColor);
 
         final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
         if (remaining.isNotEmpty) {
@@ -347,8 +342,8 @@ class BraidingApplicationController extends GetxController {
 
           if (nextService == 'Grooming') {
             Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
-          } else if (nextService == 'Clipping') {
-            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Braiding') {
+            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
           } else {
             Get.offAll(() => const VendorApplicationSubmitView());
           }
@@ -356,11 +351,11 @@ class BraidingApplicationController extends GetxController {
           Get.offAll(() => const VendorApplicationSubmitView());
         }
       } else {
-        Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }
     } catch (e) {
       debugPrint('Error submitting application: $e');
-      Get.snackbar('Error', 'Please check your connection and try again.', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar('Error', 'Please check your connection and try again.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
     } finally {
       isSubmitting.value = false;
     }

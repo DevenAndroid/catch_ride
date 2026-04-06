@@ -1,203 +1,147 @@
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
-import 'package:catch_ride/models/message_model.dart';
-import 'package:catch_ride/widgets/common_button.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'chat_request_card.dart';
+import 'standalone_booking_card.dart';
 
 class RequestsView extends StatelessWidget {
   const RequestsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<ChatController>();
+    final ChatController controller = Get.find<ChatController>();
+    final BookingController bookingController = Get.find<BookingController>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Color(0xFF1F2937), size: 20),
           onPressed: () => Get.back(),
         ),
-        title: const CommonText('Requests', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
+        title: const CommonText(
+          'Requests',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF101828),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: AppColors.border, height: 1.0),
+        ),
       ),
       body: Obx(() {
-        final pendingRequests = controller.conversations.where((c) {
+        // 1. Get Chat Conversations that are requests
+        final chatRequests = controller.conversations.where((c) {
           final otherUserRole = c.otherUser?.role?.toLowerCase();
-          final isTargetRole = otherUserRole == 'trainer' || otherUserRole == 'barn_manager';
+          final isTargetRole =
+              otherUserRole == 'trainer' || otherUserRole == 'barn_manager';
           return c.status == 'request-pending' && isTargetRole;
         }).toList();
 
-        if (controller.isLoadingConversations.value && pendingRequests.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
+        // 2. Get Pending Bookings that aren't linked to a chat request yet
+        final existingBookingIds =
+            chatRequests.map((c) => c.booking?.id).toSet();
+        final standaloneBookings =
+            bookingController.receivedBookings.where((b) {
+          return b.status.toLowerCase() == 'pending' &&
+              !existingBookingIds.contains(b.id);
+        }).toList();
 
-        if (pendingRequests.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.mail_outline, size: 64, color: Colors.grey[300]),
-                const SizedBox(height: 16),
-                const CommonText('No pending requests', color: AppColors.textSecondary),
-              ],
-            ),
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(20),
-          itemCount: pendingRequests.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 20),
-          itemBuilder: (context, index) {
-            final request = pendingRequests[index];
-            return _buildRequestCard(request, controller);
-          },
+        return Stack(
+          children: [
+            if (controller.isLoadingConversations.value &&
+                chatRequests.isEmpty &&
+                standaloneBookings.isEmpty)
+              const Center(child: CircularProgressIndicator())
+            else if (chatRequests.isEmpty && standaloneBookings.isEmpty)
+              RefreshIndicator(
+                onRefresh: () async {
+                  await controller.fetchConversations();
+                  await bookingController.fetchBookings(type: 'received');
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.mail_outline,
+                                size: 64, color: Colors.grey[300]),
+                            const SizedBox(height: 16),
+                            const CommonText('No pending requests',
+                                color: AppColors.textSecondary),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              RefreshIndicator(
+                onRefresh: () async {
+                  await controller.fetchConversations();
+                  await bookingController.fetchBookings(type: 'received');
+                },
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    if (chatRequests.isNotEmpty) ...[
+                      const CommonText(
+                        'Chat Requests',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF667085),
+                      ),
+                      const SizedBox(height: 16),
+                      ...chatRequests
+                          .map((chat) => ChatRequestCard(request: chat))
+                          .toList(),
+                      const SizedBox(height: 24),
+                    ],
+                    if (standaloneBookings.isNotEmpty) ...[
+                      const CommonText(
+                        'Direct Bookings',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF667085),
+                      ),
+                      const SizedBox(height: 16),
+                      ...standaloneBookings
+                          .map((booking) => StandaloneBookingCard(
+                                booking: booking,
+                                onAction: () {
+                                  controller.fetchConversations();
+                                  bookingController.fetchBookings(type: 'received');
+                                },
+                              ))
+                          .toList(),
+                    ],
+                  ],
+                ),
+              ),
+            if (controller.isUpdatingStatus.value)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+          ],
         );
       }),
-    );
-  }
-
-  Widget _buildRequestCard(ChatConversation convo, ChatController controller) {
-    final other = convo.otherUser;
-    final booking = convo.booking;
-
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F6ED),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                CommonImageView(
-                  url: other?.avatar ?? '',
-                  height: 52,
-                  width: 52,
-                  shape: BoxShape.circle,
-                  isUserImage: true,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(
-                        '${other?.role ?? 'User'} : ${other?.name ?? 'Unknown'}',
-                        fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      if (booking?.location != null)
-                        CommonText(
-                          booking!.location!,
-                          fontSize: AppTextSizes.size14,
-                          color: AppColors.textSecondary,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(color: Colors.white),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: CommonText(
-                                  booking?.location ?? 'Location N/A',
-                                  fontSize: AppTextSizes.size12,
-                                  color: AppColors.textSecondary,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.calendar_today_outlined, color: AppColors.textSecondary, size: 14),
-                              const SizedBox(width: 6),
-                              CommonText(
-                                booking?.date ?? 'Date N/A',
-                                fontSize: AppTextSizes.size12,
-                                color: AppColors.textSecondary,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.borderLight)),
-                      child: CommonText(
-                        booking?.type ?? 'Service',
-                        fontSize: AppTextSizes.size12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                if (booking?.notes != null && booking!.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  CommonText('Note - ${booking!.notes}', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
-                ],
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CommonButton(
-                        text: 'Reject',
-                        backgroundColor: Colors.white,
-                        textColor: AppColors.textPrimary,
-                        borderColor: AppColors.borderMedium,
-                        onPressed: () => controller.declineRequest(convo.conversationId),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: CommonButton(
-                        text: 'Accept',
-                        backgroundColor: AppColors.secondary,
-                        onPressed: () => controller.acceptRequest(convo.conversationId),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

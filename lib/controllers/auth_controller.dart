@@ -53,7 +53,9 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _googleSignIn = gsi.GoogleSignIn();
+    _googleSignIn = gsi.GoogleSignIn(
+      serverClientId: '804782276759-ngr7onn8cmdlrok2fvgjo8ciac6rog81.apps.googleusercontent.com',
+    );
     _loadUserFromStorage();
   }
 
@@ -517,6 +519,7 @@ class AuthController extends GetxController {
         final response = await _apiService.postRequest(AppUrls.appleLogin, {
           'idToken': idToken,
           'deviceName': deviceName,
+          'email': appleCredential.email, // Send email if available
           'firstName': appleCredential.givenName ?? '',
           'lastName': appleCredential.familyName ?? '',
         });
@@ -995,6 +998,75 @@ class AuthController extends GetxController {
     } catch (e) {
       debugPrint('Error during logout: $e');
       Get.offAll(() => const LoginView());
+    }
+  }
+
+  // ─── FORGOT PASSWORD ─────────────────────────────────────────────────────────
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.postRequest(AppUrls.forgotPassword, {'email': email});
+
+      if (response.statusCode == 200) {
+        Get.snackbar('OTP Sent', 'Check your email for the reset code.',
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+      } else {
+        String message = response.body?['message'] ?? 'Failed to send OTP';
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        throw Exception(message);
+      }
+    } catch (e) {
+      debugPrint('Forgot password error: $e');
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> verifyResetOTP(String email, String otp) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.postRequest(AppUrls.verifyResetOtp, {'email': email, 'otp': otp});
+
+      if (response.statusCode == 200) {
+        Get.snackbar('Verified', 'OTP verified successfully.',
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+      } else {
+        String message = response.body?['message'] ?? 'Invalid OTP';
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        throw Exception(message);
+      }
+    } catch (e) {
+      debugPrint('Verify reset OTP error: $e');
+      rethrow;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> resetPassword(String email, String otp, String newPassword) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.postRequest(AppUrls.resetPassword, {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      });
+
+      if (response.statusCode == 200) {
+        Get.snackbar('Success', 'Password reset successfully. Please log in.',
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+        Get.offAll(() => const LoginView());
+      } else {
+        String message = response.body?['message'] ?? 'Failed to reset password';
+        Get.snackbar('Error', message, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        throw Exception(message);
+      }
+    } catch (e) {
+      debugPrint('Reset password error: $e');
+      rethrow;
+    } finally {
+      isLoading.value = false;
     }
   }
 

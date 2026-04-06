@@ -10,6 +10,7 @@ import 'package:catch_ride/widgets/social_button.dart';
 import 'package:catch_ride/view/select_role_view.dart';
 import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:catch_ride/view/forget_password_flow/forgot_password_request_view.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
@@ -116,7 +117,7 @@ class _LoginViewState extends State<LoginView> {
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
                           onTap: () {
-                            // Forget Password action
+                            Get.to(() => const ForgotPasswordRequestView());
                           },
                           child: const CommonText(
                             AppStrings.forgetPassword,
