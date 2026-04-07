@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
+import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 
 class VendorSelectServicesController extends GetxController {
@@ -92,6 +94,16 @@ class VendorSelectServicesController extends GetxController {
         } else if (firstService == 'Clipping') {
           Get.to(
             () => const ClippingApplicationView(),
+            arguments: {'remainingServices': remaining},
+          );
+        } else if (firstService == 'Farrier') {
+          Get.to(
+            () => const FarrierApplicationView(),
+            arguments: {'remainingServices': remaining},
+          );
+        } else if (firstService == 'Bodywork') {
+          Get.to(
+            () => const BodyworkApplicationView(),
             arguments: {'remainingServices': remaining},
           );
         } else {

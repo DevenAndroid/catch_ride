@@ -3,6 +3,9 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/view/vendor/groom/availability/add_availability_block_view.dart';
+import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/farrier/availability/add_farrier_availability_view.dart';
+import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -17,11 +20,19 @@ class AvailabilityView extends StatefulWidget {
 class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final controller = Get.put(VendorAvailabilityController());
+  List<String> _activeServices = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _activeServices = controller.authController.currentUser.value?.vendorServices 
+      .map((s) => s[0].toUpperCase() + s.substring(1).toLowerCase())
+      .toList() ?? ['Grooming', 'Braiding', 'Clipping', 'Farrier'];
+    
+    // Fallback if empty
+    if (_activeServices.isEmpty) _activeServices = ['Grooming'];
+
+    _tabController = TabController(length: _activeServices.length, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Re-build to filter correctly when tab changes
     });
@@ -40,7 +51,15 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: ElevatedButton(
-                onPressed: () => Get.to(() => const AddAvailabilityBlockView(), arguments: _tabController.index),
+                onPressed: () {
+                  final currentSvc = _activeServices[_tabController.index];
+                  if (currentSvc == 'Farrier') {
+                    Get.to(() => const AddFarrierAvailabilityView());
+                  } else {
+                    int addIndex = currentSvc == 'Grooming' ? 0 : (currentSvc == 'Braiding' ? 1 : 2);
+                    Get.to(() => const AddAvailabilityBlockView(), arguments: addIndex);
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondary,
                   foregroundColor: Colors.white,
@@ -60,17 +79,13 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
             ),
           )
         ],
-        bottom: PreferredSize(
+        bottom: _activeServices.length > 1 ? PreferredSize(
           preferredSize: const Size.fromHeight(50),
-          child: Column(
-            children: [
-              _buildTabs(),
-            ],
-          ),
-        ),
+          child: _buildTabs(),
+        ) : null,
       ),
       body: Obx(() {
-        final currentService = _tabController.index == 0 ? 'Grooming' : 'Braiding';
+        final currentService = _activeServices[_tabController.index];
         final filteredBlocks = controller.availabilityBlocks.where(
           (b) => b.serviceTypes.contains(currentService)
         ).toList();
@@ -108,7 +123,19 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                 else
                   ...filteredBlocks.map((b) => Padding(
                     padding: const EdgeInsets.only(bottom: 20),
-                    child: _buildAvailabilityCard(b),
+                    child: currentService == 'Clipping' 
+                      ? ClippingAvailabilityBlockCard(
+                          block: b,
+                          onEdit: () => Get.to(() => const AddAvailabilityBlockView(), arguments: {'categoryIndex': 2, 'block': b}),
+                          onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
+                        )
+                      : (currentService == 'Farrier'
+                          ? FarrierAvailabilityBlockCard(
+                              block: b,
+                              onEdit: () => Get.to(() => const AddFarrierAvailabilityView(), arguments: {'block': b}),
+                              onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
+                            )
+                          : _buildAvailabilityCard(b)),
                   )).toList(),
               ],
             ),
@@ -131,10 +158,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
         indicatorColor: AppColors.textPrimary,
         indicatorWeight: 2,
         indicatorPadding: const EdgeInsets.symmetric(horizontal: 16),
-        tabs: const [
-          Tab(child: CommonText('Grooming', fontSize: 16, fontWeight: FontWeight.bold)),
-          Tab(child: CommonText('Braiding', fontSize: 16, fontWeight: FontWeight.bold)),
-        ],
+        tabs: _activeServices.map((s) => Tab(child: CommonText(s, fontSize: 16, fontWeight: FontWeight.bold))).toList(),
       ),
     );
   }
@@ -212,10 +236,16 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                   offset: const Offset(0, 40),
                   onSelected: (value) {
                     if (value == 'edit') {
-                      Get.to(() => const AddAvailabilityBlockView(), arguments: {
-                        'categoryIndex': _tabController.index,
-                        'block': b
-                      });
+                      final currentSvc = _activeServices[_tabController.index];
+                      if (currentSvc == 'Farrier') {
+                        Get.to(() => const AddFarrierAvailabilityView(), arguments: {'block': b});
+                      } else {
+                        int editIndex = currentSvc == 'Grooming' ? 0 : (currentSvc == 'Braiding' ? 1 : 2);
+                        Get.to(() => const AddAvailabilityBlockView(), arguments: {
+                          'categoryIndex': editIndex,
+                          'block': b
+                        });
+                      }
                     } else if (value == 'delete') {
                       if (b.id != null) controller.deleteAvailabilityBlock(b.id!);
                     }

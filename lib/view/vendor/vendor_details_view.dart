@@ -4,7 +4,7 @@ import 'package:catch_ride/controllers/vendor/vendor_details_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
-import 'package:catch_ride/view/bookings/send_booking_request_view.dart';
+import 'package:catch_ride/view/vendor/send_booking_request_view.dart';
 import 'package:catch_ride/view/vendor/upcoming_availability.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

@@ -327,6 +327,9 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
   }
 
   Widget _buildDetailsCard(GroomViewProfileController controller) {
+    if (controller.activeServiceType.toLowerCase() == 'farrier') {
+      return _buildFarrierDetails(controller);
+    }
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -352,9 +355,17 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             ),
             const SizedBox(height: 20),
           ],
-          Obx(() => Column(
+          Obx(() {
+            final isClipping = controller.activeServiceType.toLowerCase().contains('clip');
+            if (isClipping) {
+              return Column(
+                children: controller.groomingServices.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')).toList(),
+              );
+            }
+            return Column(
                 children: _buildCapabilityItems(controller),
-              )),
+              );
+          }),
           const SizedBox(height: 20),
           const CommonText('Additional Services', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
@@ -362,7 +373,6 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             const CommonText('No additional services', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
           ...controller.additionalServices.map((s) => _buildAdditionalService(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
           const SizedBox(height: 20),
-          _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of experience', controller.experienceStr.value),
           _buildViewMoreSection(controller),
         ],
       ),
@@ -411,27 +421,34 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
 
   Widget _buildViewMoreSection(GroomViewProfileController controller) {
     return Obx(() {
+      final isClipping = controller.activeServiceType.toLowerCase().contains('clip');
+      
       if (_showMoreDetails.value) {
         return Column(
           children: [
+            _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of experience', controller.experienceStr.value),
             const SizedBox(height: 20),
             _buildTwoColumnDetails(
               'Disciplines',
               controller.disciplinesSelected.isEmpty ? 'N/A' : controller.disciplinesSelected.join(', '),
-              'Horse levels',
+              'Typical Level of Horses',
               controller.horseLevels.isEmpty ? 'N/A' : controller.horseLevels.join(', '),
             ),
             const SizedBox(height: 20),
-            _buildSingleColumnDetail('Show & barn support', controller.supportOptions.isEmpty ? 'N/A' : controller.supportOptions.join(', ')),
+            if (!isClipping) ...[
+              _buildSingleColumnDetail('Show & barn support', controller.supportOptions.isEmpty ? 'N/A' : controller.supportOptions.join(', ')),
+              const SizedBox(height: 20),
+              _buildTwoColumnDetails(
+                'Horse handling',
+                controller.handlingOptions.isEmpty ? 'N/A' : controller.handlingOptions.join(', '),
+                'Travel preferences',
+                controller.travelPreferences.isEmpty ? 'N/A' : controller.travelPreferences.join(', '),
+              ),
+            ] else ...[
+              _buildSingleColumnDetail('Travel Preferences', controller.travelPreferences.isEmpty ? 'N/A' : controller.travelPreferences.join(', ')),
+            ],
             const SizedBox(height: 20),
-            _buildTwoColumnDetails(
-              'Horse handling',
-              controller.handlingOptions.isEmpty ? 'N/A' : controller.handlingOptions.join(', '),
-              'Travel preferences',
-              controller.travelPreferences.isEmpty ? 'N/A' : controller.travelPreferences.join(', '),
-            ),
-            const SizedBox(height: 20),
-            _buildSingleColumnDetail('Operating regions', controller.operatingRegions.isEmpty ? 'N/A' : controller.operatingRegions.join(', ')),
+            _buildSingleColumnDetail('Regions Covered', controller.operatingRegions.isEmpty ? 'N/A' : controller.operatingRegions.join(', ')),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () => _showMoreDetails.value = false,
@@ -442,6 +459,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
       }
       return Column(
         children: [
+          _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of experience', controller.experienceStr.value),
           const SizedBox(height: 16),
           GestureDetector(
             onTap: () => _showMoreDetails.value = true,
@@ -738,6 +756,67 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           ),
         )),
       ],
+    );
+  }
+
+  Widget _buildFarrierDetails(GroomViewProfileController controller) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+      ),
+      child: Obx(() {
+        final showMore = _showMoreDetails.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const CommonText('Services & Rates', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            ...controller.farrierServices.take(showMore ? 10 : 2).map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
+            
+            if (showMore && controller.farrierAddOns.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const CommonText('Add-Ons', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+              const SizedBox(height: 12),
+              ...controller.farrierAddOns.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
+            ],
+            
+            const SizedBox(height: 20),
+            _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of Experience', controller.experienceStr.value),
+            
+            if (showMore) ...[
+              const SizedBox(height: 20),
+              _buildTwoColumnDetails(
+                'Disciplines',
+                controller.farrierDisciplines.isEmpty ? 'N/A' : controller.farrierDisciplines.join(', '),
+                'Typical Level of Horses',
+                controller.farrierHorseLevels.isEmpty ? 'N/A' : controller.farrierHorseLevels.join(', '),
+              ),
+              const SizedBox(height: 20),
+              _buildSingleColumnDetail('Scope of Work', controller.farrierScopeOfWork.isEmpty ? 'N/A' : controller.farrierScopeOfWork.join(', ')),
+              const SizedBox(height: 20),
+              _buildSingleColumnDetail('Travel Preferences', controller.farrierTravelPreferences.isEmpty ? 'N/A' : controller.farrierTravelPreferences.join(', ')),
+              const SizedBox(height: 20),
+              _buildSingleColumnDetail('Regions Covered', controller.farrierRegionsCovered.isEmpty ? 'N/A' : controller.farrierRegionsCovered.join(', ')),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () => _showMoreDetails.value = false,
+                child: const CommonText('View Less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+              ),
+            ] else ...[
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _showMoreDetails.value = true,
+                child: const CommonText('View More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ],
+        );
+      }),
     );
   }
 }
