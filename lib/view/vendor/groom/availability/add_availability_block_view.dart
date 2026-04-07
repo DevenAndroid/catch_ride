@@ -36,7 +36,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     } else {
       _categoryIndex = args ?? 0;
     }
-    _categoryName = _categoryIndex == 0 ? 'Grooming' : 'Braiding';
+    _categoryName = _categoryIndex == 0 ? 'Grooming' : (_categoryIndex == 1 ? 'Braiding' : 'Clipping');
 
     // Now handle pre-filling if editing
     if (args is Map && args['block'] is VendorAvailabilityModel) {
@@ -59,6 +59,20 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     // Explicitly set non-reactive fields immediately
     _maxHorses.value = _editingBlock!.maxBookings;
     _maxDays.value = 12; 
+
+    // Clipping specific pre-filling
+    _unStart = _editingBlock!.unavailableStart;
+    _unEnd = _editingBlock!.unavailableEnd;
+    
+    if (_editingBlock!.locationType != null) {
+      _locationType.value = _editingBlock!.locationType!;
+    }
+    if (_editingBlock!.timeBlockType != null) {
+      _availabilityType.value = _editingBlock!.timeBlockType!;
+    }
+    if (_editingBlock!.capacityType != null) {
+      _capacityType.value = _editingBlock!.capacityType!;
+    }
 
     // Use a slight delay to ensure UI systems are fully hooked up
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -101,6 +115,8 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   // Date state
   DateTime? _startDate;
   DateTime? _endDate;
+  DateTime? _unStart;
+  DateTime? _unEnd;
 
   // Text controllers
   final _notesController = TextEditingController();
@@ -110,6 +126,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   final RxList<String> _addedVenues = <String>[].obs;
   final RxInt _maxHorses = 6.obs;
   final RxInt _maxDays = 12.obs;
+
+  // Clipping strings
+  final RxString _locationType = 'Both'.obs;
+  final RxString _availabilityType = 'Full Day'.obs;
+  final RxString _capacityType = 'Max horses per day'.obs;
 
   List<String> get _availableWorkTypes {
     if (_categoryName == 'Braiding') {
@@ -203,6 +224,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         'maxDays': _maxDays.value,
         'notes': _notesController.text.trim(),
         'status': 'available',
+        'unavailableStart': _unStart?.toIso8601String(),
+        'unavailableEnd': _unEnd?.toIso8601String(),
+        'locationType': _locationType.value,
+        'capacityType': _capacityType.value,
+        'timeBlockType': _availabilityType.value,
       };
 
       if (_editingBlock != null && _editingBlock!.id != null) {
@@ -272,20 +298,49 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildDateSection(),
+                    if (_categoryName == 'Clipping') ...[
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Mark Unavailability'),
+                      Row(
+                        children: [
+                          Expanded(child: _buildDateField('Start Date', _unStart, () => _selectUnavailabilityDate(true))),
+                          const SizedBox(width: 16),
+                          Expanded(child: _buildDateField('End Date', _unEnd, () => _selectUnavailabilityDate(false))),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Location Type'),
+                      _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
+                    ],
                     const SizedBox(height: 24),
-                    _buildVenueSection(),
-                    const SizedBox(height: 24),
-                    _buildSectionHeader('Work Type'),
-                    const SizedBox(height: 12),
-                    _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
-                    const SizedBox(height: 24),
-                    _buildSectionHeader('Additional Services'),
-                    const SizedBox(height: 12),
-                    _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
-                    const SizedBox(height: 24),
-                    _buildSectionHeader('Capacity (optional)'),
-                    const SizedBox(height: 12),
-                    _buildCapacitySection(),
+                    if (_categoryName != 'Clipping') ...[
+                      _buildSectionHeader('Work Type'),
+                      const SizedBox(height: 12),
+                      _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Additional Services'),
+                      const SizedBox(height: 12),
+                      _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Capacity (optional)'),
+                      const SizedBox(height: 12),
+                      _buildCapacitySection(),
+                    ] else ...[
+                      _buildVenueSection(),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Time Block & Capacity'),
+                      const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'AM', 'PM']),
+                      const SizedBox(height: 16),
+                      const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildDropdownField('Max horses per day', _capacityType, ['No capacity limit', 'Max horses per time block', 'Max horses per day']),
+                      const SizedBox(height: 16),
+                      const CommonText('Max Horses', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildCapacityCounter(),
+                    ],
                     const SizedBox(height: 24),
                     _buildSectionHeader('Notes For Trainers (optional)'),
                     const SizedBox(height: 12),
@@ -406,7 +461,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CommonText(v, fontSize: 13, color: AppColors.textPrimary),
+                    Flexible(child: CommonText(v, fontSize: 13, color: AppColors.textPrimary, overflow: TextOverflow.ellipsis)),
                     const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () => _addedVenues.remove(v),
@@ -603,6 +658,65 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   : CommonText(_editingBlock != null ? 'Save Changes' : 'Add Block', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               )),
           ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectUnavailabilityDate(bool isStart) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      if (isStart) setState(() => _unStart = picked);
+      else setState(() => _unEnd = picked);
+    }
+  }
+
+  Widget _buildDropdownField(String hint, RxString selectedValue, List<String> options) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEAECF0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: Obx(() => DropdownButton<String>(
+          value: selectedValue.value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+          items: options.map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: CommonText(value, fontSize: 14),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) selectedValue.value = val;
+          },
+        )),
+      ),
+    );
+  }
+
+  Widget _buildCapacityCounter() {
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFEAECF0)),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(onPressed: () { if (_maxHorses.value > 1) _maxHorses.value--; }, icon: const Icon(Icons.remove, size: 20)),
+          Obx(() => CommonText('${_maxHorses.value}', fontSize: 18, fontWeight: FontWeight.bold)),
+          IconButton(onPressed: () => _maxHorses.value++, icon: const Icon(Icons.add, size: 20)),
         ],
       ),
     );

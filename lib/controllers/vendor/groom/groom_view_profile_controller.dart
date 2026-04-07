@@ -2,7 +2,6 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:get/get.dart';
-import 'package:collection/collection.dart';
 
 class GroomViewProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -154,7 +153,14 @@ class GroomViewProfileController extends GetxController {
   String get facebookUrl => _activeProfileData['socialMedia']?['facebook'] ?? '';
   
   // Travel & Policy
-  List<String> get travelPreferences => List<String>.from(_activeProfileData['travelPreferences'] ?? []);
+  List<String> get travelPreferences {
+    final raw = _activeProfileData['travelPreferences'] ?? [];
+    if (raw is! List) return [];
+    return raw.map((item) {
+      if (item is Map) return item['region']?.toString() ?? item['name']?.toString() ?? '';
+      return item.toString();
+    }).where((s) => s.isNotEmpty).toList();
+  }
   String get cancellationPolicy => _activeProfileData['cancellationPolicy']?['policy'] ?? 'Flexible (24+ hrs)';
   
   // Experience Highlights
@@ -165,6 +171,15 @@ class GroomViewProfileController extends GetxController {
     ...List<String>.from(_activeProfileData['media'] ?? []),
     ...List<String>.from(_activeApplicationData['media'] ?? []),
   }.toList();
+  
+  // Farrier Getters
+  List<dynamic> get farrierServices => List<dynamic>.from(_activeProfileData['services'] ?? []);
+  List<dynamic> get farrierAddOns => List<dynamic>.from(_activeProfileData['addOns'] ?? []);
+  List<String> get farrierScopeOfWork => List<String>.from(_activeApplicationData['scopeOfWork'] ?? []);
+  List<String> get farrierTravelPreferences => List<String>.from((_activeProfileData['travelPreferences'] as List? ?? []).map((t) => (t as Map)['category']?.toString() ?? '').where((s) => s.isNotEmpty));
+  List<String> get farrierDisciplines => List<String>.from(_activeApplicationData['disciplines'] ?? []);
+  List<String> get farrierHorseLevels => List<String>.from(_activeApplicationData['horseLevels'] ?? []);
+  List<String> get farrierRegionsCovered => List<String>.from(_activeApplicationData['regions'] ?? []);
 
   Future<bool> updateGroomingRates({
     required String daily,
@@ -236,6 +251,42 @@ class GroomViewProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint('Update braiding services error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateFarrierServices({
+    required List<Map<String, dynamic>> services,
+    required List<Map<String, dynamic>> addOns,
+  }) async {
+    try {
+      isLoading.value = true;
+      final vendorId = vendorData['_id'];
+      
+      final payload = {
+        'servicesData': {
+          'farrier': {
+            'profileData': {
+              'services': services,
+              'addOns': addOns,
+            }
+          }
+        }
+      };
+
+      final response = await _apiService.putRequest('/vendors/$vendorId', payload);
+      if (response.statusCode == 200) {
+        await fetchProfile();
+        Get.snackbar('Success', 'Farrier services updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+        return true;
+      } else {
+        Get.snackbar('Error', response.body['message'] ?? 'Failed to update farrier services', backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Update farrier services error: $e');
       return false;
     } finally {
       isLoading.value = false;

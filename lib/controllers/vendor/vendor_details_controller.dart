@@ -144,7 +144,14 @@ class VendorDetailsController extends GetxController {
   List<String> get disciplinesSelected => List<String>.from(_activeApplicationData['disciplines'] ?? []);
   List<String> get horseLevels => List<String>.from(_activeApplicationData['horseLevels'] ?? []);
   List<String> get operatingRegions => List<String>.from(_activeApplicationData['regions'] ?? []);
-  List<String> get travelPreferences => List<String>.from(_activeProfileData['travelPreferences'] ?? []);
+  List<String> get travelPreferences {
+    final raw = _activeProfileData['travelPreferences'] ?? [];
+    if (raw is! List) return [];
+    return raw.map((item) {
+      if (item is Map) return item['region']?.toString() ?? item['name']?.toString() ?? '';
+      return item.toString();
+    }).where((s) => s.isNotEmpty).toList();
+  }
 
   List get additionalServices => _activeProfileData['additionalServices'] ?? [];
 

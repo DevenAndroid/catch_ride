@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:catch_ride/view/vendor/braiding/profile/braiding_edit_profile_tab.dart';
+import 'package:catch_ride/view/vendor/clipping/profile/clipping_edit_profile_tab.dart';
+import 'package:catch_ride/view/vendor/farrier/profile/farrier_edit_profile_tab.dart';
 import '../../../../widgets/common_textfield.dart';
 
 class EditVendorProfileView extends StatefulWidget {
@@ -127,6 +129,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                           return _buildGroomingTab();
                         } else if (service['serviceType'] == 'Braiding') {
                           return _buildBraidingTab();
+                        } else if (service['serviceType'] == 'Clipping') {
+                          return ClippingEditProfileTab(controller: controller);
+                        } else if (service['serviceType'] == 'Farrier') {
+                          return FarrierEditProfileTab(controller: controller);
                         }
                       }
                       return const Center(
@@ -615,9 +621,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CommonTextField(
-            label: 'City',
-            hintText: 'Select city',
-            controller: controller.cityController,
+            label: 'Country',
+            hintText: 'Select Country',
+            isRequired: true,
+            controller: controller.countryController,
           ),
           const SizedBox(height: 16),
           CommonTextField(
@@ -628,10 +635,9 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           ),
           const SizedBox(height: 16),
           CommonTextField(
-            label: 'Country',
-            hintText: 'Select Country',
-            isRequired: true,
-            controller: controller.countryController,
+            label: 'City',
+            hintText: 'Select city',
+            controller: controller.cityController,
           ),
         ],
       ),

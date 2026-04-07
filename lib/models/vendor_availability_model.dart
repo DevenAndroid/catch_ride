@@ -18,6 +18,13 @@ class VendorAvailabilityModel {
   final int currentBookings;
   final String? notes;
   final List<String> showVenues;
+  final DateTime? unavailableStart;
+  final DateTime? unavailableEnd;
+  final String? locationType; // 'Both', 'Barn', 'Show Venue'
+  final String? capacityType; // 'No capacity limit', 'Max horses per time block', 'Max horses per day'
+  final String? timeBlockType; // 'Full Day', 'AM', 'PM'
+  final String? availabilityMode; // 'General bookings', 'Emergency-only'
+  final String? newClientPolicy; 
 
   VendorAvailabilityModel({
     this.id,
@@ -37,6 +44,13 @@ class VendorAvailabilityModel {
     this.currentBookings = 0,
     this.notes,
     this.showVenues = const [],
+    this.unavailableStart,
+    this.unavailableEnd,
+    this.locationType,
+    this.capacityType,
+    this.timeBlockType,
+    this.availabilityMode,
+    this.newClientPolicy,
   });
 
   factory VendorAvailabilityModel.fromJson(Map<String, dynamic> json) {
@@ -68,6 +82,13 @@ class VendorAvailabilityModel {
       currentBookings: json['currentBookings'] ?? 0,
       notes: json['notes'],
       showVenues: parsedVenues,
+      unavailableStart: json['unavailableStart'] != null ? DateTime.parse(json['unavailableStart']) : null,
+      unavailableEnd: json['unavailableEnd'] != null ? DateTime.parse(json['unavailableEnd']) : null,
+      locationType: json['locationType'],
+      capacityType: json['capacityType'],
+      timeBlockType: json['timeBlockType'],
+      availabilityMode: json['availabilityMode'],
+      newClientPolicy: json['newClientPolicy'],
     );
   }
 
@@ -90,6 +111,13 @@ class VendorAvailabilityModel {
       'currentBookings': currentBookings,
       'notes': notes,
       'showVenues': showVenues,
+      'unavailableStart': unavailableStart?.toIso8601String(),
+      'unavailableEnd': unavailableEnd?.toIso8601String(),
+      'locationType': locationType,
+      'capacityType': capacityType,
+      'timeBlockType': timeBlockType,
+      'availabilityMode': availabilityMode,
+      'newClientPolicy': newClientPolicy,
     };
   }
 

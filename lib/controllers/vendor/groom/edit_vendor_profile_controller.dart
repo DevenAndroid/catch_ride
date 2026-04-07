@@ -83,6 +83,26 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> existingPhotos = <String>[].obs;
   final RxList<File> newPhotos = <File>[].obs;
 
+  // Farrier Tab Specifics
+  final RxList farrierServices = [].obs;
+  final RxList farrierAddOns = [].obs;
+  final RxList<String> certificationOptions = <String>['AFA Certified Journeyman Farrier (CJF)', 'AFA Certified Farrier (CF)', 'AFA Certified Tradesman Farrier (CTF)', 'BWFA Masters', 'DipWCF (Worshipful Company ...)', 'Other'].obs;
+  final RxList<String> selectedCertifications = <String>[].obs;
+  final otherCertificationController = TextEditingController();
+
+  final RxList<String> farrierScopeOptions = <String>['Routine trimming/shoeing', 'Glue-on / specialty shoes', 'Barefoot / Natural Balance', 'Corrective/Therapeutic shoeing', 'Draft horses', 'Donkeys/Mules', 'Upper-level performance horses', 'Other'].obs;
+  final RxList<String> selectedFarrierScope = <String>[].obs;
+  final otherFarrierScopeController = TextEditingController();
+
+  // Farrier Travel & Fees
+  final RxList<Map<String, dynamic>> farrierTravelFees = <Map<String, dynamic>>[].obs;
+  
+  // Farrier Client Intake
+  final RxnString farrierNewClientPolicy = RxnString();
+  final farrierMinHorsesController = TextEditingController(text: '1');
+  final RxBool farrierEmergencySupport = false.obs;
+  final RxnString farrierInsuranceStatus = RxnString();
+
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -156,23 +176,51 @@ class EditVendorProfileController extends GetxController {
       selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
       
       facebookController.text = profileData['socialMedia']?['facebook'] ?? '';
-      instagramController.text = profileData['socialMedia']?['instagram'] ?? '';
-      
       // Capabilities based on service type
       if (activeService['serviceType'] == 'Grooming') {
         selectedSupport.assignAll(List<String>.from(profileData['capabilities']?['support'] ?? []));
         selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
         selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
-      } else if (activeService['serviceType'] == 'Braiding') {
-        final List bServices = profileData['services'] ?? [];
-        braidingServices.assignAll(bServices.map((s) => {
-          'name': s['name'] ?? '',
-          'price': TextEditingController(text: s['price']?.toString() ?? ''),
-          'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
-        }).toList());
-      }
+      } else if (activeService['serviceType'] == 'Braiding' || activeService['serviceType'] == 'Clipping') {
+          final List bServices = profileData['services'] ?? [];
+          braidingServices.assignAll(bServices.map((s) => {
+            'name': s['name'] ?? '',
+            'price': TextEditingController(text: s['price']?.toString() ?? ''),
+            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+          }).toList());
+        } else if (activeService['serviceType'] == 'Farrier') {
+          final List fServices = profileData['services'] ?? [];
+          farrierServices.assignAll(fServices.map((s) => {
+            'name': s['name'] ?? '',
+            'price': TextEditingController(text: s['price']?.toString() ?? ''),
+            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+          }).toList());
 
-      selectedTravel.assignAll(List<String>.from(profileData['travelPreferences'] ?? []));
+          final List aServices = profileData['addOns'] ?? [];
+          farrierAddOns.assignAll(aServices.map((s) => {
+            'name': s['name'] ?? '',
+            'price': TextEditingController(text: s['price']?.toString() ?? ''),
+            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+          }).toList());
+
+          selectedCertifications.assignAll(List<String>.from(appData['certifications'] ?? []));
+          otherCertificationController.text = appData['otherCertification'] ?? '';
+          selectedFarrierScope.assignAll(List<String>.from(appData['scopeOfWork'] ?? []));
+          otherFarrierScopeController.text = appData['otherScope'] ?? '';
+
+          final List travelFees = profileData['travelPreferences'] ?? [];
+          farrierTravelFees.assignAll(travelFees.map((t) => Map<String, dynamic>.from(t)).toList());
+
+          farrierNewClientPolicy.value = appData['clientIntake']?['policy'];
+          farrierMinHorsesController.text = appData['clientIntake']?['minHorses']?.toString() ?? '1';
+          farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? false;
+          farrierInsuranceStatus.value = appData['insuranceStatus'];
+        }
+
+      final travelPrefRaw = profileData['travelPreferences'] ?? [];
+      if (travelPrefRaw is List) {
+        selectedTravel.assignAll(travelPrefRaw.map((e) => (e is Map) ? (e['type']?.toString() ?? '') : e.toString()).where((s) => s.isNotEmpty).toList());
+      }
       
       cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
       isCustomCancellation.value = profileData['cancellationPolicy']?['isCustom'] ?? false;
@@ -400,6 +448,90 @@ class EditVendorProfileController extends GetxController {
             'services': braidingServicesPayload,
             'additionalSkills': selectedAdditionalSkills.toList(),
             'travelPreferences': selectedTravel.toList(),
+            'cancellationPolicy': {
+              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+            },
+            'media': groomingMedia,
+          }
+        };
+      }
+
+      // Construct clipping payload if assigned
+      if (assignedServices.any((s) => s['serviceType'] == 'Clipping')) {
+        servicesData['clipping'] = {
+          'applicationData': {
+            'homeBase': {
+              'city': cityController.text,
+              'state': stateController.text,
+              'country': countryController.text,
+            },
+            'experience': experience.value,
+            'disciplines': selectedDisciplines.toList(),
+            'otherDiscipline': otherDisciplineController.text,
+            'horseLevels': selectedHorseLevels.toList(),
+            'regions': selectedRegions.toList(),
+            'media': groomingMedia,
+          },
+          'profileData': {
+            'socialMedia': {
+              'facebook': facebookController.text,
+              'instagram': instagramController.text,
+            },
+            'services': braidingServicesPayload, // Reuse services logic as they share same structure
+            'additionalSkills': selectedAdditionalSkills.toList(),
+            'travelPreferences': selectedTravel.toList(),
+            'cancellationPolicy': {
+              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+            },
+            'media': groomingMedia,
+          }
+        };
+      }
+
+      // Construct farrier payload if assigned
+      if (assignedServices.any((s) => s['serviceType'] == 'Farrier')) {
+        servicesData['farrier'] = {
+          'applicationData': {
+            'homeBase': {
+              'city': cityController.text,
+              'state': stateController.text,
+              'country': countryController.text,
+            },
+            'experience': experience.value,
+            'disciplines': selectedDisciplines.toList(),
+            'otherDiscipline': otherDisciplineController.text,
+            'horseLevels': selectedHorseLevels.toList(),
+            'regions': selectedRegions.toList(),
+            'certifications': selectedCertifications.toList(),
+            'otherCertification': otherCertificationController.text,
+            'scopeOfWork': selectedFarrierScope.toList(),
+            'otherScope': otherFarrierScopeController.text,
+            'clientIntake': {
+              'policy': farrierNewClientPolicy.value,
+              'minHorses': int.tryParse(farrierMinHorsesController.text) ?? 1,
+              'emergencySupport': farrierEmergencySupport.value,
+            },
+            'insuranceStatus': farrierInsuranceStatus.value,
+            'media': groomingMedia,
+          },
+          'profileData': {
+            'socialMedia': {
+              'facebook': facebookController.text,
+              'instagram': instagramController.text,
+            },
+            'services': farrierServices.map((s) => {
+              'name': s['name'],
+              'price': s['price'].text,
+              'isSelected': s['isSelected'].value,
+            }).toList(),
+            'addOns': farrierAddOns.map((s) => {
+              'name': s['name'],
+              'price': s['price'].text,
+              'isSelected': s['isSelected'].value,
+            }).toList(),
+            'travelPreferences': farrierTravelFees.toList(),
             'cancellationPolicy': {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,

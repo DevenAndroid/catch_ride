@@ -8,6 +8,9 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/common_textfield.dart';
 import '../../braiding/profile/braiding_service_rates_tab.dart';
+import '../../clipping/profile/clipping_service_rates_tab.dart';
+import '../../farrier/profile/farrier_service_rates_tab.dart';
+import '../../../../controllers/vendor/farrier/farrier_details_controller.dart' as fdc; 
 
 class ServicesRatesView extends StatefulWidget {
   const ServicesRatesView({super.key});
@@ -74,7 +77,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
+          icon:  Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
           onPressed: () => Get.back(),
         ),
         title: const CommonText('Services & Rates', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
@@ -110,6 +113,13 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                 padding: EdgeInsets.all(20),
                 child: BraidingServiceRatesTab(),
               );
+            } else if (type.contains('clip')) {
+              return const SingleChildScrollView(
+                padding: EdgeInsets.all(20),
+                child: ClippingServiceRatesTab(),
+              );
+            } else if (type.contains('farrier')) {
+              return const FarrierServiceRatesTab();
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -481,14 +491,45 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
               child: CommonButton(
                 text: 'Save',
                 onPressed: () async {
-                  final success = await controller.updateGroomingRates(
-                    daily: dailyController.text,
-                    weekly: weeklyController.text,
-                    weeklyDays: weeklyDays.value,
-                    monthly: monthlyController.text,
-                    monthlyDays: monthlyDays.value,
-                    additional: additionalServices.toList(),
-                  );
+                  final activeType = controller.activeServiceType.toLowerCase();
+                  bool success = false;
+
+                  if (activeType.contains('groom')) {
+                    success = await controller.updateGroomingRates(
+                      daily: dailyController.text,
+                      weekly: weeklyController.text,
+                      weeklyDays: weeklyDays.value,
+                      monthly: monthlyController.text,
+                      monthlyDays: monthlyDays.value,
+                      additional: additionalServices.toList(),
+                    );
+                  } else if (activeType.contains('braid')) {
+                    // Braiding tab handles its own local state usually or we can pull from its controller
+                    // For now, if braiding is active, we might need a generic or specialized save.
+                    // Usually tabs like BraidingServiceRatesTab should maybe handle their own save internally
+                    // OR we pull from Get.find<BraidingController>()
+                    Get.snackbar('Notice', 'Please use the save button within the tab.', backgroundColor: Colors.blue);
+                    return;
+                  } else if (activeType.contains('farrier')) {
+                    final farrierCtrl = Get.find<fdc.FarrierDetailsController>();
+                    success = await controller.updateFarrierServices(
+                      services: farrierCtrl.farrierServices
+                          .where((s) => s['isSelected'].value == true)
+                          .map((s) => {
+                                'name': s['name'],
+                                'price': (s['price'] as TextEditingController).text,
+                              })
+                          .toList(),
+                      addOns: farrierCtrl.addOns
+                          .where((s) => s['isSelected'].value == true)
+                          .map((s) => {
+                                'name': s['name'],
+                                'price': (s['price'] as TextEditingController).text,
+                              })
+                          .toList(),
+                    );
+                  }
+
                   if (success) {
                     Get.back();
                   }

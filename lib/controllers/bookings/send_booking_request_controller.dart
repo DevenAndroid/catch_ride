@@ -65,6 +65,10 @@ class SendBookingRequestController extends GetxController {
   }
 
   bool get isBraiding => selectedService.value.toLowerCase().contains('braid');
+  bool get isClipping => selectedService.value.toLowerCase().contains('clip');
+  bool get isFarrier => selectedService.value.toLowerCase().contains('farrier');
+  bool get isBodywork => selectedService.value.toLowerCase().contains('bodywork') || selectedService.value.toLowerCase().contains('massage');
+  bool get isShipping => selectedService.value.toLowerCase().contains('ship') || selectedService.value.toLowerCase().contains('transport');
 
   void toggleCoreService(String id) {
     if (selectedCoreServiceIds.contains(id)) {

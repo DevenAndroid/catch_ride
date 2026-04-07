@@ -40,9 +40,16 @@ class SendBookingRequestView extends StatelessWidget {
               const SizedBox(height: 16),
               _buildIncludedChips(controller),
               const SizedBox(height: 24),
-              Obx(() => controller.isBraiding ? _buildBraidingForm(controller) : _buildForm(controller)),
-              Obx(() => controller.isBraiding ? const SizedBox.shrink() : const SizedBox(height: 24)),
-              Obx(() => controller.isBraiding ? const SizedBox.shrink() : _buildAdditionalServices(controller)),
+              Obx(() {
+                if (controller.isBraiding) return _buildBraidingForm(controller);
+                if (controller.isClipping) return _buildClippingForm(controller);
+                if (controller.isFarrier) return _buildFarrierForm(controller);
+                if (controller.isBodywork) return _buildBodyworkForm(controller);
+                if (controller.isShipping) return _buildShippingForm(controller);
+                return _buildForm(controller);
+              }),
+              Obx(() => (controller.isBraiding || controller.isClipping || controller.isFarrier || controller.isBodywork || controller.isShipping) ? const SizedBox.shrink() : const SizedBox(height: 24)),
+              Obx(() => (controller.isBraiding || controller.isClipping || controller.isFarrier || controller.isBodywork || controller.isShipping) ? const SizedBox.shrink() : _buildAdditionalServices(controller)),
               const SizedBox(height: 12),
               _buildAddServiceButton(controller),
               const SizedBox(height: 24),
@@ -215,8 +222,8 @@ class SendBookingRequestView extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFF8F9FB),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.primary.withOpacity(0.3), width: 1.5),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))],
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,6 +328,355 @@ class SendBookingRequestView extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Braider', 'Add a note for the service provider...', controller.notesController),
+      ],
+    );
+  }
+
+  Widget _buildClippingForm(SendBookingRequestController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        const SizedBox(height: 16),
+        Obx(() => Column(
+          children: controller.coreServicesList.map((service) {
+            final isSelected = controller.selectedCoreServiceIds.contains(service['id']);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => controller.toggleCoreService(service['id']),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF00083B) : const Color(0xFFE4E7EC),
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFF00083B) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFD0D5DD), width: 2),
+                        ),
+                        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      CommonText('\$ ${service['price']} / horse', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+        const SizedBox(height: 12),
+        // Number of Horses
+        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], controller.selectedNumHorses),
+        const SizedBox(height: 20),
+        // Location
+        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        const SizedBox(height: 20),
+        // Start Date and End Date
+        Row(
+          children: [
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildTextField('Notes To Your Clipping Service', 'Add a note for the service provider...', controller.notesController),
+      ],
+    );
+  }
+
+  Widget _buildFarrierForm(SendBookingRequestController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        const SizedBox(height: 16),
+        Obx(() => Column(
+          children: controller.coreServicesList.map((service) {
+            final isSelected = controller.selectedCoreServiceIds.contains(service['id']);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => controller.toggleCoreService(service['id']),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF00083B) : const Color(0xFFE4E7EC),
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFF00083B) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFD0D5DD), width: 2),
+                        ),
+                        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      CommonText('\$ ${service['price']} / horse', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+        const SizedBox(height: 12),
+        // Number of Horses
+        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], controller.selectedNumHorses),
+        const SizedBox(height: 20),
+        // Location
+        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        const SizedBox(height: 20),
+        // Start Date and End Date
+        Row(
+          children: [
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildTextField('Notes To Your Farrier', 'Add a note for the service provider...', controller.notesController),
+      ],
+    );
+  }
+
+  Widget _buildBodyworkForm(SendBookingRequestController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        const SizedBox(height: 16),
+        Obx(() => Column(
+          children: controller.coreServicesList.map((service) {
+            final isSelected = controller.selectedCoreServiceIds.contains(service['id']);
+            // Session info from naming or special data
+            final String sessionInfo = service['session'] ?? '30 mins session:';
+            
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => _showSessionBottomSheet(controller, service),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF00083B) : const Color(0xFFE4E7EC),
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFF00083B) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFD0D5DD), width: 2),
+                        ),
+                        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                            CommonText(sessionInfo, fontSize: 12, color: AppColors.textSecondary),
+                          ],
+                        ),
+                      ),
+                      CommonText('\$ ${service['price']}', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+        const SizedBox(height: 12),
+        // Number of Horses
+        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
+        const SizedBox(height: 20),
+        // Location
+        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        const SizedBox(height: 20),
+        // Start Date and End Date
+        Row(
+          children: [
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildTextField('Notes To Your Bodywork Specialist', 'Add a note for the service provider...', controller.notesController),
+      ],
+    );
+  }
+
+  void _showSessionBottomSheet(SendBookingRequestController controller, Map<String, dynamic> service) {
+    // Session options (Mocking for now as shown in image)
+    final sessions = [
+      {'label': '30 mins', 'price': 150},
+      {'label': '45 mins', 'price': 250},
+      {'label': '60 mins', 'price': 300},
+      {'label': '90 mins', 'price': 450},
+    ];
+    
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const CommonText('Choose Session', fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            ...sessions.map((session) {
+              final isThis = service['session'] == session['label'];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: GestureDetector(
+                  onTap: () {
+                    // Update controller/service state
+                    controller.toggleCoreService(service['id']);
+                    Get.back();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isThis ? const Color(0xFF00083B) : const Color(0xFFE4E7EC), width: isThis ? 2 : 1),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(isThis ? Icons.radio_button_checked : Icons.radio_button_off, 
+                                 color: isThis ? const Color(0xFF00083B) : Colors.grey, size: 20),
+                            const SizedBox(width: 12),
+                            CommonText(session['label'].toString(), fontSize: 14, fontWeight: isThis ? FontWeight.bold : FontWeight.normal),
+                          ],
+                        ),
+                        CommonText('\$ ${session['price']}', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _buildShippingForm(SendBookingRequestController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 24),
+        const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        const SizedBox(height: 16),
+        Obx(() => Column(
+          children: controller.coreServicesList.map((service) {
+            final isSelected = controller.selectedCoreServiceIds.contains(service['id']);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => controller.toggleCoreService(service['id']),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF00083B) : const Color(0xFFE4E7EC),
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFF00083B) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFD0D5DD), width: 2),
+                        ),
+                        child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      ),
+                      CommonText('\$ ${service['price']} / per mile', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+        const SizedBox(height: 12),
+        // Number of Horses
+        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
+        const SizedBox(height: 20),
+        // Origin Location
+        _buildTextFieldWithLabel('Origin Location', 'Enter Location', controller.notesController),
+        const SizedBox(height: 20),
+        // Destination Location
+        _buildTextFieldWithLabel('Destination location', 'Enter Location', controller.notesController),
+        const SizedBox(height: 20),
+        // Start Date and End Date
+        Row(
+          children: [
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        _buildTextField('Notes To Your Shipper', 'Add a note for the service provider...', controller.notesController),
       ],
     );
   }
@@ -479,6 +835,31 @@ class SendBookingRequestView extends StatelessWidget {
           child: TextField(
             controller: controller,
             maxLines: 3,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTextFieldWithLabel(String label, String hint, TextEditingController fieldController) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFE4E7EC)),
+          ),
+          child: TextField(
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
