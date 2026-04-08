@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../../models/user_model.dart';
 import '../../../utils/url_helper.dart';
 import 'edit_profile.dart';
 
@@ -38,6 +39,18 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         _controller.fetchProfile();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    // Clear viewed user when leaving this screen to prevent state leakage
+    // only if we were actually viewing someone else
+    if (widget.trainerId != null &&
+        widget.trainerId != _controller.user.value?.trainerProfileId) {
+      _controller.viewedUser.value = null;
+      _controller.viewedUserHorses.clear();
+    }
+    super.dispose();
   }
 
   @override
@@ -93,7 +106,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                         bottomRight: Radius.circular(24),
                       ),
                       child: CommonImageView(
-                        url: _controller.coverImage,
+                        url: profile.coverImage,
                         height: 200,
                         width: double.infinity,
                         fit: BoxFit.cover,
@@ -190,7 +203,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                           ],
                         ),
                         child: CommonImageView(
-                          url: _controller.avatar,
+                          url: profile.displayAvatar,
                           height: 110,
                           width: 110,
                           shape: BoxShape.circle,
@@ -217,17 +230,15 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                               children: [
                                 CommonText(
                                   _controller.fullName.isEmpty
-                                      ? 'N/A'
-                                      : _controller.fullName,
+                                      ? 'N/A' :
+                                  profile.fullName,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textPrimary,
                                 ),
                                 const SizedBox(height: 4),
                                 CommonText(
-                                  _controller.barnName.isEmpty
-                                      ? 'N/A'
-                                      : _controller.barnName,
+                                  profile.barnName ?? 'N/A',
                                   fontSize: 16,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w500,
@@ -243,14 +254,14 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                     ),
                                     const SizedBox(width: 4),
                                     CommonText(
-                                      _controller.location.isEmpty
+                                      profile.location?.isEmpty ?? true
                                           ? 'N/A'
-                                          : _controller.location,
+                                          : profile.location!,
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textSecondary,
                                     ),
-                                    if (_controller.location2.isNotEmpty) ...[
+                                    if (profile.location2?.isNotEmpty ?? false) ...[
                                       const Padding(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 6.0,
@@ -261,7 +272,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         ),
                                       ),
                                       CommonText(
-                                        _controller.location2,
+                                        profile.location2!,
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.textSecondary,
@@ -273,15 +284,15 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    if (_controller.disciplines.isNotEmpty) ...[
+                                    if (_controller.getDisciplines(profile).isNotEmpty) ...[
                                       CommonText(
-                                        _controller.disciplines.join(" / ") +
+                                        _controller.getDisciplines(profile).join(" / ") +
                                             (" Trainer"),
                                         fontSize: 15,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                      if (_controller.yearsExperience > 0)
+                                      if (profile.yearsExperience > 0)
                                         const Padding(
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 6.0,
@@ -293,9 +304,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                           ),
                                         ),
                                     ],
-                                    if (_controller.yearsExperience > 0)
+                                    if (profile.yearsExperience > 0)
                                       CommonText(
-                                        '${_controller.yearsExperience}+ Years',
+                                        '${profile.yearsExperience}+ Years',
                                         fontSize: 15,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
@@ -311,7 +322,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                       if (hasBio) ...[
                         const SizedBox(height: 24),
                         CommonText(
-                          _controller.bio,
+                          profile.bio ?? '',
                           fontSize: 14,
                           color: AppColors.textSecondary,
                           height: 1.6,
@@ -365,7 +376,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
                       const SizedBox(height: 32),
 
-                      _buildProfessionalInfoCard(),
+                      _buildProfessionalInfoCard(profile),
 
                       const SizedBox(height: 24),
 
@@ -419,9 +430,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     );
   }
 
-  Widget _buildProfessionalInfoCard() {
-    final tags = _controller.groupedTrainerTags;
-    final horseShows = _controller.selectedHorseShows;
+  Widget _buildProfessionalInfoCard(UserModel profile) {
+    final tags = _controller.getGroupedTags(profile);
+    final horseShows = profile.showCircuits;
 
     final Map<String, List<String>> filteredTags = Map.from(tags)
       ..remove('Discipline')

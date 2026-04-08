@@ -10,7 +10,9 @@ import '../../../../widgets/common_textfield.dart';
 import '../../braiding/profile/braiding_service_rates_tab.dart';
 import '../../clipping/profile/clipping_service_rates_tab.dart';
 import '../../farrier/profile/farrier_service_rates_tab.dart';
+import '../../bodywork/profile/bodywork_service_rates_tab.dart';
 import '../../../../controllers/vendor/farrier/farrier_details_controller.dart' as fdc; 
+import '../../../../controllers/vendor/bodywork/bodywork_details_controller.dart' as bdc;
 
 class ServicesRatesView extends StatefulWidget {
   const ServicesRatesView({super.key});
@@ -120,6 +122,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
               );
             } else if (type.contains('farrier')) {
               return const FarrierServiceRatesTab();
+            } else if (type.contains('bodywork') || type.contains('body work')) {
+              return const BodyworkServiceRatesTab();
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -527,8 +531,22 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                                 'price': (s['price'] as TextEditingController).text,
                               })
                           .toList(),
-                    );
-                  }
+                      );
+                    } else if (activeType.contains('bodywork') || activeType.contains('body work')) {
+                      final bodyworkCtrl = Get.find<bdc.BodyworkDetailsController>();
+                      success = await controller.updateBodyworkServices(
+                        services: bodyworkCtrl.services
+                            .where((s) => s['isSelected'] == true)
+                            .map((s) => {
+                                  'name': s['name'],
+                                  'rates': s['rates'],
+                                  'note': s['note'],
+                                  'trainerPresence': s['trainerPresence'],
+                                  'vetApproval': s['vetApproval'],
+                                })
+                            .toList(),
+                      );
+                    }
 
                   if (success) {
                     Get.back();

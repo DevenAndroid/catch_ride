@@ -78,6 +78,7 @@ class BodyworkApplicationView extends StatelessWidget {
 
                     Obx(() {
                       controller.selectedState.value; // Track state changes
+                      controller.isLoadingStates.value; // Track loading status
                       return FormField<Map<String, dynamic>>(
                       validator: (value) => controller.selectedState.value == null ? 'Please select state' : null,
                       builder: (state) => Column(
@@ -108,6 +109,7 @@ class BodyworkApplicationView extends StatelessWidget {
                     _buildSectionHeader('City', isRequired: true),
                     Obx(() {
                       controller.selectedCity.value; // Track city changes
+                      controller.isLoadingCities.value; // Track loading status
                       return FormField<Map<String, dynamic>>(
                       validator: (value) => controller.selectedCity.value == null ? 'Please select city' : null,
                       builder: (state) => Column(
@@ -225,6 +227,7 @@ class BodyworkApplicationView extends StatelessWidget {
                   children: [
                     Obx(() {
                       controller.selectedCertifications.length; // Track list changes
+                      controller.certificationOptions.length; // Track options changes
                       return FormField<List<String>>(
                       validator: (value) => controller.selectedCertifications.isEmpty ? 'Please select at least one' : null,
                       builder: (state) => Column(
@@ -348,6 +351,7 @@ class BodyworkApplicationView extends StatelessWidget {
                   children: [
                     Obx(() {
                       controller.selectedDisciplines.length; // Track list changes
+                      controller.disciplineOptions.length; // Track options changes
                       return FormField<List<String>>(
                       validator: (value) => controller.selectedDisciplines.isEmpty ? 'Please select at least one' : null,
                       builder: (state) => Column(
@@ -408,6 +412,7 @@ class BodyworkApplicationView extends StatelessWidget {
                   children: [
                     Obx(() {
                       controller.selectedHorseLevels.length; // Track list changes
+                      controller.horseLevelOptions.length; // Track options changes
                       return FormField<List<String>>(
                       validator: (value) => controller.selectedHorseLevels.isEmpty ? 'Please select at least one' : null,
                       builder: (state) => Column(
@@ -455,6 +460,8 @@ class BodyworkApplicationView extends StatelessWidget {
                   children: [
                     Obx(() {
                       controller.selectedRegions.length; // Track list changes
+                      controller.regionOptions.length; // Track options changes
+                      controller.isLoadingTags.value; // Track loading status
                       return FormField<List<String>>(
                       validator: (value) => controller.selectedRegions.isEmpty ? 'Please select at least one region' : null,
                       builder: (state) => Column(

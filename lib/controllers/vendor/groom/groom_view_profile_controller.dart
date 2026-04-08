@@ -13,6 +13,8 @@ class GroomViewProfileController extends GetxController {
   final RxList<dynamic> allAssignedServices = <dynamic>[].obs;
   final RxInt currentServiceIndex = 0.obs;
 
+  final RxList<Map<String, dynamic>> bodyworkServices = <Map<String, dynamic>>[].obs;
+
   final RxList<Map<String, dynamic>> additionalServices = <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> availabilityList = <Map<String, dynamic>>[].obs;
   final RxBool isAvailabilityLoading = false.obs;
@@ -69,16 +71,19 @@ class GroomViewProfileController extends GetxController {
     final profile = activeService['profile'] ?? {};
     final profileDataMap = profile['profileData'] ?? {};
     
-    final List services = profileDataMap['additionalServices'] ?? [];
-    additionalServices.assignAll(services.cast<Map<String, dynamic>>());
+    final List addServices = profileDataMap['additionalServices'] ?? [];
+    additionalServices.assignAll(addServices.cast<Map<String, dynamic>>());
+
+    final List bwServices = profileDataMap['services'] ?? profileDataMap['additionalServices'] ?? [];
+    bodyworkServices.assignAll(bwServices.cast<Map<String, dynamic>>());
     
     // 2. Process Application Data
     final application = activeService['application'] ?? {};
     final appDataMap = application['applicationData'] ?? {};
     
     // Map application fields
-    final city = appDataMap['homeBase']?['city'] ?? '';
-    final state = appDataMap['homeBase']?['state'] ?? '';
+    final city = appDataMap['homeBase']?['city'] ?? appDataMap['location']?['city'] ?? '';
+    final state = appDataMap['homeBase']?['state'] ?? appDataMap['location']?['state'] ?? '';
     locationStr.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
     
     experienceStr.value = appDataMap['experience'] != null ? '${appDataMap['experience']} Years' : 'N/A';
@@ -287,6 +292,40 @@ class GroomViewProfileController extends GetxController {
       }
     } catch (e) {
       debugPrint('Update farrier services error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateBodyworkServices({
+    required List<Map<String, dynamic>> services,
+  }) async {
+    try {
+      isLoading.value = true;
+      final vendorId = vendorData['_id'];
+
+      final payload = {
+        'servicesData': {
+          'bodywork': {
+            'profileData': {
+              'services': services,
+            }
+          }
+        }
+      };
+
+      final response = await _apiService.putRequest('/vendors/$vendorId', payload);
+      if (response.statusCode == 200) {
+        await fetchProfile();
+        Get.snackbar('Success', 'Bodywork services updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+        return true;
+      } else {
+        Get.snackbar('Error', response.body['message'] ?? 'Failed to update bodywork services', backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Update bodywork services error: $e');
       return false;
     } finally {
       isLoading.value = false;

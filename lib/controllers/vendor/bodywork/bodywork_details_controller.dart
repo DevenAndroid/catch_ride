@@ -10,7 +10,12 @@ import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_applicat
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/view/vendor/complete_profile_view.dart';
+import 'package:catch_ride/view/vendor/profile_completed_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
+import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:collection/collection.dart';
+import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
+import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 
 class BodyworkDetailsController extends GetxController {
   final apiService = Get.find<ApiService>();
@@ -23,15 +28,20 @@ class BodyworkDetailsController extends GetxController {
   final regionsCovered = <String>[].obs;
 
   // Services
-  final services = <Map<String, dynamic>>[
-    {'name': 'Equine massage', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-    {'name': 'Myofascial release', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-    {'name': 'PEMF', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-    {'name': 'Chiropractic', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-    {'name': 'Acupuncture', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-    {'name': 'Laser therapy', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-    {'name': 'Red Light', 'isSelected': false, 'rates': {'30': '', '45': '', '60': '', '90': ''}},
-  ].obs;
+  final services = <Map<String, dynamic>>[].obs;
+  // Fallback services in case API fails
+  final List<String> fallbackServices = [
+    'Equine massage',
+    'Myofascial release',
+    'PEMF',
+    'Chiropractic',
+    'Acupuncture',
+    'Laser therapy',
+    'Red Light',
+  ];
+
+  final isLoadingServices = false.obs;
+  final editingService = Rxn<Map<String, dynamic>>();
 
   // Certifications
   final certifications = <File>[].obs;
@@ -43,7 +53,7 @@ class BodyworkDetailsController extends GetxController {
   final insuranceOptions = ['Carries Insurance', 'Insurance available upon request', 'Not currently insured'];
 
   // Travel Preferences
-  final selectedTravel = <String>[].obs;
+  final selectedTravel = <String, Map<String, dynamic>>{}.obs;
   final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
 
   // Cancellation Policy
@@ -58,7 +68,57 @@ class BodyworkDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchBodyworkData();
+    initialLoading();
+  }
+
+  Future<void> initialLoading() async {
+    isDataLoading.value = true;
+    await fetchDynamicServices();
+    await fetchBodyworkData();
+    isDataLoading.value = false;
+  }
+
+  Future<void> fetchDynamicServices() async {
+    isLoadingServices.value = true;
+    try {
+      final Response response = await apiService.getRequest('/system-config/tag-types/with-values?category=Bodywork');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final List types = response.body['data'];
+        final serviceType = types.firstWhereOrNull((t) => t['name'] == 'Bodywork Services' || t['name'] == 'Services');
+        
+        if (serviceType != null) {
+          final List<String> names = List<String>.from(serviceType['values'].map((v) => v['name']));
+          services.assignAll(names.map((name) => {
+            'name': name,
+            'isSelected': false,
+            'rates': {'30': '', '45': '', '60': '', '90': ''},
+            'note': '',
+            'trainerPresence': null,
+            'vetApproval': null,
+          }).toList());
+        } else {
+          _setFallbackServices();
+        }
+      } else {
+        _setFallbackServices();
+      }
+    } catch (e) {
+      debugPrint('Error fetching services: $e');
+      _setFallbackServices();
+    } finally {
+      isLoadingServices.value = false;
+    }
+  }
+
+  void _setFallbackServices() {
+    services.assignAll(fallbackServices.map((name) => {
+      'name': name,
+      'isSelected': false,
+      'rates': {'30': '', '45': '', '60': '', '90': ''},
+      'note': '',
+      'trainerPresence': null,
+      'vetApproval': null,
+    }).toList());
   }
 
   Future<void> fetchBodyworkData() async {
@@ -70,23 +130,80 @@ class BodyworkDetailsController extends GetxController {
         final List assignedServices = vendor['assignedServices'] ?? [];
         final bodyworkService = assignedServices.firstWhere((s) => s['serviceType'] == 'Bodywork', orElse: () => null);
 
-        if (bodyworkService != null && bodyworkService['application'] != null) {
-          final applicationData = bodyworkService['application']['applicationData'] ?? {};
-          
-          final city = applicationData['homeBase']?['city'] ?? '';
-          final state = applicationData['homeBase']?['state'] ?? '';
-          if (city.isNotEmpty && state.isNotEmpty) {
-            location.value = '$city, $state, USA';
+          if (bodyworkService != null) {
+            final applicationData = bodyworkService['application']?['applicationData'] ?? {};
+            final profileData = bodyworkService['profile']?['profileData'] ?? {};
+
+            // Application data
+            final city = applicationData['homeBase']?['city'] ?? '';
+            final state = applicationData['homeBase']?['state'] ?? '';
+            if (city.isNotEmpty && state.isNotEmpty) {
+              location.value = '$city, $state, USA';
+            }
+
+            if (applicationData['experience'] != null) {
+              experience.value = '${applicationData['experience']} years';
+            }
+
+            disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
+            horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
+            regionsCovered.assignAll(List<String>.from(applicationData['regions'] ?? []));
+
+            // Load/Merge Services & Rates
+            final List existingServices = profileData['services'] ?? [];
+            if (existingServices.isNotEmpty) {
+              for (var existing in existingServices) {
+                final index = services.indexWhere((s) => s['name'] == existing['name']);
+                if (index != -1) {
+                  services[index] = {
+                    'name': existing['name'],
+                    'isSelected': existing['isSelected'] ?? true,
+                    'rates': Map<String, dynamic>.from(existing['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+                    'note': existing['note'] ?? '',
+                    'trainerPresence': existing['trainerPresence'],
+                    'vetApproval': existing['vetApproval'],
+                  };
+                } else {
+                  // If it's a custom service not in the dynamic list, add it
+                  services.add({
+                    'name': existing['name'],
+                    'isSelected': existing['isSelected'] ?? true,
+                    'rates': Map<String, dynamic>.from(existing['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+                    'note': existing['note'] ?? '',
+                    'trainerPresence': existing['trainerPresence'],
+                    'vetApproval': existing['vetApproval'],
+                  });
+                }
+              }
+              services.refresh();
+            }
+
+            // Travel Preferences
+            final List travel = profileData['travelPreferences'] ?? [];
+            for (var t in travel) {
+              if (t is Map) {
+                selectedTravel[t['type'] ?? t['name'] ?? ''] = {
+                  'feeType': t['feeType'],
+                  'price': t['price'],
+                  'disclaimer': t['disclaimer'],
+                };
+              }
+            }
+
+            // Insurance
+            if (profileData['insurance'] != null) {
+              selectedInsurance.value = profileData['insurance']['status'] ?? 'Not currently insured';
+              if (profileData['insurance']['expirationDate'] != null) {
+                expirationDate.value = DateTime.tryParse(profileData['insurance']['expirationDate']);
+              }
+            }
+
+            // Policy
+            if (profileData['cancellationPolicy'] != null) {
+              selectedCancellationPolicy.value = profileData['cancellationPolicy']['policy'];
+              isCustomPolicy.value = profileData['cancellationPolicy']['isCustom'] ?? false;
+            }
           }
-          
-          if (applicationData['experience'] != null) {
-            experience.value = '${applicationData['experience']} years';
-          }
-          
-          disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
-          horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-          regionsCovered.assignAll(List<String>.from(applicationData['regions'] ?? []));
-        }
       }
     } catch (e) {
       debugPrint('Error fetching bodywork data: $e');
@@ -125,36 +242,121 @@ class BodyworkDetailsController extends GetxController {
     }
   }
 
-  Future<void> submitDetails() async {
-    isLoading.value = true;
+  Future<String?> _uploadFile(File file) async {
     try {
-      // Simulate API call for saving detailed service data
-      await Future.delayed(const Duration(seconds: 1));
-      
-      Get.snackbar('Success', 'Bodywork details saved successfully.', backgroundColor: AppColors.successPrimary, colorText: AppColors.cardColor);
-
-      // Handle Redirection to next service or success screen
-      final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
-      if (remaining.isNotEmpty) {
-        final nextService = remaining.first;
-        final nextRemaining = remaining.skip(1).toList();
-
-        if (nextService == 'Grooming') {
-          Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
-        } else if (nextService == 'Braiding') {
-          Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
-        } else if (nextService == 'Clipping') {
-          Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
-        } else if (nextService == 'Farrier') {
-          Get.off(() => const FarrierApplicationView(), arguments: {'remainingServices': nextRemaining});
-        } else {
-          Get.offAll(() => const CompleteProfileView());
-        }
-      } else {
-        Get.offAll(() => const CompleteProfileView());
+      final formData = FormData({
+        'media': MultipartFile(file, filename: file.path.split('/').last),
+        'type': 'bodywork_docs',
+      });
+      final response = await apiService.postRequest('/upload?type=bodywork_docs', formData);
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        return response.body['data']['filename'];
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to submit details');
+      debugPrint('Error uploading file: $e');
+    }
+    return null;
+  }
+
+  Future<void> submitDetails() async {
+    if (!services.any((s) => s['isSelected'] == true)) {
+      Get.snackbar('Missing Info', 'Please select at least one service', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      final vendorResponse = await apiService.getRequest('/vendors/me');
+      if (vendorResponse.statusCode != 200 || vendorResponse.body['success'] != true) {
+        Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+        return;
+      }
+      final vendorId = vendorResponse.body['data']['_id'];
+
+      // 1. Upload Certifications
+      final List<String> certKeys = [];
+      for (var cert in certifications) {
+        final key = await _uploadFile(cert);
+        if (key != null) certKeys.add(key);
+      }
+
+      // 2. Upload Insurance Doc
+      String? insuranceKey;
+      if (insuranceDocument.value != null) {
+        insuranceKey = await _uploadFile(insuranceDocument.value!);
+      }
+
+      // 3. Prepare Data
+      final bodyworkData = {
+        'services': services.where((s) => s['isSelected'] == true).map((s) => {
+          'name': s['name'],
+          'rates': s['rates'],
+          'note': s['note'],
+          'trainerPresence': s['trainerPresence'],
+          'vetApproval': s['vetApproval'],
+        }).toList(),
+        'certifications': certKeys,
+        'insurance': {
+          'status': selectedInsurance.value,
+          'document': insuranceKey,
+          'expirationDate': expirationDate.value?.toIso8601String(),
+        },
+        'travelPreferences': selectedTravel.entries.map((e) => {
+          'type': e.key,
+          'feeType': e.value['feeType'],
+          'price': e.value['price'],
+          'disclaimer': e.value['disclaimer'],
+        }).toList(),
+        'cancellationPolicy': {
+          'policy': selectedCancellationPolicy.value,
+          'isCustom': isCustomPolicy.value,
+        },
+        'isProfileCompleted': true,
+      };
+
+      final body = {
+        'servicesData': {
+          'bodywork': bodyworkData
+        },
+        'isProfileSetup': true,
+        'isProfileCompleted': true,
+      };
+
+      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final authController = Get.find<AuthController>();
+        await authController.updateUserMetadata();
+        
+        Get.snackbar('Success', 'Bodywork details saved successfully.', backgroundColor: AppColors.successPrimary, colorText: AppColors.cardColor);
+
+        // Handle Redirection
+        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+        if (remaining.isNotEmpty) {
+          final nextService = remaining.first;
+          final nextRemaining = remaining.skip(1).toList();
+
+          if (nextService == 'Grooming') {
+            Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Braiding') {
+            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Clipping') {
+            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Farrier') {
+            Get.off(() => const FarrierApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+             Get.offAll(() => const ProfileCompletedView(subtitle: 'Your bodywork services are now live',));
+          }
+        } else {
+          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your bodywork services are now live',));
+        }
+      } else {
+        final errorMsg = response.body['message'] ?? 'Failed to update bodywork details';
+        Get.snackbar('Error', errorMsg, backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+      }
+    } catch (e) {
+      debugPrint('Error submitting bodywork details: $e');
+      Get.snackbar('Error', 'Something went wrong. Please try again.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
     } finally {
       isLoading.value = false;
     }

@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:catch_ride/view/vendor/braiding/profile/braiding_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/clipping/profile/clipping_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/farrier/profile/farrier_edit_profile_tab.dart';
+import 'package:catch_ride/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart';
 import '../../../../widgets/common_textfield.dart';
 
 class EditVendorProfileView extends StatefulWidget {
@@ -133,6 +134,8 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                           return ClippingEditProfileTab(controller: controller);
                         } else if (service['serviceType'] == 'Farrier') {
                           return FarrierEditProfileTab(controller: controller);
+                        } else if (service['serviceType'] == 'Bodywork') {
+                          return BodyworkEditProfileTab(controller: controller);
                         }
                       }
                       return const Center(

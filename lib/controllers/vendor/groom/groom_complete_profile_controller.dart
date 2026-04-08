@@ -11,6 +11,7 @@ import '../../../view/vendor/braiding/profile_create/braiding_application_view.d
 import '../../../view/vendor/braiding/profile_create/braiding_details_view.dart';
 import '../../../view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import '../../../view/vendor/farrier/create_profile/farrier_details_view.dart';
+import '../../../view/vendor/shipping/create_profile/shipping_details_view.dart';
 import '../../../view/vendor/groom/groom_bottom_nav.dart';
 
 class GroomCompleteProfileController extends GetxController {
@@ -194,6 +195,9 @@ class GroomCompleteProfileController extends GetxController {
         }
         else if (services.contains('Bodywork')) {
           Get.off(() => const BodyworkDetailsView());
+        }
+        else if (services.contains('Shipping')) {
+          Get.off(() => const ShippingDetailsView());
         }
         else {
           Get.offAll(() => const GroomBottomNav());
