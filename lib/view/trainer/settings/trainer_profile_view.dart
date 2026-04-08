@@ -281,27 +281,30 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                      if (_controller.yearsExperience > 0)
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6.0,
-                                          ),
-                                          child: CommonText(
-                                            "·",
-                                            color: AppColors.textSecondary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
                                     ],
-                                    if (_controller.yearsExperience > 0)
-                                      CommonText(
-                                        '${_controller.yearsExperience}+ Years',
-                                        fontSize: 15,
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
+
+                                    if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.0,
+                                        ),
+                                        child: CommonText(
+                                          "·",
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                   ],
                                 ),
+                                if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
+                                  CommonText(
+                                    _controller.yearsExperience.contains('+') 
+                                        ? '${_controller.yearsExperience} Experience' 
+                                        : '${_controller.yearsExperience} Years Experience',
+                                    fontSize: 15,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                               ],
                             ),
                           ),

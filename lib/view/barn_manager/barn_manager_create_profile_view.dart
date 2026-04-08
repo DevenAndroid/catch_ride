@@ -323,64 +323,53 @@ class _BarnManagerCreateProfileViewState
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const CommonText(
-                              'Years in industry',
+                             const CommonText(
+                              AppStrings.yearsInIndustry,
+
                               fontSize: AppTextSizes.size14,
                               fontWeight: FontWeight.w500,
                               color: AppColors.textPrimary,
                             ),
                             const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () => _showSingleSelectBottomSheet(
-                                title: 'Years in industry',
-                                currentValue: _yearsInIndustryController.text,
-                                items: List.generate(
-                                  51,
-                                  (index) => index.toString(),
-                                ),
-                                onSelected: (val) {
-                                  setState(
-                                    () => _yearsInIndustryController.text = val,
-                                  );
-                                },
-                              ),
-                              child: Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.border),
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: Colors.white,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: CommonText(
-                                        _yearsInIndustryController.text.isEmpty
-                                            ? 'Select years'
-                                            : _yearsInIndustryController.text,
-                                        fontSize: 14,
-                                        color:
-                                            _yearsInIndustryController
-                                                .text
-                                                .isEmpty
-                                            ? AppColors.textSecondary
-                                                  .withOpacity(0.5)
-                                            : AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.keyboard_arrow_down,
-                                      color: AppColors.textSecondary,
-                                      size: 20,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                             DropdownButtonFormField<String>(
+                               value: _yearsInIndustryController.text.isEmpty ? null : _yearsInIndustryController.text,
+                               items: ['0-1', '2-4', '5-9', '10+'].map((String value) {
+                                 return DropdownMenuItem<String>(
+                                   value: value,
+                                   child: CommonText(value, fontSize: 14),
+                                 );
+                               }).toList(),
+                               onChanged: (val) {
+                                 setState(() => _yearsInIndustryController.text = val ?? '');
+                               },
+                               decoration: InputDecoration(
+                                 hintText: 'Select years',
+                                 hintStyle: TextStyle(
+                                   color: AppColors.textSecondary.withOpacity(0.5),
+                                   fontSize: 14,
+                                 ),
+                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                 border: OutlineInputBorder(
+                                   borderRadius: BorderRadius.circular(12),
+                                   borderSide: const BorderSide(color: AppColors.border),
+                                 ),
+                                 enabledBorder: OutlineInputBorder(
+                                   borderRadius: BorderRadius.circular(12),
+                                   borderSide: const BorderSide(color: AppColors.border),
+                                 ),
+                                 focusedBorder: OutlineInputBorder(
+                                   borderRadius: BorderRadius.circular(12),
+                                   borderSide: const BorderSide(color: AppColors.primary),
+                                 ),
+                                 filled: true,
+                                 fillColor: Colors.white,
+                               ),
+                               icon: const Icon(
+                                 Icons.keyboard_arrow_down,
+                                 color: AppColors.textSecondary,
+                                 size: 20,
+                               ),
+                             ),
                           ],
                         ),
                       ],
@@ -458,97 +447,7 @@ class _BarnManagerCreateProfileViewState
     );
   }
 
-  void _showSingleSelectBottomSheet({
-    required String title,
-    required String currentValue,
-    required List<String> items,
-    required Function(String) onSelected,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.95,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  child: CommonText(
-                    title,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final isSelected = item == currentValue;
-                      return InkWell(
-                        onTap: () {
-                          onSelected(item);
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: Colors.grey.shade100),
-                            ),
-                          ),
-                          child: Center(
-                            child: CommonText(
-                              item,
-                              fontSize: 16,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+
 }
 
 class DashPainter extends CustomPainter {

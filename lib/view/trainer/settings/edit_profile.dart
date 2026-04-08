@@ -76,8 +76,9 @@ class _EditProfileViewState extends State<EditProfileView> {
     _websiteController.text = profileController.user.value?.website ?? '';
     _instagramController.text = profileController.user.value?.instagram ?? '';
 
-    _selectedProgramTags.assignAll(profileController.selectedProgramTags);
-    _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+    _selectedProgramTags.assignAll(profileController.selectedProgramTags.map((e) => _toTitleCase(e)));
+    _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+
     _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
 
@@ -105,9 +106,10 @@ class _EditProfileViewState extends State<EditProfileView> {
                 .toString();
 
             _selectedProgramTags.assignAll(
-              profileController.selectedProgramTags,
+              profileController.selectedProgramTags.map((e) => _toTitleCase(e)),
             );
-            _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+            _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+
             _selectedHorseShowIds.assignAll(
               profileController.selectedHorseShowIds,
             );
@@ -508,7 +510,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 runSpacing: 12,
                 children: values.map((val) {
                   final tagId = val['_id'] ?? '';
-                  final tagName = val['name'] ?? '';
+                  final tagName = _toTitleCase(val['name'] ?? '');
                   final isSelected = _selectedTags.contains(tagId);
 
                   return GestureDetector(
@@ -629,7 +631,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           runSpacing: 12,
                           children: filteredValues.map((val) {
                             final tagId = val['_id'] ?? '';
-                            final tagName = val['name'] ?? '';
+                            final tagName = _toTitleCase(val['name'] ?? '');
                             final isSelected = _selectedTags.contains(tagId);
 
                             return GestureDetector(
@@ -915,11 +917,42 @@ class _EditProfileViewState extends State<EditProfileView> {
     );
   }
 
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text.toLowerCase().split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1);
+    }).join(' ');
+  }
+
   void _showHorseShowsBottomSheet() {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows =
-        RxList<Map<String, dynamic>>(allShows);
+
+    // Collect unique venue/circuit pairs
+    final Set<String> uniqueLabelsSet = {};
+    for (var show in allShows) {
+      String venue = _toTitleCase(show['showVenue']?.toString().trim() ?? '');
+      String circuit = _toTitleCase(show['circuit']?.toString().trim() ?? '');
+
+      String label = "";
+      if (venue.isNotEmpty && circuit.isNotEmpty) {
+        label = "$venue/$circuit";
+      } else if (venue.isNotEmpty) {
+        label = venue;
+      } else if (circuit.isNotEmpty) {
+        label = circuit;
+      } else {
+        label = _toTitleCase(show['name']?.toString().trim() ?? '');
+      }
+
+      if (label.isNotEmpty) {
+        uniqueLabelsSet.add(label);
+      }
+    }
+
+    final List<String> sortedLabels = uniqueLabelsSet.toList()..sort();
+    final RxList<String> filteredLabels = RxList<String>(sortedLabels);
 
     showModalBottomSheet(
       context: context,
@@ -957,18 +990,16 @@ class _EditProfileViewState extends State<EditProfileView> {
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredShows.assignAll(
-                        allShows
+                      filteredLabels.assignAll(
+                        sortedLabels
                             .where(
-                              (s) => (s['name'] as String)
-                                  .toLowerCase()
-                                  .contains(val.toLowerCase()),
+                              (s) => s.toLowerCase().contains(val.toLowerCase()),
                             )
                             .toList(),
                       );
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search horse shows...',
+                      hintText: 'Search Horse Shows & Circuits...',
                       prefixIcon: const Icon(
                         Icons.search,
                         color: AppColors.textSecondary,
@@ -993,26 +1024,22 @@ class _EditProfileViewState extends State<EditProfileView> {
                         () => Wrap(
                           spacing: 12,
                           runSpacing: 12,
-                          children: filteredShows.map((show) {
-                            final String id = show['_id'] ?? show['id'] ?? '';
-                            final String name = show['name'] ?? '';
-                            final isSelected = _selectedHorseShowIds.contains(
-                              id,
+                          children: filteredLabels.map((label) {
+                            final isSelected = _selectedHorseShows.contains(
+                              label,
                             );
 
                             return GestureDetector(
                               onTap: () {
                                 if (isSelected) {
-                                  _selectedHorseShowIds.remove(id);
-                                  _selectedHorseShows.remove(name);
+                                  _selectedHorseShows.remove(label);
                                 } else {
-                                  _selectedHorseShowIds.add(id);
-                                  _selectedHorseShows.add(name);
+                                  _selectedHorseShows.add(label);
                                 }
                               },
                               child: isSelected
-                                  ? _buildSelectedTag(name)
-                                  : _buildTag(name),
+                                  ? _buildSelectedTag(label)
+                                  : _buildTag(label),
                             );
                           }).toList(),
                         ),
@@ -1027,6 +1054,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       },
     );
   }
+
 
   void _showSingleSelectBottomSheet({
     required String title,

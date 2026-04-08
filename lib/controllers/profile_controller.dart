@@ -157,7 +157,7 @@ class ProfileController extends GetxController {
           location2: data['location2'] ?? '',
           bio: data['bio'] ?? '',
           barnName: data['barnName'] ?? '',
-          yearsExperience: data['yearsExperience'] ?? 0,
+          yearsExperience: data['yearsExperience']?.toString() ?? '0',
           avatar: data['profilePhoto'] ?? '',
           coverImage: data['coverImage'] ?? '',
           trainerProfileId: data['_id'],
@@ -215,7 +215,7 @@ class ProfileController extends GetxController {
           location2: data['location2'] ?? '',
           bio: data['bio'] ?? '',
           barnName: data['barnName'] ?? '',
-          yearsExperience: data['yearsExperience'] ?? 0,
+          yearsExperience: data['yearsExperience']?.toString() ?? '0',
           avatar: data['profilePhoto'] ??
               data['profile_photo'] ??
               data['avatar'] ??
@@ -389,7 +389,7 @@ class ProfileController extends GetxController {
 
   // Professional Data
   String get barnName => displayUser?.barnName ?? '';
-  int get yearsExperience => displayUser?.yearsExperience ?? 0;
+  String get yearsExperience => displayUser?.yearsExperience ?? '0';
   List<String> get selectedProgramTags => displayUser?.programTags ?? [];
   List<String> get selectedHorseShows {
     UserModel? target = displayUser;

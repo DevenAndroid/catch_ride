@@ -26,8 +26,10 @@ class _LoginViewState extends State<LoginView> {
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
 
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
