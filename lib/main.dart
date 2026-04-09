@@ -22,10 +22,10 @@ Future<void> main() async {
   
   await GetStorage.init();
 
-  /*
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  preferences.clear();
-*/
+  //
+  // SharedPreferences preferences = await SharedPreferences.getInstance();
+  // preferences.clear();
+
 
   // Initialize Services
   Get.put(ApiService());

@@ -459,17 +459,21 @@ class _TrainerCompleteProfileViewState
     final Set<String> uniqueLabelsSet = {};
     for (var show in allShows) {
       String venue = _toTitleCase(show['showVenue']?.toString().trim() ?? '');
+      if (venue == "-") venue = "";
       String circuit = _toTitleCase(show['circuit']?.toString().trim() ?? '');
+      if (circuit == "-") circuit = "";
       
       String label = "";
       if (venue.isNotEmpty && circuit.isNotEmpty) {
-        label = "$venue/$circuit";
+        label = "$venue • $circuit";
       } else if (venue.isNotEmpty) {
         label = venue;
       } else if (circuit.isNotEmpty) {
         label = circuit;
       } else {
-        label = _toTitleCase(show['name']?.toString().trim() ?? '');
+        String showName = _toTitleCase(show['name']?.toString().trim() ?? '');
+        if (showName == "-") showName = "";
+        label = showName;
       }
 
       if (label.isNotEmpty) {

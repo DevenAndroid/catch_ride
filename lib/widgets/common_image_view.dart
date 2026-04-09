@@ -124,6 +124,31 @@ class CommonImageView extends StatelessWidget {
       return _buildPlaceholder();
     }
 
+    // Handle Base64 strings directly
+    if (url!.startsWith('data:image')) {
+      try {
+        final String base64Data = url!.split(';base64,').last;
+        final decodedImage = Uri.parse(url!).data?.contentAsBytes();
+        if (decodedImage != null) {
+          return Container(
+            height: height,
+            width: width,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: AppColors.border.withOpacity(0.1),
+              shape: shape,
+              borderRadius: shape == BoxShape.circle
+                  ? null
+                  : BorderRadius.circular(radius),
+            ),
+            child: Image.memory(decodedImage, height: height, width: width, fit: fit),
+          );
+        }
+      } catch (e) {
+        debugPrint('❌ CommonImageView: Error decoding base64 image: $e');
+      }
+    }
+
     final imageUrl = _getProcessedUrl(url!);
 
     return Container(

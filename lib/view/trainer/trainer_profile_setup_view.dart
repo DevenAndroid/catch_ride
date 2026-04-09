@@ -152,6 +152,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                     onPressed: () async {
 
 
+                      // Get.to(() => const TrainerCompleteProfileView());
+                      // return;
+
                       // Helper for snackbars
                       void showError(String msg) {
                         Get.snackbar(

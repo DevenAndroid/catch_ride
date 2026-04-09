@@ -54,6 +54,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   }
 
   void _onClearAll() {
+    controller.clearAllFilters();
     setState(() {
       _selectedCategory = 'All';
       _searchController.clear();
@@ -61,6 +62,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       _rangeStart = null;
       _rangeEnd = null;
     });
+    controller.fetchHorses();
+    Get.back();
   }
 
   final List<Map<String, dynamic>> _categories = [
@@ -264,13 +267,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   children: [
                     Expanded(
                       child: _buildToggleItem(
-                        'City / Home',
+                        'CITY / HOME',
                         _locationType == 'City / Home',
                       ),
                     ),
                     Expanded(
                       child: _buildToggleItem(
-                        'Show Venue',
+                        'SHOW VENUE',
                         _locationType == 'Show Venue',
                       ),
                     ),

@@ -170,18 +170,17 @@ class _HorseListingViewState extends State<HorseListingView> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('🐴', style: TextStyle(fontSize: 72)),
                           const SizedBox(height: 20),
                           const CommonText(
-                            'Your stable is empty!',
+                            'Your Sales Start Here',
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 16),
                           const CommonText(
-                            'Every great trainer starts somewhere.\nList your first horse and let the rides find you.',
+                            'Add your first horse to share availability and connect with the right rides, trainers, and opportunities.',
                             fontSize: 14,
                             color: AppColors.textSecondary,
                             textAlign: TextAlign.center,
