@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:collection/collection.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
 
 class FarrierApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();

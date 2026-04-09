@@ -58,7 +58,7 @@ class MenuView extends StatelessWidget {
             _buildSectionHeader('Account Settings'),
             _buildMenuCard([
               _buildMenuItem(Icons.person_outline, 'Personal Information', onTap: () => Get.to(() => const PersonalInfoView())),
-              _buildMenuItem(Icons.edit_note, 'Edit Profile', onTap: () => Get.to(() => const EditVendorProfileView())),
+              _buildMenuItem(Icons.edit_note, 'Edit Profile', onTap: () => Get.to(() =>  EditVendorProfileView())),
               _buildMenuItem(Icons.bookmark_border, 'Login & Security', onTap: () => Get.to(() => const AccountSettingsView())),
               _buildMenuItem(Icons.notifications_outlined, 'Notifications', onTap: () => Get.to(() => const NotificationSettingsView())),
               _buildMenuItem(Icons.settings_outlined, 'Privacy and sharing'),

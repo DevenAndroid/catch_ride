@@ -8,6 +8,7 @@ import 'package:catch_ride/view/vendor/groom/profile/payment_methods.dart';
 import 'package:catch_ride/view/vendor/upcoming_availability.dart';
 import 'package:catch_ride/view/vendor/bodywork/profile/bodywork_service_and_rates_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile/grooming_service_and_rates_view.dart';
+import 'package:catch_ride/view/vendor/shipping/profile/shipping_service_and_rates_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -35,9 +36,9 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           _tabController.dispose();
           _tabController = TabController(length: length, vsync: this);
           _tabController.addListener(() {
-            final controller = Get.find<GroomViewProfileController>();
+            final groomController = Get.find<GroomViewProfileController>();
             if (!_tabController.indexIsChanging) {
-              controller.selectService(_tabController.index);
+              groomController.selectService(_tabController.index);
             }
           });
           setState(() {});
@@ -48,50 +49,50 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(GroomViewProfileController());
+    final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: Obx(() {
-        if (controller.isLoading.value) {
+        if (groomController.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
         return RefreshIndicator(
-          onRefresh: controller.fetchProfile,
+          onRefresh: groomController.fetchProfile,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(controller),
+                _buildHeader(groomController),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
-                      _buildBio(controller),
+                      _buildBio(groomController),
                       const SizedBox(height: 16),
-                      _buildHighlights(controller),
+                      _buildHighlights(groomController),
                       const SizedBox(height: 16),
-                      _buildSocials(controller),
+                      _buildSocials(groomController),
                       const SizedBox(height: 16),
-                      _buildPaymentMethods(controller),
+                      _buildPaymentMethods(groomController),
                       const SizedBox(height: 24),
                       Obx(() {
-                        if (controller.allAssignedServices.isNotEmpty) {
-                           _setupTabController(controller.allAssignedServices.length);
+                        if (groomController.allAssignedServices.isNotEmpty) {
+                           _setupTabController(groomController.allAssignedServices.length);
                         }
-                        return _buildTabs(controller);
+                        return _buildTabs(groomController);
                       }),
                       const SizedBox(height: 20),
-                      Obx(() => _buildDetailsCard(controller)),
+                      Obx(() => _buildDetailsCard(groomController)),
                       const SizedBox(height: 24),
-                      _buildPhotosSection(controller),
+                      _buildPhotosSection(groomController),
                       const SizedBox(height: 24),
-                      _buildAvailabilitySection(controller),
+                      _buildAvailabilitySection(groomController),
                       const SizedBox(height: 24),
-                      Obx(() => _buildCancellationPolicy(controller)),
+                      Obx(() => _buildCancellationPolicy(groomController)),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -104,7 +105,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildHeader(GroomViewProfileController controller) {
+  Widget _buildHeader(GroomViewProfileController groomController) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -115,7 +116,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
               height: 220,
               width: double.infinity,
               child: CommonImageView(
-                url: controller.coverImage,
+                url: groomController.coverImage,
                 fit: BoxFit.cover,
               ),
             ),
@@ -143,7 +144,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                 child: CommonImageView(
-                  url: controller.profilePhoto,
+                  url: groomController.profilePhoto,
                   height: 100,
                   width: 100,
                   shape: BoxShape.circle,
@@ -158,19 +159,19 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(controller.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
+              CommonText(groomController.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
               const SizedBox(height: 1),
-              CommonText(controller.businessNameDisplay, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+              CommonText(groomController.businessNameDisplay, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
               const SizedBox(height: 4),
               Row(
                 children: [
                   const Icon(Icons.location_on, color: Color(0xFFE11D48), size: 14),
                   const SizedBox(width: 4),
-                  Obx(() => CommonText(controller.locationStr.value, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                  Obx(() => CommonText(groomController.locationStr.value, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 4),
-              Obx(() => CommonText('${controller.activeServiceType}  •  ${controller.experienceStr.value}', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+              Obx(() => CommonText('${groomController.activeServiceType}  •  ${groomController.experienceStr.value}', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -178,11 +179,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildBio(GroomViewProfileController controller) {
+  Widget _buildBio(GroomViewProfileController groomController) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: CommonText(
-        controller.bioDisplay,
+        groomController.bioDisplay,
         fontSize: AppTextSizes.size14,
         color: AppColors.textSecondary,
         height: 1.5,
@@ -190,17 +191,17 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildSocials(GroomViewProfileController controller) {
-    if (controller.instagramUrl.isEmpty && controller.facebookUrl.isEmpty) {
+  Widget _buildSocials(GroomViewProfileController groomController) {
+    if (groomController.instagramUrl.isEmpty && groomController.facebookUrl.isEmpty) {
       return const SizedBox.shrink();
     }
     return Column(
       children: [
         Row(
           children: [
-            if (controller.instagramUrl.isNotEmpty) _buildSocialButton('Instagram', Icons.camera_alt_outlined, AppColors.accentRedLight),
-            if (controller.instagramUrl.isNotEmpty && controller.facebookUrl.isNotEmpty) const SizedBox(width: 12),
-            if (controller.facebookUrl.isNotEmpty) _buildSocialButton('Facebook', Icons.facebook, AppColors.linkBlue),
+            if (groomController.instagramUrl.isNotEmpty) _buildSocialButton('Instagram', Icons.camera_alt_outlined, AppColors.accentRedLight),
+            if (groomController.instagramUrl.isNotEmpty && groomController.facebookUrl.isNotEmpty) const SizedBox(width: 12),
+            if (groomController.facebookUrl.isNotEmpty) _buildSocialButton('Facebook', Icons.facebook, AppColors.linkBlue),
           ],
         ),
       ],
@@ -225,11 +226,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildPaymentMethods(GroomViewProfileController controller) {
+  Widget _buildPaymentMethods(GroomViewProfileController groomController) {
     return GestureDetector(
       onTap: () => Get.to(() => const PaymentMethods()),
       child: Obx(() {
-        final methods = controller.paymentMethods;
+        final methods = groomController.paymentMethods;
         if (methods.isEmpty) {
           return const SizedBox.shrink();
         }
@@ -276,7 +277,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                         child: Icon(icon, size: 20, color: color),
                       ),
                     );
-                  }).toList().reversed, // Reverse to show first on top if needed, or normal for standard stack
+                  }).toList().reversed,
                 ],
               ),
             ),
@@ -296,10 +297,10 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildTabs(GroomViewProfileController controller) {
-    if (controller.allAssignedServices.isEmpty) return const SizedBox.shrink();
+  Widget _buildTabs(GroomViewProfileController groomController) {
+    if (groomController.allAssignedServices.isEmpty) return const SizedBox.shrink();
 
-    final services = controller.allAssignedServices;
+    final services = groomController.allAssignedServices;
     final isSingle = services.length == 1;
 
     return Column(
@@ -320,7 +321,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             return Tab(child: CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold));
           }).toList(),
           onTap: (index) {
-            controller.selectService(index);
+            groomController.selectService(index);
           },
         ),
         const Divider(height: 1, thickness: 1, color: AppColors.dividerColor),
@@ -328,36 +329,60 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildDetailsCard(GroomViewProfileController controller) {
-    final activeService = controller.activeServiceType.toLowerCase().replaceAll(' ', '');
-    final vendor = controller.vendorData;
+  Widget _buildDetailsCard(GroomViewProfileController groomController) {
+    final activeService = groomController.activeServiceType.toLowerCase().replaceAll(' ', '');
+    final vendor = groomController.vendorData;
     final Map servicesData = vendor['servicesData'] ?? {};
 
     if (activeService.contains('bodywork')) {
-       final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? {};
+        final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? groomController.activeServiceProfile;
        return BodyworkServiceAndRatesView(
          bodyworkData: bodyworkData,
-         location: controller.locationStr.value,
-         experience: controller.experienceStr.value,
-         disciplines: controller.disciplinesSelected,
-         horseLevels: controller.horseLevels,
-         regionsCovered: controller.operatingRegions,
-         travelPreferences: controller.travelPreferences,
-         services: controller.bodyworkServices,
+         location: groomController.locationStr.value,
+         experience: groomController.experienceStr.value,
+         disciplines: groomController.disciplinesSelected,
+         horseLevels: groomController.horseLevels,
+         regionsCovered: groomController.operatingRegions,
+         travelPreferences: groomController.travelPreferences,
+         services: groomController.bodyworkServices,
        );
     }
     
+    if (activeService == 'shipping' || activeService == 'transportation') {
+       final Map shippingData = servicesData['shipping'] ?? servicesData['transportation'] ?? groomController.activeServiceProfile;
+      return ShippingServiceAndRatesView(
+        shippingData: shippingData,
+        location: groomController.locationStr.value,
+        experience: groomController.experienceStr.value,
+        baseRate: groomController.shippingBaseRate,
+        fullyLoadedRate: groomController.shippingLoadedRate,
+        travelScope: groomController.shippingTravelScope.toList(),
+        regionsCovered: groomController.shippingRegionsCovered.toList(),
+        servicesOffered: groomController.shippingServicesOffered.toList(),
+        rigTypes: groomController.shippingRigTypes.toList(),
+        operationType: groomController.shippingOperationType,
+        rigCapacity: groomController.shippingRigCapacity,
+        equipmentSummary: groomController.shippingEquipmentSummary,
+      );
+    }
+    
     if (activeService == 'grooming' || activeService == 'clipping' || activeService == 'braiding') {
-       final Map groomingData = servicesData[activeService] ?? {};
+        final Map groomingData = servicesData[activeService] ?? groomController.activeServiceProfile;
        return GroomingServiceAndRatesView(
          groomingData: groomingData,
-         location: controller.locationStr.value,
-         experience: controller.experienceStr.value,
+         location: groomController.locationStr.value,
+         experience: groomController.experienceStr.value,
+         disciplines: groomController.disciplinesSelected,
+         horseLevels: groomController.horseLevels,
+         regionsCovered: groomController.operatingRegions,
+         travelPreferences: groomController.travelPreferences,
+         supportOptions: groomController.supportOptions,
+         handlingOptions: groomController.handlingOptions,
        );
     }
 
     if (activeService == 'farrier') {
-      return _buildFarrierDetails(controller);
+      return _buildFarrierDetails(groomController);
     }
     return Container(
       width: double.infinity,
@@ -373,46 +398,74 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         children: [
           const CommonText('Services & Rates', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
-          if (controller.dailyRate != 'N/A' || controller.weeklyRate != 'N/A' || controller.monthlyRate != 'N/A') ...[
+          if (groomController.dailyRate != 'N/A' || groomController.weeklyRate != 'N/A' || groomController.monthlyRate != 'N/A') ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildRateItem('\$ ${controller.dailyRate}', 'Day Rate'),
-                _buildRateItem('\$ ${controller.weeklyRate}', 'Week Rate (${controller.weeklyDays}d)'),
-                _buildRateItem('\$ ${controller.monthlyRate}', 'Month Rate (${controller.monthlyDays}d)'),
+                _buildRateItem('\$ ${groomController.dailyRate}', 'Day Rate'),
+                _buildRateItem('\$ ${groomController.weeklyRate}', 'Week Rate (${groomController.weeklyDays}d)'),
+                _buildRateItem('\$ ${groomController.monthlyRate}', 'Month Rate (${groomController.monthlyDays}d)'),
               ],
             ),
             const SizedBox(height: 20),
           ],
           Obx(() {
-            final isClipping = controller.activeServiceType.toLowerCase().contains('clip');
+            final isClipping = groomController.activeServiceType.toLowerCase().contains('clip');
             if (isClipping) {
               return Column(
-                children: controller.groomingServices.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')).toList(),
+                children: groomController.groomingServices.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')).toList(),
               );
             }
             return Column(
-                children: _buildCapabilityItems(controller),
+                children: _buildCapabilityItems(groomController),
               );
           }),
           const SizedBox(height: 20),
           const CommonText('Additional Services', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
-          if (controller.additionalServices.isEmpty)
+          if (groomController.additionalServices.isEmpty)
             const CommonText('No additional services', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
-          ...controller.additionalServices.map((s) => _buildAdditionalService(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
+          ...groomController.additionalServices.map((s) => _buildAdditionalService(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
           const SizedBox(height: 20),
-          _buildViewMoreSection(controller),
+          _buildViewMoreSection(groomController),
         ],
       ),
     );
   }
 
-  List<Widget> _buildCapabilityItems(GroomViewProfileController controller) {
-    final List<dynamic> rawServices = controller.groomingServices;
+  Widget _buildFarrierDetails(GroomViewProfileController groomController) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText('Services & Rates', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+          const SizedBox(height: 16),
+          ...groomController.farrierServices.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'}')),
+          if (groomController.farrierAddOns.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const CommonText('Add-ons', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            ...groomController.farrierAddOns.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'}')),
+          ],
+          const SizedBox(height: 20),
+          _buildViewMoreSection(groomController),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildCapabilityItems(GroomViewProfileController groomController) {
+    final List<dynamic> rawServices = groomController.groomingServices;
     final List<Widget> items = [];
 
-    // 1. Process Core Services
     for (var s in rawServices) {
       if (s is Map) {
         items.add(_buildPricedItem(s['name'] ?? 'N/A', '\$${s['price'] ?? '0'}/horse'));
@@ -421,13 +474,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
       }
     }
 
-    // 2. Process Support Options
-    for (var it in controller.supportOptions) {
+    for (var it in groomController.supportOptions) {
       items.add(_buildCheckItem(it));
     }
 
-    // 3. Process Handling Options
-    for (var it in controller.handlingOptions) {
+    for (var it in groomController.handlingOptions) {
       items.add(_buildCheckItem(it));
     }
 
@@ -448,36 +499,36 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildViewMoreSection(GroomViewProfileController controller) {
+  Widget _buildViewMoreSection(GroomViewProfileController groomController) {
     return Obx(() {
-      final isClipping = controller.activeServiceType.toLowerCase().contains('clip');
+      final isClipping = groomController.activeServiceType.toLowerCase().contains('clip');
       
       if (_showMoreDetails.value) {
         return Column(
           children: [
-            _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of experience', controller.experienceStr.value),
+            _buildTwoColumnDetails('Location', groomController.locationStr.value, 'Years of experience', groomController.experienceStr.value),
             const SizedBox(height: 20),
             _buildTwoColumnDetails(
               'Disciplines',
-              controller.disciplinesSelected.isEmpty ? 'N/A' : controller.disciplinesSelected.join(', '),
+              groomController.disciplinesSelected.isEmpty ? 'N/A' : groomController.disciplinesSelected.join(', '),
               'Typical Level of Horses',
-              controller.horseLevels.isEmpty ? 'N/A' : controller.horseLevels.join(', '),
+              groomController.horseLevels.isEmpty ? 'N/A' : groomController.horseLevels.join(', '),
             ),
             const SizedBox(height: 20),
             if (!isClipping) ...[
-              _buildSingleColumnDetail('Show & barn support', controller.supportOptions.isEmpty ? 'N/A' : controller.supportOptions.join(', ')),
+              _buildSingleColumnDetail('Show & barn support', groomController.supportOptions.isEmpty ? 'N/A' : groomController.supportOptions.join(', ')),
               const SizedBox(height: 20),
               _buildTwoColumnDetails(
                 'Horse handling',
-                controller.handlingOptions.isEmpty ? 'N/A' : controller.handlingOptions.join(', '),
+                groomController.handlingOptions.isEmpty ? 'N/A' : groomController.handlingOptions.join(', '),
                 'Travel preferences',
-                controller.travelPreferences.isEmpty ? 'N/A' : controller.travelPreferences.join(', '),
+                groomController.travelPreferences.isEmpty ? 'N/A' : groomController.travelPreferences.join(', '),
               ),
             ] else ...[
-              _buildSingleColumnDetail('Travel Preferences', controller.travelPreferences.isEmpty ? 'N/A' : controller.travelPreferences.join(', ')),
+              _buildSingleColumnDetail('Travel Preferences', groomController.travelPreferences.isEmpty ? 'N/A' : groomController.travelPreferences.join(', ')),
             ],
             const SizedBox(height: 20),
-            _buildSingleColumnDetail('Regions Covered', controller.operatingRegions.isEmpty ? 'N/A' : controller.operatingRegions.join(', ')),
+            _buildSingleColumnDetail('Regions Covered', groomController.operatingRegions.isEmpty ? 'N/A' : groomController.operatingRegions.join(', ')),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () => _showMoreDetails.value = false,
@@ -488,7 +539,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
       }
       return Column(
         children: [
-          _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of experience', controller.experienceStr.value),
+          _buildTwoColumnDetails('Location', groomController.locationStr.value, 'Years of experience', groomController.experienceStr.value),
           const SizedBox(height: 16),
           GestureDetector(
             onTap: () => _showMoreDetails.value = true,
@@ -562,8 +613,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildPhotosSection(GroomViewProfileController controller) {
-    final media = controller.allMedia;
+  Widget _buildPhotosSection(GroomViewProfileController groomController) {
+    final media = groomController.allMedia;
     if (media.isEmpty) return const SizedBox.shrink();
     
     return Column(
@@ -594,11 +645,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildAvailabilitySection(GroomViewProfileController controller) {
+  Widget _buildAvailabilitySection(GroomViewProfileController groomController) {
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {'vendorId': controller.vendorData['_id']}),
+          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {'vendorId': groomController.vendorData['_id']}),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -609,10 +660,10 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         ),
         const SizedBox(height: 16),
         Obx(() {
-          if (controller.isAvailabilityLoading.value) {
+          if (groomController.isAvailabilityLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (controller.availabilityList.isEmpty) {
+          if (groomController.availabilityList.isEmpty) {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
@@ -620,7 +671,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             );
           }
           return Column(
-            children: controller.availabilityList.take(3).map((avail) {
+            children: groomController.availabilityList.take(3).map((avail) {
               final String startDate = avail['startDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['startDate'])) : 'N/A';
               final String endDate = avail['endDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['endDate'])) : '';
               final String range = endDate.isNotEmpty ? '$startDate - $endDate' : startDate;
@@ -728,7 +779,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildCancellationPolicy(GroomViewProfileController controller) {
+  Widget _buildCancellationPolicy(GroomViewProfileController groomController) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -749,7 +800,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           ),
           const SizedBox(height: 12),
           CommonText(
-            controller.cancellationPolicy,
+            groomController.cancellationPolicy,
             fontSize: AppTextSizes.size14,
             fontWeight: FontWeight.bold,
             color: const Color(0xFF8B4444),
@@ -766,86 +817,25 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     );
   }
 
-  Widget _buildHighlights(GroomViewProfileController controller) {
-    if (controller.highlights.isEmpty) return const SizedBox.shrink();
+  Widget _buildHighlights(GroomViewProfileController groomController) {
+    if (groomController.highlights.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const CommonText('Professional Highlights', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
         const SizedBox(height: 12),
-        ...controller.highlights.map((h) => Padding(
+        ...groomController.highlights.map((h) => Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             children: [
               const Icon(Icons.star_outline, size: 18, color: AppColors.secondary),
               const SizedBox(width: 8),
-              Expanded(child: CommonText(h, fontSize: AppTextSizes.size14, color: AppColors.textSecondary)),
+              Expanded(child: CommonText(h, fontSize: AppTextSizes.size14, color: AppColors.textPrimary)),
             ],
           ),
         )),
       ],
-    );
-  }
-
-  Widget _buildFarrierDetails(GroomViewProfileController controller) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
-      ),
-      child: Obx(() {
-        final showMore = _showMoreDetails.value;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CommonText('Services & Rates', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-            const SizedBox(height: 16),
-            ...controller.farrierServices.take(showMore ? 10 : 2).map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
-            
-            if (showMore && controller.farrierAddOns.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const CommonText('Add-Ons', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 12),
-              ...controller.farrierAddOns.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
-            ],
-            
-            const SizedBox(height: 20),
-            _buildTwoColumnDetails('Location', controller.locationStr.value, 'Years of Experience', controller.experienceStr.value),
-            
-            if (showMore) ...[
-              const SizedBox(height: 20),
-              _buildTwoColumnDetails(
-                'Disciplines',
-                controller.farrierDisciplines.isEmpty ? 'N/A' : controller.farrierDisciplines.join(', '),
-                'Typical Level of Horses',
-                controller.farrierHorseLevels.isEmpty ? 'N/A' : controller.farrierHorseLevels.join(', '),
-              ),
-              const SizedBox(height: 20),
-              _buildSingleColumnDetail('Scope of Work', controller.farrierScopeOfWork.isEmpty ? 'N/A' : controller.farrierScopeOfWork.join(', ')),
-              const SizedBox(height: 20),
-              _buildSingleColumnDetail('Travel Preferences', controller.farrierTravelPreferences.isEmpty ? 'N/A' : controller.farrierTravelPreferences.join(', ')),
-              const SizedBox(height: 20),
-              _buildSingleColumnDetail('Regions Covered', controller.farrierRegionsCovered.isEmpty ? 'N/A' : controller.farrierRegionsCovered.join(', ')),
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: () => _showMoreDetails.value = false,
-                child: const CommonText('View Less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-              ),
-            ] else ...[
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _showMoreDetails.value = true,
-                child: const CommonText('View More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ],
-        );
-      }),
     );
   }
 }

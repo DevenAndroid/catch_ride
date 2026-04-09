@@ -5,7 +5,6 @@ import 'package:catch_ride/controllers/vendor/shipping/shipping_application_cont
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -52,7 +51,7 @@ class ShippingApplicationView extends StatelessWidget {
                   isRequired: true,
                   controller: controller.fullNameController,
                   hintText: 'Enter Your Full Name',
-                  validator: RequiredValidator(errorText: "Please enter your full name"),
+                  validator: RequiredValidator(errorText: "Please enter your full name").call,
                 ),
                 const SizedBox(height: 24),
 
@@ -61,22 +60,21 @@ class ShippingApplicationView extends StatelessWidget {
                   label: 'Tell us about your services',
                   isRequired: true,
                   controller: controller.bioController,
-                  hintText: 'Share a bit about your equipment, hauling style, and anything else trainers should know.',
+                  hintText: 'Share a bit about your background, any specialized training, or whatever else you\'d like to highlight.',
                   maxLines: 4,
-                  validator: RequiredValidator(errorText: "Please tell us about your services"),
+                  validator: RequiredValidator(errorText: "Please tell us about your services").call,
                 ),
                 const SizedBox(height: 24),
 
-                // 3. Home Base Location
+                // 3. Physical Address
                 _buildGroupedSection(
-                  'Home Base Location',
+                  'Physical Address',
                   children: [
-                    CommonTextField(
-                      label: 'Country',
-                      isRequired: true,
-                      controller: controller.countryController,
-                      readOnly: true,
-                      hintText: 'United States',
+                    _buildSectionHeader('Country', isRequired: true),
+                    _buildBottomTrigger(
+                      value: 'USA',
+                      hint: 'USA',
+                      onTap: null, // Disabled as per requirement
                     ),
                     const SizedBox(height: 16),
                     _buildSectionHeader('State', isRequired: true),
@@ -119,7 +117,7 @@ class ShippingApplicationView extends StatelessWidget {
                       isRequired: true,
                       controller: controller.legalNameController,
                       hintText: 'Name on your documents',
-                      validator: RequiredValidator(errorText: "Legal name is required"),
+                      validator: RequiredValidator(errorText: "Legal name is required").call,
                     ),
                     const SizedBox(height: 16),
                     CommonTextField(
@@ -127,7 +125,7 @@ class ShippingApplicationView extends StatelessWidget {
                       isRequired: true,
                       controller: controller.dotNumberController,
                       hintText: 'Your USDOT identification',
-                      validator: RequiredValidator(errorText: "USDOT number is required"),
+                      validator: RequiredValidator(errorText: "USDOT number is required").call,
                     ),
                   ],
                 ),
@@ -150,22 +148,26 @@ class ShippingApplicationView extends StatelessWidget {
 
                 // 6. Operation Type
                 _buildSectionHeader('Operation Type', isRequired: true),
-                Obx(() => _buildBottomTrigger(
-                  value: controller.operationType.value,
-                  hint: 'Select Operation Type',
-                  onTap: () => _showExperienceBottomSheet(
-                    context: context,
-                    title: 'Operation Type',
-                    currentValue: controller.operationType.value,
-                    options: controller.operationTypeOptions,
-                    onSelected: (val) => controller.operationType.value = val,
-                  ),
+                Obx(() => Column(
+                  children: [
+                    _buildSelectionTile(
+                      title: 'Independent Small Operation',
+                      isSelected: controller.operationType.value == 'Independent Small Operation',
+                      onTap: () => controller.operationType.value = 'Independent Small Operation',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSelectionTile(
+                      title: 'Established Shipping Company',
+                      isSelected: controller.operationType.value == 'Established Shipping Company',
+                      onTap: () => controller.operationType.value = 'Established Shipping Company',
+                    ),
+                  ],
                 )),
                 const SizedBox(height: 24),
 
-                // 7. USDOT Copy
+                // 7. USDOT
                 _buildGroupedSection(
-                  'USDOT Copy',
+                  'USDOT',
                   description: 'Insurance/DOT check - If you are a commercial hauler, please upload a copy of your operating authority or USDOT registration.',
                   children: [
                     _buildFileUploadBox(
@@ -173,38 +175,41 @@ class ShippingApplicationView extends StatelessWidget {
                       targetFile: controller.dotCopy,
                       onTap: () => controller.pickFile(controller.dotCopy),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 8. Insurance
-                _buildGroupedSection(
-                  'Insurance',
-                  description: 'Liability/Cargo coverage - Ensure you have minimum cargo and liability coverage as per state/federal laws.',
-                  children: [
-                    _buildFileUploadBox(
-                      title: 'Cargo/Liability insurance proof',
-                      targetFile: controller.insuranceFile,
-                      onTap: () => controller.pickFile(controller.insuranceFile),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Obx(() => Checkbox(
+                          value: controller.confirmUSDOT.value,
+                          onChanged: (val) => controller.confirmUSDOT.value = val ?? false,
+                          activeColor: AppColors.primary,
+                        )),
+                        const Expanded(
+                          child: CommonText(
+                            'I confirm the accuracy of my USDOT number and authority.',
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // 9. Travel Scope
+                // 8. Travel Scope
                 _buildGroupedSection(
                   'Travel Scope',
                   description: 'Select matching travel options',
                   children: [
-                    _buildChipSelection(
-                      options: controller.travelScopeOptions,
+                    Obx(() => _buildChipSelection(
+                      options: controller.travelScopeOptions.toList(),
                       selectedItems: controller.selectedTravelScope,
-                    ),
+                    )),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // 10. Regions Covered
+                // 9. Regions Covered
                 _buildGroupedSection(
                   'Regions Covered',
                   description: 'Select the regions you most commonly haul in.',
@@ -232,19 +237,19 @@ class ShippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // 11. Rig Types
+                // 10. Rig Types
                 _buildGroupedSection(
                   'Rig Types',
                   children: [
-                    _buildChipSelection(
-                      options: controller.rigTypeOptions,
+                    Obx(() => _buildChipSelection(
+                      options: controller.rigTypeOptions.toList(),
                       selectedItems: controller.selectedRigTypes,
-                    ),
+                    )),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // 12. Driver's License Photo
+                // 11. Driver's License Photo
                 _buildGroupedSection(
                   'Driver License',
                   children: [
@@ -253,11 +258,28 @@ class ShippingApplicationView extends StatelessWidget {
                       targetFile: controller.licensePhoto,
                       onTap: () => controller.pickFile(controller.licensePhoto),
                     ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Obx(() => Checkbox(
+                          value: controller.confirmLicense.value,
+                          onChanged: (val) => controller.confirmLicense.value = val ?? false,
+                          activeColor: AppColors.primary,
+                        )),
+                        const Expanded(
+                          child: CommonText(
+                            'I confirm I have a valid state-issued driver\'s license for the equipment operated.',
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // 13. Rig Capacity
+                // 12. Rig Capacity
                 _buildGroupedSection(
                   'Rig Capacity',
                   description: 'Total Horses',
@@ -269,7 +291,7 @@ class ShippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // 14. Typical Vehicle / Models
+                // 13. Typical Vehicle / Models
                 _buildGroupedSection(
                   'Typical Vehicle / Models',
                   description: 'Please add trailer/truck details',
@@ -289,7 +311,7 @@ class ShippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // 15. Rig Photos
+                // 14. Rig Photos
                 _buildGroupedSection(
                   'Rig Photos',
                   description: 'Upload high-quality images of your hauling equipment.',
@@ -299,29 +321,65 @@ class ShippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // 16. Professional References
+                // 15. Professional References
                 _buildProfessionalReferences(controller),
                 const SizedBox(height: 24),
 
-                // 17. Disciplines
+                // 16. Experience Highlights
                 _buildGroupedSection(
-                  'Disciplines (optional)',
-                  description: 'Show expertise in specific disciplines',
+                  'Experience Highlights (optional)',
+                  description: 'Share key experience, programs, or specialties you\'d like clients to know',
                   children: [
-                    _buildBottomTrigger(
-                      hint: 'Add Disciplines',
-                      onTap: () => _showMultiSelectBottomSheet(
-                        context: context,
-                        title: 'Select Disciplines',
-                        options: controller.disciplineOptions,
-                        selectedItems: controller.selectedDisciplines,
+                    Obx(() => Column(
+                      children: controller.highlightsControllers.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final ctrl = entry.value;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: CommonTextField(
+                                  label: '',
+                                  controller: ctrl,
+                                  hintText: 'Write here...',
+                                ),
+                              ),
+                              if (controller.highlightsControllers.length > 1)
+                                IconButton(
+                                  icon: const Icon(Icons.remove_circle_outline, color: AppColors.accentRed, size: 20),
+                                  onPressed: () => controller.removeHighlight(index),
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    )),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: controller.addHighlight,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, color: AppColors.linkBlue, size: 18), 
+                            SizedBox(width: 4),
+                            CommonText(
+                              'Add More',
+                              color: AppColors.linkBlue,
+                              fontWeight: FontWeight.w600,
+                              fontSize: AppTextSizes.size14,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 32),
 
-                // 18. Final Checkboxes
+                // 17. Final Checkboxes
                 _buildAgreementCheckbox(
                   value: controller.is18OrOlder,
                   label: 'I confirm that I am at least 18 years or older.',
@@ -435,7 +493,7 @@ class ShippingApplicationView extends StatelessWidget {
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
               )
-            else
+            else if (onTap != null)
               const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
           ],
         ),
@@ -486,8 +544,8 @@ class ShippingApplicationView extends StatelessWidget {
   }
 
   Widget _buildChipSelection({required List<String> options, required RxList<String> selectedItems}) {
-    return Obx(() => Wrap(
-      spacing: 12,
+    return Wrap(
+      spacing: 8, // Matching closer gap in screenshot
       runSpacing: 8,
       children: options.map((opt) {
         final isSelected = selectedItems.contains(opt);
@@ -495,15 +553,42 @@ class ShippingApplicationView extends StatelessWidget {
           label: CommonText(opt, color: isSelected ? Colors.white : AppColors.textPrimary, fontSize: 12),
           selected: isSelected,
           onSelected: (val) {
-            if (val) selectedItems.add(opt); else selectedItems.remove(opt);
+            if (val) {
+              selectedItems.add(opt);
+            } else {
+              selectedItems.remove(opt);
+            }
           },
           selectedColor: AppColors.primary,
           backgroundColor: AppColors.tabBackground,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), // Pill shaped
           showCheckmark: false,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
         );
       }).toList(),
-    ));
+    );
+  }
+
+  Widget _buildSelectionTile({required String title, required bool isSelected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight, width: isSelected ? 2 : 1),
+        ),
+        child: Row(
+          children: [
+            Expanded(child: CommonText(title, fontSize: 14, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+            if (isSelected) const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
+            else const Icon(Icons.radio_button_off, color: AppColors.borderMedium, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildStepperField({required RxInt value}) {
@@ -685,7 +770,11 @@ class ShippingApplicationView extends StatelessWidget {
                 title: CommonText(opt),
                 trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
                 onTap: () {
-                  if (isSelected) selectedItems.remove(opt); else selectedItems.add(opt);
+                  if (isSelected) {
+                    selectedItems.remove(opt);
+                  } else {
+                    selectedItems.add(opt);
+                  }
                   setState(() {});
                 },
               );

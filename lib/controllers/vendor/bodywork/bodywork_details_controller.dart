@@ -6,12 +6,12 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/controllers/vendor/bodywork/bodywork_application_controller.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
-import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
-import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
-import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
-import 'package:catch_ride/view/vendor/complete_profile_view.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
-import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
+import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
+import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_details_view.dart';
+import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
+import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:collection/collection.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
@@ -337,18 +337,20 @@ class BodyworkDetailsController extends GetxController {
           final nextRemaining = remaining.skip(1).toList();
 
           if (nextService == 'Grooming') {
-            Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Braiding') {
-            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Clipping') {
-            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Farrier') {
-            Get.off(() => const FarrierApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else {
-             Get.offAll(() => const ProfileCompletedView(subtitle: 'Your bodywork services are now live',));
+             Get.offAll(() => const ProfileCompletedView(subtitle: 'Your bodywork services are now live', destinationWidget: GroomBottomNav()));
           }
         } else {
-          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your bodywork services are now live',));
+          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your bodywork services are now live', destinationWidget: GroomBottomNav()));
         }
       } else {
         final errorMsg = response.body['message'] ?? 'Failed to update bodywork details';

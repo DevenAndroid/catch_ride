@@ -20,14 +20,13 @@ class ShippingApplicationController extends GetxController {
   // ── Controllers ─────────────────────────────────────────────────────────────
   final fullNameController = TextEditingController();
   final bioController = TextEditingController();
-  final streetController = TextEditingController();
   final legalNameController = TextEditingController();
   final dotNumberController = TextEditingController();
   final modelMakeController = TextEditingController();
   final modelYearController = TextEditingController();
   
   // Locations
-  final countryController = TextEditingController(text: 'United States');
+  final countryController = TextEditingController(text: 'USA');
   final Rxn<Map<String, dynamic>> selectedState = Rxn<Map<String, dynamic>>();
   final Rxn<Map<String, dynamic>> selectedCity = Rxn<Map<String, dynamic>>();
   final RxList<Map<String, dynamic>> states = <Map<String, dynamic>>[].obs;
@@ -41,8 +40,12 @@ class ShippingApplicationController extends GetxController {
   final RxList<String> selectedTravelScope = <String>[].obs;
   final RxList<String> selectedRegions = <String>[].obs;
   final RxList<String> selectedRigTypes = <String>[].obs;
-  final RxList<String> selectedDisciplines = <String>[].obs;
   final RxInt rigCapacity = 2.obs;
+  
+  // Experience Highlights
+  final RxList<TextEditingController> highlightsControllers = <TextEditingController>[
+    TextEditingController(),
+  ].obs;
 
   // ── File & Image Uploads ────────────────────────────────────────────────────
   final Rxn<File> dotCopy = Rxn<File>();
@@ -51,6 +54,8 @@ class ShippingApplicationController extends GetxController {
   final RxList<File> rigPhotos = <File>[].obs;
 
   // Checkboxes
+  final RxBool confirmUSDOT = false.obs;
+  final RxBool confirmLicense = false.obs;
   final RxBool is18OrOlder = false.obs;
   final RxBool agreeTerms = false.obs;
   final RxBool agreeReferences = false.obs;
@@ -59,16 +64,11 @@ class ShippingApplicationController extends GetxController {
   final RxBool isSubmitting = false.obs;
 
   // ── Options ────────────────────────────────────────────────────────────────
-  final List<String> experienceOptions = ['1-2', '3-5', '5-10', '10+'];
-  final List<String> operationTypeOptions = [
-    'Independent local hauler',
-    'Commercial transport company',
-    'Private individual hauler'
-  ];
-  final List<String> travelScopeOptions = ['Local', 'Interstate'];
-  final List<String> rigTypeOptions = ['Gooseneck', 'Air Ride', 'Step-up', 'Ramp', 'Slant Load', 'Straight Load'];
-  final List<String> disciplineOptions = ['Dressage', 'Hunter/Jumper', 'Eventing', 'Western', 'Racing', 'Recreational'];
-  final List<String> regionOptions = ['Wellington, FL', 'Ocala, FL', 'Tryon, NC', 'Lexington, KY', 'Thermal, CA'];
+  final RxList<String> experienceOptions = <String>[].obs;
+  final RxList<String> operationTypeOptions = <String>[].obs;
+  final RxList<String> travelScopeOptions = <String>[].obs;
+  final RxList<String> rigTypeOptions = <String>[].obs;
+  final RxList<String> regionOptions = <String>[].obs;
 
   // ── References ─────────────────────────────────────────────────────────────
   final RxList<ReferenceController> referenceControllers = <ReferenceController>[
@@ -84,9 +84,38 @@ class ShippingApplicationController extends GetxController {
       fullNameController.text = user.fullName ?? '';
     }
     _fetchStates();
+    fetchDynamicTags();
   }
 
   // ── Methods ────────────────────────────────────────────────────────────────
+
+  Future<void> fetchDynamicTags() async {
+    try {
+      final response = await apiService.getRequest('/system-config/tag-types/with-values?category=Shipping');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final List types = response.body['data'];
+        
+        for (var type in types) {
+          final name = type['name'];
+          final List<String> values = List<String>.from(type['values'].map((v) => v['name']));
+          
+          if (name == 'Hauling Experience') {
+            experienceOptions.assignAll(values);
+          } else if (name == 'Operation Type') {
+            operationTypeOptions.assignAll(values);
+          } else if (name == 'Travel Scope') {
+            travelScopeOptions.assignAll(values);
+          } else if (name == 'Rig Types') {
+            rigTypeOptions.assignAll(values);
+          } else if (name == 'Regions Covered') {
+            regionOptions.assignAll(values);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching dynamic tags: $e');
+    }
+  }
 
   void _fetchStates() async {
     isLoadingStates.value = true;
@@ -142,6 +171,19 @@ class ShippingApplicationController extends GetxController {
 
   void removeRigPhoto(int index) {
     rigPhotos.removeAt(index);
+  }
+
+  void addHighlight() {
+    highlightsControllers.add(TextEditingController());
+  }
+
+  void removeHighlight(int index) {
+    if (highlightsControllers.length > 1) {
+      highlightsControllers[index].dispose();
+      highlightsControllers.removeAt(index);
+    } else {
+      highlightsControllers[index].clear();
+    }
   }
 
   Future<String?> _uploadFile(File file, String type) async {
@@ -209,7 +251,7 @@ class ShippingApplicationController extends GetxController {
           'make': modelMakeController.text,
           'year': modelYearController.text,
         },
-        'disciplines': selectedDisciplines.toList(),
+        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'references': referenceControllers.map((r) => {
           'fullName': r.fullName.text,
           'relationship': r.relationship.text,
@@ -269,6 +311,24 @@ class ShippingApplicationController extends GetxController {
     } finally {
       isSubmitting.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    fullNameController.dispose();
+    bioController.dispose();
+    legalNameController.dispose();
+    dotNumberController.dispose();
+    modelMakeController.dispose();
+    modelYearController.dispose();
+    countryController.dispose();
+    for (var ctrl in highlightsControllers) {
+      ctrl.dispose();
+    }
+    for (var ctrl in referenceControllers) {
+      ctrl.dispose();
+    }
+    super.onClose();
   }
 }
 
