@@ -1,6 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-import '../../../../controllers/vendor/shipping/shipping_details_controller.dart';
+import 'package:catch_ride/controllers/vendor/shipping/shipping_details_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -12,7 +12,7 @@ class ServicePriceView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Renamed controller class to ShippingProfileController
+    // Using Get.put to initialize the controller for this view
     final ShippingDetailsController controller = Get.put(ShippingDetailsController());
     
     // Explicitly marking as edit mode so the controller knows to go back on success

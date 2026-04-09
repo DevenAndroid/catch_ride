@@ -386,7 +386,8 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
           'clipping': {
             'profileData': {
               'services': services,
-            }
+            },
+            'isProfileCompleted': true,
           }
         }
       };
