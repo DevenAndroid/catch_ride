@@ -5,6 +5,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../constant/app_strings.dart';
+
 class EditExperienceView extends StatefulWidget {
   const EditExperienceView({super.key});
 
@@ -70,49 +72,6 @@ class _EditExperienceViewState extends State<EditExperienceView> {
         colorText: Colors.white,
       );
     }
-  }
-
-  void _showYearsPicker() {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(16),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CommonText(
-              'Select Years of Experience',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 51,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Center(child: CommonText('$index years')),
-                    onTap: () {
-                      setState(() {
-                        _selectedYears = index.toString();
-                      });
-                      Get.back();
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -206,38 +165,55 @@ class _EditExperienceViewState extends State<EditExperienceView> {
         children: [
           // Years in industry
           const CommonText(
-            'Years in industry',
+            AppStrings.yearsInIndustry,
+
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 8),
-          GestureDetector(
-            onTap: _showYearsPicker,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
+          DropdownButtonFormField<String>(
+            value: ['0-1', '2-4', '5-9', '10+'].contains(_selectedYears)
+                ? _selectedYears
+                : null,
+            items: ['0-1', '2-4', '5-9', '10+'].map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: CommonText(value, fontSize: 14),
+              );
+            }).toList(),
+            onChanged: (val) {
+              setState(() => _selectedYears = val ?? 'Select years');
+            },
+            decoration: InputDecoration(
+              hintText: 'Select years',
+              hintStyle: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                borderSide: const BorderSide(color: AppColors.border),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CommonText(
-                    _selectedYears == 'Select years'
-                        ? _selectedYears
-                        : '$_selectedYears years',
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 20,
-                    color: AppColors.textSecondary,
-                  ),
-                ],
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.border),
               ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary),
+              ),
+              filled: true,
+              fillColor: const Color(0xFFF9FAFB),
+            ),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              color: AppColors.textSecondary,
+              size: 20,
             ),
           ),
           const SizedBox(height: 24),

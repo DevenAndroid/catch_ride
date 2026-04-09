@@ -1,6 +1,8 @@
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart';
+import 'package:catch_ride/view/trainer/trainer_complete_profile_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
@@ -46,6 +48,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final TextEditingController _facebookController = TextEditingController();
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+
 
   bool _confirm18 = false;
   bool _agreeTerms = false;
@@ -77,7 +81,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     _facebookController.dispose();
     _websiteController.dispose();
     _instagramController.dispose();
+    _nameController.dispose();
     super.dispose();
+
   }
 
   @override
@@ -144,6 +150,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                     text: AppStrings.next,
                     isLoading: _authController.isLoading.value,
                     onPressed: () async {
+
+
                       // Helper for snackbars
                       void showError(String msg) {
                         Get.snackbar(
@@ -209,8 +217,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                         'federationId': _federationIdController.text.trim(),
                         'federationType': _selectedFederation,
                         'primaryUse': primaryUse,
+                        'name': _nameController.text.trim(),
                         'references': references,
                       };
+
 
                       await _authController.completeTrainerProfile(
                         applicationData,
@@ -229,20 +239,40 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   Widget _buildCurrentStep() {
     return Column(
       children: [
-        _buildWhyJoinCard(),
+        _buildNameCard(),
         const SizedBox(height: 16),
-        _buildReferencesCard(),
+        _buildWhyJoinCard(),
         const SizedBox(height: 16),
         _buildSocialMediaCard(),
         const SizedBox(height: 16),
         _buildFederationInfoCard(),
         const SizedBox(height: 16),
         _buildPrimaryUseCard(),
+        const SizedBox(height: 16),
+        _buildReferencesCard(),
         const SizedBox(height: 24),
         _buildFooterCheckboxes(),
       ],
     );
   }
+
+  Widget _buildNameCard() {
+    return _buildCard(
+      title: "Basic Information",
+      child: Column(
+        children: [
+          CommonTextField(
+            controller: _nameController,
+            label: AppStrings.fullName,
+            isRequired: true,
+            hintText: "Enter your full name",
+            validator: RequiredValidator(errorText: "Full name is required"),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildCard({required String title, required Widget child}) {
     return Container(
@@ -311,8 +341,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   "Reference ${index + 1}",
                   fontSize: AppTextSizes.size14,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFD92D20),
+                  color: const Color(0xFF8B4444),
                 ),
+
                 const SizedBox(height: 12),
                 CommonTextField(
                   controller: _refNameControllers[index],

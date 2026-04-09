@@ -14,7 +14,7 @@ class UserModel {
   final String? location2;
   final String? bio;
   final String? barnName;
-  final int yearsExperience;
+  final String yearsExperience;
   final List<String> programTags;
   final List<String> showCircuits;
   final List<String> horseShows;
@@ -53,7 +53,7 @@ class UserModel {
     this.location2,
     this.bio,
     this.barnName,
-    this.yearsExperience = 0,
+    this.yearsExperience = '0',
     this.programTags = const [],
     this.showCircuits = const [],
     this.horseShows = const [],
@@ -158,7 +158,7 @@ class UserModel {
       barnName: json['barnName'] ??
           (proData != null ? proData['barnName'] : null) ??
           (json['role'] == 'barn_manager' && trainerData != null ? trainerData['barnName'] : null),
-      yearsExperience: json['yearsExperience'] ?? (proData != null ? proData['yearsExperience'] : null) ?? 0,
+      yearsExperience: (json['yearsExperience'] ?? (proData != null ? proData['yearsExperience'] : null) ?? '0').toString(),
       yearsInIndustry: json['yearsInIndustry'] ?? (proData != null ? proData['yearsInIndustry'] : null),
       programTags: List<String>.from(
         json['programTags'] ?? (proData != null ? proData['programTags'] : null) ?? [],
@@ -246,7 +246,7 @@ class UserModel {
     String? location2,
     String? bio,
     String? barnName,
-    int? yearsExperience,
+    String? yearsExperience,
     List<String>? programTags,
     List<String>? showCircuits,
     List<String>? horseShows,
