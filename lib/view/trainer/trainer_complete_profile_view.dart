@@ -72,12 +72,14 @@ class _TrainerCompleteProfileViewState
     _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
-    _yearsController.text = profileController.yearsExperience > 0
-        ? profileController.yearsExperience.toString()
+    final expItems = ['0-1', '2-4', '5-9', '10+'];
+    _yearsController.text = expItems.contains(profileController.yearsExperience)
+        ? profileController.yearsExperience
         : '';
 
-    _selectedProgramTags.assignAll(profileController.selectedProgramTags);
-    _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+    _selectedProgramTags.assignAll(profileController.selectedProgramTags.map((e) => _toTitleCase(e)));
+    _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+
     _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
 
@@ -88,11 +90,15 @@ class _TrainerCompleteProfileViewState
         _barnNameController.text = profileController.barnName;
         _bioController.text = profileController.bio;
         _location1Controller.text = profileController.location;
-        _yearsController.text = profileController.yearsExperience > 0
-            ? profileController.yearsExperience.toString()
+        final expItems = ['0-1', '2-4', '5-9', '10+'];
+        _yearsController.text =
+            expItems.contains(profileController.yearsExperience)
+            ? profileController.yearsExperience
             : '';
-        _selectedProgramTags.assignAll(profileController.selectedProgramTags);
-        _selectedHorseShows.assignAll(profileController.selectedHorseShows);
+
+        _selectedProgramTags.assignAll(profileController.selectedProgramTags.map((e) => _toTitleCase(e)));
+        _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+
         _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
         _selectedTags.assignAll(profileController.user.value?.tags ?? []);
       });
@@ -385,59 +391,94 @@ class _TrainerCompleteProfileViewState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const CommonText(
-          'Years in Industry',
+          AppStrings.yearsInIndustry,
+
           fontSize: 13,
           color: AppColors.textPrimary,
         ),
         const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () => _showSingleSelectBottomSheet(
-            title: 'Years in Industry',
-            currentValue: _yearsController.text,
-            items: List.generate(51, (index) => index.toString()),
-            onSelected: (val) {
-              setState(() => _yearsController.text = val);
-            },
-          ),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
+        DropdownButtonFormField<String>(
+          value: _yearsController.text.isEmpty ? null : _yearsController.text,
+          items: ['0-1', '2-4', '5-9', '10+'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: CommonText(value, fontSize: 14),
+            );
+          }).toList(),
+          onChanged: (val) {
+            setState(() => _yearsController.text = val ?? '');
+          },
+          decoration: InputDecoration(
+            hintText: 'Select years',
+            hintStyle: TextStyle(
+              color: AppColors.textSecondary.withOpacity(0.5),
+              fontSize: 14,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              color: Colors.white,
+              borderSide: const BorderSide(color: AppColors.border),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CommonText(
-                    _yearsController.text.isEmpty
-                        ? 'Select years'
-                        : _yearsController.text,
-                    fontSize: 14,
-                    color: _yearsController.text.isEmpty
-                        ? AppColors.textSecondary.withOpacity(0.5)
-                        : AppColors.textPrimary,
-                  ),
-                ),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.textSecondary,
-                  size: 20,
-                ),
-              ],
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.textSecondary,
+            size: 20,
           ),
         ),
       ],
     );
   }
 
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text.toLowerCase().split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1);
+    }).join(' ');
+  }
+
   void _showHorseShowsBottomSheet() {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows =
-        RxList<Map<String, dynamic>>(allShows);
+
+    // Collect unique venue/circuit pairs
+    final Set<String> uniqueLabelsSet = {};
+    for (var show in allShows) {
+      String venue = _toTitleCase(show['showVenue']?.toString().trim() ?? '');
+      String circuit = _toTitleCase(show['circuit']?.toString().trim() ?? '');
+      
+      String label = "";
+      if (venue.isNotEmpty && circuit.isNotEmpty) {
+        label = "$venue/$circuit";
+      } else if (venue.isNotEmpty) {
+        label = venue;
+      } else if (circuit.isNotEmpty) {
+        label = circuit;
+      } else {
+        label = _toTitleCase(show['name']?.toString().trim() ?? '');
+      }
+
+      if (label.isNotEmpty) {
+        uniqueLabelsSet.add(label);
+      }
+    }
+
+    final List<String> sortedLabels = uniqueLabelsSet.toList()..sort();
+    final RxList<String> filteredLabels = RxList<String>(sortedLabels);
 
     showModalBottomSheet(
       context: context,
@@ -475,18 +516,16 @@ class _TrainerCompleteProfileViewState
                   TextField(
                     controller: searchController,
                     onChanged: (val) {
-                      filteredShows.assignAll(
-                        allShows
+                      filteredLabels.assignAll(
+                        sortedLabels
                             .where(
-                              (s) => (s['name'] as String)
-                                  .toLowerCase()
-                                  .contains(val.toLowerCase()),
+                              (s) => s.toLowerCase().contains(val.toLowerCase()),
                             )
                             .toList(),
                       );
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search horse shows...',
+                      hintText: 'Search Horse Shows & Circuits...',
                       prefixIcon: const Icon(
                         Icons.search,
                         color: AppColors.textSecondary,
@@ -509,26 +548,22 @@ class _TrainerCompleteProfileViewState
                         () => Wrap(
                           spacing: 12,
                           runSpacing: 12,
-                          children: filteredShows.map((show) {
-                            final String id = show['_id'] ?? show['id'] ?? '';
-                            final String name = show['name'] ?? '';
-                            final isSelected = _selectedHorseShowIds.contains(
-                              id,
+                          children: filteredLabels.map((label) {
+                            final isSelected = _selectedHorseShows.contains(
+                              label,
                             );
 
                             return GestureDetector(
                               onTap: () {
                                 if (isSelected) {
-                                  _selectedHorseShowIds.remove(id);
-                                  _selectedHorseShows.remove(name);
+                                  _selectedHorseShows.remove(label);
                                 } else {
-                                  _selectedHorseShowIds.add(id);
-                                  _selectedHorseShows.add(name);
+                                  _selectedHorseShows.add(label);
                                 }
                               },
                               child: isSelected
-                                  ? _buildSelectedTag(name)
-                                  : _buildTag(name),
+                                  ? _buildSelectedTag(label)
+                                  : _buildTag(label),
                             );
                           }).toList(),
                         ),
@@ -544,97 +579,6 @@ class _TrainerCompleteProfileViewState
     );
   }
 
-  void _showSingleSelectBottomSheet({
-    required String title,
-    required String currentValue,
-    required List<String> items,
-    required Function(String) onSelected,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.95,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  child: CommonText(
-                    title,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final isSelected = item == currentValue;
-                      return InkWell(
-                        onTap: () {
-                          onSelected(item);
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: Colors.grey.shade100),
-                            ),
-                          ),
-                          child: Center(
-                            child: CommonText(
-                              item,
-                              fontSize: 16,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _showMultiSelectBottomSheet({
     required String title,
@@ -816,7 +760,7 @@ class _TrainerCompleteProfileViewState
                 runSpacing: 12,
                 children: values.map((val) {
                   final tagId = val['_id'] ?? '';
-                  final tagName = val['name'] ?? '';
+                  final tagName = _toTitleCase(val['name'] ?? '');
                   final isSelected = _selectedTags.contains(tagId);
 
                   return GestureDetector(
@@ -935,7 +879,7 @@ class _TrainerCompleteProfileViewState
                           runSpacing: 12,
                           children: filteredValues.map((val) {
                             final tagId = val['_id'] ?? '';
-                            final tagName = val['name'] ?? '';
+                            final tagName = _toTitleCase(val['name'] ?? '');
                             final isSelected = _selectedTags.contains(tagId);
 
                             return GestureDetector(
@@ -1189,7 +1133,8 @@ class _TrainerCompleteProfileViewState
                     'bio': _bioController.text.trim(),
                     'location': _location1Controller.text.trim(),
                     'location2': _location2Controller.text.trim(),
-                    'yearsExperience': int.tryParse(_yearsController.text) ?? 0,
+                    'yearsExperience': _yearsController.text,
+
                     'programTags': _selectedProgramTags.toList(),
                     'showCircuits': _selectedHorseShows.toList(),
                     'horseShows': _selectedHorseShowIds.toList(),

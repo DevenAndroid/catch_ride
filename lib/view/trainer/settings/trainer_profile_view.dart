@@ -292,6 +292,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),
+
                                       if (profile.yearsExperience > 0)
                                         const Padding(
                                           padding: EdgeInsets.symmetric(
@@ -310,9 +311,19 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         fontSize: 15,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
+
                                       ),
                                   ],
                                 ),
+                                if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
+                                  CommonText(
+                                    _controller.yearsExperience.contains('+') 
+                                        ? '${_controller.yearsExperience} Experience' 
+                                        : '${_controller.yearsExperience} Years Experience',
+                                    fontSize: 15,
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                               ],
                             ),
                           ),

@@ -1,13 +1,13 @@
 class AppStrings {
   // Automatically extracted strings
   static const String agreeTerms =
-      'agree to the Terms of Service and Privacy Policy.';
+      'I agree to the Terms of Service and Privacy Policy.';
   static const String alreadyHaveAnAccount = 'Already have an account? ';
   static const String
   anIdealSmallPonyAndGreatForAChildAnIdealSmallPonyAndGreatForAChildanIdealSmallPonyAndGreatForAChildAnIdealSmallPonyAndGreatForAChild =
       'An ideal small pony and great for a Child An ideal small pony and great for a ChildAn ideal small pony and great for a Child An ideal small pony and great for a Child.';
   static const String applicationSubmitted =
-      'Thank You for applying to Catch Ride.';
+      'Thank you for applying to Catch Ride';
   static const String aryaStark = 'Arya Stark';
   static const String availability = 'Availability';
   static const String bannerImage = 'Banner Image';
@@ -29,7 +29,7 @@ class AppStrings {
       'Choose how you will use Catch Ride.';
   static const String completeYourApplication = 'Complete Your Application';
   static const String confirm18Years =
-      'confirm that I am at least 18 years old';
+      'I confirm that I am at least 18 years old';
   static const String confirmPassword = 'Confirm Password';
   static const String continueText = 'Continue';
   static const String continueWithAppleId = 'Continue with Apple ID';
@@ -128,7 +128,7 @@ class AppStrings {
       'List horses for sale or lease and connect with trainers and service providers.';
   static const String twitter = 'Twitter';
   static const String understandCatchRidePlatform =
-      'understand that Catch Ride is a connection platform and is not responsible for transactions between users.';
+      'I understand that Catch Ride is a connection platform and is not responsible for transactions between users.';
   static const String offerServicesAndAcceptBookings =
       'Offer services and accept bookings.';
   static const String vendors = 'Vendors';
@@ -143,7 +143,7 @@ class AppStrings {
   static const String whyJoinText =
       'Catch Ride is a private network of trusted equestrian professionals.\n\nShare what you’re looking for — horses, opportunities, or services — so we can connect you with the right programs and opportunities.';
   static const String writeAShortBio = 'Write a short bio';
-  static const String yearsInIndustry = 'Years in industry';
+  static const String yearsInIndustry = 'Years of Professional Experience';
   static const String yourApplicationIsUnderReview =
       'Your application is currently under review.';
   static const String
