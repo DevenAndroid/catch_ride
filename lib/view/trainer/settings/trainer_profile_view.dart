@@ -284,34 +284,26 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    if (_controller.getDisciplines(profile).isNotEmpty) ...[
+                                    if (_controller.disciplines.isNotEmpty) ...[
                                       CommonText(
-                                        _controller.getDisciplines(profile).join(" / ") +
+                                        _controller.disciplines.join(" / ") +
                                             (" Trainer"),
                                         fontSize: 15,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),
-
-                                      if (profile.yearsExperience > 0)
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6.0,
-                                          ),
-                                          child: CommonText(
-                                            "·",
-                                            color: AppColors.textSecondary,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
                                     ],
-                                    if (profile.yearsExperience > 0)
-                                      CommonText(
-                                        '${profile.yearsExperience}+ Years',
-                                        fontSize: 15,
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
 
+                                    if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
+                                      const Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 6.0,
+                                        ),
+                                        child: CommonText(
+                                          "·",
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                   ],
                                 ),
