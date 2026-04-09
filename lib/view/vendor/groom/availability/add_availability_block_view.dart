@@ -36,7 +36,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     } else {
       _categoryIndex = args ?? 0;
     }
-    _categoryName = _categoryIndex == 0 ? 'Grooming' : (_categoryIndex == 1 ? 'Braiding' : 'Clipping');
+    _categoryName = _categoryIndex == 0 ? 'Grooming' : (_categoryIndex == 1 ? 'Braiding' : (_categoryIndex == 2 ? 'Clipping' : 'Bodywork'));
 
     // Now handle pre-filling if editing
     if (args is Map && args['block'] is VendorAvailabilityModel) {
@@ -72,6 +72,9 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     }
     if (_editingBlock!.capacityType != null) {
       _capacityType.value = _editingBlock!.capacityType!;
+    }
+    if (_editingBlock!.bufferTime != null) {
+      _bufferTime.value = _editingBlock!.bufferTime!;
     }
 
     // Use a slight delay to ensure UI systems are fully hooked up
@@ -131,6 +134,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   final RxString _locationType = 'Both'.obs;
   final RxString _availabilityType = 'Full Day'.obs;
   final RxString _capacityType = 'Max horses per day'.obs;
+  final RxString _bufferTime = '15 min'.obs;
 
   List<String> get _availableWorkTypes {
     if (_categoryName == 'Braiding') {
@@ -229,6 +233,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         'locationType': _locationType.value,
         'capacityType': _capacityType.value,
         'timeBlockType': _availabilityType.value,
+        'bufferTime': _bufferTime.value,
       };
 
       if (_editingBlock != null && _editingBlock!.id != null) {
@@ -298,7 +303,29 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildDateSection(),
-                    if (_categoryName == 'Clipping') ...[
+                    const SizedBox(height: 24),
+                    if (_categoryName == 'Bodywork') ...[
+                      const CommonText('Time window', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning Window', 'Afternoon Window']),
+                      const SizedBox(height: 24),
+                      const CommonText('Location Type', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
+                      const SizedBox(height: 24),
+                      _buildVenueSection(),
+                      const SizedBox(height: 24),
+                      const CommonText('Daily Session Capacity', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildCapacityCounter(),
+                      const SizedBox(height: 24),
+                      const CommonText('Buffer Between Sessions', fontSize: 13, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 8),
+                      _buildDropdownField('15 min', _bufferTime, ['15 min', '30 min', '45 min']),
+                    ] else if (_categoryName == 'Clipping') ...[
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Location Type'),
+                      _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Mark Unavailability'),
                       Row(
@@ -309,26 +336,10 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      _buildSectionHeader('Location Type'),
-                      _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
-                    ],
-                    const SizedBox(height: 24),
-                    if (_categoryName != 'Clipping') ...[
-                      _buildSectionHeader('Work Type'),
-                      const SizedBox(height: 12),
-                      _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Additional Services'),
-                      const SizedBox(height: 12),
-                      _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Capacity (optional)'),
-                      const SizedBox(height: 12),
-                      _buildCapacitySection(),
-                    ] else ...[
                       _buildVenueSection(),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Time Block & Capacity'),
+                      const SizedBox(height: 12),
                       const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
                       const SizedBox(height: 8),
                       _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'AM', 'PM']),
@@ -340,6 +351,18 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                       const CommonText('Max Horses', fontSize: 13, fontWeight: FontWeight.bold),
                       const SizedBox(height: 8),
                       _buildCapacityCounter(),
+                    ] else if (_categoryName == 'Grooming' || _categoryName == 'Braiding') ...[
+                      _buildSectionHeader('Work Type'),
+                      const SizedBox(height: 12),
+                      _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Additional Services'),
+                      const SizedBox(height: 12),
+                      _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
+                      const SizedBox(height: 24),
+                      _buildSectionHeader('Capacity (optional)'),
+                      const SizedBox(height: 12),
+                      _buildCapacitySection(),
                     ],
                     const SizedBox(height: 24),
                     _buildSectionHeader('Notes For Trainers (optional)'),

@@ -6,6 +6,7 @@ import 'package:catch_ride/view/vendor/groom/availability/add_availability_block
 import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/add_farrier_availability_view.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,7 +28,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
     super.initState();
     _activeServices = controller.authController.currentUser.value?.vendorServices 
       .map((s) => s[0].toUpperCase() + s.substring(1).toLowerCase())
-      .toList() ?? ['Grooming', 'Braiding', 'Clipping', 'Farrier'];
+      .toList() ?? ['Grooming', 'Braiding', 'Clipping', 'Farrier', 'Bodywork'];
     
     // Fallback if empty
     if (_activeServices.isEmpty) _activeServices = ['Grooming'];
@@ -56,7 +57,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                   if (currentSvc == 'Farrier') {
                     Get.to(() => const AddFarrierAvailabilityView());
                   } else {
-                    int addIndex = currentSvc == 'Grooming' ? 0 : (currentSvc == 'Braiding' ? 1 : 2);
+                    int addIndex = currentSvc == 'Grooming' ? 0 : (currentSvc == 'Braiding' ? 1 : (currentSvc == 'Clipping' ? 2 : 3));
                     Get.to(() => const AddAvailabilityBlockView(), arguments: addIndex);
                   }
                 },
@@ -135,7 +136,13 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                               onEdit: () => Get.to(() => const AddFarrierAvailabilityView(), arguments: {'block': b}),
                               onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
                             )
-                          : _buildAvailabilityCard(b)),
+                          : (currentService == 'Bodywork'
+                              ? BodyworkAvailabilityBlockCard(
+                                  block: b,
+                                  onEdit: () => Get.to(() => const AddAvailabilityBlockView(), arguments: {'categoryIndex': 3, 'block': b}),
+                                  onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
+                                )
+                              : _buildAvailabilityCard(b))),
                   )).toList(),
               ],
             ),

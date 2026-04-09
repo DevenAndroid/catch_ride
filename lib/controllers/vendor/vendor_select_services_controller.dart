@@ -7,6 +7,7 @@ import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_applicat
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 
 class VendorSelectServicesController extends GetxController {
@@ -104,6 +105,11 @@ class VendorSelectServicesController extends GetxController {
         } else if (firstService == 'Bodywork') {
           Get.to(
             () => const BodyworkApplicationView(),
+            arguments: {'remainingServices': remaining},
+          );
+        } else if (firstService == 'Shipping') {
+          Get.to(
+            () => const ShippingApplicationView(),
             arguments: {'remainingServices': remaining},
           );
         } else {

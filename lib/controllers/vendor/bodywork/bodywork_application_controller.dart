@@ -160,29 +160,42 @@ class BodyworkApplicationController extends GetxController {
         final List types = response.body['data'];
         
         // Populate Disciplines
-        final disciplineType = types.firstWhereOrNull((t) => t['name'] == 'Disciplines');
+        final disciplineType = types.firstWhereOrNull(
+            (t) => t['name'] == 'Disciplines' || t['name'] == 'Discipline');
         if (disciplineType != null) {
-          disciplineOptions.assignAll(List<String>.from(disciplineType['values'].map((v) => v['name'])));
+          disciplineOptions.assignAll(List<String>.from(
+              disciplineType['values'].map((v) => v['name'])));
           if (!disciplineOptions.contains('Other')) disciplineOptions.add('Other');
         }
 
         // Populate Level of Horses
-        final horseLevelType = types.firstWhereOrNull((t) => t['name'] == 'Typical Level of Horses');
+        final horseLevelType = types.firstWhereOrNull((t) =>
+            t['name'] == 'Typical Level of Horses' ||
+            t['name'] == 'Typical Level of Horse');
         if (horseLevelType != null) {
-          horseLevelOptions.assignAll(List<String>.from(horseLevelType['values'].map((v) => v['name'])));
+          horseLevelOptions.assignAll(
+              List<String>.from(horseLevelType['values'].map((v) => v['name'])));
         }
 
         // Populate Regions Covered
-        final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
+        final regionType = types.firstWhereOrNull(
+            (t) => t['name'] == 'Regions Covered' || t['name'] == 'Region Covered');
         if (regionType != null) {
-          regionOptions.assignAll(List<String>.from(regionType['values'].map((v) => v['name'])));
+          regionOptions.assignAll(
+              List<String>.from(regionType['values'].map((v) => v['name'])));
         }
 
-        // Certification Options (matching screenshot)
-        final certType = types.firstWhereOrNull((t) => t['name'] == 'Certifications');
+        // Certification Options
+        final certType = types.firstWhereOrNull(
+            (t) => t['name'] == 'Certifications' || t['name'] == 'Certification');
         if (certType != null) {
-          certificationOptions.assignAll(List<String>.from(certType['values'].map((v) => v['name'])));
+          certificationOptions.assignAll(
+              List<String>.from(certType['values'].map((v) => v['name'])));
         }
+        
+        debugPrint('Bodywork tags loaded: Disciplines(${disciplineOptions.length}), '
+            'Levels(${horseLevelOptions.length}), Regions(${regionOptions.length}), '
+            'Certs(${certificationOptions.length})');
       } else {
         _setFallbackOptions();
       }
@@ -353,7 +366,7 @@ class BodyworkApplicationController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         await authController.updateUserMetadata();
 
-        Get.to(() => const BodyworkDetailsView(), arguments: Get.arguments);
+        Get.to(() => const VendorApplicationSubmitView(), arguments: Get.arguments);
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }

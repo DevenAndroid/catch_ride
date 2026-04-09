@@ -6,6 +6,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/view/vendor/groom/profile/payment_methods.dart';
 import 'package:catch_ride/view/vendor/upcoming_availability.dart';
+import 'package:catch_ride/view/vendor/bodywork/profile/bodywork_service_and_rates_view.dart';
+import 'package:catch_ride/view/vendor/groom/profile/grooming_service_and_rates_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -327,7 +329,34 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
   }
 
   Widget _buildDetailsCard(GroomViewProfileController controller) {
-    if (controller.activeServiceType.toLowerCase() == 'farrier') {
+    final activeService = controller.activeServiceType.toLowerCase().replaceAll(' ', '');
+    final vendor = controller.vendorData;
+    final Map servicesData = vendor['servicesData'] ?? {};
+
+    if (activeService.contains('bodywork')) {
+       final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? {};
+       return BodyworkServiceAndRatesView(
+         bodyworkData: bodyworkData,
+         location: controller.locationStr.value,
+         experience: controller.experienceStr.value,
+         disciplines: controller.disciplinesSelected,
+         horseLevels: controller.horseLevels,
+         regionsCovered: controller.operatingRegions,
+         travelPreferences: controller.travelPreferences,
+         services: controller.bodyworkServices,
+       );
+    }
+    
+    if (activeService == 'grooming' || activeService == 'clipping' || activeService == 'braiding') {
+       final Map groomingData = servicesData[activeService] ?? {};
+       return GroomingServiceAndRatesView(
+         groomingData: groomingData,
+         location: controller.locationStr.value,
+         experience: controller.experienceStr.value,
+       );
+    }
+
+    if (activeService == 'farrier') {
       return _buildFarrierDetails(controller);
     }
     return Container(

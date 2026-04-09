@@ -23,6 +23,7 @@ class VendorAvailabilityModel {
   final String? locationType; // 'Both', 'Barn', 'Show Venue'
   final String? capacityType; // 'No capacity limit', 'Max horses per time block', 'Max horses per day'
   final String? timeBlockType; // 'Full Day', 'AM', 'PM'
+  final String? bufferTime; // '15 min', '30 min', '45 min'
   final String? availabilityMode; // 'General bookings', 'Emergency-only'
   final String? newClientPolicy; 
 
@@ -49,6 +50,7 @@ class VendorAvailabilityModel {
     this.locationType,
     this.capacityType,
     this.timeBlockType,
+    this.bufferTime,
     this.availabilityMode,
     this.newClientPolicy,
   });
@@ -87,6 +89,7 @@ class VendorAvailabilityModel {
       locationType: json['locationType'],
       capacityType: json['capacityType'],
       timeBlockType: json['timeBlockType'],
+      bufferTime: json['bufferTime'],
       availabilityMode: json['availabilityMode'],
       newClientPolicy: json['newClientPolicy'],
     );
@@ -116,6 +119,7 @@ class VendorAvailabilityModel {
       'locationType': locationType,
       'capacityType': capacityType,
       'timeBlockType': timeBlockType,
+      'bufferTime': bufferTime,
       'availabilityMode': availabilityMode,
       'newClientPolicy': newClientPolicy,
     };

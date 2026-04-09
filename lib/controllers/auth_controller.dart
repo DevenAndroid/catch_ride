@@ -28,6 +28,7 @@ import '../view/barn_manager/barn_manager_create_profile_view.dart';
 import '../view/create_account_view.dart';
 import '../view/trainer/trainer_complete_profile_view.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
+import '../view/vendor/community_standards_view.dart';
 import '../view/vendor/vendor_application_submit_view.dart';
 import '../view/vendor/complete_profile_view.dart';
 
@@ -823,7 +824,7 @@ class AuthController extends GetxController {
           Get.offAll(() => const GroomBottomNav());
         } else if (isProfileApprove) {
           // Approval stage: Fill out remaining profile details
-          Get.offAll(() => const CompleteProfileView());
+          Get.offAll(() => const CommunityStandardsView());
         } else if (isProfileSetup) {
           // Selection stage: Waiting for admin approval
           Get.offAll(() => const VendorApplicationSubmitView());

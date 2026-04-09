@@ -102,6 +102,22 @@ class EditVendorProfileController extends GetxController {
   final farrierMinHorsesController = TextEditingController(text: '1');
   final RxBool farrierEmergencySupport = false.obs;
   final RxnString farrierInsuranceStatus = RxnString();
+  
+  // Bodywork Tab Specifics
+  final RxList bodyworkServices = [].obs;
+  final RxList<String> bodyworkProfessionalStandards = <String>[
+    'I provide veterinary medical work or specific veterinary advice.',
+    'I understand working close with veterinarian / veterinary advice.',
+    'Perform body work techniques that may require vet approval.',
+    'operate within the compounding laws & rules and booking rules.'
+  ].obs;
+  final RxList<String> selectedBodyworkStandards = <String>[].obs;
+  final RxList<String> bodyworkCertifications = <String>[].obs;
+  final RxnString bodyworkInsuranceStatus = RxnString();
+  final Rxn<File> bodyworkInsuranceDoc = Rxn<File>();
+  final Rxn<DateTime> bodyworkInsuranceExpiry = Rxn<DateTime>();
+  final otherModalityController = TextEditingController();
+  final selectedTravelData = <String, Map<String, dynamic>>{}.obs;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -215,11 +231,37 @@ class EditVendorProfileController extends GetxController {
           farrierMinHorsesController.text = appData['clientIntake']?['minHorses']?.toString() ?? '1';
           farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? false;
           farrierInsuranceStatus.value = appData['insuranceStatus'];
+        } else if (activeService['serviceType'] == 'Bodywork') {
+          final List bServices = profileData['services'] ?? [];
+          bodyworkServices.assignAll(bServices.map((s) => {
+            'name': s['name'] ?? '',
+            'rates': s['rates'] != null ? Map<String, dynamic>.from(s['rates']) : {'30': '', '45': '', '60': '', '90': ''},
+            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+          }).toList());
+
+          selectedBodyworkStandards.assignAll(List<String>.from(profileData['professionalStandards'] ?? []));
+          bodyworkCertifications.assignAll(List<String>.from(profileData['certifications'] ?? []));
+          bodyworkInsuranceStatus.value = profileData['insurance']?['status'];
+          if (profileData['insurance']?['expiry'] != null) {
+            bodyworkInsuranceExpiry.value = DateTime.tryParse(profileData['insurance']['expiry']);
+          }
         }
 
       final travelPrefRaw = profileData['travelPreferences'] ?? [];
       if (travelPrefRaw is List) {
-        selectedTravel.assignAll(travelPrefRaw.map((e) => (e is Map) ? (e['type']?.toString() ?? '') : e.toString()).where((s) => s.isNotEmpty).toList());
+        if (activeService['serviceType'] == 'Bodywork') {
+          final Map<String, Map<String, dynamic>> travelMap = {};
+          for (var item in travelPrefRaw) {
+            if (item is Map) {
+              travelMap[item['type'] ?? ''] = Map<String, dynamic>.from(item);
+            } else {
+              travelMap[item.toString()] = {'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
+            }
+          }
+          selectedTravelData.assignAll(travelMap);
+        } else {
+          selectedTravel.assignAll(travelPrefRaw.map((e) => (e is Map) ? (e['type']?.toString() ?? '') : e.toString()).where((s) => s.isNotEmpty).toList());
+        }
       }
       
       cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
@@ -313,6 +355,10 @@ class EditVendorProfileController extends GetxController {
 
   void removeExistingPhoto(int index) => existingPhotos.removeAt(index);
   void removeNewPhoto(int index) => newPhotos.removeAt(index);
+  Future<void> addBodyworkPhoto() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) newPhotos.add(File(image.path));
+  }
 
   void addBraidingService(String name) {
     if (name.isNotEmpty) {
@@ -532,6 +578,53 @@ class EditVendorProfileController extends GetxController {
               'isSelected': s['isSelected'].value,
             }).toList(),
             'travelPreferences': farrierTravelFees.toList(),
+            'cancellationPolicy': {
+              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+            },
+            'media': groomingMedia,
+          }
+        };
+      }
+
+      // Construct bodywork payload if assigned
+      if (assignedServices.any((s) => s['serviceType'] == 'Bodywork')) {
+        servicesData['bodywork'] = {
+          'applicationData': {
+            'homeBase': {
+              'city': cityController.text,
+              'state': stateController.text,
+              'country': countryController.text,
+            },
+            'experience': experience.value,
+            'disciplines': selectedDisciplines.toList(),
+            'otherDiscipline': otherDisciplineController.text,
+            'horseLevels': selectedHorseLevels.toList(),
+            'regions': selectedRegions.toList(),
+            'media': groomingMedia,
+          },
+          'profileData': {
+            'socialMedia': {
+              'facebook': facebookController.text,
+              'instagram': instagramController.text,
+            },
+            'services': bodyworkServices.map((s) => {
+              'name': s['name'],
+              'rates': s['rates'],
+              'isSelected': s['isSelected'].value,
+            }).toList(),
+            'professionalStandards': selectedBodyworkStandards.toList(),
+            'certifications': bodyworkCertifications.toList(),
+            'insurance': {
+              'status': bodyworkInsuranceStatus.value,
+              'expiry': bodyworkInsuranceExpiry.value?.toIso8601String(),
+            },
+            'travelPreferences': selectedTravelData.entries.map((e) => {
+              'type': e.key,
+              'feeType': e.value['feeType'],
+              'price': e.value['price'],
+              'disclaimer': e.value['disclaimer'],
+            }).toList(),
             'cancellationPolicy': {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,

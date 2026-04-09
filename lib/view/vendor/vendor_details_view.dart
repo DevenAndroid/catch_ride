@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../models/vendor_availability_model.dart';
+import 'bodywork/profile/bodywork_service_and_rates_view.dart';
+import 'groom/profile/grooming_service_and_rates_view.dart';
 
 class VendorDetailsView extends StatefulWidget {
   const VendorDetailsView({super.key});
@@ -295,6 +297,29 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
   }
 
   Widget _buildDetailsCard() {
+    final String activeService = controller.availableServices.isNotEmpty 
+        ? controller.availableServices[controller.selectedTabIndex.value] 
+        : '';
+    final Map servicesData = controller.vendorData.value?['servicesData'] ?? {};
+
+    if (activeService.toLowerCase() == 'bodywork') {
+       final Map bodyworkData = servicesData['bodywork'] ?? {};
+       return BodyworkServiceAndRatesView(
+         bodyworkData: bodyworkData,
+         location: controller.location,
+         experience: '${controller.experienceStr} Years',
+       );
+    }
+    
+    if (activeService.toLowerCase() == 'grooming' || activeService.toLowerCase() == 'clipping' || activeService.toLowerCase() == 'braiding') {
+       final Map groomingData = servicesData[activeService.toLowerCase()] ?? {};
+       return GroomingServiceAndRatesView(
+         groomingData: groomingData,
+         location: controller.location,
+         experience: '${controller.experienceStr} Years',
+       );
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
