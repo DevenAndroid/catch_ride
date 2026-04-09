@@ -365,46 +365,46 @@ class ProfileController extends GetxController {
     }
   }
 
-  UserModel? get currentUser => user.value;
+  UserModel? get displayUser => viewedUser.value ?? user.value;
 
-  // Helper getters for UI - ONLY for the logged-in user
-  String get id => user.value?.id ?? '';
-  String get firstName => user.value?.firstName ?? '';
-  String get lastName => user.value?.lastName ?? '';
-  String get fullName => user.value?.fullName ?? '';
-  String get email => user.value?.email ?? '';
-  String get phone => user.value?.phone ?? '';
-  String get bio => user.value?.bio ?? '';
-  String get location => user.value?.location ?? '';
-  String get location2 => user.value?.location2 ?? '';
-  String get avatar => user.value?.displayAvatar ?? '';
-  String get coverImage => user.value?.coverImage ?? '';
-  String get role => user.value?.role ?? 'user';
-  String get status => user.value?.status ?? 'active';
-  bool get isApproved => user.value?.isProfileApprove ?? false;
+// Helper getters for UI
+  String get id => displayUser?.id ?? '';
+  String get firstName => displayUser?.firstName ?? '';
+  String get lastName => displayUser?.lastName ?? '';
+  String get fullName => displayUser?.fullName ?? '';
+  String get email => displayUser?.email ?? '';
+  String get phone => displayUser?.phone ?? '';
+  String get bio => displayUser?.bio ?? '';
+  String get location => displayUser?.location ?? '';
+  String get location2 => displayUser?.location2 ?? '';
+  String get avatar => displayUser?.displayAvatar ?? '';
+  String get coverImage => displayUser?.coverImage ?? '';
+  String get role => displayUser?.role ?? 'user';
+  String get status => displayUser?.status ?? 'active';
+  bool get isApproved => displayUser?.isProfileApprove ?? false;
   bool get pushNotificationsEnabled =>
-      user.value?.pushNotificationsEnabled ?? true;
+      displayUser?.pushNotificationsEnabled ?? true;
   bool get isActive => status.toLowerCase() == 'active';
-  String get joinedDate => user.value?.createdAt?.year.toString() ?? '2025';
+  String get joinedDate => displayUser?.createdAt?.year.toString() ?? '2025';
 
-  // Professional Data
-
-  String get barnName => user.value?.barnName ?? '';
-  int get yearsExperience => user.value?.yearsExperience ?? 0;
-  List<String> get selectedProgramTags => user.value?.programTags ?? [];
-
+// Professional Data
+  String get barnName => displayUser?.barnName ?? '';
+  String get yearsExperience => displayUser?.yearsExperience ?? '0';
+  List<String> get selectedProgramTags => displayUser?.programTags ?? [];
   List<String> get selectedHorseShows {
-    UserModel? target = user.value;
-    if (user.value?.role == 'barn_manager' &&
+    UserModel? target = displayUser;
+    // Only fall back to linked trainer if we're NOT viewing another user
+    if (viewedUser.value == null &&
+        user.value?.role == 'barn_manager' &&
         linkedTrainerProfile.value != null) {
       target = linkedTrainerProfile.value;
     }
     return target?.showCircuits ?? [];
   }
 
-  List<String> get selectedHorseShowIds => user.value?.horseShows ?? [];
-  String get trainerId => user.value?.trainerProfileId ?? '';
-  String get yearsInIndustry => user.value?.yearsInIndustry ?? '';
+  List<String> get selectedHorseShowIds => displayUser?.horseShows ?? [];
+  String get trainerId => displayUser?.trainerProfileId ?? '';
+  String get yearsInIndustry => displayUser?.yearsInIndustry ?? '';
   String get linkedTrainerBarnName {
     if (user.value?.role == 'barn_manager') {
       return linkedTrainerProfile.value?.barnName ??
