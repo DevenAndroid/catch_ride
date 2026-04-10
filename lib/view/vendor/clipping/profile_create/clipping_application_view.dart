@@ -107,7 +107,7 @@ class ClippingApplicationView extends StatelessWidget {
 
               _buildSectionHeader('Experience', isRequired: true),
               Obx(() => _buildBottomTrigger(
-                value: controller.experience.value == null ? null : '${controller.experience.value} Years of Experience',
+                value: controller.experience.value,
                 hint: 'Select Years of Experience',
                 onTap: () => _showExperienceBottomSheet(
                   context: context,

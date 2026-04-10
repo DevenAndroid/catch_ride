@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -17,7 +18,16 @@ class ChatRequestCard extends StatelessWidget {
     final String role = request.otherUser?.role ?? 'User';
     final String? avatar = request.otherUser?.avatar;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => Get.to(
+        () => SingleChatView(
+          name: name,
+          image: avatar ?? '',
+          conversationId: request.conversationId,
+          otherId: request.otherUser?.id,
+        ),
+      ),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -270,11 +280,11 @@ class ChatRequestCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      final success = await controller.acceptRequest(
+                      final String? generalId = await controller.acceptRequest(
                         request.conversationId,
                         bookingId: request.booking?.id,
                       );
-                      if (success) {
+                      if (generalId != null) {
                         Get.snackbar(
                           'Success',
                           'Request accepted',
@@ -284,6 +294,14 @@ class ChatRequestCard extends StatelessWidget {
                           barBlur: 0,
                           margin: const EdgeInsets.all(16),
                         );
+
+                        // Redirect to the same chat view (unlocked)
+                        Get.to(() => SingleChatView(
+                              name: name,
+                              image: avatar ?? '',
+                              conversationId: generalId,
+                              otherId: request.otherUser?.id,
+                            ));
                       } else {
                         Get.snackbar('Error', 'Failed to accept request');
                       }
@@ -293,23 +311,23 @@ class ChatRequestCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: const Color(0xff12937E),
                         borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Center(
-                          child: CommonText(
-                            'Accept',
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                      ),
+                      child: const Center(
+                        child: CommonText(
+                          'Accept',
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
                     ),
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
+    ));
   }
 }

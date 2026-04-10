@@ -18,6 +18,12 @@ class CommonTextField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final String? Function(String?)? validator;
+  final Color? fillColor;
+  final bool? filled;
+  final InputBorder? border;
+  final InputBorder? enabledBorder;
+  final EdgeInsetsGeometry? contentPadding;
+
 
   const CommonTextField({
     super.key,
@@ -34,7 +40,13 @@ class CommonTextField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.validator,
+    this.fillColor,
+    this.filled,
+    this.border,
+    this.enabledBorder,
+    this.contentPadding,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +100,13 @@ class CommonTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             suffixIconColor: AppColors.textSecondary,
+            fillColor: fillColor,
+            filled: filled,
+            border: border,
+            enabledBorder: enabledBorder,
+            contentPadding: contentPadding,
           ),
+
         ),
       ],
     );

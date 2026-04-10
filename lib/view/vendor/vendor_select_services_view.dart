@@ -51,7 +51,7 @@ class VendorSelectServicesView extends StatelessWidget {
                     const Padding(
                       padding: EdgeInsets.fromLTRB(20, 24, 20, 16),
                       child: CommonText(
-                        'Select maximum 2 services.',
+                        'Select maximum 2 services',
                         fontSize: AppTextSizes.size16,
                         color: AppColors.textSecondary,
                       ),

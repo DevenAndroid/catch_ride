@@ -9,6 +9,7 @@ import 'package:catch_ride/view/vendor/groom/menu/edit_vendor_profile_view.dart'
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import '../../../../constant/app_colors.dart';
@@ -106,11 +107,7 @@ class MenuView extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(color: Color(0xFF000B48), shape: BoxShape.circle),
-              child: const Icon(Icons.catching_pokemon, color: Colors.white, size: 24),
-            ),
+            SvgPicture.asset("assets/images/logo.svg", width: 40, height: 40),
             const SizedBox(width: 16),
             Expanded(
               child: Column(

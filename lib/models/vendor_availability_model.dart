@@ -24,6 +24,7 @@ class VendorAvailabilityModel {
   final String? capacityType; // 'No capacity limit', 'Max horses per time block', 'Max horses per day'
   final String? timeBlockType; // 'Full Day', 'AM', 'PM'
   final String? bufferTime; // '15 min', '30 min', '45 min'
+  final int maxDays;
   final String? availabilityMode; // 'General bookings', 'Emergency-only'
   final String? newClientPolicy; 
 
@@ -51,6 +52,7 @@ class VendorAvailabilityModel {
     this.capacityType,
     this.timeBlockType,
     this.bufferTime,
+    this.maxDays = 1,
     this.availabilityMode,
     this.newClientPolicy,
   });
@@ -90,6 +92,7 @@ class VendorAvailabilityModel {
       capacityType: json['capacityType'],
       timeBlockType: json['timeBlockType'],
       bufferTime: json['bufferTime'],
+      maxDays: json['maxDays'] ?? 1,
       availabilityMode: json['availabilityMode'],
       newClientPolicy: json['newClientPolicy'],
     );
@@ -120,6 +123,7 @@ class VendorAvailabilityModel {
       'capacityType': capacityType,
       'timeBlockType': timeBlockType,
       'bufferTime': bufferTime,
+      'maxDays': maxDays,
       'availabilityMode': availabilityMode,
       'newClientPolicy': newClientPolicy,
     };

@@ -42,37 +42,38 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildRateSection(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildGroomingServices(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildSupportSection(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildHorseHandling(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildAdditionalServices(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildTravelPreferences(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildReadOnlyInfo(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildCancellationPolicy(controller),
               const SizedBox(height: 32),
               Obx(() => CommonButton(
                 text: 'Continue',
                 isLoading: controller.isSubmitting.value,
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFF001144),
                 onPressed: controller.submit,
               )),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
             ],
           ),
         ),
       ),
+
     );
   }
 
@@ -154,19 +155,19 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           children: controller.additionalServices.map((service) {
             final isSelected = service['isSelected'].value;
             return Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFEDF2FF).withOpacity(0.5) : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: isSelected ? const Color(0xFF001144) : const Color(0xFFF0F0F0)),
               ),
               child: Row(
                 children: [
                   Checkbox(
                     value: isSelected,
                     onChanged: (val) => service['isSelected'].value = val!,
-                    activeColor: AppColors.primary,
+                    activeColor: const Color(0xFF001144),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
                   const SizedBox(width: 4),
@@ -174,23 +175,38 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CommonText(service['name'] as String, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-                        CommonText('Per horse', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                        CommonText(service['name'] as String, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF1A1A1A)),
+                        const CommonText('Per horse', fontSize: 11, color: AppColors.textSecondary),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
-                  SizedBox(
-                    width: 90,
-                    child: CommonTextField(
-                      label: '',
-                      controller: service['price'] as TextEditingController,
-                      prefixIcon: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                        child: CommonText('\$', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-                      ),
-                      keyboardType: TextInputType.number,
-                      hintText: '0',
+                  Container(
+                    width: 80,
+                    height: 40,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const CommonText('\$', fontSize: 13, fontWeight: FontWeight.bold),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: TextField(
+                            controller: service['price'] as TextEditingController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              hintText: '0',
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                              isDense: true,
+                            ),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -203,6 +219,7 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       ],
     );
   }
+
 
   Widget _buildTravelPreferences(GroomingDetailsController controller) {
     return _buildSectionContainer(
@@ -236,27 +253,46 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           _buildLabelValue('Location', controller.location.value),
           const SizedBox(height: 20),
           _buildLabelValue('Years of Experience', controller.experience.value),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           _buildChipsList('Disciplines', controller.disciplinesSelected),
-          const SizedBox(height: 20),
-          _buildChipsList('Typical Level of Horses', controller.horseLevels),
-          const SizedBox(height: 20),
-          _buildSectionHeader('General operating regions'),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Typical Level of Horses'),
+          const SizedBox(height: 4),
+          const CommonText('Select the level of horses you have the most experience with', fontSize: 13, color: AppColors.textSecondary, height: 1.4),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: controller.horseLevels
+                .map((it) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F2),
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: CommonText(it, fontSize: 12, fontWeight: FontWeight.w500, color: const Color(0xFF444444)),
+            ))
+                .toList(),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Regions Covered'),
+          const SizedBox(height: 4),
+          const CommonText('Select the regions you have the most experience with', fontSize: 13, color: AppColors.textSecondary, height: 1.4),
           const SizedBox(height: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: controller.operatingRegions
                 .map((r) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.lightGray.withOpacity(0.5),
+                  color: const Color(0xFFF9F9F9),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderLight.withOpacity(0.5)),
+                  border: Border.all(color: const Color(0xFFEEEEEE)),
                 ),
-                child: CommonText(r, fontSize: AppTextSizes.size12),
+                child: CommonText(r, fontSize: 13, color: const Color(0xFF1A1A1A), fontWeight: FontWeight.w500),
               ),
             ))
                 .toList(),
@@ -269,20 +305,22 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildCancellationPolicy(GroomingDetailsController controller) {
     return _buildSectionContainer(
       title: 'Cancellation Policy',
+      description: 'Set your cancellation preference for bookings',
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
+            color: const Color(0xFFF9F9F9),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.borderLight),
+            border: Border.all(color: const Color(0xFFEEEEEE)),
           ),
           child: DropdownButtonHideUnderline(
             child: Obx(() => DropdownButton<String>(
               value: controller.cancellationPolicy.value,
-              hint: const CommonText('Select Cancellation', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
+              hint: const CommonText('Select Cancellation Policy', color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.w500),
               isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-              items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
+              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF999999)),
+              items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s, fontSize: 14, fontWeight: FontWeight.w500, color: const Color(0xFF333333)))).toList(),
               onChanged: (val) => controller.cancellationPolicy.value = val,
             )),
           ),
@@ -293,10 +331,10 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
             Obx(() => Checkbox(
               value: controller.isCustomCancellation.value,
               onChanged: (val) => controller.isCustomCancellation.value = val!,
-              activeColor: AppColors.primary,
+              activeColor: const Color(0xFF001144),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             )),
-            const CommonText('Custom', fontSize: AppTextSizes.size14),
+            const CommonText('Custom', fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF444444)),
           ],
         ),
         Obx(() => AnimatedSize(
@@ -304,16 +342,18 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
               curve: Curves.easeInOut,
               child: controller.isCustomCancellation.value
                   ? Padding(
-                      padding: const EdgeInsets.only(top: 16),
+                      padding: const EdgeInsets.only(top: 12),
                       child: TextField(
                         controller: controller.customCancellationController,
                         maxLines: 4,
                         decoration: InputDecoration(
                           hintText: 'Write here...',
-                          hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary)),
+                          hintStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
+                          fillColor: const Color(0xFFF9F9F9),
+                          filled: true,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEEEEEE))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEEEEEE))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF001144))),
                           contentPadding: const EdgeInsets.all(16),
                         ),
                       ),
@@ -323,6 +363,7 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       ],
     );
   }
+
 
   void _showAddServiceBottomSheet(BuildContext context, GroomingDetailsController controller, {bool isAdditional = false}) {
     Get.bottomSheet(
@@ -357,7 +398,7 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
             CommonTextField(
               label: '',
               controller: controller.addServiceInputController,
-              hintText: 'i.e. braiding, clipping',
+              hintText: 'i.e. grooming, night check, stall prep',
             ),
             if (isAdditional) ...[
               const SizedBox(height: 24),
@@ -431,21 +472,18 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4)),
-        ],
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF0F0F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(title),
           if (description != null) ...[
-            const SizedBox(height: 4),
-            CommonText(description, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+            const SizedBox(height: 6),
+            CommonText(description, fontSize: 13, color: AppColors.textSecondary, height: 1.4),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ...children,
         ],
       ),
@@ -453,24 +491,25 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   }
 
   Widget _buildSectionHeader(String title) {
-    return CommonText(title, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold);
+    return CommonText(title, fontSize: 17, fontWeight: FontWeight.bold, color: const Color(0xFF1A1A1A));
   }
 
   Widget _buildSelectableChip(String text, {required bool isSelected, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight),
+          color: isSelected ? const Color(0xFFF5F8FF) : const Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(color: isSelected ? const Color(0xFF001144) : const Color(0xFFE5E5E5)),
         ),
         child: CommonText(
           text,
-          fontSize: AppTextSizes.size12,
-          color: isSelected ? AppColors.primary : AppColors.textPrimary,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          fontSize: 12.5,
+          color: isSelected ? const Color(0xFF001144) : const Color(0xFF444444),
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
         ),
       ),
     );
@@ -480,27 +519,37 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-        const SizedBox(height: 12),
+        CommonText(label, fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF444444)),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
-              child: CommonTextField(
-                label: '',
-                controller: controller,
-                hintText: 'Enter Price',
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: CommonText('\$', fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9F9F9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEEEEEE)),
                 ),
-                keyboardType: TextInputType.number,
+                child: CommonTextField(
+                  label: '',
+                  controller: controller,
+                  hintText: 'Enter Price',
+                  prefixIcon: const Padding(
+                    padding: EdgeInsets.only(left: 16, right: 8, top: 14, bottom: 14),
+                    child: CommonText('\$', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1A1A1A)),
+                  ),
+                  keyboardType: TextInputType.number,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+               //   focusedBorder: InputBorder.none,
+                ),
               ),
             ),
           ],
         ),
         if (showDaysToggle && daysRx != null) ...[
-          const SizedBox(height: 16),
-          CommonText('Select your standard schedule', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 12),
+          CommonText('Select your standard schedule', fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
           const SizedBox(height: 10),
           Obx(() => Row(
             children: [
@@ -519,17 +568,17 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF0E6E6).withOpacity(0.8) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? AppColors.secondary : AppColors.borderLight),
+          color: isSelected ? const Color(0xFF8C3E3E) : const Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: isSelected ? const Color(0xFF8C3E3E) : const Color(0xFFEEEEEE)),
         ),
         child: CommonText(
           text,
-          fontSize: AppTextSizes.size14,
-          color: isSelected ? AppColors.secondary : AppColors.textSecondary,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
+          color: isSelected ? Colors.white : const Color(0xFF666666),
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
         ),
       ),
     );
@@ -538,7 +587,7 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildActionLink(String text, {required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: CommonText(text, color: AppColors.linkBlue, fontWeight: FontWeight.w600, fontSize: AppTextSizes.size14),
+      child: CommonText(text, color: const Color(0xFF3366FF), fontWeight: FontWeight.bold, fontSize: 13),
     );
   }
 
@@ -546,13 +595,16 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(label),
+        CommonText(label, fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF444444)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
-          child: CommonText(value, fontSize: AppTextSizes.size14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: CommonText(value, fontSize: 14, color: const Color(0xFF1A1A1A), fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -562,16 +614,21 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(label),
-        const SizedBox(height: 8),
+        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF1A1A1A)),
+        const SizedBox(height: 6),
+        CommonText('Select the disciplines you have the most experience with', fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+        const SizedBox(height: 12),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: items
               .map((it) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
-            child: CommonText(it, fontSize: AppTextSizes.size12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F2),
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: CommonText(it, fontSize: 12, fontWeight: FontWeight.w500, color: const Color(0xFF444444)),
           ))
               .toList(),
         ),
@@ -579,3 +636,4 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
     );
   }
 }
+

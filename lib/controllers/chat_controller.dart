@@ -176,7 +176,7 @@ class ChatController extends GetxController {
     });
   }
 
-  Future<bool> acceptRequest(String conversationId, {String? bookingId}) async {
+  Future<String?> acceptRequest(String conversationId, {String? bookingId}) async {
     try {
       isUpdatingStatus.value = true;
       final response = await _apiService.postRequest(
@@ -184,14 +184,15 @@ class ChatController extends GetxController {
         {'bookingId': bookingId},
       );
       if (response.statusCode == 200) {
+        final String? generalId = response.body['data']?['generalConversationId'];
         _handleStatusUpdate(conversationId, 'request-accepted');
         await fetchConversations();
-        return true;
+        return generalId ?? conversationId;
       }
-      return false;
+      return null;
     } catch (e) {
       _logger.e('Error accepting request: $e');
-      return false;
+      return null;
     } finally {
       isUpdatingStatus.value = false;
     }

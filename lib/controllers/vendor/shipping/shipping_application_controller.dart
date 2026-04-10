@@ -114,6 +114,10 @@ class ShippingApplicationController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error fetching dynamic tags: $e');
+    } finally {
+      if (experienceOptions.isEmpty) {
+        experienceOptions.assignAll(['0-1', '2-4', '5-9', '10+']);
+      }
     }
   }
 

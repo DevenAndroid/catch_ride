@@ -328,15 +328,15 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF3),
+                          color: _getStatusBgColor(booking.status),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFABEFC6)),
+                          border: Border.all(color: _getStatusTextColor(booking.status).withValues(alpha: 0.2)),
                         ),
                         child: CommonText(
                           status,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF067647),
+                          color: _getStatusTextColor(booking.status),
                         ),
                       ),
                     ),
@@ -475,40 +475,45 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       ),
                     ),
                   ],
-                  // Accept/Decline Action Buttons for Pending Received Bookings
-                  if (booking.status.toLowerCase() == 'pending' &&
-                      _tabController.index == 0) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CommonButton(
-                            text: 'Decline',
-                            backgroundColor: Colors.white,
-                            textColor: AppColors.accentRed,
-                            onPressed: () => bookingController.updateBookingStatus(
-                                booking.id ?? '', 'cancelled'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CommonButton(
-                            text: 'Accept',
-                            backgroundColor: AppColors.primary,
-                            textColor: Colors.white,
-                            onPressed: () => bookingController.updateBookingStatus(
-                                booking.id ?? '', 'confirmed'),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
-                ],
+                ),
               ),
-            ),
+
           ],
         ),
       ),
     );
+  }
+  
+  Color _getStatusBgColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFFECFDF3); // Greenish
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFFEF3F2); // Reddish
+      case 'pending':
+        return const Color(0xFFFFFAEB); // Yellowish
+      default:
+        return const Color(0xFFF2F4F7); // Grey
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFF067647); // Dark Green
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFB42318); // Dark Red
+      case 'pending':
+        return const Color(0xFFB54708); // Dark Orange
+      default:
+        return const Color(0xFF344054); // Dark Grey
+    }
   }
 }
