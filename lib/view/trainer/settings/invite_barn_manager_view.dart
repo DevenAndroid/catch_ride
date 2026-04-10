@@ -23,6 +23,13 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
   final TextEditingController _emailController = TextEditingController();
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _profileController.fetchProfile();
+  }
+
+  @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
@@ -210,8 +217,14 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
           ),
 
           // Barn Image
-          const CommonImageView(
-            assetPath: 'assets/images/barn_manager_bg1.jpg',
+          CommonImageView(
+            url: (manager.coverImage != null && manager.coverImage!.isNotEmpty)
+                ? manager.coverImage
+                : null,
+            assetPath:
+                (manager.coverImage == null || manager.coverImage!.isEmpty)
+                    ? 'assets/images/barn_manager_bg1.jpg'
+                    : null,
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,
@@ -221,7 +234,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
           Transform.translate(
             offset: const Offset(0, -40),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -253,10 +266,11 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: 0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const SizedBox(height: 32),
                               CommonText(
                                 manager.fullName,
                                 fontSize: 24,
@@ -275,7 +289,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
                   CommonText(
                     manager.bio ??
                         "Invited Barn Manager. This space will show their bio once they set up their profile.",

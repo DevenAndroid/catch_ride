@@ -5,6 +5,9 @@ import 'package:catch_ride/view/trainer/settings/support_tickets_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/view/trainer/settings/request_horse_show_view.dart';
 
 class GetHelpView extends StatefulWidget {
   const GetHelpView({super.key});
@@ -15,7 +18,7 @@ class GetHelpView extends StatefulWidget {
 
 class _GetHelpViewState extends State<GetHelpView> {
   final SupportController _controller = Get.put(SupportController());
-  final TextEditingController _searchController = TextEditingController();
+  final ProfileController _profileController = Get.find<ProfileController>();
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -30,7 +33,6 @@ class _GetHelpViewState extends State<GetHelpView> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     _subjectController.dispose();
     _categoryController.dispose();
     _descriptionController.dispose();
@@ -108,72 +110,157 @@ class _GetHelpViewState extends State<GetHelpView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Search Bar
-                  _buildSearchBar(),
-                  const SizedBox(height: 32),
-
                   // Popular Resources
-                  CommonText(
-                    'Popular help resources',
+                  const CommonText(
+                    'Frequently asked questions',
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
                   ),
                   const SizedBox(height: 16),
-                  _buildResourceTile('Account access issues'),
-                  _buildResourceTile('Creating or Editing Listings'),
-                  _buildResourceTile('Connections & Messaging'),
+                  Obx(() {
+                    if (_controller.isLoadingFaqs.value && _controller.faqs.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (_controller.faqs.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: CommonText(
+                          'No FAQs available',
+                          fontSize: 14,
+                          color: AppColors.textSecondary.withValues(alpha: 0.6),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: _controller.faqs.map((faq) => _buildResourceTile(faq)).toList(),
+                    );
+                  }),
 
                   const SizedBox(height: 12),
 
-                  // Promo Banner
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        SvgPicture.asset(
-                          "assets/images/logo.svg",
-                          height: 30,
-                          width: 30,
-                        ),
-                        const SizedBox(width: 14),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CommonText(
-                                'Can\'t find the horse show you want?',
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                  // Need any help? card
+                  Obx(() {
+                    final phoneNo = _profileController.helpPhoneNumber.value;
+                    if (phoneNo.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: GestureDetector(
+                        onTap: () async {
+                          final Uri url = Uri.parse('tel:$phoneNo');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url);
+                          } else {
+                            Get.snackbar('Error', 'Could not open dialer');
+                          }
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.border.withValues(alpha: 0.5),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
-                              SizedBox(height: 2),
-                              CommonText(
-                                'Please reach out here to have it added.',
-                                fontSize: 12,
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.phone,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const CommonText(
+                                      'Need any help?',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    CommonText(
+                                      phoneNo,
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 14,
                                 color: AppColors.textSecondary,
                               ),
                             ],
                           ),
                         ),
-                        const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          size: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                      ],
+                      ),
+                    );
+                  }),
+
+                  GestureDetector(
+                    onTap: () => Get.to(() => const RequestHorseShowView()),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          SvgPicture.asset(
+                            "assets/images/logo.svg",
+                            height: 30,
+                            width: 30,
+                          ),
+                          const SizedBox(width: 14),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CommonText(
+                                  'Can\'t find the horse show you want?',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                                SizedBox(height: 2),
+                                CommonText(
+                                  'Please reach out here to have it added.',
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -259,49 +346,19 @@ class _GetHelpViewState extends State<GetHelpView> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
-        decoration: InputDecoration(
-          hintText: 'How can we help you?',
-          hintStyle: TextStyle(
-            color: AppColors.textSecondary.withValues(alpha: 0.6),
-            fontSize: 16,
-          ),
-          prefixIcon: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Icon(
-              Icons.search_rounded,
-              color: AppColors.textPrimary,
-              size: 24,
-            ),
-          ),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildResourceTile(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () {},
-        child: Row(
+  Widget _buildResourceTile(Map<String, dynamic> faq) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.only(bottom: 0),
+        iconColor: AppColors.textSecondary,
+        collapsedIconColor: AppColors.textSecondary,
+        title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(6),
@@ -318,7 +375,7 @@ class _GetHelpViewState extends State<GetHelpView> {
             const SizedBox(width: 14),
             Expanded(
               child: CommonText(
-                title,
+                faq['question']?.toString() ?? 'FAQ',
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
@@ -326,6 +383,19 @@ class _GetHelpViewState extends State<GetHelpView> {
             ),
           ],
         ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 44, right: 16, bottom: 20),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: CommonText(
+                faq['answer']?.toString() ?? '',
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

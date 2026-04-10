@@ -56,7 +56,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true, // Content flows behind the nav bar
+      extendBody: false, // Content flows behind the nav bar
       body: Stack(
         children: [
           // Ensure views have enough bottom space

@@ -8,7 +8,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
+import '../constant/app_colors.dart';
 import '../models/horse_model.dart';
+import '../widgets/common_text.dart';
 import 'explore_controller.dart';
 
 class AddNewListingController extends GetxController {
@@ -18,7 +20,49 @@ class AddNewListingController extends GetxController {
   void onInit() {
     super.onInit();
     fetchTags();
+    ageController.addListener(_onAgeChanged);
   }
+
+  final List<String> breeds = [
+    'Dutch Warmblood (KWPN)',
+    'Oldenburg (OL / GOV)',
+    'Hanoverian',
+    'Holsteiner',
+    'Selle Français',
+    'Westphalian',
+    'Trakehner',
+    'Belgian Warmblood (BWP)',
+    'Danish Warmblood',
+    'Swedish Warmblood',
+    'Irish Sport Horse',
+    'German Sport Horse (DSP)',
+    'Zangersheide',
+    'Warmblood Cross',
+    'Thoroughbred',
+    'Thoroughbred Cross',
+    'Anglo European Sport Horse',
+    'American Warmblood',
+    'Welsh Pony',
+    'Welsh Cob',
+    'Connemara',
+    'German Riding Pony',
+    'Pony of the Americas',
+    'Crossbred Pony',
+    'Other',
+  ];
+
+  final List<String> colors = [
+    'Bay',
+    'Dark Bay',
+    'Chestnut',
+    'Black',
+    'Gray',
+    'Roan',
+    'Palomino',
+    'Buckskin',
+    'Paint / Pinto',
+    'Other',
+  ];
 
   // Loading state
   var isTagsLoading = false.obs;
@@ -26,9 +70,11 @@ class AddNewListingController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
   var localImages = <File>[].obs;
+  var localVideo = Rxn<File>();
   var gender = 'Gelding'.obs;
   var editingHorseId = RxnString();
   bool get isEditMode => editingHorseId.value != null;
+  var selectedColor = ''.obs;
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;
@@ -44,7 +90,17 @@ class AddNewListingController extends GetxController {
   final descriptionController = TextEditingController();
   final usefNumberController = TextEditingController();
   final locationController = TextEditingController();
-  var selectedDiscipline = ''.obs;
+  var selectedDisciplines = <String>{}.obs;
+  var calculatedAge = 0.obs;
+
+  void _onAgeChanged() {
+    final year = int.tryParse(ageController.text);
+    if (year != null && year > 1900 && year <= DateTime.now().year) {
+      calculatedAge.value = DateTime.now().year - year;
+    } else {
+      calculatedAge.value = 0;
+    }
+  }
 
   // Price and Inquire state for Step 2
   final Map<String, TextEditingController> minPriceControllers = {
@@ -97,17 +153,24 @@ class AddNewListingController extends GetxController {
     editingHorseId.value = horse.id;
     listingTitleController.text = horse.listingTitle ?? '';
     horseNameController.text = horse.name;
-    ageController.text = horse.age.toString();
+    // Back-calculate Year Foaled from Age
+    if (horse.age > 0 && horse.age < 100) {
+      ageController.text = (DateTime.now().year - horse.age).toString();
+    } else {
+      ageController.text = horse.age.toString();
+    }
+    calculatedAge.value = horse.age;
     heightController.text = horse.height ?? '';
     breedController.text = horse.breed;
     colorController.text = horse.color ?? '';
+    selectedColor.value = horse.color ?? '';
     descriptionController.text = horse.description ?? '';
     usefNumberController.text = horse.usefNumber ?? '';
     videoLinkController.text = horse.videoLink ?? '';
     locationController.text = horse.location ?? '';
     gender.value = horse.gender;
-    selectedDiscipline.value = horse.discipline ?? '';
-    disciplineController.text = horse.discipline ?? '';
+    selectedDisciplines.assignAll(horse.disciplines);
+    disciplineController.text = horse.disciplines.join(', ');
     activeStatus.value = horse.isActive;
 
     selectedListingTypes.assignAll(horse.listingTypes);
@@ -183,16 +246,19 @@ class AddNewListingController extends GetxController {
       final horseData = {
         'listingTitle': listingTitleController.text,
         'name': horseNameController.text,
-        'age': int.tryParse(ageController.text) ?? 0,
+        'age': calculatedAge.value,
         'height': heightController.text,
         'breed': breedController.text,
         'color': colorController.text,
         'gender': gender.value,
-        'discipline': selectedDiscipline.value,
+        'discipline': selectedDisciplines.toList(),
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkController.text,
-        'images': imageUrls,
+        'images': [
+          ...imageUrls,
+          if (localVideo.value != null) await _uploadFile(localVideo.value!)
+        ].whereType<String>().toList(),
         'photo': imageUrls.isNotEmpty ? imageUrls.first : null,
         'listingTypes': selectedListingTypes.toList(),
         'tags': selectedTags.toList(),
@@ -318,13 +384,69 @@ class AddNewListingController extends GetxController {
 
   Future<void> pickImage() async {
     try {
-      final List<XFile> images = await _picker.pickMultiImage();
-      if (images.isNotEmpty) {
-        localImages.addAll(images.map((x) => File(x.path)));
+      if (localImages.isEmpty) {
+        // First selection: only allow images
+        final List<XFile> images = await _picker.pickMultiImage();
+        if (images.isNotEmpty) {
+          localImages.addAll(images.map((x) => File(x.path)));
+        }
+      } else {
+        // Subsequent selection: choice of image or video
+        _showMediaPicker();
       }
     } catch (e) {
-      print('Error picking images: $e');
+      print('Error picking media: $e');
     }
+  }
+
+  void _showMediaPicker() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CommonText(
+              'Select Media Type',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.image, color: AppColors.primary),
+              title: const Text('Add Images'),
+              onTap: () async {
+                Get.back();
+                final List<XFile> images = await _picker.pickMultiImage();
+                if (images.isNotEmpty) {
+                  localImages.addAll(images.map((x) => File(x.path)));
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam, color: AppColors.primary),
+              title: const Text('Add Video'),
+              onTap: () async {
+                Get.back();
+                final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+                if (video != null) {
+                  localVideo.value = File(video.path);
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void removeVideo() {
+    localVideo.value = null;
   }
 
   void removeLocalImage(int index) {

@@ -40,164 +40,23 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     }
   }
 
+  List<String> get _locationSuggestions {
+    final Set<String> locations = {};
+    for (var show in profileController.rawHorseShows) {
+      final city = show['city']?.toString().trim() ?? '';
+      final state = show['state']?.toString().trim() ?? '';
 
-  void _showVenueBottomSheet(AvailabilityEntry availabilityEntry) {
-    final TextEditingController searchController = TextEditingController();
-    final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows =
-        RxList<Map<String, dynamic>>(allShows);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (_, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const CommonText(
-                        'Select Show Venue',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: searchController,
-                    onChanged: (val) {
-                      filteredShows.assignAll(
-                        allShows
-                            .where(
-                              (s) => (s['name'] as String)
-                                  .toLowerCase()
-                                  .contains(val.toLowerCase()),
-                            )
-                            .toList(),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search horse shows...',
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: AppColors.textSecondary,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: Obx(
-                      () => ListView.builder(
-                        controller: scrollController,
-                        itemCount: filteredShows.length,
-                        itemBuilder: (context, index) {
-                          final show = filteredShows[index];
-                          final name = show['name'] ?? '';
-                          final isSelected =
-                              availabilityEntry.showVenueController.text ==
-                              name;
-                          return ListTile(
-                            title: CommonText(
-                              name,
-                              fontSize: 15,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                            ),
-                            subtitle: CommonText(
-                              '${show['city'] ?? ''}, ${show['state'] ?? ''}',
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                            trailing: isSelected
-                                ? const Icon(
-                                    Icons.check,
-                                    color: AppColors.primary,
-                                  )
-                                : null,
-                            onTap: () {
-                              availabilityEntry.showVenueController.text = name;
-                              availabilityEntry.showIdController.text =
-                                  show['_id'] ?? show['id'] ?? '';
-
-                              // Auto-fill fields
-                              final city = show['city'] ?? '';
-                              final state = show['state'] ?? '';
-                              if (city.isNotEmpty || state.isNotEmpty) {
-                                availabilityEntry.cityStateController.text =
-                                    '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
-                              }
-
-                              final DateFormat formatter = DateFormat(
-                                'dd MMM yyyy',
-                              );
-                              if (show['startDate'] != null) {
-                                try {
-                                  final start = DateTime.parse(
-                                    show['startDate'],
-                                  );
-                                  availabilityEntry.startDateController.text =
-                                      formatter.format(start);
-                                } catch (_) {}
-                              }
-                              if (show['endDate'] != null) {
-                                try {
-                                  final end = DateTime.parse(show['endDate']);
-                                  availabilityEntry.endDateController.text =
-                                      formatter.format(end);
-                                } catch (_) {}
-                              }
-
-                              Navigator.pop(context);
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+      if (city.isNotEmpty && state.isNotEmpty) {
+        locations.add('$city, $state');
+      } else if (city.isNotEmpty) {
+        locations.add(city);
+      } else if (state.isNotEmpty) {
+        locations.add(state);
+      }
+    }
+    final list = locations.toList();
+    list.sort();
+    return list;
   }
 
   @override
@@ -464,6 +323,43 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     ],
                   );
                 }),
+                // Display local video if selected
+                if (controller.localVideo.value != null)
+                  Stack(
+                    children: [
+                      Container(
+                        width: 85,
+                        height: 85,
+                        decoration: BoxDecoration(
+                          color: Colors.black12,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.play_circle_fill, color: AppColors.primary, size: 40),
+                        ),
+                      ),
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: GestureDetector(
+                          onTap: () => controller.removeVideo(),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 GestureDetector(
                   onTap: controller.pickImage,
                   child: _buildAddButton(),
@@ -584,111 +480,319 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 },
               ),
               const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Location',
-                controller: controller.locationController,
-                hintText: 'Enter horse\'s location',
-                isRequired: true,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Please enter the location';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: CommonTextField(
-                      label: 'Age',
-                      controller: controller.ageController,
-                      hintText: 'Enter age',
-                      isRequired: false,
+                  RichText(
+                    text: const TextSpan(
+                      text: 'Location',
+                      style: TextStyle(
+                        fontSize: AppTextSizes.size14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Inter',
+                      ),
+                      children: [
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Color(0xFFD92D20)),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: CommonTextField(
-                      label: 'Height',
-                      controller: controller.heightController,
-                      hintText: 'Enter height',
-                      isRequired: false,
+                  const SizedBox(height: 6),
+                  LayoutBuilder(
+                    builder: (context, constraints) => Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        final query = textEditingValue.text.toLowerCase();
+                        return _locationSuggestions.where((String option) {
+                          return option.toLowerCase().contains(query);
+                        });
+                      },
+                      onSelected: (String selection) {
+                        controller.locationController.text = selection;
+                      },
+                      fieldViewBuilder:
+                          (
+                            BuildContext context,
+                            TextEditingController fieldTextEditingController,
+                            FocusNode fieldFocusNode,
+                            VoidCallback onFieldSubmitted,
+                          ) {
+                            if (controller.locationController.text.isNotEmpty &&
+                                fieldTextEditingController.text.isEmpty) {
+                              fieldTextEditingController.text =
+                                  controller.locationController.text;
+                            }
+
+                            fieldTextEditingController.addListener(() {
+                              controller.locationController.text =
+                                  fieldTextEditingController.text;
+                            });
+
+                            return TextFormField(
+                              controller: fieldTextEditingController,
+                              focusNode: fieldFocusNode,
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty)
+                                  return 'Please enter the location';
+                                return null;
+                              },
+                              style: const TextStyle(
+                                fontSize: AppTextSizes.size14,
+                                color: AppColors.textPrimary,
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Enter horse\'s location',
+                                // suffixIcon: const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                              ),
+                            );
+                          },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 4.0,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              width: constraints.maxWidth,
+                              child: ListView.separated(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                separatorBuilder: (context, index) =>
+                                    const Divider(
+                                      height: 1,
+                                      color: AppColors.border,
+                                    ),
+                                itemBuilder: (BuildContext context, int index) {
+                                  final String option = options.elementAt(
+                                    index,
+                                  );
+                                  return InkWell(
+                                    onTap: () {
+                                      onSelected(option);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Text(
+                                        option,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Breed',
-                controller: controller.breedController,
-                hintText: 'Enter breed',
-                isRequired: true,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Please enter the breed';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Color',
-                controller: controller.colorController,
-                hintText: 'Enter color',
-                isRequired: false,
-              ),
-              const SizedBox(height: 16),
-
-              // Discipline Dropdown Stub
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6.0),
-                child: const CommonText(
-                  'Discipline',
-                  fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Obx(
-                () => GestureDetector(
-                  onTap: () => _showSingleSelectBottomSheet(
-                    title: 'Select Discipline',
-                    currentValue: controller.selectedDiscipline.value,
-                    items: ['Hunter', 'Jumper', 'Equitation'],
-                    onSelected: (val) {
-                      controller.selectedDiscipline.value = val;
-                      controller.disciplineController.text = val;
-                    },
+              Row(
+                children: [
+                  Expanded(
+                    child: Obx(() {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CommonTextField(
+                            label: 'Year Foaled',
+                            controller: controller.ageController,
+                            hintText: 'Enter year foaled',
+                            keyboardType: TextInputType.number,
+                            isRequired: true,
+                            validator: (val) {
+                              if (val == null || val.trim().isEmpty)
+                                return 'Required';
+                              final year = int.tryParse(val);
+                              if (year == null || val.length != 4)
+                                return 'Enter 4-digit year';
+                              if (year < 1900 || year > DateTime.now().year)
+                                return 'Invalid year';
+                              return null;
+                            },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              controller.calculatedAge.value > 0
+                                  ? '${controller.calculatedAge.value} years old'
+                                  : "",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: AppColors.inputBackground,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CommonText(
-                          controller.selectedDiscipline.value.isEmpty
-                              ? 'Select discipline'
-                              : controller.selectedDiscipline.value,
-                          color: controller.selectedDiscipline.value.isEmpty
-                              ? AppColors.textSecondary
-                              : AppColors.textPrimary,
-                          fontSize: AppTextSizes.size14,
+                        CommonTextField(
+                          label: 'Height',
+                          controller: controller.heightController,
+                          hintText: 'Enter height',
+                          keyboardType: TextInputType.number,
+                          isRequired: false,
                         ),
-                        const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: AppColors.textSecondary,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(""),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: const TextSpan(
+                      text: 'Breed',
+                      style: TextStyle(
+                        fontSize: AppTextSizes.size14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Inter',
+                      ),
+                      children: [
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Color(0xFFD92D20)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  LayoutBuilder(
+                    builder: (context, constraints) => Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        final query = textEditingValue.text.toLowerCase();
+                        return controller.breeds.where((String option) {
+                          return option.toLowerCase().contains(query);
+                        });
+                      },
+                      onSelected: (String selection) {
+                        controller.breedController.text = selection;
+                      },
+                      fieldViewBuilder:
+                          (
+                            BuildContext context,
+                            TextEditingController fieldTextEditingController,
+                            FocusNode fieldFocusNode,
+                            VoidCallback onFieldSubmitted,
+                          ) {
+                            if (controller.breedController.text.isNotEmpty &&
+                                fieldTextEditingController.text.isEmpty) {
+                              fieldTextEditingController.text =
+                                  controller.breedController.text;
+                            }
+                            fieldTextEditingController.addListener(() {
+                              controller.breedController.text =
+                                  fieldTextEditingController.text;
+                            });
+
+                            return TextFormField(
+                              controller: fieldTextEditingController,
+                              focusNode: fieldFocusNode,
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty)
+                                  return 'Please enter the breed';
+                                return null;
+                              },
+                              style: const TextStyle(
+                                fontSize: AppTextSizes.size14,
+                                color: AppColors.textPrimary,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: 'Enter breed',
+                              ),
+                            );
+                          },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 4.0,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              width: constraints.maxWidth,
+                              child: ListView.separated(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                separatorBuilder: (context, index) =>
+                                    const Divider(
+                                      height: 1,
+                                      color: AppColors.border,
+                                    ),
+                                itemBuilder: (BuildContext context, int index) {
+                                  final String option = options.elementAt(
+                                    index,
+                                  );
+                                  return InkWell(
+                                    onTap: () {
+                                      onSelected(option);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Text(
+                                        option,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildColorSelection(),
+              const SizedBox(height: 20),
+
+              _buildDisciplineSelection(),
+              const SizedBox(height: 20),
               CommonTextField(
                 label: 'Description',
                 controller: controller.descriptionController,
@@ -1053,6 +1157,76 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     });
   }
 
+  Widget _buildColorSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          'Color',
+          fontSize: AppTextSizes.size14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 12),
+        Obx(
+          () => Wrap(
+            spacing: 8,
+            runSpacing: 10,
+            children: controller.colors.map((color) {
+              final isSelected = controller.selectedColor.value == color;
+              return GestureDetector(
+                onTap: () {
+                  controller.selectedColor.value = color;
+                  controller.colorController.text = color;
+                },
+                child: _buildTagChip(color, isSelected),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDisciplineSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          'Discipline',
+          fontSize: AppTextSizes.size14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 12),
+        Obx(
+          () => Wrap(
+            spacing: 8,
+            runSpacing: 10,
+            children: ['Hunter', 'Jumper', 'Equitation'].map((discipline) {
+              final isSelected = controller.selectedDisciplines.contains(
+                discipline,
+              );
+              return GestureDetector(
+                onTap: () {
+                  if (isSelected) {
+                    controller.selectedDisciplines.remove(discipline);
+                  } else {
+                    controller.selectedDisciplines.add(discipline);
+                  }
+                  controller.disciplineController.text = controller
+                      .selectedDisciplines
+                      .join(', ');
+                },
+                child: _buildTagChip(discipline, isSelected),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildDynamicTagSection({
     required String title,
     required List<String> tagNames,
@@ -1253,24 +1427,159 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                               ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        CommonTextField(
-                          label: 'Show Venue',
-                          controller: availabilityEntry.showVenueController,
-                          hintText: 'Select Show Venue',
-                          readOnly: true,
-                          onTap: () => _showVenueBottomSheet(availabilityEntry),
-                          suffixIcon: const Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 20,
-                            color: AppColors.textSecondary,
-                          ),
+                        // New Searchable Autocomplete for Show, Venue, or Circuit
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+                              text: const TextSpan(
+                                text: 'Show, Venue, or Circuit',
+                                style: TextStyle(
+                                  fontSize: AppTextSizes.size14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                  fontFamily: 'Inter',
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Color(0xFFD92D20)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            LayoutBuilder(
+                              builder: (context, constraints) => Autocomplete<Map<String, dynamic>>(
+                                displayStringForOption: (option) => option['name'] ?? '',
+                                optionsBuilder: (TextEditingValue textEditingValue) {
+                                  if (textEditingValue.text.isEmpty) {
+                                    return const Iterable<Map<String, dynamic>>.empty();
+                                  }
+                                  final query = textEditingValue.text.toLowerCase();
+                                  return profileController.rawHorseShows.where((show) {
+                                    final name = (show['name'] ?? '').toString().toLowerCase();
+                                    final venue = (show['showVenue'] ?? '').toString().toLowerCase();
+                                    final circuit = (show['circuit'] ?? '').toString().toLowerCase();
+                                    return name.contains(query) || venue.contains(query) || circuit.contains(query);
+                                  });
+                                },
+                                onSelected: (Map<String, dynamic> selection) {
+                                  availabilityEntry.showVenueController.text = selection['name'] ?? '';
+                                  availabilityEntry.showIdController.text = selection['_id'] ?? selection['id'] ?? '';
+                                  
+                                  // Auto-fill City/State
+                                  final city = selection['city'] ?? '';
+                                  final state = selection['state'] ?? '';
+                                  if (city.isNotEmpty || state.isNotEmpty) {
+                                    availabilityEntry.cityStateController.text = '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
+                                  }
+
+                                  // Auto-fill Dates
+                                  final DateFormat formatter = DateFormat('dd MMM yyyy');
+                                  if (selection['startDate'] != null) {
+                                    try {
+                                      final start = DateTime.parse(selection['startDate']);
+                                      availabilityEntry.startDateController.text = formatter.format(start);
+                                    } catch (_) {}
+                                  }
+                                  if (selection['endDate'] != null) {
+                                    try {
+                                      final end = DateTime.parse(selection['endDate']);
+                                      availabilityEntry.endDateController.text = formatter.format(end);
+                                    } catch (_) {}
+                                  }
+                                },
+                                fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+                                  // Sync with entry controller
+                                  if (availabilityEntry.showVenueController.text.isNotEmpty && textController.text.isEmpty) {
+                                    textController.text = availabilityEntry.showVenueController.text;
+                                  }
+                                  textController.addListener(() {
+                                    availabilityEntry.showVenueController.text = textController.text;
+                                  });
+
+                                  return TextFormField(
+                                    controller: textController,
+                                    focusNode: focusNode,
+                                    decoration: InputDecoration(
+                                      hintText: 'Search horse show, venue or circuit...',
+                                      suffixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+                                    ),
+                                    style: const TextStyle(fontSize: 14),
+                                  );
+                                },
+                                optionsViewBuilder: (context, onSelected, options) {
+                                  return Align(
+                                    alignment: Alignment.topLeft,
+                                    child: Material(
+                                      elevation: 4.0,
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        width: constraints.maxWidth,
+                                        constraints: const BoxConstraints(maxHeight: 300),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: AppColors.border),
+                                        ),
+                                        child: ListView.separated(
+                                          padding: EdgeInsets.zero,
+                                          shrinkWrap: true,
+                                          itemCount: options.length,
+                                          separatorBuilder: (context, index) => const Divider(height: 1),
+                                          itemBuilder: (context, index) {
+                                            final show = options.elementAt(index);
+                                            final name = show['name'] ?? '';
+                                            final venueName = show['showVenue'] ?? 'Unknown Venue';
+                                            final city = show['city'] ?? '';
+                                            final state = show['state'] ?? '';
+                                            
+                                            String dateRange = '';
+                                            try {
+                                              if (show['startDate'] != null && show['endDate'] != null) {
+                                                final start = DateTime.parse(show['startDate']);
+                                                final end = DateTime.parse(show['endDate']);
+                                                final df = DateFormat('MMM d');
+                                                final dfYear = DateFormat('yyyy');
+                                                dateRange = '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
+                                              }
+                                            } catch (_) {}
+
+                                            return InkWell(
+                                              onTap: () => onSelected(show),
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    CommonText(name, fontSize: 15, fontWeight: FontWeight.bold),
+                                                    const SizedBox(height: 4),
+                                                    CommonText(
+                                                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state • $dateRange',
+                                                      fontSize: 12,
+                                                      color: AppColors.textSecondary,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
                         CommonTextField(
                           label: 'City/State',
                           controller: availabilityEntry.cityStateController,
                           hintText: 'e.g., Welling.',
+                          readOnly: true, // Locked as per requirement
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -1404,10 +1713,20 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 if (_currentStep < 5) {
                   if (_currentStep == 1) {
                     if (!_formKey.currentState!.validate()) return;
-                    if (controller.selectedDiscipline.value.isEmpty) {
+                    if (controller.selectedDisciplines.isEmpty) {
                       Get.snackbar(
                         'Required',
                         'Please select a discipline',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+                    if (controller.calculatedAge.value <= 0) {
+                      Get.snackbar(
+                        'Invalid Input',
+                        'Please enter a valid Year Foaled',
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: Colors.redAccent,
                         colorText: Colors.white,

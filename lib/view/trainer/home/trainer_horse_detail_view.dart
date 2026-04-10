@@ -1549,7 +1549,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     children: [
                       TextSpan(text: horse?.name ?? 'Unknown'),
                       TextSpan(
-                        text: ' - ${horse?.discipline ?? horse?.breed}',
+                        text: ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
                         style: const TextStyle(
                           fontWeight: FontWeight.normal,
                           color: AppColors.textSecondary,

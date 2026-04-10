@@ -174,6 +174,48 @@ class SupportController extends GetxController {
     }
   }
 
+  Future<bool> submitHorseShowRequest({
+    required String showName,
+    required String location,
+    required String startDate,
+    required String endDate,
+  }) async {
+    try {
+      isSubmitting.value = true;
+      final ticketData = {
+        'subject': 'New Show Request: $showName',
+        'category': 'Horse Show Request',
+        'description': 'User requested to add $showName in $location from $startDate to $endDate',
+        'priority': 'medium',
+        'metadata': {
+          'showName': showName,
+          'showLocation': location,
+          'startDate': startDate,
+          'endDate': endDate,
+        }
+      };
+
+      final response = await _apiService.postRequest(
+        AppUrls.supportTickets,
+        ticketData,
+      );
+
+      if (response.isOk || (response.body != null && response.body['success'] == true)) {
+        await fetchTickets();
+        return true;
+      } else {
+        String errorMsg = response.body?['message'] ?? 'Failed to submit request';
+        Get.snackbar('Error', errorMsg, snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      _logger.e('Error submitting show request: $e');
+      return false;
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
   Future<bool> submitFeedback({
     required String category,
     required String subject,
