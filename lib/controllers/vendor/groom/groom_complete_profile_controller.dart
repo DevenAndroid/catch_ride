@@ -13,6 +13,7 @@ import '../../../view/vendor/bodywork/create_profile/bodywork_details_view.dart'
 import '../../../view/vendor/farrier/create_profile/farrier_details_view.dart';
 import '../../../view/vendor/shipping/create_profile/shipping_details_view.dart';
 import '../../../view/vendor/groom/groom_bottom_nav.dart';
+import '../../../view/vendor/profile_completed_view.dart';
 
 class GroomCompleteProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -182,25 +183,29 @@ class GroomCompleteProfileController extends GetxController {
         final authController = Get.find<AuthController>();
         await authController.updateUserMetadata();
 
-        final services = authController.currentUser.value?.vendorServices ?? [];
-        if (services.contains('Grooming')) {
-          Get.off(() => const GroomingDetailsView());
-        } else if (services.contains('Braiding')) {
-          Get.off(() => const BraidingDetailsView());
-        } else if (services.contains('Clipping')) {
-          Get.off(() => const ClippingDetailView());
-        }
-        else if (services.contains('Farrier')) {
-          Get.off(() => const FarrierDetailsView());
-        }
-        else if (services.contains('Bodywork')) {
-          Get.off(() => const BodyworkDetailsView());
-        }
-        else if (services.contains('Shipping')) {
-          Get.off(() => const ShippingDetailsView());
-        }
-        else {
-          Get.offAll(() => const GroomBottomNav());
+        final List<String> services = List<String>.from(authController.currentUser.value?.vendorServices ?? []);
+        
+        if (services.isNotEmpty) {
+          final nextService = services.first;
+          final nextRemaining = services.skip(1).toList();
+
+          if (nextService == 'Grooming') {
+            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Braiding') {
+            Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Clipping') {
+            Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Farrier') {
+            Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Bodywork') {
+            Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+            Get.offAll(() => const ProfileCompletedView(subtitle: 'Your profile has been updated successfully', destinationWidget: GroomBottomNav()));
+          }
+        } else {
+          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your profile has been updated successfully', destinationWidget: GroomBottomNav()));
         }
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Failed to update profile', backgroundColor: Colors.red, colorText: Colors.white);

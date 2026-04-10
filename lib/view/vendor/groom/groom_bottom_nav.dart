@@ -4,6 +4,7 @@ import 'package:catch_ride/view/vendor/groom/booking/booking_view.dart';
 import 'package:catch_ride/view/vendor/groom/availability/availability_view.dart';
 import 'package:catch_ride/view/vendor/groom/chat/groom_chat_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/menu_view.dart';
+import 'package:catch_ride/view/vendor/shipping/shipping_trip_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -22,22 +23,30 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
   late int _selectedIndex;
   final AuthController _authController = Get.find<AuthController>();
 
-  final List<Widget> _views = [
-    const GroomViewProfile(),
-    const BookingView(),
-    const AvailabilityView(),
-     GroomChatView(),
-    const MenuView(),
-  ];
+  late final List<Widget> _views;
 
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    
+    final user = _authController.currentUser.value;
+    final isShipping = user?.vendorServices.contains('Shipping') ?? false;
+
+    _views = [
+      const GroomViewProfile(),
+      const BookingView(),
+      isShipping ? const ShippingTripView() : const AvailabilityView(),
+      GroomChatView(),
+      const MenuView(),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = _authController.currentUser.value;
+    final isShipping = user?.vendorServices.any((s) => s.toLowerCase() == 'shipping') ?? false;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: _views[_selectedIndex],
@@ -53,7 +62,7 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
             children: [
               _buildNavItem(0, 'Profile', Icons.person, isAvatar: true),
               _buildNavItem(1, 'Booking', Icons.calendar_today_outlined),
-              _buildNavItem(2, 'Availability', Icons.access_time),
+              _buildNavItem(2, isShipping ? 'Trips' : 'Availability', isShipping ? Icons.route_outlined : Icons.access_time),
               _buildNavItem(3, 'Inbox', Icons.chat_bubble_outline),
               _buildNavItem(4, 'Menu', Icons.menu),
             ],

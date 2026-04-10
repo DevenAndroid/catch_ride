@@ -141,6 +141,15 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
           }).toList(),
         );
       }),
+      bottomNavigationBar: Obx(() {
+        if (!isTabReady.value) return const SizedBox.shrink();
+        final activeType = controller.activeServiceType.toLowerCase();
+        // Hide global buttons if tab provides its own (Clipping, Braiding)
+        if (activeType.contains('clip') || activeType.contains('braid')) {
+          return const SizedBox.shrink();
+        }
+        return _buildBottomButtons();
+      }),
     );
   }
 

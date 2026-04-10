@@ -119,6 +119,25 @@ class EditVendorProfileController extends GetxController {
   final otherModalityController = TextEditingController();
   final selectedTravelData = <String, Map<String, dynamic>>{}.obs;
 
+  // Shipping Tab Specifics
+  final dotNumberController = TextEditingController();
+  final RxnString shippingOperationType = RxnString();
+  final RxList<String> shippingTravelScope = <String>[].obs;
+  final RxList<String> shippingRigTypes = <String>[].obs;
+  final RxList<String> shippingServicesOffered = <String>[].obs;
+  final RxBool shippingHasCDL = false.obs;
+  final Rxn<File> shippingCDLFile = Rxn<File>();
+  final RxInt shippingRigCapacity = 1.obs;
+  final shippingNotesController = TextEditingController();
+  final RxList<String> shippingRigPhotos = <String>[].obs;
+  final RxList<File> newShippingRigPhotos = <File>[].obs;
+
+  // Shipping Dynamic Options
+  final RxList<String> shippingOperationOptions = <String>[].obs;
+  final RxList<String> shippingTravelScopeOptions = <String>[].obs;
+  final RxList<String> shippingRigTypeOptions = <String>[].obs;
+  final RxList<String> shippingServicesOptions = <String>[].obs;
+
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -169,7 +188,7 @@ class EditVendorProfileController extends GetxController {
     final services = assignedServices;
     
     // Find the active service based on selected index or default to Grooming/first
-    var activeService;
+    Map<String, dynamic>? activeService;
     if (selectedServiceIndex.value > 0 && selectedServiceIndex.value <= services.length) {
       activeService = services[selectedServiceIndex.value - 1];
     } else {
@@ -245,6 +264,19 @@ class EditVendorProfileController extends GetxController {
           if (profileData['insurance']?['expiry'] != null) {
             bodyworkInsuranceExpiry.value = DateTime.tryParse(profileData['insurance']['expiry']);
           }
+        } else if (activeService['serviceType'] == 'Shipping') {
+          dotNumberController.text = appData['businessInfo']?['dotNumber'] ?? '';
+          shippingOperationType.value = appData['operationType'];
+          shippingTravelScope.assignAll(List<String>.from(appData['travelScope'] ?? []));
+          shippingRigTypes.assignAll(List<String>.from(appData['rigTypes'] ?? []));
+          shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []));
+          shippingHasCDL.value = appData['hasCDL'] ?? false;
+          shippingRigCapacity.value = appData['rigCapacity'] ?? 1;
+          shippingNotesController.text = profileData['notes'] ?? '';
+          shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? []));
+          
+          experience.value = appData['experience']?.toString();
+          selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
         }
 
       final travelPrefRaw = profileData['travelPreferences'] ?? [];
@@ -295,6 +327,32 @@ class EditVendorProfileController extends GetxController {
         final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
         if (regionType != null) {
           regionOptions.assignAll(List<String>.from(regionType['values'].map((v) => v['name'])));
+        }
+      }
+
+      // Fetch Shipping specific tags
+      final shippingResponse = await _apiService.getRequest('/system-config/tag-types/with-values?category=Shipping');
+      if (shippingResponse.statusCode == 200 && shippingResponse.body['success'] == true) {
+        final List types = shippingResponse.body['data'];
+        
+        for (var type in types) {
+          final name = type['name'];
+          final List<String> values = List<String>.from(type['values'].map((v) => v['name']));
+          
+          if (name == 'Hauling Experience') {
+            // Re-use or separate if needed
+          } else if (name == 'Operation Type') {
+            shippingOperationOptions.assignAll(values);
+          } else if (name == 'Travel Scope') {
+            shippingTravelScopeOptions.assignAll(values);
+          } else if (name == 'Rig Types') {
+            shippingRigTypeOptions.assignAll(values);
+          } else if (name == 'Regions Covered') {
+            // Already handled by Grooming if shared, but let's ensure
+            if (regionOptions.isEmpty) regionOptions.assignAll(values);
+          } else if (name == 'Shipping Services') {
+            shippingServicesOptions.assignAll(values);
+          }
         }
       }
     } catch (e) {
@@ -360,6 +418,19 @@ class EditVendorProfileController extends GetxController {
     if (image != null) newPhotos.add(File(image.path));
   }
 
+  Future<void> addShippingRigPhoto() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) newShippingRigPhotos.add(File(image.path));
+  }
+
+  void removeExistingShippingRigPhoto(int index) => shippingRigPhotos.removeAt(index);
+  void removeNewShippingRigPhoto(int index) => newShippingRigPhotos.removeAt(index);
+
+  Future<void> pickShippingCDLFile() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) shippingCDLFile.value = File(image.path);
+  }
+
   void addBraidingService(String name) {
     if (name.isNotEmpty) {
       braidingServices.add({
@@ -414,7 +485,9 @@ class EditVendorProfileController extends GetxController {
 
       // 2. Prepare Payload
       final vendorPayload = {
-        'firstName': fullNameController.text.split(' ').first,
+        'firstName': fullNameController.text
+            .split(' ')
+            .first,
         'lastName': fullNameController.text.contains(' ') ? fullNameController.text.split(' ').skip(1).join(' ') : '',
         'phone': phoneController.text,
         'businessName': businessNameController.text,
@@ -426,7 +499,8 @@ class EditVendorProfileController extends GetxController {
       };
 
       // 1.5 Helper for Braiding Services payload
-      final braidingServicesPayload = braidingServices.map((s) => {
+      final braidingServicesPayload = braidingServices.map((s) =>
+      {
         'name': s['name'],
         'price': s['price'].text,
         'isSelected': s['isSelected'].value,
@@ -567,12 +641,14 @@ class EditVendorProfileController extends GetxController {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
             },
-            'services': farrierServices.map((s) => {
+            'services': farrierServices.map((s) =>
+            {
               'name': s['name'],
               'price': s['price'].text,
               'isSelected': s['isSelected'].value,
             }).toList(),
-            'addOns': farrierAddOns.map((s) => {
+            'addOns': farrierAddOns.map((s) =>
+            {
               'name': s['name'],
               'price': s['price'].text,
               'isSelected': s['isSelected'].value,
@@ -608,7 +684,8 @@ class EditVendorProfileController extends GetxController {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
             },
-            'services': bodyworkServices.map((s) => {
+            'services': bodyworkServices.map((s) =>
+            {
               'name': s['name'],
               'rates': s['rates'],
               'isSelected': s['isSelected'].value,
@@ -619,7 +696,8 @@ class EditVendorProfileController extends GetxController {
               'status': bodyworkInsuranceStatus.value,
               'expiry': bodyworkInsuranceExpiry.value?.toIso8601String(),
             },
-            'travelPreferences': selectedTravelData.entries.map((e) => {
+            'travelPreferences': selectedTravelData.entries.map((e) =>
+            {
               'type': e.key,
               'feeType': e.value['feeType'],
               'price': e.value['price'],
@@ -634,6 +712,60 @@ class EditVendorProfileController extends GetxController {
         };
       }
 
+      // Construct shipping payload if assigned
+      if (assignedServices.any((s) => s['serviceType'] == 'Shipping')) {
+        final List<String> shippingMedia = [...shippingRigPhotos];
+        for (var f in newShippingRigPhotos) {
+          final key = await _uploadFile(f, 'shipping_rigs');
+          if (key != null) shippingMedia.add(key);
+        }
+
+        String? cdlUrl;
+        if (shippingCDLFile.value != null) {
+          cdlUrl = await _uploadFile(shippingCDLFile.value!, 'shipping_docs');
+        }
+
+        servicesData['shipping'] = {
+          'applicationData': {
+            'homeBase': {
+              'city': cityController.text,
+              'state': stateController.text,
+              'country': countryController.text,
+            },
+            'businessInfo': {
+              'legalName': businessNameController.text,
+              'dotNumber': dotNumberController.text,
+            },
+            'experience': experience.value,
+            'operationType': shippingOperationType.value,
+            'travelScope': shippingTravelScope.toList(),
+            'regions': selectedRegions.toList(),
+            'rigTypes': shippingRigTypes.toList(),
+            'rigCapacity': shippingRigCapacity.value,
+            'hasCDL': shippingHasCDL.value,
+            'media': {
+              'cdlPhoto': cdlUrl,
+              'rigPhotos': shippingMedia,
+            }
+          },
+          'profileData': {
+            'socialMedia': {
+              'facebook': facebookController.text,
+              'instagram': instagramController.text,
+            },
+            'servicesOffered': shippingServicesOffered.toList(),
+            'notes': shippingNotesController.text,
+            'cancellationPolicy': {
+              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'isCustom': isCustomCancellation.value,
+            },
+            'media': {
+              'rigPhotos': shippingMedia,
+            }
+          }
+        };
+      }
+
       final servicesPayload = {
         'servicesData': servicesData,
       };
@@ -643,18 +775,19 @@ class EditVendorProfileController extends GetxController {
       if (vendorResponse.statusCode != 200) throw 'Failed to update vendor basic profile';
 
       // 4. Update Grooming Service Profile
-      final vendorId = _authController.currentUser.value?.id; // Assuming ID is accessible
       // If vendorId is null, we fetch again or use /vendors/me logic
       final meResponse = await _apiService.getRequest('/vendors/me');
       final realVendorId = meResponse.body['data']['_id'];
 
       final serviceResponse = await _apiService.putRequest('/vendors/$realVendorId', servicesPayload);
-      
+
       if (serviceResponse.statusCode == 200) {
         // Update local AuthController state for immediate UI reflection in Menu/Personal Info
         if (_authController.currentUser.value != null) {
           final updatedUser = _authController.currentUser.value!.copyWith(
-            firstName: fullNameController.text.split(' ').first,
+            firstName: fullNameController.text
+                .split(' ')
+                .first,
             lastName: fullNameController.text.contains(' ') ? fullNameController.text.split(' ').skip(1).join(' ') : '',
             phone: phoneController.text,
             bio: aboutController.text,
@@ -667,7 +800,7 @@ class EditVendorProfileController extends GetxController {
         }
 
         _authController.currentUser.refresh();
-        
+
         // Refresh the view profile controller if it's active
         if (Get.isRegistered<GroomViewProfileController>()) {
           Get.find<GroomViewProfileController>().fetchProfile();
@@ -678,7 +811,6 @@ class EditVendorProfileController extends GetxController {
       } else {
         throw serviceResponse.body['message'] ?? 'Failed to update grooming details';
       }
-
     } catch (e) {
       debugPrint('Save error: $e');
       Get.snackbar('Error', e.toString(), backgroundColor: Colors.red, colorText: Colors.white);

@@ -119,47 +119,64 @@ class ClippingServiceAndRates extends GetView<ClippingDetailsController> {
                 color: isSelected.value ? const Color(0xFF001149) : AppColors.borderLight,
                 width: isSelected.value ? 1.5 : 1,
               ),
+              boxShadow: isSelected.value
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF001149).withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
+                  : null,
             ),
             child: Row(
               children: [
-                GestureDetector(
-                  onTap: () => isSelected.value = !isSelected.value,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: isSelected.value ? const Color(0xFF001149) : Colors.white,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: isSelected.value ? const Color(0xFF001149) : AppColors.borderMedium,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.check,
-                      size: 14,
-                      color: isSelected.value ? Colors.white : Colors.transparent,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(
-                        service['name'],
-                        fontSize: AppTextSizes.size14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const CommonText(
-                        'Per horse',
-                        fontSize: AppTextSizes.size12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => isSelected.value = !isSelected.value,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: isSelected.value ? const Color(0xFF001149) : Colors.white,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isSelected.value ? const Color(0xFF001149) : AppColors.borderMedium,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            size: 16,
+                            color: isSelected.value ? Colors.white : Colors.transparent,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CommonText(
+                                service['name'],
+                                fontSize: AppTextSizes.size14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                              const CommonText(
+                                'Per horse',
+                                fontSize: AppTextSizes.size12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   width: 90,
                   height: 44,
@@ -182,6 +199,11 @@ class ClippingServiceAndRates extends GetView<ClippingDetailsController> {
                             isDense: true,
                             contentPadding: EdgeInsets.zero,
                           ),
+                          onChanged: (value) {
+                            if (value.isNotEmpty && !isSelected.value) {
+                              isSelected.value = true;
+                            }
+                          },
                           style: const TextStyle(
                             fontSize: AppTextSizes.size14,
                             fontWeight: FontWeight.bold,

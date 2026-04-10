@@ -2,6 +2,11 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
+import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_details_view.dart';
+import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
+import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -90,7 +95,7 @@ class ClippingDetailsController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
         
-        // Find Clipping service from assigned services
+        // 1. Find Clipping application data for base info
         final List assignedServices = vendor['assignedServices'] ?? [];
         final clippingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Clipping');
 
@@ -106,10 +111,86 @@ class ClippingDetailsController extends GetxController {
           disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
-        } else {
-          // Fallback to vendor top level fields if not using the application-specific data yet
-          location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
-          experience.value = vendor['experience'] != null ? '${vendor['experience']} years' : 'N/A';
+        }
+
+        // 2. Restore saved Services & Rates from servicesData
+        final servicesData = vendor['servicesData']?['clipping'];
+        if (servicesData != null) {
+          final List savedServices = servicesData['services'] ?? [];
+          
+          // Helper to update a service list
+          void updateServiceList(RxList<Map<String, dynamic>> targetList, List savedItems) {
+            for (var saved in savedItems) {
+              final name = saved['name'];
+              final price = saved['price'].toString();
+              
+              // Find if it exists in our default list
+              final existingIndex = targetList.indexWhere((s) => s['name'] == name);
+              if (existingIndex != -1) {
+                targetList[existingIndex]['isSelected'].value = true;
+                (targetList[existingIndex]['price'] as TextEditingController).text = price;
+              } else {
+                // Add as a custom service
+                targetList.add({
+                  'name': name,
+                  'isSelected': true.obs,
+                  'price': TextEditingController(text: price),
+                });
+              }
+            }
+          }
+
+          // We don't know which were add-ons or core from the DB easily 
+          // unless we save them separately, but for now we can match against names.
+          // Separate previously saved into core and add-ons by checking our default lists
+          final coreNames = ['Full Body Clip', 'Hunter Clip', 'Trace Clip', 'Bib Clip', 'Irish Clip', 'Touch Ups'];
+          
+          final savedCore = savedServices.where((s) => coreNames.contains(s['name'])).toList();
+          final savedOthers = savedServices.where((s) => !coreNames.contains(s['name'])).toList();
+
+          // Update Core
+          for (var saved in savedCore) {
+            final existing = clippingServices.firstWhereOrNull((s) => s['name'] == saved['name']);
+            if (existing != null) {
+              existing['isSelected'].value = true;
+              (existing['price'] as TextEditingController).text = saved['price'].toString();
+            }
+          }
+
+          // Update/Add Add-ons or custom
+          for (var saved in savedOthers) {
+            final existingAddon = addOnServices.firstWhereOrNull((s) => s['name'] == saved['name']);
+            if (existingAddon != null) {
+              existingAddon['isSelected'].value = true;
+              (existingAddon['price'] as TextEditingController).text = saved['price'].toString();
+            } else {
+              // It's either a custom add-on or a custom core service
+              // Add to core if generic, else add-on? Let's keep it simple: if not in default core, add to add-ons
+              addOnServices.add({
+                'name': saved['name'],
+                'isSelected': true.obs,
+                'price': TextEditingController(text: saved['price'].toString()),
+              });
+            }
+          }
+
+          // 3. Restore Travel Preferences
+          final List travelPrefs = servicesData['travelPreferences'] ?? [];
+          for (var pref in travelPrefs) {
+            final region = pref['region'];
+            final feeStructure = pref['feeStructure'];
+            if (region != null && feeStructure != null) {
+              travelFees[region] = Map<String, dynamic>.from(feeStructure);
+            }
+          }
+
+          // 4. Restore Cancellation Policy
+          final cancelData = servicesData['cancellationPolicy'];
+          if (cancelData != null) {
+            cancellationPolicy.value = cancelData['policy'];
+            isCustomCancellation.value = cancelData['isCustom'] ?? false;
+            customCancellationController.text = cancelData['customText'] ?? '';
+          }
         }
       }
     } catch (e) {
@@ -167,10 +248,27 @@ class ClippingDetailsController extends GetxController {
         final authController = Get.put(AuthController());
         await authController.updateUserMetadata();
 
-        Get.offAll(() => const ProfileCompletedView(
-          subtitle: 'Your clipping services are now live',
-          destinationWidget: GroomBottomNav(),
-        ));
+        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+        if (remaining.isNotEmpty) {
+          final nextService = remaining.first;
+          final nextRemaining = remaining.skip(1).toList();
+
+          if (nextService == 'Grooming') {
+            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Braiding') {
+            Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Farrier') {
+            Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Bodywork') {
+            Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+             Get.offAll(() => const ProfileCompletedView(subtitle: 'Your clipping services are now live', destinationWidget: GroomBottomNav()));
+          }
+        } else {
+          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your clipping services are now live', destinationWidget: GroomBottomNav()));
+        }
       } else {
         final errorMsg = response.body['message'] ?? 'Failed to update clipping profile';
         Get.snackbar('Error', errorMsg, backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);

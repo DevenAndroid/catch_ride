@@ -7,6 +7,7 @@ import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_applicat
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -366,7 +367,27 @@ class BodyworkApplicationController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         await authController.updateUserMetadata();
 
-        Get.to(() => const VendorApplicationSubmitView(), arguments: Get.arguments);
+        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+        if (remaining.isNotEmpty) {
+          final nextService = remaining.first;
+          final nextRemaining = remaining.skip(1).toList();
+
+          if (nextService == 'Grooming') {
+            Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Braiding') {
+            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Clipping') {
+            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Farrier') {
+            Get.off(() => const FarrierApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+            Get.offAll(() => const VendorApplicationSubmitView());
+          }
+        } else {
+          Get.offAll(() => const VendorApplicationSubmitView());
+        }
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }

@@ -4,6 +4,10 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
+import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
+import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -139,14 +143,26 @@ class BraidingDetailsController extends GetxController {
         final authController = Get.find<AuthController>();
         await authController.updateUserMetadata();
 
-        final services = authController.currentUser.value?.vendorServices ?? [];
-        if (services.contains('Clipping')) {
-          Get.off(() => const ClippingDetailView());
+        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+        if (remaining.isNotEmpty) {
+          final nextService = remaining.first;
+          final nextRemaining = remaining.skip(1).toList();
+
+          if (nextService == 'Clipping') {
+            Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Grooming') {
+            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Farrier') {
+            Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Bodywork') {
+            Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+             Get.offAll(() => const ProfileCompletedView(subtitle: 'Your braiding services are now live', destinationWidget: GroomBottomNav()));
+          }
         } else {
-          Get.offAll(() => const ProfileCompletedView(
-            subtitle: 'Your braiding services are now live',
-            destinationWidget: GroomBottomNav(),
-          ));
+          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your braiding services are now live', destinationWidget: GroomBottomNav()));
         }
       } else {
         final errorMsg = response.body['message'] ?? 'Failed to update braiding profile';

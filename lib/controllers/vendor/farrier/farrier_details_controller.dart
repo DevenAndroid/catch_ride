@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:collection/collection.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
-import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
-import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
-import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
-import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
+import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_details_view.dart';
+import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
+import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
+import 'package:catch_ride/view/vendor/profile_completed_view.dart';
 
 class FarrierDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -246,16 +248,20 @@ class FarrierDetailsController extends GetxController {
           final nextRemaining = remaining.skip(1).toList();
 
           if (nextService == 'Grooming') {
-            Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Braiding') {
-            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Clipping') {
-            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Bodywork') {
+            Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else {
-            Get.offAll(() => const GroomBottomNav());
+            Get.offAll(() => const ProfileCompletedView(subtitle: 'Your farrier services are now live', destinationWidget: GroomBottomNav()));
           }
         } else {
-          Get.offAll(() => const GroomBottomNav());
+          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your farrier services are now live', destinationWidget: GroomBottomNav()));
         }
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Failed to update farrier profile', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);

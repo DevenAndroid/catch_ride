@@ -5,6 +5,9 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
+import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -349,6 +352,12 @@ class BraidingApplicationController extends GetxController {
             Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Clipping') {
             Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Bodywork') {
+            Get.off(() => const BodyworkApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Farrier') {
+            Get.off(() => const FarrierApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingApplicationView(), arguments: {'remainingServices': nextRemaining});
           } else {
             Get.offAll(() => const VendorApplicationSubmitView());
           }

@@ -124,27 +124,34 @@ class _BraidingServiceRatesTabState extends State<BraidingServiceRatesTab> {
         ),
         child: Row(
           children: [
-            GestureDetector(
-              onTap: () => service['isSelected'].toggle(),
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF00083B) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFD0D5DD), width: 2),
-                ),
-                child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                  const CommonText('Per horse', fontSize: 12, color: AppColors.textSecondary),
-                ],
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => service['isSelected'].value = !service['isSelected'].value,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFF00083B) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFD0D5DD), width: 2),
+                      ),
+                      child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          const CommonText('Per horse', fontSize: 12, color: AppColors.textSecondary),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Container(
