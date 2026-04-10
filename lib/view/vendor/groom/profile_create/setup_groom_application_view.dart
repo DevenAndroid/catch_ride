@@ -39,16 +39,35 @@ class SetupGroomApplicationView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonTextField(
-                label: 'Full Name',
+              _buildGroupedSection(
+                'Full Name',
                 isRequired: true,
-                controller: controller.fullNameController,
-                hintText: 'Enter your full name',
-                validator: (value) {
-                   if (value == null || value.isEmpty) return "Please enter your full name";
-                   return null;
-                },
+                children: [
+                  CommonTextField(
+                    label: '',
+                    isRequired: false, 
+                    controller: controller.fullNameController,
+                    hintText: 'Enter your full name',
+                    validator: (value) {
+                       if (value == null || value.isEmpty) return "Please enter your full name";
+                       return null;
+                    },
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
+              _buildGroupedSection(
+                'Why Join Our Community?',
+                children: [
+                  CommonTextField(
+                    label: '',
+                    controller: controller.joinCommunityController,
+                    hintText: 'Tell us about your experience, the type of horses you’ve worked with, and what kind of opportunities you’re looking for.',
+                    maxLines: 4,
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 24),
 
               _buildGroupedSection(
@@ -70,7 +89,7 @@ class SetupGroomApplicationView extends StatelessWidget {
                     isLoading: controller.isLoadingStates.value,
                     onTap: () => _showLocationBottomSheet(
                       context: context,
-                      title: 'Select State',
+                      title: 'Select State/Province',
                       options: controller.states,
                       onSelected: (val) => controller.onStateSelected(val),
                     ),
@@ -97,30 +116,30 @@ class SetupGroomApplicationView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Experience', isRequired: true),
-              Obx(() => _buildBottomTrigger(
-                value: controller.experience.value,
-                hint: 'Select years of experience',
-                onTap: () => _showExperienceBottomSheet(
-                  context: context,
-                  title: 'Experience',
-                  currentValue: controller.experience.value,
-                  options: controller.experienceOptions,
-                  onSelected: (val) => controller.experience.value = val,
-                ),
-              )),
-              const SizedBox(height: 24),
-
-              CommonTextField(
-                label: 'Why Join Our Community?',
-                controller: controller.joinCommunityController,
-                hintText: 'Tell us why you would like to join and what you bring to the network.',
-                maxLines: 4,
+              _buildGroupedSection(
+                'Experience',
+                isRequired: true,
+                children: [
+                  Obx(() => _buildBottomTrigger(
+                    value: controller.experience.value,
+                    hint: 'Select years of experience',
+                    onTap: () => _showExperienceBottomSheet(
+                      context: context,
+                      title: 'Experience',
+                      currentValue: controller.experience.value,
+                      options: controller.experienceOptions,
+                      onSelected: (val) => controller.experience.value = val,
+                    ),
+                  )),
+                ],
               ),
               const SizedBox(height: 24),
 
+
               _buildGroupedSection(
                 'Disciplines',
+                  description: 'Select the disciplines you most commonly work with',
+                  isRequired: true,
                 children: [
                   Obx(() => _buildChipsList(
                     options: controller.disciplineOptions,
@@ -152,6 +171,7 @@ class SetupGroomApplicationView extends StatelessWidget {
 
               _buildGroupedSection(
                 'Typical Level of Horses',
+                description: "Select the typical level of horses you have experience working with",
                 children: [
                   Obx(() => _buildChipsList(
                     options: controller.horseLevelOptions,
@@ -170,11 +190,11 @@ class SetupGroomApplicationView extends StatelessWidget {
 
               _buildGroupedSection(
                 'Regions Covered',
-                description: 'Select the regions you most commonly work in. Availability details will be added later.',
+                description: 'Select the regions you most commonly work in',
                 children: [
                   Obx(() => _buildBottomTrigger(
-                    value: '', // This will remain empty as selected regions are chips below
-                    hint: 'Select regions...',
+                    value: null,
+                    hint: 'Select regions',
                     isLoading: controller.isLoadingTags.value,
                     onTap: () => _showMultiSelectBottomSheet(
                       context: context,
@@ -219,7 +239,7 @@ class SetupGroomApplicationView extends StatelessWidget {
 
               _buildGroupedSection(
                 'Social Media & Website',
-                description: 'Please include at least one profile for verification.',
+                description: 'Include at least one profile for verification',
                 children: [
                    CommonTextField(
                     label: 'Facebook',
@@ -240,14 +260,13 @@ class SetupGroomApplicationView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              _buildSectionHeader('Add Photos'),
-              const CommonText(
-                'Upload photos that showcase your work and skills.',
-                fontSize: AppTextSizes.size12,
-                color: AppColors.textSecondary,
+              _buildGroupedSection(
+                'Add Photos',
+                description: 'Upload photos that showcase your work and results',
+                children: [
+                  Obx(() => _buildPhotoGrid(controller)),
+                ],
               ),
-              const SizedBox(height: 12),
-              Obx(() => _buildPhotoGrid(controller)),
               const SizedBox(height: 24),
 
               _buildTrainerReferences(controller),
@@ -255,6 +274,7 @@ class SetupGroomApplicationView extends StatelessWidget {
 
               _buildGroupedSection(
                 'Experience Highlights (optional)',
+                description: "Share key experience, programs, or specialties you’d like clients to know",
                 children: [
                   Obx(() => Column(
                     children: controller.highlightsControllers.asMap().entries.map((entry) {
@@ -289,11 +309,11 @@ class SetupGroomApplicationView extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.add, color: AppColors.primary, size: 18),
+                          Icon(Icons.add, color: AppColors.linkBlue, size: 18),
                           SizedBox(width: 4),
                           CommonText(
                             'Add More',
-                            color: AppColors.primary,
+                            color: AppColors.linkBlue,
                             fontWeight: FontWeight.w600,
                             fontSize: AppTextSizes.size14,
                           ),
@@ -347,7 +367,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupedSection(String title, {String? description, required List<Widget> children}) {
+  Widget _buildGroupedSection(String title, {String? description, bool isRequired = false, required List<Widget> children}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -366,7 +386,7 @@ class SetupGroomApplicationView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(title),
+          _buildSectionHeader(title, isRequired: isRequired),
           if (description != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -786,7 +806,7 @@ class SetupGroomApplicationView extends StatelessWidget {
   Widget _buildTrainerReferences(SetupGroomApplicationController controller) {
     return _buildGroupedSection(
       'Professional References',
-      description: 'Please provide two professional references we may contact regarding your experience and reliability.',
+      description: "Provide references who can speak to your experience, professionalism, and reliability",
       children: [
         _buildTrainerReferenceInputs(controller, 1),
         const SizedBox(height: 24),
@@ -803,7 +823,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText('Trainer Reference $number', color: AppColors.accentRed, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
+        CommonText('Trainer Reference $number', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
         const SizedBox(height: 12),
         CommonTextField(
            label: 'Full Name',
@@ -820,7 +840,7 @@ class SetupGroomApplicationView extends StatelessWidget {
         CommonTextField(
            label: 'Relationship',
            controller: relCtrl, 
-           hintText: 'Enter business name' // Placeholder matching screenshot precisely
+           hintText: 'Enter relationship name' // Placeholder matching screenshot precisely
         ),
       ],
     );
@@ -830,17 +850,17 @@ class SetupGroomApplicationView extends StatelessWidget {
     return Column(
       children: [
         Obx(() => _buildCheckboxTile(
-          'I confirm that I am at least 18 years of age.',
+          'I confirm that I am at least 18 years of age or older',
           controller.is18OrOlder.value,
           (val) => controller.is18OrOlder.value = val!,
         )),
         Obx(() => _buildCheckboxTile(
-          'I agree to the Terms of Service and Privacy Policy.',
+          'I agree to the Terms of Service and Privacy Policy',
           controller.agreeToTerms.value,
           (val) => controller.agreeToTerms.value = val!,
         )),
         Obx(() => _buildCheckboxTile(
-          'I understand that my professional references may be contacted regarding my history, competence, and reliability.',
+          'I understand that my professional references may be contacted regarding my history, competence, and reliability',
           controller.confirmReferences.value,
           (val) => controller.confirmReferences.value = val!,
         )),

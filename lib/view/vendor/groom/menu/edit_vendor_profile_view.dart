@@ -627,21 +627,35 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
             label: 'Country',
             hintText: 'Select Country',
             isRequired: true,
+            readOnly: true,
             controller: controller.countryController,
           ),
           const SizedBox(height: 16),
-          CommonTextField(
-            label: 'State/Province',
-            hintText: 'Select state/province',
-            isRequired: true,
-            controller: controller.stateController,
-          ),
+          _buildFieldLabel('State/Province', isRequired: true),
+          Obx(() => _buildDropdownTrigger(
+            value: controller.selectedStateNode.value?['name'],
+            isLoading: controller.isLoadingStates.value,
+            hint: 'Select state/province',
+            onTap: () => _showLocationBottomSheet(
+              title: 'Select State',
+              options: controller.states,
+              onSelected: (node) => controller.onStateSelected(node),
+            ),
+          )),
           const SizedBox(height: 16),
-          CommonTextField(
-            label: 'City',
-            hintText: 'Select city',
-            controller: controller.cityController,
-          ),
+          _buildFieldLabel('City', isRequired: true),
+          Obx(() => _buildDropdownTrigger(
+            value: controller.selectedCityNode.value?['name'],
+            isLoading: controller.isLoadingCities.value,
+            hint: controller.selectedStateNode.value == null ? 'Select state first' : 'Select city',
+            onTap: controller.selectedStateNode.value == null 
+                ? null 
+                : () => _showLocationBottomSheet(
+              title: 'Select City',
+              options: controller.cities,
+              onSelected: (node) => controller.onCitySelected(node),
+            ),
+          )),
         ],
       ),
     );
@@ -655,7 +669,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           value: controller.experience.value,
           hint: 'Select years of experience',
           onTap: () => _showPickerBottomSheet(
-            title: 'Experience (Years)',
+            title: 'Experience',
             options: controller.experienceOptions,
             onSelected: (val) => controller.experience.value = val,
           ),
@@ -1012,6 +1026,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
     String? value,
     required String hint,
     VoidCallback? onTap,
+    bool isLoading = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -1026,12 +1041,21 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CommonText(
-              value ?? hint,
-              color: value == null ? Colors.grey : AppColors.textPrimary,
-              fontSize: AppTextSizes.size14,
+            Expanded(
+              child: CommonText(
+                value ?? hint,
+                color: value == null ? Colors.grey : AppColors.textPrimary,
+                fontSize: AppTextSizes.size14,
+              ),
             ),
-            const Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 20),
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+              )
+            else
+              const Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 20),
           ],
         ),
       ),
@@ -1338,6 +1362,55 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
               child: CommonButton(
                 text: 'Done',
                 onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLocationBottomSheet({
+    required String title,
+    required List<Map<String, dynamic>> options,
+    required Function(Map<String, dynamic>) onSelected,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scroll) => Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: CommonText(
+                title,
+                fontSize: AppTextSizes.size18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                controller: scroll,
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final node = options[index];
+                  return ListTile(
+                    title: CommonText(node['name'] ?? ''),
+                    onTap: () {
+                      onSelected(node);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                },
               ),
             ),
           ],

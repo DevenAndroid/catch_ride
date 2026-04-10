@@ -20,6 +20,10 @@ class GroomingDetailsController extends GetxController {
 
   // Grooming Services
   final groomingServicesList = <String>[
+    'Grooming & Turnout',
+    'Wrapping & Bandaging',
+    'Stall Upkeep & Daily Care',
+    'Show Prep (Non Braiding)',
   ].obs;
   final selectedGroomingServices = <String>{}.obs;
   final addServiceInputController = TextEditingController();
@@ -41,7 +45,7 @@ class GroomingDetailsController extends GetxController {
     }
   }
 
-  // Deprecated Pricing-based services (keeping for now to avoid breaking other logic if any, but clean up eventually)
+  // Deprecated Pricing-based services
   final groomingServices = <Map<String, dynamic>>[].obs;
 
   void removeGroomingService(int index) {
@@ -75,7 +79,7 @@ class GroomingDetailsController extends GetxController {
   }
 
   // Horse Handling
-  final handlingOptions = ['Lunging', 'Flat Riding (exercise only)'];
+  final handlingOptions = ['Lunging', 'Flat Riding (Exercise Only)', 'Stallion'];
   final selectedHandling = <String>{}.obs;
 
   void toggleHandling(String item) {
@@ -87,6 +91,21 @@ class GroomingDetailsController extends GetxController {
   }
 
   final additionalServices = <Map<String, dynamic>>[
+    {
+      'name': 'Hunter Braiding Mane',
+      'price': TextEditingController(), // Default empty as in image placeholder
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Jumper Braiding',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Dressage Braiding',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
   ].obs;
 
   void addAdditionalService(String name, String price) {
@@ -100,6 +119,7 @@ class GroomingDetailsController extends GetxController {
       addServicePriceInputController.clear();
     }
   }
+
 
   // Travel Preferences
   final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
@@ -176,43 +196,53 @@ class GroomingDetailsController extends GetxController {
         Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
         return;
       }
-      final vendorId = vendorResponse.body['data']['_id'];
+      final vendor = vendorResponse.body['data'];
+      final vendorId = vendor['_id'];
+      
+      // Merge with existing servicesData to prevent clearing other services (Braiding, Clipping, etc.)
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendor['servicesData'] ?? {});
+      
+      final List assignedServices = vendor['assignedServices'] ?? [];
+      final groomingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Grooming');
+      final existingApplication = groomingService?['application'];
+
+      // Update ONLY the grooming part of servicesData
+      existingServicesData['grooming'] = {
+        'application': existingApplication, // CRITICAL: preserve location/experience
+        'rates': {
+          'daily': dailyRateController.text,
+          'weekly': {
+            'price': weeklyRateController.text,
+            'days': weeklyRateDays.value,
+          },
+          'monthly': {
+            'price': monthlyRateController.text,
+            'days': monthlyRateDays.value,
+          },
+        },
+        'services': selectedGroomingServices.toList(),
+        'capabilities': {
+          'support': selectedSupport.toList(),
+          'handling': selectedHandling.toList(),
+        },
+        'additionalServices': additionalServices
+            .where((s) => s['isSelected'].value == true)
+            .map((s) => {
+                  'name': s['name'],
+                  'price': (s['price'] as TextEditingController).text,
+                })
+            .toList(),
+        'cancellationPolicy': {
+          'policy': cancellationPolicy.value,
+          'isCustom': isCustomCancellation.value,
+          'customText': customCancellationController.text,
+        },
+        'travelPreferences': selectedTravel.toList(),
+        'isProfileCompleted': true,
+      };
 
       final body = {
-        'servicesData': {
-          'grooming': {
-            'rates': {
-              'daily': dailyRateController.text,
-              'weekly': {
-                'price': weeklyRateController.text,
-                'days': weeklyRateDays.value,
-              },
-              'monthly': {
-                'price': monthlyRateController.text,
-                'days': monthlyRateDays.value,
-              },
-            },
-            'services': selectedGroomingServices.toList(),
-            'capabilities': {
-              'support': selectedSupport.toList(),
-              'handling': selectedHandling.toList(),
-            },
-            'additionalServices': additionalServices
-                .where((s) => s['isSelected'].value == true)
-                .map((s) => {
-                      'name': s['name'],
-                      'price': (s['price'] as TextEditingController).text,
-                    })
-                .toList(),
-            'cancellationPolicy': {
-              'policy': cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-              'customText': customCancellationController.text,
-            },
-            'travelPreferences': selectedTravel.toList(),
-            'isProfileCompleted': true,
-          }
-        },
+        'servicesData': existingServicesData,
         'isProfileSetup': true,
         'isProfileCompleted': true,
       };

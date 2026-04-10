@@ -99,7 +99,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         _selectedWorkTypes.clear();
         _selectedServiceTypes.clear();
         for (var s in _editingBlock!.serviceTypes) {
-          if (s == 'Grooming' || s == 'Braiding') continue;
+          if (s == 'Grooming' || s == 'Braiding' || s == 'Clipping' || s == 'Bodywork') continue;
           
           if (_availableWorkTypes.contains(s)) {
             _selectedWorkTypes.add(s);
@@ -137,17 +137,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   final RxString _bufferTime = '15 min'.obs;
 
   List<String> get _availableWorkTypes {
-    if (_categoryName == 'Braiding') {
-      return ['Show week support', 'Daily barn help', 'Fill In/ daily show support', 'Seasonal / Temporary'];
-    }
-    return ['Daily barn help', 'Show week support', 'Seasonal / Temporary'];
+    return ['Show week support', 'Daily barn help', 'Fill In/ daily show support', 'Seasonal / Temporary'];
   }
 
   List<String> get _availableServiceTypes {
-    if (_categoryName == 'Braiding') {
-      return ['Hunter Braiding Mane', 'Jumper Braiding', 'Mane Pulling', 'Tail Braiding'];
-    }
-    return ['Basic Grooming', 'Full Grooming', 'Body Clipping', 'Bathing', 'Braiding'];
+    return ['Hunter Braiding Mane', 'Jumper Braiding'];
   }
 
   final RxList<String> _selectedWorkTypes = <String>[].obs;
@@ -277,101 +271,105 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFEAECF0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 8, 8),
-                child: Row(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF2F4F7)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-                    IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close, color: Colors.grey, size: 20)),
+                    GestureDetector(
+                      onTap: () => Get.back(),
+                      child: const Icon(Icons.close, color: Colors.grey, size: 24),
+                    ),
                   ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildDateSection(),
-                    const SizedBox(height: 24),
-                    if (_categoryName == 'Bodywork') ...[
-                      const CommonText('Time window', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning Window', 'Afternoon Window']),
-                      const SizedBox(height: 24),
-                      const CommonText('Location Type', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
-                      const SizedBox(height: 24),
-                      _buildVenueSection(),
-                      const SizedBox(height: 24),
-                      const CommonText('Daily Session Capacity', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildCapacityCounter(),
-                      const SizedBox(height: 24),
-                      const CommonText('Buffer Between Sessions', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildDropdownField('15 min', _bufferTime, ['15 min', '30 min', '45 min']),
-                    ] else if (_categoryName == 'Clipping') ...[
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Location Type'),
-                      _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Mark Unavailability'),
-                      Row(
-                        children: [
-                          Expanded(child: _buildDateField('Start Date', _unStart, () => _selectUnavailabilityDate(true))),
-                          const SizedBox(width: 16),
-                          Expanded(child: _buildDateField('End Date', _unEnd, () => _selectUnavailabilityDate(false))),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      _buildVenueSection(),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Time Block & Capacity'),
-                      const SizedBox(height: 12),
-                      const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'AM', 'PM']),
-                      const SizedBox(height: 16),
-                      const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildDropdownField('Max horses per day', _capacityType, ['No capacity limit', 'Max horses per time block', 'Max horses per day']),
-                      const SizedBox(height: 16),
-                      const CommonText('Max Horses', fontSize: 13, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 8),
-                      _buildCapacityCounter(),
-                    ] else if (_categoryName == 'Grooming' || _categoryName == 'Braiding') ...[
-                      _buildSectionHeader('Work Type'),
-                      const SizedBox(height: 12),
-                      _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Additional Services'),
-                      const SizedBox(height: 12),
-                      _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Capacity (optional)'),
-                      const SizedBox(height: 12),
-                      _buildCapacitySection(),
+                const SizedBox(height: 24),
+                _buildDateSection(),
+                const SizedBox(height: 24),
+                if (_categoryName == 'Bodywork') ...[
+                  _buildSectionHeader('Time window'),
+                  const SizedBox(height: 8),
+                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning Window', 'Afternoon Window']),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Location Type'),
+                  const SizedBox(height: 8),
+                  _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
+                  const SizedBox(height: 24),
+                  _buildVenueSection(),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Daily Session Capacity'),
+                  const SizedBox(height: 12),
+                  _buildCapacitySection(),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Buffer Between Sessions'),
+                  const SizedBox(height: 8),
+                  _buildDropdownField('15 min', _bufferTime, ['15 min', '30 min', '45 min']),
+                ] else if (_categoryName == 'Clipping') ...[
+                  _buildSectionHeader('Location Type'),
+                  const SizedBox(height: 8),
+                  _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Mark Unavailability'),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: _buildDateField('Start Date', _unStart, () => _selectUnavailabilityDate(true))),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildDateField('End Date', _unEnd, () => _selectUnavailabilityDate(false))),
                     ],
-                    const SizedBox(height: 24),
-                    _buildSectionHeader('Notes For Trainers (optional)'),
-                    const SizedBox(height: 12),
-                    _buildNotesField(),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildVenueSection(),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Time Block & Capacity'),
+                  const SizedBox(height: 12),
+                  const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 8),
+                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'AM', 'PM']),
+                  const SizedBox(height: 16),
+                  const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 8),
+                  _buildDropdownField('Max horses per day', _capacityType, ['No capacity limit', 'Max horses per time block', 'Max horses per day']),
+                  const SizedBox(height: 16),
+                  _buildCapacitySection(),
+                ] else if (_categoryName == 'Grooming' || _categoryName == 'Braiding') ...[
+                  _buildVenueSection(),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Work Type'),
+                  const SizedBox(height: 12),
+                  _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Additional Services'),
+                  const SizedBox(height: 12),
+                  _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader('Capacity (optional)'),
+                  const SizedBox(height: 12),
+                  _buildCapacitySection(),
+                ],
+                const SizedBox(height: 24),
+                _buildSectionHeader('Notes For Trainers (optional)'),
+                const SizedBox(height: 12),
+                _buildNotesField(),
+              ],
+            ),
           ),
         ),
       ),
@@ -414,7 +412,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold),
+        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
         const SizedBox(height: 8),
         InkWell(
           onTap: onTap,
@@ -422,8 +420,8 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFEAECF0)),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -431,9 +429,9 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 CommonText(
                   date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select Date',
                   fontSize: 14,
-                  color: date != null ? AppColors.textPrimary : Colors.grey,
+                  color: date != null ? AppColors.textPrimary : const Color(0xFF667085),
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
               ],
             ),
           ),
@@ -448,26 +446,30 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       children: [
         _buildSectionHeader('Show Venue or City'),
         const SizedBox(height: 12),
-        InkWell(
+        TextField(
+          controller: _venueController,
+          readOnly: true,
           onTap: _showVenueSelectionSheet,
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFEAECF0)),
+          decoration: InputDecoration(
+            hintText: 'Select Show Venue or City',
+            hintStyle: const TextStyle(color: Color(0xFF667085), fontSize: 14),
+            prefixIcon: null,
+            suffixIcon: GestureDetector(
+              onTap: _showVenueSelectionSheet,
+              child: const Icon(Icons.search, size: 20, color: Color(0xFF667085)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Obx(() => CommonText(
-                  _addedVenues.isEmpty ? 'Enter Show Venue or City' : '${_addedVenues.length} Venues Selected',
-                  fontSize: 14,
-                  color: _addedVenues.isEmpty ? Colors.grey : AppColors.textPrimary,
-                )),
-                const Icon(Icons.search, size: 20, color: Colors.grey),
-              ],
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
             ),
           ),
         ),
@@ -480,7 +482,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               runSpacing: 8,
               children: _addedVenues.map((v) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(color: const Color(0xFFF2F4F7), borderRadius: BorderRadius.circular(8)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F4F7), 
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFEAECF0)),
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -488,7 +494,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                     const SizedBox(width: 6),
                     GestureDetector(
                       onTap: () => _addedVenues.remove(v),
-                      child: const Icon(Icons.close, size: 14, color: Colors.grey),
+                      child: const Icon(Icons.close, size: 14, color: Color(0xFF98A2B3)),
                     ),
                   ],
                 ),
@@ -585,15 +591,18 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isSelected ? const Color(0xFF030D3B) : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isSelected ? const Color(0xFF030D3B) : const Color(0xFFEAECF0), width: isSelected ? 1.5 : 1),
+              border: Border.all(
+                color: isSelected ? const Color(0xFF030D3B) : const Color(0xFFD0D5DD), 
+                width: 1
+              ),
             ),
             child: CommonText(
               t,
               fontSize: 13,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? const Color(0xFF030D3B) : AppColors.textPrimary,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? Colors.white : const Color(0xFF344054),
             ),
           ),
         );
@@ -615,20 +624,40 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 12, color: Colors.grey),
+        CommonText(label, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
         const SizedBox(height: 8),
         Container(
           height: 48,
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFEAECF0)),
+            border: Border.all(color: const Color(0xFFD0D5DD)),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(onPressed: () { if (count.value > 1) count.value--; }, icon: const Icon(Icons.remove, size: 20)),
-              Obx(() => CommonText('${count.value}', fontSize: 18, fontWeight: FontWeight.bold)),
-              IconButton(onPressed: () => count.value++, icon: const Icon(Icons.add, size: 20)),
+              IconButton(
+                onPressed: () { if (count.value > 1) count.value--; }, 
+                icon: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2F4F7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Icon(Icons.remove, size: 16, color: Color(0xFF667085)),
+                )
+              ),
+              Obx(() => CommonText('${count.value}', fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF101828))),
+              IconButton(
+                onPressed: () => count.value++, 
+                icon: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2F4F7),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Icon(Icons.add, size: 16, color: Color(0xFF667085)),
+                )
+              ),
             ],
           ),
         ),
@@ -642,9 +671,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       maxLines: 4,
       decoration: InputDecoration(
         hintText: 'Any specific preference, requirements, or information trainers should know...',
-        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
+        hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
+        fillColor: const Color(0xFFF9FAFB),
+        filled: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
         contentPadding: const EdgeInsets.all(16),
       ),
     );

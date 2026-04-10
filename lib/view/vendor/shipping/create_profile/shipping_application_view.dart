@@ -134,7 +134,7 @@ class ShippingApplicationView extends StatelessWidget {
                 // 5. Experience
                 _buildSectionHeader('Experience', isRequired: true),
                 Obx(() => _buildBottomTrigger(
-                  value: controller.experience.value == null ? null : '${controller.experience.value} Years of Hauling',
+                  value: controller.experience.value,
                   hint: 'Select Years of Experience',
                   onTap: () => _showExperienceBottomSheet(
                     context: context,

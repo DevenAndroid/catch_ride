@@ -97,7 +97,7 @@ class BodyworkApplicationController extends GetxController {
 
   // Experience level dropdown
   final experience = RxnString();
-  final List<String> experienceOptions = List.generate(51, (index) => index.toString());
+  final List<String> experienceOptions = ['0-1', '2-4', '5-9', '10+'];
 
   // Checkboxes
   final is18OrOlder = false.obs;

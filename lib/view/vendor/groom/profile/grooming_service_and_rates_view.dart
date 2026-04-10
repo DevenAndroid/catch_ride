@@ -14,6 +14,7 @@ class GroomingServiceAndRatesView extends StatefulWidget {
   final List<String>? travelPreferences;
   final List<String>? supportOptions;
   final List<String>? handlingOptions;
+  final List<String>? additionalSkills;
 
   const GroomingServiceAndRatesView({
     super.key,
@@ -26,6 +27,7 @@ class GroomingServiceAndRatesView extends StatefulWidget {
     this.travelPreferences,
     this.supportOptions,
     this.handlingOptions,
+    this.additionalSkills,
   });
 
   @override
@@ -42,194 +44,256 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     final List services = widget.groomingData['services'] ?? profileData['services'] ?? [];
     final List additionalServices = widget.groomingData['additionalServices'] ?? profileData['additionalServices'] ?? [];
     
-    // Check if we have specialized priced services
-    final List pricedServices = services.where((s) {
-      if (s is! Map) return false;
-      final p = s['price'];
-      if (p == null) return false;
-      if (p is num) return p != 0;
-      return p.toString() != '0' && p.toString() != '0.0';
-    }).toList();
-    
-    final List simpleServices = services.where((s) {
-      if (s is! Map) return true;
-      final p = s['price'];
-      if (p == null) return true;
-      if (p is num) return p == 0;
-      return p.toString() == '0' || p.toString() == '0.0';
-    }).toList();
+    // Core services are usually simple boolean checks or priced
+    final List coreServices = services;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 4, bottom: 12),
+          child: CommonText(
+            'Details',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
           ),
-        ],
-      ),
-      child: Obx(() {
-        final showMore = _showMoreDetails.value;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CommonText(
-              'Services & Rates',
-              fontSize: AppTextSizes.size14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(height: 16),
-
-            // ── Base Rates (Row) ──────────────────────────────────────────
-            if (rates.isNotEmpty && (rates['daily'] != null || rates['weekly'] != null)) ...[
-              _buildBaseRatesRow(rates),
-              const SizedBox(height: 20),
-            ],
-
-            // ── Core/Priced Services ──────────────────────────────────────
-            if (pricedServices.isEmpty && simpleServices.isEmpty)
-              _buildEmptyState('No services configured')
-            else ...[
-              ...pricedServices.map((s) => _buildServiceItem(s['name'] ?? 'Service', '\$ ${s['price']} / horse')),
-              ...simpleServices.map((s) => _buildCheckItem(s is Map ? (s['name'] ?? 'Service') : s.toString())),
-            ],
-
-            // ── Additional Services ───────────────────────────────────────
-            if (additionalServices.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              ...additionalServices.map((s) => _buildServiceItem(s is Map ? (s['name'] ?? 'Service') : s.toString(), '\$ ${s is Map ? (s['price'] ?? '0') : '0'} / horse')),
-            ],
-
-            const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
-
-            // ── Location & Experience ──────────────────────────────────────
-            _buildTwoColumnDetails(
-              'Location',
-              widget.location ?? 'N/A',
-              'Years of Experience',
-              widget.experience ?? 'N/A',
-            ),
-
-            // ── View More / View Less ──────────────────────────────────────
-            if (showMore) ...[
-              const SizedBox(height: 20),
-              if (widget.disciplines?.isNotEmpty ?? false)
-                _buildDetailItem('Disciplines', widget.disciplines!.join(', ')),
-              if (widget.horseLevels?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 16),
-                _buildDetailItem('Typical Level of Horses', widget.horseLevels!.join(', ')),
-              ],
-              if (widget.supportOptions?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 16),
-                _buildDetailItem('Show & Barn Support', widget.supportOptions!.join(', ')),
-              ],
-              if (widget.handlingOptions?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 16),
-                _buildDetailItem('Horse Handling', widget.handlingOptions!.join(', ')),
-              ],
-              if (widget.travelPreferences?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 16),
-                _buildDetailItem('Travel Preferences', widget.travelPreferences!.join(', ')),
-              ],
-              if (widget.regionsCovered?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 16),
-                _buildDetailItem('Regions Covered', widget.regionsCovered!.join(', ')),
-              ],
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _showMoreDetails.value = false,
-                child: const CommonText('View less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-              ),
-            ] else ...[
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => _showMoreDetails.value = true,
-                child: const CommonText('View More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
-          ],
-        );
-      }),
+          ),
+          child: Obx(() {
+            final showMore = _showMoreDetails.value;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const CommonText(
+                  'Services & Rates',
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(height: 16),
+
+                // ── Rates Row ──────────────────────────────────────────────
+                if (rates.isNotEmpty) ...[
+                  _buildBaseRatesRow(rates),
+                  const SizedBox(height: 20),
+                ],
+
+                // ── Core Services (Wrapped Grid) ──────────────────────────────
+                if (coreServices.isNotEmpty) ...[
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: coreServices.map((s) {
+                      final name = s is Map ? (s['name'] ?? 'Service') : s.toString();
+                      return SizedBox(
+                        width: (MediaQuery.of(context).size.width - 100) / 2,
+                        child: _buildCheckItem(name),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                const Divider(height: 1, color: AppColors.dividerColor),
+                const SizedBox(height: 20),
+
+                // ── Additional Services ───────────────────────────────────────
+                if (additionalServices.isNotEmpty) ...[
+                  const CommonText(
+                    'Additional Services',
+                    fontSize: AppTextSizes.size16,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  ...additionalServices.map((s) {
+                    final name = s is Map ? (s['name'] ?? 'Service') : s.toString();
+                    final price = s is Map ? (s['price']?.toString() ?? '0') : '0';
+                    return _buildPricedServiceItem(name, price);
+                  }),
+                  const SizedBox(height: 8),
+                ],
+
+                // ── Extra Details (Show More) ──────────────────────────────────
+                if (showMore) ...[
+                  const Divider(height: 32, color: AppColors.dividerColor),
+                  _buildTwoColumnDetails(
+                    'Location', widget.location ?? 'N/A',
+                    'Years of Experience', widget.experience ?? 'N/A',
+                  ),
+                  const SizedBox(height: 20),
+                  _buildTwoColumnDetails(
+                    'Disciplines', (widget.disciplines?.isEmpty ?? true) ? 'N/A' : widget.disciplines!.join(', '),
+                    'Typical Level of Horses', (widget.horseLevels?.isEmpty ?? true) ? 'N/A' : widget.horseLevels!.join(', '),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildDetailItem('Show & Barn Support', (widget.supportOptions?.isEmpty ?? true) ? 'N/A' : widget.supportOptions!.join(', ')),
+                  const SizedBox(height: 20),
+                  _buildTwoColumnDetails(
+                    'Horse Handling', (widget.handlingOptions?.isEmpty ?? true) ? 'N/A' : widget.handlingOptions!.join(', '),
+                    'Additional Skills', (widget.additionalSkills?.isEmpty ?? true) ? 'N/A' : widget.additionalSkills!.join(', '),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildDetailItem('Travel Preferences', (widget.travelPreferences?.isEmpty ?? true) ? 'N/A' : widget.travelPreferences!.join(', ')),
+                  const SizedBox(height: 20),
+                  _buildDetailItem('Regions Covered', (widget.regionsCovered?.isEmpty ?? true) ? 'N/A' : widget.regionsCovered!.join(', ')),
+                  const SizedBox(height: 20),
+                  InkWell(
+                    onTap: () => _showMoreDetails.value = false,
+                    highlightColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    child: const CommonText(
+                      'View Less',
+                      color: AppColors.linkBlue,
+                      fontSize: AppTextSizes.size14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () => _showMoreDetails.value = true,
+                    highlightColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    child: const CommonText(
+                      'View More',
+                      color: AppColors.linkBlue,
+                      fontSize: AppTextSizes.size14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }),
+        ),
+      ],
     );
   }
 
   Widget _buildBaseRatesRow(Map rates) {
     final daily = rates['daily']?.toString() ?? 'N/A';
     final weekly = rates['weekly']?['price']?.toString() ?? 'N/A';
+    final weeklyDays = rates['weekly']?['days']?.toString() ?? '6';
     final monthly = rates['monthly']?['price']?.toString() ?? 'N/A';
-    final wDays = rates['weekly']?['days']?.toString() ?? '5';
-    final mDays = rates['monthly']?['days']?.toString() ?? '5';
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildRateItem(daily != 'N/A' ? '\$ $daily' : 'N/A', 'Day Rate'),
           _buildSeparator(),
-          _buildRateItem(weekly != 'N/A' ? '\$ $weekly' : 'N/A', 'Week ($wDays d)'),
+          _buildRateItem(weekly != 'N/A' ? '\$ $weekly' : 'N/A', 'Week Rate (${weeklyDays}d)'),
           _buildSeparator(),
-          _buildRateItem(monthly != 'N/A' ? '\$ $monthly' : 'N/A', 'Month ($mDays d)'),
+          _buildRateItem(monthly != 'N/A' ? '\$ $monthly' : 'N/A', 'Month Rate'),
         ],
       ),
     );
   }
 
-  Widget _buildSeparator() => Container(width: 1, height: 20, color: AppColors.borderLight);
+  Widget _buildSeparator() => Container(width: 1, height: 24, color: AppColors.dividerColor.withValues(alpha: 0.5));
 
   Widget _buildRateItem(String price, String label) {
     return Column(
       children: [
-        CommonText(price, fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFFB91C1C)),
-        const SizedBox(height: 2),
-        CommonText(label, fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+        CommonText(
+          price,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFFB91C1C),
+        ),
+        const SizedBox(height: 4),
+        CommonText(
+          label,
+          fontSize: 12,
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w500,
+        ),
       ],
     );
   }
 
-  Widget _buildServiceItem(String name, String price) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_outline, size: 22, color: AppColors.textSecondary),
-          const SizedBox(width: 10),
-          Expanded(child: CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          CommonText(price, fontSize: AppTextSizes.size14, color: const Color(0xFFB91C1C), fontWeight: FontWeight.bold),
-        ],
-      ),
+  Widget _buildCheckItem(String text) {
+    return Row(
+      children: [
+        const Icon(Icons.check_circle_outline, size: 20, color: AppColors.textSecondary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: CommonText(
+            text,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildCheckItem(String text) {
+  Widget _buildPricedServiceItem(String name, String price) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
           const Icon(Icons.check_circle_outline, size: 20, color: AppColors.textSecondary),
-          const SizedBox(width: 10),
-          CommonText(text, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: CommonText(
+              name,
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '\$ $price ',
+                  style: const TextStyle(
+                    color: Color(0xFFB91C1C),
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Outfit',
+                  ),
+                ),
+                const TextSpan(
+                  text: '/ horse',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    fontFamily: 'Outfit',
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildEmptyState(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: CommonText(message, fontSize: 13, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
     );
   }
 
@@ -237,21 +301,32 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+        Expanded(child: _buildDetailItem(label1, value1)),
+        const SizedBox(width: 16),
+        Expanded(child: _buildDetailItem(label2, value2)),
       ],
     );
   }
 
-  Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {
+  Widget _buildDetailItem(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        CommonText(
+          label,
+          fontSize: 13,
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w400,
+        ),
         const SizedBox(height: 6),
-        CommonText(value, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        if (showDivider) const Divider(height: 24, color: AppColors.dividerColor),
+        CommonText(
+          value,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 12),
+        const Divider(height: 1, color: AppColors.dividerColor),
       ],
     );
   }

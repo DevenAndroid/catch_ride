@@ -114,7 +114,7 @@ class SetupGroomApplicationController extends GetxController {
 
   // Experience
   final experience = RxnString();
-  final List<String> experienceOptions = List.generate(51, (index) => index.toString());
+  final List<String> experienceOptions = ['0-1', '2-4', '5-9', '10+'];
 
   // Disciplines
   final selectedDisciplines = <String>[].obs;

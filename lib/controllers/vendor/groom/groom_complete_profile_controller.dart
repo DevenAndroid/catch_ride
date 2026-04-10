@@ -24,6 +24,8 @@ class GroomCompleteProfileController extends GetxController {
   final phoneNumberController = TextEditingController();
   final businessNameController = TextEditingController();
   final aboutController = TextEditingController();
+  final notesForTrainerController = TextEditingController();
+
 
   // Images
   final profileImage = Rxn<File>();
@@ -94,19 +96,21 @@ class GroomCompleteProfileController extends GetxController {
   }
 
   // Experience Highlights
-  final highlightInputController = TextEditingController();
-  final highlights = <String>[].obs;
+  final highlightControllers = <TextEditingController>[TextEditingController()].obs;
 
   void addHighlight() {
-    if (highlightInputController.text.isNotEmpty) {
-      highlights.add(highlightInputController.text);
-      highlightInputController.clear();
-    }
+    highlightControllers.add(TextEditingController());
   }
 
   void removeHighlight(int index) {
-    highlights.removeAt(index);
+    if (highlightControllers.length > 1) {
+      highlightControllers[index].dispose();
+      highlightControllers.removeAt(index);
+    } else {
+      highlightControllers[0].clear();
+    }
   }
+
 
   @override
   void onClose() {
@@ -114,8 +118,12 @@ class GroomCompleteProfileController extends GetxController {
     phoneNumberController.dispose();
     businessNameController.dispose();
     aboutController.dispose();
+    notesForTrainerController.dispose();
     otherPaymentController.dispose();
-    highlightInputController.dispose();
+
+    for (var c in highlightControllers) {
+      c.dispose();
+    }
     super.onClose();
   }
 
@@ -148,7 +156,13 @@ class GroomCompleteProfileController extends GetxController {
       return;
     }
 
+    if (selectedPaymentMethods.isEmpty) {
+      Get.snackbar('Missing Info', 'Please select at least one payment method', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
     isLoading.value = true;
+
     try {
       String? profilePhotoKey;
       String? bannerImageKey;
@@ -169,8 +183,10 @@ class GroomCompleteProfileController extends GetxController {
         'bio': aboutController.text,
         'paymentMethods': selectedPaymentMethods.toList(),
         'otherPaymentDetails': otherPaymentController.text,
-        'highlights': highlights.toList(),
+        'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'notesForTrainer': notesForTrainerController.text,
       };
+
 
       if (profilePhotoKey != null) profileData['profilePhoto'] = profilePhotoKey;
       if (bannerImageKey != null) profileData['coverImage'] = bannerImageKey;

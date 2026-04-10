@@ -17,7 +17,7 @@ class ProfileCompletedView extends StatelessWidget {
     this.title = 'Profile Completed',
     required this.subtitle,
     this.destinationWidget,
-    this.buttonText = 'Home',
+    this.buttonText = 'Continue',
   });
 
   @override

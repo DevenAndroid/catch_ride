@@ -39,9 +39,17 @@ class EditVendorProfileController extends GetxController {
   final stateController = TextEditingController();
   final countryController = TextEditingController(text: 'USA');
 
+  // Location Details
+  final states = <Map<String, dynamic>>[].obs;
+  final cities = <Map<String, dynamic>>[].obs;
+  final isLoadingStates = false.obs;
+  final isLoadingCities = false.obs;
+  final selectedStateNode = Rxn<Map<String, dynamic>>();
+  final selectedCityNode = Rxn<Map<String, dynamic>>();
+
   // Grooming Tab - Experience & Choices
   final RxnString experience = RxnString();
-  final List<String> experienceOptions = List.generate(51, (index) => index.toString());
+  final List<String> experienceOptions = ['0-1', '2-4', '5-9', '10+'];
   
   final RxList<String> disciplineOptions = <String>['Eventing', 'Hunter/Jumper', 'Dressage', 'Other'].obs;
   final RxList<String> selectedDisciplines = <String>[].obs;
@@ -145,6 +153,76 @@ class EditVendorProfileController extends GetxController {
     super.onInit();
     fetchProfileData();
     fetchDynamicTags();
+    fetchStates();
+  }
+
+  Future<void> fetchStates() async {
+    isLoadingStates.value = true;
+    try {
+      final response = await _apiService.getRequest('/locations/states');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        states.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
+        _syncLocationNodes();
+      }
+    } catch (e) {
+      debugPrint('Error fetching states: $e');
+    } finally {
+      isLoadingStates.value = false;
+    }
+  }
+
+  Future<void> fetchCities(String stateCode) async {
+    isLoadingCities.value = true;
+    cities.clear();
+    try {
+      final response = await _apiService.getRequest('/locations/states/$stateCode/cities');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        cities.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
+        
+        if (cityController.text.isNotEmpty) {
+          final node = cities.firstWhereOrNull((c) => c['name'] == cityController.text);
+          if (node != null) {
+            selectedCityNode.value = node;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching cities: $e');
+    } finally {
+      isLoadingCities.value = false;
+    }
+  }
+
+  void onStateSelected(Map<String, dynamic> stateNode) {
+    selectedStateNode.value = stateNode;
+    stateController.text = stateNode['name'] ?? '';
+    cityController.text = '';
+    selectedCityNode.value = null;
+    fetchCities(stateNode['isoCode']);
+  }
+
+  void onCitySelected(Map<String, dynamic> cityNode) {
+    selectedCityNode.value = cityNode;
+    cityController.text = cityNode['name'] ?? '';
+  }
+
+  void _syncLocationNodes() {
+    if (states.isNotEmpty && stateController.text.isNotEmpty) {
+      final sNode = states.firstWhereOrNull((s) => s['name'] == stateController.text);
+      if (sNode != null) {
+        selectedStateNode.value = sNode;
+        // If cities are already loaded, try to find the city node
+        if (cities.isNotEmpty && cityController.text.isNotEmpty) {
+           final cNode = cities.firstWhereOrNull((c) => c['name'] == cityController.text);
+           if (cNode != null) {
+             selectedCityNode.value = cNode;
+           }
+        } else if (cityController.text.isNotEmpty) {
+           // Fetch cities if they aren't loaded yet
+           fetchCities(sNode['isoCode']);
+        }
+      }
+    }
   }
 
   Future<void> fetchProfileData() async {
@@ -197,66 +275,119 @@ class EditVendorProfileController extends GetxController {
 
     if (activeService != null) {
       final profileData = activeService['profile']?['profileData'] ?? {};
-      final appData = activeService['application']?['applicationData'] ?? {};
+      final application = activeService['application'] ?? {};
+      final appData = application['applicationData'] ?? application ?? {};
 
-      // Home Base
-      cityController.text = appData['homeBase']?['city'] ?? '';
-      stateController.text = appData['homeBase']?['state'] ?? '';
-      countryController.text = appData['homeBase']?['country'] ?? 'USA';
+      final vendorData = assignedServices.isEmpty ? {} : (assignedServices[0]['vendorId'] is Map ? assignedServices[0]['vendorId'] : {});
 
-      experience.value = appData['experience']?.toString();
-      selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? []));
+      // Home Base Fallbacks
+      String? city = appData['homeBase']?['city'] ?? appData['city'];
+      String? state = appData['homeBase']?['state'] ?? appData['state'];
+      String? country = appData['homeBase']?['country'] ?? appData['country'];
+
+      if (city == null || city.isEmpty) city = vendorData['city']?.toString();
+      if (state == null || state.isEmpty) state = vendorData['state']?.toString();
+      if (country == null || country.isEmpty) country = vendorData['country']?.toString();
+
+      cityController.text = city ?? '';
+      stateController.text = state ?? '';
+      countryController.text = country ?? 'USA';
+
+      // Experience Fallback
+      dynamic exp = appData['experience'] ?? appData['yearsExperience'] ?? vendorData['yearsExperience'] ?? vendorData['experience'];
+      experience.value = exp?.toString();
+
+      selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? vendorData['disciplines'] ?? []));
       otherDisciplineController.text = appData['otherDiscipline'] ?? '';
-      selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? []));
-      selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
+      selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? vendorData['horseLevels'] ?? []));
+      selectedRegions.assignAll(List<String>.from(appData['regions'] ?? vendorData['regions'] ?? []));
+
+      instagramController.text = profileData['socialMedia']?['instagram'] ?? appData['socialMedia']?['instagram'] ?? '';
+      facebookController.text = profileData['socialMedia']?['facebook'] ?? appData['socialMedia']?['facebook'] ?? '';
       
-      facebookController.text = profileData['socialMedia']?['facebook'] ?? '';
+      _syncLocationNodes();
       // Capabilities based on service type
       if (activeService['serviceType'] == 'Grooming') {
         selectedSupport.assignAll(List<String>.from(profileData['capabilities']?['support'] ?? []));
         selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
         selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
       } else if (activeService['serviceType'] == 'Braiding' || activeService['serviceType'] == 'Clipping') {
-          final List bServices = profileData['services'] ?? [];
-          braidingServices.assignAll(bServices.map((s) => {
-            'name': s['name'] ?? '',
-            'price': TextEditingController(text: s['price']?.toString() ?? ''),
-            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
-          }).toList());
-        } else if (activeService['serviceType'] == 'Farrier') {
-          final List fServices = profileData['services'] ?? [];
-          farrierServices.assignAll(fServices.map((s) => {
-            'name': s['name'] ?? '',
-            'price': TextEditingController(text: s['price']?.toString() ?? ''),
-            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
-          }).toList());
+        final List bServices = profileData['services'] ?? [];
+        braidingServices.assignAll(bServices.map((s) {
+          if (s is Map) {
+            return {
+              'name': s['name'] ?? '',
+              'price': TextEditingController(text: s['price']?.toString() ?? ''),
+              'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+            };
+          }
+          return {
+            'name': s.toString(),
+            'price': TextEditingController(text: '0'),
+            'isSelected': RxBool(true),
+          };
+        }).toList());
+      } else if (activeService['serviceType'] == 'Farrier') {
+        final List fServices = profileData['services'] ?? [];
+        farrierServices.assignAll(fServices.map((s) {
+          if (s is Map) {
+            return {
+              'name': s['name'] ?? '',
+              'price': TextEditingController(text: s['price']?.toString() ?? ''),
+              'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+            };
+          }
+          return {
+            'name': s.toString(),
+            'price': TextEditingController(text: '0'),
+            'isSelected': RxBool(true),
+          };
+        }).toList());
 
-          final List aServices = profileData['addOns'] ?? [];
-          farrierAddOns.assignAll(aServices.map((s) => {
-            'name': s['name'] ?? '',
-            'price': TextEditingController(text: s['price']?.toString() ?? ''),
-            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
-          }).toList());
+        final List aServices = profileData['addOns'] ?? [];
+        farrierAddOns.assignAll(aServices.map((s) {
+          if (s is Map) {
+            return {
+              'name': s['name'] ?? '',
+              'price': TextEditingController(text: s['price']?.toString() ?? ''),
+              'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+            };
+          }
+          return {
+            'name': s.toString(),
+            'price': TextEditingController(text: '0'),
+            'isSelected': RxBool(true),
+          };
+        }).toList());
 
-          selectedCertifications.assignAll(List<String>.from(appData['certifications'] ?? []));
-          otherCertificationController.text = appData['otherCertification'] ?? '';
-          selectedFarrierScope.assignAll(List<String>.from(appData['scopeOfWork'] ?? []));
-          otherFarrierScopeController.text = appData['otherScope'] ?? '';
+        selectedCertifications.assignAll(List<String>.from(appData['certifications'] ?? []));
+        otherCertificationController.text = appData['otherCertification'] ?? '';
+        selectedFarrierScope.assignAll(List<String>.from(appData['scopeOfWork'] ?? []));
+        otherFarrierScopeController.text = appData['otherScope'] ?? '';
 
-          final List travelFees = profileData['travelPreferences'] ?? [];
-          farrierTravelFees.assignAll(travelFees.map((t) => Map<String, dynamic>.from(t)).toList());
+        final List travelFees = profileData['travelPreferences'] ?? [];
+        farrierTravelFees.assignAll(travelFees.map((t) => Map<String, dynamic>.from(t)).toList());
 
-          farrierNewClientPolicy.value = appData['clientIntake']?['policy'];
-          farrierMinHorsesController.text = appData['clientIntake']?['minHorses']?.toString() ?? '1';
-          farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? false;
-          farrierInsuranceStatus.value = appData['insuranceStatus'];
-        } else if (activeService['serviceType'] == 'Bodywork') {
-          final List bServices = profileData['services'] ?? [];
-          bodyworkServices.assignAll(bServices.map((s) => {
-            'name': s['name'] ?? '',
-            'rates': s['rates'] != null ? Map<String, dynamic>.from(s['rates']) : {'30': '', '45': '', '60': '', '90': ''},
-            'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
-          }).toList());
+        farrierNewClientPolicy.value = appData['clientIntake']?['policy'];
+        farrierMinHorsesController.text = appData['clientIntake']?['minHorses']?.toString() ?? '1';
+        farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? false;
+        farrierInsuranceStatus.value = appData['insuranceStatus'];
+      } else if (activeService['serviceType'] == 'Bodywork') {
+        final List bServices = profileData['services'] ?? [];
+        bodyworkServices.assignAll(bServices.map((s) {
+          if (s is Map) {
+            return {
+              'name': s['name'] ?? '',
+              'rates': s['rates'] != null ? Map<String, dynamic>.from(s['rates']) : {'30': '', '45': '', '60': '', '90': ''},
+              'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
+            };
+          }
+          return {
+            'name': s.toString(),
+            'rates': {'30': '', '45': '', '60': '', '90': ''},
+            'isSelected': RxBool(true),
+          };
+        }).toList());
 
           selectedBodyworkStandards.assignAll(List<String>.from(profileData['professionalStandards'] ?? []));
           bodyworkCertifications.assignAll(List<String>.from(profileData['certifications'] ?? []));
@@ -768,6 +899,8 @@ class EditVendorProfileController extends GetxController {
 
       final servicesPayload = {
         'servicesData': servicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
 
       // 3. Update Vendor Profile
