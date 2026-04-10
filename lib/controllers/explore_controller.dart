@@ -24,11 +24,35 @@ class ExploreController extends GetxController {
   final Rxn<DateTime> endDate = Rxn<DateTime>();
   final RxList<String> recentSearches = <String>[].obs;
   final RxBool isGridView = true.obs;
+  
+  // Advanced filters
+  final RxnInt ageMin = RxnInt();
+  final RxnInt ageMax = RxnInt();
+  final RxString breedFilter = ''.obs;
+  final RxString genderFilter = ''.obs;
+  final RxnDouble priceMin = RxnDouble();
+  final RxnDouble priceMax = RxnDouble();
+  final RxList<String> selectedTags = <String>[].obs;
 
   // Suggested search items
   final RxList<Map<String, String>> defaultLocations =
       <Map<String, String>>[].obs;
   final RxList<Map<String, String>> defaultVenues = <Map<String, String>>[].obs;
+
+  void clearAllFilters() {
+    searchQuery.value = '';
+    location.value = '';
+    showVenue.value = '';
+    startDate.value = null;
+    endDate.value = null;
+    ageMin.value = null;
+    ageMax.value = null;
+    breedFilter.value = '';
+    genderFilter.value = '';
+    priceMin.value = null;
+    priceMax.value = null;
+    selectedTags.clear();
+  }
 
   @override
   void onInit() {
@@ -117,6 +141,15 @@ class ExploreController extends GetxController {
           'yyyy-MM-dd',
         ).format(endDate.value!);
       }
+
+      // Add advanced filters
+      if (ageMin.value != null) queryParams['ageMin'] = ageMin.value.toString();
+      if (ageMax.value != null) queryParams['ageMax'] = ageMax.value.toString();
+      if (breedFilter.value.isNotEmpty) queryParams['breed'] = breedFilter.value;
+      if (genderFilter.value.isNotEmpty) queryParams['gender'] = genderFilter.value;
+      if (priceMin.value != null) queryParams['priceMin'] = priceMin.value.toString();
+      if (priceMax.value != null) queryParams['priceMax'] = priceMax.value.toString();
+      if (selectedTags.isNotEmpty) queryParams['tags'] = selectedTags.join(',');
 
       final response = await _apiService.getRequest(
         AppUrls.horses,

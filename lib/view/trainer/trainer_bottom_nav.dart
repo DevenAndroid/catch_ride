@@ -10,6 +10,7 @@ import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
 import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
 import 'package:catch_ride/view/trainer/chats/chats_view.dart';
 import 'package:catch_ride/view/trainer/settings/settings_view.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import 'list/horse_listing_view.dart';
 
@@ -18,7 +19,7 @@ class TrainerBottomNav extends StatefulWidget {
 
   const TrainerBottomNav({
     super.key,
-    this.initialIndex = 0, // Default to Bookings (index 0)
+    this.initialIndex = 1, // Default to Explore (index 1)
   });
 
   @override
@@ -57,63 +58,82 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      extendBody: true, // Content flows behind the nav bar
+      extendBody: false, // Content flows behind the nav bar
       body: Stack(
         children: [
           // Ensure views have enough bottom space
           Padding(
-            padding: const EdgeInsets.only(bottom: 100),
+            padding: const EdgeInsets.only(bottom: 5),
             child: _views[_selectedIndex],
           ),
 
-          // Floating Bottom Nav positioned precisely
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 15, // Adjusted height
-            child: SafeArea(
-              top: false,
-              bottom: true, // Respects the notch area
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 4,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNavItem(
-                        0,
-                        'Bookings',
-                        Icons.calendar_month_rounded,
-                      ),
-                      _buildNavItem(1, 'Explore', Icons.search_rounded),
-                      _buildNavItem(2, 'List', Icons.add_rounded),
-                      _buildNavItem(
-                        3,
-                        'Inbox',
-                        Icons.chat_bubble_outline_rounded,
-                      ),
-                      _buildNavItem(4, 'Profile', Icons.person_rounded),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          // // Floating Bottom Nav positioned precisely
+          // Positioned(
+          //   left: 16,
+          //   right: 16,
+          //   bottom: 15, // Adjusted height
+          //   child: SafeArea(
+          //     top: false,
+          //     bottom: true, // Respects the notch area
+          //     child: Container(
+          //       decoration: BoxDecoration(
+          //         color: Colors.white,
+          //         borderRadius: BorderRadius.circular(32),
+          //         boxShadow: [
+          //           BoxShadow(
+          //             color: Colors.black.withOpacity(0.12),
+          //             blurRadius: 20,
+          //             offset: const Offset(0, 8),
+          //           ),
+          //         ],
+          //       ),
+          //       child: Padding(
+          //         padding: const EdgeInsets.symmetric(
+          //           horizontal: 4,
+          //           vertical: 4,
+          //         ),
+          //         child: Row(
+          //           mainAxisAlignment: MainAxisAlignment.spaceAround,
+          //           children: [
+          //             _buildNavItem(
+          //               0,
+          //               'Bookings',
+          //               Icons.calendar_month_rounded,
+          //             ),
+          //             _buildNavItem(1, 'Explore', Icons.search_rounded),
+          //             _buildNavItem(2, 'List', Icons.add_rounded),
+          //             _buildNavItem(
+          //               3,
+          //               'Inbox',
+          //               Icons.chat_bubble_outline_rounded,
+          //             ),
+          //             _buildNavItem(4, 'Profile', Icons.person_rounded),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, 'Bookings', LucideIcons.calendarDays),
+              _buildNavItem(1, 'Explore', Icons.search_rounded),
+              _buildNavItem(2, 'List', Icons.add_rounded),
+              _buildNavItem(3, 'Inbox', LucideIcons.messageCircleMore),
+              _buildNavItem(4, 'Profile', Icons.person_outline_sharp),
+            ],
+          ),
+        ),
       ),
     );
   }

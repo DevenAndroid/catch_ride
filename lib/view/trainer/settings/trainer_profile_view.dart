@@ -28,7 +28,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final bool isTrainer = _controller.user.value?.role == 'trainer';
-      final bool isSameId = widget.trainerId == _controller.user.value?.trainerProfileId;
+      final bool isSameId =
+          widget.trainerId == _controller.user.value?.trainerProfileId;
 
       if (widget.trainerId != null && (!isTrainer || !isSameId)) {
         _controller.fetchPublicTrainerProfile(widget.trainerId!);
@@ -79,7 +80,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         final hasWebsite = profile.website?.isNotEmpty ?? false;
         final hasSocials = hasInstagram || hasFacebook || hasWebsite;
         final hasBio = _controller.bio.isNotEmpty;
-        final isOwnProfile = widget.trainerId == null ||
+        final isOwnProfile =
+            widget.trainerId == null ||
             (widget.trainerId == _controller.user.value?.trainerProfileId &&
                 _controller.user.value?.role == 'trainer');
 
@@ -96,124 +98,315 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Section
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24),
-                        bottomRight: Radius.circular(24),
-                      ),
-                      child: CommonImageView(
-                        url: profile.coverImage,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-
-                    // Header Buttons (Back and More/Edit)
-                    Positioned(
-                      top: MediaQuery.of(context).padding.top + 10,
-                      left: 16,
-                      right: 16,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Back Button
-                          GestureDetector(
-                            onTap: () => Get.back(),
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.chevron_left,
-                                size: 24,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-
-                          // More Menu Button
-                          if (isOwnProfile)
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'edit') {
-                                  Get.to(() => const EditProfileView());
-                                }
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.more_vert,
-                                  size: 24,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.edit_outlined,
-                                        size: 20,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                      SizedBox(width: 12),
-                                      CommonText(
-                                        'Edit Profile',
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    // Profile Image Overlap
-                    Positioned(
-                      bottom: -65,
-                      left: 16,
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 15,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: CommonImageView(
-                          url: profile.displayAvatar,
-                          height: 110,
-                          width: 110,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: AppColors.borderLight),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                            bottomRight: Radius.circular(24),
+                          ),
+                          child: CommonImageView(
+                            url: profile.coverImage,
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
 
-                const SizedBox(height: 12),
+                        // Header Buttons (Back and More/Edit)
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top + 10,
+                          left: 16,
+                          right: 16,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Back Button
+                              GestureDetector(
+                                onTap: () => Get.back(),
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.8),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.chevron_left,
+                                    size: 24,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ),
+
+                              // More Menu Button
+                              if (isOwnProfile)
+                                PopupMenuButton<String>(
+                                  onSelected: (value) {
+                                    if (value == 'edit') {
+                                      Get.to(() => const EditProfileView());
+                                    }
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.8),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.more_vert,
+                                      size: 24,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'edit',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.edit_outlined,
+                                            size: 20,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                          SizedBox(width: 12),
+                                          CommonText(
+                                            'Edit Profile',
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        // Profile Image Overlap
+                        Positioned(
+                          bottom: -75,
+                          left: 16,
+                          child: Container(
+                            padding: const EdgeInsets.all(5),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 15,
+                                  offset: Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: CommonImageView(
+                              url: profile.displayAvatar,
+                              height: 90,
+                              width: 90,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const SizedBox(width: 130),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CommonText(
+                                _controller.fullName.isEmpty
+                                    ? 'N/A'
+                                    : profile.fullName,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                              ),
+                              const SizedBox(height: 4),
+                              CommonText(
+                                profile.barnName ?? 'N/A',
+                                fontSize: 16,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.location_on,
+                                    size: 16,
+                                    color: Colors.redAccent,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  CommonText(
+                                    profile.location?.isEmpty ?? true
+                                        ? 'N/A'
+                                        : profile.location!,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  if (profile.location2?.isNotEmpty ??
+                                      false) ...[
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 6.0,
+                                      ),
+                                      child: CommonText(
+                                        "|",
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    CommonText(
+                                      profile.location2!,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  if (_controller.disciplines.isNotEmpty) ...[
+                                    CommonText(
+                                      _controller.disciplines.join(" / ") +
+                                          (" Trainer"),
+                                      fontSize: 15,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ],
+
+                                  if (_controller
+                                      .yearsExperience
+                                      .isNotEmpty &&
+                                      _controller.yearsExperience != '0')
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 6.0,
+                                      ),
+                                      child: CommonText(
+                                        "·",
+                                        color: AppColors.textSecondary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  if (_controller
+                                      .yearsExperience
+                                      .isNotEmpty &&
+                                      _controller.yearsExperience != '0')
+                                    CommonText(
+                                      _controller.yearsExperience.contains(
+                                        '+',
+                                      )
+                                          ? '${_controller.yearsExperience} Experience'
+                                          : '${_controller.yearsExperience} Years',
+                                      fontSize: 15,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                   Padding(
+                     padding: const EdgeInsets.symmetric(horizontal: 14),
+                     child: Column(children: [
+                       if (hasBio) ...[
+                         const SizedBox(height: 24),
+                         CommonText(
+                           profile.bio ?? '',
+                           fontSize: 14,
+                           color: AppColors.textSecondary,
+                           height: 1.6,
+                         ),
+                       ],
+
+                       if (hasSocials) ...[
+                         const SizedBox(height: 24),
+                         SingleChildScrollView(
+                           scrollDirection: Axis.horizontal,
+                           child: Row(
+                             children: [
+                               if (hasInstagram)
+                                 _buildSocialButton(
+                                   'Instagram',
+                                   Icons.camera_alt_outlined,
+                                   const Color(0xFFD62976),
+                                       () {
+                                     UrlHelper.launchInstagram(
+                                       profile.instagram!,
+                                     );
+                                   },
+                                 ),
+                               if (hasFacebook) ...[
+                                 if (hasInstagram) const SizedBox(width: 12),
+                                 _buildSocialButton(
+                                   'Facebook',
+                                   Icons.facebook,
+                                   const Color(0xFF1877F2),
+                                       () {
+                                     UrlHelper.launchFacebook(profile.facebook!);
+                                   },
+                                 ),
+                               ],
+                               if (hasWebsite) ...[
+                                 if (hasInstagram || hasFacebook)
+                                   const SizedBox(width: 12),
+                                 _buildSocialButton(
+                                   'Website',
+                                   Icons.link,
+                                   Colors.black87,
+                                       () {
+                                     UrlHelper.launchWebsite(profile.website!);
+                                   },
+                                 ),
+                               ],
+                             ],
+                           ),
+                         ),
+                         const SizedBox(height: 22),
+                       ],
+                     ],),
+                   )
+
+                  ],
+                ),
+              ),
+
+
+
+                const SizedBox(height: 16),
 
                 // Profile Identity Section (Name & Info)
                 Padding(
@@ -221,163 +414,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          const SizedBox(width: 125),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CommonText(
-                                  _controller.fullName.isEmpty
-                                      ? 'N/A' :
-                                  profile.fullName,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
-                                ),
-                                const SizedBox(height: 4),
-                                CommonText(
-                                  profile.barnName ?? 'N/A',
-                                  fontSize: 16,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.location_on,
-                                      size: 16,
-                                      color: Colors.redAccent,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    CommonText(
-                                      profile.location?.isEmpty ?? true
-                                          ? 'N/A'
-                                          : profile.location!,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                    if (profile.location2?.isNotEmpty ?? false) ...[
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6.0,
-                                        ),
-                                        child: CommonText(
-                                          "|",
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      CommonText(
-                                        profile.location2!,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    if (_controller.disciplines.isNotEmpty) ...[
-                                      CommonText(
-                                        _controller.disciplines.join(" / ") +
-                                            (" Trainer"),
-                                        fontSize: 15,
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ],
 
-                                    if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6.0,
-                                        ),
-                                        child: CommonText(
-                                          "·",
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
-                                  CommonText(
-                                    _controller.yearsExperience.contains('+') 
-                                        ? '${_controller.yearsExperience} Experience' 
-                                        : '${_controller.yearsExperience} Years Experience',
-                                    fontSize: 15,
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
 
-                      if (hasBio) ...[
-                        const SizedBox(height: 24),
-                        CommonText(
-                          profile.bio ?? '',
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                        ),
-                      ],
-
-                      if (hasSocials) ...[
-                        const SizedBox(height: 24),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              if (hasInstagram)
-                                _buildSocialButton(
-                                  'Instagram',
-                                  Icons.camera_alt_outlined,
-                                  const Color(0xFFD62976),
-                                  () {
-                                    UrlHelper.launchInstagram(
-                                      profile.instagram!,
-                                    );
-                                  },
-                                ),
-                              if (hasFacebook) ...[
-                                if (hasInstagram) const SizedBox(width: 12),
-                                _buildSocialButton(
-                                  'Facebook',
-                                  Icons.facebook,
-                                  const Color(0xFF1877F2),
-                                  () {
-                                    UrlHelper.launchFacebook(profile.facebook!);
-                                  },
-                                ),
-                              ],
-                              if (hasWebsite) ...[
-                                if (hasInstagram || hasFacebook)
-                                  const SizedBox(width: 12),
-                                _buildSocialButton(
-                                  'Website',
-                                  Icons.link,
-                                  Colors.black87,
-                                  () {
-                                    UrlHelper.launchWebsite(profile.website!);
-                                  },
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      const SizedBox(height: 32),
 
                       _buildProfessionalInfoCard(profile),
 
@@ -521,7 +559,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
@@ -541,8 +579,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
             const SizedBox(width: 8),
             CommonText(
               label,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               color: color == Colors.black87 ? AppColors.textPrimary : color,
             ),
           ],

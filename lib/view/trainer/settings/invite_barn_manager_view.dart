@@ -211,7 +211,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
 
           // Barn Image
           const CommonImageView(
-            assetPath: 'assets/images/barn_manager_bg.png',
+            assetPath: 'assets/images/barn_manager_bg1.jpg',
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,

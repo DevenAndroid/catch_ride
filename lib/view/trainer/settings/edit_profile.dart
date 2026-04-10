@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../../constant/app_strings.dart';
 import '../../../utils/validators.dart';
 
 class EditProfileView extends StatefulWidget {
@@ -71,7 +72,12 @@ class _EditProfileViewState extends State<EditProfileView> {
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
     _location2Controller.text = profileController.location2;
-    _yearsController.text = profileController.yearsExperience.toString();
+    
+    final expItems = ['0-1', '2-4', '5-9', '10+'];
+    _yearsController.text = expItems.contains(profileController.yearsExperience)
+        ? profileController.yearsExperience
+        : '';
+
     _facebookController.text = profileController.user.value?.facebook ?? '';
     _websiteController.text = profileController.user.value?.website ?? '';
     _instagramController.text = profileController.user.value?.instagram ?? '';
@@ -102,8 +108,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                 profileController.user.value?.website ?? '';
             _instagramController.text =
                 profileController.user.value?.instagram ?? '';
-            _yearsController.text = profileController.yearsExperience
-                .toString();
+            
+            final expItems = ['0-1', '2-4', '5-9', '10+'];
+            _yearsController.text = expItems.contains(profileController.yearsExperience)
+                ? profileController.yearsExperience
+                : '';
 
             _selectedProgramTags.assignAll(
               profileController.selectedProgramTags.map((e) => _toTitleCase(e)),
@@ -368,28 +377,71 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Experience',
       children: [
-        GestureDetector(
-          onTap: () => _showSingleSelectBottomSheet(
-            title: 'Years in Industry',
-            currentValue: _yearsController.text,
-            items: List.generate(51, (index) => index.toString()),
-            onSelected: (val) {
-              setState(() => _yearsController.text = val);
-            },
-          ),
-          child: _buildDropdownField(
-            'Years in Industry',
-            _yearsController.text.isEmpty
-                ? 'Select years'
-                : _yearsController.text,
-          ),
-        ),
+        _buildExperienceDropdown(),
         const SizedBox(height: 20),
         _buildTextField(
           'Bio',
           _bioController,
           hint: 'Write a short bio',
           maxLines: 4,
+          isRequired: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExperienceDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          AppStrings.yearsInIndustry,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: _yearsController.text.isEmpty ? null : _yearsController.text,
+          items: ['0-1', '2-4', '5-9', '10+'].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: CommonText(value, fontSize: 14),
+            );
+          }).toList(),
+          onChanged: (val) {
+            setState(() => _yearsController.text = val ?? '');
+          },
+          decoration: InputDecoration(
+            hintText: 'Select years',
+            hintStyle: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              fontSize: 14,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.borderMedium),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.borderMedium),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          icon: const Icon(
+            Icons.keyboard_arrow_down,
+            color: AppColors.textSecondary,
+            size: 20,
+          ),
         ),
       ],
     );
@@ -933,17 +985,21 @@ class _EditProfileViewState extends State<EditProfileView> {
     final Set<String> uniqueLabelsSet = {};
     for (var show in allShows) {
       String venue = _toTitleCase(show['showVenue']?.toString().trim() ?? '');
+      if (venue == "-") venue = "";
       String circuit = _toTitleCase(show['circuit']?.toString().trim() ?? '');
+      if (circuit == "-") circuit = "";
 
       String label = "";
       if (venue.isNotEmpty && circuit.isNotEmpty) {
-        label = "$venue/$circuit";
+        label = "$venue • $circuit";
       } else if (venue.isNotEmpty) {
         label = venue;
       } else if (circuit.isNotEmpty) {
         label = circuit;
       } else {
-        label = _toTitleCase(show['name']?.toString().trim() ?? '');
+        String showName = _toTitleCase(show['name']?.toString().trim() ?? '');
+        if (showName == "-") showName = "";
+        label = showName;
       }
 
       if (label.isNotEmpty) {
@@ -1367,7 +1423,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           'location': _location1Controller.text.trim(),
                           'location2': _location2Controller.text.trim(),
                           'yearsExperience':
-                              int.tryParse(_yearsController.text) ?? 0,
+                             _yearsController.text.trim() ?? "",
                           'facebook': _facebookController.text.trim(),
                           'website': _websiteController.text.trim(),
                           'instagram': _instagramController.text.trim(),

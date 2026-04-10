@@ -48,13 +48,14 @@ class VendorModel {
       coverImage: json['coverImage'],
       businessName: json['businessName'] ?? '',
       serviceType: json['serviceType'] ?? '',
-      location: json['location'] ??
-                (json['homeBase'] is Map
-                    ? '${json['homeBase']['city'] ?? ''}${json['homeBase']['city'] != null && json['homeBase']['state'] != null ? ', ' : ''}${json['homeBase']['state'] ?? ''}'
-                    : json['homeBase']) ??
-                (json['city'] != null
-                    ? '${json['city']}${json['state'] != null ? ', ${json['state']}' : ''}'
-                    : null),
+      location:
+          json['location'] ??
+          (json['homeBase'] is Map
+              ? '${json['homeBase']['city'] ?? ''}${json['homeBase']['city'] != null && json['homeBase']['state'] != null ? ', ' : ''}${json['homeBase']['state'] ?? ''}'
+              : json['homeBase']) ??
+          (json['city'] != null
+              ? '${json['city']}${json['state'] != null ? ', ${json['state']}' : ''}'
+              : null),
       bio: json['bio'],
       yearsExperience: json['yearsExperience'],
       rating: (json['rating'] ?? 0).toDouble(),
@@ -105,7 +106,20 @@ class VendorAvailability {
       if (dateStr == null || dateStr.isEmpty) return '';
       try {
         DateTime dt = DateTime.parse(dateStr);
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
         return '${months[dt.month - 1]} ${dt.day}';
       } catch (e) {
         return dateStr.split('T')[0];
