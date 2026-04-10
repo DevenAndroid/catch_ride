@@ -14,7 +14,7 @@ class HorseModel {
   final String? usefNumber;
   final List<String> listingTypes;
   final List<AvailabilityModel> showAvailability;
-  final String? discipline;
+  final List<String> disciplines;
   final List<TagModel> programTags;
   final TagModel? experienceLevel;
   final List<TagModel> opportunityTags;
@@ -40,7 +40,7 @@ class HorseModel {
   final DateTime? createdAt;
 
   String get displayDiscipline {
-    if (discipline != null && discipline!.isNotEmpty) return discipline!;
+    if (disciplines.isNotEmpty) return disciplines.join(', ');
     if (programTags.isNotEmpty) return programTags.first.name;
     return 'N/A';
   }
@@ -58,7 +58,7 @@ class HorseModel {
     this.usefNumber,
     this.listingTypes = const [],
     this.showAvailability = const [],
-    this.discipline,
+    this.disciplines = const [],
     this.programTags = const [],
     this.experienceLevel,
     this.opportunityTags = const [],
@@ -204,7 +204,9 @@ class HorseModel {
               ?.map((e) => AvailabilityModel.fromJson(e))
               .toList() ??
           [],
-      discipline: json['discipline'],
+      disciplines: json['discipline'] is String
+          ? [json['discipline'] as String]
+          : List<String>.from(json['discipline'] ?? []),
       programTags:
           (json['programTags'] as List?)
               ?.map((e) => TagModel.fromJson(e))
@@ -262,7 +264,7 @@ class HorseModel {
       'usefNumber': usefNumber,
       'listingTypes': listingTypes,
       'showAvailability': showAvailability.map((e) => e.toJson()).toList(),
-      'discipline': discipline,
+      'discipline': disciplines,
       'programTags': programTags.map((e) => e.toJson()).toList(),
       if (experienceLevel != null) 'experienceLevel': experienceLevel!.toJson(),
       'opportunityTags': opportunityTags.map((e) => e.toJson()).toList(),

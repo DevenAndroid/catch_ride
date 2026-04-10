@@ -41,11 +41,25 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   void _initVideo() {
     final String videoLink = controller.videoLinkController.text;
-    if (videoLink.isEmpty) return;
+    final File? localVideo = controller.localVideo.value;
+
+    if (videoLink.isEmpty && localVideo == null) {
+      _hasVideo = false;
+      return;
+    }
 
     _hasVideo = true;
-    final String? youtubeId = YoutubePlayer.convertUrlToId(videoLink);
 
+    if (localVideo != null) {
+      _isYoutube = false;
+      _videoPlayerController = VideoPlayerController.file(localVideo)
+        ..initialize().then((_) {
+          setState(() {});
+        });
+      return;
+    }
+
+    final String? youtubeId = YoutubePlayer.convertUrlToId(videoLink);
     if (youtubeId != null) {
       _isYoutube = true;
       _youtubeController = YoutubePlayerController(
@@ -109,7 +123,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         ...controller.uploadedImages,
         ...controller.localImages,
       ];
-      final int totalItems = allImages.length + (_hasVideo ? 1 : 0);
+      final bool hasLocalVideo = controller.localVideo.value != null;
+      final int totalItems = allImages.length + (_hasVideo || hasLocalVideo ? 1 : 0);
 
       final String title = controller.listingTitleController.text.isEmpty
           ? 'N/A'
@@ -410,10 +425,10 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                 child: Divider(height: 1, color: AppColors.borderLight),
               ),
               _buildGridRow(
-                'Age',
+                'Year Foaled',
                 controller.ageController.text.isEmpty
                     ? 'N/A'
-                    : '${controller.ageController.text} Years',
+                    : '${controller.ageController.text}',
                 'Height',
                 controller.heightController.text.isEmpty
                     ? 'N/A'
@@ -439,9 +454,9 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               ),
               _buildGridRow(
                 'Discipline',
-                controller.selectedDiscipline.value.isEmpty
+                controller.selectedDisciplines.isEmpty
                     ? 'N/A'
-                    : controller.selectedDiscipline.value,
+                    : controller.selectedDisciplines.join(', '),
                 '',
                 '',
               ),
@@ -780,8 +795,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
           ),
         ),
         // Gradient Overlay matched with Detail View style
-        IgnorePointer(
-          child: Positioned.fill(
+        Positioned.fill(
+          child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

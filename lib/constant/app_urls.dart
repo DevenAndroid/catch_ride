@@ -66,6 +66,9 @@ class AppUrls {
   static const String tagTypesWithValues =
       '$systemConfig/tag-types/with-values';
 
+  // Settings
+  static const String settings = '/settings';
+
   // Horse Shows
   static const String horseShows = '/horse-shows';
 

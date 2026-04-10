@@ -1,7 +1,10 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../controllers/profile_controller.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ReferNewMemberView extends StatefulWidget {
   const ReferNewMemberView({super.key});
@@ -33,7 +36,14 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
           'Refer a New Member',
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+          color: AppColors.primary,
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: AppColors.border.withValues(alpha: 0.3),
+            height: 1.0,
+          ),
         ),
       ),
       body: Column(
@@ -45,31 +55,38 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const CommonText(
-                    'How it works?',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    'Catch Ride is built through trusted referrals from within the industry. Invite professionals you trust to be considered for the network',
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
                   ),
                   const SizedBox(height: 24),
+                  const CommonText(
+                    'How it works?',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  const SizedBox(height: 20),
                   _buildStep(
                     1,
-                    'Share Your Link',
-                    'Send your referral link to friends or contacts you’d like to invite.',
+                    'Invite a Professional',
+                    'Share your referral link with a trainer or vendor you trust.',
                     false,
                   ),
                   _buildStep(
                     2,
-                    'They Sign Up',
-                    'Your friend opens the link and creates their account in the app.',
+                    'They Apply',
+                    'They submit a short application to confirm their details and references.',
                     false,
                   ),
                   _buildStep(
                     3,
-                    'Start Using the App',
-                    'Once registered, they can set up their profile and begin using the platform.',
+                    'Priority Review',
+                    'Referred applicants receive priority review as new members are approved.',
                     true,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   // Share Link Card
                   Container(
@@ -93,16 +110,23 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const CommonText(
-                          'Share Link',
+                          'Share Your Referral Link',
                           fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
+                        const CommonText(
+                          'Share this link with professionals you\'d confidently recommend to the Catch Ride network.',
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                        const SizedBox(height: 16),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 4,
+                            vertical: 12,
                           ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
@@ -114,23 +138,47 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                             children: [
                               Expanded(
                                 child: CommonText(
-                                  referralLink,
+                                  'catchride.com/r/yourusername',
                                   fontSize: 14,
-                                  color: AppColors.textSecondary,
+                                  color: AppColors.textSecondary.withValues(alpha: 0.7),
                                 ),
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Get.snackbar(
-                                    'Success',
-                                    'Link copied to clipboard',
-                                  );
+                                  final controller = Get.find<ProfileController>();
+                                  String urlToCopy = '';
+                                  if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                    urlToCopy = controller.appStoreUrl.value;
+                                  } else {
+                                    urlToCopy = controller.playStoreUrl.value;
+                                  }
+
+                                  if (urlToCopy.isNotEmpty) {
+                                    Clipboard.setData(ClipboardData(text: urlToCopy)).then((_) {
+                                      Get.snackbar(
+                                        'Success',
+                                        'Link copied to clipboard',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        margin: const EdgeInsets.all(20),
+                                        backgroundColor: Colors.green,
+                                        colorText: Colors.white,
+                                      );
+                                    });
+                                  } else {
+                                     Get.snackbar(
+                                        'Error',
+                                        'App link not configured',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        margin: const EdgeInsets.all(20),
+                                        backgroundColor: Colors.red,
+                                        colorText: Colors.white,
+                                      );
+                                  }
                                 },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: const CommonText(
                                   'Copy Link',
@@ -145,6 +193,15 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  const CommonText(
+                    'Membership is shaped through trusted referrals within the industry',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    height: 1.4,
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -162,16 +219,16 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
         Column(
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               decoration: const BoxDecoration(
-                color: Color(0xFFEFF4FF),
+                color: Color(0xFFE8EAF6),
                 shape: BoxShape.circle,
               ),
               child: Center(
                 child: CommonText(
                   number.toString(),
-                  color: const Color(0xFF444CE7),
+                  color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
@@ -179,7 +236,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
             ),
             if (!isLast)
               SizedBox(
-                height: 44,
+                height: 48,
                 width: 1,
                 child: CustomPaint(painter: DashedLinePainter()),
               ),
@@ -217,7 +274,29 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
       decoration: const BoxDecoration(color: Colors.white),
       child: GestureDetector(
         onTap: () {
-          Get.snackbar('Success', 'Opening share options...');
+          final controller = Get.find<ProfileController>();
+          String urlToShare = '';
+          if (Theme.of(context).platform == TargetPlatform.iOS) {
+            urlToShare = controller.appStoreUrl.value;
+          } else {
+            urlToShare = controller.playStoreUrl.value;
+          }
+
+          if (urlToShare.isNotEmpty) {
+            Share.share(
+              'Join me on Catch Ride! The premier network for equestrian professionals. Download here: $urlToShare',
+              subject: 'Join Catch Ride',
+            );
+          } else {
+             Get.snackbar(
+                'Error',
+                'App link not configured for sharing',
+                snackPosition: SnackPosition.BOTTOM,
+                margin: const EdgeInsets.all(20),
+                backgroundColor: Colors.red,
+                colorText: Colors.white,
+              );
+          }
         },
         child: Container(
           height: 56,

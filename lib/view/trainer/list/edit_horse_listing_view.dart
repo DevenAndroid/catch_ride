@@ -708,54 +708,34 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
 
               // Discipline Dropdown Stub
               Padding(
-                padding: const EdgeInsets.only(bottom: 6.0),
+                padding: const EdgeInsets.only(bottom: 12.0),
                 child: const CommonText(
                   'Discipline',
                   fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
-              Obx(
-                () => GestureDetector(
-                  onTap: () => _showSingleSelectBottomSheet(
-                    title: 'Select Discipline',
-                    currentValue: controller.selectedDiscipline.value,
-                    items: ['Hunter', 'Jumper', 'Equitation'],
-                    onSelected: (val) {
-                      controller.selectedDiscipline.value = val;
-                      controller.disciplineController.text = val;
-                    },
-                  ),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: AppColors.inputBackground,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CommonText(
-                          controller.selectedDiscipline.value.isEmpty
-                              ? 'Select discipline'
-                              : controller.selectedDiscipline.value,
-                          color: controller.selectedDiscipline.value.isEmpty
-                              ? AppColors.textSecondary
-                              : AppColors.textPrimary,
-                          fontSize: AppTextSizes.size14,
-                        ),
-                        const Icon(
-                          Icons.keyboard_arrow_down,
-                          color: AppColors.textSecondary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+              Obx(() => Wrap(
+                    spacing: 8,
+                    runSpacing: 10,
+                    children: ['Hunter', 'Jumper', 'Equitation'].map((discipline) {
+                      final isSelected =
+                          controller.selectedDisciplines.contains(discipline);
+                      return GestureDetector(
+                        onTap: () {
+                          if (isSelected) {
+                            controller.selectedDisciplines.remove(discipline);
+                          } else {
+                            controller.selectedDisciplines.add(discipline);
+                          }
+                          controller.disciplineController.text =
+                              controller.selectedDisciplines.join(', ');
+                        },
+                        child: _buildTagChip(discipline, isSelected),
+                      );
+                    }).toList(),
+                  )),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Description',
@@ -1474,7 +1454,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 if (_currentStep < 5) {
                   if (_currentStep == 1) {
                     if (!_formKey.currentState!.validate()) return;
-                    if (controller.selectedDiscipline.value.isEmpty) {
+                    if (controller.selectedDisciplines.isEmpty) {
                       Get.snackbar(
                         'Required',
                         'Please select a discipline',

@@ -19,6 +19,11 @@ class ProfileController extends GetxController {
   final RxList<HorseModel> viewedUserHorses = <HorseModel>[].obs;
   final RxBool isLoading = false.obs;
 
+  // App Links & Settings
+  final RxString playStoreUrl = ''.obs;
+  final RxString appStoreUrl = ''.obs;
+  final RxString helpPhoneNumber = ''.obs;
+
   // Metadata Lists
   final RxList<String> allProgramTags = <String>[].obs;
   final RxList<String> allHorseShows = <String>[].obs; // List of names
@@ -101,6 +106,20 @@ class ProfileController extends GetxController {
               .toList(),
         );
       }
+
+      // Fetch System Settings
+      _apiService.getRequest(AppUrls.settings).then((settingsRes) {
+        if (settingsRes.statusCode == 200) {
+           final data = settingsRes.body['data'];
+           if(data != null && data['general'] != null) {
+              playStoreUrl.value = data['general']['playStoreUrl'] ?? '';
+              appStoreUrl.value = data['general']['appStoreUrl'] ?? '';
+           }
+           if(data != null && data['support'] != null) {
+              helpPhoneNumber.value = data['support']['helpPhoneNumber'] ?? '';
+           }
+        }
+      });
     } catch (e) {
       _logger.e('Error fetching metadata: $e');
     }

@@ -368,6 +368,7 @@ class BarnManager {
   final String? lastName;
   final String email;
   final String? avatar;
+  final String? coverImage;
   final String? bio;
   final String? userId; // The User ID (not profile ID) for fetch chats
   final String status;
@@ -378,6 +379,7 @@ class BarnManager {
     this.lastName,
     required this.email,
     this.avatar,
+    this.coverImage,
     this.bio,
     this.userId,
     this.status = 'pending',
@@ -388,7 +390,8 @@ class BarnManager {
       : firstName ?? lastName ?? email;
 
   factory BarnManager.fromJson(Map<String, dynamic> json) {
-    final parsedId = json['userId'] is Map ? json['userId']['_id'] : json['userId'];
+    final parsedId =
+        json['userId'] is Map ? json['userId']['_id'] : json['userId'];
     debugPrint('DEBUG: BarnManager.fromJson - userId: $parsedId');
     return BarnManager(
       id: json['_id'] ?? json['id'],
@@ -396,6 +399,7 @@ class BarnManager {
       lastName: json['lastName'],
       email: json['email'] ?? '',
       avatar: json['profilePhoto'] ?? json['avatar'],
+      coverImage: json['coverImage'],
       bio: json['bio'],
       userId: parsedId,
       status: json['status'] ?? 'pending',
@@ -409,6 +413,7 @@ class BarnManager {
       'lastName': lastName,
       'email': email,
       'profilePhoto': avatar,
+      'coverImage': coverImage,
       'bio': bio,
       'userId': userId,
       'status': status,
