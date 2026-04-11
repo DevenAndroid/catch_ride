@@ -101,8 +101,8 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
         ),
         const SizedBox(height: 20),
         _buildServiceCard(
-          title: 'Add - Ons',
-          subtitle: 'Optional services offered in addition to standard clipping',
+          title: 'Additional Services',
+          subtitle: 'Optional services offered in addition to your standard work',
           services: addOnServices,
           onAddTap: () => _showAddServiceBottomSheet(isAddOn: true),
         ),
@@ -367,7 +367,11 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
               // Reusing braiding update method because it basically updates the 'services' list in the payload
               // But we need to make sure backend handles 'clipping' key
               final success = await _updateClippingServices(payload);
-              if (success) Get.back();
+              if (success) {
+                Get.back();
+                Get.snackbar('Success', 'Saved successfully',
+                    backgroundColor: Colors.green, colorText: Colors.white);
+              }
             },
           ),
         ),
@@ -380,22 +384,23 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
     try {
       controller.isLoading.value = true;
       final vendorId = controller.vendorData['_id'];
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(controller.vendorData['servicesData'] ?? {});
+      existingServicesData['clipping'] = {
+        'profileData': {
+          'services': services,
+        },
+        'isProfileCompleted': true,
+      };
       
       final payload = {
-        'servicesData': {
-          'clipping': {
-            'profileData': {
-              'services': services,
-            },
-            'isProfileCompleted': true,
-          }
-        }
+        'servicesData': existingServicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
 
       final response = await Get.find<ApiService>().putRequest('/vendors/$vendorId', payload);
       if (response.statusCode == 200) {
         await controller.fetchProfile();
-        Get.snackbar('Success', 'Clipping services updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
         return true;
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Failed to update services', backgroundColor: Colors.red, colorText: Colors.white);

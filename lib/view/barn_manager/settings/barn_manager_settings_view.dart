@@ -19,6 +19,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../trainer/settings/account_settings_view.dart';
+import '../../trainer/settings/feedback_view.dart';
+import '../../trainer/settings/get_help_view.dart';
+import '../../trainer/settings/notification_settings_view.dart';
+import '../../trainer/settings/privacy_policy_view.dart';
+import '../../trainer/settings/profile_information_view.dart';
+import '../../trainer/settings/terms_and_conditions_view.dart';
 
 class BarnManagerSettingsView extends StatelessWidget {
   const BarnManagerSettingsView({super.key});

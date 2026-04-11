@@ -1,3 +1,4 @@
+/*
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -162,3 +163,4 @@ class _FeedbackViewState extends State<FeedbackView> {
     );
   }
 }
+*/

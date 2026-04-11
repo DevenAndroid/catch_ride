@@ -6,14 +6,14 @@ import 'package:flutter/material.dart';
 
 class BodyworkAvailabilityBlockCard extends StatelessWidget {
   final VendorAvailabilityModel block;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const BodyworkAvailabilityBlockCard({
     super.key,
     required this.block,
-    required this.onEdit,
-    required this.onDelete,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -23,7 +23,7 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.5)),
+        border: Border.all(color: AppColors.secondary),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -71,32 +71,33 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.white),
-                  offset: const Offset(0, 40),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      onEdit();
-                    } else if (value == 'delete') {
-                      onDelete();
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: CommonText('Edit', fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: CommonText(
-                        'Delete',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red,
+                if (onEdit != null || onDelete != null)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, color: Colors.white),
+                    offset: const Offset(0, 40),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        onEdit?.call();
+                      } else if (value == 'delete') {
+                        onDelete?.call();
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: CommonText('Edit', fontSize: 14, fontWeight: FontWeight.w600),
                       ),
-                    ),
-                  ],
-                ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: CommonText(
+                          'Delete',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),

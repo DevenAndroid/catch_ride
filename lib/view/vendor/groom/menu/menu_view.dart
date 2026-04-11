@@ -19,8 +19,16 @@ import '../../../barn_manager/settings/feedback_view.dart';
 import '../../../barn_manager/settings/get_help_view.dart';
 import '../../../barn_manager/settings/notification_settings_view.dart';
 import '../../../barn_manager/settings/privacy_policy_view.dart';
+import '../../../barn_manager/settings/profile_information_view.dart';
 import '../../../barn_manager/settings/terms_and_conditions_view.dart';
+import '../../../trainer/settings/account_settings_view.dart';
+import '../../../trainer/settings/feedback_view.dart';
+import '../../../trainer/settings/get_help_view.dart';
+import '../../../trainer/settings/notification_settings_view.dart';
+import '../../../trainer/settings/privacy_policy_view.dart';
+import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
+import '../../../trainer/settings/terms_and_conditions_view.dart';
 import '../availability/availability_view.dart';
 import '../profile/groom_view_profile.dart';
 
@@ -58,11 +66,11 @@ class MenuView extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('Account Settings'),
             _buildMenuCard([
-              _buildMenuItem(Icons.person_outline, 'Personal Information', onTap: () => Get.to(() => const PersonalInfoView())),
+              _buildMenuItem(Icons.person_outline, 'Personal Information', onTap: () => Get.to(() => const ProfileInformationView())),
               _buildMenuItem(Icons.edit_note, 'Edit Profile', onTap: () => Get.to(() =>  EditVendorProfileView())),
               _buildMenuItem(Icons.bookmark_border, 'Login & Security', onTap: () => Get.to(() => const AccountSettingsView())),
               _buildMenuItem(Icons.notifications_outlined, 'Notifications', onTap: () => Get.to(() => const NotificationSettingsView())),
-              _buildMenuItem(Icons.settings_outlined, 'Privacy and sharing'),
+            /*  _buildMenuItem(Icons.settings_outlined, 'Privacy and sharing'),*/
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('Services'),

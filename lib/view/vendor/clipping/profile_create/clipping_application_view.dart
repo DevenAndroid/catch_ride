@@ -41,24 +41,34 @@ class ClippingApplicationView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonTextField(
-                label: 'Full Name',
+              _buildGroupedSection(
+                'Full Name',
                 isRequired: true,
-                controller: controller.fullNameController,
-                hintText: 'Enter Your Full Name',
-                validator: RequiredValidator(
-                  errorText: "Please enter your full name",
-                ),
+                children: [
+                  CommonTextField(
+                    label: '',
+                    controller: controller.fullNameController,
+                    hintText: 'Enter Your Full Name',
+                    validator: RequiredValidator(
+                      errorText: "Please enter your full name",
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              CommonTextField(
-                label: 'Why Join Our Community?',
-                controller: controller.joinCommunityController,
-                hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
-                maxLines: 4,
+              _buildGroupedSection(
+                'Why Join Our Community?',
+                children: [
+                  CommonTextField(
+                    label: '',
+                    controller: controller.joinCommunityController,
+                    hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
+                    maxLines: 4,
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               _buildGroupedSection(
                 'Home Base Location',
@@ -103,21 +113,26 @@ class ClippingApplicationView extends StatelessWidget {
                   )),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              _buildSectionHeader('Experience', isRequired: true),
-              Obx(() => _buildBottomTrigger(
-                value: controller.experience.value,
-                hint: 'Select Years of Experience',
-                onTap: () => _showExperienceBottomSheet(
-                  context: context,
-                  title: 'Experience',
-                  currentValue: controller.experience.value,
-                  options: controller.experienceOptions,
-                  onSelected: (val) => controller.experience.value = val,
-                ),
-              )),
-              const SizedBox(height: 24),
+              _buildGroupedSection(
+                'Experience',
+                isRequired: true,
+                children: [
+                  Obx(() => _buildBottomTrigger(
+                    value: controller.experience.value,
+                    hint: 'Select Years of Experience',
+                    onTap: () => _showExperienceBottomSheet(
+                      context: context,
+                      title: 'Experience',
+                      currentValue: controller.experience.value,
+                      options: controller.experienceOptions,
+                      onSelected: (val) => controller.experience.value = val,
+                    ),
+                  )),
+                ],
+              ),
+              const SizedBox(height: 16),
 
               _buildGroupedSection(
                 'Disciplines',
@@ -149,7 +164,7 @@ class ClippingApplicationView extends StatelessWidget {
                   }),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               _buildGroupedSection(
                 'Typical Level of Horses',
@@ -168,14 +183,14 @@ class ClippingApplicationView extends StatelessWidget {
                   )),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               _buildGroupedSection(
                 'Regions Covered',
                 description: 'Select the regions you most commonly work in.',
                 children: [
                   Obx(() => _buildBottomTrigger(
-                    value: '', 
+                    value: null, 
                     hint: 'Select regions...',
                     isLoading: controller.isLoadingTags.value,
                     onTap: () => _showMultiSelectBottomSheet(
@@ -217,7 +232,7 @@ class ClippingApplicationView extends StatelessWidget {
                   )),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               _buildGroupedSection(
                 'Social Media & Website',
@@ -236,22 +251,20 @@ class ClippingApplicationView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              _buildSectionHeader('Add Photos'),
-              const CommonText(
-                'Upload photos that showcase your work and skills.',
-                fontSize: AppTextSizes.size12,
-                color: AppColors.textSecondary,
+              _buildGroupedSection(
+                'Add Photos',
+                description: 'Upload photos that showcase your work and skills.',
+                isRequired: true,
+                children: [
+                  Obx(() => _buildPhotoGrid(controller)),
+                ],
               ),
-              const SizedBox(height: 12),
-              const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-              const SizedBox(height: 8),
-              Obx(() => _buildPhotoGrid(controller)),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               _buildTrainerReferences(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               _buildGroupedSection(
                 'Experience Highlights (optional)',
@@ -305,7 +318,13 @@ class ClippingApplicationView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              _buildCheckboxes(controller),
+              _buildGroupedSection(
+                'Confirmations',
+                children: [
+                  _buildCheckboxes(controller),
+                ],
+              ),
+              const SizedBox(height: 16),
               const SizedBox(height: 32),
 
               Obx(() => Padding(
@@ -347,7 +366,7 @@ class ClippingApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupedSection(String title, {String? description, required List<Widget> children}) {
+  Widget _buildGroupedSection(String title, {String? description, required List<Widget> children, bool isRequired = false}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -366,7 +385,7 @@ class ClippingApplicationView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(title),
+          _buildSectionHeader(title, isRequired: isRequired),
           if (description != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -393,9 +412,9 @@ class ClippingApplicationView extends StatelessWidget {
           children: [
             Expanded(
               child: CommonText(
-                value ?? hint,
+                (value == null || value.isEmpty) ? hint : value,
                 fontSize: AppTextSizes.size14,
-                color: value == null ? AppColors.textSecondary : AppColors.textPrimary,
+                color: (value == null || value.isEmpty) ? AppColors.textSecondary : AppColors.textPrimary,
               ),
             ),
             if (isLoading)

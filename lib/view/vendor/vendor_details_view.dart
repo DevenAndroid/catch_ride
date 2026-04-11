@@ -9,6 +9,11 @@ import 'package:catch_ride/view/vendor/upcoming_availability.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:catch_ride/view/vendor/braiding/availability/braiding_availability_card.dart';
+import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
 import '../../models/vendor_availability_model.dart';
 import 'bodywork/profile/bodywork_service_and_rates_view.dart';
 import 'groom/profile/grooming_service_and_rates_view.dart';
@@ -557,83 +562,24 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
           if (controller.isAvailabilityLoading.value) return const Center(child: CircularProgressIndicator());
           if (controller.availabilityList.isEmpty) return const SizedBox.shrink();
           return Column(
-            children: controller.availabilityList.take(3).map((avail) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildAvailabilityCard(avail),
-            )).toList(),
+            children: controller.availabilityList.take(3).map((avail) {
+              if (avail.serviceTypes.contains('Braiding')) {
+                return BraidingAvailabilityCard(availability: avail);
+              }
+              if (avail.serviceTypes.contains('Clipping')) {
+                return ClippingAvailabilityBlockCard(block: avail);
+              }
+              if (avail.serviceTypes.contains('Farrier')) {
+                return FarrierAvailabilityBlockCard(block: avail);
+              }
+              if (avail.serviceTypes.contains('Bodywork')) {
+                return BodyworkAvailabilityBlockCard(block: avail);
+              }
+              return GroomingAvailabilityCard(availability: avail);
+            }).toList(),
           );
         }),
       ],
-    );
-  }
-
-  Widget _buildAvailabilityCard(VendorAvailabilityModel b) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.borderLight)),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: AppColors.secondary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(b.dateDisplay, color: Colors.white, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(child: CommonText(b.locationDisplay, color: Colors.white70, fontSize: AppTextSizes.size12, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.more_vert, color: Colors.white),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8, runSpacing: 8,
-                  children: b.serviceTypes.map((t) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
-                    child: CommonText(t, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
-                  )).toList(),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Icon(Icons.catching_pokemon, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    CommonText('Max ${b.maxBookings} Horses', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.description_outlined, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Expanded(child: CommonText(b.notes ?? '', fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

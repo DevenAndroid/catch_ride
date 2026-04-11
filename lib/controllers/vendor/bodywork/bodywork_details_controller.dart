@@ -314,10 +314,13 @@ class BodyworkDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
+      // Merge with existing servicesData
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
+      
+      existingServicesData['bodywork'] = bodyworkData;
+
       final body = {
-        'servicesData': {
-          'bodywork': bodyworkData
-        },
+        'servicesData': existingServicesData,
         'isProfileSetup': true,
         'isProfileCompleted': true,
       };

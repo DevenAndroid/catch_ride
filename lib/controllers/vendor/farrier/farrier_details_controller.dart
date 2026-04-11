@@ -196,43 +196,46 @@ class FarrierDetailsController extends GetxController {
       }
       final vendorId = vendorResponse.body['data']['_id'];
 
-      final body = {
-        'servicesData': {
-          'farrier': {
-            'services': farrierServices
-                .where((s) => s['isSelected'].value == true)
-                .map((s) => {
-                      'name': s['name'],
-                      'price': (s['price'] as TextEditingController).text,
-                    })
-                .toList(),
-            'addOns': addOns
-                .where((s) => s['isSelected'].value == true)
-                .map((s) => {
-                      'name': s['name'],
-                      'price': (s['price'] as TextEditingController).text,
-                    })
-                .toList(),
-            'travelPreferences': travelConfigurations.entries.map((e) => {
-              'category': e.key,
-              'type': e.value['type'],
-              'price': e.value['price'],
-              'disclaimer': e.value['disclaimer'],
-            }).where((e) => e['type'] != 'No travel fee' || (selectedTravel.value == e['category'])).toList(),
-            'clientIntake': {
-              'policy': selectedPolicy.value,
-              'minHorses': minHorsesPerStop.value,
-              'emergencySupport': emergencySupport.value,
-            },
-            'insuranceStatus': selectedInsurance.value,
-            'cancellationPolicy': {
-              'policy': cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-              'customText': customCancellationController.text,
-            },
-            'isProfileCompleted': true,
-          }
+      // Merge with existing servicesData
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
+      
+      existingServicesData['farrier'] = {
+        'services': farrierServices
+            .where((s) => s['isSelected'].value == true)
+            .map((s) => {
+                  'name': s['name'],
+                  'price': (s['price'] as TextEditingController).text,
+                })
+            .toList(),
+        'addOns': addOns
+            .where((s) => s['isSelected'].value == true)
+            .map((s) => {
+                  'name': s['name'],
+                  'price': (s['price'] as TextEditingController).text,
+                })
+            .toList(),
+        'travelPreferences': travelConfigurations.entries.map((e) => {
+          'category': e.key,
+          'type': e.value['type'],
+          'price': e.value['price'],
+          'disclaimer': e.value['disclaimer'],
+        }).where((e) => e['type'] != 'No travel fee' || (selectedTravel.value == e['category'])).toList(),
+        'clientIntake': {
+          'policy': selectedPolicy.value,
+          'minHorses': minHorsesPerStop.value,
+          'emergencySupport': emergencySupport.value,
         },
+        'insuranceStatus': selectedInsurance.value,
+        'cancellationPolicy': {
+          'policy': cancellationPolicy.value,
+          'isCustom': isCustomCancellation.value,
+          'customText': customCancellationController.text,
+        },
+        'isProfileCompleted': true,
+      };
+
+      final body = {
+        'servicesData': existingServicesData,
         'isProfileSetup': true,
         'isProfileCompleted': true,
       };

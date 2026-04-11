@@ -3,16 +3,15 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-class ClippingAvailabilityBlockCard extends StatelessWidget {
-  final VendorAvailabilityModel block;
+class GroomingAvailabilityCard extends StatelessWidget {
+  final VendorAvailabilityModel availability;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
-  const ClippingAvailabilityBlockCard({
+  const GroomingAvailabilityCard({
     super.key,
-    required this.block,
+    required this.availability,
     this.onEdit,
     this.onDelete,
   });
@@ -20,14 +19,15 @@ class ClippingAvailabilityBlockCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: AppColors.lightPink,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.secondary),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -37,8 +37,9 @@ class ClippingAvailabilityBlockCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Container(
-            padding: const EdgeInsets.only(left: 20, right: 8, top: 16, bottom: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: AppColors.secondary,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -48,25 +49,22 @@ class ClippingAvailabilityBlockCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonText(
-                        block.dateDisplay,
+                        availability.dateDisplay,
                         color: Colors.white,
                         fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.w700,
-                        overflow: TextOverflow.ellipsis,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, color: Colors.white70, size: 14),
+                          const Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
                           const SizedBox(width: 4),
                           Expanded(
                             child: CommonText(
-                              block.locationDisplay.toUpperCase(),
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              availability.locationDisplay,
+                              color: Colors.white70,
+                              fontSize: AppTextSizes.size12,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
@@ -90,54 +88,59 @@ class ClippingAvailabilityBlockCard extends StatelessWidget {
               ],
             ),
           ),
+          // Body
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: availability.serviceTypes.map((t) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.borderLight),
+                    ),
+                    child: CommonText(t, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
+                  )).toList(),
+                ),
+                const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: _buildIconRow(Icons.catching_pokemon, 'Max ${block.maxBookings} Horses',iconPath:  "assets/icons/horse_icon.svg")),
-                    Expanded(child: _buildIconRow(Icons.access_time_filled, block.timeBlockType ?? 'Available')),
+                    const Icon(Icons.catching_pokemon, size: 16, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    CommonText(
+                      'Max ${availability.maxBookings} Horses',
+                      fontSize: AppTextSizes.size12,
+                      color: AppColors.textSecondary,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 14),
-
-                if (block.notes != null && block.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  _buildIconRow(Icons.chat_bubble_outline, block.notes!, isNotes: true),
+                if (availability.notes != null && availability.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.description_outlined, size: 16, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: CommonText(
+                          availability.notes!,
+                          fontSize: AppTextSizes.size12,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildIconRow(IconData icon, String label, {bool isNotes = false, String? iconPath }) {
-    return Row(
-      crossAxisAlignment: isNotes ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(top: isNotes ? 2 : 0),
-          child: iconPath != null ? SvgPicture.asset(iconPath,) : Icon(
-            icon,
-            size: 20,
-            color: isNotes ? AppColors.textSecondary : AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: CommonText(
-            label,
-            fontSize: isNotes ? AppTextSizes.size14 : AppTextSizes.size16,
-            fontWeight: isNotes ? FontWeight.w400 : FontWeight.w600,
-            color: isNotes ? AppColors.textSecondary : AppColors.textPrimary,
-          ),
-        ),
-      ],
     );
   }
 }

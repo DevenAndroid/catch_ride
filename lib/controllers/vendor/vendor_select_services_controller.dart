@@ -71,9 +71,16 @@ class VendorSelectServicesController extends GetxController {
       final vendorId = vendorData['id'] ?? vendorData['_id'];
 
       // 2. Update services selection
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+      
       final Response updateResponse = await _apiService.putRequest(
         '${AppUrls.vendors}/$vendorId',
-        {'services': selectedServices.toList()},
+        {
+          'services': selectedServices.toList(),
+          'servicesData': existingServicesData,
+          'isProfileCompleted': vendorData['isProfileCompleted'] ?? false, // Maintain existing status
+          'isProfileSetup': vendorData['isProfileSetup'] ?? false,
+        },
       );
 
       if (updateResponse.statusCode == 200 && updateResponse.body['success'] == true) {

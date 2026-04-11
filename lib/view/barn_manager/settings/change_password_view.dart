@@ -1,3 +1,4 @@
+/*
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/barn_manager/barn_manager_settings_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -228,3 +229,4 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     );
   }
 }
+*/

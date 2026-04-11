@@ -16,6 +16,12 @@ import 'package:catch_ride/view/vendor/groom/profile/general_service_and_rates_v
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
+import 'package:catch_ride/models/vendor_availability_model.dart';
+import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/braiding/availability/braiding_availability_card.dart';
+import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
 import '../menu/edit_vendor_profile_view.dart';
 
 class GroomViewProfile extends StatefulWidget {
@@ -528,110 +534,26 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           }
           return Column(
             children: groomController.availabilityList.take(3).map((avail) {
-              final String startDate = avail['startDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['startDate'])) : 'N/A';
-              final String endDate = avail['endDate'] != null ? DateUtil.formatDisplayDate(DateTime.parse(avail['endDate'])) : '';
-              final String range = endDate.isNotEmpty ? '$startDate - $endDate' : startDate;
+              final b = VendorAvailabilityModel.fromJson(avail);
+              final serviceTypes = b.serviceTypes;
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildAvailabilityCard(
-                  dates: range,
-                  location: avail['location']?['city'] != null ? '${avail['location']['city']}, ${avail['location']['state'] ?? ''}' : 'Multiple Locations',
-                  tags: List<String>.from(avail['serviceTypes'] ?? ['Grooming']),
-                  maxHorses: 'Max ${avail['maxBookings'] ?? 1} Horses',
-                  maxDays: 'Available',
-                  note: avail['notes'] ?? 'Contact vendor for more details.',
-                ),
-              );
+              if (serviceTypes.contains('Clipping')) {
+                return ClippingAvailabilityBlockCard(block: b);
+              }
+              if (serviceTypes.contains('Farrier')) {
+                return FarrierAvailabilityBlockCard(block: b);
+              }
+              if (serviceTypes.contains('Braiding')) {
+                return BraidingAvailabilityCard(availability: b);
+              }
+              if (serviceTypes.contains('Bodywork')) {
+                return BodyworkAvailabilityBlockCard(block: b);
+              }
+              return GroomingAvailabilityCard(availability: b);
             }).toList(),
           );
         }),
       ],
-    );
-  }
-
-  Widget _buildAvailabilityCard({
-    required String dates,
-    required String location,
-    required List<String> tags,
-    required String maxHorses,
-    required String maxDays,
-    required String note,
-    bool showMore = false,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: AppColors.secondary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText(dates, color: Colors.white, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
-                        const SizedBox(width: 4),
-                        CommonText(location, color: Colors.white70, fontSize: AppTextSizes.size12),
-                      ],
-                    ),
-                  ],
-                ),
-                if (showMore) const Icon(Icons.more_vert, color: Colors.white),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: tags.map((t) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
-                    child: CommonText(t, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
-                  )).toList(),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Icon(Icons.catching_pokemon, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    CommonText(maxHorses, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                    const SizedBox(width: 20),
-                    const Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    CommonText(maxDays, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.description_outlined, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Expanded(child: CommonText(note, fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -662,8 +584,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             color: const Color(0xFF8B4444),
           ),
           const SizedBox(height: 4),
-          const CommonText(
-            'Late cancellations may incur a fee or may not be eligible for a refund as per vendor rules.',
+           CommonText(
+            'Cancellations must be made at least ${ groomController.cancellationPolicy} in advance. Late cancellations may incur a fee or may not be eligible for a refund.',
             fontSize: AppTextSizes.size12,
             color: Color(0xFF8B4444),
             height: 1.4,

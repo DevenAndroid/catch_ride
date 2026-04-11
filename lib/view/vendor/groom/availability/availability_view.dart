@@ -4,15 +4,21 @@ import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dar
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/view/vendor/groom/availability/add_availability_block_view.dart';
 import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/clipping/availability/add_clipping_availability_view.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/add_farrier_availability_view.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
 import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/braiding/availability/braiding_add_availability.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:catch_ride/view/vendor/braiding/availability/braiding_availability_card.dart';
+import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
+
 class AvailabilityView extends StatefulWidget {
-  const AvailabilityView({super.key});
+  final dynamic initialTab;
+  const AvailabilityView({super.key, this.initialTab = 0});
 
   @override
   State<AvailabilityView> createState() => _AvailabilityViewState();
@@ -33,7 +39,23 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
     // Fallback if empty
     if (_activeServices.isEmpty) _activeServices = ['Grooming'];
 
-    _tabController = TabController(length: _activeServices.length, vsync: this);
+    int startIndex = 0;
+    if (widget.initialTab is int) {
+      startIndex = widget.initialTab;
+    } else if (widget.initialTab is String) {
+      startIndex = _activeServices.indexWhere(
+        (s) => s.toLowerCase() == widget.initialTab.toString().toLowerCase()
+      );
+      if (startIndex == -1) startIndex = 0;
+    }
+
+    if (startIndex >= _activeServices.length) startIndex = 0;
+
+    _tabController = TabController(
+      length: _activeServices.length, 
+      vsync: this,
+      initialIndex: startIndex,
+    );
     _tabController.addListener(() {
       setState(() {}); // Re-build to filter correctly when tab changes
     });
@@ -56,8 +78,12 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                   final currentSvc = _activeServices[_tabController.index];
                   if (currentSvc == 'Farrier') {
                     Get.to(() => const AddFarrierAvailabilityView());
+                  } else if (currentSvc == 'Clipping') {
+                    Get.to(() => const AddClippingAvailabilityView());
+                  } else if (currentSvc == 'Braiding') {
+                    Get.to(() => const BraidingAddAvailabilityView());
                   } else {
-                    int addIndex = currentSvc == 'Grooming' ? 0 : (currentSvc == 'Braiding' ? 1 : (currentSvc == 'Clipping' ? 2 : 3));
+                    int addIndex = currentSvc == 'Grooming' ? 0 : 2;
                     Get.to(() => const AddAvailabilityBlockView(), arguments: addIndex);
                   }
                 },
@@ -127,7 +153,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                     child: currentService == 'Clipping' 
                       ? ClippingAvailabilityBlockCard(
                           block: b,
-                          onEdit: () => Get.to(() => const AddAvailabilityBlockView(), arguments: {'categoryIndex': 2, 'block': b}),
+                          onEdit: () => Get.to(() => const AddClippingAvailabilityView(), arguments: {'block': b}),
                           onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
                         )
                       : (currentService == 'Farrier'
@@ -142,8 +168,25 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                                   onEdit: () => Get.to(() => const AddAvailabilityBlockView(), arguments: {'categoryIndex': 3, 'block': b}),
                                   onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
                                 )
-                              : _buildAvailabilityCard(b))),
-                  )).toList(),
+                              : (currentService == 'Braiding'
+                                  ? BraidingAvailabilityCard(
+                                      availability: b,
+                                      onEdit: () => Get.to(() => const BraidingAddAvailabilityView(), arguments: {'block': b}),
+                                      onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
+                                    )
+                                  : GroomingAvailabilityCard(
+                                      availability: b,
+                                      onEdit: () {
+                                        final currentSvc = _activeServices[_tabController.index];
+                                        int editIndex = currentSvc == 'Grooming' ? 0 : 2;
+                                        Get.to(() => const AddAvailabilityBlockView(), arguments: {
+                                          'categoryIndex': editIndex,
+                                          'block': b
+                                        });
+                                      },
+                                      onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
+                                    ))))),
+                  ).toList(),
               ],
             ),
           ),
@@ -203,127 +246,5 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
     );
   }
 
-  Widget _buildAvailabilityCard(VendorAvailabilityModel b) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.secondary.withOpacity(0.5)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
-            color: AppColors.secondary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(b.dateDisplay, color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white70, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(child: CommonText(b.locationDisplay, color: Colors.white70, fontSize: 12, overflow: TextOverflow.ellipsis)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.white),
-                  offset: const Offset(0, 40),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      final currentSvc = _activeServices[_tabController.index];
-                      if (currentSvc == 'Farrier') {
-                        Get.to(() => const AddFarrierAvailabilityView(), arguments: {'block': b});
-                      } else {
-                        int editIndex = currentSvc == 'Grooming' ? 0 : (currentSvc == 'Braiding' ? 1 : 2);
-                        Get.to(() => const AddAvailabilityBlockView(), arguments: {
-                          'categoryIndex': editIndex,
-                          'block': b
-                        });
-                      }
-                    } else if (value == 'delete') {
-                      if (b.id != null) controller.deleteAvailabilityBlock(b.id!);
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: CommonText('Edit', fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: CommonText('Delete', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.red),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: b.serviceTypes.where((t) => t != 'Grooming' && t != 'Braiding').map((t) => _buildChip(t)).toList(),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Icon(Icons.pie_chart, size: 18, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    CommonText('Max ${b.maxBookings} Horses', fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
-                    const SizedBox(width: 24),
-                    const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    CommonText('Available', fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
-                  ],
-                ),
-                if (b.notes != null && b.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.textSecondary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: CommonText(b.notes!, fontSize: 14, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFEAECF0)),
-      ),
-      child: CommonText(label, fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
-    );
-  }
 }
 

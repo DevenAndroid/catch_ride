@@ -18,6 +18,7 @@ class BraidingDetailsController extends GetxController {
 
   // Core Braiding Services
   final braidingServices = <Map<String, dynamic>>[
+    {'name': 'Hunter Mane & Tail', 'isSelected': false.obs, 'price': TextEditingController()},
     {'name': 'Hunter Mane Only', 'isSelected': false.obs, 'price': TextEditingController()},
     {'name': 'Hunter Tail Only', 'isSelected': false.obs, 'price': TextEditingController()},
     {'name': 'Jumper Braids', 'isSelected': false.obs, 'price': TextEditingController()},
@@ -115,25 +116,28 @@ class BraidingDetailsController extends GetxController {
       }
       final vendorId = vendorResponse.body['data']['_id'];
 
-      final body = {
-        'servicesData': {
-          'braiding': {
-            'services': braidingServices
-                .where((s) => s['isSelected'].value == true)
-                .map((s) => {
-                      'name': s['name'],
-                      'price': (s['price'] as TextEditingController).text,
-                    })
-                .toList(),
-            'travelPreferences': selectedTravel.toList(),
-            'cancellationPolicy': {
-              'policy': cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-              'customText': customCancellationController.text,
-            },
-            'isProfileCompleted': true,
-          }
+      // Merge with existing servicesData
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
+      
+      existingServicesData['braiding'] = {
+        'services': braidingServices
+            .where((s) => s['isSelected'].value == true)
+            .map((s) => {
+                  'name': s['name'],
+                  'price': (s['price'] as TextEditingController).text,
+                })
+            .toList(),
+        'travelPreferences': selectedTravel.toList(),
+        'cancellationPolicy': {
+          'policy': cancellationPolicy.value,
+          'isCustom': isCustomCancellation.value,
+          'customText': customCancellationController.text,
         },
+        'isProfileCompleted': true,
+      };
+
+      final body = {
+        'servicesData': existingServicesData,
         'isProfileSetup': true,
         'isProfileCompleted': true,
       };

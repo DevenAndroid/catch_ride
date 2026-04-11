@@ -73,7 +73,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                     ]),
                     const SizedBox(height: 24),
 
-                    _buildSectionHeader('Social Account'),
+/*                    _buildSectionHeader('Social Account'),
                     _buildSettingsCard([
                       _buildActionTile(
                         icon: Icons.g_mobiledata_rounded,
@@ -104,6 +104,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                       ),
                     ]),
                     const SizedBox(height: 24),
+                    */
 
                     if (controller.activeSessions.isNotEmpty) ...[
                       _buildSectionHeader('Device History'),

@@ -622,6 +622,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
 
                   if (success) {
                     Get.back();
+                    Get.snackbar('Success', 'Saved successfully',
+                        backgroundColor: Colors.green, colorText: Colors.white);
                   }
                     },
                   style: ElevatedButton.styleFrom(
