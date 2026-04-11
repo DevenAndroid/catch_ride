@@ -35,13 +35,13 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     'Accepted',
     'Rejected',
     'Pending',
-    'Canceled',
+    'Cancelled',
   ];
   final List<String> _sentFilters = [
     'Accepted',
     'Rejected',
     'Pending',
-    'Canceled',
+    'Cancelled',
   ];
 
   List<String> get _currentFilters =>

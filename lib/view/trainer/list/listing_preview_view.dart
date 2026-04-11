@@ -41,21 +41,29 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   void _initVideo() {
     final String videoLink = controller.videoLinkController.text;
-    final File? localVideo = controller.localVideo.value;
+    final File? localVideo = controller.localVideos.isNotEmpty ? controller.localVideos.first : null;
+    final String? uploadedVideo = controller.uploadedVideos.isNotEmpty ? controller.uploadedVideos.first : null;
 
-    if (videoLink.isEmpty && localVideo == null) {
+    if (videoLink.isEmpty && localVideo == null && uploadedVideo == null) {
       _hasVideo = false;
       return;
     }
 
     _hasVideo = true;
 
-    if (localVideo != null) {
+    if (localVideo != null || uploadedVideo != null) {
       _isYoutube = false;
-      _videoPlayerController = VideoPlayerController.file(localVideo)
-        ..initialize().then((_) {
-          setState(() {});
-        });
+      if (localVideo != null) {
+        _videoPlayerController = VideoPlayerController.file(localVideo)
+          ..initialize().then((_) {
+            setState(() {});
+          });
+      } else if (uploadedVideo != null) {
+        _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(uploadedVideo))
+          ..initialize().then((_) {
+            setState(() {});
+          });
+      }
       return;
     }
 
@@ -123,8 +131,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         ...controller.uploadedImages,
         ...controller.localImages,
       ];
-      final bool hasLocalVideo = controller.localVideo.value != null;
-      final int totalItems = allImages.length + (_hasVideo || hasLocalVideo ? 1 : 0);
+      final int totalVideos = controller.uploadedVideos.length + controller.localVideos.length + (controller.videoLinkController.text.isNotEmpty ? 1 : 0);
+      final int totalItems = allImages.length + totalVideos;
 
       final String title = controller.listingTitleController.text.isEmpty
           ? 'N/A'
@@ -754,41 +762,24 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                   fit: BoxFit.cover,
                 );
               } else {
+                // Video placeholder for preview
                 return Container(
                   color: Colors.black,
-                  child: _isYoutube
-                      ? YoutubePlayer(
-                          controller: _youtubeController!,
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: AppColors.primary,
-                        )
-                      : _videoPlayerController!.value.isInitialized
-                          ? GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _videoPlayerController!.value.isPlaying
-                                      ? _videoPlayerController!.pause()
-                                      : _videoPlayerController!.play();
-                                });
-                              },
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  AspectRatio(
-                                    aspectRatio: _videoPlayerController!
-                                        .value.aspectRatio,
-                                    child: VideoPlayer(_videoPlayerController!),
-                                  ),
-                                  if (!_videoPlayerController!.value.isPlaying)
-                                    const Icon(
-                                      Icons.play_circle_fill,
-                                      color: Colors.white,
-                                      size: 64,
-                                    ),
-                                ],
-                              ),
-                            )
-                          : const Center(child: CircularProgressIndicator()),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      const Icon(Icons.video_library, color: Colors.white, size: 64),
+                      Positioned(
+                        bottom: 40,
+                        child: CommonText(
+                          'Video Preview',
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }
             },

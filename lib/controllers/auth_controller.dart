@@ -26,6 +26,7 @@ import '../controllers/profile_controller.dart';
 import '../view/barn_manager/barn_manager_application_submitted_view.dart';
 import '../view/barn_manager/barn_manager_create_profile_view.dart';
 import '../view/create_account_view.dart';
+import '../view/trainer/trainer_community_standards.dart';
 import '../view/trainer/trainer_complete_profile_view.dart';
 import '../view/trainer/trainer_profile_setup_view.dart';
 import '../view/vendor/community_standards_view.dart';
@@ -582,6 +583,11 @@ class AuthController extends GetxController {
         }
       }
     } catch (e) {
+      if (e is SignInWithAppleAuthorizationException &&
+          e.code == AuthorizationErrorCode.canceled) {
+        debugPrint('Apple Sign-In canceled by user');
+        return;
+      }
       debugPrint('❌ Apple Sign-In error: $e');
       Get.snackbar(
         'Error',
@@ -804,7 +810,7 @@ class AuthController extends GetxController {
         if (isProfileApprove) {
           if (!Get.isRegistered<ProfileController>())
             Get.put(ProfileController());
-          Get.offAll(() => const TrainerCompleteProfileView());
+          Get.offAll(() => const TrainerCommunityStandardsView());
         } else if (isProfileSetup) {
           Get.offAll(() => const TrainerApplicationSubmittedView());
         } else {

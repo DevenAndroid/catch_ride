@@ -229,6 +229,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                               _buildTrainerSection(),
                               _buildDescriptionAndTags(),
                               _buildDetailsSection(),
+                              _buildPricingSection(),
                               _buildAvailabilitySection(),
                               if (isHorseOwner && horse!.bookedByName != null)
                                 _buildBookedByHeader(),
@@ -415,38 +416,38 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
             ),
           ),
-          if (!isHorseOwner)
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                height: 40,
-                width: 110,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B4242),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.chat_bubble_outline,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    SizedBox(width: 8),
-                    CommonText(
-                      'Message',
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          const SizedBox(width: 8),
-          if (!isHorseOwner)
-            const Icon(Icons.more_vert, color: AppColors.textSecondary),
+          // if (!isHorseOwner)
+          //   GestureDetector(
+          //     onTap: () {},
+          //     child: Container(
+          //       height: 40,
+          //       width: 110,
+          //       decoration: BoxDecoration(
+          //         color: const Color(0xFF8B4242),
+          //         borderRadius: BorderRadius.circular(10),
+          //       ),
+          //       child: const Row(
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         children: [
+          //           Icon(
+          //             Icons.chat_bubble_outline,
+          //             size: 16,
+          //             color: Colors.white,
+          //           ),
+          //           SizedBox(width: 8),
+          //           CommonText(
+          //             'Message',
+          //             color: Colors.white,
+          //             fontSize: 13,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // const SizedBox(width: 8),
+          // if (!isHorseOwner)
+          //   const Icon(Icons.more_vert, color: AppColors.textSecondary),
         ],
       ),
     );
@@ -713,17 +714,32 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
+  bool _isUrlVideo(String url) {
+    final lower = url.toLowerCase();
+    return lower.contains('horsevideos') || 
+           lower.endsWith('.mp4') || 
+           lower.endsWith('.mov') || 
+           lower.endsWith('.avi');
+  }
+
   Widget _buildImageSection() {
-    final images = horse!.images;
-    final int totalItems = images.length + (_hasVideo ? 1 : 0);
+    final List<String> allMedia = [
+      ...horse!.images,
+      if (horse!.videoLink != null && 
+          horse!.videoLink!.isNotEmpty && 
+          horse!.videoLink != 'N/A' &&
+          !horse!.images.contains(horse!.videoLink)) 
+        horse!.videoLink!
+    ];
+    
+    final int totalItems = allMedia.length;
 
     if (totalItems == 0) {
       return const CommonImageView(
         url: null,
-        height: 240,
+        height: 260,
         width: double.infinity,
       );
-
     }
 
     return Stack(
@@ -739,49 +755,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             },
             itemCount: totalItems,
             itemBuilder: (context, index) {
-              if (index < images.length) {
+              final String url = allMedia[index];
+              if (_isUrlVideo(url)) {
+                return _InlineVideoPlayer(url: url);
+              } else {
                 return CommonImageView(
-                  url: images[index],
+                  url: url,
                   height: 260,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                );
-              } else {
-                return Container(
-                  color: Colors.black,
-                  child: _isYoutube
-                      ? YoutubePlayer(
-                          controller: _youtubeController!,
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: AppColors.primary,
-                        )
-                      : _videoPlayerController!.value.isInitialized
-                      ? GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _videoPlayerController!.value.isPlaying
-                                  ? _videoPlayerController!.pause()
-                                  : _videoPlayerController!.play();
-                            });
-                          },
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              AspectRatio(
-                                aspectRatio:
-                                    _videoPlayerController!.value.aspectRatio,
-                                child: VideoPlayer(_videoPlayerController!),
-                              ),
-                              if (!_videoPlayerController!.value.isPlaying)
-                                const Icon(
-                                  Icons.play_circle_fill,
-                                  color: Colors.white,
-                                  size: 64,
-                                ),
-                            ],
-                          ),
-                        )
-                      : const Center(child: CircularProgressIndicator()),
                 );
               }
             },
@@ -924,6 +906,106 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
+  Widget _buildPricingSection() {
+    if (horse!.prices == null || horse!.prices!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final prices = horse!.prices!;
+    // Filter to only include types where there's either inquire=true or min/max price
+    final Map<String, dynamic> validPrices = {};
+    for (var entry in prices.entries) {
+      final data = entry.value;
+      if (data is Map) {
+        final bool inquire = data['inquire'] ?? false;
+        final minPrice = data['min']?.toString() ?? '';
+        final maxPrice = data['max']?.toString() ?? '';
+        
+        if (inquire || minPrice.isNotEmpty || maxPrice.isNotEmpty) {
+          validPrices[entry.key] = data;
+        }
+      }
+    }
+
+    if (validPrices.isEmpty) return const SizedBox.shrink();
+
+    // Mapping keys to friendly labels, keeping standard order if possible
+    final displayOrder = [
+      'Sale',
+      'Weekly Lease',
+      'Annual Lease',
+      'Short Term or Circuit Lease',
+    ];
+    
+    final List<MapEntry<String, dynamic>> sortedEntries = [];
+    for (var type in displayOrder) {
+      if (validPrices.containsKey(type)) {
+        sortedEntries.add(MapEntry(type, validPrices[type]!));
+      }
+    }
+    // Add any others not in expected order
+    for (var entry in validPrices.entries) {
+      if (!displayOrder.contains(entry.key)) {
+        sortedEntries.add(entry);
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          const CommonText(
+            'Pricing',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.border.withValues(alpha: 0.5),
+              ),
+            ),
+            child: GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              childAspectRatio: 2.2,
+              children: sortedEntries.map((entry) {
+                final type = entry.key;
+                final data = entry.value;
+                final bool inquire = data['inquire'] ?? false;
+                final minPrice = data['min']?.toString() ?? '';
+                final maxPrice = data['max']?.toString() ?? '';
+                
+                String labelStr = type;
+                if (type == 'Sale') labelStr = 'For Sale';
+                
+                String valStr = '';
+                if (inquire) {
+                  valStr = 'Inquire';
+                } else if (minPrice == maxPrice || maxPrice.isEmpty) {
+                  valStr = '\$ $minPrice';
+                } else if (minPrice.isEmpty) {
+                  valStr = '\$ $maxPrice';
+                } else {
+                  valStr = '\$ $minPrice - \$ $maxPrice';
+                }
+                
+                return _buildPremiumDetailItem(labelStr, valStr);
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAvailabilitySection() {
     if (horse!.showAvailability.isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -952,11 +1034,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 final index = entry.key;
                 final show = entry.value;
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (index > 0) const SizedBox(height: 16),
+                    if (index > 0) const SizedBox(height: 20),
                     _buildPremiumAvailabilityItem(
-                      'Location ${index + 1}',
                       show.showVenue,
+                      show.cityState,
                       DateUtil.formatRange(show.startDate, show.endDate),
                     ),
                   ],
@@ -970,16 +1053,38 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildPremiumAvailabilityItem(
-    String title,
-    String location,
+    String showVenue,
+    String cityState,
     String dates,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(title, fontSize: 13, color: AppColors.textSecondary),
+        CommonText(showVenue, fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         const SizedBox(height: 8),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 16,
+              color: AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: CommonText(
+                dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Icon(
               Icons.location_on_outlined,
@@ -989,29 +1094,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             const SizedBox(width: 8),
             Expanded(
               child: CommonText(
-                location.isEmpty ? 'N/A' : location,
+                cityState.isEmpty ? 'N/A' : cityState,
                 fontSize: 14,
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            const Icon(
-              Icons.calendar_today_outlined,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: CommonText(
-                dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -1652,6 +1738,104 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               size: 18,
               color: AppColors.textSecondary,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+class _InlineVideoPlayer extends StatefulWidget {
+  final String url;
+  const _InlineVideoPlayer({required this.url});
+
+  @override
+  State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
+}
+
+class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _initialized = true;
+          });
+        }
+      }).catchError((e) {
+        debugPrint('Error loading video: $e');
+        if (mounted) {
+          setState(() {
+            _error = true;
+          });
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return Container(
+        color: Colors.black,
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: Colors.white, size: 40),
+              SizedBox(height: 8),
+              CommonText('Error loading video', color: Colors.white, fontSize: 12),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (!_initialized) {
+      return Container(
+        color: Colors.black,
+        child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _controller.value.isPlaying ? _controller.pause() : _controller.play();
+        });
+      },
+      child: Container(
+        color: Colors.black,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            AspectRatio(
+              aspectRatio: _controller.value.aspectRatio,
+              child: VideoPlayer(_controller),
+            ),
+            if (!_controller.value.isPlaying)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
           ],
         ),
       ),

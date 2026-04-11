@@ -68,9 +68,9 @@ class AddNewListingController extends GetxController {
   var isTagsLoading = false.obs;
   var isPublishing = false.obs;
 
-  final ImagePicker _picker = ImagePicker();
+  final ImagePicker picker = ImagePicker();
   var localImages = <File>[].obs;
-  var localVideo = Rxn<File>();
+  var localVideos = <File>[].obs;
   var gender = 'Gelding'.obs;
   var editingHorseId = RxnString();
   bool get isEditMode => editingHorseId.value != null;
@@ -78,6 +78,7 @@ class AddNewListingController extends GetxController {
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;
+  var uploadedVideos = <String>[].obs;
 
   // Step 2
   final listingTitleController = TextEditingController();
@@ -175,8 +176,54 @@ class AddNewListingController extends GetxController {
 
     selectedListingTypes.assignAll(horse.listingTypes);
 
-    // Remote images (keep them as strings, might need a separate list for UI)
-    uploadedImages.assignAll(horse.images);
+    // Remote images and videos (separate them)
+    uploadedImages.clear();
+    uploadedVideos.clear();
+
+    bool isVideo(String url) {
+      final String lower = url.toLowerCase();
+      return lower.contains('horsevideos') ||
+          lower.endsWith('.mp4') ||
+          lower.endsWith('.mov') ||
+          lower.endsWith('.avi') ||
+          lower.endsWith('.wmv') ||
+          lower.endsWith('.webm') ||
+          lower.endsWith('.mkv');
+    }
+
+    final Set<String> processedUrls = {};
+
+    // 1. Handle primary photo
+    if (horse.photo != null && horse.photo!.isNotEmpty) {
+      if (isVideo(horse.photo!)) {
+        uploadedVideos.add(horse.photo!);
+      } else {
+        uploadedImages.add(horse.photo!);
+      }
+      processedUrls.add(horse.photo!);
+    }
+
+    // 2. Handle videoLink if it's a direct video URL
+    if (horse.videoLink != null && horse.videoLink!.isNotEmpty && horse.videoLink != 'N/A') {
+      if (isVideo(horse.videoLink!)) {
+        if (!processedUrls.contains(horse.videoLink!)) {
+          uploadedVideos.add(horse.videoLink!);
+          processedUrls.add(horse.videoLink!);
+        }
+      }
+    }
+
+    // 3. Handle images array
+    for (var url in horse.images) {
+      if (processedUrls.contains(url)) continue;
+
+      if (isVideo(url)) {
+        uploadedVideos.add(url);
+      } else {
+        uploadedImages.add(url);
+      }
+      processedUrls.add(url);
+    }
 
     // Availability
     availabilityEntries.clear();
@@ -233,16 +280,22 @@ class AddNewListingController extends GetxController {
         const Center(child: CircularProgressIndicator()),
         barrierDismissible: false,
       );
-
-      // 1. Upload Images (New ones from local)
-      List<String> imageUrls = [
+      // 1. Upload Media
+      List<String> finalImages = [
         ...uploadedImages,
-      ]; // Start with existing images
+        ...uploadedVideos,
+      ];
+      
       for (var imageFile in localImages) {
         final url = await _uploadFile(imageFile);
-        if (url != null) imageUrls.add(url);
+        if (url != null) finalImages.add(url);
       }
-
+      
+      for (var videoFile in localVideos) {
+        final url = await _uploadFile(videoFile);
+        if (url != null) finalImages.add(url);
+      }
+ 
       final horseData = {
         'listingTitle': listingTitleController.text,
         'name': horseNameController.text,
@@ -255,11 +308,8 @@ class AddNewListingController extends GetxController {
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkController.text,
-        'images': [
-          ...imageUrls,
-          if (localVideo.value != null) await _uploadFile(localVideo.value!)
-        ].whereType<String>().toList(),
-        'photo': imageUrls.isNotEmpty ? imageUrls.first : null,
+        'images': finalImages.whereType<String>().toList(),
+        'photo': uploadedImages.isNotEmpty ? uploadedImages.first : (finalImages.isNotEmpty ? finalImages.first : null),
         'listingTypes': selectedListingTypes.toList(),
         'tags': selectedTags.toList(),
         'isActive': activeStatus.value,
@@ -360,24 +410,39 @@ class AddNewListingController extends GetxController {
   Future<String?> _uploadFile(File file) async {
     try {
       final String fileName = path.basename(file.path);
+      final String extension = path.extension(file.path).toLowerCase();
+      String contentType = 'image/jpeg';
+      
+      if (extension == '.mp4' || extension == '.mov' || extension == '.avi') {
+        contentType = 'video/mp4';
+      } else if (extension == '.png') {
+        contentType = 'image/png';
+      }
+
       final FormData formData = FormData({
         'media': MultipartFile(
           file.path,
           filename: fileName,
-          contentType: 'image/jpeg',
+          contentType: contentType,
         ),
       });
 
+      final String type = (extension == '.mp4' || extension == '.mov' || extension == '.avi') ? 'video' : 'horse';
+      
       final response = await _apiService.postRequest(
-        "${AppUrls.upload}?type=horse",
+        "${AppUrls.upload}?type=$type",
         formData,
       );
+      
       if (response.statusCode == 200 || response.statusCode == 201) {
         return response.body['data']['url'];
+      } else {
+        print('Upload failed with status: ${response.statusCode}');
+        print('Response body: ${response.bodyString}');
+        return null;
       }
-      return null;
     } catch (e) {
-      print('Error uploading image: $e');
+      print('Error uploading file: $e');
       return null;
     }
   }
@@ -386,7 +451,7 @@ class AddNewListingController extends GetxController {
     try {
       if (localImages.isEmpty) {
         // First selection: only allow images
-        final List<XFile> images = await _picker.pickMultiImage();
+        final List<XFile> images = await picker.pickMultiImage();
         if (images.isNotEmpty) {
           localImages.addAll(images.map((x) => File(x.path)));
         }
@@ -421,7 +486,7 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Images'),
               onTap: () async {
                 Get.back();
-                final List<XFile> images = await _picker.pickMultiImage();
+                final List<XFile> images = await picker.pickMultiImage();
                 if (images.isNotEmpty) {
                   localImages.addAll(images.map((x) => File(x.path)));
                 }
@@ -432,9 +497,9 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Video'),
               onTap: () async {
                 Get.back();
-                final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+                final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
                 if (video != null) {
-                  localVideo.value = File(video.path);
+                  localVideos.add(File(video.path));
                 }
               },
             ),
@@ -445,13 +510,31 @@ class AddNewListingController extends GetxController {
     );
   }
 
-  void removeVideo() {
-    localVideo.value = null;
+  void removeVideo(int index) {
+    if (localVideos.length > index) {
+      localVideos.removeAt(index);
+    }
+  }
+
+  void removeUploadedVideo(int index) {
+    if (uploadedVideos.length > index) {
+      final String removedUrl = uploadedVideos[index];
+      uploadedVideos.removeAt(index);
+      if (videoLinkController.text.trim() == removedUrl.trim()) {
+        videoLinkController.clear();
+      }
+    }
   }
 
   void removeLocalImage(int index) {
     if (localImages.length > index) {
       localImages.removeAt(index);
+    }
+  }
+
+  void removeUploadedImage(int index) {
+    if (uploadedImages.length > index) {
+      uploadedImages.removeAt(index);
     }
   }
 

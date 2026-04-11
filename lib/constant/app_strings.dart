@@ -101,7 +101,7 @@ class AppStrings {
   static const String phoneNumber = 'Phone Number';
   static const String pleaseFillInAllFields = 'Please fill in all fields';
   static const String pleaseProvideFourReferences =
-      'Please provide two professional references who can speak to your experience and reliability.';
+      'Provide references who can speak to your experience, professionalism, and reliability';
   static const String professionalHorseTrainer = 'Professional Horse Trainer';
   static const String profilePhoto = 'Profile Photo';
   static const String profileSetup = 'Profile setup';
