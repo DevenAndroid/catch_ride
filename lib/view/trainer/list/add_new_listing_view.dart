@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddNewListingView extends StatefulWidget {
   const AddNewListingView({super.key});
@@ -255,22 +257,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RichText(
-            text: const TextSpan(
-              text: 'Upload ',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-              children: [
-                TextSpan(
-                  text: '*',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ],
-            ),
+          const CommonText(
+            'Upload Photos',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
           const SizedBox(height: 12),
           Obx(
@@ -278,6 +269,61 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               spacing: 12,
               runSpacing: 12,
               children: [
+                ...controller.uploadedImages.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  String url = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 85,
+                        height: 85,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(11),
+                          child: CachedNetworkImage(
+                            imageUrl: url,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            errorWidget: (context, url, error) => const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => controller.removeUploadedImage(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
                 ...controller.localImages.asMap().entries.map((entry) {
                   int index = entry.key;
                   File file = entry.value;
@@ -296,14 +342,14 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         ),
                       ),
                       Positioned(
-                        top: 6,
-                        right: 6,
+                        top: 4,
+                        right: 4,
                         child: GestureDetector(
                           onTap: () => controller.removeLocalImage(index),
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withOpacity(0.9),
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
@@ -311,44 +357,6 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                   blurRadius: 4,
                                 ),
                               ],
-                            ),
-                            child: const Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }),
-                // Display local video if selected
-                if (controller.localVideo.value != null)
-                  Stack(
-                    children: [
-                      Container(
-                        width: 85,
-                        height: 85,
-                        decoration: BoxDecoration(
-                          color: Colors.black12,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: const Center(
-                          child: Icon(Icons.play_circle_fill, color: AppColors.primary, size: 40),
-                        ),
-                      ),
-                      Positioned(
-                        top: 6,
-                        right: 6,
-                        child: GestureDetector(
-                          onTap: () => controller.removeVideo(),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
-                              shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.close,
@@ -359,14 +367,160 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         ),
                       ),
                     ],
-                  ),
+                  );
+                }),
                 GestureDetector(
-                  onTap: controller.pickImage,
+                  onTap: () async {
+                    final List<XFile> images = await controller.picker.pickMultiImage();
+                    if (images.isNotEmpty) {
+                      controller.localImages.addAll(images.map((x) => File(x.path)));
+                    }
+                  },
                   child: _buildAddButton(),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          const CommonText(
+            'Upload Video',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+          const SizedBox(height: 12),
+          Obx(() => Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              ...controller.uploadedVideos.asMap().entries.map((entry) {
+                int index = entry.key;
+                String url = entry.value;
+                return Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.video_library, color: AppColors.primary, size: 40),
+                            SizedBox(height: 4),
+                            CommonText('Uploaded', fontSize: 10, color: AppColors.textSecondary),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => controller.removeUploadedVideo(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.close, size: 14, color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              ...controller.localVideos.asMap().entries.map((entry) {
+                int index = entry.key;
+                File file = entry.value;
+                return Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.videocam, color: AppColors.primary, size: 40),
+                            SizedBox(height: 4),
+                            CommonText('Local Video', fontSize: 10, color: AppColors.textSecondary),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: () => controller.removeVideo(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(Icons.close, size: 14, color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              GestureDetector(
+                onTap: () async {
+                  final XFile? video = await controller.picker.pickVideo(source: ImageSource.gallery);
+                  if (video != null) {
+                    controller.localVideos.add(File(video.path));
+                  }
+                },
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.videocam_outlined, color: AppColors.primary, size: 32),
+                      SizedBox(height: 8),
+                      CommonText(
+                        'Add Video',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.primary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          )),
           const SizedBox(height: 24),
           RichText(
             text: TextSpan(
@@ -822,7 +976,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             children: [
               RichText(
                 text: const TextSpan(
-                  text: 'Horse USEF number ',
+                  text: 'USEF #',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: 14,
@@ -862,7 +1016,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           errorBorder: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,
-                          hintText: 'Enter USEF number',
+                          hintText: 'Enter USEF #',
                           hintStyle: TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: AppTextSizes.size14,

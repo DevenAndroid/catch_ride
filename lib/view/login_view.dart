@@ -13,6 +13,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:catch_ride/view/forget_password_flow/forgot_password_request_view.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
+import 'dart:io';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -166,14 +167,16 @@ class _LoginViewState extends State<LoginView> {
                               : () => _authController.signInWithGoogle(),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      SocialButton(
-                        text: AppStrings.continueWithAppleId,
-                        icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
-                        onPressed: _authController.isLoading.value
-                            ? () {}
-                            : () => _authController.signInWithApple(),
-                      ),
+                      if (Platform.isIOS) ...[
+                        const SizedBox(height: 12),
+                        SocialButton(
+                          text: AppStrings.continueWithAppleId,
+                          icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
+                          onPressed: _authController.isLoading.value
+                              ? () {}
+                              : () => _authController.signInWithApple(),
+                        ),
+                      ],
                     ],
                   ),
                 ),

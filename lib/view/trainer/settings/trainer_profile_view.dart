@@ -341,7 +341,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
                    Padding(
                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                     child: Column(children: [
+                     child: Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
                        if (hasBio) ...[
                          const SizedBox(height: 24),
                          CommonText(
@@ -370,7 +372,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                    },
                                  ),
                                if (hasFacebook) ...[
-                                 if (hasInstagram) const SizedBox(width: 12),
+                                 if (hasInstagram) const SizedBox(width: 10),
                                  _buildSocialButton(
                                    'Facebook',
                                    Icons.facebook,
@@ -382,7 +384,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                ],
                                if (hasWebsite) ...[
                                  if (hasInstagram || hasFacebook)
-                                   const SizedBox(width: 12),
+                                   const SizedBox(width: 10),
                                  _buildSocialButton(
                                    'Website',
                                    Icons.link,
@@ -559,7 +561,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),

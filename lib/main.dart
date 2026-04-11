@@ -22,7 +22,7 @@ Future<void> main() async {
   
   await GetStorage.init();
 
-  //
+
   // SharedPreferences preferences = await SharedPreferences.getInstance();
   // preferences.clear();
 

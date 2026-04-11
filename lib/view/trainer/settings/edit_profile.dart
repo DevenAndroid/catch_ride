@@ -31,6 +31,8 @@ class _EditProfileViewState extends State<EditProfileView> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _yearsController = TextEditingController();
+  final TextEditingController _federationNameController = TextEditingController();
+  final TextEditingController _federationNumberController = TextEditingController();
   final TextEditingController _searchCircuitsController =
       TextEditingController();
 
@@ -73,6 +75,10 @@ class _EditProfileViewState extends State<EditProfileView> {
     _location1Controller.text = profileController.location;
     _location2Controller.text = profileController.location2;
     
+    final trainerData = profileController.userData['trainerId'] ?? profileController.userData;
+    _federationNameController.text = trainerData['federationName'] ?? 'USEF (United States)';
+    _federationNumberController.text = trainerData['federationNumber'] ?? profileController.userData['federationId'] ?? '';
+
     final expItems = ['0-1', '2-4', '5-9', '10+'];
     _yearsController.text = expItems.contains(profileController.yearsExperience)
         ? profileController.yearsExperience
@@ -109,6 +115,10 @@ class _EditProfileViewState extends State<EditProfileView> {
             _instagramController.text =
                 profileController.user.value?.instagram ?? '';
             
+            final updatedTrainerData = profileController.userData['trainerId'] ?? profileController.userData;
+            _federationNameController.text = updatedTrainerData['federationName'] ?? 'USEF (United States)';
+            _federationNumberController.text = updatedTrainerData['federationNumber'] ?? profileController.userData['federationId'] ?? '';
+            
             final expItems = ['0-1', '2-4', '5-9', '10+'];
             _yearsController.text = expItems.contains(profileController.yearsExperience)
                 ? profileController.yearsExperience
@@ -141,6 +151,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     _websiteController.dispose();
     _instagramController.dispose();
     _yearsController.dispose();
+    _federationNameController.dispose();
+    _federationNumberController.dispose();
     _searchCircuitsController.dispose();
     super.dispose();
   }
@@ -531,11 +543,15 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Federation Information',
       children: [
-        _buildDropdownField('Federation', 'USEF (United States)'),
+        _buildTextField(
+          'Federation Name',
+          _federationNameController,
+          hint: 'e.g. USEF (United States)',
+        ),
         const SizedBox(height: 20),
         _buildTextField(
           'Federation ID Number',
-          TextEditingController(),
+          _federationNumberController,
           hint: 'ID Number',
         ),
       ],
@@ -1431,6 +1447,8 @@ class _EditProfileViewState extends State<EditProfileView> {
                           'showCircuits': _selectedHorseShows.toList(),
                           'horseShows': _selectedHorseShowIds.toList(),
                           'tags': _selectedTags.toList(),
+                          'federationName': _federationNameController.text.trim(),
+                          'federationNumber': _federationNumberController.text.trim(),
                         });
 
                         if (success) {
