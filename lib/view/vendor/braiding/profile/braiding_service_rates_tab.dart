@@ -288,7 +288,11 @@ class _BraidingServiceRatesTabState extends State<BraidingServiceRatesTab> {
                       })
                   .toList();
               final success = await controller.updateBraidingServices(payload);
-              if (success) Get.back();
+              if (success) {
+                Get.back();
+                Get.snackbar('Success', 'Saved successfully',
+                    backgroundColor: Colors.green, colorText: Colors.white);
+              }
             },
           ),
         ),

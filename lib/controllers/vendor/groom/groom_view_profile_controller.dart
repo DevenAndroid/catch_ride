@@ -478,13 +478,18 @@ class GroomViewProfileController extends GetxController {
     try {
       isLoading.value = true;
       final vendorId = vendorData['_id'];
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+
+      existingServicesData['braiding'] = {
+        'profileData': {'services': services},
+        'isProfileCompleted': true,
+      };
+
       final payload = {
-        'servicesData': {
-          'braiding': {
-            'profileData': {'services': services},
-            'isProfileCompleted': true,
-          },
-        },
+        'servicesData': existingServicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
         '/vendors/$vendorId',
@@ -492,12 +497,6 @@ class GroomViewProfileController extends GetxController {
       );
       if (response.statusCode == 200) {
         await fetchProfile();
-        Get.snackbar(
-          'Success',
-          'Braiding services updated successfully!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         return true;
       }
       return false;
@@ -514,13 +513,18 @@ class GroomViewProfileController extends GetxController {
     try {
       isLoading.value = true;
       final vendorId = vendorData['_id'];
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+
+      existingServicesData['clipping'] = {
+        'profileData': {'services': services},
+        'isProfileCompleted': true,
+      };
+
       final payload = {
-        'servicesData': {
-          'clipping': {
-            'profileData': {'services': services},
-            'isProfileCompleted': true,
-          },
-        },
+        'servicesData': existingServicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
         '/vendors/$vendorId',
@@ -528,12 +532,6 @@ class GroomViewProfileController extends GetxController {
       );
       if (response.statusCode == 200) {
         await fetchProfile();
-        Get.snackbar(
-          'Success',
-          'Clipping services updated successfully!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         return true;
       }
       return false;
@@ -551,13 +549,18 @@ class GroomViewProfileController extends GetxController {
     try {
       isLoading.value = true;
       final vendorId = vendorData['_id'];
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+
+      existingServicesData['farrier'] = {
+        'profileData': {'services': services, 'addOns': addOns},
+        'isProfileCompleted': true,
+      };
+
       final payload = {
-        'servicesData': {
-          'farrier': {
-            'profileData': {'services': services, 'addOns': addOns},
-            'isProfileCompleted': true,
-          },
-        },
+        'servicesData': existingServicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
         '/vendors/$vendorId',
@@ -565,12 +568,6 @@ class GroomViewProfileController extends GetxController {
       );
       if (response.statusCode == 200) {
         await fetchProfile();
-        Get.snackbar(
-          'Success',
-          'Farrier services updated successfully!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         return true;
       } else {
         Get.snackbar(
@@ -595,13 +592,18 @@ class GroomViewProfileController extends GetxController {
     try {
       isLoading.value = true;
       final vendorId = vendorData['_id'];
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+
+      existingServicesData['bodywork'] = {
+        'profileData': {'services': services},
+        'isProfileCompleted': true,
+      };
+
       final payload = {
-        'servicesData': {
-          'bodywork': {
-            'profileData': {'services': services},
-            'isProfileCompleted': true,
-          },
-        },
+        'servicesData': existingServicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
         '/vendors/$vendorId',
@@ -609,12 +611,6 @@ class GroomViewProfileController extends GetxController {
       );
       if (response.statusCode == 200) {
         await fetchProfile();
-        Get.snackbar(
-          'Success',
-          'Bodywork services updated successfully!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
         return true;
       } else {
         Get.snackbar(
@@ -645,27 +641,32 @@ class GroomViewProfileController extends GetxController {
     try {
       isLoading.value = true;
       final vendorId = vendorData['_id'];
-      final payload = {
-        'servicesData': {
-          'grooming': {
-            'profileData': {
-              'services': services,
-              'rates': {
-                'daily': daily,
-                'weekly': {
-                  'price': weekly,
-                  'days': int.tryParse(weeklyDays) ?? 5,
-                },
-                'monthly': {
-                  'price': monthly,
-                  'days': int.tryParse(monthlyDays) ?? 5,
-                },
-              },
-              'additionalServices': additional,
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+
+      existingServicesData['grooming'] = {
+        'profileData': {
+          'services': services,
+          'rates': {
+            'daily': daily,
+            'weekly': {
+              'price': weekly,
+              'days': int.tryParse(weeklyDays) ?? 5,
             },
-            'isProfileCompleted': true,
+            'monthly': {
+              'price': monthly,
+              'days': int.tryParse(monthlyDays) ?? 5,
+            },
           },
+          'additionalServices': additional,
         },
+        'isProfileCompleted': true,
+      };
+
+      final payload = {
+        'servicesData': existingServicesData,
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
         '/vendors/$vendorId',

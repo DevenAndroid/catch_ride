@@ -226,13 +226,15 @@ class ShippingDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
+      // Merge with existing servicesData
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
+      
+      existingServicesData['shipping'] = detailsData;
+
       final body = {
-        'servicesData': {
-          'shipping': detailsData,
-        },
+        'servicesData': existingServicesData,
         'isProfileSetup': true,
         'isProfileCompleted': true,
-        'isProfileComplete': true,
       };
 
       // 3. API Call

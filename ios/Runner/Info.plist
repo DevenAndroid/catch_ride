@@ -41,7 +41,18 @@
 	<array>
 		<string>https</string>
 		<string>http</string>
+		<string>tel</string>
+		<string>mailto</string>
+		<string>sms</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>CatchRide needs access to your camera to let you take photos for your profile and listings.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CatchRide needs access to your microphone to let you record videos for your listings.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CatchRide needs access to your photo library to let you upload profile pictures and listing images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>CatchRide needs permission to save images to your photo library.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

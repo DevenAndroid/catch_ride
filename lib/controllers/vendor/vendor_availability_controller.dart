@@ -64,7 +64,11 @@ class VendorAvailabilityController extends GetxController {
     isAcceptingRequests.value = value;
     try {
        // Sync with backend - updating vendor profile
-       await _apiService.putRequest('/vendors/profile', {'isAcceptingRequests': value});
+       await _apiService.putRequest('/vendors/profile', {
+         'isAcceptingRequests': value,
+         'isProfileCompleted': true,
+         'isProfileSetup': true,
+       });
     } catch (e) {
       debugPrint('Error toggling accepting requests: $e');
       // Revert on error

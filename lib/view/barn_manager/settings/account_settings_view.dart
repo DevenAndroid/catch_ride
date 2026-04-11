@@ -1,3 +1,4 @@
+/*
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/barn_manager/barn_manager_settings_controller.dart';
@@ -332,3 +333,4 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
     );
   }
 }
+*/

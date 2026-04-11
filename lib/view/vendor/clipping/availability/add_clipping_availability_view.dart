@@ -1,10 +1,14 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class AddClippingAvailabilityView extends StatefulWidget {
   const AddClippingAvailabilityView({super.key});
@@ -14,7 +18,138 @@ class AddClippingAvailabilityView extends StatefulWidget {
 }
 
 class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityView> {
-  final RxInt maxHorses = 6.obs;
+  final controller = Get.put(VendorAvailabilityController());
+  final profileController = Get.put(ProfileController());
+
+  final RxBool _isSubmitting = false.obs;
+  VendorAvailabilityModel? _editingBlock;
+
+  // Form State
+  DateTime? _startDate;
+  DateTime? _endDate;
+  DateTime? _unStart;
+  DateTime? _unEnd;
+
+  final RxString _locationType = 'Both'.obs;
+  final RxString _availabilityType = 'Full Day'.obs;
+  final RxString _capacityType = 'Max horses per day'.obs;
+  final RxInt _maxHorses = 6.obs;
+  
+  final _notesController = TextEditingController();
+  final _venueSearchController = TextEditingController();
+  final RxList<String> _addedVenues = <String>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments;
+    if (args is Map && args['block'] is VendorAvailabilityModel) {
+      _editingBlock = args['block'];
+      _preFillForm();
+    }
+  }
+
+  void _preFillForm() {
+    if (_editingBlock == null) return;
+    _startDate = _editingBlock!.startDate;
+    _endDate = _editingBlock!.endDate;
+    _unStart = _editingBlock!.unavailableStart;
+    _unEnd = _editingBlock!.unavailableEnd;
+    
+    _notesController.text = _editingBlock!.notes ?? '';
+    _maxHorses.value = _editingBlock!.maxBookings;
+    
+    if (_editingBlock!.locationType != null) _locationType.value = _editingBlock!.locationType!;
+    if (_editingBlock!.timeBlockType != null) _availabilityType.value = _editingBlock!.timeBlockType!;
+    if (_editingBlock!.capacityType != null) _capacityType.value = _editingBlock!.capacityType!;
+    
+    _addedVenues.assignAll(_editingBlock!.showVenues);
+  }
+
+  Future<void> _selectDate(BuildContext context, {required bool isStart, bool isUnavailability = false}) async {
+    DateTime initial = DateTime.now();
+    if (isUnavailability) {
+      initial = isStart ? (_unStart ?? initial) : (_unEnd ?? initial);
+    } else {
+      initial = isStart ? (_startDate ?? initial) : (_endDate ?? initial);
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.primary),
+        ),
+        child: child!,
+      ),
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isUnavailability) {
+          if (isStart) _unStart = picked; else _unEnd = picked;
+        } else {
+          if (isStart) _startDate = picked; else _endDate = picked;
+        }
+      });
+    }
+  }
+
+  void _submit() async {
+    if (_startDate == null || _endDate == null) {
+      Get.snackbar('Error', 'Please select availability dates', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+    if (_addedVenues.isEmpty) {
+      Get.snackbar('Error', 'Please add at least one venue or city', backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    _isSubmitting.value = true;
+    try {
+      final user = controller.authController.currentUser.value;
+      if (user == null) return;
+
+      int mongoDay = _startDate!.weekday == 7 ? 0 : _startDate!.weekday;
+
+      final payload = {
+        'vendorId': user.vendorProfileId,
+        'vendorName': user.fullName,
+        'createdBy': user.id,
+        'availabilityType': 'one-time',
+        'dayOfWeek': mongoDay,
+        'specificDate': _startDate!.toIso8601String(),
+        'startDate': _startDate!.toIso8601String(),
+        'endDate': _endDate!.toIso8601String(),
+        'unavailableStart': _unStart?.toIso8601String(),
+        'unavailableEnd': _unEnd?.toIso8601String(),
+        'showVenues': _addedVenues.toList(),
+        'serviceTypes': ['Clipping'],
+        'locationType': _locationType.value,
+        'timeBlockType': _availabilityType.value,
+        'capacityType': _capacityType.value,
+        'maxBookings': _maxHorses.value,
+        'notes': _notesController.text.trim(),
+        'status': 'available',
+      };
+
+      if (_editingBlock != null && _editingBlock!.id != null) {
+        await controller.updateAvailabilityBlock(_editingBlock!.id!, payload);
+      } else {
+        await controller.createAvailabilityBlock(payload);
+      }
+      
+      Get.back();
+      Get.snackbar('Success', 'Availability saved successfully', backgroundColor: Colors.green, colorText: Colors.white);
+    } catch (e) {
+      debugPrint('Error: $e');
+    } finally {
+      _isSubmitting.value = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +162,7 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Get.back(),
         ),
-        title: const CommonText('Add Availability Block', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+        title: CommonText(_editingBlock != null ? 'Edit Availability' : 'Add Availability', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -66,39 +201,36 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           _buildSectionHeader('Availability'),
           Row(
             children: [
-              Expanded(child: _buildDatePickerField('Start Date')),
+              Expanded(child: _buildDatePickerField('Start Date', _startDate, () => _selectDate(context, isStart: true))),
               const SizedBox(width: 16),
-              Expanded(child: _buildDatePickerField('End Date')),
+              Expanded(child: _buildDatePickerField('End Date', _endDate, () => _selectDate(context, isStart: false))),
             ],
           ),
           const SizedBox(height: 24),
           _buildSectionHeader('Mark Unavailability'),
           Row(
             children: [
-              Expanded(child: _buildDatePickerField('Start Date')),
+              Expanded(child: _buildDatePickerField('Start Date', _unStart, () => _selectDate(context, isStart: true, isUnavailability: true))),
               const SizedBox(width: 16),
-              Expanded(child: _buildDatePickerField('End Date')),
+              Expanded(child: _buildDatePickerField('End Date', _unEnd, () => _selectDate(context, isStart: false, isUnavailability: true))),
             ],
           ),
           const SizedBox(height: 24),
           _buildSectionHeader('Location Type'),
-          _buildDropdownField('Select a Location Type'),
+          _buildDropdownField(_locationType, ['Both', 'Barn', 'Show Venue']),
           const SizedBox(height: 24),
-          _buildSectionHeader('Show Venue or City'),
-          CommonTextField(label: '', hintText: 'Enter Show Venue or City', controller: TextEditingController()),
-          const SizedBox(height: 12),
-          _buildChips(),
+          _buildVenueSection(),
           const SizedBox(height: 24),
           _buildSectionHeader('Time Block & Capacity'),
-          const CommonText('Availability Type', fontSize: 14, fontWeight: FontWeight.bold),
+          const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
           const SizedBox(height: 8),
-          _buildDropdownField('Full Day'),
+          _buildDropdownField(_availabilityType, ['Full Day', 'AM', 'PM']),
           const SizedBox(height: 16),
-          const CommonText('Capacity', fontSize: 14, fontWeight: FontWeight.bold),
+          const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
           const SizedBox(height: 8),
-          _buildDropdownField('Max horses per day'),
+          _buildDropdownField(_capacityType, ['No capacity limit', 'Max horses per time block', 'Max horses per day']),
           const SizedBox(height: 16),
-          const CommonText('Max Horses', fontSize: 14, fontWeight: FontWeight.bold),
+          const CommonText('Max Horses', fontSize: 13, fontWeight: FontWeight.bold),
           const SizedBox(height: 8),
           _buildStepperField(),
           const SizedBox(height: 24),
@@ -117,45 +249,54 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
     );
   }
 
-  Widget _buildDatePickerField(String label) {
+  Widget _buildDatePickerField(String label, DateTime? date, VoidCallback onTap) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: 12, color: AppColors.textSecondary),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.borderLight),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const CommonText('Select Date', fontSize: 14, color: AppColors.textSecondary),
-              const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
-            ],
+        InkWell(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(
+                  date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select Date',
+                  fontSize: 14, 
+                  color: date != null ? AppColors.textPrimary : AppColors.textSecondary
+                ),
+                const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDropdownField(String value) {
+  Widget _buildDropdownField(RxString selectedValue, List<String> options) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CommonText(value, fontSize: 14, color: AppColors.textPrimary),
-          const Icon(Icons.keyboard_arrow_down, size: 20, color: AppColors.textSecondary),
-        ],
+      child: DropdownButtonHideUnderline(
+        child: Obx(() => DropdownButton<String>(
+          value: selectedValue.value,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+          items: options.map((opt) => DropdownMenuItem(value: opt, child: CommonText(opt, fontSize: 14))).toList(),
+          onChanged: (val) { if (val != null) selectedValue.value = val; },
+        )),
       ),
     );
   }
@@ -171,46 +312,161 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(onPressed: () => maxHorses.value > 0 ? maxHorses.value-- : null, icon: const Icon(Icons.remove, size: 18, color: AppColors.textSecondary)),
-          Obx(() => CommonText('${maxHorses.value}', fontSize: 18, fontWeight: FontWeight.bold)),
-          IconButton(onPressed: () => maxHorses.value++, icon: const Icon(Icons.add, size: 18, color: AppColors.textSecondary)),
+          IconButton(onPressed: () { if (_maxHorses.value > 1) _maxHorses.value--; }, icon: const Icon(Icons.remove, size: 18, color: AppColors.textSecondary)),
+          Obx(() => CommonText('${_maxHorses.value}', fontSize: 18, fontWeight: FontWeight.bold)),
+          IconButton(onPressed: () => _maxHorses.value++, icon: const Icon(Icons.add, size: 18, color: AppColors.textSecondary)),
         ],
       ),
     );
   }
 
-  Widget _buildChips() {
-    final List<String> locations = ['Bruces Field', 'Highfields', 'Chagrin Valley Farms'];
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: locations.map((loc) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderLight),
+  Widget _buildVenueSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Show Venue or City'),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _venueSearchController,
+          readOnly: true,
+          onTap: _showVenueSelectionSheet,
+          decoration: InputDecoration(
+            hintText: 'Select Show Venue or City',
+            hintStyle: const TextStyle(color: Color(0xFF667085), fontSize: 14),
+            suffixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF667085)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        Obx(() {
+          if (_addedVenues.isEmpty) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _addedVenues.map((v) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F4F7), 
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFEAECF0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(child: CommonText(v, fontSize: 13, color: AppColors.textPrimary, overflow: TextOverflow.ellipsis)),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () => _addedVenues.remove(v),
+                      child: const Icon(Icons.close, size: 14, color: Color(0xFF98A2B3)),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  void _showVenueSelectionSheet() {
+    final searchController = TextEditingController();
+    final List<String> allVenues = profileController.allHorseShows;
+    final RxList<String> filteredVenues = RxList<String>(allVenues);
+    
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.85,
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        padding: const EdgeInsets.all(20),
+        child: Column(
           children: [
-            CommonText(loc, fontSize: 12, color: AppColors.textPrimary),
-            const SizedBox(width: 4),
-            const Icon(Icons.close, size: 14, color: AppColors.textSecondary),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search venues...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onChanged: (val) {
+                filteredVenues.assignAll(allVenues.where((v) => v.toLowerCase().contains(val.toLowerCase())).toList());
+              },
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Obx(() => ListView.builder(
+                itemCount: filteredVenues.length,
+                itemBuilder: (context, index) {
+                  final venue = filteredVenues[index];
+                  return Obx(() {
+                    final isSelected = _addedVenues.contains(venue);
+                    return CheckboxListTile(
+                      value: isSelected,
+                      onChanged: (selected) {
+                        if (selected == true) _addedVenues.add(venue);
+                        else _addedVenues.remove(venue);
+                      },
+                      title: CommonText(venue),
+                      activeColor: AppColors.primary,
+                    );
+                  });
+                },
+              )),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const CommonText('Done', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
-      )).toList(),
+      ),
+      isScrollControlled: true,
     );
   }
 
   Widget _buildNotesField() {
-    return TextField(
+    return TextFormField(
+      controller: _notesController,
       maxLines: 4,
+      keyboardType: TextInputType.multiline,
+      textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
         hintText: 'Any specific preference, requirements, or information trainers should know...',
         hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
+        fillColor: const Color(0xFFF9FAFB),
+        filled: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
         contentPadding: const EdgeInsets.all(16),
       ),
     );
@@ -230,11 +486,12 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: CommonButton(
-            text: 'Add Block',
+          child: Obx(() => CommonButton(
+            text: _editingBlock != null ? 'Save Changes' : 'Add Block',
             backgroundColor: AppColors.primary,
-            onPressed: () => Get.back(),
-          ),
+            isLoading: _isSubmitting.value,
+            onPressed: _submit,
+          )),
         ),
       ],
     );

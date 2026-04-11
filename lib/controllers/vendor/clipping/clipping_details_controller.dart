@@ -210,35 +210,38 @@ class ClippingDetailsController extends GetxController {
       }
       final vendorId = vendorResponse.body['data']['_id'];
 
-      final body = {
-        'servicesData': {
-          'clipping': {
-            'services': [
-              ...clippingServices
-                .where((s) => s['isSelected'].value == true)
-                .map((s) => {
-                      'name': s['name'],
-                      'price': (s['price'] as TextEditingController).text,
-                    }),
-              ...addOnServices
-                .where((s) => s['isSelected'].value == true)
-                .map((s) => {
-                      'name': s['name'],
-                      'price': (s['price'] as TextEditingController).text,
-                    })
-            ],
-            'travelPreferences': travelFees.entries.map((e) => {
-              'region': e.key,
-              'feeStructure': e.value,
-            }).toList(),
-            'cancellationPolicy': {
-              'policy': cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-              'customText': customCancellationController.text,
-            },
-            'isProfileCompleted': true,
-          }
+      // Merge with existing servicesData
+      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
+      
+      existingServicesData['clipping'] = {
+        'services': [
+          ...clippingServices
+            .where((s) => s['isSelected'].value == true)
+            .map((s) => {
+                  'name': s['name'],
+                  'price': (s['price'] as TextEditingController).text,
+                }),
+          ...addOnServices
+            .where((s) => s['isSelected'].value == true)
+            .map((s) => {
+                  'name': s['name'],
+                  'price': (s['price'] as TextEditingController).text,
+                })
+        ],
+        'travelPreferences': travelFees.entries.map((e) => {
+          'region': e.key,
+          'feeStructure': e.value,
+        }).toList(),
+        'cancellationPolicy': {
+          'policy': cancellationPolicy.value,
+          'isCustom': isCustomCancellation.value,
+          'customText': customCancellationController.text,
         },
+        'isProfileCompleted': true,
+      };
+
+      final body = {
+        'servicesData': existingServicesData,
         'isProfileSetup': true,
         'isProfileCompleted': true,
       };

@@ -2,6 +2,11 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/upcoming_availability_controller.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
+import 'package:catch_ride/view/vendor/braiding/availability/braiding_availability_card.dart';
+import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -65,7 +70,23 @@ class _UpcomingAvailabilityState extends State<UpcomingAvailability> {
             itemCount: controller.availabilityList.length + 1,
             itemBuilder: (context, index) {
               if (index < controller.availabilityList.length) {
-                return _buildAvailabilityCard(controller.availabilityList[index]);
+                final b = controller.availabilityList[index];
+                if (b.serviceTypes.contains('Braiding')) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: BraidingAvailabilityCard(availability: b),
+                  );
+                }
+                if (b.serviceTypes.contains('Clipping')) {
+                  return ClippingAvailabilityBlockCard(block: b);
+                }
+                if (b.serviceTypes.contains('Farrier')) {
+                  return FarrierAvailabilityBlockCard(block: b);
+                }
+                if (b.serviceTypes.contains('Bodywork')) {
+                  return BodyworkAvailabilityBlockCard(block: b);
+                }
+                return GroomingAvailabilityCard(availability: b);
               } else {
                 return controller.hasMore.value
                     ? const Padding(
@@ -81,115 +102,5 @@ class _UpcomingAvailabilityState extends State<UpcomingAvailability> {
     );
   }
 
-  Widget _buildAvailabilityCard(VendorAvailabilityModel b) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-       borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: AppColors.secondary,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(
-                        b.dateDisplay,
-                        color: Colors.white,
-                        fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: CommonText(
-                              b.locationDisplay,
-                              color: Colors.white70,
-                              fontSize: AppTextSizes.size12,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.more_vert, color: Colors.white),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: b.serviceTypes.map((t) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.borderLight),
-                    ),
-                    child: CommonText(t, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
-                  )).toList(),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    const Icon(Icons.catching_pokemon, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    CommonText(
-                      'Max ${b.maxBookings} Horses',
-                      fontSize: AppTextSizes.size12,
-                      color: AppColors.textSecondary,
-                    ),
-                  ],
-                ),
-                if (b.notes != null && b.notes!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.description_outlined, size: 16, color: AppColors.textSecondary),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: CommonText(
-                          b.notes!,
-                          fontSize: AppTextSizes.size12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
-}
+

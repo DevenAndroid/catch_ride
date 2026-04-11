@@ -627,6 +627,8 @@ class EditVendorProfileController extends GetxController {
         'coverImage': coverImage,
         'paymentMethods': selectedPayments.toList(),
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'isProfileCompleted': true,
+        'isProfileSetup': true,
       };
 
       // 1.5 Helper for Braiding Services payload

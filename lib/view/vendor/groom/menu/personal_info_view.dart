@@ -1,3 +1,4 @@
+/*
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
@@ -89,3 +90,4 @@ class PersonalInfoView extends StatelessWidget {
     );
   }
 }
+*/

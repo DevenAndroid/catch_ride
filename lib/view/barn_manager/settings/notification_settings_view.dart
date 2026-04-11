@@ -1,3 +1,4 @@
+/*
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,3 +88,4 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
     );
   }
 }
+*/
