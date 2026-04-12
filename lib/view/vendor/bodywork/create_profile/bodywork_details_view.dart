@@ -69,10 +69,16 @@ class BodyworkDetailsView extends StatelessWidget {
                   onTap: controller.pickCertification,
                 ),
                 Obx(() => Column(
-                  children: controller.certifications.asMap().entries.map((entry) => _buildFileItem(
-                    file: entry.value,
-                    onRemove: () => controller.removeCertification(entry.key),
-                  )).toList(),
+                  children: [
+                    ...controller.certificationUrls.asMap().entries.map((entry) => _buildFileItem(
+                      url: entry.value,
+                      onRemove: () => controller.certificationUrls.removeAt(entry.key),
+                    )),
+                    ...controller.certifications.asMap().entries.map((entry) => _buildFileItem(
+                      file: entry.value,
+                      onRemove: () => controller.removeCertification(entry.key),
+                    )),
+                  ],
                 )),
               ],
             ),
@@ -80,7 +86,7 @@ class BodyworkDetailsView extends StatelessWidget {
 
             _buildGroupedSection(
               'Insurance Status',
-              description: 'Insurance may be required for certain types of services. Documentation may be reviewed as part of approval.',
+              description: 'Insurance may be required for certain services or venues. Documentation may be reviewed as part of approval',
               children: [
                 Obx(() => Column(
                   children: controller.insuranceOptions.map((opt) => _buildRadioItem(
@@ -90,25 +96,38 @@ class BodyworkDetailsView extends StatelessWidget {
                   )).toList(),
                 )),
                 const SizedBox(height: 16),
-                if (controller.selectedInsurance.value == 'Carries Insurance') ...[
-                  const CommonText('Current Insurance Document', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                  const SizedBox(height: 12),
-                  Obx(() => controller.insuranceDocument.value == null 
-                    ? _buildUploadBox(onTap: controller.pickInsuranceDoc)
-                    : _buildFileItem(
-                        file: controller.insuranceDocument.value!,
-                        onRemove: () => controller.insuranceDocument.value = null,
-                      )
-                  ),
-                  const SizedBox(height: 16),
-                  _buildSectionHeader('Expiration date', isRequired: true),
-                  Obx(() => _buildDatePickerTrigger(
-                    value: controller.expirationDate.value != null 
-                        ? DateFormat('dd MMM yyyy').format(controller.expirationDate.value!) 
-                        : 'Select date',
-                    onTap: () => controller.selectExpirationDate(context),
-                  )),
-                ],
+                Obx(() {
+                  if (controller.selectedInsurance.value == 'Carries Insurance') {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CommonText('Current Insurance Document', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                        const SizedBox(height: 12),
+                        if (controller.insuranceDocument.value == null && controller.insuranceDocumentUrl.value == null)
+                          _buildUploadBox(onTap: controller.pickInsuranceDoc)
+                        else
+                          _buildFileItem(
+                            file: controller.insuranceDocument.value,
+                            url: controller.insuranceDocumentUrl.value,
+                            onRemove: () {
+                              controller.insuranceDocument.value = null;
+                              controller.insuranceDocumentUrl.value = null;
+                              controller.insuranceDocumentName.value = null;
+                            },
+                          ),
+                        const SizedBox(height: 16),
+                        _buildSectionHeader('Expiration date', isRequired: true),
+                        _buildDatePickerTrigger(
+                          value: controller.expirationDate.value != null 
+                              ? DateFormat('dd MMM yyyy').format(controller.expirationDate.value!) 
+                              : 'Select date',
+                          onTap: () => controller.selectExpirationDate(context),
+                        ),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
               ],
             ),
             const SizedBox(height: 24),
@@ -292,7 +311,7 @@ class BodyworkDetailsView extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: AppColors.lightPink.withAlpha(70),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -530,8 +549,8 @@ class BodyworkDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildFileItem({required File file, required VoidCallback onRemove}) {
-    String fileName = file.path.split('/').last;
+  Widget _buildFileItem({File? file, String? url, required VoidCallback onRemove}) {
+    String fileName = file != null ? file.path.split('/').last : (url != null ? url.split('/').last : 'Insurance.pdf');
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
@@ -542,20 +561,41 @@ class BodyworkDetailsView extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.picture_as_pdf, color: AppColors.accentRed, size: 32),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEE2E2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(Icons.description, color: Color(0xFFEF4444), size: 32),
+                Positioned(
+                  bottom: 2,
+                   child: Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+                     color: const Color(0xFFEF4444),
+                     child: const Text('PDF', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                   ),
+                )
+              ],
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonText(fileName, fontSize: 12, fontWeight: FontWeight.w600, maxLines: 1),
-                const CommonText('500 KB', fontSize: 10, color: AppColors.textSecondary),
+                CommonText(fileName, fontSize: 13, fontWeight: FontWeight.w600, maxLines: 1),
+                const SizedBox(height: 2),
+                CommonText(file != null ? _getFileSize(file) : '...', fontSize: 11, color: AppColors.textSecondary),
               ],
             ),
           ),
           GestureDetector(
             onTap: onRemove,
-            child: const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 20),
+            child: const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 22),
           ),
         ],
       ),
@@ -832,5 +872,16 @@ class BodyworkDetailsView extends StatelessWidget {
       ),
       isScrollControlled: true,
     );
+  }
+
+  String _getFileSize(File file) {
+    try {
+      if (file.existsSync()) {
+        return '${(file.lengthSync() / 1024).toStringAsFixed(1)} KB';
+      }
+    } catch (e) {
+      debugPrint('Error getting file size: $e');
+    }
+    return '...';
   }
 }

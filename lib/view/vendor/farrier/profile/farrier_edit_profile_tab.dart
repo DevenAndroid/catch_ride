@@ -382,13 +382,13 @@ class FarrierEditProfileTab extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              ...controller.existingPhotos.asMap().entries.map((entry) => _photoBox(
+              ...controller.serviceExistingPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
                 image: NetworkImage(entry.value),
-                onRemove: () => controller.removeExistingPhoto(entry.key),
+                onRemove: () => controller.removeServiceExistingPhoto('Farrier', entry.key),
               )),
-              ...controller.newPhotos.asMap().entries.map((entry) => _photoBox(
+              ...controller.serviceNewPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
                 image: FileImage(entry.value),
-                onRemove: () => controller.removeNewPhoto(entry.key),
+                onRemove: () => controller.removeServiceNewPhoto('Farrier', entry.key),
               )),
               _addPhotoBox(),
             ],
@@ -758,7 +758,7 @@ class FarrierEditProfileTab extends StatelessWidget {
               leading: const Icon(Icons.photo_library),
               title: const CommonText('Gallery'),
               onTap: () {
-                controller.addGroomingPhoto();
+                controller.addServicePhoto('Farrier');
                 Get.back();
               },
             ),

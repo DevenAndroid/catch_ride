@@ -118,6 +118,8 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                           _buildPaymentMethods(),
                           const SizedBox(height: 20),
                           _buildExperienceHighlights(),
+                          const SizedBox(height: 20),
+                          _buildNotesSection(),
                           const SizedBox(height: 40),
                         ],
                       );
@@ -845,19 +847,19 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
               spacing: 12,
               runSpacing: 12,
               children: [
-                ...controller.existingPhotos.asMap().entries.map(
+                ...controller.serviceExistingPhotos['Grooming']!.asMap().entries.map(
                   (entry) => _buildPhotoUploadBox(
                     imageUrl: entry.value,
-                    onRemove: () => controller.removeExistingPhoto(entry.key),
+                    onRemove: () => controller.removeServiceExistingPhoto('Grooming', entry.key),
                   ),
                 ),
-                ...controller.newPhotos.asMap().entries.map(
+                ...controller.serviceNewPhotos['Grooming']!.asMap().entries.map(
                   (entry) => _buildPhotoUploadBox(
                     imageFile: entry.value,
-                    onRemove: () => controller.removeNewPhoto(entry.key),
+                    onRemove: () => controller.removeServiceNewPhoto('Grooming', entry.key),
                   ),
                 ),
-                _buildPhotoUploadBox(onTap: controller.addGroomingPhoto),
+                _buildPhotoUploadBox(onTap: () => controller.addServicePhoto('Grooming')),
               ],
             ),
           ),
@@ -1163,6 +1165,89 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildNotesSection() {
+    return _buildContainer(
+      title: 'Notes For Trainer',
+      subtitle:
+          'Add any details that would help trainers understand your preferences or availability',
+      optional: true,
+      children: [
+        CommonTextField(
+          label: '',
+          controller: controller.notesForTrainerController,
+          hintText: 'Write here...',
+          maxLines: 3,
+          fillColor: Colors.white,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContainer({
+    required String title,
+    required List<Widget> children,
+    String? subtitle,
+    bool optional = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CommonText(
+                title,
+                fontSize: AppTextSizes.size16,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF222222),
+              ),
+              if (optional)
+                const CommonText(
+                  ' (optional)',
+                  fontSize: AppTextSizes.size14,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+            ],
+          ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            CommonText(
+              subtitle,
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ],
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
     );
   }
 
