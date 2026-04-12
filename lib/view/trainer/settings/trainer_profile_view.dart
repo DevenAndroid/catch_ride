@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../models/user_model.dart';
 import '../../../utils/url_helper.dart';
+import '../trainer_complete_profile_view.dart';
 import 'edit_profile.dart';
 
 class TrainerProfileView extends StatefulWidget {
@@ -160,7 +161,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 PopupMenuButton<String>(
                                   onSelected: (value) {
                                     if (value == 'edit') {
-                                      Get.to(() => const EditProfileView());
+                                     Get.to(() => const EditProfileView());
                                     }
                                   },
                                   shape: RoundedRectangleBorder(
@@ -240,16 +241,16 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 _controller.fullName.isEmpty
                                     ? 'N/A'
                                     : profile.fullName,
-                                fontSize: 24,
+                                fontSize: 28,
                                 fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
+                                color: const Color(0xFF101828),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               CommonText(
                                 profile.barnName ?? 'N/A',
                                 fontSize: 16,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF475467),
+                                fontWeight: FontWeight.w600,
                               ),
                               const SizedBox(height: 8),
                               Wrap(
@@ -258,16 +259,16 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                   const Icon(
                                     Icons.location_on,
                                     size: 16,
-                                    color: Colors.redAccent,
+                                    color: Color(0xFFF04438),
                                   ),
                                   const SizedBox(width: 4),
                                   CommonText(
                                     profile.location?.isEmpty ?? true
                                         ? 'N/A'
                                         : profile.location!,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textSecondary,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF475467),
                                   ),
                                   if (profile.location2?.isNotEmpty ??
                                       false) ...[
@@ -277,14 +278,14 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       ),
                                       child: CommonText(
                                         "|",
-                                        color: Colors.grey,
+                                        color: Color(0xFFD0D5DD),
                                       ),
                                     ),
                                     CommonText(
                                       profile.location2!,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFF475467),
                                     ),
                                   ],
                                 ],
@@ -297,9 +298,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                     CommonText(
                                       _controller.disciplines.join(" / ") +
                                           (" Trainer"),
-                                      fontSize: 15,
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: const Color(0xFF667085),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ],
 
@@ -313,7 +314,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       ),
                                       child: CommonText(
                                         "·",
-                                        color: AppColors.textSecondary,
+                                        color: Color(0xFFD0D5DD),
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -327,9 +328,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       )
                                           ? '${_controller.yearsExperience} Experience'
                                           : '${_controller.yearsExperience} Years',
-                                      fontSize: 15,
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: const Color(0xFF667085),
+                                      fontWeight: FontWeight.w500,
                                     ),
                                 ],
                               ),
@@ -349,7 +350,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                          CommonText(
                            profile.bio ?? '',
                            fontSize: 14,
-                           color: AppColors.textSecondary,
+                           color: const Color(0xFF344054),
                            height: 1.6,
                          ),
                        ],
@@ -438,8 +439,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 const CommonText(
                                   'Available Horses',
                                   fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF101828),
                                 ),
                                 if (isOwnProfile)
                                   TextButton(
@@ -473,9 +474,23 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     );
   }
 
+  String _normalizeHorseShow(String text) {
+    if (text.isEmpty) return text;
+    if (text.contains(' • ')) {
+      final parts = text.split(' • ');
+      final circuit = parts.last.trim();
+      final venue = parts.first.trim();
+      
+      // Prioritize Circuit (last part) if it's not a placeholder
+      if (circuit.isNotEmpty && circuit != "-") return circuit;
+      return venue;
+    }
+    return text;
+  }
+
   Widget _buildProfessionalInfoCard(UserModel profile) {
     final tags = _controller.getGroupedTags(profile);
-    final horseShows = profile.showCircuits;
+    final horseShows = profile.showCircuits.map((e) => _normalizeHorseShow(e)).toList();
 
     final Map<String, List<String>> filteredTags = Map.from(tags)
       ..remove('Discipline')
@@ -530,15 +545,15 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
               CommonText(
                 title,
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: const Color(0xFF667085),
                 fontWeight: FontWeight.w500,
               ),
               const SizedBox(height: 6),
               CommonText(
                 content,
                 fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF101828),
               ),
             ],
           ),
@@ -631,24 +646,24 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                   CommonText(
                     horse.name,
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF101828),
                   ),
                   const SizedBox(height: 2),
                   CommonText(
                     "${horse.age}-year-old ${horse.breed}",
                     fontSize: 13,
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF475467),
+                    fontWeight: FontWeight.w400,
                   ),
                   const SizedBox(height: 6),
                   CommonText(
                     horse.description ?? '',
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    color: const Color(0xFF667085),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    height: 1.3,
+                    height: 1.4,
                   ),
                 ],
               ),

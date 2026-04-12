@@ -27,10 +27,12 @@ class TrainerExploreView extends StatefulWidget {
 
 class _TrainerExploreViewState extends State<TrainerExploreView> {
   final ExploreController controller = Get.put(ExploreController());
+  final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
+
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
-    {'name': 'Jumper', 'icon': 'assets/icons/jumper.svg', 'isSvg': true},
+    {'name': 'Jumper', 'icon': Icons.flag_rounded, 'isSvg': false},
     {
       'name': 'Equitation',
       'icon': 'assets/icons/equitation.svg',
@@ -42,6 +44,18 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   void initState() {
     super.initState();
     controller.fetchHorses();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        controller.fetchHorses(isLoadMore: true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -90,70 +104,107 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     );
                   }
 
-                  if (isVendors) {
-                    if (controller.vendors.isEmpty) {
-                      return CustomScrollView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        slivers: [
-                          const SliverToBoxAdapter(
-                            child: SizedBox(height: 100),
+                  if (isVendors && controller.vendors.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        const SliverToBoxAdapter(
+                          child: SizedBox(height: 100),
+                        ),
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: CommonText(
+                              'No service providers found',
+                              fontSize: AppTextSizes.size16,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
-                          SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: Center(
-                              child: CommonText(
-                                'No service providers found',
-                                fontSize: AppTextSizes.size16,
-                                color: AppColors.textSecondary,
+                        ),
+                      ],
+                    );
+                  }
+                  return NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification scrollInfo) {
+                      if (scrollInfo.metrics.pixels >=
+                          scrollInfo.metrics.maxScrollExtent - 200) {
+                        controller.fetchHorses(isLoadMore: true);
+                      }
+                      return true;
+                    },
+                    child: CustomScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        if (isVendors)
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final vendor = controller.vendors[index];
+                                  return _buildVendorCard(vendor: vendor);
+                                },
+                                childCount: controller.vendors.length,
+                              ),
+                            ),
+                          )
+                        else if (controller.isGridView.value)
+                          SliverPadding(
+                            padding: const EdgeInsets.all(12),
+                            sliver: SliverMasonryGrid.count(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 4,
+                              crossAxisSpacing: 4,
+                              itemBuilder: (context, index) {
+                                final horse = controller.horses[index];
+                                return _buildMasonryHorseCard(horse, index);
+                              },
+                              childCount: controller.horses.length,
+                            ),
+                          )
+                        else
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final horse = controller.horses[index];
+                                  final isRequested =
+                                      Get.put(BookingController()).bookings.any(
+                                            (b) =>
+                                                b.horseId == horse.id &&
+                                                b.status.toLowerCase() ==
+                                                    'pending',
+                                          );
+
+                                  return HorseCard(
+                                    horse: horse,
+                                    isRequested: isRequested,
+                                    onTap: () => Get.to(
+                                      () => TrainerHorseDetailView(
+                                          horse: horse),
+                                    ),
+                                  );
+                                },
+                                childCount: controller.horses.length,
                               ),
                             ),
                           ),
-                        ],
-                      );
-                    }
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: controller.vendors.length,
-                      itemBuilder: (context, index) {
-                        final vendor = controller.vendors[index];
-                        return _buildVendorCard(vendor: vendor);
-                      },
-                    );
-                  }
-
-                  if (controller.isGridView.value) {
-                    return MasonryGridView.count(
-                      padding: const EdgeInsets.all(12),
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 4,
-                      crossAxisSpacing: 4,
-                      itemCount: controller.horses.length,
-                      itemBuilder: (context, index) {
-                        final horse = controller.horses[index];
-                        return _buildMasonryHorseCard(horse, index);
-                      },
-                    );
-                  }
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: controller.horses.length,
-                    itemBuilder: (context, index) {
-                      final horse = controller.horses[index];
-                      final isRequested = Get.put(BookingController()).bookings
-                          .any(
-                            (b) =>
-                                b.horseId == horse.id &&
-                                b.status.toLowerCase() == 'pending',
-                          );
-
-                      return HorseCard(
-                        horse: horse,
-                        isRequested: isRequested,
-                        onTap: () =>
-                            Get.to(() => TrainerHorseDetailView(horse: horse)),
-                      );
-                    },
+                        if (controller.isLoadMoreLoading.value)
+                          const SliverToBoxAdapter(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                      ],
+                    ),
                   );
                 }),
               ),
@@ -264,9 +315,9 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 children: [
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.transparent,
+                      color: isSelected ? const Color(0xFFEFF4FF) : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: cat['isSvg']
@@ -274,26 +325,22 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                             cat['icon'],
                             width: 24,
                             height: 24,
-                            colorFilter: ColorFilter.mode(
-                              isSelected
-                                  ? const Color(0xFF00083B)
-                                  : const Color(0xFF667085),
+                            colorFilter: const ColorFilter.mode(
+                              Color(0xFF00083B),
                               BlendMode.srcIn,
                             ),
                           )
                         : Icon(
                             cat['icon'] as IconData,
-                            size: 24,
-                            color: isSelected
-                                ? const Color(0xFF00083B)
-                                : const Color(0xFF667085),
+                            size: 26,
+                            color: const Color(0xFF00083B),
                           ),
                   ),
                   const SizedBox(height: 6),
                   CommonText(
                     cat['name'],
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                     color: isSelected
                         ? const Color(0xFF101828)
                         : const Color(0xFF667085),
@@ -301,15 +348,15 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   const SizedBox(height: 8),
                   if (isSelected)
                     Container(
-                      width: 50,
-                      height: 2.5,
+                      width: 45,
+                      height: 3,
                       decoration: BoxDecoration(
                         color: const Color(0xFF1B235E),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     )
                   else
-                    const SizedBox(height: 2.5),
+                    const SizedBox(height: 3),
                 ],
               ),
             );

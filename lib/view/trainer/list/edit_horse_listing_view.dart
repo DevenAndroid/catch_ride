@@ -7,13 +7,13 @@ import 'package:catch_ride/view/trainer/list/listing_preview_view.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
-
 
 class EditHorseListingView extends StatefulWidget {
   final HorseModel horse;
@@ -27,6 +27,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
   late final AddNewListingController controller;
   final ProfileController profileController = Get.find<ProfileController>();
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
   int _currentStep = 1;
 
   @override
@@ -59,7 +60,6 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
       textController.text = DateFormat('dd MMM yyyy').format(pickedDate);
     }
   }
-
 
   void _showVenueBottomSheet(AvailabilityEntry availabilityEntry) {
     final TextEditingController searchController = TextEditingController();
@@ -252,6 +252,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 20,
@@ -458,8 +459,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         top: 4,
                         right: 4,
                         child: GestureDetector(
-                          onTap: () =>
-                              controller.removeUploadedImage(index),
+                          onTap: () => controller.removeUploadedImage(index),
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
@@ -525,9 +525,12 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 }),
                 GestureDetector(
                   onTap: () async {
-                    final List<XFile> images = await controller.picker.pickMultiImage();
+                    final List<XFile> images = await controller.picker
+                        .pickMultiImage();
                     if (images.isNotEmpty) {
-                      controller.localImages.addAll(images.map((x) => File(x.path)));
+                      controller.localImages.addAll(
+                        images.map((x) => File(x.path)),
+                      );
                     }
                   },
 
@@ -544,138 +547,173 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 12),
-          Obx(() => Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              ...controller.uploadedVideos.asMap().entries.map((entry) {
-                int index = entry.key;
-                String url = entry.value;
-                return Stack(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.video_library, color: AppColors.primary, size: 40),
-                            SizedBox(height: 4),
-                            CommonText('Uploaded', fontSize: 10, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: GestureDetector(
-                        onTap: () => controller.removeUploadedVideo(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.close, size: 14, color: Colors.red),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-              ...controller.localVideos.asMap().entries.map((entry) {
-                int index = entry.key;
-                File file = entry.value;
-                return Stack(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.videocam, color: AppColors.primary, size: 40),
-                            SizedBox(height: 4),
-                            CommonText('Local Video', fontSize: 10, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: GestureDetector(
-                        onTap: () => controller.removeVideo(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.close, size: 14, color: Colors.red),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-              GestureDetector(
-                onTap: () async {
-                  final XFile? video = await controller.picker.pickVideo(source: ImageSource.gallery);
-                  if (video != null) {
-                    controller.localVideos.add(File(video.path));
-                  }
-                },
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, style: BorderStyle.solid),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          Obx(
+            () => Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                ...controller.uploadedVideos.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  String url = entry.value;
+                  return Stack(
                     children: [
-                      Icon(Icons.videocam_outlined, color: AppColors.primary, size: 32),
-                      SizedBox(height: 8),
-                      CommonText(
-                        'Add Video',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.video_library,
+                                color: AppColors.primary,
+                                size: 40,
+                              ),
+                              SizedBox(height: 4),
+                              CommonText(
+                                'Uploaded',
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => controller.removeUploadedVideo(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
+                  );
+                }),
+                ...controller.localVideos.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  File file = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.videocam,
+                                color: AppColors.primary,
+                                size: 40,
+                              ),
+                              SizedBox(height: 4),
+                              CommonText(
+                                'Local Video',
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => controller.removeVideo(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+                GestureDetector(
+                  onTap: () async {
+                    final XFile? video = await controller.picker.pickVideo(
+                      source: ImageSource.gallery,
+                    );
+                    if (video != null) {
+                      controller.localVideos.add(File(video.path));
+                    }
+                  },
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.border,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.videocam_outlined,
+                          color: AppColors.primary,
+                          size: 32,
+                        ),
+                        SizedBox(height: 8),
+                        CommonText(
+                          'Add Video',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          )),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
 
           RichText(
@@ -809,6 +847,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                       label: 'Age',
                       controller: controller.ageController,
                       hintText: 'Enter age',
+                      keyboardType: TextInputType.number,
                       isRequired: false,
                     ),
                   ),
@@ -818,6 +857,9 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                       label: 'Height',
                       controller: controller.heightController,
                       hintText: 'Enter height',
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       isRequired: false,
                     ),
                   ),
@@ -854,26 +896,32 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              Obx(() => Wrap(
-                    spacing: 8,
-                    runSpacing: 10,
-                    children: ['Hunter', 'Jumper', 'Equitation'].map((discipline) {
-                      final isSelected =
-                          controller.selectedDisciplines.contains(discipline);
-                      return GestureDetector(
-                        onTap: () {
-                          if (isSelected) {
-                            controller.selectedDisciplines.remove(discipline);
-                          } else {
-                            controller.selectedDisciplines.add(discipline);
-                          }
-                          controller.disciplineController.text =
-                              controller.selectedDisciplines.join(', ');
-                        },
-                        child: _buildTagChip(discipline, isSelected),
-                      );
-                    }).toList(),
-                  )),
+              Obx(
+                () => Wrap(
+                  spacing: 8,
+                  runSpacing: 10,
+                  children: ['Hunter', 'Jumper', 'Equitation'].map((
+                    discipline,
+                  ) {
+                    final isSelected = controller.selectedDisciplines.contains(
+                      discipline,
+                    );
+                    return GestureDetector(
+                      onTap: () {
+                        if (isSelected) {
+                          controller.selectedDisciplines.remove(discipline);
+                        } else {
+                          controller.selectedDisciplines.add(discipline);
+                        }
+                        controller.disciplineController.text = controller
+                            .selectedDisciplines
+                            .join(', ');
+                      },
+                      child: _buildTagChip(discipline, isSelected),
+                    );
+                  }).toList(),
+                ),
+              ),
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Description',
@@ -1166,7 +1214,11 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[\d,.]')),
+        ThousandsSeparatorInputFormatter(),
+      ],
       style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
@@ -1542,13 +1594,20 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
             child: GestureDetector(
               onTap: () {
                 if (isLastStep) {
-                  Get.to(() => ListingPreviewView(
-                        controllerTag: 'edit_${widget.horse.id}',
-                      ));
+                  Get.to(
+                    () => ListingPreviewView(
+                      controllerTag: 'edit_${widget.horse.id}',
+                    ),
+                  );
                 } else if (_currentStep > 1) {
                   setState(() {
                     _currentStep--;
                   });
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
                 } else {
                   Get.back();
                 }
@@ -1623,6 +1682,11 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   setState(() {
                     _currentStep++;
                   });
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
                 } else {
                   controller.publishListing();
                 }
@@ -1737,5 +1801,54 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
         );
       },
     );
+  }
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  static const separator = ',';
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    String oldText = oldValue.text.replaceAll(separator, '');
+    String newText = newValue.text.replaceAll(separator, '');
+
+    // Allow only one decimal point
+    if (newText.contains('.')) {
+      List<String> parts = newText.split('.');
+      if (parts.length > 2) {
+        return oldValue;
+      }
+      // Limit decimal places to 2
+      if (parts[1].length > 2) {
+        return oldValue;
+      }
+    }
+
+    // Format integer part with commas
+    String formattedText = _formatWithCommas(newText);
+
+    return newValue.copyWith(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+
+  String _formatWithCommas(String text) {
+    if (text.isEmpty) return '';
+    List<String> parts = text.split('.');
+    String integerPart = parts[0];
+    String? decimalPart = parts.length > 1 ? parts[1] : null;
+
+    final reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    integerPart = integerPart.replaceAllMapped(reg, (Match m) => '${m[1]},');
+
+    return decimalPart != null ? '$integerPart.$decimalPart' : integerPart;
   }
 }

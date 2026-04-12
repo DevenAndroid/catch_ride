@@ -280,7 +280,8 @@ class AddNewListingController extends GetxController {
         const Center(child: CircularProgressIndicator()),
         barrierDismissible: false,
       );
-      // 1. Upload Media
+
+      // 1. Upload Media
       List<String> finalImages = [
         ...uploadedImages,
         ...uploadedVideos,
@@ -318,8 +319,8 @@ class AddNewListingController extends GetxController {
           for (var type in selectedListingTypes)
             type: {
               'inquire': inquireForPrice[type] ?? false,
-              'min': minPriceControllers[type]?.text,
-              'max': maxPriceControllers[type]?.text,
+              'min': minPriceControllers[type]?.text.replaceAll(',', ''),
+              'max': maxPriceControllers[type]?.text.replaceAll(',', ''),
             },
         },
         'showAvailability': availabilityEntries
@@ -379,7 +380,7 @@ class AddNewListingController extends GetxController {
         Get.back(); // Return to previous screen
         Get.snackbar(
           'Success',
-          'Changes saved successfully',
+          'Horse Listed successfully',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.green,
           colorText: Colors.white,

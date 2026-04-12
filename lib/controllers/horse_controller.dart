@@ -77,4 +77,40 @@ class HorseController extends GetxController {
       isMoreLoading.value = false;
     }
   }
+  
+  Future<bool> deleteHorse(String id) async {
+    try {
+      final response = await _apiService.deleteRequest("${AppUrls.horses}/$id");
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        horses.removeWhere((h) => h.id == id);
+        horses.refresh();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error deleting horse: $e');
+      return false;
+    }
+  }
+
+  Future<bool> toggleHorseActive(String id, bool isActive) async {
+    try {
+      final response = await _apiService.putRequest(
+        "${AppUrls.horses}/$id",
+        {"isActive": isActive},
+      );
+      if (response.statusCode == 200) {
+        final index = horses.indexWhere((h) => h.id == id);
+        if (index != -1) {
+          horses[index] = HorseModel.fromJson(response.body['data']);
+          horses.refresh();
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print('Error toggling horse status: $e');
+      return false;
+    }
+  }
 }

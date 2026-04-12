@@ -7,6 +7,7 @@ import 'package:catch_ride/view/trainer/list/listing_preview_view.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:intl/intl.dart';
@@ -24,6 +25,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   final AddNewListingController controller = Get.put(AddNewListingController());
   final ProfileController profileController = Get.find<ProfileController>();
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
   int _currentStep = 1;
 
   Future<void> _selectDateTime(
@@ -93,6 +95,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           children: [
             Expanded(
               child: SingleChildScrollView(
+                controller: _scrollController,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 20,
@@ -371,9 +374,12 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 }),
                 GestureDetector(
                   onTap: () async {
-                    final List<XFile> images = await controller.picker.pickMultiImage();
+                    final List<XFile> images = await controller.picker
+                        .pickMultiImage();
                     if (images.isNotEmpty) {
-                      controller.localImages.addAll(images.map((x) => File(x.path)));
+                      controller.localImages.addAll(
+                        images.map((x) => File(x.path)),
+                      );
                     }
                   },
                   child: _buildAddButton(),
@@ -389,138 +395,173 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             color: AppColors.textPrimary,
           ),
           const SizedBox(height: 12),
-          Obx(() => Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              ...controller.uploadedVideos.asMap().entries.map((entry) {
-                int index = entry.key;
-                String url = entry.value;
-                return Stack(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.video_library, color: AppColors.primary, size: 40),
-                            SizedBox(height: 4),
-                            CommonText('Uploaded', fontSize: 10, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: GestureDetector(
-                        onTap: () => controller.removeUploadedVideo(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.close, size: 14, color: Colors.red),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-              ...controller.localVideos.asMap().entries.map((entry) {
-                int index = entry.key;
-                File file = entry.value;
-                return Stack(
-                  children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.videocam, color: AppColors.primary, size: 40),
-                            SizedBox(height: 4),
-                            CommonText('Local Video', fontSize: 10, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: GestureDetector(
-                        onTap: () => controller.removeVideo(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 4,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(Icons.close, size: 14, color: Colors.red),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-              GestureDetector(
-                onTap: () async {
-                  final XFile? video = await controller.picker.pickVideo(source: ImageSource.gallery);
-                  if (video != null) {
-                    controller.localVideos.add(File(video.path));
-                  }
-                },
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, style: BorderStyle.solid),
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          Obx(
+            () => Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                ...controller.uploadedVideos.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  String url = entry.value;
+                  return Stack(
                     children: [
-                      Icon(Icons.videocam_outlined, color: AppColors.primary, size: 32),
-                      SizedBox(height: 8),
-                      CommonText(
-                        'Add Video',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.primary,
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.video_library,
+                                color: AppColors.primary,
+                                size: 40,
+                              ),
+                              SizedBox(height: 4),
+                              CommonText(
+                                'Uploaded',
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => controller.removeUploadedVideo(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
+                  );
+                }),
+                ...controller.localVideos.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  File file = entry.value;
+                  return Stack(
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.videocam,
+                                color: AppColors.primary,
+                                size: 40,
+                              ),
+                              SizedBox(height: 4),
+                              CommonText(
+                                'Local Video',
+                                fontSize: 10,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () => controller.removeVideo(index),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
+                GestureDetector(
+                  onTap: () async {
+                    final XFile? video = await controller.picker.pickVideo(
+                      source: ImageSource.gallery,
+                    );
+                    if (video != null) {
+                      controller.localVideos.add(File(video.path));
+                    }
+                  },
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.border,
+                        style: BorderStyle.solid,
+                      ),
+                    ),
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.videocam_outlined,
+                          color: AppColors.primary,
+                          size: 32,
+                        ),
+                        SizedBox(height: 8),
+                        CommonText(
+                          'Add Video',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primary,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          )),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
           RichText(
             text: TextSpan(
@@ -807,7 +848,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           label: 'Height',
                           controller: controller.heightController,
                           hintText: 'Enter height',
-                          keyboardType: TextInputType.number,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           isRequired: false,
                         ),
                         Padding(
@@ -1238,7 +1281,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
   }) {
     return TextFormField(
       controller: controller,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[\d,.]')),
+        ThousandsSeparatorInputFormatter(),
+      ],
       style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
       decoration: InputDecoration(
         hintText: hintText,
@@ -1605,64 +1652,114 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             const SizedBox(height: 6),
                             LayoutBuilder(
                               builder: (context, constraints) => Autocomplete<Map<String, dynamic>>(
-                                displayStringForOption: (option) => option['name'] ?? '',
-                                optionsBuilder: (TextEditingValue textEditingValue) {
-                                  if (textEditingValue.text.isEmpty) {
-                                    return const Iterable<Map<String, dynamic>>.empty();
-                                  }
-                                  final query = textEditingValue.text.toLowerCase();
-                                  return profileController.rawHorseShows.where((show) {
-                                    final name = (show['name'] ?? '').toString().toLowerCase();
-                                    final venue = (show['showVenue'] ?? '').toString().toLowerCase();
-                                    final circuit = (show['circuit'] ?? '').toString().toLowerCase();
-                                    return name.contains(query) || venue.contains(query) || circuit.contains(query);
-                                  });
-                                },
+                                displayStringForOption: (option) =>
+                                    option['name'] ?? '',
+                                optionsBuilder:
+                                    (TextEditingValue textEditingValue) {
+                                      if (textEditingValue.text.isEmpty) {
+                                        return const Iterable<
+                                          Map<String, dynamic>
+                                        >.empty();
+                                      }
+                                      final query = textEditingValue.text
+                                          .toLowerCase();
+                                      return profileController.rawHorseShows
+                                          .where((show) {
+                                            final name = (show['name'] ?? '')
+                                                .toString()
+                                                .toLowerCase();
+                                            final venue =
+                                                (show['showVenue'] ?? '')
+                                                    .toString()
+                                                    .toLowerCase();
+                                            final circuit =
+                                                (show['circuit'] ?? '')
+                                                    .toString()
+                                                    .toLowerCase();
+                                            return name.contains(query) ||
+                                                venue.contains(query) ||
+                                                circuit.contains(query);
+                                          });
+                                    },
                                 onSelected: (Map<String, dynamic> selection) {
-                                  availabilityEntry.showVenueController.text = selection['name'] ?? '';
-                                  availabilityEntry.showIdController.text = selection['_id'] ?? selection['id'] ?? '';
-                                  
+                                  availabilityEntry.showVenueController.text =
+                                      selection['name'] ?? '';
+                                  availabilityEntry.showIdController.text =
+                                      selection['_id'] ?? selection['id'] ?? '';
+
                                   // Auto-fill City/State
                                   final city = selection['city'] ?? '';
                                   final state = selection['state'] ?? '';
                                   if (city.isNotEmpty || state.isNotEmpty) {
-                                    availabilityEntry.cityStateController.text = '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
+                                    availabilityEntry.cityStateController.text =
+                                        '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
                                   }
 
                                   // Auto-fill Dates
-                                  final DateFormat formatter = DateFormat('dd MMM yyyy');
+                                  final DateFormat formatter = DateFormat(
+                                    'dd MMM yyyy',
+                                  );
                                   if (selection['startDate'] != null) {
                                     try {
-                                      final start = DateTime.parse(selection['startDate']);
-                                      availabilityEntry.startDateController.text = formatter.format(start);
+                                      final start = DateTime.parse(
+                                        selection['startDate'],
+                                      );
+                                      availabilityEntry
+                                          .startDateController
+                                          .text = formatter.format(
+                                        start,
+                                      );
                                     } catch (_) {}
                                   }
                                   if (selection['endDate'] != null) {
                                     try {
-                                      final end = DateTime.parse(selection['endDate']);
-                                      availabilityEntry.endDateController.text = formatter.format(end);
+                                      final end = DateTime.parse(
+                                        selection['endDate'],
+                                      );
+                                      availabilityEntry.endDateController.text =
+                                          formatter.format(end);
                                     } catch (_) {}
                                   }
                                 },
-                                fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
-                                  // Sync with entry controller
-                                  if (availabilityEntry.showVenueController.text.isNotEmpty && textController.text.isEmpty) {
-                                    textController.text = availabilityEntry.showVenueController.text;
-                                  }
-                                  textController.addListener(() {
-                                    availabilityEntry.showVenueController.text = textController.text;
-                                  });
+                                fieldViewBuilder:
+                                    (
+                                      context,
+                                      textController,
+                                      focusNode,
+                                      onFieldSubmitted,
+                                    ) {
+                                      // Sync with entry controller
+                                      if (availabilityEntry
+                                              .showVenueController
+                                              .text
+                                              .isNotEmpty &&
+                                          textController.text.isEmpty) {
+                                        textController.text = availabilityEntry
+                                            .showVenueController
+                                            .text;
+                                      }
+                                      textController.addListener(() {
+                                        availabilityEntry
+                                                .showVenueController
+                                                .text =
+                                            textController.text;
+                                      });
 
-                                  return TextFormField(
-                                    controller: textController,
-                                    focusNode: focusNode,
-                                    decoration: InputDecoration(
-                                      hintText: 'Search horse show, venue or circuit...',
-                                      suffixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
-                                    ),
-                                    style: const TextStyle(fontSize: 14),
-                                  );
-                                },
+                                      return TextFormField(
+                                        controller: textController,
+                                        focusNode: focusNode,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Search horse show, venue or circuit...',
+                                          suffixIcon: const Icon(
+                                            Icons.search,
+                                            color: AppColors.textSecondary,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        style: const TextStyle(fontSize: 14),
+                                      );
+                                    },
                                 optionsViewBuilder: (context, onSelected, options) {
                                   return Align(
                                     alignment: Alignment.topLeft,
@@ -1671,48 +1768,78 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                       borderRadius: BorderRadius.circular(12),
                                       child: Container(
                                         width: constraints.maxWidth,
-                                        constraints: const BoxConstraints(maxHeight: 300),
+                                        constraints: const BoxConstraints(
+                                          maxHeight: 300,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: AppColors.border),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.border,
+                                          ),
                                         ),
                                         child: ListView.separated(
                                           padding: EdgeInsets.zero,
                                           shrinkWrap: true,
                                           itemCount: options.length,
-                                          separatorBuilder: (context, index) => const Divider(height: 1),
+                                          separatorBuilder: (context, index) =>
+                                              const Divider(height: 1),
                                           itemBuilder: (context, index) {
-                                            final show = options.elementAt(index);
+                                            final show = options.elementAt(
+                                              index,
+                                            );
                                             final name = show['name'] ?? '';
-                                            final venueName = show['showVenue'] ?? 'Unknown Venue';
+                                            final venueName =
+                                                show['showVenue'] ??
+                                                'Unknown Venue';
                                             final city = show['city'] ?? '';
                                             final state = show['state'] ?? '';
-                                            
+
                                             String dateRange = '';
                                             try {
-                                              if (show['startDate'] != null && show['endDate'] != null) {
-                                                final start = DateTime.parse(show['startDate']);
-                                                final end = DateTime.parse(show['endDate']);
+                                              if (show['startDate'] != null &&
+                                                  show['endDate'] != null) {
+                                                final start = DateTime.parse(
+                                                  show['startDate'],
+                                                );
+                                                final end = DateTime.parse(
+                                                  show['endDate'],
+                                                );
                                                 final df = DateFormat('MMM d');
-                                                final dfYear = DateFormat('yyyy');
-                                                dateRange = '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
+                                                final dfYear = DateFormat(
+                                                  'yyyy',
+                                                );
+                                                dateRange =
+                                                    '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
                                               }
                                             } catch (_) {}
 
                                             return InkWell(
                                               onTap: () => onSelected(show),
                                               child: Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12,
+                                                    ),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
-                                                    CommonText(name, fontSize: 15, fontWeight: FontWeight.bold),
+                                                    CommonText(
+                                                      name,
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                     const SizedBox(height: 4),
                                                     CommonText(
                                                       '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state • $dateRange',
                                                       fontSize: 12,
-                                                      color: AppColors.textSecondary,
+                                                      color: AppColors
+                                                          .textSecondary,
                                                     ),
                                                   ],
                                                 ),
@@ -1824,6 +1951,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   setState(() {
                     _currentStep--;
                   });
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
                 } else {
                   Get.back();
                 }
@@ -1906,6 +2038,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   setState(() {
                     _currentStep++;
                   });
+                  _scrollController.animateTo(
+                    0,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
                 } else {
                   controller.publishListing();
                 }
@@ -2020,5 +2157,54 @@ class _AddNewListingViewState extends State<AddNewListingView> {
         );
       },
     );
+  }
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  static const separator = ',';
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    String oldText = oldValue.text.replaceAll(separator, '');
+    String newText = newValue.text.replaceAll(separator, '');
+
+    // Allow only one decimal point
+    if (newText.contains('.')) {
+      List<String> parts = newText.split('.');
+      if (parts.length > 2) {
+        return oldValue;
+      }
+      // Limit decimal places to 2
+      if (parts[1].length > 2) {
+        return oldValue;
+      }
+    }
+
+    // Format integer part with commas
+    String formattedText = _formatWithCommas(newText);
+
+    return newValue.copyWith(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+
+  String _formatWithCommas(String text) {
+    if (text.isEmpty) return '';
+    List<String> parts = text.split('.');
+    String integerPart = parts[0];
+    String? decimalPart = parts.length > 1 ? parts[1] : null;
+
+    final reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    integerPart = integerPart.replaceAllMapped(reg, (Match m) => '${m[1]},');
+
+    return decimalPart != null ? '$integerPart.$decimalPart' : integerPart;
   }
 }
