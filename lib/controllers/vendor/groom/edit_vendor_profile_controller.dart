@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 
 class EditVendorProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -131,16 +132,15 @@ class EditVendorProfileController extends GetxController {
   // Bodywork Tab Specifics
   final RxList bodyworkServices = [].obs;
   final RxList<String> bodyworkProfessionalStandards = <String>[
-    'I provide veterinary medical work or specific veterinary advice.',
-    'I understand working close with veterinarian / veterinary advice.',
-    'Perform body work techniques that may require vet approval.',
-    'operate within the compounding laws & rules and booking rules.'
+    'I provide supportive bodywork and do not replace veterinary care',
+    'I refer cases requiring diagnosis or medical treatment to a licensed veterinarian',
+    'I understand certain services or situations may require prior veterinary approval',
+    'I operate within the scope of my certifications and local regulations.'
   ].obs;
   final RxList<String> selectedBodyworkStandards = <String>[].obs;
-  final RxList<String> bodyworkCertifications = <String>[].obs;
-  final RxnString bodyworkInsuranceStatus = RxnString();
-  final Rxn<File> bodyworkInsuranceDoc = Rxn<File>();
-  final Rxn<DateTime> bodyworkInsuranceExpiry = Rxn<DateTime>();
+  final RxList<File> bodyworkCertFiles = <File>[].obs;
+  final RxList<String> bodyworkExistingCertUrls = <String>[].obs;
+  final RxList<String> bodyworkModalityOptions = <String>[].obs;
   final otherModalityController = TextEditingController();
   final selectedTravelData = <String, Map<String, dynamic>>{}.obs;
 
@@ -391,28 +391,23 @@ class EditVendorProfileController extends GetxController {
         farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? false;
         farrierInsuranceStatus.value = appData['insuranceStatus'];
       } else if (activeService['serviceType'] == 'Bodywork') {
-        final List bServices = profileData['services'] ?? [];
-        bodyworkServices.assignAll(bServices.map((s) {
-          if (s is Map) {
-            return {
-              'name': s['name'] ?? '',
-              'rates': s['rates'] != null ? Map<String, dynamic>.from(s['rates']) : {'30': '', '45': '', '60': '', '90': ''},
-              'isSelected': RxBool(s['isSelected'] == null || s['isSelected'] == true),
-            };
-          }
-          return {
-            'name': s.toString(),
-            'rates': {'30': '', '45': '', '60': '', '90': ''},
-            'isSelected': RxBool(true),
-          };
-        }).toList());
+          _mergeBodyworkModalities();
 
-          selectedBodyworkStandards.assignAll(List<String>.from(profileData['professionalStandards'] ?? []));
-          bodyworkCertifications.assignAll(List<String>.from(profileData['certifications'] ?? []));
-          bodyworkInsuranceStatus.value = profileData['insurance']?['status'];
-          if (profileData['insurance']?['expiry'] != null) {
-            bodyworkInsuranceExpiry.value = DateTime.tryParse(profileData['insurance']['expiry']);
+          otherModalityController.text = appData['otherModality'] ?? profileData['otherModality'] ?? '';
+          
+          final List<String> standards = List<String>.from(profileData['professionalStandards'] ?? []);
+          if (standards.isNotEmpty) {
+            selectedBodyworkStandards.assignAll(standards);
+          } else if (appData['standards'] != null) {
+            final Map stdMap = appData['standards'] ?? {};
+            if (stdMap['provideSupportiveBodywork'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
+            if (stdMap['refertoVet'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[1]);
+            if (stdMap['vetApprovalRequired'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[2]);
+            if (stdMap['operateWithinScope'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[3]);
           }
+
+          final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
+          bodyworkExistingCertUrls.assignAll(certs);
         } else if (activeService['serviceType'] == 'Shipping') {
           dotNumberController.text = appData['businessInfo']?['dotNumber'] ?? '';
           shippingOperationType.value = appData['operationType'];
@@ -448,15 +443,16 @@ class EditVendorProfileController extends GetxController {
       cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
       isCustomCancellation.value = profileData['cancellationPolicy']?['isCustom'] ?? false;
       if (isCustomCancellation.value) {
-        customCancellationController.text = cancellationPolicy.value ?? '';
+        customCancellationController.text = profileData['cancellationPolicy']?['customText'] ?? cancellationPolicy.value ?? '';
       }
       
       // Populate service-specific photos
       final serviceType = activeService?['serviceType'];
       if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
-        serviceExistingPhotos[serviceType]!.assignAll(List<String>.from(profileData['media'] ?? []));
-        // Also sync the legacy 'shared' lists for UI compatibility if needed, 
-        // but we'll update UI to use specific ones.
+        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty) 
+            ? profileData['media'] 
+            : (appData['media'] ?? []);
+        serviceExistingPhotos[serviceType]!.assignAll(List<String>.from(media));
         existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
       }
     }
@@ -511,9 +507,79 @@ class EditVendorProfileController extends GetxController {
           }
         }
       }
+
+      // Fetch Bodywork specific tags
+      final bodyworkResponse = await _apiService.getRequest('/system-config/tag-types/with-values?category=Bodywork');
+      if (bodyworkResponse.statusCode == 200 && bodyworkResponse.body['success'] == true) {
+        final List types = bodyworkResponse.body['data'];
+        for (var type in types) {
+          final name = type['name'];
+          final List<String> values = List<String>.from(type['values'].map((v) => v['name']));
+          
+          if (name == 'Modality Offered' || name == 'Modalities Offered') {
+            bodyworkModalityOptions.assignAll(values);
+            if (!bodyworkModalityOptions.contains('Other')) bodyworkModalityOptions.add('Other');
+          } else if (name == 'Disciplines') {
+             // Append or set if empty
+             for(var v in values) { if(!disciplineOptions.contains(v)) disciplineOptions.add(v); }
+          } else if (name == 'Typical Level of Horses') {
+             for(var v in values) { if(!horseLevelOptions.contains(v)) horseLevelOptions.add(v); }
+          } else if (name == 'Regions Covered') {
+             for(var v in values) { if(!regionOptions.contains(v)) regionOptions.add(v); }
+          }
+        }
+        // Trigger re-population of services if we already have profile data
+        if (assignedServices.isNotEmpty) {
+           _mergeBodyworkModalities();
+        }
+      }
     } catch (e) {
       debugPrint('Error fetching tags: $e');
     }
+  }
+
+  void _mergeBodyworkModalities() {
+    final services = assignedServices;
+    final activeService = services.firstWhereOrNull((s) => s['serviceType'] == 'Bodywork');
+    if (activeService == null) return;
+
+    final profileData = activeService['profile']?['profileData'] ?? {};
+    final application = activeService['application'] ?? {};
+    final appData = application['applicationData'] ?? application ?? {};
+
+    final List existingServices = profileData['services'] ?? [];
+    final List appModalities = List<String>.from(appData['modalities'] ?? []);
+
+    // Use system tags if available, else fallback to user's selections
+    List<String> baseModalities = bodyworkModalityOptions.isNotEmpty 
+        ? bodyworkModalityOptions.toList() 
+        : (existingServices.map((s) => s['name'].toString()).toList() + appModalities.map((m) => m.toString()).toList()).toSet().toList();
+
+    if (baseModalities.isEmpty) {
+       baseModalities = ['Sports Massage', 'Myofascial Release', 'PEMF', 'Chiropractic', 'Acupuncture', 'Other'];
+    }
+    if (!baseModalities.contains('Other')) baseModalities.add('Other');
+
+    bodyworkServices.assignAll(baseModalities.map((name) {
+      final existing = existingServices.firstWhereOrNull((s) => s is Map && s['name'] == name);
+      final inApp = appModalities.contains(name);
+
+      if (existing != null) {
+        return {
+          'name': name,
+          'rates': existing['rates'] != null ? Map<String, dynamic>.from(existing['rates']) : {'30': '', '45': '', '60': '', '90': ''},
+          'isSelected': RxBool(existing['isSelected'] == null || existing['isSelected'] == true),
+          'note': existing['note'] ?? '',
+          'trainerPresence': existing['trainerPresence'],
+          'vetApproval': existing['vetApproval'],
+        };
+      }
+      return {
+        'name': name,
+        'rates': {'30': '', '45': '', '60': '', '90': ''},
+        'isSelected': RxBool(inApp),
+      };
+    }).toList());
   }
 
   // Actions
@@ -610,6 +676,21 @@ class EditVendorProfileController extends GetxController {
       });
       braidingServiceInputController.clear();
     }
+  }
+
+  Future<void> pickBodyworkCertification() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null && result.files.single.path != null) {
+      bodyworkCertFiles.add(File(result.files.single.path!));
+    }
+  }
+
+  void removeBodyworkCertFile(int index) => bodyworkCertFiles.removeAt(index);
+  void removeBodyworkExistingCert(int index) {
+      bodyworkExistingCertUrls.removeAt(index);
   }
 
   void toggleBraidingService(int index) {
@@ -876,13 +957,15 @@ class EditVendorProfileController extends GetxController {
               'name': s['name'],
               'rates': s['rates'],
               'isSelected': s['isSelected'].value,
+              'note': s['note'],
+              'trainerPresence': s['trainerPresence'],
+              'vetApproval': s['vetApproval'],
             }).toList(),
             'professionalStandards': selectedBodyworkStandards.toList(),
-            'certifications': bodyworkCertifications.toList(),
-            'insurance': {
-              'status': bodyworkInsuranceStatus.value,
-              'expiry': bodyworkInsuranceExpiry.value?.toIso8601String(),
-            },
+            'certifications': [
+                ...bodyworkExistingCertUrls,
+                ...(await Future.wait(bodyworkCertFiles.map((f) => _uploadFile(f, 'bodywork_certs')))).whereType<String>()
+            ],
             'travelPreferences': selectedTravelData.entries.map((e) =>
             {
               'type': e.key,
@@ -891,8 +974,9 @@ class EditVendorProfileController extends GetxController {
               'disclaimer': e.value['disclaimer'],
             }).toList(),
             'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+              'policy': isCustomCancellation.value ? "Custom" : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
+              'customText': isCustomCancellation.value ? customCancellationController.text : null,
             },
             'media': serviceMediaKeys['Bodywork'] ?? [],
           }

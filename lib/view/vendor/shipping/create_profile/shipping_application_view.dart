@@ -46,29 +46,39 @@ class ShippingApplicationView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Full Name
-                CommonTextField(
-                  label: 'Full Name',
-                  isRequired: true,
-                  controller: controller.fullNameController,
-                  hintText: 'Enter Your Full Name',
-                  validator: RequiredValidator(errorText: "Please enter your full name").call,
+                _buildGroupedSection(
+                  'Full Name',
+                  children: [
+                    CommonTextField(
+                      label: '',
+                      isRequired: true,
+                      controller: controller.fullNameController,
+                      hintText: 'Enter Your Full Name',
+                      validator: RequiredValidator(errorText: "Please enter your full name").call,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
                 // 2. Services Bio
-                CommonTextField(
-                  label: 'Tell us about your services',
-                  isRequired: true,
-                  controller: controller.bioController,
-                  hintText: 'Share a bit about your background, any specialized training, or whatever else you\'d like to highlight.',
-                  maxLines: 4,
-                  validator: RequiredValidator(errorText: "Please tell us about your services").call,
+                _buildGroupedSection(
+                  'Why Join Our Community?',
+                  children: [
+                    CommonTextField(
+                      label: '',
+                      isRequired: true,
+                      controller: controller.bioController,
+                      hintText: 'Briefly describe your operation, services, and the type of routes or clients you typically work with.',
+                      maxLines: 4,
+                      validator: RequiredValidator(errorText: "Please tell us about your services").call,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
                 // 3. Physical Address
                 _buildGroupedSection(
-                  'Physical Address',
+                  'Home Base Location',
                   children: [
                     _buildSectionHeader('Country', isRequired: true),
                     _buildBottomTrigger(
@@ -113,65 +123,75 @@ class ShippingApplicationView extends StatelessWidget {
                   'Business Information',
                   children: [
                     CommonTextField(
-                      label: 'Corporate / Legal Name',
+                      label: 'Legal Business Name',
                       isRequired: true,
                       controller: controller.legalNameController,
-                      hintText: 'Name on your documents',
-                      validator: RequiredValidator(errorText: "Legal name is required").call,
+                      hintText: 'Enter Legal Business Name',
+                      validator: RequiredValidator(errorText: "Enter Legal Business Name").call,
                     ),
                     const SizedBox(height: 16),
                     CommonTextField(
-                      label: 'DOT #',
+                      label: 'USDOT Number',
                       isRequired: true,
                       controller: controller.dotNumberController,
-                      hintText: 'Your USDOT identification',
-                      validator: RequiredValidator(errorText: "USDOT number is required").call,
+                      hintText: 'Enter USDOT Number',
+                      validator: RequiredValidator(errorText: "Enter USDOT Number").call,
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
                 // 5. Experience
-                _buildSectionHeader('Experience', isRequired: true),
-                Obx(() => _buildBottomTrigger(
-                  value: controller.experience.value,
-                  hint: 'Select Years of Experience',
-                  onTap: () => _showExperienceBottomSheet(
-                    context: context,
-                    title: 'Hauling Experience',
-                    currentValue: controller.experience.value,
-                    options: controller.experienceOptions,
-                    onSelected: (val) => controller.experience.value = val,
-                  ),
-                )),
+                _buildGroupedSection(
+                  'Experience',
+                  isRequired: true,
+                  children: [
+                    Obx(() => _buildBottomTrigger(
+                      value: controller.experience.value,
+                      hint: 'Select Years of Experience',
+                      onTap: () => _showExperienceBottomSheet(
+                        context: context,
+                        title: 'Hauling Experience',
+                        currentValue: controller.experience.value,
+                        options: controller.experienceOptions,
+                        onSelected: (val) => controller.experience.value = val,
+                      ),
+                    )),
+                  ],
+                ),
                 const SizedBox(height: 24),
 
                 // 6. Operation Type
-                _buildSectionHeader('Operation Type', isRequired: true),
-                Obx(() => Column(
+                _buildGroupedSection(
+                  'Operation Type',
+                  isRequired: true,
                   children: [
-                    _buildSelectionTile(
-                      title: 'Independent Small Operation',
-                      isSelected: controller.operationType.value == 'Independent Small Operation',
-                      onTap: () => controller.operationType.value = 'Independent Small Operation',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSelectionTile(
-                      title: 'Established Shipping Company',
-                      isSelected: controller.operationType.value == 'Established Shipping Company',
-                      onTap: () => controller.operationType.value = 'Established Shipping Company',
-                    ),
+                    Obx(() => Column(
+                      children: [
+                        _buildSelectionTile(
+                          title: 'Independent Small Operation',
+                          isSelected: controller.operationType.value == 'Independent Small Operation',
+                          onTap: () => controller.operationType.value = 'Independent Small Operation',
+                        ),
+                        const SizedBox(height: 12),
+                        _buildSelectionTile(
+                          title: 'Established Shipping Company',
+                          isSelected: controller.operationType.value == 'Established Shipping Company',
+                          onTap: () => controller.operationType.value = 'Established Shipping Company',
+                        ),
+                      ],
+                    )),
                   ],
-                )),
+                ),
                 const SizedBox(height: 24),
 
                 // 7. USDOT
                 _buildGroupedSection(
-                  'USDOT',
-                  description: 'Insurance/DOT check - If you are a commercial hauler, please upload a copy of your operating authority or USDOT registration.',
+                  'Insurance',
+                  description: 'Transport providers must carry active commercial insurance applicable to hauling client-owned horses. Documentation is reviewed as part of the approval process',
                   children: [
                     _buildFileUploadBox(
-                      title: 'Provide USDOT copy (if applying)',
+                      title: 'Click to upload',
                       targetFile: controller.dotCopy,
                       onTap: () => controller.pickFile(controller.dotCopy),
                     ),
@@ -185,7 +205,7 @@ class ShippingApplicationView extends StatelessWidget {
                         )),
                         const Expanded(
                           child: CommonText(
-                            'I confirm the accuracy of my USDOT number and authority.',
+                            'I confirm I transport client-owned horses for compensation and am legally authorized to do so',
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
@@ -249,31 +269,39 @@ class ShippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // 11. Driver's License Photo
+                // 11. Driver Credentials
                 _buildGroupedSection(
-                  'Driver License',
+                  'Driver Credentials',
                   children: [
-                    _buildFileUploadBox(
-                      title: 'Upload Driver License Photo',
-                      targetFile: controller.licensePhoto,
-                      onTap: () => controller.pickFile(controller.licensePhoto),
-                    ),
-                    const SizedBox(height: 12),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Obx(() => Checkbox(
                           value: controller.confirmLicense.value,
                           onChanged: (val) => controller.confirmLicense.value = val ?? false,
-                          activeColor: AppColors.primary,
+                          activeColor: const Color(0xFF001149),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                         )),
                         const Expanded(
                           child: CommonText(
-                            'I confirm I have a valid state-issued driver\'s license for the equipment operated.',
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
+                            'I hold a valid CDL (if required for my operation)',
+                            fontSize: 14,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+                    const CommonText(
+                      'Upload CDL (optional)',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildFileUploadBox(
+                      title: 'Click to upload',
+                      targetFile: controller.licensePhoto,
+                      onTap: () => controller.pickFile(controller.licensePhoto),
                     ),
                   ],
                 ),
@@ -281,8 +309,8 @@ class ShippingApplicationView extends StatelessWidget {
 
                 // 12. Rig Capacity
                 _buildGroupedSection(
-                  'Rig Capacity',
-                  description: 'Total Horses',
+                  'Horse Capacity',
+                  description: 'Max Horses',
                   children: [
                     _buildStepperField(
                       value: controller.rigCapacity,
@@ -291,21 +319,21 @@ class ShippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // 13. Typical Vehicle / Models
+                // 12b. Social Media & Website
                 _buildGroupedSection(
-                  'Typical Vehicle / Models',
-                  description: 'Please add trailer/truck details',
+                  'Social Media & Website',
+                  description: 'Please include at least one profile for verification',
                   children: [
                     CommonTextField(
-                      label: 'Make',
-                      controller: controller.modelMakeController,
-                      hintText: 'Enter trailer/truck make...',
+                      label: 'Facebook',
+                      controller: controller.facebookController,
+                      hintText: 'facebook.com/yourpage',
                     ),
                     const SizedBox(height: 16),
                     CommonTextField(
-                      label: 'Model Year',
-                      controller: controller.modelYearController,
-                      hintText: 'Enter year...',
+                      label: 'Instagram',
+                      controller: controller.instagramController,
+                      hintText: '@yourusername',
                     ),
                   ],
                 ),
@@ -313,7 +341,7 @@ class ShippingApplicationView extends StatelessWidget {
 
                 // 14. Rig Photos
                 _buildGroupedSection(
-                  'Rig Photos',
+                  'Add Photos',
                   description: 'Upload high-quality images of your hauling equipment.',
                   children: [
                     _buildPhotoGrid(controller),
@@ -533,7 +561,7 @@ class ShippingApplicationView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const CommonText('PDF, JPG, PNG (max 10MB)', fontSize: 12, color: AppColors.textSecondary),
+                  const CommonText('PDF, PNG or JPG  (max. 800x400px)', fontSize: 12, color: AppColors.textSecondary),
                 ],
               ],
             ),
@@ -670,7 +698,7 @@ class ShippingApplicationView extends StatelessWidget {
   Widget _buildProfessionalReferences(ShippingApplicationController controller) {
     return _buildGroupedSection(
       'Professional References',
-      description: 'Please provide two professional references from trainer or client.',
+      description: 'Provide references who can speak to your experience, professionalism, and reliability',
       children: [
         Obx(() => Column(
           children: controller.referenceControllers.asMap().entries.map((entry) {
@@ -679,13 +707,13 @@ class ShippingApplicationView extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonText('Reference ${idx + 1}', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.accentRed),
+                CommonText('Reference ${idx + 1}', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.secondary),
                 const SizedBox(height: 12),
-                CommonTextField(label: 'Full Name', controller: ref.fullName, hintText: 'Enter name...'),
+                CommonTextField(label: 'Full Name', controller: ref.fullName, hintText: 'Enter Full Name'),
                 const SizedBox(height: 12),
-                CommonTextField(label: 'Relationship', controller: ref.relationship, hintText: 'e.g. Trainer/Client'),
+                CommonTextField(label: 'Business Name', controller: ref.relationship, hintText: 'Enter Business Name'),
                 const SizedBox(height: 12),
-                CommonTextField(label: 'Phone Number', controller: ref.phone, hintText: 'Enter phone...'),
+                CommonTextField(label: 'Relationship', controller: ref.phone, hintText: 'Enter Relationship'),
                 const SizedBox(height: 24),
               ],
             );
@@ -697,20 +725,31 @@ class ShippingApplicationView extends StatelessWidget {
 
   Widget _buildAgreementCheckbox({required RxBool value, required String label}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Obx(() => Checkbox(
-            value: value.value,
-            onChanged: (val) => value.value = val ?? false,
-            activeColor: Colors.green,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-          )),
-          Expanded(child: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: CommonText(label, fontSize: 13, color: AppColors.textSecondary),
-          )),
+          SizedBox(
+            height: 24,
+            width: 24,
+            child: Obx(() => Checkbox(
+              value: value.value,
+              onChanged: (val) => value.value = val ?? false,
+              activeColor: Colors.green,
+              side: const BorderSide(width: 2, color: Colors.black),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            )),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CommonText(
+              label,
+              fontSize: 16,
+              color: AppColors.textPrimary,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );
@@ -747,7 +786,7 @@ class ShippingApplicationView extends StatelessWidget {
       builder: (ctx) => Column(
         mainAxisSize: MainAxisSize.min,
         children: options.map((opt) => ListTile(
-          title: CommonText(opt),
+          title: Center(child: CommonText(opt,)),
           onTap: () { onSelected(opt); Navigator.pop(ctx); },
         )).toList(),
       ),

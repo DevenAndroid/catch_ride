@@ -18,6 +18,10 @@ class ShippingServiceAndRatesView extends StatefulWidget {
   final String operationType;
   final String rigCapacity;
   final String equipmentSummary;
+  final String? dotNumber;
+  final bool? hasCDL;
+  final String? businessName;
+  final List<String> highlights;
 
   const ShippingServiceAndRatesView({
     super.key,
@@ -33,6 +37,10 @@ class ShippingServiceAndRatesView extends StatefulWidget {
     required this.operationType,
     required this.rigCapacity,
     required this.equipmentSummary,
+    this.dotNumber,
+    this.hasCDL,
+    this.businessName,
+    this.highlights = const [],
   });
 
   @override
@@ -64,20 +72,11 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const CommonText(
-                  'Pricing',
-                  fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textSecondary,
-                ),
-                GestureDetector(
-                  onTap: () => Get.to(() => const ServicePriceView()),
-                  child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.linkBlue),
-                ),
-              ],
+            const CommonText(
+              'Pricing',
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
             ),
             const SizedBox(height: 16),
 
@@ -102,29 +101,55 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
             _buildDetailItem(
               'Travel Scope',
               widget.travelScope.isEmpty ? 'N/A' : widget.travelScope.join(', '),
-              showDivider: false,
+              showDivider: !showMore,
             ),
 
-            // ── View More / View Less ──────────────────────────────────────
+            // ── View More Content ──────────────────────────────────────────
             if (showMore) ...[
-              const SizedBox(height: 20),
-              if (widget.regionsCovered.isNotEmpty)
+              const SizedBox(height: 12),
+              // ── Regions Covered ──────────────────────────────────────────────
+              if (widget.regionsCovered.isNotEmpty) ...[
                 _buildDetailItem('Regions Covered', widget.regionsCovered.join(', ')),
-              
-              if (widget.servicesOffered.isNotEmpty)
+                const SizedBox(height: 12),
+              ],
+
+              // ── Services Offered ──────────────────────────────────────────────
+              if (widget.servicesOffered.isNotEmpty) ...[
                 _buildDetailItem('Services Offered', widget.servicesOffered.join(', ')),
+                const SizedBox(height: 12),
+              ],
 
-              if (widget.rigTypes.isNotEmpty)
+              // ── Rig types ────────────────────────────────────────────────────
+              if (widget.rigTypes.isNotEmpty) ...[
                 _buildDetailItem('Rig types', widget.rigTypes.join(', ')),
+                const SizedBox(height: 12),
+              ],
 
-              if (widget.operationType != 'N/A')
-                _buildDetailItem('Operation Type', widget.operationType),
+              // ── Operation Type ───────────────────────────────────────────────
+              _buildDetailItem('Operation Type', widget.operationType),
+              const SizedBox(height: 12),
 
-              if (widget.rigCapacity != 'N/A')
-                _buildDetailItem('Capacity Range', 'Typical load: ${widget.rigCapacity} horses'),
+              // ── Capacity Range ───────────────────────────────────────────────
+              _buildDetailItem(
+                'Capacity Range',
+                'Typical load: ${widget.rigCapacity} horses',
+              ),
 
-              if (widget.equipmentSummary != 'N/A')
-                _buildDetailItem('Equipment summary', widget.equipmentSummary, showDivider: false),
+              const SizedBox(height: 20),
+
+              // ── Equipment & CDL ──────────────────────────────────────────────
+              _buildDetailItem('Equipment summary', widget.equipmentSummary),
+              const SizedBox(height: 12),
+
+              // ── Highlights ──────────────────────────────────────────────────
+              if (widget.highlights.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                _buildDetailItem(
+                  'Experience Highlights',
+                  widget.highlights.join(' • '),
+                  showDivider: false,
+                ),
+              ],
 
               const SizedBox(height: 16),
               GestureDetector(

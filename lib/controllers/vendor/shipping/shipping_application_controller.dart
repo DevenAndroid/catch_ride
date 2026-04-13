@@ -22,8 +22,8 @@ class ShippingApplicationController extends GetxController {
   final bioController = TextEditingController();
   final legalNameController = TextEditingController();
   final dotNumberController = TextEditingController();
-  final modelMakeController = TextEditingController();
-  final modelYearController = TextEditingController();
+  final facebookController = TextEditingController();
+  final instagramController = TextEditingController();
   
   // Locations
   final countryController = TextEditingController(text: 'USA');
@@ -251,10 +251,6 @@ class ShippingApplicationController extends GetxController {
         'regions': selectedRegions.toList(),
         'rigTypes': selectedRigTypes.toList(),
         'rigCapacity': rigCapacity.value,
-        'vehicleInfo': {
-          'make': modelMakeController.text,
-          'year': modelYearController.text,
-        },
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'references': referenceControllers.map((r) => {
           'fullName': r.fullName.text,
@@ -266,6 +262,10 @@ class ShippingApplicationController extends GetxController {
           'insurance': insuranceUrl,
           'licensePhoto': licenseUrl,
           'rigPhotos': rigPhotoUrls,
+        },
+        'socialMedia': {
+          'facebook': facebookController.text,
+          'instagram': instagramController.text,
         }
       };
 
@@ -323,9 +323,9 @@ class ShippingApplicationController extends GetxController {
     bioController.dispose();
     legalNameController.dispose();
     dotNumberController.dispose();
-    modelMakeController.dispose();
-    modelYearController.dispose();
     countryController.dispose();
+    facebookController.dispose();
+    instagramController.dispose();
     for (var ctrl in highlightsControllers) {
       ctrl.dispose();
     }

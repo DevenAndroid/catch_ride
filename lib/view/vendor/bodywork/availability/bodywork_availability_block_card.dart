@@ -3,6 +3,8 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class BodyworkAvailabilityBlockCard extends StatelessWidget {
   final VendorAvailabilityModel block;
@@ -20,8 +22,9 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.lightPink,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.secondary),
         boxShadow: [
@@ -50,7 +53,7 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                       CommonText(
                         block.dateDisplay,
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                       const SizedBox(height: 4),
@@ -130,7 +133,7 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                 // 2. Capacity & Buffer
                 Row(
                   children: [
-                    const Icon(Icons.pie_chart_outline, size: 18, color: AppColors.textSecondary),
+                    SvgPicture.asset("assets/icons/horse_icon.svg"),
                     const SizedBox(width: 8),
                     CommonText(
                       'Daily Sessions: ${block.maxBookings}',
@@ -156,7 +159,10 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.textSecondary),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3.0),
+                        child: const Icon(LucideIcons.messageSquareMore, size: 16, color: AppColors.textSecondary),
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CommonText(

@@ -134,41 +134,6 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             ),
 
             Positioned(
-              top: 50,
-              right: 16,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: PopupMenuButton<String>(
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(
-                    Icons.more_vert,
-                    color: Colors.black,
-                    size: 20,
-                  ),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      Get.to(() => const EditVendorProfileView());
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => [
-                    const PopupMenuItem<String>(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit_outlined, size: 20, color: AppColors.textPrimary),
-                          SizedBox(width: 8),
-                          CommonText('Edit Profile', fontSize: 14),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
               bottom: -45,
               left: 20,
               child: Container(
@@ -334,6 +299,15 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     final services = groomController.allAssignedServices;
     final isSingle = services.length == 1;
 
+    if (isSingle) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText('Details', fontSize: 18, fontWeight: FontWeight.bold),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -348,8 +322,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           padding: EdgeInsets.zero,
           labelPadding: const EdgeInsets.symmetric(horizontal: 16),
           tabs: services.map((s) {
-            String label = isSingle ? 'Details' : (s['serviceType'] ?? 'Details');
-            return Tab(child: CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold));
+            String label = s['serviceType'] ?? 'Details';
+            return Tab(child: CommonText(label, fontSize: 16, fontWeight: FontWeight.bold));
           }).toList(),
           onTap: (index) {
             groomController.selectService(index);
@@ -394,6 +368,10 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         operationType: groomController.shippingOperationType,
         rigCapacity: groomController.shippingRigCapacity,
         equipmentSummary: groomController.shippingEquipmentSummary,
+        dotNumber: groomController.shippingDotNumber,
+        hasCDL: groomController.shippingHasCDL,
+        businessName: groomController.shippingBusinessName,
+        highlights: groomController.highlights,
       );
     }
     

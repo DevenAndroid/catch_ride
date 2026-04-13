@@ -190,11 +190,32 @@ class BodyworkDetailsView extends StatelessWidget {
                   ),
                 )),
                 const SizedBox(height: 12),
-                Obx(() => _buildCheckItem(
-                  title: 'Custom',
-                  isSelected: controller.isCustomPolicy.value,
-                  onTap: () => controller.isCustomPolicy.value = !controller.isCustomPolicy.value,
+                Obx(() => Row(
+                  children: [
+                    Checkbox(
+                      value: controller.isCustomPolicy.value,
+                      onChanged: (val) => controller.isCustomPolicy.value = val ?? false,
+                      activeColor: const Color(0xFF001149),
+                      side: const BorderSide(color: AppColors.borderMedium, width: 1.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                    const CommonText('Custom', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500),
+                  ],
                 )),
+                Obx(() {
+                  if (controller.isCustomPolicy.value) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: CommonTextField(
+                        label: '',
+                        controller: controller.customCancellationController,
+                        hintText: 'Enter your custom cancellation policy details...',
+                        maxLines: 3,
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
               ],
             ),
             const SizedBox(height: 32),

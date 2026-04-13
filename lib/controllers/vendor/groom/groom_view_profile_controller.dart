@@ -85,6 +85,19 @@ class GroomViewProfileController extends GetxController {
       _activeProfileData['equipmentsSummary'] ??
       'N/A';
   String get shippingEquipmentsSummary => shippingEquipmentSummary;
+  
+  String get shippingDotNumber =>
+      (_activeApplicationData['businessInfo']?['dotNumber'] ?? 'N/A').toString();
+      
+  bool get shippingHasCDL => 
+      _activeProfileData['hasCDL'] ?? 
+      _activeApplicationData['confirmLicense'] ?? 
+      false;
+      
+  String get shippingBusinessName => 
+      vendorData['businessName'] ?? 
+      _activeApplicationData['businessInfo']?['legalName'] ?? 
+      'N/A';
   List<String> get shippingServicesOffered => List<String>.from(
     _activeProfileData['services'] ??
         _activeProfileData['servicesOffered'] ??

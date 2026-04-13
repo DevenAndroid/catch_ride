@@ -62,7 +62,8 @@ class BodyworkDetailsController extends GetxController {
   // Cancellation Policy
   final selectedCancellationPolicy = RxnString();
   final isCustomPolicy = false.obs;
-  final cancellationOptions = ['24 Hour Notice', '48 Hour Notice', 'Flexible', 'Strict'];
+  final customCancellationController = TextEditingController();
+  final cancellationOptions = ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'];
 
   final isLoading = false.obs;
   final isDataLoading = false.obs;
@@ -224,6 +225,7 @@ class BodyworkDetailsController extends GetxController {
             if (profileData['cancellationPolicy'] != null) {
               selectedCancellationPolicy.value = profileData['cancellationPolicy']['policy'];
               isCustomPolicy.value = profileData['cancellationPolicy']['isCustom'] ?? false;
+              customCancellationController.text = profileData['cancellationPolicy']['customText'] ?? '';
             }
           }
       }
@@ -332,6 +334,7 @@ class BodyworkDetailsController extends GetxController {
         'cancellationPolicy': {
           'policy': selectedCancellationPolicy.value,
           'isCustom': isCustomPolicy.value,
+          'customText': customCancellationController.text,
         },
         'isProfileCompleted': true,
       };
@@ -387,5 +390,11 @@ class BodyworkDetailsController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    customCancellationController.dispose();
+    super.onClose();
   }
 }
