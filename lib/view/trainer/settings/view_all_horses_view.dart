@@ -156,16 +156,16 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🐴', style: TextStyle(fontSize: 72)),
-            const SizedBox(height: 20),
-            const CommonText(
-              'Your stable is empty!',
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
+           // const Text('🐴', style: TextStyle(fontSize: 72)),
+         //   const SizedBox(height: 20),
+         //    const CommonText(
+         //      'Your stable is empty!',
+         //      fontSize: 22,
+         //      fontWeight: FontWeight.bold,
+         //      color: AppColors.textPrimary,
+         //      textAlign: TextAlign.center,
+         //    ),
+         //    const SizedBox(height: 12),
             const CommonText(
               'List your horses and they will appear here.',
               fontSize: 14,

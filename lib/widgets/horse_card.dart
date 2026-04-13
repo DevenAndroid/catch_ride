@@ -115,20 +115,23 @@ class HorseCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   // Venue
                   CommonText(
-                    'Venue — $venue',
+                    venue,
                     fontSize: 14,
                     color: const Color(0xFF667085),
                     fontWeight: FontWeight.w400,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   // Location
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 16,
-                        color: const Color(0xFF667085),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: const Color(0xFF667085),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Flexible(

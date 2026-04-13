@@ -21,7 +21,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
   String _selectedSection = 'location'; // 'location' or 'date'
   late String _selectedCategory;
-  String _locationType = 'City / Home'; // 'City / Home' or 'Show Venue'
+  String _locationType = 'City or Region'; // 'City or Region' or 'Show Venue'
 
   // Dynamic Calendar State
   late DateTime _focusedDate;
@@ -58,7 +58,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     setState(() {
       _selectedCategory = 'All';
       _searchController.clear();
-      _locationType = 'City / Home';
+      _locationType = 'City or Region';
       _rangeStart = null;
       _rangeEnd = null;
     });
@@ -68,6 +68,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
+
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
     {'name': 'Jumper', 'icon': Icons.flag_rounded, 'isSvg': false},
     {
@@ -110,10 +111,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                           _buildLocationSection(),
                         if (_selectedSection == 'date') _buildDateSection(),
                       ],
-                    ),
-                  ),
-                ),
+                    ),)),
                 _buildFooter(),
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -143,7 +143,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
   Widget _buildTopBar() {
     return Container(
-      padding: const EdgeInsets.only(top: 60, bottom: 20),
+      // color: Colors.white,
+      padding: const EdgeInsets.only(top: 60, bottom: 0),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -160,13 +161,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? AppColors.chipBackground
+                            ? AppColors.primary.withOpacity(0.08)
                             : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: cat['isSvg']
                           ? SvgPicture.asset(
-                              cat['icon'],
+                              cat['icon'] as String,
                               width: 28,
                               height: 28,
                               colorFilter: ColorFilter.mode(
@@ -198,15 +199,16 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     const SizedBox(height: 8),
                     if (isSelected)
                       Container(
-                        height: 3,
-                        width: 48,
+                        height: 2,
+                        width: 40,
+                        margin: const EdgeInsets.only(top: 10),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       )
                     else
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 12),
                   ],
                 ),
               ),
@@ -242,10 +244,19 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               // Search Input
               TextField(
                 controller: _searchController,
+                onChanged: (val) {
+                  if (isShowVenue) {
+                    controller.searchVenues(val);
+                  } else {
+                    controller.searchLocations(val);
+                  }
+                  setState(() {}); // Rebuild to switch between default and suggestions
+                },
                 decoration: InputDecoration(
-                  hintText: 'Search horses, vendors and circuits',
+                  hintText: 'Search horses, services, and circuits',
                   hintStyle: TextStyle(
                     color: AppColors.textSecondary.withOpacity(0.5),
+                    fontSize: 14,
                   ),
                   border: InputBorder.none,
                   prefixIcon: const Icon(
@@ -267,13 +278,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   children: [
                     Expanded(
                       child: _buildToggleItem(
-                        'CITY / HOME',
-                        _locationType == 'City / Home',
+                        'City or Region',
+                        _locationType == 'City or Region',
                       ),
                     ),
                     Expanded(
                       child: _buildToggleItem(
-                        'SHOW VENUE',
+                        'Show Venue',
                         _locationType == 'Show Venue',
                       ),
                     ),
@@ -284,19 +295,34 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
               // Suggested Items (Matching Design)
               Obx(() {
+                if (controller.isSuggestionsLoading.value) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+
+                final isSearching = _searchController.text.isNotEmpty;
+
                 if (isShowVenue) {
-                  if (controller.defaultVenues.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                  final list = isSearching
+                      ? controller.venuesSuggestions
+                      : controller.defaultVenues;
+
+                  if (list.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: CommonText(
-                        'No venues found',
+                        isSearching ? 'No venues found' : 'Loading venues...',
                         fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
                     );
                   }
                   return Column(
-                    children: controller.defaultVenues
+                    children: list
                         .map(
                           (v) => _buildLocationItem(
                             v['name'] ?? '',
@@ -307,18 +333,22 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                         .toList(),
                   );
                 } else {
-                  if (controller.defaultLocations.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
+                  final list = isSearching
+                      ? controller.locationsSuggestions
+                      : controller.defaultLocations;
+
+                  if (list.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       child: CommonText(
-                        'No locations found',
+                        isSearching ? 'No locations found' : 'Loading locations...',
                         fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
                     );
                   }
                   return Column(
-                    children: controller.defaultLocations
+                    children: list
                         .map((l) => _buildLocationItem(l['name'] ?? ''))
                         .toList(),
                   );
@@ -326,15 +356,16 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               }),
 
               const SizedBox(height: 20),
-              const Align(
-                alignment: Alignment.centerLeft,
+              const Padding(
+                padding: EdgeInsets.only(left: 4),
                 child: CommonText(
                   'Search History',
                   fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Obx(
                 () => Column(
                   children: controller.recentSearches.isEmpty
@@ -422,7 +453,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText(
-                  'City / Home',
+                  'City or Region',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -568,8 +599,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           child: CommonText(
             title,
             fontSize: 14,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-            color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? AppColors.textPrimary : AppColors.textSecondary.withOpacity(0.6),
           ),
         ),
       ),
@@ -590,7 +621,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           controller.location.value = location;
           controller.showVenue.value = '';
         }
-        _searchController.text = location;
+        _searchController.clear();
         _onSearchPressed();
       },
       child: Padding(
@@ -600,17 +631,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isVenue
-                    ? AppColors.chipBackground
-                    : AppColors.chipBackgroundRed,
-                borderRadius: BorderRadius.circular(8),
+                color: AppColors.lightGray.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
-                isVenue ? Icons.location_city_rounded : Icons.near_me_rounded,
-                size: 18,
-                color: isVenue
-                    ? AppColors.accentBlue
-                    : AppColors.accentRedLight,
+                isVenue ? Icons.near_me_rounded : Icons.near_me_rounded,
+                size: 16,
+                color: AppColors.textSecondary.withOpacity(0.8),
               ),
             ),
             const SizedBox(width: 16),
@@ -649,8 +676,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         child: Row(
           children: [
             const Icon(
-              Icons.history_rounded,
-              size: 22,
+              Icons.restart_alt_rounded,
+              size: 24,
               color: AppColors.textSecondary,
             ),
             const SizedBox(width: 16),
@@ -892,12 +919,12 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.search_rounded, color: Colors.white, size: 22),
-                    SizedBox(width: 8),
-                    CommonText(
+                    const Icon(Icons.search_rounded, color: Colors.white, size: 22),
+                    const SizedBox(width: 8),
+                    const CommonText(
                       'Search',
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

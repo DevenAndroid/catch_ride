@@ -37,11 +37,22 @@ class ExploreController extends GetxController {
   final RxnDouble priceMin = RxnDouble();
   final RxnDouble priceMax = RxnDouble();
   final RxList<String> selectedTags = <String>[].obs;
+  
+  bool get isSearchActive =>
+      searchQuery.value.isNotEmpty ||
+      location.value.isNotEmpty ||
+      showVenue.value.isNotEmpty ||
+      (startDate.value != null && endDate.value != null);
 
   // Suggested search items
   final RxList<Map<String, String>> defaultLocations =
       <Map<String, String>>[].obs;
   final RxList<Map<String, String>> defaultVenues = <Map<String, String>>[].obs;
+  final RxList<Map<String, String>> locationsSuggestions =
+      <Map<String, String>>[].obs;
+  final RxList<Map<String, String>> venuesSuggestions =
+      <Map<String, String>>[].obs;
+  final RxBool isSuggestionsLoading = false.obs;
 
   void clearAllFilters() {
     searchQuery.value = '';
@@ -83,7 +94,7 @@ class ExploreController extends GetxController {
     recentSearches.insert(0, query);
 
     // Keep only last 5
-    if (recentSearches.length > 5) {
+    if (recentSearches.length > 4) {
       recentSearches.removeLast();
     }
 
@@ -113,6 +124,15 @@ class ExploreController extends GetxController {
     }
 
     try {
+      // Wait for profile data to load to ensure excludeTrainerId is populated
+      if (_profileController.user.value == null && _profileController.isLoading.value) {
+        int retries = 0;
+        while (_profileController.isLoading.value && retries < 20) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          retries++;
+        }
+      }
+
       final Map<String, String> queryParams = {};
 
       final currentUserId = _profileController.id;
@@ -121,7 +141,7 @@ class ExploreController extends GetxController {
       // Filter for active and approved horses only in Explore
       queryParams['isActive'] = 'true';
       queryParams['status'] = 'approved,available';
-      queryParams['onlyApprovedTrainers'] = 'true';
+      // queryParams['onlyApprovedTrainers'] = 'true';
       queryParams['page'] = currentPage.value.toString();
       queryParams['limit'] = limit.toString();
 
@@ -142,6 +162,7 @@ class ExploreController extends GetxController {
 
       if (location.value.isNotEmpty) {
         queryParams['location'] = location.value;
+
       }
 
       if (showVenue.value.isNotEmpty) {
@@ -314,6 +335,81 @@ class ExploreController extends GetxController {
       }
     } catch (e) {
       _logger.e('Error fetching default search metadata: $e');
+    }
+  }
+
+  Future<void> searchLocations(String query) async {
+    if (query.isEmpty) {
+      locationsSuggestions.clear();
+      return;
+    }
+
+    //isSuggestionsLoading.value = true;
+    try {
+      final response = await _apiService.getRequest(
+        AppUrls.horseShows,
+        query: {'search': query, 'limit': '10'},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        final List<Map<String, String>> suggestions = [];
+
+        for (var item in data) {
+          final city = item['city'] ?? '';
+          final state = item['state'] ?? '';
+          if (city.isNotEmpty && state.isNotEmpty) {
+            final name = "$city, $state";
+            if (!suggestions.any((s) => s['name'] == name)) {
+              suggestions.add({'name': name});
+            }
+          }
+        }
+        locationsSuggestions.assignAll(suggestions);
+      }
+    } catch (e) {
+      _logger.e('Error searching locations: $e');
+    } finally {
+      isSuggestionsLoading.value = false;
+    }
+  }
+
+  Future<void> searchVenues(String query) async {
+    if (query.isEmpty) {
+      venuesSuggestions.clear();
+      return;
+    }
+
+   // isSuggestionsLoading.value = true;
+    try {
+      final response = await _apiService.getRequest(
+        AppUrls.horseShows,
+        query: {'search': query, 'limit': '10'},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        final List<Map<String, String>> suggestions = [];
+
+        for (var item in data) {
+          final venue = item['showVenue'] ?? '';
+          final city = item['city'] ?? '';
+          final state = item['state'] ?? '';
+          if (venue.isNotEmpty) {
+            if (!suggestions.any((s) => s['name'] == venue)) {
+              suggestions.add({
+                'name': venue,
+                'subtitle': "$city, $state",
+              });
+            }
+          }
+        }
+        venuesSuggestions.assignAll(suggestions);
+      }
+    } catch (e) {
+      _logger.e('Error searching venues: $e');
+    } finally {
+      isSuggestionsLoading.value = false;
     }
   }
 }
