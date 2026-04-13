@@ -23,6 +23,7 @@ class TrainerCompleteProfileView extends StatefulWidget {
       _TrainerCompleteProfileViewState();
 }
 
+
 class _TrainerCompleteProfileViewState
     extends State<TrainerCompleteProfileView> {
   final ProfileController profileController = Get.put(ProfileController());
@@ -77,8 +78,8 @@ class _TrainerCompleteProfileViewState
         ? profileController.yearsExperience
         : '';
 
-    _selectedProgramTags.assignAll(profileController.selectedProgramTags.map((e) => _toTitleCase(e)));
-    _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+    _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+    _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _normalizeHorseShow(e)));
 
     _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
@@ -96,8 +97,8 @@ class _TrainerCompleteProfileViewState
             ? profileController.yearsExperience
             : '';
 
-        _selectedProgramTags.assignAll(profileController.selectedProgramTags.map((e) => _toTitleCase(e)));
-        _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+        _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+        _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _normalizeHorseShow(e)));
 
         _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
         _selectedTags.assignAll(profileController.user.value?.tags ?? []);
@@ -141,8 +142,8 @@ class _TrainerCompleteProfileViewState
         ),
         title: const CommonText(
           'Complete your Profile',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
         ),
       ),
@@ -187,7 +188,14 @@ class _TrainerCompleteProfileViewState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border.withOpacity(0.8)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.only(bottom: 16),
@@ -451,6 +459,20 @@ class _TrainerCompleteProfileViewState
     }).join(' ');
   }
 
+  String _normalizeHorseShow(String text) {
+    if (text.isEmpty) return text;
+    if (text.contains(' • ')) {
+      final parts = text.split(' • ');
+      final circuit = parts.last.trim();
+      final venue = parts.first.trim();
+      
+      // Prioritize Circuit (last part) if it's not a placeholder
+      if (circuit.isNotEmpty && circuit != "-") return circuit;
+      return venue;
+    }
+    return text;
+  }
+
   void _showHorseShowsBottomSheet() {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
@@ -458,20 +480,18 @@ class _TrainerCompleteProfileViewState
     // Collect unique venue/circuit pairs
     final Set<String> uniqueLabelsSet = {};
     for (var show in allShows) {
-      String venue = _toTitleCase(show['showVenue']?.toString().trim() ?? '');
+      String venue = (show['showVenue']?.toString().trim() ?? '');
       if (venue == "-") venue = "";
-      String circuit = _toTitleCase(show['circuit']?.toString().trim() ?? '');
+      String circuit = (show['circuit']?.toString().trim() ?? '');
       if (circuit == "-") circuit = "";
       
       String label = "";
-      if (venue.isNotEmpty && circuit.isNotEmpty) {
-        label = "$venue • $circuit";
+      if (circuit.isNotEmpty) {
+        label = circuit;
       } else if (venue.isNotEmpty) {
         label = venue;
-      } else if (circuit.isNotEmpty) {
-        label = circuit;
       } else {
-        String showName = _toTitleCase(show['name']?.toString().trim() ?? '');
+        String showName = (show['name']?.toString().trim() ?? '');
         if (showName == "-") showName = "";
         label = showName;
       }
@@ -764,7 +784,7 @@ class _TrainerCompleteProfileViewState
                 runSpacing: 12,
                 children: values.map((val) {
                   final tagId = val['_id'] ?? '';
-                  final tagName = _toTitleCase(val['name'] ?? '');
+                  final tagName = val['name'] ?? '';
                   final isSelected = _selectedTags.contains(tagId);
 
                   return GestureDetector(

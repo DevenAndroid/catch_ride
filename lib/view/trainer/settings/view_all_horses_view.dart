@@ -9,6 +9,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/utils/date_util.dart';
 
 class ViewAllHorsesView extends StatefulWidget {
   const ViewAllHorsesView({super.key});
@@ -128,7 +129,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                           horse.trainerAvatar!.isNotEmpty)
                       ? horse.trainerAvatar!
                       : profileController.avatar,
-                  timePosted: '16 days ago',
+                  timePosted: DateUtil.getTimeAgo(horse.createdAt),
                   mainImageUrl: horse.images.isNotEmpty
                       ? horse.images.first
                       : (horse.photo ?? ''),
@@ -232,11 +233,36 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CommonText(
-                          userName,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                        Row(
+                          children: [
+                            CommonText(
+                              userName,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: horse.isActive
+                                    ? const Color(0xFFECFDF3)
+                                    : const Color(0xFFFEF3F2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: CommonText(
+                                horse.isActive ? 'Active' : 'Inactive',
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: horse.isActive
+                                    ? const Color(0xFF027A48)
+                                    : const Color(0xFFB42318),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 1),
                         CommonText(
@@ -247,49 +273,81 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       ],
                     ),
                   ),
-                      IconButton(
-                        onPressed: () {
-                          Get.bottomSheet(
-                            Container(
-                              padding: const EdgeInsets.symmetric(vertical: 20),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(25),
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ListTile(
-                                    leading: const Icon(
-                                      Icons.edit_outlined,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                    title: const CommonText(
-                                      'Edit Listing',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    onTap: () {
-                                      Get.back();
-                                      Get.to(
-                                        () => EditHorseListingView(horse: horse),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-                              ),
-                            ),
+                  PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: AppColors.textPrimary,
+                      size: 22,
+                    ),
+                    onSelected: (value) async {
+                      if (value == 'edit') {
+                        Get.to(() => EditHorseListingView(horse: horse));
+                      } else if (value == 'active') {
+                        final success = await horseController.toggleHorseActive(
+                          horse.id!,
+                          !horse.isActive,
+                        );
+                        if (success) {
+                          Get.snackbar(
+                            'Success',
+                            'Horse status updated successfully',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green,
+                            colorText: Colors.white,
                           );
-                        },
-                        icon: const Icon(
-                          Icons.more_vert,
-                          color: AppColors.textPrimary,
-                          size: 22,
+                        }
+                      } else if (value == 'delete') {
+                        _confirmDelete(horse);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 8),
+                            const CommonText('Edit listing', fontSize: 14),
+                          ],
                         ),
                       ),
+                      PopupMenuItem(
+                        value: 'active',
+                        child: Row(
+                          children: [
+                            Icon(
+                              horse.isActive
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              size: 20,
+                              color: horse.isActive
+                                  ? Colors.orange
+                                  : Colors.green,
+                            ),
+                            const SizedBox(width: 8),
+                            CommonText(
+                              horse.isActive ? 'Deactivate' : 'Activate',
+                              fontSize: 14,
+                            ),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete, size: 20, color: Colors.red),
+                            const SizedBox(width: 8),
+                            const CommonText(
+                              'Delete listing',
+                              fontSize: 14,
+                              color: Colors.red,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -402,6 +460,56 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(HorseModel horse) {
+    Get.dialog(
+      AlertDialog(
+        title: const CommonText(
+          'Delete Listing',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+        content: CommonText(
+          'Are you sure you want to delete ${horse.name}? This action cannot be undone.',
+          fontSize: 14,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const CommonText('Cancel', color: AppColors.textSecondary),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              final success = await horseController.deleteHorse(horse.id!);
+              if (success) {
+                Get.snackbar(
+                  'Deleted',
+                  'Horse listing has been removed',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red,
+                  colorText: Colors.white,
+                );
+              } else {
+                Get.snackbar(
+                  'Error',
+                  'Failed to delete horse listing',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.orange,
+                  colorText: Colors.white,
+                );
+              }
+            },
+            child: const CommonText(
+              'Delete',
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

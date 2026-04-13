@@ -88,8 +88,8 @@ class _EditProfileViewState extends State<EditProfileView> {
     _websiteController.text = profileController.user.value?.website ?? '';
     _instagramController.text = profileController.user.value?.instagram ?? '';
 
-    _selectedProgramTags.assignAll(profileController.selectedProgramTags.map((e) => _toTitleCase(e)));
-    _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+    _selectedProgramTags.assignAll(profileController.selectedProgramTags);
+    _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _normalizeHorseShow(e)));
 
     _selectedHorseShowIds.assignAll(profileController.selectedHorseShowIds);
     _selectedTags.assignAll(profileController.user.value?.tags ?? []);
@@ -125,9 +125,9 @@ class _EditProfileViewState extends State<EditProfileView> {
                 : '';
 
             _selectedProgramTags.assignAll(
-              profileController.selectedProgramTags.map((e) => _toTitleCase(e)),
+              profileController.selectedProgramTags,
             );
-            _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _toTitleCase(e)));
+            _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _normalizeHorseShow(e)));
 
             _selectedHorseShowIds.assignAll(
               profileController.selectedHorseShowIds,
@@ -213,7 +213,7 @@ class _EditProfileViewState extends State<EditProfileView> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.4)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -578,7 +578,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 runSpacing: 12,
                 children: values.map((val) {
                   final tagId = val['_id'] ?? '';
-                  final tagName = _toTitleCase(val['name'] ?? '');
+                  final tagName = val['name'] ?? '';
                   final isSelected = _selectedTags.contains(tagId);
 
                   return GestureDetector(
@@ -699,7 +699,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           runSpacing: 12,
                           children: filteredValues.map((val) {
                             final tagId = val['_id'] ?? '';
-                            final tagName = _toTitleCase(val['name'] ?? '');
+                            final tagName = val['name'] ?? '';
                             final isSelected = _selectedTags.contains(tagId);
 
                             return GestureDetector(
@@ -992,6 +992,20 @@ class _EditProfileViewState extends State<EditProfileView> {
       return word[0].toUpperCase() + word.substring(1);
     }).join(' ');
   }
+  
+  String _normalizeHorseShow(String text) {
+    if (text.isEmpty) return text;
+    if (text.contains(' • ')) {
+      final parts = text.split(' • ');
+      final circuit = parts.last.trim();
+      final venue = parts.first.trim();
+      
+      // Prioritize Circuit (last part) if it's not a placeholder
+      if (circuit.isNotEmpty && circuit != "-") return circuit;
+      return venue;
+    }
+    return text;
+  }
 
   void _showHorseShowsBottomSheet() {
     final TextEditingController searchController = TextEditingController();
@@ -1000,20 +1014,18 @@ class _EditProfileViewState extends State<EditProfileView> {
     // Collect unique venue/circuit pairs
     final Set<String> uniqueLabelsSet = {};
     for (var show in allShows) {
-      String venue = _toTitleCase(show['showVenue']?.toString().trim() ?? '');
+      String venue = (show['showVenue']?.toString().trim() ?? '');
       if (venue == "-") venue = "";
-      String circuit = _toTitleCase(show['circuit']?.toString().trim() ?? '');
+      String circuit = (show['circuit']?.toString().trim() ?? '');
       if (circuit == "-") circuit = "";
 
       String label = "";
-      if (venue.isNotEmpty && circuit.isNotEmpty) {
-        label = "$venue • $circuit";
+      if (circuit.isNotEmpty) {
+        label = circuit;
       } else if (venue.isNotEmpty) {
         label = venue;
-      } else if (circuit.isNotEmpty) {
-        label = circuit;
       } else {
-        String showName = _toTitleCase(show['name']?.toString().trim() ?? '');
+        String showName = (show['name']?.toString().trim() ?? '');
         if (showName == "-") showName = "";
         label = showName;
       }

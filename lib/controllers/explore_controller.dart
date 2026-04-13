@@ -25,7 +25,11 @@ class ExploreController extends GetxController {
   final RxList<String> recentSearches = <String>[].obs;
   final RxBool isGridView = true.obs;
   
-  // Advanced filters
+  // Pagination
+  final RxInt currentPage = 1.obs;
+  final RxBool hasMore = true.obs;
+  final RxBool isLoadMoreLoading = false.obs;
+  final int limit = 15;
   final RxnInt ageMin = RxnInt();
   final RxnInt ageMax = RxnInt();
   final RxString breedFilter = ''.obs;
@@ -43,6 +47,7 @@ class ExploreController extends GetxController {
     searchQuery.value = '';
     location.value = '';
     showVenue.value = '';
+    selectedDiscipline.value = 'All';
     startDate.value = null;
     endDate.value = null;
     ageMin.value = null;
@@ -86,17 +91,28 @@ class ExploreController extends GetxController {
     await prefs.setStringList('recent_searches', recentSearches);
   }
 
-  Future<void> fetchHorses() async {
+  Future<void> fetchHorses({bool isLoadMore = false}) async {
     if (selectedDiscipline.value == 'Services') {
-      await fetchVendors();
+      await fetchVendors(isLoadMore: isLoadMore);
       return;
     }
 
-    try {
-      isLoading.value = true;
-      // Clear vendors when switching to horses
-      vendors.clear();
+    if (isLoadMore) {
+      if (!hasMore.value || isLoadMoreLoading.value) return;
+      isLoadMoreLoading.value = true;
+      currentPage.value++;
+    } else {
+      // Only show full-screen loader if we have no data yet
+      if (horses.isEmpty && vendors.isEmpty) {
+        isLoading.value = true;
+      }
+      currentPage.value = 1;
+      hasMore.value = true;
+      // Clear vendors when switching to/refreshing horses
+      // vendors.clear(); // Removing this to prevent flicker when refreshing horses
+    }
 
+    try {
       final Map<String, String> queryParams = {};
 
       final currentUserId = _profileController.id;
@@ -106,6 +122,8 @@ class ExploreController extends GetxController {
       queryParams['isActive'] = 'true';
       queryParams['status'] = 'approved,available';
       queryParams['onlyApprovedTrainers'] = 'true';
+      queryParams['page'] = currentPage.value.toString();
+      queryParams['limit'] = limit.toString();
 
       if (trainerId.isNotEmpty) {
         queryParams['excludeTrainerId'] = trainerId;
@@ -161,8 +179,21 @@ class ExploreController extends GetxController {
         final List<HorseModel> newHorses = data
             .map((e) => HorseModel.fromJson(e))
             .toList();
-        horses.assignAll(newHorses);
-        _logger.i('Fetched ${horses.length} horses');
+
+        if (isLoadMore) {
+          horses.addAll(newHorses);
+        } else {
+          horses.assignAll(newHorses);
+        }
+
+        final pagination = response.body['pagination'];
+        if (pagination != null) {
+           hasMore.value = currentPage.value < (pagination['totalPages'] ?? 0);
+        } else {
+           hasMore.value = newHorses.length == limit;
+        }
+
+        _logger.i('Fetched ${newHorses.length} horses (Page ${currentPage.value})');
       } else {
         _logger.e('Failed to fetch horses: ${response.statusText}');
       }
@@ -170,16 +201,28 @@ class ExploreController extends GetxController {
       _logger.e('Error fetching horses: $e');
     } finally {
       isLoading.value = false;
+      isLoadMoreLoading.value = false;
     }
   }
 
-  Future<void> fetchVendors() async {
-    try {
+  Future<void> fetchVendors({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (!hasMore.value || isLoadMoreLoading.value) return;
+      isLoadMoreLoading.value = true;
+      currentPage.value++;
+    } else {
       isLoading.value = true;
-      // Clear horses when switching to vendors
+      currentPage.value = 1;
+      hasMore.value = true;
+      // Clear horses when switching to/refreshing vendors
       horses.clear();
+    }
 
+    try {
       final Map<String, String> queryParams = {};
+      queryParams['page'] = currentPage.value.toString();
+      queryParams['limit'] = limit.toString();
+
       if (searchQuery.value.isNotEmpty) {
         queryParams['search'] = searchQuery.value;
       }
@@ -197,8 +240,21 @@ class ExploreController extends GetxController {
         final List<VendorModel> newVendors = data
             .map((e) => VendorModel.fromJson(e))
             .toList();
-        vendors.assignAll(newVendors);
-        _logger.i('Fetched ${vendors.length} vendors');
+
+        if (isLoadMore) {
+          vendors.addAll(newVendors);
+        } else {
+          vendors.assignAll(newVendors);
+        }
+
+        final pagination = response.body['pagination'];
+        if (pagination != null) {
+           hasMore.value = currentPage.value < (pagination['totalPages'] ?? 0);
+        } else {
+           hasMore.value = newVendors.length == limit;
+        }
+
+        _logger.i('Fetched ${newVendors.length} vendors (Page ${currentPage.value})');
       } else {
         _logger.e('Failed to fetch vendors: ${response.statusText}');
       }
@@ -206,6 +262,7 @@ class ExploreController extends GetxController {
       _logger.e('Error fetching vendors: $e');
     } finally {
       isLoading.value = false;
+      isLoadMoreLoading.value = false;
     }
   }
 

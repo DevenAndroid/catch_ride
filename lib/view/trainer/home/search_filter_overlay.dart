@@ -69,7 +69,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
-    {'name': 'Jumper', 'icon': 'assets/icons/jumper.svg', 'isSvg': true},
+    {'name': 'Jumper', 'icon': Icons.flag_rounded, 'isSvg': false},
     {
       'name': 'Equitation',
       'icon': 'assets/icons/equitation.svg',
@@ -856,10 +856,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   Widget _buildFooter() {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
+      // decoration: BoxDecoration(
+      //   color: Colors.white.withOpacity(0.9),
+      //   borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      // ),
       child: Row(
         children: [
           Expanded(
@@ -913,3 +913,4 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     );
   }
 }
+

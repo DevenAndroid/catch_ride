@@ -41,8 +41,12 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   void _initVideo() {
     final String videoLink = controller.videoLinkController.text;
-    final File? localVideo = controller.localVideos.isNotEmpty ? controller.localVideos.first : null;
-    final String? uploadedVideo = controller.uploadedVideos.isNotEmpty ? controller.uploadedVideos.first : null;
+    final File? localVideo = controller.localVideos.isNotEmpty
+        ? controller.localVideos.first
+        : null;
+    final String? uploadedVideo = controller.uploadedVideos.isNotEmpty
+        ? controller.uploadedVideos.first
+        : null;
 
     if (videoLink.isEmpty && localVideo == null && uploadedVideo == null) {
       _hasVideo = false;
@@ -59,10 +63,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
             setState(() {});
           });
       } else if (uploadedVideo != null) {
-        _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(uploadedVideo))
-          ..initialize().then((_) {
-            setState(() {});
-          });
+        _videoPlayerController =
+            VideoPlayerController.networkUrl(Uri.parse(uploadedVideo))
+              ..initialize().then((_) {
+                setState(() {});
+              });
       }
       return;
     }
@@ -131,7 +136,10 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
         ...controller.uploadedImages,
         ...controller.localImages,
       ];
-      final int totalVideos = controller.uploadedVideos.length + controller.localVideos.length + (controller.videoLinkController.text.isNotEmpty ? 1 : 0);
+      final int totalVideos =
+          controller.uploadedVideos.length +
+          controller.localVideos.length +
+          (controller.videoLinkController.text.isNotEmpty ? 1 : 0);
       final int totalItems = allImages.length + totalVideos;
 
       final String title = controller.listingTitleController.text.isEmpty
@@ -192,7 +200,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                         .map(
                           (entry) => Padding(
                             padding: EdgeInsets.only(
-                              right: entry.key ==
+                              right:
+                                  entry.key ==
                                       controller.selectedListingTypes.length - 1
                                   ? 0
                                   : 8,
@@ -267,7 +276,6 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
     );
   }
 
-
   Widget _buildHeroTag(String tag) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -322,7 +330,6 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       ),
     );
   }
-
 
   Widget _buildDescriptionAndTags() {
     final String description = controller.descriptionController.text.isEmpty
@@ -386,7 +393,6 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       ),
     );
   }
-
 
   Widget _buildDetailsCard() {
     return Column(
@@ -768,7 +774,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      const Icon(Icons.video_library, color: Colors.white, size: 64),
+                      const Icon(
+                        Icons.video_library,
+                        color: Colors.white,
+                        size: 64,
+                      ),
                       Positioned(
                         bottom: 40,
                         child: CommonText(
@@ -825,5 +835,4 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       ],
     );
   }
-
 }
