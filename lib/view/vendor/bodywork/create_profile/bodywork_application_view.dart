@@ -46,22 +46,32 @@ class BodyworkApplicationView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonTextField(
-                  label: 'Full Name',
+                _buildGroupedSection(
+                  'Full Name',
                   isRequired: true,
-                  controller: controller.fullNameController,
-                  hintText: 'Enter Your Full Name',
-                  validator: RequiredValidator(errorText: "Please enter your full name"),
+                  children: [
+                    CommonTextField(
+                      label: '',
+                      controller: controller.fullNameController,
+                      hintText: 'Enter Your Full Name',
+                      validator: RequiredValidator(errorText: "Please enter your full name"),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
-                CommonTextField(
-                  label: 'Why Join Our Community?',
+                _buildGroupedSection(
+                  'Why Join Our Community?',
                   isRequired: true,
-                  controller: controller.joinCommunityController,
-                  hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
-                  maxLines: 4,
-                  validator: RequiredValidator(errorText: "Please tell us why you want to join"),
+                  children: [
+                    CommonTextField(
+                      label: '',
+                      controller: controller.joinCommunityController,
+                      hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
+                      maxLines: 4,
+                      validator: RequiredValidator(errorText: "Please tell us why you want to join"),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -75,7 +85,7 @@ class BodyworkApplicationView extends StatelessWidget {
                       onTap: null, 
                     ),
                     const SizedBox(height: 16),
-
+                    _buildSectionHeader('State / Province', isRequired: true),
                     Obx(() {
                       controller.selectedState.value; // Track state changes
                       controller.isLoadingStates.value; // Track loading status
@@ -143,134 +153,92 @@ class BodyworkApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionHeader('Experience', isRequired: true),
-                Obx(() {
-                  controller.experience.value; // Track experience changes
-                  return FormField<String>(
-                  validator: (value) => controller.experience.value == null ? 'Please select experience' : null,
-                  builder: (state) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildBottomTrigger(
-                        value: controller.experience.value,
-                        hint: 'Select Years of Experience',
-                        onTap: () => _showExperienceBottomSheet(
-                          context: context,
-                          title: 'Experience',
-                          currentValue: controller.experience.value,
-                          options: controller.experienceOptions,
-                          onSelected: (val) => controller.experience.value = val,
-                        ),
-                      ),
-                      if (state.hasError)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, left: 12),
-                          child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
-                        ),
-                    ],
-                  ),
-                  );
-                }),
-                const SizedBox(height: 24),
-
                 _buildGroupedSection(
-                  'Bodywork Provider Type',
+                  'Experience',
                   isRequired: true,
-                  description: 'Select what best describes your primary modality.',
                   children: [
                     Obx(() {
-                      controller.selectedProviderType.length; // Track list changes
-                      return FormField<List<String>>(
-                      validator: (value) => controller.selectedProviderType.isEmpty ? 'Please select at least one' : null,
-                      builder: (state) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 8,
-                            children: controller.providerTypeOptions.map((opt) {
-                              final isSelected = controller.selectedProviderType.contains(opt);
-                              return FilterChip(
-                                label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                                selected: isSelected,
-                                onSelected: (val) {
-                                  if (val) {
-                                    controller.selectedProviderType.add(opt);
-                                  } else {
-                                    controller.selectedProviderType.remove(opt);
-                                  }
-                                },
-                                selectedColor: AppColors.primary,
-                                backgroundColor: AppColors.tabBackground,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                                showCheckmark: false,
-                              );
-                            }).toList(),
-                          ),
-                          if (state.hasError)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                      controller.experience.value; // Track experience changes
+                      return FormField<String>(
+                        validator: (value) => controller.experience.value == null ? 'Please select experience' : null,
+                        builder: (state) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildBottomTrigger(
+                              value: controller.experience.value,
+                              hint: 'Select Years of Experience',
+                              onTap: () => _showExperienceBottomSheet(
+                                context: context,
+                                title: 'Experience',
+                                currentValue: controller.experience.value,
+                                options: controller.experienceOptions,
+                                onSelected: (val) => controller.experience.value = val,
+                              ),
                             ),
-                        ],
-                      ),
-                    );
-                  }),
+                            if (state.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8, left: 12),
+                                child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
                   ],
                 ),
                 const SizedBox(height: 24),
 
                 _buildGroupedSection(
-                  'Bodywork Certification',
-                  isRequired: true,
-                  description: 'Select all certifications that apply.',
+                  'Modality Offered',
+                  isRequired: false,
+                  description: 'Select all modalities you are trained and qualified to provide',
                   children: [
                     Obx(() {
-                      controller.selectedCertifications.length; // Track list changes
-                      controller.certificationOptions.length; // Track options changes
+                      controller.selectedModalities.length; // Track list changes
+                      controller.modalityOptions.length; // Track options changes
                       return FormField<List<String>>(
-                      validator: (value) => controller.selectedCertifications.isEmpty ? 'Please select at least one' : null,
-                      builder: (state) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 8,
-                            children: controller.certificationOptions.map((opt) {
-                              final isSelected = controller.selectedCertifications.contains(opt);
-                              return FilterChip(
-                                label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                                selected: isSelected,
-                                onSelected: (val) {
-                                   if (val) {
-                                    controller.selectedCertifications.add(opt);
-                                  } else {
-                                    controller.selectedCertifications.remove(opt);
-                                  }
-                                },
-                                selectedColor: AppColors.primary,
-                                backgroundColor: AppColors.tabBackground,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                                showCheckmark: false,
-                              );
-                            }).toList(),
-                          ),
-                          if (state.hasError)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                        validator: (value) => controller.selectedModalities.isEmpty ? 'Please select at least one' : null,
+                        builder: (state) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: controller.modalityOptions.map((opt) {
+                                final isSelected = controller.selectedModalities.contains(opt);
+                                return FilterChip(
+                                  label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
+                                  selected: isSelected,
+                                  onSelected: (val) {
+                                    if (val) {
+                                      controller.selectedModalities.add(opt);
+                                    } else {
+                                      controller.selectedModalities.remove(opt);
+                                    }
+                                  },
+                                  selectedColor: AppColors.primary,
+                                  backgroundColor: AppColors.tabBackground,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
+                                  showCheckmark: false,
+                                );
+                              }).toList(),
                             ),
-                        ],
-                      ),
-                    );
-                  }),
+                            if (state.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
                     Obx(() {
-                      if (controller.selectedCertifications.contains('Other')) {
+                      if (controller.selectedModalities.contains('Other')) {
                         return Padding(
                           padding: const EdgeInsets.only(top: 12),
                           child: CommonTextField(
-                            label: '',
-                            controller: controller.otherCertificationController,
+                            label: '', 
+                            controller: controller.otherModalityController,
                             hintText: 'Write here...',
                           ),
                         );
@@ -281,65 +249,80 @@ class BodyworkApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
+
+
+                _buildGroupedSection(
+                  'Certification',
+                  description: 'Upload any relevant certifications or licenses for your services.',
+                  children: [
+                    const CommonText('Upload Certificate', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 12),
+                    _buildCertificatePicker(controller),
+                    const SizedBox(height: 16),
+                    Obx(() => _buildCertificateList(controller)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
                 _buildGroupedSection(
                   'Insurance Status',
                   isRequired: true,
-                  description: 'Indicate your professional liability status.',
+                  description: 'Insurance may be required for certain services or venues. Documentation may be reviewed as part of approval.',
                   children: [
                     Obx(() {
-                      controller.selectedInsurance.value; // Track insurance changes
-                      return FormField<String>(
-                      validator: (value) => controller.selectedInsurance.value == null ? 'Please select insurance status' : null,
-                      builder: (state) => Column(
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ...controller.insuranceOptions.map((opt) {
+                            final isSelected = controller.selectedInsurance.value == opt;
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Obx(() {
-                                final isSelected = controller.selectedInsurance.value == opt;
-                                return GestureDetector(
-                                  onTap: () => controller.selectedInsurance.value = opt,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: isSelected ? AppColors.primary : AppColors.borderLight,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                                          color: isSelected ? AppColors.primary : AppColors.borderLight,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        CommonText(opt, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
-                                      ],
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: GestureDetector(
+                                onTap: () => controller.selectedInsurance.value = opt,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.cardColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                      width: isSelected ? 1.5 : 1,
                                     ),
                                   ),
-                                );
-                              }),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                                        color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      CommonText(opt, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                                    ],
+                                  ),
+                                ),
+                               ),
                             );
                           }).toList(),
-                          if (state.hasError)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8, left: 12),
-                              child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                          
+                          if (controller.selectedInsurance.value == 'Carries Insurance') ...[
+                            const SizedBox(height: 12),
+                            const CommonText('Upload Current Insurance Document', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                            const SizedBox(height: 12),
+                            _buildInsuranceFilePicker(controller),
+                            const SizedBox(height: 12),
+                            _buildInsuranceFileList(controller),
+                            const SizedBox(height: 16),
+                            _buildSectionHeader('Expiration date', isRequired: true),
+                            _buildBottomTrigger(
+                              value: controller.insuranceExpiry.value,
+                              hint: 'Enter expiration date',
+                              onTap: () => controller.pickInsuranceExpiry(context),
                             ),
+                          ],
                         ],
-                      ),
-                    );
-                  }),
-                    const SizedBox(height: 12),
-                    CommonTextField(
-                      label: 'Policy Number (optional)',
-                      controller: controller.policyNumberController,
-                      hintText: 'Enter your policy number...',
-                    ),
+                      );
+                    }),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -347,7 +330,7 @@ class BodyworkApplicationView extends StatelessWidget {
                 _buildGroupedSection(
                   'Disciplines',
                   isRequired: true,
-                  description: 'Select the disciplines you most commonly work with.',
+                  description: 'Select the disciplines you most commonly work with',
                   children: [
                     Obx(() {
                       controller.selectedDisciplines.length; // Track list changes
@@ -408,7 +391,7 @@ class BodyworkApplicationView extends StatelessWidget {
                 _buildGroupedSection(
                   'Typical Level of Horses',
                   isRequired: true,
-                  description: 'Select the types of horses you most frequently work with.',
+                  description: 'Select the types of horses you most frequently work with',
                   children: [
                     Obx(() {
                       controller.selectedHorseLevels.length; // Track list changes
@@ -456,7 +439,7 @@ class BodyworkApplicationView extends StatelessWidget {
                 _buildGroupedSection(
                   'Regions Covered',
                   isRequired: true,
-                  description: 'Select the regions you most commonly work in.',
+                  description: 'Select the regions you most commonly work in',
                   children: [
                     Obx(() {
                       controller.selectedRegions.length; // Track list changes
@@ -552,32 +535,32 @@ class BodyworkApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionHeader('Add Photos', isRequired: true),
-                const CommonText(
-                  'Upload photos that showcase your work and skills.',
-                  fontSize: AppTextSizes.size12,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(height: 12),
-                const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                const SizedBox(height: 8),
-                Obx(() {
-                  controller.photos.length; // Track photo list changes
-                  return FormField<List<File>>(
-                  validator: (value) => controller.photos.isEmpty ? 'Please upload at least one work photo' : null,
-                  builder: (state) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildPhotoGrid(controller),
-                      if (state.hasError)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                _buildGroupedSection(
+                  'Add Photos',
+                  isRequired: true,
+                  description: 'Upload photos that showcase your work and skills.',
+                  children: [
+                    const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 8),
+                    Obx(() {
+                      controller.photos.length; // Track photo list changes
+                      return FormField<List<File>>(
+                        validator: (value) => controller.photos.isEmpty ? 'Please upload at least one work photo' : null,
+                        builder: (state) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildPhotoGrid(controller),
+                            if (state.hasError)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: CommonText(state.errorText!, color: AppColors.accentRed, fontSize: 12),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
-                  );
-                }),
+                      );
+                    }),
+                  ],
+                ),
                 const SizedBox(height: 24),
 
                 _buildProfessionalReferences(controller),
@@ -635,7 +618,19 @@ class BodyworkApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildCheckboxes(controller),
+                _buildStandardsSection(controller),
+                const SizedBox(height: 24),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCheckboxes(controller),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 32),
 
                 Obx(() => CommonButton(
@@ -1037,20 +1032,19 @@ class BodyworkApplicationView extends StatelessWidget {
   Widget _buildProfessionalReferences(BodyworkApplicationController controller) {
     return _buildGroupedSection(
       'Professional References',
-      description: 'Provide references here regarding your experience, professionalism, and reliability.',
+      description: 'Provide references who can speak to your experience, professionalism, and reliability',
       children: [
-        _buildSectionHeader('Reference 1', isRequired: true),
+        CommonText('Trainer Reference 1', color: AppColors.secondary, fontSize: AppTextSizes.size14, fontWeight: FontWeight.normal),
+        const SizedBox(height: 12),
         CommonTextField(
-          label: 'Full Name',
-          isRequired: true,
+          label: 'Full name',
           controller: controller.ref1FullNameController,
           hintText: 'Enter Full Name',
           validator: RequiredValidator(errorText: "Please enter reference full name"),
         ),
         const SizedBox(height: 12),
         CommonTextField(
-          label: 'Business Name',
-          isRequired: true,
+          label: 'Business name',
           controller: controller.ref1BusinessNameController,
           hintText: 'Enter Business Name',
           validator: RequiredValidator(errorText: "Please enter business name"),
@@ -1058,21 +1052,21 @@ class BodyworkApplicationView extends StatelessWidget {
         const SizedBox(height: 12),
         CommonTextField(
           label: 'Relationship',
-          isRequired: true,
           controller: controller.ref1RelationshipController,
-          hintText: 'e.g. Stable Manager, Client',
+          hintText: 'Enter Relationship',
           validator: RequiredValidator(errorText: "Please enter relationship"),
         ),
         const SizedBox(height: 24),
-        _buildSectionHeader('Reference 2', isRequired: false),
+        CommonText('Trainer Reference 2', color: AppColors.secondary, fontSize: AppTextSizes.size14, fontWeight: FontWeight.normal),
+        const SizedBox(height: 12),
         CommonTextField(
-          label: 'Full Name',
+          label: 'Full name',
           controller: controller.ref2FullNameController,
           hintText: 'Enter Full Name',
         ),
         const SizedBox(height: 12),
         CommonTextField(
-          label: 'Business Name',
+          label: 'Business name',
           controller: controller.ref2BusinessNameController,
           hintText: 'Enter Business Name',
         ),
@@ -1080,8 +1074,37 @@ class BodyworkApplicationView extends StatelessWidget {
         CommonTextField(
           label: 'Relationship',
           controller: controller.ref2RelationshipController,
-          hintText: 'e.g. Stable Manager, Client',
+          hintText: 'Enter Relationship',
         ),
+      ],
+    );
+  }
+
+  Widget _buildStandardsSection(BodyworkApplicationController controller) {
+    return _buildGroupedSection(
+      'Professional Standards & Scope',
+      description: 'Catch Ride maintains a high standard of care across all providers. Please confirm the following to proceed',
+      children: [
+        Obx(() => _buildCheckRow(
+          'I provide supportive bodywork and do not replace veterinary care',
+          controller.confirmSupportiveBodywork.value,
+          () => controller.confirmSupportiveBodywork.value = !controller.confirmSupportiveBodywork.value,
+        )),
+        Obx(() => _buildCheckRow(
+          'I refer cases requiring diagnosis or medical treatment to a licensed veterinarian',
+          controller.confirmReferToVet.value,
+          () => controller.confirmReferToVet.value = !controller.confirmReferToVet.value,
+        )),
+        Obx(() => _buildCheckRow(
+          'I understand certain services or situations may require prior veterinary approval',
+          controller.confirmVetApproval.value,
+          () => controller.confirmVetApproval.value = !controller.confirmVetApproval.value,
+        )),
+        Obx(() => _buildCheckRow(
+          'I operate within the scope of my certifications and local regulations.',
+          controller.confirmWithinScope.value,
+          () => controller.confirmWithinScope.value = !controller.confirmWithinScope.value,
+        )),
       ],
     );
   }
@@ -1090,19 +1113,17 @@ class BodyworkApplicationView extends StatelessWidget {
     return Column(
       children: [
         Obx(() => _buildCheckRow(
-          'I confirm that I am at least 18 years of age.',
+          'I confirm that I am at least 18 years of age or older.',
           controller.is18OrOlder.value,
           () => controller.is18OrOlder.value = !controller.is18OrOlder.value,
         )),
-        const SizedBox(height: 12),
         Obx(() => _buildCheckRow(
           'I agree to the Terms of Service and Privacy Policy.',
           controller.agreeToTerms.value,
           () => controller.agreeToTerms.value = !controller.agreeToTerms.value,
         )),
-        const SizedBox(height: 12),
         Obx(() => _buildCheckRow(
-          'I confirm that the references provided may be contacted.',
+          'I understand that my professional references may be contacted regarding my work history, competence, and reliability.',
           controller.confirmReferences.value,
           () => controller.confirmReferences.value = !controller.confirmReferences.value,
         )),
@@ -1113,20 +1134,204 @@ class BodyworkApplicationView extends StatelessWidget {
   Widget _buildCheckRow(String text, bool value, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              value ? Icons.check_box : Icons.check_box_outline_blank,
+              color: value ? const Color(0xFF001149) : AppColors.borderMedium,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: CommonText(text, fontSize: AppTextSizes.size14, color: AppColors.textPrimary, height: 1.4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCertificatePicker(BodyworkApplicationController controller) {
+    return GestureDetector(
+      onTap: controller.pickCertificate,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: AppColors.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: AppColors.tabBackground, borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.cloud_upload_outlined, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(fontSize: AppTextSizes.size14, fontFamily: 'Inter'),
+                children: [
+                  TextSpan(text: 'Click to upload ', style: TextStyle(color: AppColors.linkBlue, fontWeight: FontWeight.bold)),
+                  TextSpan(text: 'or drag and drop', style: TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            const CommonText('PNG, JPG or PDF (max. 800x400px)', fontSize: 12, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCertificateList(BodyworkApplicationController controller) {
+    if (controller.certificates.isEmpty) return const SizedBox.shrink();
+    return Column(
+      children: controller.certificates.asMap().entries.map((entry) {
+        final file = entry.value;
+        final name = file.path.split('/').last;
+        final isPdf = name.toLowerCase().endsWith('.pdf');
+        
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.cardColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(color: AppColors.tabBackground, borderRadius: BorderRadius.circular(8)),
+                child: Icon(isPdf ? Icons.picture_as_pdf : Icons.image, color: isPdf ? AppColors.accentRed : AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonText(name, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textPrimary, maxLines: 1),
+                    const SizedBox(height: 2),
+                    CommonText(_getFileSize(file), fontSize: 12, color: AppColors.textSecondary),
+                  ],
+                ),
+              ),
+              IconButton(icon: const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 20), onPressed: () => controller.removeCertificate(entry.key)),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildInsuranceFilePicker(BodyworkApplicationController controller) {
+    return GestureDetector(
+      onTap: controller.pickInsuranceDocument,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: AppColors.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: AppColors.tabBackground, borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.cloud_upload_outlined, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            RichText(
+              text: const TextSpan(
+                style: TextStyle(fontSize: AppTextSizes.size14, fontFamily: 'Inter'),
+                children: [
+                  TextSpan(text: 'Click to upload ', style: TextStyle(color: AppColors.linkBlue, fontWeight: FontWeight.bold)),
+                  TextSpan(text: 'or drag and drop', style: TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            const CommonText('PNG, JPG or PDF (max. 800x400px)', fontSize: 12, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInsuranceFileList(BodyworkApplicationController controller) {
+    if (controller.insuranceFile.value == null) return const SizedBox.shrink();
+    final file = controller.insuranceFile.value!;
+    final name = file.path.split('/').last;
+    
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            value ? Icons.check_circle : Icons.radio_button_off,
-            color: value ? AppColors.primary : AppColors.borderMedium,
-            size: 20,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEE2E2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(Icons.description, color: Color(0xFFEF4444), size: 32),
+                Positioned(
+                  bottom: 2,
+                   child: Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+                     color: const Color(0xFFEF4444),
+                     child: const Text('PDF', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                   ),
+                )
+              ],
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: CommonText(text, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonText(name, fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary, maxLines: 1),
+                const SizedBox(height: 2),
+                CommonText(_getFileSize(file), fontSize: 11, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 22),
+            onPressed: () => controller.insuranceFile.value = null,
           ),
         ],
       ),
     );
+  }
+
+  String _getFileSize(File file) {
+    try {
+      if (file.existsSync()) {
+        return '${(file.lengthSync() / 1024).toStringAsFixed(1)} KB';
+      }
+    } catch (e) {
+      debugPrint('Error getting file size: $e');
+    }
+    return '...';
   }
 }

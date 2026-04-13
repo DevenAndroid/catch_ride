@@ -31,7 +31,7 @@ class BodyworkDetailsController extends GetxController {
   final services = <Map<String, dynamic>>[].obs;
   // Fallback services in case API fails
   final List<String> fallbackServices = [
-    'Equine massage',
+    'Sports massage',
     'Myofascial release',
     'PEMF',
     'Chiropractic',
@@ -45,10 +45,13 @@ class BodyworkDetailsController extends GetxController {
 
   // Certifications
   final certifications = <File>[].obs;
+  final certificationUrls = <String>[].obs;
   
   // Insurance
   final selectedInsurance = 'Not currently insured'.obs;
   final insuranceDocument = Rxn<File>();
+  final insuranceDocumentUrl = RxnString();
+  final insuranceDocumentName = RxnString();
   final expirationDate = Rxn<DateTime>();
   final insuranceOptions = ['Carries Insurance', 'Insurance available upon request', 'Not currently insured'];
 
@@ -191,11 +194,30 @@ class BodyworkDetailsController extends GetxController {
             }
 
             // Insurance
-            if (profileData['insurance'] != null) {
-              selectedInsurance.value = profileData['insurance']['status'] ?? 'Not currently insured';
-              if (profileData['insurance']['expirationDate'] != null) {
-                expirationDate.value = DateTime.tryParse(profileData['insurance']['expirationDate']);
+            final Map<String, dynamic> appInsurance = applicationData['insurance'] is Map ? Map<String, dynamic>.from(applicationData['insurance']) : {};
+            final Map<String, dynamic> profInsurance = profileData['insurance'] is Map ? Map<String, dynamic>.from(profileData['insurance']) : {};
+            
+            final insuranceData = profInsurance.isNotEmpty ? profInsurance : appInsurance;
+            
+            if (insuranceData.isNotEmpty) {
+              selectedInsurance.value = insuranceData['status'] ?? 'Not currently insured';
+              final expiry = insuranceData['expirationDate'] ?? insuranceData['expiryDate'];
+              if (expiry != null) {
+                expirationDate.value = DateTime.tryParse(expiry);
               }
+              if (insuranceData['document'] != null) {
+                insuranceDocumentUrl.value = insuranceData['document'];
+                insuranceDocumentName.value = (insuranceData['document'] as String).split('/').last;
+              }
+            }
+
+            // Certifications
+            final List appCerts = applicationData['certifications'] ?? [];
+            final List profCerts = profileData['certifications'] ?? [];
+            if (profCerts.isNotEmpty) {
+              certificationUrls.assignAll(List<String>.from(profCerts));
+            } else if (appCerts.isNotEmpty) {
+              certificationUrls.assignAll(List<String>.from(appCerts));
             }
 
             // Policy
@@ -274,14 +296,14 @@ class BodyworkDetailsController extends GetxController {
       final vendorId = vendorResponse.body['data']['_id'];
 
       // 1. Upload Certifications
-      final List<String> certKeys = [];
+      final List<String> certKeys = [...certificationUrls];
       for (var cert in certifications) {
         final key = await _uploadFile(cert);
         if (key != null) certKeys.add(key);
       }
 
       // 2. Upload Insurance Doc
-      String? insuranceKey;
+      String? insuranceKey = insuranceDocumentUrl.value;
       if (insuranceDocument.value != null) {
         insuranceKey = await _uploadFile(insuranceDocument.value!);
       }

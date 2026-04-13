@@ -21,6 +21,7 @@ class EditVendorProfileController extends GetxController {
   final phoneController = TextEditingController();
   final businessNameController = TextEditingController();
   final aboutController = TextEditingController();
+  final notesForTrainerController = TextEditingController();
   final RxString profilePhotoUrl = ''.obs;
   final RxString coverImageUrl = ''.obs;
   final Rxn<File> newProfileImage = Rxn<File>();
@@ -90,6 +91,22 @@ class EditVendorProfileController extends GetxController {
   // Photos
   final RxList<String> existingPhotos = <String>[].obs;
   final RxList<File> newPhotos = <File>[].obs;
+
+  // Service-specific photo lists to prevent overwriting
+  final Map<String, RxList<String>> serviceExistingPhotos = {
+    'Grooming': <String>[].obs,
+    'Braiding': <String>[].obs,
+    'Clipping': <String>[].obs,
+    'Farrier': <String>[].obs,
+    'Bodywork': <String>[].obs,
+  };
+  final Map<String, RxList<File>> serviceNewPhotos = {
+    'Grooming': <File>[].obs,
+    'Braiding': <File>[].obs,
+    'Clipping': <File>[].obs,
+    'Farrier': <File>[].obs,
+    'Bodywork': <File>[].obs,
+  };
 
   // Farrier Tab Specifics
   final RxList farrierServices = [].obs;
@@ -237,6 +254,7 @@ class EditVendorProfileController extends GetxController {
         phoneController.text = data['phone'] ?? '';
         businessNameController.text = data['businessName'] ?? '';
         aboutController.text = data['bio'] ?? '';
+        notesForTrainerController.text = data['notesForTrainer'] ?? '';
         profilePhotoUrl.value = data['profilePhoto'] ?? '';
         coverImageUrl.value = data['coverImage'] ?? '';
         
@@ -433,7 +451,14 @@ class EditVendorProfileController extends GetxController {
         customCancellationController.text = cancellationPolicy.value ?? '';
       }
       
-      existingPhotos.assignAll(List<String>.from(profileData['media'] ?? []));
+      // Populate service-specific photos
+      final serviceType = activeService?['serviceType'];
+      if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
+        serviceExistingPhotos[serviceType]!.assignAll(List<String>.from(profileData['media'] ?? []));
+        // Also sync the legacy 'shared' lists for UI compatibility if needed, 
+        // but we'll update UI to use specific ones.
+        existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
+      }
     }
   }
 
@@ -537,21 +562,35 @@ class EditVendorProfileController extends GetxController {
     if (image != null) newCoverImage.value = File(image.path);
   }
 
-  Future<void> addGroomingPhoto() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) newPhotos.add(File(image.path));
+  Future<void> addServicePhoto(String serviceType) async {
+    final List<XFile> images = await _picker.pickMultiImage();
+    if (images.isNotEmpty && serviceNewPhotos.containsKey(serviceType)) {
+      serviceNewPhotos[serviceType]!.addAll(images.map((image) => File(image.path)));
+      // Also sync to legacy newPhotos if on that tab
+      newPhotos.addAll(images.map((image) => File(image.path)));
+    }
   }
 
-  void removeExistingPhoto(int index) => existingPhotos.removeAt(index);
-  void removeNewPhoto(int index) => newPhotos.removeAt(index);
-  Future<void> addBodyworkPhoto() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) newPhotos.add(File(image.path));
+  void removeServiceExistingPhoto(String serviceType, int index) {
+    if (serviceExistingPhotos.containsKey(serviceType)) {
+      serviceExistingPhotos[serviceType]!.removeAt(index);
+      existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
+    }
+  }
+
+  void removeServiceNewPhoto(String serviceType, int index) {
+    if (serviceNewPhotos.containsKey(serviceType)) {
+      serviceNewPhotos[serviceType]!.removeAt(index);
+      // We don't easily sync back to legacy newPhotos because it's shared, 
+      // but UI will use service-specific ones.
+    }
   }
 
   Future<void> addShippingRigPhoto() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) newShippingRigPhotos.add(File(image.path));
+    final List<XFile> images = await _picker.pickMultiImage();
+    if (images.isNotEmpty) {
+      newShippingRigPhotos.addAll(images.map((image) => File(image.path)));
+    }
   }
 
   void removeExistingShippingRigPhoto(int index) => shippingRigPhotos.removeAt(index);
@@ -597,7 +636,7 @@ class EditVendorProfileController extends GetxController {
   Future<void> saveProfile() async {
     isSaving.value = true;
     try {
-      // 1. Upload new images if any
+      // 1. Upload All Files
       String? profilePhoto = profilePhotoUrl.value;
       if (newProfileImage.value != null) {
         profilePhoto = await _uploadFile(newProfileImage.value!, 'profile');
@@ -608,10 +647,24 @@ class EditVendorProfileController extends GetxController {
         coverImage = await _uploadFile(newCoverImage.value!, 'profile');
       }
 
-      final List<String> groomingMedia = [...existingPhotos];
-      for (var f in newPhotos) {
-        final key = await _uploadFile(f, 'grooming');
-        if (key != null) groomingMedia.add(key);
+      // Upload media for each service
+      final Map<String, List<String>> serviceMediaKeys = {};
+      for (var serviceType in serviceNewPhotos.keys) {
+        final List<String> mediaKeys = [...(serviceExistingPhotos[serviceType] ?? [])];
+        final List<File> newFiles = serviceNewPhotos[serviceType] ?? [];
+        
+        if (newFiles.isNotEmpty) {
+          final uploads = await Future.wait(newFiles.map((f) => _uploadFile(f, serviceType.toLowerCase())));
+          mediaKeys.addAll(uploads.whereType<String>());
+        }
+        serviceMediaKeys[serviceType] = mediaKeys;
+      }
+
+      // Handle Shipping specifically if needed (it uses shippingMedia currently)
+      final List<String> shippingMedia = [...shippingRigPhotos];
+      if (newShippingRigPhotos.isNotEmpty) {
+        final uploads = await Future.wait(newShippingRigPhotos.map((f) => _uploadFile(f, 'shipping')));
+        shippingMedia.addAll(uploads.whereType<String>());
       }
 
       // 2. Prepare Payload
@@ -623,6 +676,7 @@ class EditVendorProfileController extends GetxController {
         'phone': phoneController.text,
         'businessName': businessNameController.text,
         'bio': aboutController.text,
+        'notesForTrainer': notesForTrainerController.text,
         'profilePhoto': profilePhoto,
         'coverImage': coverImage,
         'paymentMethods': selectedPayments.toList(),
@@ -655,7 +709,7 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Grooming'] ?? [],
           },
           'profileData': {
             'socialMedia': {
@@ -672,7 +726,7 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Grooming'] ?? [],
           }
         };
       }
@@ -691,7 +745,7 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Braiding'] ?? [],
           },
           'profileData': {
             'socialMedia': {
@@ -705,7 +759,7 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Braiding'] ?? [],
           }
         };
       }
@@ -724,7 +778,7 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Clipping'] ?? [],
           },
           'profileData': {
             'socialMedia': {
@@ -738,7 +792,7 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Clipping'] ?? [],
           }
         };
       }
@@ -767,7 +821,7 @@ class EditVendorProfileController extends GetxController {
               'emergencySupport': farrierEmergencySupport.value,
             },
             'insuranceStatus': farrierInsuranceStatus.value,
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Farrier'] ?? [],
           },
           'profileData': {
             'socialMedia': {
@@ -791,7 +845,7 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Farrier'] ?? [],
           }
         };
       }
@@ -810,7 +864,7 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Bodywork'] ?? [],
           },
           'profileData': {
             'socialMedia': {
@@ -840,7 +894,7 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': groomingMedia,
+            'media': serviceMediaKeys['Bodywork'] ?? [],
           }
         };
       }
@@ -940,6 +994,11 @@ class EditVendorProfileController extends GetxController {
         if (Get.isRegistered<GroomViewProfileController>()) {
           Get.find<GroomViewProfileController>().fetchProfile();
         }
+
+        serviceNewPhotos.values.forEach((list) => list.clear());
+        newShippingRigPhotos.clear();
+        newProfileImage.value = null;
+        newCoverImage.value = null;
 
         Get.back();
         Get.snackbar('Success', 'Profile updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);

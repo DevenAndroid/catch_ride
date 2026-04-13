@@ -446,7 +446,7 @@ class BodyworkEditProfileTab extends StatelessWidget {
   }
 
   Widget _addPhotoBox() {
-    return GestureDetector(onTap: () => controller.addBodyworkPhoto(), child: Container(width: 80, height: 80, decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight, style: BorderStyle.none)), child: const Icon(Icons.add, color: AppColors.textSecondary, size: 24)));
+    return GestureDetector(onTap: () => controller.addServicePhoto('Bodywork'), child: Container(width: 80, height: 80, decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight, style: BorderStyle.none)), child: const Icon(Icons.add, color: AppColors.textSecondary, size: 24)));
   }
 
   // Insurance and Date helpers would go here (already implemented or similar to Create flow)
@@ -562,13 +562,13 @@ class BodyworkEditProfileTab extends StatelessWidget {
         spacing: 12,
         runSpacing: 12,
         children: [
-          ...controller.existingPhotos.asMap().entries.map((entry) => _photoBox(
+          ...controller.serviceExistingPhotos['Bodywork']!.asMap().entries.map((entry) => _photoBox(
             image: NetworkImage(entry.value),
-            onRemove: () => controller.removeExistingPhoto(entry.key),
+            onRemove: () => controller.removeServiceExistingPhoto('Bodywork', entry.key),
           )),
-          ...controller.newPhotos.asMap().entries.map((entry) => _photoBox(
+          ...controller.serviceNewPhotos['Bodywork']!.asMap().entries.map((entry) => _photoBox(
             image: FileImage(entry.value),
-            onRemove: () => controller.removeNewPhoto(entry.key),
+            onRemove: () => controller.removeServiceNewPhoto('Bodywork', entry.key),
           )),
           _addPhotoBox(),
         ],

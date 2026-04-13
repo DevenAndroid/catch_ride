@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
@@ -35,37 +36,27 @@ class BodyworkApplicationController extends GetxController {
   final isLoadingCities = false.obs;
   final isLoadingTags = false.obs;
 
-  // Bodywork Provider Type
-  final selectedProviderType = <String>[].obs;
-  final providerTypeOptions = <String>[
-    'PEMF (e.g. Magnawave)',
-    'Massage / Myofascial',
-    'Laser',
-    'Acupuncturist',
-    'Chiropractor',
-    'Red Light Therapy',
-    'Veterinary',
-    'Other'
-  ].obs;
 
-  // Certification
-  final selectedCertifications = <String>[].obs;
-  final otherCertificationController = TextEditingController();
-  final certificationOptions = <String>['AFA', 'BWFA', 'Other'].obs; // Will fetch from tags
 
   // Insurance
   final selectedInsurance = RxnString();
   final insuranceOptions = <String>[
-    'Carries insurance',
-    'Insurance details upon request',
+    'Carries Insurance',
+    'Insurance available upon request',
     'Not currently insured'
   ].obs;
-  final policyNumberController = TextEditingController();
+  final insuranceFile = Rxn<File>();
+  final insuranceExpiry = RxnString();
 
   // Disciplines
   final selectedDisciplines = <String>[].obs;
-  final otherDisciplineController = TextEditingController();
   final disciplineOptions = <String>[].obs;
+  final otherDisciplineController = TextEditingController();
+
+  // Modality Offered
+  final selectedModalities = <String>[].obs;
+  final modalityOptions = <String>[].obs;
+  final otherModalityController = TextEditingController();
 
   // Level of Horses
   final selectedHorseLevels = <String>[].obs;
@@ -79,9 +70,16 @@ class BodyworkApplicationController extends GetxController {
   final facebookController = TextEditingController();
   final instagramController = TextEditingController();
 
+
+  // policy number
+  final policyNumberController = TextEditingController();
+
   // Photos
   final photos = <File>[].obs;
   final ImagePicker _picker = ImagePicker();
+
+  // Certifications
+  final certificates = <File>[].obs;
 
   // References
   final ref1FullNameController = TextEditingController();
@@ -103,6 +101,13 @@ class BodyworkApplicationController extends GetxController {
   final is18OrOlder = false.obs;
   final agreeToTerms = false.obs;
   final confirmReferences = false.obs;
+
+  // Professional Standards
+  final confirmSupportiveBodywork = false.obs;
+  final confirmReferToVet = false.obs;
+  final confirmVetApproval = false.obs;
+  final confirmWithinScope = false.obs;
+
   final isSubmitting = false.obs;
 
   @override
@@ -186,17 +191,18 @@ class BodyworkApplicationController extends GetxController {
               List<String>.from(regionType['values'].map((v) => v['name'])));
         }
 
-        // Certification Options
-        final certType = types.firstWhereOrNull(
-            (t) => t['name'] == 'Certifications' || t['name'] == 'Certification');
-        if (certType != null) {
-          certificationOptions.assignAll(
-              List<String>.from(certType['values'].map((v) => v['name'])));
+        // Populate Modality Offered
+        final modalityType = types.firstWhereOrNull(
+            (t) => t['name'] == 'Modality Offered' || t['name'] == 'Modalities Offered');
+        if (modalityType != null) {
+          modalityOptions.assignAll(List<String>.from(
+              modalityType['values'].map((v) => v['name'])));
+          if (!modalityOptions.contains('Other')) modalityOptions.add('Other');
         }
-        
+
         debugPrint('Bodywork tags loaded: Disciplines(${disciplineOptions.length}), '
             'Levels(${horseLevelOptions.length}), Regions(${regionOptions.length}), '
-            'Certs(${certificationOptions.length})');
+            'Modalities(${modalityOptions.length})');
       } else {
         _setFallbackOptions();
       }
@@ -222,6 +228,57 @@ class BodyworkApplicationController extends GetxController {
         'Southwest (Thermal / AZ winter circuits)',
         'Southeast (Aiken / Tryon / Wills Park / Chatt Hills)',
       ]);
+    }
+    if (modalityOptions.isEmpty) {
+      modalityOptions.assignAll(['Sports Massage', 'Myofascial Release', 'PEMF', 'Chiropractic', 'Acupuncture', 'Other']);
+    }
+  }
+
+  Future<void> pickCertificate() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null && result.files.single.path != null) {
+      certificates.add(File(result.files.single.path!));
+    }
+  }
+
+  void removeCertificate(int index) {
+    certificates.removeAt(index);
+  }
+
+  Future<void> pickInsuranceDocument() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null && result.files.single.path != null) {
+      insuranceFile.value = File(result.files.single.path!);
+    }
+  }
+
+  void pickInsuranceExpiry(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2035),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      insuranceExpiry.value = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
     }
   }
 
@@ -254,10 +311,9 @@ class BodyworkApplicationController extends GetxController {
     fullNameController.dispose();
     joinCommunityController.dispose();
     otherDisciplineController.dispose();
-    otherCertificationController.dispose();
+    otherModalityController.dispose();
     facebookController.dispose();
     instagramController.dispose();
-    policyNumberController.dispose();
     ref1FullNameController.dispose();
     ref1BusinessNameController.dispose();
     ref1RelationshipController.dispose();
@@ -287,6 +343,22 @@ class BodyworkApplicationController extends GetxController {
     return null;
   }
 
+  Future<String?> _uploadCertificate(File file) async {
+    try {
+      final formData = FormData({
+        'media': MultipartFile(file, filename: file.path.split('/').last),
+        'type': 'certification',
+      });
+      final response = await apiService.postRequest('/upload?type=certification', formData);
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        return response.body['data']['filename'];
+      }
+    } catch (e) {
+      debugPrint('Error uploading certificate: $e');
+    }
+    return null;
+  }
+
   Future<void> submitApplication() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
@@ -305,6 +377,11 @@ class BodyworkApplicationController extends GetxController {
       return;
     }
 
+    if (!confirmSupportiveBodywork.value || !confirmReferToVet.value || !confirmVetApproval.value || !confirmWithinScope.value) {
+      Get.snackbar('Professional Standards', 'Please confirm all Professional Standards and Scope conditions', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+      return;
+    }
+
     isSubmitting.value = true;
     try {
       final authController = Get.find<AuthController>();
@@ -312,19 +389,18 @@ class BodyworkApplicationController extends GetxController {
         'fullName': fullNameController.text,
         'phone': authController.currentUser.value?.phone ?? '', 
         'whyJoin': joinCommunityController.text,
-        'providerType': selectedProviderType.toList(),
         'homeBase': {
           'country': countryController.text,
           'state': selectedState.value?['name'],
           'city': selectedCity.value?['name'],
         },
         'experience': experience.value,
+        'modalities': selectedModalities.toList(),
+        'otherModality': otherModalityController.text,
         'insurance': {
           'status': selectedInsurance.value,
-          'policyNumber': policyNumberController.text,
+          'expiryDate': insuranceExpiry.value,
         },
-        'certifications': selectedCertifications.toList(),
-        'otherCertification': otherCertificationController.text,
         'disciplines': selectedDisciplines.toList(),
         'otherDiscipline': otherDisciplineController.text,
         'horseLevels': selectedHorseLevels.toList(),
@@ -342,6 +418,12 @@ class BodyworkApplicationController extends GetxController {
           }
         ],
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'standards': {
+           'provideSupportiveBodywork': confirmSupportiveBodywork.value,
+           'refertoVet': confirmReferToVet.value,
+           'vetApprovalRequired': confirmVetApproval.value,
+           'operateWithinScope': confirmWithinScope.value,
+        }
       };
 
       final List<String> photoKeys = [];
@@ -350,6 +432,21 @@ class BodyworkApplicationController extends GetxController {
         if (key != null) photoKeys.add(key);
       }
       applicationData['media'] = photoKeys;
+
+      final List<String> certificateKeys = [];
+      for (var cert in certificates) {
+        final key = await _uploadCertificate(cert);
+        if (key != null) certificateKeys.add(key);
+      }
+      applicationData['certifications'] = certificateKeys;
+
+      if (insuranceFile.value != null) {
+        final key = await _uploadCertificate(insuranceFile.value!);
+        if (key != null) {
+          final insuranceData = applicationData['insurance'] as Map<String, dynamic>;
+          insuranceData['document'] = key;
+        }
+      }
 
       final profileData = {
         'socialMedia': {

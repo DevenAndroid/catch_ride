@@ -35,6 +35,7 @@ class UserModel {
   final String? yearsInIndustry;
   final List<String> roles;
   final List<String> vendorServices;
+  final String? notesForTrainer;
   final DateTime? createdAt;
 
   UserModel({
@@ -72,6 +73,7 @@ class UserModel {
     this.linkedBarnManager,
     this.linkedTrainer,
     this.yearsInIndustry,
+    this.notesForTrainer,
     this.createdAt,
   });
 
@@ -187,6 +189,7 @@ class UserModel {
       linkedTrainer: json['role'] == 'barn_manager' && json['trainerId'] is Map
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
+      notesForTrainer: json['notesForTrainer'] ?? (proData != null ? proData['notesForTrainer'] : null),
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
     );
   }
@@ -226,6 +229,7 @@ class UserModel {
       if (linkedBarnManager != null)
         'linkedBarnManager': linkedBarnManager!.toJson(),
       if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
+      if (notesForTrainer != null) 'notesForTrainer': notesForTrainer,
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
   }
@@ -264,6 +268,7 @@ class UserModel {
     BarnManager? linkedBarnManager,
     TrainerLinkedModel? linkedTrainer,
     String? yearsInIndustry,
+    String? notesForTrainer,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -301,6 +306,7 @@ class UserModel {
       linkedBarnManager: linkedBarnManager ?? this.linkedBarnManager,
       linkedTrainer: linkedTrainer ?? this.linkedTrainer,
       yearsInIndustry: yearsInIndustry ?? this.yearsInIndustry,
+      notesForTrainer: notesForTrainer ?? this.notesForTrainer,
       createdAt: createdAt ?? this.createdAt,
     );
   }

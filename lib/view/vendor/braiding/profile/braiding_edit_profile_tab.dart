@@ -306,13 +306,13 @@ class BraidingEditProfileTab extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              ...controller.existingPhotos.asMap().entries.map((entry) => _photoBox(
+              ...controller.serviceExistingPhotos['Braiding']!.asMap().entries.map((entry) => _photoBox(
                 image: NetworkImage(entry.value),
-                onRemove: () => controller.removeExistingPhoto(entry.key),
+                onRemove: () => controller.removeServiceExistingPhoto('Braiding', entry.key),
               )),
-              ...controller.newPhotos.asMap().entries.map((entry) => _photoBox(
+              ...controller.serviceNewPhotos['Braiding']!.asMap().entries.map((entry) => _photoBox(
                 image: FileImage(entry.value),
-                onRemove: () => controller.removeNewPhoto(entry.key),
+                onRemove: () => controller.removeServiceNewPhoto('Braiding', entry.key),
               )),
               _addPhotoBox(),
             ],
@@ -592,7 +592,7 @@ class BraidingEditProfileTab extends StatelessWidget {
               leading: const Icon(Icons.photo_library),
               title: const CommonText('Gallery'),
               onTap: () {
-                controller.addGroomingPhoto();
+                controller.addServicePhoto('Braiding');
                 Get.back();
               },
             ),
