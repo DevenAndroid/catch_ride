@@ -159,7 +159,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   void _confirmDelete() {
     Get.dialog(
       AlertDialog(
-        title: const CommonText('Delete Listing', fontSize: 18, fontWeight: FontWeight.bold),
+        title: const CommonText(
+          'Delete Listing',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         content: CommonText(
           'Are you sure you want to delete ${horse?.name}? This action cannot be undone.',
           fontSize: 14,
@@ -193,7 +197,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 );
               }
             },
-            child: const CommonText('Delete', color: Colors.red, fontWeight: FontWeight.bold),
+            child: const CommonText(
+              'Delete',
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -263,6 +271,27 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     return Stack(
       children: [
         _buildImageSection(),
+        // Dark gradient overlay for text readability
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 160,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.8),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
         // Header Controls
         Positioned(
           top: 16,
@@ -281,89 +310,90 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           bottom: 16,
           left: 16,
           right: 16,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: CommonText(
-                      '${horse!.name} - ${horse!.displayDiscipline}',
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          child: IgnorePointer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: CommonText(
+                        '${horse!.name} - ${horse!.displayDiscipline}',
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: horse!.isActive
+                            ? const Color(0xFFECFDF3)
+                            : const Color(0xFFFEF3F2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: CommonText(
+                        horse!.isActive ? 'Active' : 'Inactive',
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: horse!.isActive
+                            ? const Color(0xFF027A48)
+                            : const Color(0xFFB42318),
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: horse!.isActive
-                          ? const Color(0xFFECFDF3)
-                          : const Color(0xFFFEF3F2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: CommonText(
-                      horse!.isActive ? 'Active' : 'Inactive',
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: horse!.isActive
-                          ? const Color(0xFF027A48)
-                          : const Color(0xFFB42318),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: horse!.listingTypes
-                      .asMap()
-                      .entries
-                      .map(
-                        (entry) => Padding(
-                          padding: EdgeInsets.only(
-                            right:
-                                entry.key == horse!.listingTypes.length - 1
-                                    ? 0
-                                    : 8,
-                          ),
-                          child: _buildOverlayBadge(
-                            entry.value,
-                            const Color(0xFFFDE4E1),
-                            const Color(0xFFE11D48),
-                          ),
-                        ),
-                      )
-                      .toList(),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.location_on_outlined,
-                    color: Colors.white,
-                    size: 16,
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: horse!.listingTypes
+                        .asMap()
+                        .entries
+                        .map(
+                          (entry) => Padding(
+                            padding: EdgeInsets.only(
+                              right: entry.key == horse!.listingTypes.length - 1
+                                  ? 0
+                                  : 8,
+                            ),
+                            child: _buildOverlayBadge(
+                              entry.value,
+                              const Color(0xFFFDE4E1),
+                              const Color(0xFFE11D48),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: CommonText(
-                      (horse!.location == null || horse!.location!.isEmpty)
-                          ? 'N/A'
-                          : horse!.location!,
-                      fontSize: 12,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.location_on_outlined,
                       color: Colors.white,
-                      overflow: TextOverflow.ellipsis,
+                      size: 16,
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: CommonText(
+                        (horse!.location == null || horse!.location!.isEmpty)
+                            ? 'N/A'
+                            : horse!.location!,
+                        fontSize: 12,
+                        color: Colors.white,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -500,17 +530,22 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   Widget _buildTrainerSection() {
     final profileController = Get.find<ProfileController>();
     final isOwnHorse = _isTrainerOwnHorse();
-    
+
     // If it's the trainer's own horse, use their profile data as fallback
-    final String? trainerAvatar = (isOwnHorse && (horse!.trainerAvatar == null || horse!.trainerAvatar!.isEmpty))
+    final String? trainerAvatar =
+        (isOwnHorse &&
+            (horse!.trainerAvatar == null || horse!.trainerAvatar!.isEmpty))
         ? profileController.user.value?.displayAvatar
         : horse!.trainerAvatar;
-        
-    final String trainerName = (isOwnHorse && (horse!.trainerName == null || horse!.trainerName == 'N/A'))
+
+    final String trainerName =
+        (isOwnHorse &&
+            (horse!.trainerName == null || horse!.trainerName == 'N/A'))
         ? profileController.fullName
         : (horse!.trainerName ?? 'N/A');
 
-    final String? trainerLocation = (isOwnHorse && (horse!.location == null || horse!.location!.isEmpty))
+    final String? trainerLocation =
+        (isOwnHorse && (horse!.location == null || horse!.location!.isEmpty))
         ? profileController.location
         : horse!.location;
 
@@ -529,7 +564,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () => Get.to(() => TrainerProfileView(trainerId: horse?.trainerId)),
+              onTap: () =>
+                  Get.to(() => TrainerProfileView(trainerId: horse?.trainerId)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -591,7 +627,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         (horse!.description == null || horse!.description!.isEmpty)
         ? ''
         : horse!.description!;
-    
+
     final allTags = [
       if (horse!.height != null && horse!.height!.isNotEmpty) horse!.height!,
       ...horse!.disciplines,
@@ -651,11 +687,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final currentUserId = profileController.id;
     final isBookedByMe = horse!.bookedById == currentUserId;
 
-    final String? bAvatar = (isBookedByMe && (horse!.bookedByAvatar == null || horse!.bookedByAvatar!.isEmpty))
+    final String? bAvatar =
+        (isBookedByMe &&
+            (horse!.bookedByAvatar == null || horse!.bookedByAvatar!.isEmpty))
         ? profileController.user.value?.displayAvatar
         : horse!.bookedByAvatar;
-        
-    final String bName = (isBookedByMe && (horse!.bookedByName == null || horse!.bookedByName == 'N/A'))
+
+    final String bName =
+        (isBookedByMe &&
+            (horse!.bookedByName == null || horse!.bookedByName == 'N/A'))
         ? profileController.fullName
         : (horse!.bookedByName ?? '');
 
@@ -706,7 +746,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                             color: AppColors.textPrimary,
                           ),
                           const SizedBox(height: 4),
-                          if (horse!.bookedByLocation != null || (isBookedByMe && profileController.location.isNotEmpty))
+                          if (horse!.bookedByLocation != null ||
+                              (isBookedByMe &&
+                                  profileController.location.isNotEmpty))
                             Row(
                               children: [
                                 const Icon(
@@ -717,7 +759,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: CommonText(
-                                    isBookedByMe ? profileController.location : (horse!.bookedByLocation ?? 'N/A'),
+                                    isBookedByMe
+                                        ? profileController.location
+                                        : (horse!.bookedByLocation ?? 'N/A'),
                                     fontSize: AppTextSizes.size12,
                                     color: AppColors.textSecondary,
                                     overflow: TextOverflow.ellipsis,
@@ -849,25 +893,26 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   bool _isUrlVideo(String url) {
     if (url.isEmpty) return false;
     final lower = url.toLowerCase();
-    final isYoutube = lower.contains('youtube.com') || lower.contains('youtu.be');
-    return isYoutube || lower.contains('horsevideos') || 
-           lower.endsWith('.mp4') || 
-           lower.endsWith('.mov') || 
-           lower.endsWith('.avi');
+    final isYoutube =
+        lower.contains('youtube.com') || lower.contains('youtu.be');
+    return isYoutube ||
+        lower.contains('horsevideos') ||
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi');
   }
 
   Widget _buildImageSection() {
     final List<String> allMedia = [
-      if(horse!.images.isEmpty)
-        horse!.photo!,
+      if (horse!.images.isEmpty) horse!.photo!,
       ...horse!.images,
-      if (horse!.videoLink != null && 
-          horse!.videoLink!.isNotEmpty && 
+      if (horse!.videoLink != null &&
+          horse!.videoLink!.isNotEmpty &&
           horse!.videoLink != 'N/A' &&
-          !horse!.images.contains(horse!.videoLink)) 
-        horse!.videoLink!
+          !horse!.images.contains(horse!.videoLink))
+        horse!.videoLink!,
     ];
-    
+
     final int totalItems = allMedia.length;
 
     if (totalItems == 0) {
@@ -1035,7 +1080,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  Widget _buildPremiumDetailItem(String label, String value, {VoidCallback? onLabelTap}) {
+  Widget _buildPremiumDetailItem(
+    String label,
+    String value, {
+    VoidCallback? onLabelTap,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1077,7 +1126,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         final bool inquire = data['inquire'] ?? false;
         final minPrice = data['min']?.toString() ?? '';
         final maxPrice = data['max']?.toString() ?? '';
-        
+
         if (inquire || minPrice.isNotEmpty || maxPrice.isNotEmpty) {
           validPrices[entry.key] = data;
         }
@@ -1093,7 +1142,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       'Annual Lease',
       'Short Term or Circuit Lease',
     ];
-    
+
     final List<MapEntry<String, dynamic>> sortedEntries = [];
     for (var type in displayOrder) {
       if (validPrices.containsKey(type)) {
@@ -1139,10 +1188,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 final bool inquire = data['inquire'] ?? false;
                 final minPrice = data['min']?.toString() ?? '';
                 final maxPrice = data['max']?.toString() ?? '';
-                
+
                 String labelStr = type;
                 if (type == 'Sale') labelStr = 'For Sale';
-                
+
                 String valStr = '';
                 if (inquire) {
                   valStr = 'Inquire';
@@ -1153,7 +1202,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 } else {
                   valStr = '\$ $minPrice - \$ $maxPrice';
                 }
-                
+
                 return _buildPremiumDetailItem(labelStr, valStr);
               }).toList(),
             ),
@@ -1217,7 +1266,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(showVenue, fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        CommonText(
+          showVenue,
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
         const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1533,14 +1587,16 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         .map((show) => show.showVenue)
                         .where((venue) => venue.isNotEmpty)
                         .toSet() // Unique venues
-                        .map((venue) => DropdownMenuItem(
-                              value: venue,
-                              child: CommonText(
-                                venue,
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                              ),
-                            ))
+                        .map(
+                          (venue) => DropdownMenuItem(
+                            value: venue,
+                            child: CommonText(
+                              venue,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        )
                         .toList(),
                     hint: const CommonText(
                       'Select Location',
@@ -1728,10 +1784,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildBookingHorseCard() {
     final hasImages = horse != null && horse!.images.isNotEmpty;
-    final photoUrl =
-        horse?.photo ??
-        (hasImages ? horse!.images.first : '');
-
+    final photoUrl = horse?.photo ?? (hasImages ? horse!.images.first : '');
 
     // Extract dynamic venue and dates
     String venueText = 'Venue - N/A';
@@ -1792,7 +1845,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     children: [
                       TextSpan(text: horse?.name ?? 'Unknown'),
                       TextSpan(
-                        text: ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
+                        text:
+                            ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
                         style: const TextStyle(
                           fontWeight: FontWeight.normal,
                           color: AppColors.textSecondary,
@@ -1854,10 +1908,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         .map(
                           (entry) => Padding(
                             padding: EdgeInsets.only(
-                              right:
-                                  entry.key == horse!.listingTypes.length - 1
-                                      ? 0
-                                      : 8,
+                              right: entry.key == horse!.listingTypes.length - 1
+                                  ? 0
+                                  : 8,
                             ),
                             child: _buildOverlayBadge(
                               entry.value,
@@ -1901,6 +1954,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 }
+
 class _InlineVideoPlayer extends StatefulWidget {
   final String url;
   const _InlineVideoPlayer({required this.url});
@@ -1935,23 +1989,25 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
       _initialized = true;
     } else {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-        ..initialize().then((_) {
-          if (mounted) {
-            _controller!.setVolume(0); // mute
-            _controller!.setLooping(true); // loop
-            _controller!.play(); // autoplay
-            setState(() {
-              _initialized = true;
+        ..initialize()
+            .then((_) {
+              if (mounted) {
+                _controller!.setVolume(0); // mute
+                _controller!.setLooping(true); // loop
+                _controller!.play(); // autoplay
+                setState(() {
+                  _initialized = true;
+                });
+              }
+            })
+            .catchError((e) {
+              debugPrint('Error loading video: $e');
+              if (mounted) {
+                setState(() {
+                  _error = true;
+                });
+              }
             });
-          }
-        }).catchError((e) {
-          debugPrint('Error loading video: $e');
-          if (mounted) {
-            setState(() {
-              _error = true;
-            });
-          }
-        });
     }
   }
 
@@ -1973,7 +2029,11 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
             children: [
               Icon(Icons.error_outline, color: Colors.white, size: 40),
               SizedBox(height: 8),
-              CommonText('Error loading video', color: Colors.white, fontSize: 12),
+              CommonText(
+                'Error loading video',
+                color: Colors.white,
+                fontSize: 12,
+              ),
             ],
           ),
         ),
@@ -1983,7 +2043,9 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
     if (!_initialized) {
       return Container(
         color: Colors.black,
-        child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
       );
     }
 
@@ -1992,8 +2054,8 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
       return GestureDetector(
         onTap: () {
           setState(() {
-            _youtubeController!.value.isPlaying 
-                ? _youtubeController!.pause() 
+            _youtubeController!.value.isPlaying
+                ? _youtubeController!.pause()
                 : _youtubeController!.play();
           });
         },
@@ -2031,8 +2093,8 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _controller!.value.isPlaying 
-              ? _controller!.pause() 
+          _controller!.value.isPlaying
+              ? _controller!.pause()
               : _controller!.play();
         });
       },
@@ -2041,23 +2103,23 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-             AspectRatio(
-               aspectRatio: _controller!.value.aspectRatio,
-               child: VideoPlayer(_controller!),
-             ),
-             if (!isPlaying)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+            AspectRatio(
+              aspectRatio: _controller!.value.aspectRatio,
+              child: VideoPlayer(_controller!),
+            ),
+            if (!isPlaying)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
                 ),
+                child: const Icon(
+                  Icons.play_arrow,
+                  color: Colors.white,
+                  size: 40,
+                ),
+              ),
           ],
         ),
       ),

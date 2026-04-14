@@ -234,7 +234,22 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
             color: AppColors.textPrimary,
             size: 20,
           ),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (_currentStep > 1) {
+              setState(() {
+                _currentStep--;
+              });
+              if (_scrollController.hasClients) {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            } else {
+              Get.back();
+            }
+          },
         ),
         title: const CommonText(
           'Edit listing',
