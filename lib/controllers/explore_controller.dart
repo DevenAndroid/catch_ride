@@ -125,9 +125,10 @@ class ExploreController extends GetxController {
 
     try {
       // Wait for profile data to load to ensure excludeTrainerId is populated
-      if (_profileController.user.value == null && _profileController.isLoading.value) {
+      if (_profileController.user.value == null) {
         int retries = 0;
-        while (_profileController.isLoading.value && retries < 20) {
+        // Wait up to 3 seconds for profile data
+        while (_profileController.user.value == null && retries < 30) {
           await Future.delayed(const Duration(milliseconds: 100));
           retries++;
         }

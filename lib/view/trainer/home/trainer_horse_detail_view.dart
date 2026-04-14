@@ -847,8 +847,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   bool _isUrlVideo(String url) {
+    if (url.isEmpty) return false;
     final lower = url.toLowerCase();
-    return lower.contains('horsevideos') || 
+    final isYoutube = lower.contains('youtube.com') || lower.contains('youtu.be');
+    return isYoutube || lower.contains('horsevideos') || 
            lower.endsWith('.mp4') || 
            lower.endsWith('.mov') || 
            lower.endsWith('.avi');
@@ -1908,33 +1910,55 @@ class _InlineVideoPlayer extends StatefulWidget {
 }
 
 class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
+  YoutubePlayerController? _youtubeController;
+  bool _isYoutube = false;
   bool _initialized = false;
   bool _error = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() {
-            _initialized = true;
-          });
-        }
-      }).catchError((e) {
-        debugPrint('Error loading video: $e');
-        if (mounted) {
-          setState(() {
-            _error = true;
-          });
-        }
-      });
+    final youtubeId = YoutubePlayer.convertUrlToId(widget.url);
+    if (youtubeId != null) {
+      _isYoutube = true;
+      _youtubeController = YoutubePlayerController(
+        initialVideoId: youtubeId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: true,
+          mute: true,
+          loop: true,
+          hideControls: true,
+          disableDragSeek: true,
+        ),
+      );
+      _initialized = true;
+    } else {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+        ..initialize().then((_) {
+          if (mounted) {
+            _controller!.setVolume(0); // mute
+            _controller!.setLooping(true); // loop
+            _controller!.play(); // autoplay
+            setState(() {
+              _initialized = true;
+            });
+          }
+        }).catchError((e) {
+          debugPrint('Error loading video: $e');
+          if (mounted) {
+            setState(() {
+              _error = true;
+            });
+          }
+        });
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
+    _youtubeController?.dispose();
     super.dispose();
   }
 
@@ -1963,10 +1987,53 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
       );
     }
 
+    if (_isYoutube && _youtubeController != null) {
+      final isPlaying = _youtubeController!.value.isPlaying;
+      return GestureDetector(
+        onTap: () {
+          setState(() {
+            _youtubeController!.value.isPlaying 
+                ? _youtubeController!.pause() 
+                : _youtubeController!.play();
+          });
+        },
+        child: Container(
+          color: Colors.black,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AbsorbPointer(
+                child: YoutubePlayer(
+                  controller: _youtubeController!,
+                  showVideoProgressIndicator: false,
+                ),
+              ),
+              if (!isPlaying)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final isPlaying = _controller!.value.isPlaying;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _controller.value.isPlaying ? _controller.pause() : _controller.play();
+          _controller!.value.isPlaying 
+              ? _controller!.pause() 
+              : _controller!.play();
         });
       },
       child: Container(
@@ -1974,23 +2041,23 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
-            ),
-            if (!_controller.value.isPlaying)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
+             AspectRatio(
+               aspectRatio: _controller!.value.aspectRatio,
+               child: VideoPlayer(_controller!),
+             ),
+             if (!isPlaying)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
           ],
         ),
       ),

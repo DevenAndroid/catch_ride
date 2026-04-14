@@ -26,11 +26,23 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
   @override
   void initState() {
     super.initState();
-    _loadHorses();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadHorses();
+    });
+    // Re-load when user profile is fetched
+    ever(profileController.user, (_) => _loadHorses());
     _scrollController.addListener(_onScroll);
   }
 
-  void _loadHorses({bool refresh = true}) {
+  Future<void> _loadHorses({bool refresh = true}) async {
+    if (profileController.user.value == null) {
+      int retries = 0;
+      while (profileController.user.value == null && retries < 30) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        retries++;
+      }
+    }
+
     final trainerId = profileController.trainerId;
     final userId = profileController.id;
 
@@ -38,6 +50,10 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
       horseController.fetchHorses(refresh: refresh, trainerId: trainerId);
     } else if (userId.isNotEmpty) {
       horseController.fetchHorses(refresh: refresh, ownerId: userId);
+    } else {
+      horseController.horses.clear();
+      horseController.hasNextPage.value = false;
+      horseController.isLoading.value = false;
     }
   }
 
@@ -83,7 +99,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
       ),
       body: SafeArea(
         child: Obx(() {
-          if (horseController.isLoading.value &&
+          if ((horseController.isLoading.value || profileController.isLoading.value) &&
               horseController.horses.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }

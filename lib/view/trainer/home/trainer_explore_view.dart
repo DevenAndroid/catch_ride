@@ -131,7 +131,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           scrollInfo.metrics.maxScrollExtent - 200) {
                         controller.fetchHorses(isLoadMore: true);
                       }
-                      return true;
+                      // ALlow the scroll notification to bubble up to the RefreshIndicator
+                      return false; 
                     },
                     child: CustomScrollView(
                       controller: _scrollController,
