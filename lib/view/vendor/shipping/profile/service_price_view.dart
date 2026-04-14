@@ -20,19 +20,6 @@ class ServicePriceView extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black, size: 20),
-          onPressed: () => Get.back(),
-        ),
-        title: const CommonText(
-          'Pricing',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -75,33 +62,42 @@ class ServicePriceView extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  
-                  // Base Rate
-                  const CommonText(
-                    'Base Rate',
-                    fontSize: AppTextSizes.size14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildPriceField(
-                    controller: controller.baseRateController,
-                    hint: 'Enter Price',
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Fully Loaded Rate
-                  const CommonText(
-                    'Fully Loaded Rate',
-                    fontSize: AppTextSizes.size14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildPriceField(
-                    controller: controller.loadedRateController,
-                    hint: 'Enter Price',
-                  ),
+                  Obx(() {
+                    if (controller.inquiryPrice.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 24),
+                        // Base Rate
+                        const CommonText(
+                          'Base Rate',
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildPriceField(
+                          controller: controller.baseRateController,
+                          hint: 'Enter Price',
+                        ),
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Fully Loaded Rate
+                        const CommonText(
+                          'Fully Loaded Rate',
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildPriceField(
+                          controller: controller.loadedRateController,
+                          hint: 'Enter Price',
+                        ),
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),

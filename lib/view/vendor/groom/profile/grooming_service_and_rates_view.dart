@@ -50,15 +50,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 4, bottom: 12),
-          child: CommonText(
-            'Details',
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
+
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),

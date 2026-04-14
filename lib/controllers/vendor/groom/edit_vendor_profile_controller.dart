@@ -156,12 +156,15 @@ class EditVendorProfileController extends GetxController {
   final shippingNotesController = TextEditingController();
   final RxList<String> shippingRigPhotos = <String>[].obs;
   final RxList<File> newShippingRigPhotos = <File>[].obs;
+  final RxnString shippingExistingCDLUrl = RxnString();
 
   // Shipping Dynamic Options
   final RxList<String> shippingOperationOptions = <String>[].obs;
   final RxList<String> shippingTravelScopeOptions = <String>[].obs;
   final RxList<String> shippingRigTypeOptions = <String>[].obs;
   final RxList<String> shippingServicesOptions = <String>[].obs;
+  final RxList<String> shippingStallOptions = <String>[].obs;
+  final RxList<String> shippingStallTypes = <String>[].obs;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -413,11 +416,13 @@ class EditVendorProfileController extends GetxController {
           shippingOperationType.value = appData['operationType'];
           shippingTravelScope.assignAll(List<String>.from(appData['travelScope'] ?? []));
           shippingRigTypes.assignAll(List<String>.from(appData['rigTypes'] ?? []));
+          shippingStallTypes.assignAll(List<String>.from(appData['stallType'] ?? []));
           shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []));
           shippingHasCDL.value = appData['hasCDL'] ?? false;
           shippingRigCapacity.value = appData['rigCapacity'] ?? 1;
           shippingNotesController.text = profileData['notes'] ?? '';
-          shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? []));
+          shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
+          shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'];
           
           experience.value = appData['experience']?.toString();
           selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
@@ -504,6 +509,8 @@ class EditVendorProfileController extends GetxController {
             if (regionOptions.isEmpty) regionOptions.assignAll(values);
           } else if (name == 'Shipping Services') {
             shippingServicesOptions.assignAll(values);
+          } else if (name == 'Stall Type') {
+            shippingStallOptions.assignAll(values);
           }
         }
       }
@@ -991,7 +998,7 @@ class EditVendorProfileController extends GetxController {
           if (key != null) shippingMedia.add(key);
         }
 
-        String? cdlUrl;
+        String? cdlUrl = shippingExistingCDLUrl.value;
         if (shippingCDLFile.value != null) {
           cdlUrl = await _uploadFile(shippingCDLFile.value!, 'shipping_docs');
         }
@@ -1012,6 +1019,7 @@ class EditVendorProfileController extends GetxController {
             'travelScope': shippingTravelScope.toList(),
             'regions': selectedRegions.toList(),
             'rigTypes': shippingRigTypes.toList(),
+            'stallType': shippingStallTypes.toList(),
             'rigCapacity': shippingRigCapacity.value,
             'hasCDL': shippingHasCDL.value,
             'media': {

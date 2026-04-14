@@ -79,11 +79,28 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
               color: AppColors.textSecondary,
             ),
             const SizedBox(height: 16),
-
-            // ── Pricing Rows ──────────────────────────────────────────────
-            _buildPriceItem('Base Rate', '\$ ${widget.baseRate} / per mile'),
-            const SizedBox(height: 12),
-            _buildPriceItem('Fully Loaded', '\$ ${widget.fullyLoadedRate} / per mile'),
+            if (widget.baseRate == 'Inquire for price') ...[
+              Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_outline,
+                    size: 20,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  const CommonText(
+                    'Inquire for price',
+                    fontSize: AppTextSizes.size16,
+                    color: Color(0xFFB91C1C),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ],
+              ),
+            ] else ...[
+              _buildPriceItem('Base Rate', '\$ ${widget.baseRate} / per mile'),
+              const SizedBox(height: 12),
+              _buildPriceItem('Fully Loaded', '\$ ${widget.fullyLoadedRate} / per mile'),
+            ],
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
 

@@ -57,11 +57,12 @@ class ShippingDetailsView extends StatelessWidget {
                       child: Row(
                         children: [
                           Checkbox(
+                            visualDensity: VisualDensity(horizontal: -4),
                             value: controller.inquiryPrice.value, 
                             onChanged: (val) => controller.inquiryPrice.value = val ?? false,
                             activeColor: AppColors.primary,
                           ),
-                          const CommonText('Inquiry for Price', fontSize: 14, color: AppColors.textPrimary),
+                          const CommonText('Inquire for Price', fontSize: 14, color: AppColors.textPrimary),
                         ],
                       ),
                     ),

@@ -71,7 +71,7 @@ class ProfileController extends GetxController {
     try {
       final results = await Future.wait([
         _apiService.getRequest(AppUrls.programTags),
-        _apiService.getRequest('${AppUrls.horseShows}?limit=1000'),
+        _apiService.getRequest('${AppUrls.horseShows}?limit=10000'),
         _apiService.getRequest(AppUrls.experienceLevels),
         _apiService.getRequest(
           '${AppUrls.tagTypesWithValues}?category=Trainer',

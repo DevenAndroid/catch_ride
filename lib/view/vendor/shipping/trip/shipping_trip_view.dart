@@ -1,12 +1,14 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/shipping/shipping_trip_controller.dart';
-import 'package:catch_ride/view/vendor/shipping/add_trip_view.dart';
+import 'package:catch_ride/view/vendor/shipping/trip/add_trip_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+
+import '../../../../models/trip_model.dart';
 
 class ShippingTripView extends StatelessWidget {
   const ShippingTripView({super.key});
@@ -90,18 +92,7 @@ class ShippingTripView extends StatelessWidget {
               }
 
               final trip = controller.trips[index - 1];
-              return _buildTripCard(
-                origin: trip.origin ?? 'N/A',
-                destinations: [trip.destination ?? 'N/A'],
-                status: trip.status,
-                statusColor: controller.getStatusColor(trip.status),
-                intermediateStops: trip.intermediateStops,
-                dates: trip.startDate != null && trip.endDate != null
-                    ? '${DateFormat('MMM dd').format(trip.startDate!)} - ${DateFormat('MMM dd, yyyy').format(trip.endDate!)}'
-                    : 'N/A',
-                slots: '${trip.maxHorses} slots available',
-                info: trip.equipmentDescription ?? 'N/A',
-              );
+              return _buildTripCard(context, controller, trip);
             },
           ),
         );
@@ -109,16 +100,12 @@ class ShippingTripView extends StatelessWidget {
     );
   }
 
-  Widget _buildTripCard({
-    required String origin,
-    required List<String> destinations,
-    required String status,
-    required Color statusColor,
-    List<String>? intermediateStops,
-    required String dates,
-    required String slots,
-    required String info,
-  }) {
+  Widget _buildTripCard(BuildContext context, ShippingTripController controller, TripModel trip) {
+    final statusColor = controller.getStatusColor(trip.status);
+    final dates = trip.startDate != null && trip.endDate != null
+        ? '${DateFormat('MMM dd').format(trip.startDate!)} - ${DateFormat('MMM dd, yyyy').format(trip.endDate!)}'
+        : 'N/A';
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -145,7 +132,7 @@ class ShippingTripView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: CommonText(
-                        origin,
+                        trip.origin ?? 'N/A',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -157,7 +144,7 @@ class ShippingTripView extends StatelessWidget {
                     ),
                     Flexible(
                       child: CommonText(
-                        destinations.join(', '),
+                        trip.destination ?? 'N/A',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -167,13 +154,45 @@ class ShippingTripView extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _buildStatusBadge(status, statusColor),
+              _buildStatusBadge(trip.status, statusColor),
               const SizedBox(width: 4),
-              const Icon(Icons.more_vert, color: AppColors.textSecondary, size: 20),
+              PopupMenuButton<String>(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.more_vert, color: AppColors.textSecondary, size: 20),
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    Get.to(() => const AddTripView(), arguments: {'trip': trip});
+                  } else if (value == 'delete') {
+                    _showDeleteConfirmation(context, controller, trip.id!);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18, color: Colors.blue.shade600),
+                        const SizedBox(width: 8),
+                        const CommonText('Edit'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline, size: 18, color: Colors.red.shade600),
+                        const SizedBox(width: 8),
+                        const CommonText('Delete'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
           
-          if (intermediateStops != null && intermediateStops.isNotEmpty) ...[
+          if (trip.intermediateStops != null && trip.intermediateStops!.isNotEmpty) ...[
             const SizedBox(height: 12),
             RichText(
               text: TextSpan(
@@ -186,7 +205,7 @@ class ShippingTripView extends StatelessWidget {
                     style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w600),
                   ),
                   TextSpan(
-                    text: intermediateStops.join(' • '),
+                    text: trip.intermediateStops!.join(' • '),
                     style: const TextStyle(color: AppColors.textSecondary),
                   ),
                 ],
@@ -198,9 +217,31 @@ class ShippingTripView extends StatelessWidget {
           
           _buildInfoRow(Icons.calendar_today_outlined, dates),
           const SizedBox(height: 8),
-          _buildInfoRow(Icons.access_time, slots),
+          _buildInfoRow(Icons.access_time, '${trip.maxHorses} slots available'),
           const SizedBox(height: 8),
-          _buildInfoRow(Icons.chat_bubble_outline, info),
+          _buildInfoRow(Icons.chat_bubble_outline, trip.routeNotes ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, ShippingTripController controller, String tripId) {
+    Get.dialog(
+      AlertDialog(
+        title: const CommonText('Delete Trip', fontWeight: FontWeight.bold),
+        content: const CommonText('Are you sure you want to delete this trip? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const CommonText('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.deleteTrip(tripId);
+            },
+            child: const CommonText('Delete', color: Colors.red),
+          ),
         ],
       ),
     );

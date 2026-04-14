@@ -46,20 +46,30 @@ class FarrierApplicationView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonTextField(
-                  label: 'Full Name',
+                _buildGroupedSection(
+                  'Full Name',
                   isRequired: true,
-                  controller: controller.fullNameController,
-                  hintText: 'Enter Your Full Name',
-                  validator: RequiredValidator(errorText: "Please enter your full name"),
+                  children: [
+                    CommonTextField(
+                      label: '',
+                      controller: controller.fullNameController,
+                      hintText: 'Enter Your Full Name',
+                      validator: RequiredValidator(errorText: "Please enter your full name"),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
-                CommonTextField(
-                  label: 'Why Join Our Community?',
-                  controller: controller.joinCommunityController,
-                  hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
-                  maxLines: 4,
+                _buildGroupedSection(
+                  'Why Join Our Community?',
+                  children: [
+                    CommonTextField(
+                      label: '',
+                      controller: controller.joinCommunityController,
+                      hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
+                      maxLines: 4,
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -108,23 +118,28 @@ class FarrierApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildSectionHeader('Experience', isRequired: true),
-                Obx(() => _buildBottomTrigger(
-                  value: controller.experience.value,
-                  hint: 'Select Years of Experience',
-                  onTap: () => _showExperienceBottomSheet(
-                    context: context,
-                    title: 'Experience',
-                    currentValue: controller.experience.value,
-                    options: controller.experienceOptions,
-                    onSelected: (val) => controller.experience.value = val,
-                  ),
-                )),
+                _buildGroupedSection(
+                  'Experience',
+                  isRequired: true,
+                  children: [
+                    Obx(() => _buildBottomTrigger(
+                      value: controller.experience.value,
+                      hint: 'Select Years of Experience',
+                      onTap: () => _showExperienceBottomSheet(
+                        context: context,
+                        title: 'Experience',
+                        currentValue: controller.experience.value,
+                        options: controller.experienceOptions,
+                        onSelected: (val) => controller.experience.value = val,
+                      ),
+                    )),
+                  ],
+                ),
                 const SizedBox(height: 24),
 
                 _buildGroupedSection(
-                  'Farrier Certification',
-                  description: 'Select your certification if applicable.',
+                  'Relevant Certifications',
+                  description: 'Select any certifications you hold or describe your training and background',
                   children: [
                     Obx(() => Wrap(
                       spacing: 12,
@@ -436,7 +451,7 @@ class FarrierApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildGroupedSection(String title, {String? description, required List<Widget> children}) {
+  Widget _buildGroupedSection(String title, {String? description, bool isRequired = false, required List<Widget> children}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -455,7 +470,7 @@ class FarrierApplicationView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(title),
+          _buildSectionHeader(title, isRequired: isRequired),
           if (description != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),

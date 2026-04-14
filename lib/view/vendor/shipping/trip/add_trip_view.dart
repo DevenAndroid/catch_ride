@@ -44,29 +44,25 @@ class AddTripView extends StatelessWidget {
                     label: 'Origin Location',
                     hintText: 'Select Show Venue or City',
                     controller: controller.originController,
+                    readOnly: true,
+                    onTap: () => _showVenueSelectionSheet(context, controller, controller.originController),
                     isRequired: true,
+                    suffixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 16),
                   CommonTextField(
                     label: 'Destination location',
                     hintText: 'Select Show Venue or City',
                     controller: controller.destinationController,
+                    readOnly: true,
+                    onTap: () => _showVenueSelectionSheet(context, controller, controller.destinationController),
+                    suffixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   Obx(() => Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          ...controller.rxHorseShows.take(5).map((show) {
-                            final name = show['name'] ?? '';
-                            final isAdded = controller.rxDestinationTags.contains(name);
-                            if (isAdded) return const SizedBox.shrink();
-                            return _buildChip(
-                              name,
-                              () => controller.addDestinationTag(name),
-                              isAction: true,
-                            );
-                          }),
                           ...controller.rxDestinationTags.map(
                             (tag) => _buildChip(tag, () => controller.removeDestinationTag(tag)),
                           ),
@@ -231,8 +227,10 @@ class AddTripView extends StatelessWidget {
                       children: [
                         CommonTextField(
                           label: 'Location',
-                          hintText: 'Enter Location',
+                          hintText: 'Select Show Venue or City',
                           controller: controller.intermediateStopController,
+                          readOnly: true,
+                          onTap: () => _showVenueSelectionSheet(context, controller, controller.intermediateStopController),
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.add_circle_outline),
                             onPressed: () {
@@ -282,6 +280,88 @@ class AddTripView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showVenueSelectionSheet(BuildContext context, AddTripController controller, TextEditingController targetController) {
+    final searchController = TextEditingController();
+    
+    // Deduplicate venues by display name
+    final seenNames = <String>{};
+    final List<Map<String, dynamic>> allVenues = controller.rxHorseShows.where((v) {
+      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+      if (seenNames.contains(name)) return false;
+      seenNames.add(name);
+      return true;
+    }).toList();
+
+    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
+    
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const CommonText('Select Venue or City', fontSize: 18, fontWeight: FontWeight.bold),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search venues or city...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onChanged: (val) {
+                final search = val.toLowerCase();
+                filteredVenues.assignAll(allVenues.where((v) {
+                  final name = v['name']?.toString().toLowerCase() ?? '';
+                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
+                  final city = v['city']?.toString().toLowerCase() ?? '';
+                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
+                }).toList());
+              },
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Obx(() => ListView.builder(
+                itemCount: filteredVenues.length,
+                itemBuilder: (context, index) {
+                  final venueItem = filteredVenues[index];
+                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
+                  final city = venueItem['city']?.toString() ?? '';
+                  
+                  return ListTile(
+                    onTap: () {
+                      targetController.text = venueName;
+                      // If it's the intermediate stop field, we might want to auto-add it too
+                      if (targetController == controller.intermediateStopController) {
+                         controller.addIntermediateStop(venueName);
+                      }
+                      Get.back();
+                    },
+                    title: CommonText(venueName),
+                    subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
+                    trailing: const Icon(Icons.chevron_right, size: 20),
+                  );
+                },
+              )),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 

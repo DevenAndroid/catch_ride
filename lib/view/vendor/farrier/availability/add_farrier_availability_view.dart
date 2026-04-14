@@ -292,8 +292,18 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
 
   void _showVenueSelectionSheet() {
     final searchController = TextEditingController();
-    final List<String> allVenues = profileController.allHorseShows;
-    final RxList<String> filteredVenues = RxList<String>(allVenues);
+    
+    // Deduplicate venues by display name before showing the list
+    final seenNames = <String>{};
+    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
+      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+      if (seenNames.contains(name)) return false;
+      seenNames.add(name);
+      return true;
+    }).toList();
+
+    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
+    
     Get.bottomSheet(
       Container(
         height: Get.height * 0.8,
@@ -305,23 +315,50 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
             const SizedBox(height: 16),
             TextField(
               controller: searchController,
-              decoration: InputDecoration(hintText: 'Search...', prefixIcon: const Icon(Icons.search), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-              onChanged: (val) => filteredVenues.assignAll(allVenues.where((v) => v.toLowerCase().contains(val.toLowerCase()))),
+              decoration: InputDecoration(
+                hintText: 'Search venues or city...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onChanged: (val) {
+                final search = val.toLowerCase();
+                filteredVenues.assignAll(allVenues.where((v) {
+                  final name = v['name']?.toString().toLowerCase() ?? '';
+                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
+                  final city = v['city']?.toString().toLowerCase() ?? '';
+                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
+                }).toList());
+              },
             ),
             const SizedBox(height: 16),
-            Expanded(child: Obx(() => ListView.builder(
-              itemCount: filteredVenues.length,
-              itemBuilder: (ctx, i) {
-                final v = filteredVenues[i];
-                return Obx(() => CheckboxListTile(
-                  value: _addedVenues.contains(v),
-                  onChanged: (sel) => sel == true ? _addedVenues.add(v) : _addedVenues.remove(v),
-                  title: CommonText(v),
-                  activeColor: const Color(0xFF8B4444),
-                ));
-              },
-            ))),
-            const SizedBox(height: 16),
+            Expanded(
+              child: Obx(() => ListView.builder(
+                itemCount: filteredVenues.length,
+                itemBuilder: (ctx, i) {
+                  final venueItem = filteredVenues[i];
+                  // Prioritize 'showVenue' key as requested, then 'name'
+                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
+                  final city = venueItem['city']?.toString() ?? '';
+                  
+                  return Obx(() {
+                    final isSelected = _addedVenues.contains(venueName);
+                    return CheckboxListTile(
+                      value: isSelected,
+                      onChanged: (selected) {
+                        if (selected == true) {
+                          if (!_addedVenues.contains(venueName)) _addedVenues.add(venueName);
+                        } else {
+                          _addedVenues.remove(venueName);
+                        }
+                      },
+                      title: CommonText(venueName),
+                      subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
+                      activeColor: const Color(0xFF8B4444),
+                    );
+                  });
+                },
+              )),
+            ),
             SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: () => Get.back(), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B4444), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const CommonText('Done', color: Colors.white))),
           ],
         ),

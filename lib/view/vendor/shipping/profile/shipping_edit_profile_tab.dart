@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_button.dart';
+import '../../../../widgets/common_image_view.dart';
 
 class ShippingEditProfileTab extends StatelessWidget {
   final EditVendorProfileController controller;
@@ -34,6 +35,8 @@ class ShippingEditProfileTab extends StatelessWidget {
         _buildRegionsCoveredSection(),
         const SizedBox(height: 20),
         _buildRigTypesSection(),
+        const SizedBox(height: 20),
+        _buildStallTypeSection(),
         const SizedBox(height: 20),
         _buildServicesOfferedSection(),
         const SizedBox(height: 20),
@@ -86,11 +89,39 @@ class ShippingEditProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonTextField(label: 'City', hintText: 'Select city', controller: controller.cityController),
+          CommonTextField(
+            label: 'Country',
+            hintText: 'Select Country',
+            isRequired: true,
+            readOnly: true,
+            controller: controller.countryController,
+          ),
           const SizedBox(height: 16),
-          CommonTextField(label: 'State / Province', hintText: 'Select state / province', isRequired: true, controller: controller.stateController),
+          _buildFieldLabel('State/Province', isRequired: true),
+          Obx(() => _buildDropdownTrigger(
+            value: controller.selectedStateNode.value?['name'],
+            isLoading: controller.isLoadingStates.value,
+            hint: 'Select state/province',
+            onTap: () => _showLocationBottomSheet(
+              title: 'Select State',
+              options: controller.states,
+              onSelected: (node) => controller.onStateSelected(node),
+            ),
+          )),
           const SizedBox(height: 16),
-          CommonTextField(label: 'Country', hintText: 'Select Country', isRequired: true, controller: controller.countryController),
+          _buildFieldLabel('City', isRequired: true),
+          Obx(() => _buildDropdownTrigger(
+            value: controller.selectedCityNode.value?['name'],
+            isLoading: controller.isLoadingCities.value,
+            hint: controller.selectedStateNode.value == null ? 'Select state first' : 'Select city',
+            onTap: controller.selectedStateNode.value == null 
+                ? null 
+                : () => _showLocationBottomSheet(
+              title: 'Select City',
+              options: controller.cities,
+              onSelected: (node) => controller.onCitySelected(node),
+            ),
+          )),
         ],
       ),
     );
@@ -139,19 +170,20 @@ class ShippingEditProfileTab extends StatelessWidget {
     return _buildCard(
       title: 'Operation Type',
       child: Obx(() {
-        final options = controller.shippingOperationOptions.isNotEmpty
-            ? controller.shippingOperationOptions
-            : ['Independent / Small Operation', 'Established Shipping Company'];
-
         return Column(
-          children: options.map((opt) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildSelectionTile(
-              title: opt,
-              isSelected: controller.shippingOperationType.value == opt,
-              onTap: () => controller.shippingOperationType.value = opt,
+          children: [
+            _buildSelectionTile(
+              title: 'Independent / Small Operation',
+              isSelected: controller.shippingOperationType.value == 'Independent / Small Operation',
+              onTap: () => controller.shippingOperationType.value = 'Independent / Small Operation',
             ),
-          )).toList(),
+            const SizedBox(height: 12),
+            _buildSelectionTile(
+              title: 'Established Shipping Company',
+              isSelected: controller.shippingOperationType.value == 'Established Shipping Company',
+              onTap: () => controller.shippingOperationType.value = 'Established Shipping Company',
+            ),
+          ],
         );
       }),
     );
@@ -166,14 +198,10 @@ class ShippingEditProfileTab extends StatelessWidget {
           const CommonText('Select range you typically cover', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           Obx(() {
-            final options = controller.shippingTravelScopeOptions.isNotEmpty
-                ? controller.shippingTravelScopeOptions
-                : ['Local', 'National', 'Regional', 'State-wide'];
-
             return Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: options.map((opt) {
+              children: ['Local', 'Nationwide'].map((opt) {
                 final isSelected = controller.shippingTravelScope.contains(opt);
                 return GestureDetector(
                   onTap: () {
@@ -246,6 +274,42 @@ class ShippingEditProfileTab extends StatelessWidget {
                       controller.shippingRigTypes.remove(opt);
                     } else {
                       controller.shippingRigTypes.add(opt);
+                    }
+                  },
+                  child: _buildChoiceChip(opt, isSelected),
+                );
+              }).toList(),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStallTypeSection() {
+    return _buildCard(
+      title: 'Stall Type',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText('Select the types of stalls available', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
+          Obx(() {
+            final options = controller.shippingStallOptions.isNotEmpty
+                ? controller.shippingStallOptions
+                : ['Box Stall', 'Slant Load', 'Front Facing', 'Rear Facing'];
+
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: options.map((opt) {
+                final isSelected = controller.shippingStallTypes.contains(opt);
+                return GestureDetector(
+                  onTap: () {
+                    if (isSelected) {
+                      controller.shippingStallTypes.remove(opt);
+                    } else {
+                      controller.shippingStallTypes.add(opt);
                     }
                   },
                   child: _buildChoiceChip(opt, isSelected),
@@ -336,16 +400,29 @@ class ShippingEditProfileTab extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.cloud_upload_outlined, color: AppColors.textSecondary, size: 32),
+                  Obx(() {
+                    final hasFile = controller.shippingCDLFile.value != null || (controller.shippingExistingCDLUrl.value != null && controller.shippingExistingCDLUrl.value!.isNotEmpty);
+                    return Icon(
+                      hasFile ? Icons.check_circle : Icons.cloud_upload_outlined,
+                      color: hasFile ? Colors.green : AppColors.textSecondary,
+                      size: 32,
+                    );
+                  }),
                   const SizedBox(height: 8),
-                  Obx(() => CommonText(
-                    controller.shippingCDLFile.value != null
-                        ? controller.shippingCDLFile.value!.path.split('/').last
-                        : 'Click to upload copy of license',
-                    color: AppColors.linkBlue,
-                    fontSize: AppTextSizes.size14,
-                    fontWeight: FontWeight.bold,
-                  )),
+                  Obx(() {
+                    String text = 'Click to upload copy of license';
+                    if (controller.shippingCDLFile.value != null) {
+                      text = controller.shippingCDLFile.value!.path.split('/').last;
+                    } else if (controller.shippingExistingCDLUrl.value != null && controller.shippingExistingCDLUrl.value!.isNotEmpty) {
+                      text = 'License copy uploaded';
+                    }
+                    return CommonText(
+                      text,
+                      color: AppColors.linkBlue,
+                      fontSize: AppTextSizes.size14,
+                      fontWeight: FontWeight.bold,
+                    );
+                  }),
                   const SizedBox(height: 4),
                   const CommonText('PDF, JPG, PNG (max 10MB)', fontSize: 10, color: AppColors.textSecondary),
                 ],
@@ -413,11 +490,11 @@ class ShippingEditProfileTab extends StatelessWidget {
             runSpacing: 12,
             children: [
               ...controller.shippingRigPhotos.asMap().entries.map((entry) => _photoBox(
-                image: NetworkImage(entry.value),
+                url: entry.value,
                 onRemove: () => controller.removeExistingShippingRigPhoto(entry.key),
               )),
               ...controller.newShippingRigPhotos.asMap().entries.map((entry) => _photoBox(
-                image: FileImage(entry.value),
+                file: entry.value,
                 onRemove: () => controller.removeNewShippingRigPhoto(entry.key),
               )),
               _addPhotoBox(),
@@ -536,7 +613,12 @@ class ShippingEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdownTrigger({String? value, required String hint, required VoidCallback onTap}) {
+  Widget _buildDropdownTrigger({
+    String? value,
+    required String hint,
+    VoidCallback? onTap,
+    bool isLoading = false,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -550,8 +632,21 @@ class ShippingEditProfileTab extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            CommonText(value ?? hint, fontSize: AppTextSizes.size14, color: value != null ? AppColors.textPrimary : AppColors.textSecondary),
-            const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+            Expanded(
+              child: CommonText(
+                value ?? hint,
+                fontSize: AppTextSizes.size14,
+                color: value != null ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+            ),
+            if (isLoading)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
           ],
         ),
       ),
@@ -582,16 +677,17 @@ class ShippingEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _photoBox({required ImageProvider image, required VoidCallback onRemove}) {
+  Widget _photoBox({String? url, File? file, required VoidCallback onRemove}) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
-        Container(
+        CommonImageView(
+          url: url,
+          file: file,
           width: 80,
           height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(image: image, fit: BoxFit.cover),
-          ),
+          radius: 12,
+          fit: BoxFit.cover,
         ),
         Positioned(
           top: -4,
@@ -599,9 +695,22 @@ class ShippingEditProfileTab extends StatelessWidget {
           child: GestureDetector(
             onTap: onRemove,
             child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              child: const Icon(Icons.close, size: 14, color: Colors.white),
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.close,
+                size: 14,
+                color: Colors.red,
+              ),
             ),
           ),
         ),
@@ -621,6 +730,60 @@ class ShippingEditProfileTab extends StatelessWidget {
           border: Border.all(color: AppColors.borderLight, style: BorderStyle.none),
         ),
         child: const Icon(Icons.add, color: AppColors.textSecondary, size: 24),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          CommonText(label,                 fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,),
+          if (isRequired)
+            const CommonText(' *', fontSize: AppTextSizes.size14, color: Colors.red),
+        ],
+      ),
+    );
+  }
+
+  void _showLocationBottomSheet({
+    required String title,
+    required List<Map<String, dynamic>> options,
+    required Function(Map<String, dynamic>) onSelected,
+  }) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 20),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final node = options[index];
+                  return ListTile(
+                    title: CommonText(node['name'] ?? ''),
+                    onTap: () {
+                      onSelected(node);
+                      Get.back();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
