@@ -21,8 +21,8 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
       child: Column(
         children: [
           _buildGroupedSection(
-            'Bodywork Modalities',
-            description: 'Select the modalities you offer and set your session pricing',
+            'Bodywork Services',
+            description: 'Select all services you are trained and qualified to provide',
             children: [
               Obx(() {
                 if (controller.isLoadingServices.value) {
@@ -33,7 +33,7 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
                 );
               }),
               const SizedBox(height: 12),
-              GestureDetector(
+ /*             GestureDetector(
                 onTap: () => _showAddServiceBottomSheet(context),
                 child: Row(
                   children: const [
@@ -47,7 +47,7 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
                     ),
                   ],
                 ),
-              ),
+              ),*/
             ],
           ),
           const SizedBox(height: 40),

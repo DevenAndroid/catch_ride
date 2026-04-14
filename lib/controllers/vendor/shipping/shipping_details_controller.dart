@@ -27,7 +27,7 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> travelScope = <String>[].obs;
   final RxList<String> rigTypes = <String>[].obs;
   final RxList<String> regionsCovered = <String>[].obs;
-  final RxString operationType = 'Independent'.obs;
+  final RxString operationType = 'Independent Small Operation'.obs;
 
   // ── Content ────────────────────────────────────────────────────────────────
   final equipmentSummaryController = TextEditingController();
@@ -40,8 +40,12 @@ class ShippingDetailsController extends GetxController {
 
   // ── Credentials & Insurance ────────────────────────────────────────────────
   final RxBool hasCDL = false.obs;
+  final RxBool isCustomCancellation = false.obs;
+  final customCancellationController = TextEditingController();
   final Rxn<File> cdlFile = Rxn<File>();
   final Rxn<File> insuranceFile = Rxn<File>();
+  final RxnString currentCdlUrl = RxnString();
+  final RxnString currentInsuranceUrl = RxnString();
   final insuranceExpiryController = TextEditingController();
   final cancellationPolicy = RxnString();
 
@@ -53,14 +57,53 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> travelOptions = <String>[].obs;
   final RxList<String> rigOptions = <String>[].obs;
   final RxList<String> regionOptions = <String>[].obs;
-  final List<String> cancellationOptions = ['Flexible', 'Moderate', 'Strict'];
+  final List<String> cancellationOptions = ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'];
 
   @override
   void onInit() {
     super.onInit();
-    fetchCurrentDetails();
-    fetchDynamicTags();
+    _initializeData();
   }
+
+  Future<void> _initializeData() async {
+    isLoading.value = true;
+    try {
+      // Run both in parallel
+      await Future.wait([
+        fetchDynamicTags(),
+        fetchCurrentDetails(isInitializing: true),
+      ]);
+      _applyApplicationFilters();
+    } catch (e) {
+      debugPrint('Error initializing shipping data: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _applyApplicationFilters() {
+    // This logic relies on both dynamic tags and vendor data being loaded
+    final shippingService = _shippingService; // I'll need to store this or re-find it
+    if (shippingService == null) return;
+    
+    final applicationData = shippingService['application']?['applicationData'] ?? {};
+    
+    final List<String> appTravel = List<String>.from(applicationData['travelScope'] ?? []);
+    final List<String> appRigs = List<String>.from(applicationData['rigTypes'] ?? []);
+    final List<String> appRegions = List<String>.from(applicationData['regions'] ?? []);
+
+    if (appTravel.isNotEmpty) {
+      travelOptions.assignAll(travelOptions.where((opt) => appTravel.contains(opt)).toList());
+    }
+    if (appRigs.isNotEmpty) {
+      rigOptions.assignAll(rigOptions.where((opt) => appRigs.contains(opt)).toList());
+    }
+    if (appRegions.isNotEmpty) {
+      regionOptions.assignAll(regionOptions.where((opt) => appRegions.contains(opt)).toList());
+    }
+  }
+
+  Map<String, dynamic>? _shippingService;
 
   Future<void> fetchDynamicTags() async {
     try {
@@ -88,8 +131,8 @@ class ShippingDetailsController extends GetxController {
     }
   }
 
-  Future<void> fetchCurrentDetails() async {
-    isLoading.value = true;
+  Future<void> fetchCurrentDetails({bool isInitializing = false}) async {
+    if (!isInitializing) isLoading.value = true;
     try {
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
@@ -98,6 +141,7 @@ class ShippingDetailsController extends GetxController {
         final shippingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Shipping');
 
         if (shippingService != null) {
+          _shippingService = shippingService;
           final profileData = shippingService['profile']?['profileData'] ?? {};
           final applicationData = shippingService['application']?['applicationData'] ?? {};
 
@@ -107,12 +151,21 @@ class ShippingDetailsController extends GetxController {
           baseRateController.text = pricing['baseRate']?.toString() ?? '';
           loadedRateController.text = pricing['loadedRate']?.toString() ?? '';
 
-          // Populate Selections
+          // Populate Selections (Pre-fill from application if profile is empty)
           selectedServices.assignAll(List<String>.from(profileData['services'] ?? []));
-          travelScope.assignAll(List<String>.from(profileData['travelScope'] ?? []));
-          rigTypes.assignAll(List<String>.from(profileData['rigTypes'] ?? []));
-          regionsCovered.assignAll(List<String>.from(profileData['regionsCovered'] ?? []));
-          operationType.value = profileData['operationType'] ?? 'Independent';
+          
+          final List<String> appTravel = List<String>.from(applicationData['travelScope'] ?? []);
+          travelScope.assignAll(List<String>.from(profileData['travelScope'] ?? appTravel));
+
+          final List<String> appRigs = List<String>.from(applicationData['rigTypes'] ?? []);
+          rigTypes.assignAll(List<String>.from(profileData['rigTypes'] ?? appRigs));
+
+          final List<String> appRegions = List<String>.from(applicationData['regions'] ?? []);
+          regionsCovered.assignAll(List<String>.from(profileData['regionsCovered'] ?? appRegions));
+          
+          operationType.value = profileData['operationType'] ?? applicationData['operationType'] ?? 'Independent Small Operation';
+
+          // Note: Filtering is now handled in _applyApplicationFilters() called from _initializeData()
 
           // Populate Content
           equipmentSummaryController.text = profileData['equipmentSummary'] ?? '';
@@ -132,15 +185,31 @@ class ShippingDetailsController extends GetxController {
           }
 
           // Credentials
-          hasCDL.value = profileData['hasCDL'] ?? false;
+          hasCDL.value = profileData['hasCDL'] ?? applicationData['confirmLicense'] ?? false;
+          
+          // Documentation URLs from application media
+          final appMedia = applicationData['media'] ?? {};
+          currentCdlUrl.value = profileData['cdlFile'] ?? appMedia['licensePhoto'];
+          currentInsuranceUrl.value = profileData['insuranceFile'] ?? appMedia['insurance'] ?? appMedia['dotCopy'];
+
           insuranceExpiryController.text = profileData['insuranceExpiry'] ?? '';
-          cancellationPolicy.value = profileData['cancellationPolicy'];
+          final savedPolicy = profileData['cancellationPolicy'];
+          if (savedPolicy != null) {
+            if (cancellationOptions.contains(savedPolicy)) {
+              cancellationPolicy.value = savedPolicy;
+              isCustomCancellation.value = false;
+            } else {
+              isCustomCancellation.value = true;
+              customCancellationController.text = savedPolicy;
+              cancellationPolicy.value = null;
+            }
+          }
         }
       }
     } catch (e) {
       debugPrint('Error fetching shipping details: $e');
     } finally {
-      isLoading.value = false;
+      if (!isInitializing) isLoading.value = false;
     }
   }
 
@@ -221,7 +290,7 @@ class ShippingDetailsController extends GetxController {
         'cdlFile': cdlUrl,
         'insuranceFile': insuranceUrl,
         'insuranceExpiry': insuranceExpiryController.text,
-        'cancellationPolicy': cancellationPolicy.value,
+        'cancellationPolicy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
         'additionalNotes': additionalNotesController.text,
         'isProfileCompleted': true,
       };

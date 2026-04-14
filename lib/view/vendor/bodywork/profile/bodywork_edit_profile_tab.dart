@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/groom/edit_vendor_profile_controller.dart';
@@ -41,8 +43,6 @@ class BodyworkEditProfileTab extends StatelessWidget {
         _buildTravelPreferencesSection(),
         const SizedBox(height: 20),
         _buildProfessionalStandardsSection(),
-        const SizedBox(height: 20),
-        _buildInsuranceSection(),
         const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 40),
@@ -177,16 +177,26 @@ class BodyworkEditProfileTab extends StatelessWidget {
               return GestureDetector(
                 onTap: () {
                   service['isSelected'].value = !isSelected;
-                  if (service['isSelected'].value) {
-                    _showServicePriceBottomSheet(service);
-                  }
                 },
                 child: _buildChoiceChip(service['name'], isSelected),
               );
             }).toList(),
           )),
-          const SizedBox(height: 16),
-          CommonTextField(label: '', hintText: 'Write here...', controller: controller.otherModalityController, maxLines: 3),
+          Obx(() {
+            final hasOther = controller.bodyworkServices.any((s) => s['isSelected'].value && s['name'] == 'Other');
+            if (hasOther) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: CommonTextField(
+                  label: '',
+                  hintText: 'Write here...',
+                  controller: controller.otherModalityController,
+                  maxLines: 3,
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
       ),
     );
@@ -449,35 +459,120 @@ class BodyworkEditProfileTab extends StatelessWidget {
     return GestureDetector(onTap: () => controller.addServicePhoto('Bodywork'), child: Container(width: 80, height: 80, decoration: BoxDecoration(color: const Color(0xFFF9FAFB), borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight, style: BorderStyle.none)), child: const Icon(Icons.add, color: AppColors.textSecondary, size: 24)));
   }
 
-  // Insurance and Date helpers would go here (already implemented or similar to Create flow)
-  Widget _buildInsuranceSection() {
-    return _buildCard(
-      title: 'Professional Standards & Scope',
-      description: 'Insurance may be required for certain types of services.',
-      child: Column(
-        children: [
-          Obx(() => _buildDropdownTrigger(
-            value: controller.bodyworkInsuranceStatus.value,
-            hint: 'Select Insurance Status',
-            onTap: () => _showPickerBottomSheet(
-              title: 'Insurance Status',
-              options: ['Carries Insurance', 'Insurance available upon request', 'Not currently insured'],
-              onSelected: (val) => controller.bodyworkInsuranceStatus.value = val,
+  Widget _buildUploadBox({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight), 
+          color: Colors.white,
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: const Icon(Icons.cloud_upload_outlined, size: 24, color: AppColors.textPrimary),
             ),
-          )),
-          if (controller.bodyworkInsuranceStatus.value == 'Carries Insurance') ...[
-            const SizedBox(height: 20),
-            Obx(() => _buildDatePickerTrigger(
-              value: controller.bodyworkInsuranceExpiry.value != null 
-                  ? DateFormat('dd MMM yyyy').format(controller.bodyworkInsuranceExpiry.value!) 
-                  : 'Expiration Date',
-              onTap: () => _selectDate(controller.bodyworkInsuranceExpiry),
-            )),
+            const SizedBox(height: 12),
+            RichText(
+              text: const TextSpan(
+                children: [
+                  TextSpan(text: 'Click to upload', style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 14)),
+                  TextSpan(text: ' or drag and drop', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            const CommonText('PNG, JPG or PDF (max. 800x400px)', fontSize: 12, color: AppColors.textSecondary),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileItem({File? file, String? url, required VoidCallback onRemove}) {
+    String fileName = file != null ? file.path.split('/').last : (url != null ? url.split('/').last : 'Certification.pdf');
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(Icons.description_outlined, color: Color(0xFFEF4444), size: 32),
+                Positioned(
+                  bottom: -2,
+                   child: Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 2),
+                     color: const Color(0xFFEF4444),
+                     child: const Text('PDF', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                   ),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonText(fileName, fontSize: 14, fontWeight: FontWeight.w600, maxLines: 1),
+/*                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    CommonText(file != null ? _getFileSize(file) : 'Uploaded', fontSize: 12, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.cloud_upload_outlined, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 4),
+                    const CommonText('70%', fontSize: 11, color: AppColors.textSecondary), // Progress placeholder as seen in UI
+                  ],
+                ),*/
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 22),
+          ),
         ],
       ),
     );
   }
+
+  String _getFileSize(File file) {
+    try {
+      if (file.existsSync()) {
+        double bytes = file.lengthSync().toDouble();
+        if (bytes < 1024) return '$bytes B';
+        if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+        return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+      }
+    } catch (e) {
+      debugPrint('Error getting file size: $e');
+    }
+    return '...';
+  }
+
 
   Widget _buildRegionsCoveredSection() {
     return _buildCard(
@@ -523,31 +618,25 @@ class BodyworkEditProfileTab extends StatelessWidget {
 
   Widget _buildCertificationSection() {
     return _buildCard(
-      title: 'Certifications',
-      description: 'Upload any relevant certifications or licenses.',
+      title: 'Certification',
+      description: 'Upload any relevant certifications or licenses for your services',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDropdownTrigger(
-            hint: 'Add Certifications...',
-            onTap: () => _showMultiSelectBottomSheet(
-              title: 'Certifications',
-              options: ['Certified Massage Therapist', 'PEMF Practitioner', 'Equine Bodyworker', 'Other'],
-              selectedItems: controller.bodyworkCertifications,
-              onToggle: (v) {
-                if (controller.bodyworkCertifications.contains(v)) {
-                  controller.bodyworkCertifications.remove(v);
-                } else {
-                  controller.bodyworkCertifications.add(v);
-                }
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          Obx(() => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: controller.bodyworkCertifications.map((cert) => _buildRemovableTag(cert, showRemove: true, onRemove: () => controller.bodyworkCertifications.remove(cert))).toList(),
+          const CommonText('Upload Certificate', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+          const SizedBox(height: 12),
+          _buildUploadBox(onTap: () => controller.pickBodyworkCertification()),
+          Obx(() => Column(
+            children: [
+              ...controller.bodyworkExistingCertUrls.asMap().entries.map((entry) => _buildFileItem(
+                url: entry.value,
+                onRemove: () => controller.removeBodyworkExistingCert(entry.key),
+              )),
+              ...controller.bodyworkCertFiles.asMap().entries.map((entry) => _buildFileItem(
+                file: entry.value,
+                onRemove: () => controller.removeBodyworkCertFile(entry.key),
+              )),
+            ],
           )),
         ],
       ),
@@ -640,7 +729,46 @@ class BodyworkEditProfileTab extends StatelessWidget {
   }
 
   void _showMultiSelectBottomSheet({required String title, required List<String> options, required List<String> selectedItems, required Function(String) onToggle}) {
-    Get.bottomSheet(Container(padding: const EdgeInsets.all(20), decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))), child: Column(mainAxisSize: MainAxisSize.min, children: [CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold), const SizedBox(height: 20), Flexible(child: Obx(() => ListView.builder(shrinkWrap: true, itemCount: options.length, itemBuilder: (context, index) { final item = options[index]; final isSelected = selectedItems.contains(item); return CheckboxListTile(title: CommonText(item), value: isSelected, onChanged: (val) => onToggle(item), activeColor: AppColors.primary); }))), const SizedBox(height: 20), Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => Get.back(), child: const Text('Done'))))])),
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 20),
+            Flexible(
+              child: Obx(() => ListView(
+                shrinkWrap: true,
+                children: options.map((item) {
+                  final isSelected = selectedItems.contains(item);
+                  return CheckboxListTile(
+                    title: CommonText(item),
+                    value: isSelected,
+                    onChanged: (val) => onToggle(item),
+                    activeColor: AppColors.primary,
+                  );
+                }).toList(),
+              )),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                child: CommonButton(
+                  text: 'Done',
+                  onPressed: () => Get.back(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

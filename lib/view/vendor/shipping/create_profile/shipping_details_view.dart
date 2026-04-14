@@ -49,22 +49,28 @@ class ShippingDetailsView extends StatelessWidget {
                 // 1. Pricing
                 _buildGroupedSection(
                   'Pricing',
-                  description: 'Set your delivery rates',
+                  description: 'Set your shipping rates',
                   children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: controller.inquiryPrice.value, 
-                          onChanged: (val) => controller.inquiryPrice.value = val ?? false,
-                          activeColor: AppColors.primary,
-                        ),
-                        const CommonText('Inquiry for Price', fontSize: 14, color: AppColors.textPrimary),
-                      ],
+                    GestureDetector(
+                      onTap: () => controller.inquiryPrice.toggle(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: controller.inquiryPrice.value, 
+                            onChanged: (val) => controller.inquiryPrice.value = val ?? false,
+                            activeColor: AppColors.primary,
+                          ),
+                          const CommonText('Inquiry for Price', fontSize: 14, color: AppColors.textPrimary),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _buildRateField('Base Rate', controller.baseRateController),
-                    const SizedBox(height: 16),
-                    _buildRateField('Fully Loaded Rate', controller.loadedRateController),
+                    if (!controller.inquiryPrice.value) ...[
+                      const SizedBox(height: 12),
+                      _buildRateField('Base Rate', controller.baseRateController),
+                      const SizedBox(height: 16),
+                      _buildRateField('Fully Loaded Rate', controller.loadedRateController),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -86,7 +92,7 @@ class ShippingDetailsView extends StatelessWidget {
                   'Equipment Summary',
                   children: [
                     CommonTextField(
-                      label: 'Equipment Summary',
+                      label: '',
                       controller: controller.equipmentSummaryController,
                       hintText: 'Briefly describe your equipment and setup (truck, trailer, capacity, etc.)',
                       maxLines: 3,
@@ -145,9 +151,9 @@ class ShippingDetailsView extends StatelessWidget {
                 _buildGroupedSection(
                   'Operation Type',
                   children: [
-                    _buildRadioOption('Independent / Small Operation', 'Independent', controller.operationType),
-                    const Divider(height: 1),
-                    _buildRadioOption('Established Shipping Company', 'Company', controller.operationType),
+                    _buildRadioOption('Independent / Small Operation', 'Independent Small Operation', controller.operationType),
+                    const SizedBox(height: 12),
+                    _buildRadioOption('Established Shipping Company', 'Established Shipping Company', controller.operationType),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -156,21 +162,26 @@ class ShippingDetailsView extends StatelessWidget {
                 _buildGroupedSection(
                   'Driver Credentials',
                   children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: controller.hasCDL.value,
-                          onChanged: (val) => controller.hasCDL.value = val ?? false,
-                          activeColor: const Color(0xFF001149),
-                        ),
-                        const Expanded(child: CommonText('I have a valid CDL (if required for my rig size)', fontSize: 13)),
-                      ],
+                    GestureDetector(
+                      onTap: () => controller.hasCDL.toggle(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: controller.hasCDL.value,
+                            onChanged: (val) => controller.hasCDL.value = val ?? false,
+                            activeColor: const Color(0xFF001149),
+                          ),
+                          const Expanded(child: CommonText('I have a valid CDL (if required for my rig size)', fontSize: 13)),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 12),
                     const CommonText('Upload CDL (optional)', fontSize: 14),
                     const SizedBox(height: 8),
                     _buildFileUploadTrigger(
                       target: controller.cdlFile,
+                      existingUrl: controller.currentCdlUrl,
                       onTap: () => controller.pickFile(controller.cdlFile),
                     ),
                   ],
@@ -186,6 +197,7 @@ class ShippingDetailsView extends StatelessWidget {
                     const SizedBox(height: 8),
                     _buildFileUploadTrigger(
                       target: controller.insuranceFile,
+                      existingUrl: controller.currentInsuranceUrl,
                       onTap: () => controller.pickFile(controller.insuranceFile),
                     ),
                     const SizedBox(height: 16),
@@ -209,15 +221,32 @@ class ShippingDetailsView extends StatelessWidget {
                   children: [
                     _buildDropdownTrigger(
                       value: controller.cancellationPolicy.value,
-                      hint: 'Select Cancellation Policy Policy', // Matching typo in screenshot "Policy Policy"
+                      hint: 'Select Cancellation Policy', 
                       onTap: () => _showPolicyBottomSheet(context, controller),
                     ),
-                    Row(
-                      children: [
-                        Checkbox(value: false, onChanged: (v){}, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))),
-                        const CommonText('Custom', fontSize: 14),
-                      ],
+                    GestureDetector(
+                      onTap: () => controller.isCustomCancellation.toggle(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: controller.isCustomCancellation.value, 
+                            onChanged: (v) => controller.isCustomCancellation.value = v ?? false, 
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          ),
+                          const CommonText('Custom', fontSize: 14),
+                        ],
+                      ),
                     ),
+                    if (controller.isCustomCancellation.value) ...[
+                      const SizedBox(height: 12),
+                      CommonTextField(
+                        label: '',
+                        controller: controller.customCancellationController,
+                        hintText: 'Describe your custom cancellation policy...',
+                        maxLines: 4,
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -228,7 +257,7 @@ class ShippingDetailsView extends StatelessWidget {
                   description: 'Share any specific preferences, needs, or details that would help us better match you with the right horses, programs, or service providers.',
                   children: [
                     CommonTextField(
-                      label: 'Additional Notes',
+                      label: '',
                       controller: controller.additionalNotesController,
                       hintText: 'Write here...',
                       maxLines: 4,
@@ -281,45 +310,28 @@ class ShippingDetailsView extends StatelessWidget {
   }
 
   Widget _buildRateField(String label, TextEditingController ctrl) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(label, fontSize: 14, color: AppColors.textPrimary),
-        const SizedBox(height: 8),
-        Container(
-          height: 56,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.borderLight),
+    return CommonTextField(
+      label: label,
+      controller: ctrl,
+      hintText: 'Enter Price',
+      keyboardType: TextInputType.number,
+      suffixIcon: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 24,
+            width: 1,
+            color: AppColors.borderLight,
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: ctrl,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter Price',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                height: double.infinity,
-                decoration: const BoxDecoration(
-                  border: Border(left: BorderSide(color: AppColors.borderLight)),
-                ),
-                alignment: Alignment.center,
-                child: const CommonText('/ per mile', color: AppColors.textSecondary, fontSize: 12),
-              ),
-            ],
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            child: CommonText('/ per mile', color: AppColors.textSecondary, fontSize: 12),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+
 
   Widget _buildChipSelection({required List<String> options, required RxList<String> selectedItems}) {
     return Obx(() => Wrap(
@@ -368,59 +380,85 @@ class ShippingDetailsView extends StatelessWidget {
   }
 
   Widget _buildRadioOption(String title, String value, RxString groupValue) {
-    return Obx(() => GestureDetector(
-      onTap: () => groupValue.value = value,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        color: Colors.transparent,
-        child: Row(
-          children: [
-            Expanded(child: CommonText(title, fontSize: 14)),
-            Icon(
-              groupValue.value == value ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: groupValue.value == value ? AppColors.primary : AppColors.borderMedium,
-              size: 20,
+    return Obx(() {
+      final isSelected = groupValue.value == value;
+      return GestureDetector(
+        onTap: () => groupValue.value = value,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.borderLight,
+              width: isSelected ? 2 : 1,
             ),
-          ],
-        ),
-      ),
-    ));
-  }
-
-  Widget _buildFileUploadTrigger({required Rxn<File> target, required VoidCallback onTap}) {
-    return Obx(() => GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderLight, style: BorderStyle.solid),
-        ),
-        child: Column(
-          children: [
-            if (target.value != null) ...[
-              const Icon(Icons.description, color: AppColors.primary, size: 32),
-              const SizedBox(height: 8),
-              CommonText(target.value!.path.split('/').last, fontSize: 12, overflow: TextOverflow.ellipsis),
-            ] else ...[
-              const Icon(Icons.file_upload_outlined, color: AppColors.textSecondary, size: 32),
-              const SizedBox(height: 12),
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                  children: [
-                    TextSpan(text: 'Click to upload', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                    TextSpan(text: ' or drag and drop'),
-                  ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: CommonText(
+                  title,
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
                 ),
               ),
-              const CommonText('PDF, PNG or JPG (max. 400x400px)', fontSize: 11, color: AppColors.textSecondary),
+              Icon(
+                isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                color: isSelected ? AppColors.primary : AppColors.borderMedium,
+                size: 24,
+              ),
             ],
-          ],
+          ),
         ),
-      ),
-    ));
+      );
+    });
+  }
+
+  Widget _buildFileUploadTrigger({required Rxn<File> target, RxnString? existingUrl, required VoidCallback onTap}) {
+    return Obx(() {
+      final hasLocalFile = target.value != null;
+      final hasRemoteFile = existingUrl?.value != null && existingUrl!.value!.isNotEmpty;
+
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight, style: BorderStyle.solid),
+          ),
+          child: Column(
+            children: [
+              if (hasLocalFile) ...[
+                const Icon(Icons.description, color: AppColors.primary, size: 32),
+                const SizedBox(height: 8),
+                CommonText(target.value!.path.split('/').last, fontSize: 12, overflow: TextOverflow.ellipsis),
+              ] else if (hasRemoteFile) ...[
+                const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                const SizedBox(height: 8),
+                const CommonText('Document Uploaded', fontSize: 13, fontWeight: FontWeight.bold),
+              ] else ...[
+                const Icon(Icons.file_upload_outlined, color: AppColors.textSecondary, size: 32),
+                const SizedBox(height: 12),
+                RichText(
+                  text: const TextSpan(
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    children: [
+                      TextSpan(text: 'Click to upload', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                      TextSpan(text: ' or drag and drop'),
+                    ],
+                  ),
+                ),
+                const CommonText('PDF, PNG or JPG (max. 400x400px)', fontSize: 11, color: AppColors.textSecondary),
+              ],
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildDropdownTrigger({String? value, required String hint, required VoidCallback onTap}) {

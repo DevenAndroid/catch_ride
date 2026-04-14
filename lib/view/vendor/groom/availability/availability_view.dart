@@ -7,6 +7,7 @@ import 'package:catch_ride/view/vendor/clipping/availability/clipping_availabili
 import 'package:catch_ride/view/vendor/clipping/availability/add_clipping_availability_view.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/add_farrier_availability_view.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_add_availability.dart';
 import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
 import 'package:catch_ride/view/vendor/braiding/availability/braiding_add_availability.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -82,9 +83,10 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                     Get.to(() => const AddClippingAvailabilityView());
                   } else if (currentSvc == 'Braiding') {
                     Get.to(() => const BraidingAddAvailabilityView());
+                  } else if (currentSvc == 'Bodywork') {
+                    Get.to(() => const BodyworkAddAvailabilityView());
                   } else {
-                    int addIndex = currentSvc == 'Grooming' ? 0 : 2;
-                    Get.to(() => const AddAvailabilityBlockView(), arguments: addIndex);
+                    Get.to(() => const AddAvailabilityBlockView(), arguments: 0);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -165,7 +167,7 @@ class _AvailabilityViewState extends State<AvailabilityView> with SingleTickerPr
                           : (currentService == 'Bodywork'
                               ? BodyworkAvailabilityBlockCard(
                                   block: b,
-                                  onEdit: () => Get.to(() => const AddAvailabilityBlockView(), arguments: {'categoryIndex': 3, 'block': b}),
+                                  onEdit: () => Get.to(() => const BodyworkAddAvailabilityView(), arguments: {'block': b}),
                                   onDelete: () => b.id != null ? controller.deleteAvailabilityBlock(b.id!) : null,
                                 )
                               : (currentService == 'Braiding'
