@@ -22,6 +22,8 @@ import 'package:catch_ride/view/vendor/clipping/availability/clipping_availabili
 import 'package:catch_ride/view/vendor/braiding/availability/braiding_availability_card.dart';
 import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
 import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
+import 'package:catch_ride/models/trip_model.dart';
+import 'package:catch_ride/view/vendor/shipping/availability/shipping_trip_card.dart';
 import '../menu/edit_vendor_profile_view.dart';
 
 class GroomViewProfile extends StatefulWidget {
@@ -512,6 +514,10 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           }
           return Column(
             children: groomController.availabilityList.take(3).map((avail) {
+              if (avail['isTrip'] == true) {
+                return ShippingTripCard(trip: TripModel.fromJson(avail));
+              }
+              
               final b = VendorAvailabilityModel.fromJson(avail);
               final serviceTypes = b.serviceTypes;
 

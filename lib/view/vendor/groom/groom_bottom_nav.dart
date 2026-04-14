@@ -4,12 +4,14 @@ import 'package:catch_ride/view/vendor/groom/booking/booking_view.dart';
 import 'package:catch_ride/view/vendor/groom/availability/availability_view.dart';
 import 'package:catch_ride/view/vendor/groom/chat/groom_chat_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/menu_view.dart';
-import 'package:catch_ride/view/vendor/shipping/shipping_trip_view.dart';
+import 'package:catch_ride/view/vendor/shipping/trip/shipping_trip_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import 'profile/groom_view_profile.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 
 class GroomBottomNav extends StatefulWidget {
   final int initialIndex;
@@ -61,10 +63,10 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, 'Profile', Icons.person, isAvatar: true),
-              _buildNavItem(1, 'Booking', Icons.calendar_today_outlined),
-              _buildNavItem(2, isShipping ? 'Trips' : 'Availability', isShipping ? Icons.route_outlined : Icons.access_time),
-              _buildNavItem(3, 'Inbox', Icons.chat_bubble_outline),
-              _buildNavItem(4, 'Menu', Icons.menu),
+              _buildNavItem(1, 'Booking', "assets/icons/booking.svg"),
+              _buildNavItem(2, isShipping ? 'Trips' : 'Availability', isShipping ? "assets/icons/route.svg" : "assets/icons/availability.svg"),
+              _buildNavItem(3, 'Inbox', "assets/icons/message.svg"),
+              _buildNavItem(4, 'Menu', "assets/icons/menu_bottom.svg"),
             ],
           )),
         ),
@@ -72,7 +74,7 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
     );
   }
 
-  Widget _buildNavItem(int index, String label, IconData icon, {bool isAvatar = false}) {
+  Widget _buildNavItem(int index, String label, dynamic icon, {bool isAvatar = false}) {
     final isSelected = _selectedIndex == index;
     final user = _authController.currentUser.value;
     final avatarUrl = user?.displayAvatar ?? '';
@@ -89,23 +91,29 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isAvatar && avatarUrl.isNotEmpty)
-               Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: NetworkImage(avatarUrl),
-                    fit: BoxFit.cover,
-                  ),
+              ClipOval(
+                child: CommonImageView(
+                  url: avatarUrl,
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.cover,
                 ),
               )
-            else
+            else if (icon is IconData)
               Icon(
                 icon,
                 size: 24,
                 color: isSelected ? Colors.white : AppColors.textSecondary,
-              ),
+              )
+            else if (icon is String && icon.isNotEmpty)
+              SvgPicture.asset(
+                icon,
+                width: 24,
+                height: 24,
+                color: isSelected ? Colors.white : AppColors.textSecondary,
+              )
+            else
+              const SizedBox(height: 24, width: 24),
             const SizedBox(height: 4),
             CommonText(
               label,

@@ -11,6 +11,7 @@ import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_details_
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
+import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 
 class ShippingDetailsController extends GetxController {
   final apiService = Get.find<ApiService>();
@@ -146,10 +147,15 @@ class ShippingDetailsController extends GetxController {
           final applicationData = shippingService['application']?['applicationData'] ?? {};
 
           // Populate Pricing
-          final pricing = profileData['pricing'] ?? {};
+          final pricing = profileData['pricing'] ?? 
+                          applicationData['pricing'] ?? {};
           inquiryPrice.value = pricing['inquiryPrice'] ?? false;
-          baseRateController.text = pricing['baseRate']?.toString() ?? '';
-          loadedRateController.text = pricing['loadedRate']?.toString() ?? '';
+          baseRateController.text = (pricing['baseRate'] ?? 
+                                    profileData['rates']?['baseRate'] ?? 
+                                    '').toString();
+          loadedRateController.text = (pricing['loadedRate'] ?? 
+                                      profileData['rates']?['fullyLoaded'] ?? 
+                                      '').toString();
 
           // Populate Selections (Pre-fill from application if profile is empty)
           selectedServices.assignAll(List<String>.from(profileData['services'] ?? []));
@@ -274,31 +280,38 @@ class ShippingDetailsController extends GetxController {
       if (insuranceFile.value != null) insuranceUrl = await _uploadFile(insuranceFile.value!, 'shipping_details');
 
       // 2. Build Payload
-      final detailsData = {
-        'pricing': {
-          'inquiryPrice': inquiryPrice.value,
-          'baseRate': baseRateController.text,
-          'loadedRate': loadedRateController.text,
-        },
-        'services': selectedServices.toList(),
-        'equipmentSummary': equipmentSummaryController.text,
-        'travelScope': travelScope.toList(),
-        'rigTypes': rigTypes.toList(),
-        'regionsCovered': regionsCovered.toList(),
-        'operationType': operationType.value,
-        'hasCDL': hasCDL.value,
-        'cdlFile': cdlUrl,
-        'insuranceFile': insuranceUrl,
-        'insuranceExpiry': insuranceExpiryController.text,
-        'cancellationPolicy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-        'additionalNotes': additionalNotesController.text,
-        'isProfileCompleted': true,
-      };
-
-      // Merge with existing servicesData
+      // Merge with existing servicesData safely
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
+      final Map<String, dynamic> currentShipping = existingServicesData['shipping'] is Map 
+          ? Map<String, dynamic>.from(existingServicesData['shipping']) 
+          : <String, dynamic>{};
+      final Map<String, dynamic> profileData = currentShipping['profileData'] is Map
+          ? Map<String, dynamic>.from(currentShipping['profileData'])
+          : <String, dynamic>{};
+
+      profileData['pricing'] = {
+        'inquiryPrice': inquiryPrice.value,
+        'baseRate': baseRateController.text,
+        'loadedRate': loadedRateController.text,
+      };
       
-      existingServicesData['shipping'] = detailsData;
+      profileData['servicesOffered'] = selectedServices.toList();
+      profileData['equipmentSummary'] = equipmentSummaryController.text;
+      profileData['travelScope'] = travelScope.toList();
+      profileData['rigTypes'] = rigTypes.toList();
+      profileData['regionsCovered'] = regionsCovered.toList();
+      profileData['operationType'] = operationType.value;
+      profileData['hasCDL'] = hasCDL.value;
+      if (cdlUrl != null) profileData['cdlFile'] = cdlUrl;
+      if (insuranceUrl != null) profileData['insuranceFile'] = insuranceUrl;
+      profileData['insuranceExpiry'] = insuranceExpiryController.text;
+      profileData['cancellationPolicy'] = isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value;
+      profileData['additionalNotes'] = additionalNotesController.text;
+
+      currentShipping['profileData'] = profileData;
+      currentShipping['isProfileCompleted'] = true;
+
+      existingServicesData['shipping'] = currentShipping;
 
       final body = {
         'servicesData': existingServicesData,
@@ -314,6 +327,9 @@ class ShippingDetailsController extends GetxController {
         await Get.find<AuthController>().updateUserMetadata();
         
         if (editModeEnabled.value) {
+          if (Get.isRegistered<GroomViewProfileController>()) {
+            Get.find<GroomViewProfileController>().fetchProfile();
+          }
           Get.back();
           Get.snackbar('Success', 'Shipping rates updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
         } else {

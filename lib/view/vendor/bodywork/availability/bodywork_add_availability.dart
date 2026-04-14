@@ -342,9 +342,18 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
   }
 
   void _showVenueSelectionSheet() {
-     final searchController = TextEditingController();
-    final List<String> allVenues = profileController.allHorseShows;
-    final RxList<String> filteredVenues = RxList<String>(allVenues);
+    final searchController = TextEditingController();
+    
+    // Deduplicate venues by display name before showing the list
+    final seenNames = <String>{};
+    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
+      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+      if (seenNames.contains(name)) return false;
+      seenNames.add(name);
+      return true;
+    }).toList();
+
+    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
     
     Get.bottomSheet(
       Container(
@@ -367,12 +376,18 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
             TextField(
               controller: searchController,
               decoration: InputDecoration(
-                hintText: 'Search venues...',
+                hintText: 'Search venues or city...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onChanged: (val) {
-                filteredVenues.assignAll(allVenues.where((v) => v.toLowerCase().contains(val.toLowerCase())).toList());
+                final search = val.toLowerCase();
+                filteredVenues.assignAll(allVenues.where((v) {
+                  final name = v['name']?.toString().toLowerCase() ?? '';
+                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
+                  final city = v['city']?.toString().toLowerCase() ?? '';
+                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
+                }).toList());
               },
             ),
             const SizedBox(height: 20),
@@ -380,16 +395,24 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               child: Obx(() => ListView.builder(
                 itemCount: filteredVenues.length,
                 itemBuilder: (context, index) {
-                  final venue = filteredVenues[index];
+                  final venueItem = filteredVenues[index];
+                  // Prioritize 'showVenue' key as requested, then 'name'
+                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
+                  final city = venueItem['city']?.toString() ?? '';
+                  
                   return Obx(() {
-                    final isSelected = _selectedVenues.contains(venue);
+                    final isSelected = _selectedVenues.contains(venueName);
                     return CheckboxListTile(
                       value: isSelected,
                       onChanged: (selected) {
-                        if (selected == true) _selectedVenues.add(venue);
-                        else _selectedVenues.remove(venue);
+                        if (selected == true) {
+                          if (!_selectedVenues.contains(venueName)) _selectedVenues.add(venueName);
+                        } else {
+                          _selectedVenues.remove(venueName);
+                        }
                       },
-                      title: CommonText(venue),
+                      title: CommonText(venueName),
+                      subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
                       activeColor: AppColors.primaryDark,
                     );
                   });

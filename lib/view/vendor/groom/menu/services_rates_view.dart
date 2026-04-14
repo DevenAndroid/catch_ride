@@ -13,6 +13,7 @@ import '../../farrier/profile/farrier_service_rates_tab.dart';
 import '../../bodywork/profile/bodywork_service_rates_tab.dart';
 import '../../../../controllers/vendor/farrier/farrier_details_controller.dart' as fdc; 
 import '../../../../controllers/vendor/bodywork/bodywork_details_controller.dart' as bdc;
+import '../../shipping/profile/service_price_view.dart';
 
 class ServicesRatesView extends StatefulWidget {
   const ServicesRatesView({super.key});
@@ -137,6 +138,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
               return const FarrierServiceRatesTab();
             } else if (type.contains('bodywork') || type.contains('body work')) {
               return const BodyworkServiceRatesTab();
+            } else if (type.contains('shipping')) {
+            return const ServicePriceView();
             }
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -158,7 +161,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
         if (!isTabReady.value) return const SizedBox.shrink();
         final activeType = controller.activeServiceType.toLowerCase();
         // Hide global buttons if tab provides its own (Clipping, Braiding)
-        if (activeType.contains('clip') || activeType.contains('braid')) {
+        if (activeType.contains('clip') || activeType.contains('braid') || activeType.contains('shipping')) {
           return const SizedBox.shrink();
         }
         return _buildBottomButtons();

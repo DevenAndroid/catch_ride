@@ -48,4 +48,23 @@ class ShippingTripController extends GetxController {
         return Colors.grey;
     }
   }
+
+  Future<void> deleteTrip(String tripId) async {
+    try {
+      final response = await _apiService.deleteRequest('/trips/$tripId');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = response.body;
+        if (body != null && body['success'] == true) {
+          trips.removeWhere((t) => t.id == tripId);
+          Get.snackbar('Success', 'Trip deleted successfully', backgroundColor: Colors.green, colorText: Colors.white);
+        } else {
+          Get.snackbar('Error', body?['message'] ?? 'Failed to delete trip');
+        }
+      } else {
+        Get.snackbar('Error', 'Failed to delete trip');
+      }
+    } catch (e) {
+      debugPrint('Error deleting trip: $e');
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:catch_ride/controllers/vendor/shipping/shipping_trip_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/models/trip_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -11,6 +12,7 @@ class AddTripController extends GetxController {
   final originController = TextEditingController();
   final destinationController = TextEditingController();
   final rxDestinationTags = <String>[].obs;
+  TripModel? editingTrip;
 
   // Schedule
   final rxStartDate = Rxn<DateTime>();
@@ -37,11 +39,30 @@ class AddTripController extends GetxController {
   void onInit() {
     super.onInit();
     fetchHorseShows();
+    final args = Get.arguments;
+    if (args is Map && args['trip'] is TripModel) {
+      editingTrip = args['trip'];
+      _preFillTrip();
+    }
+  }
+
+  void _preFillTrip() {
+    if (editingTrip == null) return;
+    originController.text = editingTrip!.origin ?? '';
+    destinationController.text = editingTrip!.destination ?? '';
+    rxDestinationTags.assignAll(editingTrip!.destinationTags ?? []);
+    rxStartDate.value = editingTrip!.startDate;
+    rxEndDate.value = editingTrip!.endDate;
+    rxMaxHorses.value = editingTrip!.maxHorses;
+    equipmentController.text = editingTrip!.equipmentDescription ?? '';
+    notesController.text = editingTrip!.routeNotes ?? '';
+    rxAllowIntermediateStops.value = editingTrip!.allowIntermediateStops;
+    rxIntermediateStops.assignAll(editingTrip!.intermediateStops ?? []);
   }
 
   Future<void> fetchHorseShows() async {
     try {
-      final response = await _apiService.getRequest('/horse-shows');
+      final response = await _apiService.getRequest('/horse-shows?limit=10000');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = response.body;
         if (body != null && body['success'] == true) {
@@ -100,10 +121,12 @@ class AddTripController extends GetxController {
           'routeNotes': notesController.text,
           'allowIntermediateStops': rxAllowIntermediateStops.value,
           'intermediateStops': rxIntermediateStops.toList(),
-          'status': 'Open',
+          'status': editingTrip?.status ?? 'Open',
         };
 
-        final response = await _apiService.postRequest('/trips', tripData);
+        final response = editingTrip != null
+            ? await _apiService.putRequest('/trips/${editingTrip!.id}', tripData)
+            : await _apiService.postRequest('/trips', tripData);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           final body = response.body;

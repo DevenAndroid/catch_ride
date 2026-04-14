@@ -6,6 +6,8 @@ import 'package:catch_ride/view/vendor/braiding/availability/braiding_availabili
 import 'package:catch_ride/view/vendor/clipping/availability/clipping_availability_block_card.dart';
 import 'package:catch_ride/view/vendor/farrier/availability/farrier_availability_block_card.dart';
 import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availability_block_card.dart';
+import 'package:catch_ride/view/vendor/shipping/availability/shipping_trip_card.dart';
+import 'package:catch_ride/models/trip_model.dart';
 import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -67,10 +69,16 @@ class _UpcomingAvailabilityState extends State<UpcomingAvailability> {
           child: ListView.builder(
             controller: controller.scrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: controller.availabilityList.length + 1,
+            itemCount: controller.combinedList.length + 1,
             itemBuilder: (context, index) {
-              if (index < controller.availabilityList.length) {
-                final b = controller.availabilityList[index];
+              if (index < controller.combinedList.length) {
+                final item = controller.combinedList[index];
+                
+                if (item is TripModel) {
+                  return ShippingTripCard(trip: item);
+                }
+
+                final b = item as VendorAvailabilityModel;
                 if (b.serviceTypes.contains('Braiding')) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),

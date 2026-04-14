@@ -19,51 +19,56 @@ class CompleteProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(GroomCompleteProfileController());
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9F9F9),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // Removes focus
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF9F9F9),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText(
+            'Complete Your Profile',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        title: const CommonText(
-          'Complete Your Profile',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildBasicDetailsSection(controller),
-                const SizedBox(height: 20),
-                _buildPaymentMethodsSection(controller),
-                const SizedBox(height: 20),
-                _buildHighlightsSection(controller),
-                const SizedBox(height: 20),
-                _buildNotesSection(controller),
-                const SizedBox(height: 32),
-                Obx(() => CommonButton(
-                  text: 'Next',
-                  isLoading: controller.isLoading.value,
-                  backgroundColor: const Color(0xFF001144),
-                  onPressed: controller.submit,
-                )),
-                const SizedBox(height: 40),
-              ],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Form(
+              key: controller.formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildBasicDetailsSection(controller),
+                  const SizedBox(height: 20),
+                  _buildPaymentMethodsSection(controller),
+                  const SizedBox(height: 20),
+                  _buildHighlightsSection(controller),
+                  const SizedBox(height: 20),
+                  _buildNotesSection(controller),
+                  const SizedBox(height: 32),
+                  Obx(() => CommonButton(
+                    text: 'Next',
+                    isLoading: controller.isLoading.value,
+                    backgroundColor: const Color(0xFF001144),
+                    onPressed: controller.submit,
+                  )),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),
@@ -85,7 +90,7 @@ class CompleteProfileView extends StatelessWidget {
               Obx(() => Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
+            //      border: Border.all(color: const Color(0xFFEEEEEE), width: 1),
                 ),
                 child: CommonImageView(
                       height: 100,
@@ -365,9 +370,23 @@ class CompleteProfileView extends StatelessWidget {
 
 
   Widget _buildPaymentIcon(Map<String, dynamic> option) {
+    // 1. Prioritize icon from backend if it's a valid URL string
+    if (option['icon'] != null && option['icon'] is String && option['icon'].toString().isNotEmpty) {
+      return SizedBox(
+        width: 24,
+        height: 24,
+        child: CommonImageView(url: option['icon'].toString(), fit: BoxFit.contain),
+      );
+    }
+
+    // 2. Handle IconData directly (e.g. for hardcoded "Other")
+    if (option['icon'] is IconData) {
+      return Icon(option['icon'] as IconData, size: 24, color: Colors.grey);
+    }
+
     final name = option['name'].toString().toLowerCase();
     
-    // Custom handling for icons shown in the image
+    // 3. Fallback handling for known methods
     if (name.contains('venmo')) return const Icon(Icons.payment, color: Colors.blue, size: 28);
     if (name.contains('zelle')) return const Icon(Icons.bolt, color: Colors.purple, size: 24);
     if (name.contains('cash')) return const Icon(Icons.money, color: Colors.green, size: 24);
@@ -375,14 +394,6 @@ class CompleteProfileView extends StatelessWidget {
     if (name.contains('ach')) return const Icon(Icons.account_balance, color: Color(0xFF795548), size: 24);
     if (name.contains('other')) return const Icon(Icons.add_circle, color: Colors.grey, size: 24);
 
-
-    if (option['isUrl'] == true && option['icon'] != null && option['icon'].toString().isNotEmpty) {
-      return SizedBox(
-        width: 24,
-        height: 24,
-        child: CommonImageView(url: option['icon'], fit: BoxFit.contain),
-      );
-    }
     return const Icon(Icons.payment, size: 24, color: AppColors.primary);
   }
 

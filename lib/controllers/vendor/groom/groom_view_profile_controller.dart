@@ -56,63 +56,107 @@ class GroomViewProfileController extends GetxController {
   String get activeServiceType => _activeService?['serviceType'] ?? 'N/A';
 
   // Shipping Getters
-  String get shippingBaseRate =>
-      (_activeProfileData['pricing']?['baseRate'] ??
-              _activeProfileData['rates']?['baseRate'] ??
-              _activeProfileData['rates']?['base'] ??
-              'N/A')
-          .toString();
-  String get shippingLoadedRate =>
-      (_activeProfileData['pricing']?['loadedRate'] ??
-              _activeProfileData['rates']?['fullyLoaded'] ??
-              _activeProfileData['rates']?['loaded'] ??
-              'N/A')
-          .toString();
-  String get shippingOperationType =>
-      _activeProfileData['operationType'] ??
-      _activeApplicationData['operationType'] ??
-      'N/A';
-  List<String> get shippingRigTypes => List<String>.from(
-    _activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [],
-  );
-  String get shippingRigCapacity =>
-      (_activeProfileData['rigCapacity'] ??
-              _activeApplicationData['rigCapacity'] ??
-              'N/A')
-          .toString();
-  String get shippingEquipmentSummary =>
-      _activeProfileData['equipmentSummary'] ??
-      _activeProfileData['equipmentsSummary'] ??
-      'N/A';
+  String get shippingBaseRate {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    
+    // Check possible locations for pricing data
+    final pricing = _activeProfileData['pricing'] ?? 
+                    flatData['pricing'] ?? 
+                    _activeApplicationData['pricing'] ?? {};
+    
+    if (pricing['inquiryPrice'] == true) return "Inquire for price";
+    
+    // Check multiple possible key names for base rate
+    final rate = pricing['baseRate'] ?? 
+                 _activeProfileData['rates']?['baseRate'] ?? 
+                 _activeProfileData['rates']?['base'] ?? 
+                 _activeApplicationData['pricing']?['baseRate'] ?? 
+                 'N/A';
+                 
+    return rate.toString();
+  }
+
+  String get shippingLoadedRate {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    
+    // Check possible locations for pricing data
+    final pricing = _activeProfileData['pricing'] ?? 
+                    flatData['pricing'] ?? 
+                    _activeApplicationData['pricing'] ?? {};
+    
+    if (pricing['inquiryPrice'] == true) return "Inquire for price";
+    
+    // Check multiple possible key names for loaded rate
+    final rate = pricing['loadedRate'] ?? 
+                 _activeProfileData['rates']?['fullyLoaded'] ?? 
+                 _activeProfileData['rates']?['loaded'] ?? 
+                 _activeApplicationData['pricing']?['loadedRate'] ?? 
+                 'N/A';
+                 
+    return rate.toString();
+  }
+  String get shippingOperationType {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? 'N/A';
+  }
+
+  List<String> get shippingRigTypes {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final list = flatData['rigTypes'] ?? _activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [];
+    return List<String>.from(list);
+  }
+
+  String get shippingRigCapacity {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? 'N/A').toString();
+  }
+
+  String get shippingEquipmentSummary {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? 'N/A';
+  }
+
   String get shippingEquipmentsSummary => shippingEquipmentSummary;
   
   String get shippingDotNumber =>
       (_activeApplicationData['businessInfo']?['dotNumber'] ?? 'N/A').toString();
       
-  bool get shippingHasCDL => 
-      _activeProfileData['hasCDL'] ?? 
-      _activeApplicationData['confirmLicense'] ?? 
-      false;
+  bool get shippingHasCDL {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    return flatData['hasCDL'] ?? _activeProfileData['hasCDL'] ?? _activeApplicationData['confirmLicense'] ?? false;
+  }
       
   String get shippingBusinessName => 
       vendorData['businessName'] ?? 
       _activeApplicationData['businessInfo']?['legalName'] ?? 
       'N/A';
-  List<String> get shippingServicesOffered => List<String>.from(
-    _activeProfileData['services'] ??
-        _activeProfileData['servicesOffered'] ??
-        [],
-  );
-  List<String> get shippingRegionsCovered => List<String>.from(
-    _activeProfileData['regionsCovered'] ??
-        _activeApplicationData['regions'] ??
-        [],
-  );
-  List<String> get shippingTravelScope => List<String>.from(
-    _activeProfileData['travelScope'] ??
-        _activeApplicationData['travelScope'] ??
-        [],
-  );
+  List<String> get shippingServicesOffered {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final list = flatData['services'] ?? _activeProfileData['services'] ?? _activeProfileData['servicesOffered'] ?? [];
+    return List<String>.from(list);
+  }
+
+  List<String> get shippingRegionsCovered {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final list = flatData['regionsCovered'] ?? _activeProfileData['regionsCovered'] ?? _activeApplicationData['regions'] ?? [];
+    return List<String>.from(list);
+  }
+
+  List<String> get shippingTravelScope {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final list = flatData['travelScope'] ?? _activeProfileData['travelScope'] ?? _activeApplicationData['travelScope'] ?? [];
+    return List<String>.from(list);
+  }
   List<String> get travelScope => shippingTravelScope;
 
   @override
@@ -353,18 +397,54 @@ class GroomViewProfileController extends GetxController {
     }
   }
 
-  Future<void> fetchAvailability(String vendorId) async {
+  Future<void> fetchAvailability(String vId) async {
+    final vendorId = vId;
+    if (vendorId.isEmpty) return;
     try {
       isAvailabilityLoading.value = true;
-      final response = await _apiService.getRequest(
-        '/availability/vendors/$vendorId',
-      );
-      if (response.statusCode == 200 && response.body['success'] == true) {
-        final List list = response.body['data'] ?? [];
-        availabilityList.assignAll(list.cast<Map<String, dynamic>>());
+      final List<Map<String, dynamic>> localCombinedList = [];
+
+      // Parallel fetch for speed
+      final responses = await Future.wait([
+        _apiService.getRequest('/availability/vendors/$vendorId'),
+        _apiService.getRequest('/trips/vendor/$vendorId'),
+      ]);
+
+      final availabilityResponse = responses[0];
+      final tripsResponse = responses[1];
+
+      if (availabilityResponse.statusCode == 200 && availabilityResponse.body['success'] == true) {
+        final List data = availabilityResponse.body['data'] ?? [];
+        for (var item in data) {
+          if (item is Map<String, dynamic>) {
+            localCombinedList.add(item);
+          }
+        }
       }
+
+      if (tripsResponse.statusCode == 200 && tripsResponse.body['success'] == true) {
+        final List tripsData = tripsResponse.body['data'] ?? [];
+        for (var t in tripsData) {
+          if (t is Map<String, dynamic>) {
+            final Map<String, dynamic> tripMap = Map<String, dynamic>.from(t);
+            tripMap['isTrip'] = true;
+            localCombinedList.add(tripMap);
+          }
+        }
+      }
+
+      // Sort by soonest date
+      localCombinedList.sort((a, b) {
+        final dateStrA = a['startDate']?.toString() ?? a['specificDate']?.toString() ?? '';
+        final dateStrB = b['startDate']?.toString() ?? b['specificDate']?.toString() ?? '';
+        final dateA = DateTime.tryParse(dateStrA) ?? DateTime(2099);
+        final dateB = DateTime.tryParse(dateStrB) ?? DateTime(2099);
+        return dateA.compareTo(dateB);
+      });
+
+      availabilityList.assignAll(localCombinedList);
     } catch (e) {
-      debugPrint('Error fetching availability: $e');
+      debugPrint('Error in fetchAvailability: $e');
     } finally {
       isAvailabilityLoading.value = false;
     }
