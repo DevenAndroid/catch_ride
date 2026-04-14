@@ -36,10 +36,20 @@ class _HorseListingViewState extends State<HorseListingView> {
   void initState() {
     super.initState();
     _loadHorses();
+    // Re-load when user profile is fetched
+    ever(profileController.user, (_) => _loadHorses());
     _scrollController.addListener(_onScroll);
   }
 
-  void _loadHorses({bool refresh = true}) {
+  Future<void> _loadHorses({bool refresh = true}) async {
+    if (profileController.user.value == null) {
+      int retries = 0;
+      while (profileController.user.value == null && retries < 30) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        retries++;
+      }
+    }
+
     final trainerId = profileController.trainerId;
     final userId = profileController.id;
 
@@ -48,6 +58,11 @@ class _HorseListingViewState extends State<HorseListingView> {
     } else if (userId.isNotEmpty) {
       // Fallback to ownerId if trainer profile is not yet fully linked
       horseController.fetchHorses(refresh: refresh, ownerId: userId);
+    } else {
+      // If we still don't have ids, we can't fetch anything specific that is 'My Horses'
+      horseController.horses.clear();
+      horseController.hasNextPage.value = false;
+      horseController.isLoading.value = false;
     }
   }
 
@@ -158,7 +173,7 @@ class _HorseListingViewState extends State<HorseListingView> {
             const SizedBox(height: 16),
             Expanded(
               child: Obx(() {
-                if (horseController.isLoading.value &&
+                if ((horseController.isLoading.value || profileController.isLoading.value) &&
                     horseController.horses.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }

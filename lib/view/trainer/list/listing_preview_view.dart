@@ -11,6 +11,8 @@ import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
+import '../../../utils/date_util.dart';
+
 class ListingPreviewView extends StatefulWidget {
   final String? controllerTag;
   const ListingPreviewView({super.key, this.controllerTag});
@@ -668,8 +670,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                   location = entry['location'];
                 } else {
                   venue = entry.showVenueController.text;
-                  dates =
-                      '${entry.startDateController.text} - ${entry.endDateController.text}';
+                  dates =   DateUtil.formatRange(entry.startDateController.text, entry.endDateController.text);
                   location = entry.cityStateController.text;
                 }
 

@@ -36,13 +36,7 @@ class ProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchProfile().then((_) {
-      if ((user.value?.role == 'trainer' ||
-              user.value?.role == 'barn_manager') &&
-          user.value?.trainerProfileId != null) {
-        fetchTrainerHorses();
-      }
-    });
+    fetchProfile();
     fetchMetadata();
   }
 
@@ -125,7 +119,7 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> fetchProfile() async {
+  Future<void> fetchProfile({int retryCount = 0}) async {
     try {
       isLoading.value = true;
       final response = await _apiService.getRequest(AppUrls.profile);
@@ -150,11 +144,23 @@ class ProfileController extends GetxController {
         }
       } else {
         _logger.e('Failed to fetch profile: ${response.statusText}');
+        if (retryCount < 1) {
+          _logger.i('Retrying profile fetch...');
+          await Future.delayed(const Duration(seconds: 1));
+          return fetchProfile(retryCount: retryCount + 1);
+        }
       }
     } catch (e) {
       _logger.e('Error fetching profile: $e');
+      if (retryCount < 1) {
+        _logger.i('Retrying profile fetch after error...');
+        await Future.delayed(const Duration(seconds: 1));
+        return fetchProfile(retryCount: retryCount + 1);
+      }
     } finally {
-      isLoading.value = false;
+      if (retryCount == 0 || user.value != null) {
+        isLoading.value = false;
+      }
     }
   }
 

@@ -1491,24 +1491,239 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                               ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        CommonTextField(
-                          label: 'Show Venue',
-                          controller: availabilityEntry.showVenueController,
-                          hintText: 'Select Show Venue',
-                          readOnly: true,
-                          onTap: () => _showVenueBottomSheet(availabilityEntry),
-                          suffixIcon: const Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 20,
-                            color: AppColors.textSecondary,
-                          ),
+                        // New Searchable Autocomplete for Show, Venue, or Circuit
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RichText(
+                              text: const TextSpan(
+                                text: 'Show, Venue, or Circuit',
+                                style: TextStyle(
+                                  fontSize: AppTextSizes.size14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                  fontFamily: 'Inter',
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: ' *',
+                                    style: TextStyle(color: Color(0xFFD92D20)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            LayoutBuilder(
+                              builder: (context, constraints) => Autocomplete<Map<String, dynamic>>(
+                                displayStringForOption: (option) =>
+                                    option['name'] ?? '',
+                                optionsBuilder:
+                                    (TextEditingValue textEditingValue) {
+                                      if (textEditingValue.text.isEmpty) {
+                                        return const Iterable<
+                                          Map<String, dynamic>
+                                        >.empty();
+                                      }
+                                      final query = textEditingValue.text
+                                          .toLowerCase();
+                                      return profileController.rawHorseShows
+                                          .where((show) {
+                                            final name = (show['name'] ?? '')
+                                                .toString()
+                                                .toLowerCase();
+                                            final venue =
+                                                (show['showVenue'] ?? '')
+                                                    .toString()
+                                                    .toLowerCase();
+                                            final circuit =
+                                                (show['circuit'] ?? '')
+                                                    .toString()
+                                                    .toLowerCase();
+                                            return name.contains(query) ||
+                                                venue.contains(query) ||
+                                                circuit.contains(query);
+                                          });
+                                    },
+                                onSelected: (Map<String, dynamic> selection) {
+                                  availabilityEntry.showVenueController.text =
+                                      selection['name'] ?? '';
+                                  availabilityEntry.showIdController.text =
+                                      selection['_id'] ?? selection['id'] ?? '';
+
+                                  // Auto-fill City/State
+                                  final city = selection['city'] ?? '';
+                                  final state = selection['state'] ?? '';
+                                  if (city.isNotEmpty || state.isNotEmpty) {
+                                    availabilityEntry.cityStateController.text =
+                                        '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
+                                  }
+
+                                  // Auto-fill Dates
+                                  final DateFormat formatter = DateFormat(
+                                    'dd MMM yyyy',
+                                  );
+                                  if (selection['startDate'] != null) {
+                                    try {
+                                      final start = DateTime.parse(
+                                        selection['startDate'],
+                                      );
+                                      availabilityEntry
+                                          .startDateController
+                                          .text = formatter.format(
+                                        start,
+                                      );
+                                    } catch (_) {}
+                                  }
+                                  if (selection['endDate'] != null) {
+                                    try {
+                                      final end = DateTime.parse(
+                                        selection['endDate'],
+                                      );
+                                      availabilityEntry.endDateController.text =
+                                          formatter.format(end);
+                                    } catch (_) {}
+                                  }
+                                },
+                                fieldViewBuilder:
+                                    (
+                                      context,
+                                      textController,
+                                      focusNode,
+                                      onFieldSubmitted,
+                                    ) {
+                                      // Sync with entry controller
+                                      if (availabilityEntry
+                                              .showVenueController
+                                              .text
+                                              .isNotEmpty &&
+                                          textController.text.isEmpty) {
+                                        textController.text = availabilityEntry
+                                            .showVenueController
+                                            .text;
+                                      }
+                                      textController.addListener(() {
+                                        availabilityEntry
+                                                .showVenueController
+                                                .text =
+                                            textController.text;
+                                      });
+
+                                      return TextFormField(
+                                        controller: textController,
+                                        focusNode: focusNode,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Search horse show, venue or circuit...',
+                                          suffixIcon: const Icon(
+                                            Icons.search,
+                                            color: AppColors.textSecondary,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        style: const TextStyle(fontSize: 14),
+                                      );
+                                    },
+                                optionsViewBuilder: (context, onSelected, options) {
+                                  return Align(
+                                    alignment: Alignment.topLeft,
+                                    child: Material(
+                                      elevation: 4.0,
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        width: constraints.maxWidth,
+                                        constraints: const BoxConstraints(
+                                          maxHeight: 300,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.border,
+                                          ),
+                                        ),
+                                        child: ListView.separated(
+                                          padding: EdgeInsets.zero,
+                                          shrinkWrap: true,
+                                          itemCount: options.length,
+                                          separatorBuilder: (context, index) =>
+                                              const Divider(height: 1),
+                                          itemBuilder: (context, index) {
+                                            final show = options.elementAt(
+                                              index,
+                                            );
+                                            final name = show['name'] ?? '';
+                                            final venueName =
+                                                show['showVenue'] ??
+                                                'Unknown Venue';
+                                            final city = show['city'] ?? '';
+                                            final state = show['state'] ?? '';
+
+                                            String dateRange = '';
+                                            try {
+                                              if (show['startDate'] != null &&
+                                                  show['endDate'] != null) {
+                                                final start = DateTime.parse(
+                                                  show['startDate'],
+                                                );
+                                                final end = DateTime.parse(
+                                                  show['endDate'],
+                                                );
+                                                final df = DateFormat('MMM d');
+                                                final dfYear = DateFormat(
+                                                  'yyyy',
+                                                );
+                                                dateRange =
+                                                    '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
+                                              }
+                                            } catch (_) {}
+
+                                            return InkWell(
+                                              onTap: () => onSelected(show),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 12,
+                                                    ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    CommonText(
+                                                      name,
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    CommonText(
+                                                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state • $dateRange',
+                                                      fontSize: 12,
+                                                      color: AppColors
+                                                          .textSecondary,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
                         CommonTextField(
                           label: 'City/State',
                           controller: availabilityEntry.cityStateController,
                           hintText: 'e.g., Welling.',
+                          readOnly: true, // Locked as per requirement
                         ),
                         const SizedBox(height: 16),
                         Row(
