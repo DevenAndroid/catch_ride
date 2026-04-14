@@ -530,7 +530,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             children: _selectedHorseShows.map((tag) {
               return GestureDetector(
                 onTap: () => _selectedHorseShows.remove(tag),
-                child: _buildSelectedTag(tag),
+                child: _buildSelectedTag(_toTitleCase(tag)),
               );
             }).toList(),
           );
@@ -1122,8 +1122,8 @@ class _EditProfileViewState extends State<EditProfileView> {
                                 }
                               },
                               child: isSelected
-                                  ? _buildSelectedTag(label)
-                                  : _buildTag(label),
+                                  ? _buildSelectedTag(_toTitleCase(label))
+                                  : _buildTag(_toTitleCase(label)),
                             );
                           }).toList(),
                         ),

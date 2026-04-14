@@ -856,6 +856,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildImageSection() {
     final List<String> allMedia = [
+      if(horse!.images.isEmpty)
+        horse!.photo!,
       ...horse!.images,
       if (horse!.videoLink != null && 
           horse!.videoLink!.isNotEmpty && 
@@ -1291,7 +1293,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(height: 12),
           const CommonText(
-            'The reservation is non-refundable and non-transferable.',
+            'Cancellations must be made at least 24 hours in advance. Late cancellations may incur a fee or may not be eligible for a refund.',
             fontSize: 13,
             color: Color(0xFFB42318),
             height: 1.5,

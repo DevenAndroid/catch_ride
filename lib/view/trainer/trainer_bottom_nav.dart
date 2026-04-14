@@ -4,7 +4,6 @@ import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:get/get.dart';
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
@@ -12,7 +11,6 @@ import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
 import 'package:catch_ride/view/trainer/chats/chats_view.dart';
 import 'package:catch_ride/view/trainer/settings/settings_view.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-
 import 'list/horse_listing_view.dart';
 
 class TrainerBottomNav extends StatefulWidget {
@@ -88,7 +86,7 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
               _buildNavItem(1, 'Explore', LucideIcons.search),
               _buildNavItem(2, 'List', LucideIcons.circlePlus),
               _buildNavItem(3, 'Inbox', LucideIcons.messageCircleMore),
-              _buildNavItem(4, 'Profile', Icons.person_outline_sharp),
+              _buildNavItem(4, 'Menu', Icons.person_outline_sharp),
             ],
           ),
         ),

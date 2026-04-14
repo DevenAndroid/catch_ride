@@ -16,6 +16,7 @@ import 'package:catch_ride/widgets/horse_card.dart';
 import '../../../../controllers/booking_controller.dart';
 import '../../../models/horse_model.dart';
 import '../../../models/vendor_model.dart';
+import '../../../utils/date_util.dart';
 import '../../../widgets/common_image_view.dart';
 
 class TrainerExploreView extends StatefulWidget {
@@ -149,6 +150,34 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                               ),
                             ),
                           )
+                        else if (controller.isSearchActive)
+                          SliverPadding(
+                            padding: const EdgeInsets.all(16),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final horse = controller.horses[index];
+                                  final isRequested =
+                                      Get.put(BookingController()).bookings.any(
+                                            (b) =>
+                                                b.horseId == horse.id &&
+                                                b.status.toLowerCase() ==
+                                                    'pending',
+                                          );
+
+                                  return HorseCard(
+                                    horse: horse,
+                                    isRequested: isRequested,
+                                    onTap: () => Get.to(
+                                      () => TrainerHorseDetailView(
+                                          horse: horse),
+                                    ),
+                                  );
+                                },
+                                childCount: controller.horses.length,
+                              ),
+                            ),
+                          )
                         else if (controller.isGridView.value)
                           SliverPadding(
                             padding: const EdgeInsets.all(12),
@@ -239,7 +268,6 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
         child: InkWell(
           onTap: () => Get.to(
             () => const SearchFilterOverlay(),
-            transition: Transition.fadeIn,
             fullscreenDialog: true,
             opaque: false,
           ),
@@ -254,36 +282,49 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    CommonText(
-                      "How can we help you?",
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF101828),
-                    ),
-                    CommonText(
-                      "Search horses, services and circuits",
-                      fontSize: 12,
-                      color: Color(0xFF667085),
-                    ),
-                  ],
-                ),
+                child: Obx(() {
+                  String mainText = "How can we help you?";
+                  String subText = "Search horses, services and circuits";
+
+                  if (controller.isSearchActive) {
+                    if (controller.showVenue.value.isNotEmpty) {
+                      mainText = controller.showVenue.value;
+                    } else if (controller.location.value.isNotEmpty) {
+                      mainText = controller.location.value;
+                    } else if (controller.searchQuery.value.isNotEmpty) {
+                      mainText = controller.searchQuery.value;
+                    }
+
+                    if (controller.startDate.value != null &&
+                        controller.endDate.value != null) {
+                      subText = DateUtil.formatRange(
+                        controller.startDate.value,
+                        controller.endDate.value,
+                      );
+                    } else {
+                      subText = "Refined Search";
+                    }
+                  }
+
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CommonText(
+                        mainText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF101828),
+                      ),
+                      CommonText(
+                        subText,
+                        fontSize: 12,
+                        color: const Color(0xFF667085),
+                      ),
+                    ],
+                  );
+                }),
               ),
-/*              Obx(
-                () => IconButton(
-                  onPressed: () => controller.isGridView.toggle(),
-                  icon: Icon(
-                    controller.isGridView.value
-                        ? Icons.list_rounded
-                        : Icons.grid_view_rounded,
-                    color: const Color(0xFF101828),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),*/
             ],
           ),
         ),

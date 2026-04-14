@@ -586,8 +586,8 @@ class _TrainerCompleteProfileViewState
                                 }
                               },
                               child: isSelected
-                                  ? _buildSelectedTag(label)
-                                  : _buildTag(label),
+                                  ? _buildSelectedTag(_toTitleCase(label))
+                                  : _buildTag(_toTitleCase(label)),
                             );
                           }).toList(),
                         ),
@@ -755,7 +755,7 @@ class _TrainerCompleteProfileViewState
             children: _selectedHorseShows.map((tag) {
               return GestureDetector(
                 onTap: () => _selectedHorseShows.remove(tag),
-                child: _buildSelectedTag(tag),
+                child: _buildSelectedTag(_toTitleCase(tag)),
               );
             }).toList(),
           );
