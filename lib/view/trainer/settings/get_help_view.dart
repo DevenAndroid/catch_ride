@@ -9,6 +9,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/view/trainer/settings/request_horse_show_view.dart';
 
+import '../../barn_manager/barn_manager_create_profile_view.dart';
+import '../trainer_complete_profile_view.dart';
+import '../trainer_profile_setup_view.dart';
+
 class GetHelpView extends StatefulWidget {
   const GetHelpView({super.key});
 
@@ -147,11 +151,14 @@ class _GetHelpViewState extends State<GetHelpView> {
                       padding: const EdgeInsets.only(bottom: 16),
                       child: GestureDetector(
                         onTap: () async {
-                          final Uri url = Uri.parse('tel:$phoneNo');
+
+
+
+                          final Uri url = Uri.parse('sms:$phoneNo');
                           if (await canLaunchUrl(url)) {
                             await launchUrl(url);
                           } else {
-                            Get.snackbar('Error', 'Could not open dialer');
+                            Get.snackbar('Error', 'Could not open messaging app');
                           }
                         },
                         child: Container(
@@ -174,7 +181,7 @@ class _GetHelpViewState extends State<GetHelpView> {
                           child: Row(
                             children: [
                               const Icon(
-                                Icons.phone,
+                                Icons.chat_outlined,
                                 color: AppColors.primary,
                                 size: 24,
                               ),

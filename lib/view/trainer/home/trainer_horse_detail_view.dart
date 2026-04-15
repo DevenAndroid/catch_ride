@@ -904,7 +904,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildImageSection() {
     final List<String> allMedia = [
-      if (horse!.images.isEmpty) horse!.photo!,
+      if (horse!.images.isEmpty && horse!.photo != null) horse!.photo!,
       ...horse!.images,
       if (horse!.videoLink != null &&
           horse!.videoLink!.isNotEmpty &&

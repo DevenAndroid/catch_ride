@@ -390,7 +390,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 GestureDetector(
                   onTap: () async {
                     final List<XFile> images = await controller.picker
-                        .pickMultiImage();
+                        .pickMultiImage(imageQuality: 90);
                     if (images.isNotEmpty) {
                       controller.localImages.addAll(
                         images.map((x) => File(x.path)),
@@ -541,7 +541,18 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       source: ImageSource.gallery,
                     );
                     if (video != null) {
-                      controller.localVideos.add(File(video.path));
+                      final file = File(video.path);
+                      if (file.lengthSync() > 200 * 1024 * 1024) {
+                        Get.snackbar(
+                          'Error',
+                          'Video size exceeds 200 MB limit',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      } else {
+                        controller.localVideos.add(file);
+                      }
                     }
                   },
                   child: Container(
@@ -569,6 +580,12 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.primary,
+                        ),
+                        SizedBox(height: 4),
+                        CommonText(
+                          '(Max 200 MB)',
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
                         ),
                       ],
                     ),

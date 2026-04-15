@@ -36,7 +36,12 @@ class _EditBarnManagerProfileViewState
 
   Future<void> _pickImage(bool isProfile) async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: isProfile ? 800 : 1600, // Profile is smaller, banner can be wider
+        maxHeight: isProfile ? 800 : 1600,
+        imageQuality: 85, // Adds native compression
+      );
       if (image != null) {
         setState(() {
           if (isProfile) {

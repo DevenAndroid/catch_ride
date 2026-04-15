@@ -24,14 +24,14 @@ class AddNewListingController extends GetxController {
   }
 
   final List<String> breeds = [
-    'Dutch Warmblood (KWPN)',
-    'Oldenburg (OL / GOV)',
+    'Dutch Warmblood',
+    'Oldenburg',
     'Hanoverian',
     'Holsteiner',
     'Selle Français',
     'Westphalian',
     'Trakehner',
-    'Belgian Warmblood (BWP)',
+    'Belgian Warmblood',
     'Danish Warmblood',
     'Swedish Warmblood',
     'Irish Sport Horse',
@@ -289,12 +289,32 @@ class AddNewListingController extends GetxController {
       
       for (var imageFile in localImages) {
         final url = await _uploadFile(imageFile);
-        if (url != null) finalImages.add(url);
+        if (url != null) {
+          finalImages.add(url);
+        } else {
+          Get.back();
+          Get.snackbar('Error', 'Failed to upload image',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white);
+          isPublishing.value = false;
+          return;
+        }
       }
       
       for (var videoFile in localVideos) {
         final url = await _uploadFile(videoFile);
-        if (url != null) finalImages.add(url);
+        if (url != null) {
+          finalImages.add(url);
+        } else {
+          Get.back();
+          Get.snackbar('Error', 'Failed to upload video',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white);
+          isPublishing.value = false;
+          return;
+        }
       }
  
       final horseData = {
@@ -451,8 +471,7 @@ class AddNewListingController extends GetxController {
   Future<void> pickImage() async {
     try {
       if (localImages.isEmpty) {
-        // First selection: only allow images
-        final List<XFile> images = await picker.pickMultiImage();
+        final List<XFile> images = await picker.pickMultiImage(imageQuality: 90);
         if (images.isNotEmpty) {
           localImages.addAll(images.map((x) => File(x.path)));
         }
@@ -487,7 +506,7 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Images'),
               onTap: () async {
                 Get.back();
-                final List<XFile> images = await picker.pickMultiImage();
+                final List<XFile> images = await picker.pickMultiImage(imageQuality: 90);
                 if (images.isNotEmpty) {
                   localImages.addAll(images.map((x) => File(x.path)));
                 }
@@ -498,9 +517,20 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Video'),
               onTap: () async {
                 Get.back();
-                final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+                final XFile? video = await picker.pickVideo(source: ImageSource.gallery,);
                 if (video != null) {
-                  localVideos.add(File(video.path));
+                  final file = File(video.path);
+                  if (file.lengthSync() > 200 * 1024 * 1024) {
+                    Get.snackbar(
+                      'Error',
+                      'Video size exceeds 200 MB limit',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                  } else {
+                    localVideos.add(file);
+                  }
                 }
               },
             ),
