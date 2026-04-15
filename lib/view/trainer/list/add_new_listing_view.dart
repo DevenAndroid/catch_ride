@@ -77,7 +77,22 @@ class _AddNewListingViewState extends State<AddNewListingView> {
             color: AppColors.textPrimary,
             size: 20,
           ),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (_currentStep > 1) {
+              setState(() {
+                _currentStep--;
+              });
+              if (_scrollController.hasClients) {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            } else {
+              Get.back();
+            }
+          },
         ),
         title: const CommonText(
           'Add new listing',
