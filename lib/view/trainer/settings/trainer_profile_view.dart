@@ -45,6 +45,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fetchProfile();
+    });
     // Clear viewed user when leaving this screen to prevent state leakage
     // only if we were actually viewing someone else
     if (widget.trainerId != null &&
@@ -52,6 +55,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
       _controller.viewedUser.value = null;
       _controller.viewedUserHorses.clear();
     }
+
+
     super.dispose();
   }
 
@@ -368,7 +373,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                    const Color(0xFFD62976),
                                        () {
                                      UrlHelper.launchInstagram(
-                                       profile.instagram!,
+                                       profile.instagram!.toLowerCase()
                                      );
                                    },
                                  ),
@@ -379,7 +384,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                    Icons.facebook,
                                    const Color(0xFF1877F2),
                                        () {
-                                     UrlHelper.launchFacebook(profile.facebook!);
+                                     UrlHelper.launchFacebook(profile.facebook!.toLowerCase());
                                    },
                                  ),
                                ],
@@ -391,7 +396,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                    Icons.link,
                                    Colors.black87,
                                        () {
-                                     UrlHelper.launchWebsite(profile.website!);
+                                     UrlHelper.launchWebsite(profile.website!.toLowerCase());
                                    },
                                  ),
                                ],
@@ -608,7 +613,10 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
   Widget _buildHorseCard(HorseModel horse) {
     return GestureDetector(
-      onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
+      onTap: () {
+        Get.back();
+        Get.to(() => TrainerHorseDetailView(horse: horse));
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),

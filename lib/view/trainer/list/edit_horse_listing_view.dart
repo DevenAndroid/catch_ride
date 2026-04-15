@@ -540,8 +540,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 }),
                 GestureDetector(
                   onTap: () async {
-                    final List<XFile> images = await controller.picker
-                        .pickMultiImage();
+                    final List<XFile> images = await controller.picker.pickMultiImage(imageQuality: 90);
                     if (images.isNotEmpty) {
                       controller.localImages.addAll(
                         images.map((x) => File(x.path)),
@@ -693,7 +692,18 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                       source: ImageSource.gallery,
                     );
                     if (video != null) {
-                      controller.localVideos.add(File(video.path));
+                      final file = File(video.path);
+                      if (file.lengthSync() > 200 * 1024 * 1024) {
+                        Get.snackbar(
+                          'Error',
+                          'Video size exceeds 200 MB limit',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      } else {
+                        controller.localVideos.add(file);
+                      }
                     }
                   },
                   child: Container(
@@ -721,6 +731,12 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.primary,
+                        ),
+                        SizedBox(height: 4),
+                        CommonText(
+                          '(Max 200 MB)',
+                          fontSize: 10,
+                          color: AppColors.textSecondary,
                         ),
                       ],
                     ),
@@ -881,16 +897,124 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 ],
               ),
               const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Breed',
-                controller: controller.breedController,
-                hintText: 'Enter breed',
-                isRequired: true,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Please enter the breed';
-                  return null;
-                },
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: const TextSpan(
+                      text: 'Breed',
+                      style: TextStyle(
+                        fontSize: AppTextSizes.size14,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Inter',
+                      ),
+                      children: [
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Color(0xFFD92D20)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  LayoutBuilder(
+                    builder: (context, constraints) => Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        final query = textEditingValue.text.toLowerCase();
+                        return controller.breeds.where((String option) {
+                          return option.toLowerCase().contains(query);
+                        });
+                      },
+                      onSelected: (String selection) {
+                        controller.breedController.text = selection;
+                      },
+                      fieldViewBuilder: (
+                        BuildContext context,
+                        TextEditingController fieldTextEditingController,
+                        FocusNode fieldFocusNode,
+                        VoidCallback onFieldSubmitted,
+                      ) {
+                         if (controller.breedController.text.isNotEmpty &&
+                            fieldTextEditingController.text.isEmpty) {
+                          fieldTextEditingController.text =
+                              controller.breedController.text;
+                        }
+                        fieldTextEditingController.addListener(() {
+                          controller.breedController.text =
+                              fieldTextEditingController.text;
+                        });
+
+                        return TextFormField(
+                          controller: fieldTextEditingController,
+                          focusNode: fieldFocusNode,
+                          validator: (val) {
+                            if (val == null || val.trim().isEmpty)
+                              return 'Please enter the breed';
+                            return null;
+                          },
+                          style: const TextStyle(
+                            fontSize: AppTextSizes.size14,
+                            color: AppColors.textPrimary,
+                          ),
+                          decoration: const InputDecoration(
+                            hintText: 'Enter breed',
+                          ),
+                        );
+                      },
+                      optionsViewBuilder: (context, onSelected, options) {
+                        return Align(
+                          alignment: Alignment.topLeft,
+                          child: Material(
+                            elevation: 4.0,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              constraints: const BoxConstraints(maxHeight: 200),
+                              width: constraints.maxWidth,
+                              child: ListView.separated(
+                                padding: EdgeInsets.zero,
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                separatorBuilder: (context, index) =>
+                                    const Divider(
+                                  height: 1,
+                                  color: AppColors.border,
+                                ),
+                                itemBuilder: (BuildContext context, int index) {
+                                  final String option =
+                                      options.elementAt(index);
+                                  return InkWell(
+                                    onTap: () {
+                                      onSelected(option);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Text(
+                                        option,
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               CommonTextField(
