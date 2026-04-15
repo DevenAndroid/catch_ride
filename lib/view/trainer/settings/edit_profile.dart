@@ -472,7 +472,7 @@ class _EditProfileViewState extends State<EditProfileView> {
           'Facebook',
           _facebookController,
           hint: 'facebook.com/yourpage',
-          isRequired: true,
+
           validator: Validations.facebookValidator,
         ),
         const SizedBox(height: 20),
@@ -487,6 +487,7 @@ class _EditProfileViewState extends State<EditProfileView> {
         _buildTextField(
           'Instagram',
           _instagramController,
+          isRequired: true,
           hint: '@yourusername',
           validator: Validations.instagramValidator,
         ),

@@ -11,8 +11,9 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../utils/validators.dart';
@@ -27,6 +28,7 @@ class TrainerProfileSetupView extends StatefulWidget {
 
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final AuthController _authController = Get.find<AuthController>();
+  final ProfileController _profileController = Get.put(ProfileController());
   final _formKey = GlobalKey<FormState>();
 
   // References controllers
@@ -60,10 +62,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   bool _useBooking = false;
 
   String _selectedFederation = 'USEF (United States)';
-
   @override
   void initState() {
     super.initState();
+
   }
 
   @override
@@ -236,6 +238,33 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           ),
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Obx(() {
+        final phoneNo = _profileController.helpPhoneNumber.value;
+        if (phoneNo.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 85), // Hover clearly in the white area per image
+          child: FloatingActionButton.extended(
+            onPressed: () async {
+              final Uri url = Uri.parse('sms:$phoneNo');
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              } else {
+                Get.snackbar('Error', 'Could not open messaging app');
+              }
+            },
+            elevation: 4,
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.chat_outlined, color: Colors.white, size: 18),
+            label: const CommonText(
+              'Need help?',
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -382,14 +411,14 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           CommonTextField(
             controller: _facebookController,
             label: "Facebook",
-            isRequired: true,
+            //isRequired: true,
             hintText: AppStrings.facebookcomyourpage,
-            validator: MultiValidator([
-              RequiredValidator(
-                errorText: 'Please enter your Facebook profile link',
-              ),
-              Validations.facebookValidator,
-            ]),
+            // validator: MultiValidator([
+            //   RequiredValidator(
+            //     errorText: 'Please enter your Facebook profile link',
+            //   ),
+            //   Validations.facebookValidator,
+            // ]),
           ),
           const SizedBox(height: 16),
           CommonTextField(
@@ -410,6 +439,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
             controller: _instagramController,
             label: AppStrings.instagram,
             hintText: "@yourusername",
+            isRequired: true,
             validator: (val) => (val == null || val.isEmpty)
                 ? null
                 : Validations.instagramValidator(val),

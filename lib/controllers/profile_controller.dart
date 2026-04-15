@@ -119,6 +119,7 @@ class ProfileController extends GetxController {
     }
   }
 
+
   Future<void> fetchProfile({int retryCount = 0}) async {
     try {
       isLoading.value = true;
@@ -252,7 +253,7 @@ class ProfileController extends GetxController {
               data['profileImageUrl'] ??
               '',
           coverImage: data['coverImage'] ?? '',
-          trainerProfileId: data['_id'],
+          // trainerProfileId: data['_id'],
           isProfileApprove: data['isProfileApprove'] ?? false,
           status: data['status'] ?? 'active',
           instagram: data['instagram'] ?? '',
