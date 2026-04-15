@@ -826,13 +826,8 @@ class EditVendorProfileController extends GetxController {
 
       // Construct grooming payload if assigned
       if (assignedServices.any((s) => s['serviceType'] == 'Grooming')) {
-        final existingService = assignedServices.firstWhere((s) => s['serviceType'] == 'Grooming', orElse: () => {});
-        final existingApp = Map<String, dynamic>.from(existingService['application']?['applicationData'] ?? existingService['application'] ?? {});
-        final existingProf = Map<String, dynamic>.from(existingService['profile']?['profileData'] ?? existingService['profile'] ?? {});
-
         servicesData['grooming'] = {
           'applicationData': {
-            ...existingApp,
             'homeBase': {
               'city': cityController.text,
               'state': stateController.text,
@@ -843,10 +838,9 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Grooming'] ?? existingApp['media'] ?? [],
+            'media': serviceMediaKeys['Grooming'] ?? [],
           },
           'profileData': {
-            ...existingProf,
             'socialMedia': {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
@@ -861,20 +855,15 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': serviceMediaKeys['Grooming'] ?? existingProf['media'] ?? [],
+            'media': serviceMediaKeys['Grooming'] ?? [],
           }
         };
       }
 
       // Construct braiding payload if assigned
       if (assignedServices.any((s) => s['serviceType'] == 'Braiding')) {
-        final existingService = assignedServices.firstWhere((s) => s['serviceType'] == 'Braiding', orElse: () => {});
-        final existingApp = Map<String, dynamic>.from(existingService['application']?['applicationData'] ?? existingService['application'] ?? {});
-        final existingProf = Map<String, dynamic>.from(existingService['profile']?['profileData'] ?? existingService['profile'] ?? {});
-
         servicesData['braiding'] = {
           'applicationData': {
-            ...existingApp,
             'homeBase': {
               'city': cityController.text,
               'state': stateController.text,
@@ -885,10 +874,9 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Braiding'] ?? existingApp['media'] ?? [],
+            'media': serviceMediaKeys['Braiding'] ?? [],
           },
           'profileData': {
-            ...existingProf,
             'socialMedia': {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
@@ -900,20 +888,15 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': serviceMediaKeys['Braiding'] ?? existingProf['media'] ?? [],
+            'media': serviceMediaKeys['Braiding'] ?? [],
           }
         };
       }
 
       // Construct clipping payload if assigned
       if (assignedServices.any((s) => s['serviceType'] == 'Clipping')) {
-        final existingService = assignedServices.firstWhere((s) => s['serviceType'] == 'Clipping', orElse: () => {});
-        final existingApp = Map<String, dynamic>.from(existingService['application']?['applicationData'] ?? existingService['application'] ?? {});
-        final existingProf = Map<String, dynamic>.from(existingService['profile']?['profileData'] ?? existingService['profile'] ?? {});
-
         servicesData['clipping'] = {
           'applicationData': {
-            ...existingApp,
             'homeBase': {
               'city': cityController.text,
               'state': stateController.text,
@@ -924,10 +907,9 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Clipping'] ?? existingApp['media'] ?? [],
+            'media': serviceMediaKeys['Clipping'] ?? [],
           },
           'profileData': {
-            ...existingProf,
             'socialMedia': {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
@@ -939,20 +921,15 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': serviceMediaKeys['Clipping'] ?? existingProf['media'] ?? [],
+            'media': serviceMediaKeys['Clipping'] ?? [],
           }
         };
       }
 
       // Construct farrier payload if assigned
       if (assignedServices.any((s) => s['serviceType'] == 'Farrier')) {
-        final existingService = assignedServices.firstWhere((s) => s['serviceType'] == 'Farrier', orElse: () => {});
-        final existingApp = Map<String, dynamic>.from(existingService['application']?['applicationData'] ?? existingService['application'] ?? {});
-        final existingProf = Map<String, dynamic>.from(existingService['profile']?['profileData'] ?? existingService['profile'] ?? {});
-
         servicesData['farrier'] = {
           'applicationData': {
-            ...existingApp,
             'homeBase': {
               'city': cityController.text,
               'state': stateController.text,
@@ -973,10 +950,9 @@ class EditVendorProfileController extends GetxController {
               'emergencySupport': farrierEmergencySupport.value,
             },
             'insuranceStatus': farrierInsuranceStatus.value,
-            'media': serviceMediaKeys['Farrier'] ?? existingApp['media'] ?? [],
+            'media': serviceMediaKeys['Farrier'] ?? [],
           },
           'profileData': {
-            ...existingProf,
             'socialMedia': {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
@@ -998,20 +974,15 @@ class EditVendorProfileController extends GetxController {
               'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
               'isCustom': isCustomCancellation.value,
             },
-            'media': serviceMediaKeys['Farrier'] ?? existingProf['media'] ?? [],
+            'media': serviceMediaKeys['Farrier'] ?? [],
           }
         };
       }
 
       // Construct bodywork payload if assigned
       if (assignedServices.any((s) => s['serviceType'] == 'Bodywork')) {
-        final existingService = assignedServices.firstWhere((s) => s['serviceType'] == 'Bodywork', orElse: () => {});
-        final existingApp = Map<String, dynamic>.from(existingService['application']?['applicationData'] ?? existingService['application'] ?? {});
-        final existingProf = Map<String, dynamic>.from(existingService['profile']?['profileData'] ?? existingService['profile'] ?? {});
-
         servicesData['bodywork'] = {
           'applicationData': {
-            ...existingApp,
             'homeBase': {
               'city': cityController.text,
               'state': stateController.text,
@@ -1022,10 +993,9 @@ class EditVendorProfileController extends GetxController {
             'otherDiscipline': otherDisciplineController.text,
             'horseLevels': selectedHorseLevels.toList(),
             'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Bodywork'] ?? existingApp['media'] ?? [],
+            'media': serviceMediaKeys['Bodywork'] ?? [],
           },
           'profileData': {
-            ...existingProf,
             'socialMedia': {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
@@ -1056,17 +1026,13 @@ class EditVendorProfileController extends GetxController {
               'isCustom': isCustomCancellation.value,
               'customText': isCustomCancellation.value ? customCancellationController.text : null,
             },
-            'media': serviceMediaKeys['Bodywork'] ?? existingProf['media'] ?? [],
+            'media': serviceMediaKeys['Bodywork'] ?? [],
           }
         };
       }
 
       // Construct shipping payload if assigned
       if (assignedServices.any((s) => s['serviceType'] == 'Shipping')) {
-        final existingService = assignedServices.firstWhere((s) => s['serviceType'] == 'Shipping', orElse: () => {});
-        final existingApp = Map<String, dynamic>.from(existingService['application']?['applicationData'] ?? existingService['application'] ?? {});
-        final existingProf = Map<String, dynamic>.from(existingService['profile']?['profileData'] ?? existingService['profile'] ?? {});
-
         final List<String> shippingMedia = [...shippingRigPhotos];
         for (var f in newShippingRigPhotos) {
           final key = await _uploadFile(f, 'shipping_rigs');
@@ -1080,7 +1046,6 @@ class EditVendorProfileController extends GetxController {
 
         servicesData['shipping'] = {
           'applicationData': {
-            ...existingApp,
             'homeBase': {
               'city': cityController.text,
               'state': stateController.text,
@@ -1099,13 +1064,11 @@ class EditVendorProfileController extends GetxController {
             'rigCapacity': shippingRigCapacity.value,
             'hasCDL': shippingHasCDL.value,
             'media': {
-              ...(existingApp['media'] is Map ? existingApp['media'] as Map : {}),
               'cdlPhoto': cdlUrl,
               'rigPhotos': shippingMedia,
             }
           },
           'profileData': {
-            ...existingProf,
             'socialMedia': {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
@@ -1117,7 +1080,6 @@ class EditVendorProfileController extends GetxController {
               'isCustom': isCustomCancellation.value,
             },
             'media': {
-              ...(existingProf['media'] is Map ? existingProf['media'] as Map : {}),
               'rigPhotos': shippingMedia,
             }
           }
