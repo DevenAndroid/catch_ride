@@ -3,6 +3,8 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class GroomingAvailabilityCard extends StatelessWidget {
   final VendorAvailabilityModel availability;
@@ -110,12 +112,31 @@ class GroomingAvailabilityCard extends StatelessWidget {
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    const Icon(Icons.catching_pokemon, size: 16, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    CommonText(
-                      'Max ${availability.maxBookings} Horses',
-                      fontSize: AppTextSizes.size12,
-                      color: AppColors.textSecondary,
+                    Expanded(
+                      child: Row(
+                        children: [
+                          SvgPicture.asset("assets/icons/horse_icon.svg", ),
+                          const SizedBox(width: 4),
+                          CommonText(
+                            'Max ${availability.maxBookings} Horses',
+                            fontSize: AppTextSizes.size12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                      Icon(          Icons.calendar_today_outlined,size: 18, color: const Color(0xFF535862)),
+                          const SizedBox(width: 4),
+                          CommonText(
+                            'Max ${availability.maxDays} Days',
+                            fontSize: AppTextSizes.size12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -124,7 +145,10 @@ class GroomingAvailabilityCard extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.description_outlined, size: 16, color: AppColors.textSecondary),
+                      Padding(
+                        padding: const EdgeInsets.all(3.0),
+                        child: const Icon(LucideIcons.messageSquareMore, size: 16, color: AppColors.textSecondary),
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(

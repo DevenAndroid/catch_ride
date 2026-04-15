@@ -3,6 +3,9 @@ import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+
+import '../../../../constant/app_text_sizes.dart';
 
 class BraidingAvailabilityCard extends StatelessWidget {
   final VendorAvailabilityModel availability;
@@ -114,7 +117,7 @@ class BraidingAvailabilityCard extends StatelessWidget {
                   if (availability.notes != null && availability.notes!.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     _buildInfoItem(
-                      Icons.chat_bubble_outline,
+                      LucideIcons.messageSquareMore,
                       availability.notes!,
                     ),
                   ],
@@ -133,14 +136,17 @@ class BraidingAvailabilityCard extends StatelessWidget {
         iconPath != null
             ? SvgPicture.asset(iconPath, )
             :
-        Icon(icon, size: 18, color: const Color(0xFF535862)),
+        Padding(
+          padding: const EdgeInsets.only(top: 3.0),
+          child: Icon(icon, size: 18, color: const Color(0xFF535862)),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: CommonText(
             text,
-            fontSize: 14,
-            color: const Color(0xFF181D27),
-            fontWeight: FontWeight.w600,
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+
           ),
         ),
       ],

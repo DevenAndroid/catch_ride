@@ -581,8 +581,15 @@ class GroomViewProfileController extends GetxController {
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
+      final existing = Map<String, dynamic>.from(existingServicesData['braiding'] ?? {});
+      final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
       existingServicesData['braiding'] = {
-        'profileData': {'services': services},
+        ...existing,
+        'profileData': {
+            ...existingProfile,
+            'services': services
+        },
         'isProfileCompleted': true,
       };
 
@@ -616,8 +623,15 @@ class GroomViewProfileController extends GetxController {
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
+      final existing = Map<String, dynamic>.from(existingServicesData['clipping'] ?? {});
+      final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
       existingServicesData['clipping'] = {
-        'profileData': {'services': services},
+        ...existing,
+        'profileData': {
+            ...existingProfile,
+            'services': services
+        },
         'isProfileCompleted': true,
       };
 
@@ -652,8 +666,16 @@ class GroomViewProfileController extends GetxController {
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
+      final existing = Map<String, dynamic>.from(existingServicesData['farrier'] ?? {});
+      final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
       existingServicesData['farrier'] = {
-        'profileData': {'services': services, 'addOns': addOns},
+        ...existing,
+        'profileData': {
+            ...existingProfile,
+            'services': services, 
+            'addOns': addOns
+        },
         'isProfileCompleted': true,
       };
 
@@ -695,8 +717,15 @@ class GroomViewProfileController extends GetxController {
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
+      final existing = Map<String, dynamic>.from(existingServicesData['bodywork'] ?? {});
+      final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
       existingServicesData['bodywork'] = {
-        'profileData': {'services': services},
+        ...existing,
+        'profileData': {
+            ...existingProfile,
+            'services': services
+        },
         'isProfileCompleted': true,
       };
 
@@ -744,8 +773,13 @@ class GroomViewProfileController extends GetxController {
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
+      final existing = Map<String, dynamic>.from(existingServicesData['grooming'] ?? {});
+      final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
       existingServicesData['grooming'] = {
+        ...existing,
         'profileData': {
+          ...existingProfile,
           'services': services,
           'rates': {
             'daily': daily,
