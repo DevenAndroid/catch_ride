@@ -3,6 +3,8 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class FarrierAvailabilityBlockCard extends StatelessWidget {
   final VendorAvailabilityModel block;
@@ -49,7 +51,7 @@ class FarrierAvailabilityBlockCard extends StatelessWidget {
                       CommonText(
                         block.dateDisplay,
                         color: Colors.white,
-                        fontSize: AppTextSizes.size18,
+                        fontSize: AppTextSizes.size16,
                         fontWeight: FontWeight.bold,
                       ),
                       const SizedBox(height: 4),
@@ -61,7 +63,8 @@ class FarrierAvailabilityBlockCard extends StatelessWidget {
                             child: CommonText(
                               block.locationDisplay,
                               color: Colors.white70,
-                              fontSize: 12,
+                              fontSize: AppTextSizes.size12,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -79,13 +82,25 @@ class FarrierAvailabilityBlockCard extends StatelessWidget {
                       else if (value == 'delete') onDelete?.call();
                     },
                     itemBuilder: (BuildContext context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
-                        child: CommonText('Edit', fontSize: 14, fontWeight: FontWeight.w600),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_calendar_outlined, color: Color(0xFF1570EF), size: 20),
+                            const SizedBox(width: 12),
+                            const CommonText('Edit', fontSize: 15, fontWeight: FontWeight.w500),
+                          ],
+                        ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
-                        child: CommonText('Delete', fontSize: 14, fontWeight: FontWeight.w600, color: Colors.red),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline_rounded, color: Color(0xFFD92D20), size: 20),
+                            const SizedBox(width: 12),
+                            CommonText('Delete', fontSize: 15, fontWeight: FontWeight.w500, color: const Color(0xFFD92D20)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -103,18 +118,29 @@ class FarrierAvailabilityBlockCard extends StatelessWidget {
                   children: [
                     if (block.timeBlockType != null) _buildChip(block.timeBlockType!),
                     if (block.availabilityMode != null) _buildChip(block.availabilityMode!),
+                    if (block.locationType != null) _buildChip(block.locationType!),
+                    ...block.serviceTypes.map((type) => _buildChip(type)),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    const Icon(Icons.catching_pokemon, size: 20, color: Color(0xFF475467)),
+                    SvgPicture.asset("assets/icons/horse_icon.svg", height: 16,),
                     const SizedBox(width: 8),
                     CommonText('Min ${block.maxBookings} Horses', fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF475467)),
                     const SizedBox(width: 24),
                     const Icon(Icons.access_time, size: 20, color: Color(0xFF475467)),
                     const SizedBox(width: 8),
-                    CommonText(block.newClientPolicy ?? 'Accepting new clients', fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF475467)),
+                    Expanded(
+                      child: CommonText(
+                        block.newClientPolicy ?? 'Accepting new clients', 
+                        fontSize: 15, 
+                        fontWeight: FontWeight.w600, 
+                        color: const Color(0xFF475467),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
                   ],
                 ),
                 if (block.notes != null && block.notes!.isNotEmpty) ...[
@@ -122,7 +148,10 @@ class FarrierAvailabilityBlockCard extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF475467)),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: const Icon(LucideIcons.messageSquareMore, size: 18, color: Color(0xFF475467)),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: CommonText(
@@ -158,7 +187,7 @@ class FarrierAvailabilityBlockCard extends StatelessWidget {
       ),
       child: CommonText(
         label, 
-        fontSize: 15, 
+        fontSize: 14,
         fontWeight: FontWeight.w600, 
         color: const Color(0xFF475467),
       ),

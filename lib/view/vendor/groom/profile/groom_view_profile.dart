@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/view/vendor/groom/profile/payment_methods.dart';
+import 'package:catch_ride/utils/url_helper.dart';
 import 'package:catch_ride/view/vendor/upcoming_availability.dart';
 import 'package:catch_ride/view/vendor/bodywork/profile/bodywork_service_and_rates_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile/grooming_service_and_rates_view.dart';
@@ -162,10 +163,14 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
               CommonText(groomController.businessNameDisplay, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
               const SizedBox(height: 4),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.location_on, color: Color(0xFFE11D48), size: 14),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3.0),
+                    child: const Icon(Icons.location_on, color: Color(0xFFE11D48), size: 14),
+                  ),
                   const SizedBox(width: 4),
-                  Obx(() => CommonText(groomController.locationStr.value, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                  Obx(() => Expanded(child: CommonText(groomController.locationStr.value, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600,))),
                 ],
               ),
               const SizedBox(height: 4),
@@ -197,29 +202,34 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
       children: [
         Row(
           children: [
-            if (groomController.instagramUrl.isNotEmpty) _buildSocialButton('Instagram', Icons.camera_alt_outlined, AppColors.accentRedLight),
+            if (groomController.instagramUrl.isNotEmpty) 
+              _buildSocialButton('Instagram', Icons.camera_alt_outlined, AppColors.accentRedLight, () => UrlHelper.launchInstagram(groomController.instagramUrl)),
             if (groomController.instagramUrl.isNotEmpty && groomController.facebookUrl.isNotEmpty) const SizedBox(width: 12),
-            if (groomController.facebookUrl.isNotEmpty) _buildSocialButton('Facebook', Icons.facebook, AppColors.linkBlue),
+            if (groomController.facebookUrl.isNotEmpty) 
+              _buildSocialButton('Facebook', Icons.facebook, AppColors.linkBlue, () => UrlHelper.launchFacebook(groomController.facebookUrl)),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildSocialButton(String label, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 8),
-          CommonText(label, fontSize: AppTextSizes.size14, color: color, fontWeight: FontWeight.w600),
-        ],
+  Widget _buildSocialButton(String label, IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 8),
+            CommonText(label, fontSize: AppTextSizes.size14, color: color, fontWeight: FontWeight.w600),
+          ],
+        ),
       ),
     );
   }
@@ -426,6 +436,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         experience: groomController.experienceStr.value,
         disciplines: groomController.disciplinesSelected,
         horseLevels: groomController.horseLevels,
+        scopeOfWork: groomController.farrierScopeOfWork,
         regionsCovered: groomController.operatingRegions,
         travelPreferences: groomController.travelPreferences,
         services: groomController.farrierServices,

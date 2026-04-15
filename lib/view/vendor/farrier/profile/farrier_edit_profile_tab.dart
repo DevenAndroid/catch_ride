@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/common_button.dart';
 
-class FarrierEditProfileTab extends StatelessWidget {
+class FarrierEditProfileTab extends StatefulWidget {
   final EditVendorProfileController controller;
 
   const FarrierEditProfileTab({
@@ -16,6 +16,11 @@ class FarrierEditProfileTab extends StatelessWidget {
     required this.controller,
   });
 
+  @override
+  State<FarrierEditProfileTab> createState() => _FarrierEditProfileTabState();
+}
+
+class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -35,8 +40,6 @@ class FarrierEditProfileTab extends StatelessWidget {
         _buildFarrierCertificationsSection(),
         const SizedBox(height: 20),
         _buildScopeOfWorkSection(),
-        const SizedBox(height: 20),
-        _buildFarrierServicesSection(),
         const SizedBox(height: 20),
         _buildAddPhotosSection(),
         const SizedBox(height: 20),
@@ -85,11 +88,11 @@ class FarrierEditProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonTextField(label: 'Country', hintText: 'Select Country', isRequired: true, controller: controller.countryController),
+          CommonTextField(label: 'Country', hintText: 'Select Country', isRequired: true, controller: widget.controller.countryController),
           const SizedBox(height: 16),
-          CommonTextField(label: 'State / Province', hintText: 'Select state / province', isRequired: true, controller: controller.stateController),
+          CommonTextField(label: 'State / Province', hintText: 'Select state / province', isRequired: true, controller: widget.controller.stateController),
           const SizedBox(height: 16),
-          CommonTextField(label: 'City', hintText: 'Select city', controller: controller.cityController),
+          CommonTextField(label: 'City', hintText: 'Select city', controller: widget.controller.cityController),
         ],
       ),
     );
@@ -99,12 +102,12 @@ class FarrierEditProfileTab extends StatelessWidget {
     return _buildCard(
       title: 'Experience',
       child: Obx(() => _buildDropdownTrigger(
-        value: controller.experience.value != null ? '${controller.experience.value} Years' : null,
+        value: widget.controller.experience.value != null ? '${widget.controller.experience.value} Years' : null,
         hint: 'Select Years of Experience',
         onTap: () => _showPickerBottomSheet(
-          title: 'Experience (Years)', 
-          options: controller.experienceOptions.map((e) => '$e Years').toList(), 
-          onSelected: (val) => controller.experience.value = val.replaceAll(' Years', '')
+          title: 'Experience (Years)',
+          options: widget.controller.experienceOptions.map((e) => '$e Years').toList(),
+          onSelected: (val) => widget.controller.experience.value = val.replaceAll(' Years', '')
         ),
       )),
     );
@@ -121,19 +124,19 @@ class FarrierEditProfileTab extends StatelessWidget {
           Obx(() => Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: controller.disciplineOptions.map((disc) {
-              final isSelected = controller.selectedDisciplines.contains(disc);
+            children: widget.controller.disciplineOptions.map((disc) {
+              final isSelected = widget.controller.selectedDisciplines.contains(disc);
               return GestureDetector(
-                onTap: () => controller.toggleDiscipline(disc),
+                onTap: () => widget.controller.toggleDiscipline(disc),
                 child: _buildChoiceChip(disc, isSelected),
               );
             }).toList(),
           )),
           Obx(() {
-            if (controller.selectedDisciplines.contains('Other')) {
+            if (widget.controller.selectedDisciplines.contains('Other')) {
               return Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: CommonTextField(label: '', hintText: 'Write here...', controller: controller.otherDisciplineController, maxLines: 3),
+                child: CommonTextField(label: '', hintText: 'Write here...', controller: widget.controller.otherDisciplineController, maxLines: 3),
               );
             }
             return const SizedBox.shrink();
@@ -154,10 +157,10 @@ class FarrierEditProfileTab extends StatelessWidget {
           Obx(() => Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: controller.horseLevelOptions.map((level) {
-              final isSelected = controller.selectedHorseLevels.contains(level);
+            children: widget.controller.horseLevelOptions.map((level) {
+              final isSelected = widget.controller.selectedHorseLevels.contains(level);
               return GestureDetector(
-                onTap: () => controller.toggleHorseLevel(level),
+                onTap: () => widget.controller.toggleHorseLevel(level),
                 child: _buildChoiceChip(level, isSelected),
               );
             }).toList(),
@@ -179,16 +182,16 @@ class FarrierEditProfileTab extends StatelessWidget {
             hint: 'Select Regions...',
             onTap: () => _showMultiSelectBottomSheet(
               title: 'Select Regions',
-              options: controller.regionOptions,
-              selectedItems: controller.selectedRegions,
-              onToggle: (v) => controller.toggleRegion(v),
+              options: widget.controller.regionOptions,
+              selectedItems: widget.controller.selectedRegions,
+              onToggle: (v) => widget.controller.toggleRegion(v),
             ),
           ),
           const SizedBox(height: 16),
           Obx(() => Column(
-            children: controller.selectedRegions.map((region) => Padding(
+            children: widget.controller.selectedRegions.map((region) => Padding(
               padding: const EdgeInsets.only(bottom: 8),
-              child: _buildRemovableTag(region, showRemove: true, onRemove: () => controller.toggleRegion(region)),
+              child: _buildRemovableTag(region, showRemove: true, onRemove: () => widget.controller.toggleRegion(region)),
             )).toList(),
           )),
         ],
@@ -204,9 +207,9 @@ class FarrierEditProfileTab extends StatelessWidget {
         children: [
           const CommonText('Please include at least one profile for verification.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
-          CommonTextField(label: 'Facebook', hintText: 'facebook.com/yourpage', controller: controller.facebookController),
+          CommonTextField(label: 'Facebook', hintText: 'facebook.com/yourpage', controller: widget.controller.facebookController),
           const SizedBox(height: 16),
-          CommonTextField(label: 'Instagram', hintText: '@yourusername', controller: controller.instagramController),
+          CommonTextField(label: 'Instagram', hintText: '@yourusername', controller: widget.controller.instagramController),
         ],
       ),
     );
@@ -223,14 +226,14 @@ class FarrierEditProfileTab extends StatelessWidget {
           Obx(() => Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: controller.certificationOptions.map((cert) {
-              final isSelected = controller.selectedCertifications.contains(cert);
+            children: widget.controller.certificationOptions.map((cert) {
+              final isSelected = widget.controller.selectedCertifications.contains(cert);
               return GestureDetector(
                 onTap: () {
                   if (isSelected) {
-                    controller.selectedCertifications.remove(cert);
+                    widget.controller.selectedCertifications.remove(cert);
                   } else {
-                    controller.selectedCertifications.add(cert);
+                    widget.controller.selectedCertifications.add(cert);
                   }
                 },
                 child: _buildChoiceChip(cert, isSelected),
@@ -238,10 +241,10 @@ class FarrierEditProfileTab extends StatelessWidget {
             }).toList(),
           )),
           Obx(() {
-            if (controller.selectedCertifications.contains('Other')) {
+            if (widget.controller.selectedCertifications.contains('Other')) {
               return Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: CommonTextField(label: '', hintText: 'Write here...', controller: controller.otherCertificationController, maxLines: 3),
+                child: CommonTextField(label: '', hintText: 'Write here...', controller: widget.controller.otherCertificationController, maxLines: 3),
               );
             }
             return const SizedBox.shrink();
@@ -262,14 +265,14 @@ class FarrierEditProfileTab extends StatelessWidget {
           Obx(() => Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: controller.farrierScopeOptions.map((opt) {
-              final isSelected = controller.selectedFarrierScope.contains(opt);
+            children: widget.controller.farrierScopeOptions.map((opt) {
+              final isSelected = widget.controller.selectedFarrierScope.contains(opt);
               return GestureDetector(
                 onTap: () {
                   if (isSelected) {
-                    controller.selectedFarrierScope.remove(opt);
+                    widget.controller.selectedFarrierScope.remove(opt);
                   } else {
-                    controller.selectedFarrierScope.add(opt);
+                    widget.controller.selectedFarrierScope.add(opt);
                   }
                 },
                 child: _buildChoiceChip(opt, isSelected),
@@ -277,10 +280,10 @@ class FarrierEditProfileTab extends StatelessWidget {
             }).toList(),
           )),
           Obx(() {
-            if (controller.selectedFarrierScope.contains('Other')) {
+            if (widget.controller.selectedFarrierScope.contains('Other')) {
               return Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: CommonTextField(label: '', hintText: 'Write here...', controller: controller.otherFarrierScopeController, maxLines: 3),
+                child: CommonTextField(label: '', hintText: 'Write here...', controller: widget.controller.otherFarrierScopeController, maxLines: 3),
               );
             }
             return const SizedBox.shrink();
@@ -298,11 +301,11 @@ class FarrierEditProfileTab extends StatelessWidget {
         children: [
           const CommonText('Farrier Services', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
-          _buildServicesList(controller.farrierServices),
+          _buildServicesList(widget.controller.farrierServices),
           const SizedBox(height: 24),
           const CommonText('Add-Ons', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
-          _buildServicesList(controller.farrierAddOns),
+          _buildServicesList(widget.controller.farrierAddOns),
         ],
       ),
     );
@@ -382,13 +385,13 @@ class FarrierEditProfileTab extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              ...controller.serviceExistingPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
+              ...widget.controller.serviceExistingPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
                 image: NetworkImage(entry.value),
-                onRemove: () => controller.removeServiceExistingPhoto('Farrier', entry.key),
+                onRemove: () => widget.controller.removeServiceExistingPhoto('Farrier', entry.key),
               )),
-              ...controller.serviceNewPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
+              ...widget.controller.serviceNewPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
                 image: FileImage(entry.value),
-                onRemove: () => controller.removeServiceNewPhoto('Farrier', entry.key),
+                onRemove: () => widget.controller.removeServiceNewPhoto('Farrier', entry.key),
               )),
               _addPhotoBox(),
             ],
@@ -399,40 +402,145 @@ class FarrierEditProfileTab extends StatelessWidget {
   }
 
   Widget _buildTravelPreferencesSection() {
+    final options = [
+      {'title': 'Local Only', 'subtitle': 'Varies by location'},
+      {'title': 'Regional', 'subtitle': null},
+      {'title': 'Nationwide', 'subtitle': null},
+      {'title': 'International', 'subtitle': null},
+    ];
+
     return _buildCard(
       title: 'Travel Preferences',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText('Set your service regions and fees.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-          const SizedBox(height: 16),
+          const CommonText(
+            'Select how far you are willing to travel and any applicable fees',
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 20),
           Obx(() => Column(
-            children: controller.farrierTravelFees.asMap().entries.map((entry) {
-              final index = entry.key;
-              final t = entry.value;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.borderLight),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: options.map((opt) {
+                  final title = opt['title'] as String;
+                  final subtitle = opt['subtitle'] as String?;
+                  final isSelected = widget.controller.selectedTravel.contains(title);
+
+                  final feeType = widget.controller.selectedTravelData[title]?['type'] ?? 'No travel fee';
+
+                  return GestureDetector(
+                    onTap: () => _showTravelFeeBottomSheet(context, title),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Row(
                         children: [
-                          CommonText(t['category'] ?? 'N/A', fontWeight: FontWeight.bold),
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
-                            onPressed: () => controller.farrierTravelFees.removeAt(index),
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF001149) : Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                              ),
+                            ),
+                            child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CommonText(
+                                  title,
+                                  fontSize: AppTextSizes.size14,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                                ),
+                                const SizedBox(height: 2),
+                                CommonText(
+                                  feeType,
+                                  fontSize: AppTextSizes.size12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
-                      CommonText('${t['type']} - \$ ${t['price']}', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                    ),
+                  );
+                }).toList(),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClientIntakeSection() {
+    final policyOptions = [
+      'Accepting new clients',
+      'Limited availability',
+      'Referral-only',
+      'Not accepting new clients'
+    ];
+
+    return _buildCard(
+      title: 'Client Intake + Scheduling',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            'Set your availability and client preferences',
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 8),
+          const Divider(color: AppColors.dividerColor),
+          const SizedBox(height: 16),
+          const CommonText('New Client Policy', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+          const SizedBox(height: 16),
+          Obx(() => Column(
+            children: policyOptions.map((opt) {
+              final isSelected = widget.controller.farrierNewClientPolicy.value == opt;
+              return GestureDetector(
+                onTap: () => widget.controller.farrierNewClientPolicy.value = opt,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                        color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(
+                          opt,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -440,54 +548,48 @@ class FarrierEditProfileTab extends StatelessWidget {
             }).toList(),
           )),
           const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () => _showAddTravelFeeBottomSheet(),
-            child: Row(
-              children: const [
-                Icon(Icons.add, size: 18, color: AppColors.linkBlue),
-                SizedBox(width: 4),
-                CommonText('Add Service Region', color: AppColors.linkBlue, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClientIntakeSection() {
-    return _buildCard(
-      title: 'Client Intake & Scheduling',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CommonText('New Client Policy', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-          const SizedBox(height: 12),
-          Obx(() => _buildDropdownTrigger(
-            value: controller.farrierNewClientPolicy.value,
-            hint: 'Select Policy',
-            onTap: () => _showPickerBottomSheet(
-              title: 'New Client Policy',
-              options: ['Accepting new clients', 'Not accepting new clients', 'Referral only'],
-              onSelected: (val) => controller.farrierNewClientPolicy.value = val,
-            ),
-          )),
+          const Divider(color: AppColors.dividerColor),
           const SizedBox(height: 20),
-          CommonTextField(
-            label: 'Minimum horses per barn',
-            hintText: 'e.g. 1',
-            controller: controller.farrierMinHorsesController,
-            keyboardType: TextInputType.number,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const CommonText('Minimum horses per stop', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+              Row(
+                children: [
+                  _counterButton(
+                    icon: Icons.remove,
+                    onTap: () {
+                      if (widget.controller.farrierMinHorses.value > 1) {
+                        widget.controller.farrierMinHorses.value--;
+                      }
+                    },
+                  ),
+                  const SizedBox(width: 16),
+                  Obx(() => CommonText(
+                    '${widget.controller.farrierMinHorses.value}',
+                    fontSize: AppTextSizes.size18,
+                    fontWeight: FontWeight.w600,
+                  )),
+                  const SizedBox(width: 16),
+                  _counterButton(
+                    icon: Icons.add,
+                    onTap: () => widget.controller.farrierMinHorses.value++,
+                  ),
+                ],
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          const Divider(color: AppColors.dividerColor),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const CommonText('Emergency Support', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
               Obx(() => Switch(
-                value: controller.farrierEmergencySupport.value,
-                onChanged: (val) => controller.farrierEmergencySupport.value = val,
-                activeColor: AppColors.secondary,
+                value: widget.controller.farrierEmergencySupport.value,
+                onChanged: (val) => widget.controller.farrierEmergencySupport.value = val,
+                activeColor: const Color(0xFF13CA8B),
               )),
             ],
           ),
@@ -497,21 +599,60 @@ class FarrierEditProfileTab extends StatelessWidget {
   }
 
   Widget _buildInsuranceSection() {
+    final options = [
+      'Carries Insurance',
+      'Insurance available upon request',
+      'Not currently insured'
+    ];
+
     return _buildCard(
-      title: 'Professional Status',
+      title: 'Insurance Status',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText('Insurance Status', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-          const SizedBox(height: 12),
-          Obx(() => _buildDropdownTrigger(
-            value: controller.farrierInsuranceStatus.value,
-            hint: 'Select Status',
-            onTap: () => _showPickerBottomSheet(
-              title: 'Insurance Status',
-              options: ['I have professional liability insurance', 'I do not have professional liability insurance', 'Not applicable'],
-              onSelected: (val) => controller.farrierInsuranceStatus.value = val,
-            ),
+          const CommonText(
+            'Keep your insurance information up to date to remain active and receive requests',
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 20),
+          Obx(() => Column(
+            children: options.map((opt) {
+              final isSelected = widget.controller.farrierInsuranceStatus.value == opt;
+              return GestureDetector(
+                onTap: () => widget.controller.farrierInsuranceStatus.value = opt,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                        color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(
+                          opt,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           )),
         ],
       ),
@@ -527,20 +668,20 @@ class FarrierEditProfileTab extends StatelessWidget {
           const CommonText('Set your cancellation preferences.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           Obx(() => _buildDropdownTrigger(
-            value: controller.cancellationPolicy.value,
+            value: widget.controller.cancellationPolicy.value,
             hint: 'Select Cancellation Policy',
             onTap: () => _showPickerBottomSheet(
-              title: 'Cancellation Policy', 
-              options: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'], 
-              onSelected: (val) => controller.cancellationPolicy.value = val
+              title: 'Cancellation Policy',
+              options: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'],
+              onSelected: (val) => widget.controller.cancellationPolicy.value = val
             ),
           )),
           const SizedBox(height: 12),
           Row(
             children: [
               Obx(() => Checkbox(
-                value: controller.isCustomCancellation.value,
-                onChanged: (val) => controller.isCustomCancellation.value = val ?? false,
+                value: widget.controller.isCustomCancellation.value,
+                onChanged: (val) => widget.controller.isCustomCancellation.value = val ?? false,
                 activeColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               )),
@@ -548,10 +689,10 @@ class FarrierEditProfileTab extends StatelessWidget {
             ],
           ),
           Obx(() {
-            if (controller.isCustomCancellation.value) {
+            if (widget.controller.isCustomCancellation.value) {
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: CommonTextField(label: '', hintText: 'Write here...', controller: controller.customCancellationController, maxLines: 4),
+                child: CommonTextField(label: '', hintText: 'Write here...', controller: widget.controller.customCancellationController, maxLines: 4),
               );
             }
             return const SizedBox.shrink();
@@ -562,6 +703,20 @@ class FarrierEditProfileTab extends StatelessWidget {
   }
 
   // Helper Widgets
+  Widget _counterButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.lightGray,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 20, color: AppColors.textPrimary),
+      ),
+    );
+  }
+
   Widget _buildChoiceChip(String text, bool isSelected) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -741,6 +896,213 @@ class FarrierEditProfileTab extends StatelessWidget {
     );
   }
 
+  void _showTravelFeeBottomSheet(BuildContext context, String category) {
+    final config = widget.controller.selectedTravelData[category] ?? {'type': 'No travel fee', 'price': '', 'disclaimer': ''};
+    widget.controller.tempSelectedFeeType.value = config['type'] ?? 'No travel fee';
+    widget.controller.travelFeePriceController.text = config['price']?.toString() ?? '';
+    widget.controller.travelFeeDisclaimerController.text = config['disclaimer'] ?? '';
+
+    final feeOptions = ['No travel fee', 'Flat fee', 'Per-mile', 'Varies by location'];
+
+    Get.bottomSheet(
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        padding: EdgeInsets.only(
+          top: 12,
+          left: 24,
+          right: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 60,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.borderLight,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              CommonText(category, fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
+              const SizedBox(height: 8),
+              const CommonText(
+                'Set pricing based on travel distance or location',
+                fontSize: AppTextSizes.size14,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 24),
+              Obx(() => Column(
+                children: feeOptions.map((type) {
+                  final isTypeSelected = widget.controller.tempSelectedFeeType.value == type;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (widget.controller.tempSelectedFeeType.value != type) {
+                          widget.controller.travelFeePriceController.clear();
+                          widget.controller.travelFeeDisclaimerController.clear();
+                        }
+                        widget.controller.tempSelectedFeeType.value = type;
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isTypeSelected ? AppColors.tabBackground : AppColors.tabBackground.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isTypeSelected ? AppColors.primary : Colors.transparent,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isTypeSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                                    color: isTypeSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  CommonText(type, fontSize: AppTextSizes.size14, fontWeight: isTypeSelected ? FontWeight.bold : FontWeight.normal, color: AppColors.textPrimary),
+                                ],
+                              ),
+                            ),
+                            if (isTypeSelected && type != 'No travel fee')
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 54,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: AppColors.borderLight),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 45,
+                                            child: const Center(
+                                              child: Text(
+                                                '\$',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: AppColors.textSecondary,
+                                                ),
+                                              ),
+                                            ),
+                                            decoration: const BoxDecoration(
+                                              border: Border(right: BorderSide(color: AppColors.borderLight)),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: TextField(
+                                              controller: widget.controller.travelFeePriceController,
+                                              keyboardType: TextInputType.number,
+                                              decoration: const InputDecoration(
+                                                hintText: 'Enter price',
+                                                hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                                border: InputBorder.none,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextField(
+                                      controller: widget.controller.travelFeeDisclaimerController,
+                                      maxLines: 4,
+                                      decoration: InputDecoration(
+                                        hintText: 'Disclaimer',
+                                        hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: const BorderSide(color: AppColors.borderLight),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: const BorderSide(color: AppColors.borderLight),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              )),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        side: const BorderSide(color: AppColors.borderLight),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        backgroundColor: Colors.white,
+                      ),
+                      child: const CommonText('Cancel', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CommonButton(
+                      text: 'Save',
+                      backgroundColor: const Color(0xFF001149),
+                      onPressed: () {
+                        widget.controller.saveFarrierTravelConfig(category);
+                        if (widget.controller.tempSelectedFeeType.value != 'No travel fee') {
+                          if (!widget.controller.selectedTravel.contains(category)) {
+                            widget.controller.selectedTravel.add(category);
+                          }
+                        } else {
+                          widget.controller.selectedTravel.remove(category);
+                        }
+                        Get.back();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showImageSourceBottomSheet() {
     Get.bottomSheet(
       Container(
@@ -758,60 +1120,7 @@ class FarrierEditProfileTab extends StatelessWidget {
               leading: const Icon(Icons.photo_library),
               title: const CommonText('Gallery'),
               onTap: () {
-                controller.addServicePhoto('Farrier');
-                Get.back();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAddTravelFeeBottomSheet() {
-    final categoryCtrl = TextEditingController();
-    final priceCtrl = TextEditingController();
-    String selectedType = 'Flat Fee';
-
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CommonText('Add Travel Fee', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
-            const SizedBox(height: 20),
-            CommonTextField(label: 'Category Name', hintText: 'e.g. Local (within 10 miles)', controller: categoryCtrl),
-            const SizedBox(height: 16),
-            const CommonText('Fee Type', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-            const SizedBox(height: 8),
-            StatefulBuilder(
-              builder: (context, setState) => DropdownButtonFormField<String>(
-                value: selectedType,
-                items: ['Flat Fee', 'Per Mile', 'No Fee', 'Call for Quote'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                onChanged: (v) => setState(() => selectedType = v!),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            CommonTextField(label: 'Price', hintText: '0', controller: priceCtrl, keyboardType: TextInputType.number),
-            const SizedBox(height: 30),
-            CommonButton(
-              text: 'Add',
-              onPressed: () {
-                controller.farrierTravelFees.add({
-                  'category': categoryCtrl.text,
-                  'type': selectedType,
-                  'price': priceCtrl.text,
-                  'disclaimer': '',
-                });
+                widget.controller.addServicePhoto('Farrier');
                 Get.back();
               },
             ),

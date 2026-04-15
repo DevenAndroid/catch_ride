@@ -17,411 +17,449 @@ class FarrierApplicationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(FarrierApplicationController());
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.cardColor,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.cardColor,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText(
+            'Farrier Application',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        title: const CommonText(
-          'Farrier Application',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: controller.formKey,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildGroupedSection(
-                  'Full Name',
-                  isRequired: true,
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.fullNameController,
-                      hintText: 'Enter Your Full Name',
-                      validator: RequiredValidator(errorText: "Please enter your full name"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Why Join Our Community?',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.joinCommunityController,
-                      hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
-                      maxLines: 4,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Home Base Location',
-                  children: [
-                    _buildSectionHeader('Country', isRequired: true),
-                    _buildBottomTrigger(
-                      value: controller.countryController.text,
-                      hint: 'Select Country',
-                      onTap: null, 
-                    ),
-                    const SizedBox(height: 16),
-
-                    _buildSectionHeader('State / Province', isRequired: true),
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.selectedState.value?['name'],
-                      hint: 'Select State / Province',
-                      isLoading: controller.isLoadingStates.value,
-                      onTap: () => _showLocationBottomSheet(
-                        context: context,
-                        title: 'Select State',
-                        options: controller.states,
-                        onSelected: (val) => controller.onStateSelected(val),
+        body: SingleChildScrollView(
+          child: Form(
+            key: controller.formKey,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildGroupedSection(
+                    'Full Name',
+                    isRequired: true,
+                    children: [
+                      CommonTextField(
+                        label: '',
+                        controller: controller.fullNameController,
+                        hintText: 'Enter Your Full Name',
+                        validator: RequiredValidator(errorText: "Please enter your full name"),
                       ),
-                    )),
-                    const SizedBox(height: 16),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                    _buildSectionHeader('City', isRequired: true),
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.selectedCity.value?['name'],
-                      hint: controller.selectedState.value == null 
-                          ? 'Select State first' 
-                          : 'Select City',
-                      isLoading: controller.isLoadingCities.value,
-                      onTap: controller.selectedState.value == null 
-                          ? null 
-                          : () => _showLocationBottomSheet(
-                        context: context,
-                        title: 'Select City',
-                        options: controller.cities,
-                        onSelected: (val) => controller.onCitySelected(val),
+                  _buildGroupedSection(
+                    'Why Join Our Community?',
+                    children: [
+                      CommonTextField(
+                        label: '',
+                        controller: controller.joinCommunityController,
+                        hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
+                        maxLines: 4,
                       ),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                _buildGroupedSection(
-                  'Experience',
-                  isRequired: true,
-                  children: [
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.experience.value,
-                      hint: 'Select Years of Experience',
-                      onTap: () => _showExperienceBottomSheet(
-                        context: context,
-                        title: 'Experience',
-                        currentValue: controller.experience.value,
-                        options: controller.experienceOptions,
-                        onSelected: (val) => controller.experience.value = val,
+                  _buildGroupedSection(
+                    'Home Base Location',
+                    children: [
+                      _buildSectionHeader('Country', isRequired: true),
+                      _buildBottomTrigger(
+                        value: controller.countryController.text,
+                        hint: 'Select Country',
+                        onTap: null,
                       ),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
-                _buildGroupedSection(
-                  'Relevant Certifications',
-                  description: 'Select any certifications you hold or describe your training and background',
-                  children: [
-                    Obx(() => Wrap(
-                      spacing: 12,
-                      children: controller.certificationOptions.map((opt) {
-                        final isSelected = controller.selectedCertification.value == opt;
-                        return ChoiceChip(
-                          label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary),
-                          selected: isSelected,
-                          onSelected: (val) => controller.selectedCertification.value = val ? opt : null,
-                          selectedColor: AppColors.primary,
-                          backgroundColor: AppColors.tabBackground,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        );
-                      }).toList(),
-                    )),
-                    Obx(() {
-                      if (controller.selectedCertification.value == 'Other') {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: CommonTextField(
-                            label: '',
-                            controller: controller.otherCertificationController,
-                            hintText: 'Write here...',
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Scope of Work',
-                  description: 'Select all that apply to your business.',
-                  children: [
-                    Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.scopeOfWorkOptions.map((opt) {
-                        final isSelected = controller.selectedScopeOfWork.contains(opt);
-                        return FilterChip(
-                          label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                          selected: isSelected,
-                          onSelected: (val) {
-                            if (val) {
-                              controller.selectedScopeOfWork.add(opt);
-                            } else {
-                              controller.selectedScopeOfWork.remove(opt);
-                            }
-                          },
-                          selectedColor: AppColors.primary,
-                          backgroundColor: AppColors.tabBackground,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                          showCheckmark: false,
-                        );
-                      }).toList(),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Disciplines',
-                  description: 'Select the disciplines you most commonly work with.',
-                  children: [
-                    Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.disciplineOptions.map((opt) {
-                        final isSelected = controller.selectedDisciplines.contains(opt);
-                        return FilterChip(
-                          label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                          selected: isSelected,
-                          onSelected: (val) {
-                            if (val) {
-                              controller.selectedDisciplines.add(opt);
-                            } else {
-                              controller.selectedDisciplines.remove(opt);
-                            }
-                          },
-                          selectedColor: AppColors.primary,
-                          backgroundColor: AppColors.tabBackground,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                          showCheckmark: false,
-                        );
-                      }).toList(),
-                    )),
-                    Obx(() {
-                      if (controller.selectedDisciplines.contains('Other')) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: CommonTextField(
-                            label: '', 
-                            controller: controller.otherDisciplineController,
-                            hintText: 'Write here...',
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Typical Level of Horses',
-                  description: 'Select the types of horses you most frequently work with.',
-                  children: [
-                    Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.horseLevelOptions.map((opt) {
-                        final isSelected = controller.selectedHorseLevels.contains(opt);
-                        return FilterChip(
-                          label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                          selected: isSelected,
-                          onSelected: (val) {
-                            if (val) {
-                              controller.selectedHorseLevels.add(opt);
-                            } else {
-                              controller.selectedHorseLevels.remove(opt);
-                            }
-                          },
-                          selectedColor: AppColors.primary,
-                          backgroundColor: AppColors.tabBackground,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                          showCheckmark: false,
-                        );
-                      }).toList(),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Regions Covered',
-                  description: 'Select the regions you most commonly work in.',
-                  children: [
-                    Obx(() => _buildBottomTrigger(
-                      value: '', 
-                      hint: 'Select regions...',
-                      isLoading: controller.isLoadingTags.value,
-                      onTap: () => _showMultiSelectBottomSheet(
-                        context: context,
-                        title: 'Select Regions',
-                        options: controller.regionOptions,
-                        selectedItems: controller.selectedRegions,
-                        onToggle: (val) {
-                          if (controller.selectedRegions.contains(val)) {
-                            controller.selectedRegions.remove(val);
-                          } else {
-                            controller.selectedRegions.add(val);
-                          }
-                        },
-                      ),
-                    )),
-                    const SizedBox(height: 16),
-                    Obx(() => Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: controller.selectedRegions.map((region) => Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.borderLight),
+                      _buildSectionHeader('State / Province', isRequired: true),
+                      Obx(() => _buildBottomTrigger(
+                        value: controller.selectedState.value?['name'],
+                        hint: 'Select State / Province',
+                        isLoading: controller.isLoadingStates.value,
+                        onTap: () => _showLocationBottomSheet(
+                          context: context,
+                          title: 'Select State',
+                          options: controller.states,
+                          onSelected: (val) => controller.onStateSelected(val),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(child: CommonText(region, fontSize: AppTextSizes.size12, color: AppColors.textPrimary)),
-                            GestureDetector(
-                              onTap: () => controller.selectedRegions.remove(region),
-                              child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+                      )),
+                      const SizedBox(height: 16),
+
+                      _buildSectionHeader('City', isRequired: true),
+                      Obx(() => _buildBottomTrigger(
+                        value: controller.selectedCity.value?['name'],
+                        hint: controller.selectedState.value == null
+                            ? 'Select State first'
+                            : 'Select City',
+                        isLoading: controller.isLoadingCities.value,
+                        onTap: controller.selectedState.value == null
+                            ? null
+                            : () => _showLocationBottomSheet(
+                          context: context,
+                          title: 'Select City',
+                          options: controller.cities,
+                          onSelected: (val) => controller.onCitySelected(val),
+                        ),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Experience',
+                    isRequired: true,
+                    children: [
+                      Obx(() => _buildBottomTrigger(
+                        value: controller.experience.value,
+                        hint: 'Select Years of Experience',
+                        onTap: () => _showExperienceBottomSheet(
+                          context: context,
+                          title: 'Experience',
+                          currentValue: controller.experience.value,
+                          options: controller.experienceOptions,
+                          onSelected: (val) => controller.experience.value = val,
+                        ),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Relevant Certifications',
+                    description: 'Select any certifications you hold or describe your training and background',
+                    children: [
+                      Obx(() => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.certificationOptions.map((opt) {
+                          final isSelected = controller.selectedCertifications.contains(opt);
+                          return FilterChip(
+                            label: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) {
+                                controller.selectedCertifications.add(opt);
+                              } else {
+                                controller.selectedCertifications.remove(opt);
+                              }
+                            },
+                            selectedColor: const Color(0xFFEFF6FF),
+                            backgroundColor: AppColors.cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
                             ),
-                          ],
+                            showCheckmark: false,
+                          );
+                        }).toList(),
+                      )),
+                      Obx(() {
+                        if (controller.selectedCertifications.contains('Other')) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: CommonTextField(
+                              label: '',
+                              controller: controller.otherCertificationController,
+                              hintText: 'Write here...',
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Scope of Work',
+                    description: 'Select the types of work you offer',
+                    children: [
+                      Obx(() => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.scopeOfWorkOptions.map((opt) {
+                          final isSelected = controller.selectedScopeOfWork.contains(opt);
+                          return FilterChip(
+                            label: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textSecondary, fontSize: AppTextSizes.size12),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) {
+                                controller.selectedScopeOfWork.add(opt);
+                              } else {
+                                controller.selectedScopeOfWork.remove(opt);
+                              }
+                            },
+                            selectedColor: const Color(0xFFEFF6FF),
+                            backgroundColor: AppColors.cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            showCheckmark: false,
+                          );
+                        }).toList(),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Disciplines',
+                    description: 'Select the disciplines you most commonly work with.',
+                    children: [
+                      Obx(() => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.disciplineOptions.map((opt) {
+                          final isSelected = controller.selectedDisciplines.contains(opt);
+                          return FilterChip(
+                            label: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textSecondary, fontSize: AppTextSizes.size12),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) {
+                                controller.selectedDisciplines.add(opt);
+                              } else {
+                                controller.selectedDisciplines.remove(opt);
+                              }
+                            },
+                            selectedColor: const Color(0xFFEFF6FF),
+                            backgroundColor: AppColors.cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            showCheckmark: false,
+                          );
+                        }).toList(),
+                      )),
+                      Obx(() {
+                        if (controller.selectedDisciplines.contains('Other')) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: CommonTextField(
+                              label: '',
+                              controller: controller.otherDisciplineController,
+                              hintText: 'Write here...',
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Typical Level of Horses',
+                    description: 'Select the types of horses you most frequently work with.',
+                    children: [
+                      Obx(() => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.horseLevelOptions.map((opt) {
+                          final isSelected = controller.selectedHorseLevels.contains(opt);
+                          return FilterChip(
+                            label: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textSecondary, fontSize: AppTextSizes.size12),
+                            selected: isSelected,
+                            onSelected: (val) {
+                              if (val) {
+                                controller.selectedHorseLevels.add(opt);
+                              } else {
+                                controller.selectedHorseLevels.remove(opt);
+                              }
+                            },
+                            selectedColor: const Color(0xFFEFF6FF),
+                            backgroundColor: AppColors.cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected ? AppColors.primary : AppColors.borderLight,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            showCheckmark: false,
+                          );
+                        }).toList(),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Regions Covered',
+                    description: 'Select the regions you most commonly work in.',
+                    children: [
+                      Obx(() => _buildBottomTrigger(
+                        value: '',
+                        hint: 'Select regions...',
+                        isLoading: controller.isLoadingTags.value,
+                        onTap: () => _showMultiSelectBottomSheet(
+                          context: context,
+                          title: 'Select Regions',
+                          options: controller.regionOptions,
+                          selectedItems: controller.selectedRegions,
+                          onToggle: (val) {
+                            if (controller.selectedRegions.contains(val)) {
+                              controller.selectedRegions.remove(val);
+                            } else {
+                              controller.selectedRegions.add(val);
+                            }
+                          },
                         ),
-                      )).toList(),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Social Media & Website',
-                  description: 'Please include at least one profile for verification.',
-                  children: [
-                     CommonTextField(
-                      label: 'Facebook',
-                      controller: controller.facebookController,
-                      hintText: 'facebook.com/yourpage',
-                    ),
-                    const SizedBox(height: 16),
-                    CommonTextField(
-                      label: 'Instagram',
-                      controller: controller.instagramController,
-                      hintText: '@your.username',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                _buildSectionHeader('Add Photos'),
-                const CommonText(
-                  'Upload photos that showcase your work and skills.',
-                  fontSize: AppTextSizes.size12,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(height: 12),
-                const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                const SizedBox(height: 8),
-                Obx(() => _buildPhotoGrid(controller)),
-                const SizedBox(height: 24),
-
-                _buildTrainerReferences(controller),
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Experience Highlights (optional)',
-                  children: [
-                     Obx(() => Column(
-                      children: controller.highlightsControllers.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final ctrl = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                      )),
+                      const SizedBox(height: 16),
+                      Obx(() => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: controller.selectedRegions.map((region) => Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: AppColors.borderLight),
+                          ),
                           child: Row(
                             children: [
-                              Expanded(
-                                child: CommonTextField(
-                                  label: '',
-                                  controller: ctrl,
-                                  hintText: 'Write here...',
-                                ),
+                              Expanded(child: CommonText(region, fontSize: AppTextSizes.size12, color: AppColors.textPrimary)),
+                              GestureDetector(
+                                onTap: () => controller.selectedRegions.remove(region),
+                                child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
                               ),
-                              if (controller.highlightsControllers.length > 1)
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: AppColors.accentRed, size: 20),
-                                  onPressed: () => controller.removeHighlight(index),
-                                ),
                             ],
                           ),
-                        );
-                      }).toList(),
-                    )),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: controller.addHighlight,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add, color: AppColors.linkBlue, size: 18), 
-                            SizedBox(width: 4),
-                            CommonText(
-                              'Add More',
-                              color: AppColors.linkBlue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: AppTextSizes.size14,
+                        )).toList(),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Social Media & Website',
+                    description: 'Please include at least one profile for verification.',
+                    children: [
+                       CommonTextField(
+                        label: 'Facebook',
+                        controller: controller.facebookController,
+                        hintText: 'facebook.com/yourpage',
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        label: 'Instagram',
+                        controller: controller.instagramController,
+                        hintText: '@your.username',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Add Photos',
+                    description: 'Upload photos that showcase your work and skills.',
+                    children: [
+                      const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                      const SizedBox(height: 8),
+                      Obx(() => _buildPhotoGrid(controller)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _buildTrainerReferences(controller),
+                  const SizedBox(height: 24),
+
+                  _buildGroupedSection(
+                    'Experience Highlights (optional)',
+                    children: [
+                       Obx(() => Column(
+                        children: controller.highlightsControllers.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final ctrl = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CommonTextField(
+                                    label: '',
+                                    controller: ctrl,
+                                    hintText: 'Write here...',
+                                  ),
+                                ),
+                                if (controller.highlightsControllers.length > 1)
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline, color: AppColors.accentRed, size: 20),
+                                    onPressed: () => controller.removeHighlight(index),
+                                  ),
+                              ],
                             ),
-                          ],
+                          );
+                        }).toList(),
+                      )),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: controller.addHighlight,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, color: AppColors.linkBlue, size: 18),
+                              SizedBox(width: 4),
+                              CommonText(
+                                'Add More',
+                                color: AppColors.linkBlue,
+                                fontWeight: FontWeight.w600,
+                                fontSize: AppTextSizes.size14,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                _buildCheckboxes(controller),
-                const SizedBox(height: 32),
+                  _buildCheckboxes(controller),
+                  const SizedBox(height: 32),
 
-                Obx(() => CommonButton(
-                  text: 'Submit Application',
-                  isLoading: controller.isSubmitting.value,
-                  onPressed: controller.submitApplication,
-                  height: 56,
-                  backgroundColor: const Color(0xFF001149), 
-                )),
-                const SizedBox(height: 20),
-              ],
+                  Obx(() => CommonButton(
+                    text: 'Submit Application',
+                    isLoading: controller.isSubmitting.value,
+                    onPressed: controller.submitApplication,
+                    height: 56,
+                    backgroundColor: const Color(0xFF001149),
+                  )),
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           ),
         ),
@@ -508,7 +546,7 @@ class FarrierApplicationView extends StatelessWidget {
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
               )
-            else
+            else if (onTap != null)
               const Icon(
                 Icons.keyboard_arrow_down,
                 color: AppColors.textSecondary,
@@ -829,7 +867,7 @@ class FarrierApplicationView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText('Trainer Reference \$number', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
+        CommonText('Trainer Reference ${number}', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
         const SizedBox(height: 12),
         CommonTextField(label: 'Full Name', controller: nameCtrl, hintText: 'Enter Full Name'),
         const SizedBox(height: 16),

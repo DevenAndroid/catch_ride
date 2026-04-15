@@ -25,10 +25,11 @@ class FarrierDetailsController extends GetxController {
     {'name': 'Front Shoes', 'price': TextEditingController(), 'isSelected': false.obs},
     {'name': 'Hind Shoes', 'price': TextEditingController(), 'isSelected': false.obs},
     {'name': 'Full Set', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Corrosion Protection...', 'price': TextEditingController(), 'isSelected': false.obs},
+    {'name': 'Corrective / Therapeutic Work ', 'price': TextEditingController(), 'isSelected': false.obs},
     {'name': 'Glue-on Shoes', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Specialty Shoes (Force...)', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Barefoot / Natural Incl...', 'price': TextEditingController(), 'isSelected': false.obs},
+    {'name': 'Specialty Shoes (bar shoes, pads, wedges, etc.)', 'price': TextEditingController(), 'isSelected': false.obs},
+    {'name': 'Barefoot / Natural Trim Specialist', 'price': TextEditingController(), 'isSelected': false.obs},
+    {'name': 'Spaces for custom input services', 'price': TextEditingController(), 'isSelected': false.obs},
   ].obs;
 
   void addService(String name, {bool isAddOn = false}) {

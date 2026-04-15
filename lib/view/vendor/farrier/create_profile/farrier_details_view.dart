@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../widgets/common_textfield.dart';
+
 class FarrierDetailsView extends StatelessWidget {
   const FarrierDetailsView({super.key});
 
@@ -14,77 +16,83 @@ class FarrierDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(FarrierDetailsController());
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
-        ),
-        title: CommonText(
-          'Farrier Details',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-        }
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildServiceSection(
-                  context,
-                  title: 'Farrier Services',
-                  description: 'Select the services you offer and set your pricing.',
-                  subtitle: 'Prices listed are for baseline labor/materials.',
-                  services: controller.farrierServices,
-                  onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: false),
-                ),
-                const SizedBox(height: 24),
-                _buildServiceSection(
-                  context,
-                  title: 'Add - Ons',
-                  description: 'Optional services or materials at all time available to your standard work.',
-                  services: controller.addOns,
-                  onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: true),
-                ),
-                const SizedBox(height: 24),
-                _buildTravelPreferences(context, controller),
-                const SizedBox(height: 24),
-                _buildClientIntake(controller),
-                const SizedBox(height: 24),
-                _buildInsuranceStatus(controller),
-                const SizedBox(height: 24),
-                _buildSummaryInfo(controller),
-                const SizedBox(height: 24),
-                _buildCancellationPolicy(controller),
-                const SizedBox(height: 40),
-                CommonButton(
-                  text: 'Continue',
-                  isLoading: controller.isSubmitting.value,
-                  backgroundColor: AppColors.primaryDark,
-                  onPressed: controller.submit,
-                  height: 56,
-                ),
-                const SizedBox(height: 40),
-              ],
-            ),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
           ),
-        );
-      }),
+          title: CommonText(
+            'Farrier Details',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
+        ),
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          }
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildServiceSection(
+                    context,
+                    title: 'Farrier Services',
+                    description: 'Select the services you offer and set your pricing.',
+                    subtitle: 'Prices listed are for baseline labor/materials.',
+                    services: controller.farrierServices,
+                    onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: false),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildServiceSection(
+                    context,
+                    title: 'Add - Ons',
+                    description: 'Optional services or materials at all time available to your standard work.',
+                    services: controller.addOns,
+                    onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: true),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildTravelPreferences(context, controller),
+                  const SizedBox(height: 24),
+                  _buildClientIntake(controller),
+                  const SizedBox(height: 24),
+                  _buildInsuranceStatus(controller),
+                  const SizedBox(height: 24),
+                  _buildSummaryInfo(controller),
+                  const SizedBox(height: 24),
+                  _buildCancellationPolicy(controller),
+                  const SizedBox(height: 40),
+                  CommonButton(
+                    text: 'Continue',
+                    isLoading: controller.isSubmitting.value,
+                    backgroundColor: AppColors.primaryDark,
+                    onPressed: controller.submit,
+                    height: 56,
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 
@@ -144,34 +152,49 @@ class FarrierDetailsView extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Container(
-                      width: 90,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.tabBackground,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 12),
-                          CommonText('\$', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
-                          Expanded(
-                            child: TextField(
-                              controller: service['price'] as TextEditingController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
+                    SizedBox(
+                      width: 100,
+                      child: TextField(
+                        controller: service['price'] as TextEditingController,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.left,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: AppColors.tabBackground,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                          prefixIcon: const Padding(
+                            padding: EdgeInsets.only(left: 12, right: 4),
+                            child: Text(
+                              '\$',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textSecondary,
                               ),
-                              onChanged: (val) {
-                                if (val.isNotEmpty) isSelected.value = true;
-                              },
                             ),
                           ),
-                        ],
+                          prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: (val) {
+                          if (val.isNotEmpty) isSelected.value = true;
+                        },
                       ),
                     ),
                   ],
@@ -485,6 +508,20 @@ class FarrierDetailsView extends StatelessWidget {
             CommonText('Custom', fontSize: AppTextSizes.size14),
           ],
         ),
+        Obx(() {
+          if (controller.isCustomCancellation.value) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: CommonTextField(
+                label: '',
+                controller: controller.customCancellationController,
+                hintText: 'Enter your custom cancellation policy here...',
+                maxLines: 4,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }),
       ],
     );
   }
@@ -528,6 +565,9 @@ class FarrierDetailsView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
         padding: EdgeInsets.only(
           top: 12,
           left: 24,
@@ -541,173 +581,182 @@ class FarrierDetailsView extends StatelessWidget {
             topRight: Radius.circular(24),
           ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.borderLight,
-                  borderRadius: BorderRadius.circular(2),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 60,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.borderLight,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 32),
-            CommonText(category, fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
-            const SizedBox(height: 8),
-            CommonText(
-              'Set pricing based on travel distance or location',
-              fontSize: AppTextSizes.size14,
-              color: AppColors.textSecondary,
-            ),
-            const SizedBox(height: 24),
-            Obx(() => Column(
-              children: feeOptions.map((type) {
-                final isTypeSelected = controller.tempSelectedFeeType.value == type;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: GestureDetector(
-                    onTap: () => controller.tempSelectedFeeType.value = type,
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: isTypeSelected ? AppColors.tabBackground : AppColors.tabBackground.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isTypeSelected ? AppColors.primary : Colors.transparent,
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isTypeSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                                  color: isTypeSelected ? AppColors.primaryDark : AppColors.borderLight,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 12),
-                                CommonText(type, fontSize: AppTextSizes.size14, fontWeight: isTypeSelected ? FontWeight.bold : FontWeight.normal, color: AppColors.textPrimary),
-                              ],
-                            ),
+              const SizedBox(height: 32),
+              CommonText(category, fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
+              const SizedBox(height: 8),
+              CommonText(
+                'Set pricing based on travel distance or location',
+                fontSize: AppTextSizes.size14,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 24),
+              Obx(() => Column(
+                children: feeOptions.map((type) {
+                  final isTypeSelected = controller.tempSelectedFeeType.value == type;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GestureDetector(
+                      onTap: () {
+                        if (controller.tempSelectedFeeType.value != type) {
+                          controller.travelFeePriceController.clear();
+                          controller.travelFeeDisclaimerController.clear();
+                        }
+                        controller.tempSelectedFeeType.value = type;
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: isTypeSelected ? AppColors.tabBackground : AppColors.tabBackground.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isTypeSelected ? AppColors.primary : Colors.transparent,
+                            width: 1,
                           ),
-                          if (isTypeSelected && type != 'No travel fee')
+                        ),
+                        child: Column(
+                          children: [
                             Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              child: Row(
                                 children: [
-                                  Container(
-                                    height: 54,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: AppColors.borderLight),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 45,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            border: Border(
-                                              right: BorderSide(color: AppColors.borderLight),
-                                            ),
-                                          ),
-                                          child: CommonText(
-                                            '\$',
-                                            fontSize: AppTextSizes.size16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: TextField(
-                                            controller: controller.travelFeePriceController,
-                                            keyboardType: TextInputType.number,
-                                            decoration: const InputDecoration(
-                                              hintText: 'Enter price',
-                                              hintStyle: TextStyle(
-                                                color: AppColors.textSecondary,
-                                                fontSize: 14,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  Icon(
+                                    isTypeSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                                    color: isTypeSelected ? AppColors.primaryDark : AppColors.borderLight,
+                                    size: 20,
                                   ),
-                                  const SizedBox(height: 12),
-                                  TextField(
-                                    controller: controller.travelFeeDisclaimerController,
-                                    maxLines: 4,
-                                    decoration: InputDecoration(
-                                      hintText: 'Disclaimer',
-                                      hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: const BorderSide(color: AppColors.borderLight),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: const BorderSide(color: AppColors.borderLight),
-                                      ),
-                                    ),
-                                  ),
+                                  const SizedBox(width: 12),
+                                  CommonText(type, fontSize: AppTextSizes.size14, fontWeight: isTypeSelected ? FontWeight.bold : FontWeight.normal, color: AppColors.textPrimary),
                                 ],
                               ),
                             ),
-                        ],
+                            if (isTypeSelected && type != 'No travel fee')
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  children: [
+                                    Container(
+                                      height: 54,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: AppColors.borderLight),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 45,
+                                            alignment: Alignment.center,
+                                            decoration: BoxDecoration(
+                                              border: Border(
+                                                right: BorderSide(color: AppColors.borderLight),
+                                              ),
+                                            ),
+                                            child: CommonText(
+                                              '\$',
+                                              fontSize: AppTextSizes.size16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: TextField(
+                                              controller: controller.travelFeePriceController,
+                                              keyboardType: TextInputType.number,
+                                              decoration: const InputDecoration(
+                                                hintText: 'Enter price',
+                                                hintStyle: TextStyle(
+                                                  color: AppColors.textSecondary,
+                                                  fontSize: 14,
+                                                ),
+                                                border: InputBorder.none,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextField(
+                                      controller: controller.travelFeeDisclaimerController,
+                                      maxLines: 4,
+                                      decoration: InputDecoration(
+                                        hintText: 'Disclaimer',
+                                        hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                                        filled: true,
+                                        fillColor: Colors.white,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: const BorderSide(color: AppColors.borderLight),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          borderSide: const BorderSide(color: AppColors.borderLight),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              )),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        side: const BorderSide(color: AppColors.borderLight),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+                      child: CommonText(
+                        'Cancel',
+                        fontSize: AppTextSizes.size16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                );
-              }).toList(),
-            )),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      side: const BorderSide(color: AppColors.borderLight),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: Colors.white,
-                    ),
-                    child: CommonText(
-                      'Cancel',
-                      fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CommonButton(
+                      text: 'Save',
+                      backgroundColor: AppColors.primaryDark,
+                      onPressed: () {
+                        controller.saveTravelConfig(category);
+                        Get.back();
+                      },
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: CommonButton(
-                    text: 'Save',
-                    backgroundColor: AppColors.primaryDark,
-                    onPressed: () {
-                      controller.saveTravelConfig(category);
-                      Get.back();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
+
       ),
     );
   }

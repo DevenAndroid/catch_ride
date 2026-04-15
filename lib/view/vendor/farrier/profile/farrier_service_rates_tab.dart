@@ -2,21 +2,78 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/farrier/farrier_details_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_textfield.dart';
 
-class FarrierServiceRatesTab extends GetView<FarrierDetailsController> {
+class FarrierServiceRatesTab extends StatefulWidget {
   const FarrierServiceRatesTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Ensure controller is initialized
-    if (!Get.isRegistered<FarrierDetailsController>()) {
-      Get.put(FarrierDetailsController());
-    }
+  State<FarrierServiceRatesTab> createState() => _FarrierServiceRatesTabState();
+}
 
+class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
+  late FarrierDetailsController farrierController;
+  final mainController = Get.find<GroomViewProfileController>();
+
+  @override
+  void initState() {
+    super.initState();
+    farrierController = Get.put(FarrierDetailsController());
+    _loadSavedData();
+  }
+
+  void _loadSavedData() {
+    // Wait for farrierController to load defaults from tags
+    ever(farrierController.isLoading, (isLoading) {
+      if (!isLoading) {
+        _syncWithProfile();
+      }
+    });
+
+    if (!farrierController.isLoading.value) {
+      _syncWithProfile();
+    }
+  }
+
+  void _syncWithProfile() {
+    final savedServices = mainController.farrierServices;
+    final savedAddOns = mainController.farrierAddOns;
+
+    // Sync Services
+    _syncList(savedServices, farrierController.farrierServices, isAddOn: false);
+
+    // Sync Add-Ons
+    _syncList(savedAddOns, farrierController.addOns, isAddOn: true);
+  }
+
+  void _syncList(List<dynamic> savedItems, RxList<Map<String, dynamic>> targetList, {required bool isAddOn}) {
+    for (var saved in savedItems) {
+      if (saved == null || saved is! Map) continue;
+      final name = saved['name']?.toString() ?? '';
+      if (name.isEmpty) continue;
+
+      final priceStr = saved['price']?.toString() ?? '0';
+      final existingIndex = targetList.indexWhere((s) => s['name'] == name);
+
+      if (existingIndex != -1) {
+        targetList[existingIndex]['isSelected'].value = true;
+        (targetList[existingIndex]['price'] as TextEditingController).text = priceStr;
+      } else {
+        farrierController.addService(name, isAddOn: isAddOn);
+        final newIndex = targetList.indexWhere((s) => s['name'] == name);
+        if (newIndex != -1) {
+          (targetList[newIndex]['price'] as TextEditingController).text = priceStr;
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -24,14 +81,14 @@ class FarrierServiceRatesTab extends GetView<FarrierDetailsController> {
           _buildServiceCard(
             title: 'Farrier Services',
             subtitle: 'Select the services you offer and set your pricing',
-            services: controller.farrierServices,
+            services: farrierController.farrierServices,
             onAddTap: () => _showAddServiceBottomSheet(context, isAddOn: false),
           ),
           const SizedBox(height: 20),
           _buildServiceCard(
             title: 'Add - Ons',
             subtitle: 'Optional services or materials offered in addition to your standard work',
-            services: controller.addOns,
+            services: farrierController.addOns,
             onAddTap: () => _showAddServiceBottomSheet(context, isAddOn: true),
           ),
           const SizedBox(height: 40),
@@ -150,37 +207,51 @@ class FarrierServiceRatesTab extends GetView<FarrierDetailsController> {
                     ],
                   ),
                 ),
-                Container(
-                  width: 90,
-                  height: 44,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.borderLight),
-                  ),
-                  child: Row(
-                    children: [
-                      const CommonText('\$ ', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
-                      Expanded(
-                        child: TextField(
-                          controller: priceCtrl,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: '0',
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
+                SizedBox(
+                  width: 100,
+                  child: TextField(
+                    controller: priceCtrl,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.left,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                      prefixIcon: const Padding(
+                        padding: EdgeInsets.only(left: 12, right: 4),
+                        child: Text(
+                          '\$',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondary,
                           ),
-                          style: const TextStyle(
-                            fontSize: AppTextSizes.size14,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ],
+                      prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      hintText: '0',
+                      hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                    ),
+                    onChanged: (val) {
+                      if (val.isNotEmpty) isSelected.value = true;
+                    },
                   ),
                 ),
               ],
@@ -208,7 +279,7 @@ class FarrierServiceRatesTab extends GetView<FarrierDetailsController> {
             CommonTextField(
               label: '',
               hintText: 'Enter your skill',
-              controller: controller.addServiceInputController,
+              controller: farrierController.addServiceInputController,
             ),
             const SizedBox(height: 20),
             const CommonText('Price', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
@@ -216,7 +287,7 @@ class FarrierServiceRatesTab extends GetView<FarrierDetailsController> {
             CommonTextField(
               label: '',
               hintText: 'Enter price (e.g. 40)',
-              controller: controller.addServicePriceController,
+              controller: farrierController.addServicePriceController,
               prefixIcon: const Padding(
                 padding: EdgeInsets.all(14),
                 child: CommonText('\$ ', fontSize: AppTextSizes.size14),
@@ -240,22 +311,22 @@ class FarrierServiceRatesTab extends GetView<FarrierDetailsController> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () {
-                      if (controller.addServiceInputController.text.isNotEmpty) {
+                      if (farrierController.addServiceInputController.text.isNotEmpty) {
                         if (isAddOn) {
-                          controller.addOns.add({
-                            'name': controller.addServiceInputController.text,
+                          farrierController.addOns.add({
+                            'name': farrierController.addServiceInputController.text,
                             'isSelected': true.obs,
-                            'price': TextEditingController(text: controller.addServicePriceController.text),
+                            'price': TextEditingController(text: farrierController.addServicePriceController.text),
                           });
                         } else {
-                          controller.farrierServices.add({
-                            'name': controller.addServiceInputController.text,
+                          farrierController.farrierServices.add({
+                            'name': farrierController.addServiceInputController.text,
                             'isSelected': true.obs,
-                            'price': TextEditingController(text: controller.addServicePriceController.text),
+                            'price': TextEditingController(text: farrierController.addServicePriceController.text),
                           });
                         }
-                        controller.addServiceInputController.clear();
-                        controller.addServicePriceController.clear();
+                        farrierController.addServiceInputController.clear();
+                        farrierController.addServicePriceController.clear();
                       }
                       Get.back();
                     },

@@ -187,6 +187,7 @@ class CommonImageView extends StatelessWidget {
     return Container(
       height: height,
       width: width,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.border.withOpacity(0.1),
         shape: shape,

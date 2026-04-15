@@ -10,6 +10,7 @@ class FarrierServiceAndRatesView extends StatefulWidget {
   final String? experience;
   final List<String>? disciplines;
   final List<String>? horseLevels;
+  final List<String>? scopeOfWork;
   final List<String>? regionsCovered;
   final List<String>? travelPreferences;
   final List<dynamic>? services;
@@ -22,6 +23,7 @@ class FarrierServiceAndRatesView extends StatefulWidget {
     this.experience,
     this.disciplines,
     this.horseLevels,
+    this.scopeOfWork,
     this.regionsCovered,
     this.travelPreferences,
     this.services,
@@ -97,11 +99,14 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
 
             if (showMore) ...[
               const SizedBox(height: 20),
-              if (widget.disciplines?.isNotEmpty ?? false)
-                _buildDetailItem('Disciplines', widget.disciplines!.join(', ')),
-              if (widget.horseLevels?.isNotEmpty ?? false) ...[
+              if ((widget.disciplines?.isNotEmpty ?? false) || (widget.horseLevels?.isNotEmpty ?? false))
+                _buildTwoColumnDetails(
+                  'Disciplines', widget.disciplines?.join(', ') ?? 'N/A',
+                  'Typical Level of Horses', widget.horseLevels?.join(', ') ?? 'N/A',
+                ),
+              if (widget.scopeOfWork?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
-                _buildDetailItem('Typical Level of Horses', widget.horseLevels!.join(', ')),
+                _buildDetailItem('Scope of Work', widget.scopeOfWork!.join(', ')),
               ],
               if (widget.travelPreferences?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
@@ -144,12 +149,17 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
   }
 
   Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
+            const SizedBox(width: 20),
+            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+          ],
+        ),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
