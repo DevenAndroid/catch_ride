@@ -34,7 +34,7 @@ class FarrierApplicationController extends GetxController {
   final isLoadingTags = false.obs;
 
   // Farrier Certification
-  final selectedCertification = RxnString();
+  final selectedCertifications = <String>[].obs;
   final otherCertificationController = TextEditingController();
   final certificationOptions = <String>['AFA', 'BWFA', 'Other'].obs;
 
@@ -340,7 +340,7 @@ class FarrierApplicationController extends GetxController {
           'city': selectedCity.value?['name'],
         },
         'experience': experience.value,
-        'certification': selectedCertification.value,
+        'certifications': selectedCertifications.toList(),
         'otherCertification': otherCertificationController.text,
         'scopeOfWork': selectedScopeOfWork.toList(),
         'disciplines': selectedDisciplines.toList(),
@@ -388,8 +388,7 @@ class FarrierApplicationController extends GetxController {
 
         Get.snackbar('Success', 'Your farrier application has been submitted successfully.', backgroundColor: AppColors.successPrimary, colorText: AppColors.cardColor);
 
-        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
-        Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': remaining});
+        Get.off(() => const VendorApplicationSubmitView());
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }

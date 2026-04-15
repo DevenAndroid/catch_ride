@@ -71,7 +71,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF8B4444),
+              primary: AppColors.primary,
               onPrimary: Colors.white,
               onSurface: AppColors.textPrimary,
             ),
@@ -175,9 +175,9 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
               const SizedBox(height: 24),
               _buildDateSection(),
               const SizedBox(height: 24),
-              const CommonText('Time window', fontSize: 14, fontWeight: FontWeight.bold),
+              const CommonText('Timeframe', fontSize: 14, fontWeight: FontWeight.bold),
               const SizedBox(height: 8),
-              _buildDropdownField(_timeWindow, ['Full Day', 'Morning Window', 'Afternoon Window']),
+              _buildDropdownField(_timeWindow, ['Full Day', 'AM', 'PM']),
               const SizedBox(height: 24),
               _buildVenueSection(),
               const SizedBox(height: 24),
@@ -353,13 +353,13 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
                       },
                       title: CommonText(venueName),
                       subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
-                      activeColor: const Color(0xFF8B4444),
+                      activeColor: AppColors.primary,
                     );
                   });
                 },
               )),
             ),
-            SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: () => Get.back(), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF8B4444), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const CommonText('Done', color: Colors.white))),
+            SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: () => Get.back(), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const CommonText('Done', color: Colors.white))),
           ],
         ),
       ),
@@ -389,9 +389,9 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
         onTap: () => selected.value = opt,
         child: Obx(() => Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: selected.value == opt ? const Color(0xFF8B4444) : AppColors.borderLight, width: selected.value == opt ? 1.5 : 1)),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: selected.value == opt ? AppColors.primary : AppColors.borderLight, width: selected.value == opt ? 1.5 : 1)),
           child: Row(children: [
-            Icon(selected.value == opt ? Icons.radio_button_checked : Icons.radio_button_off, color: selected.value == opt ? const Color(0xFF8B4444) : Colors.grey, size: 20),
+            Icon(selected.value == opt ? Icons.radio_button_checked : Icons.radio_button_off, color: selected.value == opt ? AppColors.primary : Colors.grey, size: 20),
             const SizedBox(width: 12),
             CommonText(opt, fontSize: 14, fontWeight: selected.value == opt ? FontWeight.bold : FontWeight.w500),
           ]),
@@ -419,7 +419,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
       child: Row(children: [
         Expanded(child: CommonButton(text: 'Cancel', backgroundColor: Colors.white, textColor: AppColors.textPrimary, borderColor: AppColors.borderLight, onPressed: () => Get.back())),
         const SizedBox(width: 16),
-        Expanded(child: Obx(() => CommonButton(text: _editingBlock != null ? 'Save' : 'Add Block', backgroundColor: const Color(0xFF8B4444), isLoading: _isSubmitting.value, onPressed: _submit))),
+        Expanded(child: Obx(() => CommonButton(text: _editingBlock != null ? 'Save' : 'Add Block', backgroundColor: AppColors.primary, isLoading: _isSubmitting.value, onPressed: _submit))),
       ]),
     );
   }
