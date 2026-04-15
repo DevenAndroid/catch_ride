@@ -138,7 +138,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                       const SizedBox(height: 24),
                     ],
 
-                    _buildSectionHeader('Security & Account'),
+/*                    _buildSectionHeader('Security & Account'),
                     _buildSettingsCard([
                       _buildToggleTile(
                         icon: Icons.shield_outlined,
@@ -158,7 +158,7 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
                         onTap: () => _showDeleteAccountDialog(context),
                         showDivider: false,
                       ),
-                    ]),
+                    ]),*/
                     const SizedBox(height: 40),
                   ],
                 ),
