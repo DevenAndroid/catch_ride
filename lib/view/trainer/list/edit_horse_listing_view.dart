@@ -540,7 +540,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 }),
                 GestureDetector(
                   onTap: () async {
-                    final List<XFile> images = await controller.picker.pickMultiImage(imageQuality: 90);
+                    final List<XFile> images = await controller.picker.pickMultiImage(imageQuality: 80,
+                      maxWidth:  1600, // Profile is smaller, banner can be wider
+                      maxHeight:  1600,
+                    );
                     if (images.isNotEmpty) {
                       controller.localImages.addAll(
                         images.map((x) => File(x.path)),
