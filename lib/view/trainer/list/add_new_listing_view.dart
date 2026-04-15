@@ -49,13 +49,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     for (var show in profileController.rawHorseShows) {
       final city = show['city']?.toString().trim() ?? '';
       final state = show['state']?.toString().trim() ?? '';
+      final country = show['country']?.toString().trim() ?? '';
 
-      if (city.isNotEmpty && state.isNotEmpty) {
-        locations.add('$city, $state');
-      } else if (city.isNotEmpty) {
-        locations.add(city);
-      } else if (state.isNotEmpty) {
-        locations.add(state);
+      List<String> parts = [];
+      if (city.isNotEmpty) parts.add(city);
+      if (state.isNotEmpty) parts.add(state);
+      if (country.isNotEmpty) parts.add(country);
+
+      if (parts.isNotEmpty) {
+        locations.add(parts.join(', '));
       }
     }
     final list = locations.toList();
@@ -390,7 +392,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 GestureDetector(
                   onTap: () async {
                     final List<XFile> images = await controller.picker
-                        .pickMultiImage(imageQuality: 90);
+                        .pickMultiImage(imageQuality: 80, maxWidth:  1600, // Profile is smaller, banner can be wider
+                      maxHeight:  1600,);
                     if (images.isNotEmpty) {
                       controller.localImages.addAll(
                         images.map((x) => File(x.path)),
@@ -1722,9 +1725,15 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                   // Auto-fill City/State
                                   final city = selection['city'] ?? '';
                                   final state = selection['state'] ?? '';
-                                  if (city.isNotEmpty || state.isNotEmpty) {
-                                    availabilityEntry.cityStateController.text =
-                                        '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
+                                  final country = selection['country'] ?? '';
+                                  
+                                  List<String> parts = [];
+                                  if (city.isNotEmpty) parts.add(city.toString());
+                                  if (state.isNotEmpty) parts.add(state.toString());
+                                  if (country.isNotEmpty) parts.add(country.toString());
+                                  
+                                  if (parts.isNotEmpty) {
+                                    availabilityEntry.cityStateController.text = parts.join(', ');
                                   }
 
                                   // Auto-fill Dates
@@ -1828,6 +1837,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                                 'Unknown Venue';
                                             final city = show['city'] ?? '';
                                             final state = show['state'] ?? '';
+                                            final country = show['country'] ?? '';
 
                                             String dateRange = '';
                                             try {
@@ -1868,7 +1878,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     CommonText(
-                                                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state • $dateRange',
+                                                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country • $dateRange',
                                                       fontSize: 12,
                                                       color: AppColors
                                                           .textSecondary,

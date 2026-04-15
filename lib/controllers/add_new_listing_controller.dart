@@ -471,7 +471,8 @@ class AddNewListingController extends GetxController {
   Future<void> pickImage() async {
     try {
       if (localImages.isEmpty) {
-        final List<XFile> images = await picker.pickMultiImage(imageQuality: 90);
+        final List<XFile> images = await picker.pickMultiImage(imageQuality: 80, maxWidth:  1600, // Profile is smaller, banner can be wider
+          maxHeight:  1600,);
         if (images.isNotEmpty) {
           localImages.addAll(images.map((x) => File(x.path)));
         }
@@ -506,7 +507,8 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Images'),
               onTap: () async {
                 Get.back();
-                final List<XFile> images = await picker.pickMultiImage(imageQuality: 90);
+                final List<XFile> images = await picker.pickMultiImage(imageQuality:80,  maxWidth:  1600, // Profile is smaller, banner can be wider
+                  maxHeight:  1600,);
                 if (images.isNotEmpty) {
                   localImages.addAll(images.map((x) => File(x.path)));
                 }
