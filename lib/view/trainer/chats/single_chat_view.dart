@@ -35,6 +35,7 @@ class SingleChatView extends StatefulWidget {
 class _SingleChatViewState extends State<SingleChatView> {
   final ChatController controller = Get.find<ChatController>();
   final TextEditingController textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -45,12 +46,34 @@ class _SingleChatViewState extends State<SingleChatView> {
       if (!widget.readOnly) {
         controller.fetchConversations(); // Also refresh convo info for banners
       }
+      // Initial scroll to bottom after messages load
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _scrollToBottom();
+      });
     });
+
+    // Listen for new messages to scroll to bottom
+    controller.currentMessages.listen((_) {
+      if (mounted) {
+        _scrollToBottom();
+      }
+    });
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
   void dispose() {
     textController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -265,6 +288,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                     }
 
                     return ListView.builder(
+                      controller: _scrollController,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
