@@ -295,15 +295,33 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
 
                 if (convo.unread > 0)
                   Positioned(
-                    right: 0,
-                    top: 2,
+                    right: -2,
+                    top: -2,
                     child: Container(
-                      width: 12,
-                      height: 12,
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF13CA8B),
+                        color: const Color(0xFFF04438), // Red for notifications
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 20,
+                        minHeight: 20,
+                      ),
+                      child: Center(
+                        child: CommonText(
+                          convo.unread > 99 ? '99+' : convo.unread.toString(),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
