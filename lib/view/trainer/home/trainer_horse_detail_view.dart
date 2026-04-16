@@ -515,8 +515,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(
-          0xFF8B4242,
-        ).withValues(alpha: 0.6), // Matched to mockup dark trans-red
+          0xFF8B4444,
+        ), // Matched to mockup dark trans-red
         borderRadius: BorderRadius.circular(8),
       ),
       child: CommonText(
@@ -1496,23 +1496,26 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-          ),
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-            left: 20,
-            right: 20,
-            top: 12,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle
-              Center(
+        builder: (context, setSheetState) => GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            ),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                left: 20,
+                right: 20,
+                top: 12,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Handle
+                  Center(
                 child: Container(
                   width: 40,
                   height: 4,
@@ -1780,8 +1783,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ));
+}
 
   Widget _buildBookingHorseCard() {
     final hasImages = horse != null && horse!.images.isNotEmpty;
@@ -1795,12 +1799,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       if (firstShow.showVenue.isNotEmpty) {
         venueText = firstShow.showVenue;
       }
-      if (firstShow.startDate.isNotEmpty && firstShow.endDate.isNotEmpty) {
-        dateRangeText = '${firstShow.startDate} - ${firstShow.endDate}';
-      } else if (firstShow.startDate.isNotEmpty) {
-        dateRangeText = firstShow.startDate;
-      } else if (firstShow.endDate.isNotEmpty) {
-        dateRangeText = firstShow.endDate;
+      final formattedDates = DateUtil.formatRange(firstShow.startDate, firstShow.endDate);
+      if (formattedDates.isNotEmpty) {
+        dateRangeText = formattedDates;
       }
     }
 
@@ -1818,20 +1819,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: CommonImageView(
-              url: photoUrl,
-              width: 90,
-              height: 90,
-              fit: BoxFit.cover,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CommonImageView(
+                url: photoUrl,
+                width: 75,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
+            const SizedBox(width: 16),
+            Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1844,7 +1845,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       fontFamily: 'Outfit',
                     ),
                     children: [
-                      TextSpan(text: horse?.name ?? 'Unknown'),
+                      TextSpan(text: horse?.name.toString().capitalizeFirst ?? 'Unknown'),
                       TextSpan(
                         text:
                             ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
@@ -1919,15 +1920,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                               const Color(0xFFE11D48),
                             ),
                           ),
-                        )
-                        .toList(),
+                        ).toList(),
                   ),
                 ),
               ],
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 

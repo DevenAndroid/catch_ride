@@ -55,6 +55,20 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
         exploreController.clearAllFilters();
         exploreController.fetchHorses();
       }
+    } else if (index == 2) {
+      if (Get.isRegistered<HorseController>() && Get.isRegistered<ProfileController>()) {
+        final horseController = Get.find<HorseController>();
+        final profileController = Get.find<ProfileController>();
+        
+        final trainerId = profileController.trainerId;
+        final userId = profileController.id;
+        
+        if (trainerId.isNotEmpty) {
+          horseController.fetchHorses(refresh: true, trainerId: trainerId);
+        } else if (userId.isNotEmpty) {
+          horseController.fetchHorses(refresh: true, ownerId: userId);
+        }
+      }
     }
     setState(() {
       _selectedIndex = index;
@@ -86,7 +100,7 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
               _buildNavItem(1, 'Explore', LucideIcons.search),
               _buildNavItem(2, 'List', LucideIcons.circlePlus),
               _buildNavItem(3, 'Inbox', LucideIcons.messageCircleMore),
-              _buildNavItem(4, 'Menu', Icons.person_outline_sharp),
+              _buildNavItem(4, 'Menu', LucideIcons.menu),
             ],
           ),
         ),

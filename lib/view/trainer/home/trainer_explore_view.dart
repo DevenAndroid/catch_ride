@@ -33,7 +33,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
 
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
-    {'name': 'Jumper', 'icon': Icons.flag_rounded, 'isSvg': false},
+    {'name': 'Jumper', 'icon': "assets/icons/jumper.svg", 'isSvg': true},
     {
       'name': 'Equitation',
       'icon': 'assets/icons/equitation.svg',
