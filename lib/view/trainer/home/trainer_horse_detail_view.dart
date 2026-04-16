@@ -252,7 +252,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                               _buildAvailabilitySection(),
                               if (isHorseOwner && horse!.bookedByName != null)
                                 _buildBookedByHeader(),
-                              if (!isHorseOwner) _buildCancelationPolicy(),
+                            //  if (!isHorseOwner) _buildCancelationPolicy(),
                               const SizedBox(height: 20),
                             ],
                           ),
@@ -577,8 +577,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   ),
                   CommonText(
                     trainerLocation != null && trainerLocation!.isNotEmpty
-                        ? 'Location - $trainerLocation'
-                        : 'Location - N/A',
+                        ? trainerLocation
+                        : 'N/A',
                     fontSize: 13,
                     color: AppColors.textSecondary,
                   ),
@@ -1035,7 +1035,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   horse!.name.isEmpty ? 'N/A' : horse!.name,
                 ),
                 _buildPremiumDetailItem(
-                  'USEF number',
+                  'USEF',
                   (horse!.usefNumber == null ||
                           horse!.usefNumber.toString().isEmpty)
                       ? 'N/A'
@@ -1970,6 +1970,7 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
   bool _isYoutube = false;
   bool _initialized = false;
   bool _error = false;
+  bool _hasStartedPlaying = false;
 
   @override
   void initState() {
@@ -1986,7 +1987,14 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
           hideControls: true,
           disableDragSeek: true,
         ),
-      );
+      )..addListener(() {
+          if (mounted) {
+            if (_youtubeController!.value.isPlaying && !_hasStartedPlaying) {
+              _hasStartedPlaying = true;
+            }
+            setState(() {});
+          }
+        });
       _initialized = true;
     } else {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
@@ -1996,6 +2004,14 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
                 _controller!.setVolume(0); // mute
                 _controller!.setLooping(true); // loop
                 _controller!.play(); // autoplay
+                _controller!.addListener(() {
+                  if (mounted) {
+                    if (_controller!.value.isPlaying && !_hasStartedPlaying) {
+                      _hasStartedPlaying = true;
+                    }
+                    setState(() {});
+                  }
+                });
                 setState(() {
                   _initialized = true;
                 });
@@ -2052,6 +2068,8 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
 
     if (_isYoutube && _youtubeController != null) {
       final isPlaying = _youtubeController!.value.isPlaying;
+      final isBuffering = !_hasStartedPlaying || _youtubeController!.value.playerState == PlayerState.buffering;
+      
       return GestureDetector(
         onTap: () {
           setState(() {
@@ -2071,18 +2089,27 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
                   showVideoProgressIndicator: false,
                 ),
               ),
-              if (!isPlaying)
+              if (!isPlaying || isBuffering)
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.5),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+                  child: isBuffering
+                      ? const SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 40,
+                        ),
                 ),
             ],
           ),
@@ -2091,6 +2118,8 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
     }
 
     final isPlaying = _controller!.value.isPlaying;
+    final isBuffering = !_hasStartedPlaying || _controller!.value.isBuffering;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -2108,18 +2137,27 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
               aspectRatio: _controller!.value.aspectRatio,
               child: VideoPlayer(_controller!),
             ),
-            if (!isPlaying)
+            if (!isPlaying || isBuffering)
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 40,
-                ),
+                child: isBuffering
+                    ? const SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : const Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 40,
+                      ),
               ),
           ],
         ),

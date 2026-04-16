@@ -257,42 +257,53 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 color: const Color(0xFF475467),
                                 fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
+                              const SizedBox(height: 2),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: Color(0xFFF04438),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5),
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Color(0xFFF04438),
+                                    ),
                                   ),
                                   const SizedBox(width: 4),
-                                  CommonText(
-                                    profile.location?.isEmpty ?? true
-                                        ? 'N/A'
-                                        : profile.location!,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF475467),
+                                  Flexible(
+                                    child: Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      children: [
+
+                                        CommonText(
+                                          profile.location?.isEmpty ?? true
+                                              ? 'N/A'
+                                              : profile.location!,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF475467),
+                                        ),
+                                        if (profile.location2?.isNotEmpty ??
+                                            false) ...[
+                                          const Padding(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 6.0,
+                                            ),
+                                            child: CommonText(
+                                              "|",
+                                              color: Color(0xFFD0D5DD),
+                                            ),
+                                          ),
+                                          CommonText(
+                                            profile.location2!,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0xFF475467),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                   ),
-                                  if (profile.location2?.isNotEmpty ??
-                                      false) ...[
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 6.0,
-                                      ),
-                                      child: CommonText(
-                                        "|",
-                                        color: Color(0xFFD0D5DD),
-                                      ),
-                                    ),
-                                    CommonText(
-                                      profile.location2!,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: const Color(0xFF475467),
-                                    ),
-                                  ],
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -362,45 +373,47 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
                        if (hasSocials) ...[
                          const SizedBox(height: 24),
-                         SingleChildScrollView(
-                           scrollDirection: Axis.horizontal,
-                           child: Row(
-                             children: [
-                               if (hasInstagram)
-                                 _buildSocialButton(
-                                   'Instagram',
-                                   Icons.camera_alt_outlined,
-                                   const Color(0xFFD62976),
-                                       () {
-                                     UrlHelper.launchInstagram(
-                                       profile.instagram!.toLowerCase()
-                                     );
-                                   },
-                                 ),
-                               if (hasFacebook) ...[
-                                 if (hasInstagram) const SizedBox(width: 10),
-                                 _buildSocialButton(
-                                   'Facebook',
-                                   Icons.facebook,
-                                   const Color(0xFF1877F2),
-                                       () {
-                                     UrlHelper.launchFacebook(profile.facebook!.toLowerCase());
-                                   },
-                                 ),
+                         FittedBox(
+                           child: SingleChildScrollView(
+                             scrollDirection: Axis.horizontal,
+                             child: Row(
+                               children: [
+                                 if (hasInstagram)
+                                   _buildSocialButton(
+                                     'Instagram',
+                                     Icons.camera_alt_outlined,
+                                     const Color(0xFFD62976),
+                                         () {
+                                       UrlHelper.launchInstagram(
+                                         profile.instagram!.toLowerCase()
+                                       );
+                                     },
+                                   ),
+                                 if (hasFacebook) ...[
+                                   if (hasInstagram) const SizedBox(width: 10),
+                                   _buildSocialButton(
+                                     'Facebook',
+                                     Icons.facebook,
+                                     const Color(0xFF1877F2),
+                                         () {
+                                       UrlHelper.launchFacebook(profile.facebook!.toLowerCase());
+                                     },
+                                   ),
+                                 ],
+                                 if (hasWebsite) ...[
+                                   if (hasInstagram || hasFacebook)
+                                     const SizedBox(width: 10),
+                                   _buildSocialButton(
+                                     'Website',
+                                     Icons.link,
+                                     Colors.black87,
+                                         () {
+                                       UrlHelper.launchWebsite(profile.website!.toLowerCase());
+                                     },
+                                   ),
+                                 ],
                                ],
-                               if (hasWebsite) ...[
-                                 if (hasInstagram || hasFacebook)
-                                   const SizedBox(width: 10),
-                                 _buildSocialButton(
-                                   'Website',
-                                   Icons.link,
-                                   Colors.black87,
-                                       () {
-                                     UrlHelper.launchWebsite(profile.website!.toLowerCase());
-                                   },
-                                 ),
-                               ],
-                             ],
+                             ),
                            ),
                          ),
                          const SizedBox(height: 22),

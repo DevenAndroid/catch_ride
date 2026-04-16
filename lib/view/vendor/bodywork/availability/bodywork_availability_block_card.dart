@@ -132,6 +132,7 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
 
                 // 2. Capacity & Buffer
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SvgPicture.asset("assets/icons/horse_icon.svg"),
                     const SizedBox(width: 8),
@@ -144,11 +145,13 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                     const SizedBox(width: 24),
                     const Icon(Icons.access_time, size: 18, color: AppColors.textSecondary),
                     const SizedBox(width: 8),
-                    CommonText(
-                      'Buffer Time: ${block.bufferTime ?? '15 min'}',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
+                    Flexible(
+                      child: CommonText(
+                        'Buffer Time: ${block.bufferTime ?? '15 min'}',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
