@@ -540,10 +540,13 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 }),
                 GestureDetector(
                   onTap: () async {
-                    final List<XFile> images = await controller.picker.pickMultiImage(imageQuality: 80,
-                      maxWidth:  1600, // Profile is smaller, banner can be wider
-                      maxHeight:  1600,
-                    );
+                    final List<XFile> images = await controller.picker
+                        .pickMultiImage(
+                          imageQuality: 80,
+                          maxWidth:
+                              1600, // Profile is smaller, banner can be wider
+                          maxHeight: 1600,
+                        );
                     if (images.isNotEmpty) {
                       controller.localImages.addAll(
                         images.map((x) => File(x.path)),
@@ -923,6 +926,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   const SizedBox(height: 6),
                   LayoutBuilder(
                     builder: (context, constraints) => Autocomplete<String>(
+                      initialValue: TextEditingValue(text: widget.horse.breed),
                       optionsBuilder: (TextEditingValue textEditingValue) {
                         if (textEditingValue.text.isEmpty) {
                           return const Iterable<String>.empty();
@@ -941,33 +945,26 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         FocusNode fieldFocusNode,
                         VoidCallback onFieldSubmitted,
                       ) {
-                         if (controller.breedController.text.isNotEmpty &&
-                            fieldTextEditingController.text.isEmpty) {
-                          fieldTextEditingController.text =
-                              controller.breedController.text;
-                        }
-                        fieldTextEditingController.addListener(() {
-                          controller.breedController.text =
-                              fieldTextEditingController.text;
-                        });
-
                         return TextFormField(
                           controller: fieldTextEditingController,
                           focusNode: fieldFocusNode,
-                          validator: (val) {
-                            if (val == null || val.trim().isEmpty)
-                              return 'Please enter the breed';
-                            return null;
+                          onChanged: (val) {
+                            controller.breedController.text = val;
                           },
-                          style: const TextStyle(
-                            fontSize: AppTextSizes.size14,
-                            color: AppColors.textPrimary,
-                          ),
-                          decoration: const InputDecoration(
-                            hintText: 'Enter breed',
-                          ),
-                        );
-                      },
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty)
+                                  return 'Please enter the breed';
+                                return null;
+                              },
+                              style: const TextStyle(
+                                fontSize: AppTextSizes.size14,
+                                color: AppColors.textPrimary,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: 'Enter breed',
+                              ),
+                            );
+                          },
                       optionsViewBuilder: (context, onSelected, options) {
                         return Align(
                           alignment: Alignment.topLeft,
@@ -988,12 +985,13 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                 itemCount: options.length,
                                 separatorBuilder: (context, index) =>
                                     const Divider(
-                                  height: 1,
-                                  color: AppColors.border,
-                                ),
+                                      height: 1,
+                                      color: AppColors.border,
+                                    ),
                                 itemBuilder: (BuildContext context, int index) {
-                                  final String option =
-                                      options.elementAt(index);
+                                  final String option = options.elementAt(
+                                    index,
+                                  );
                                   return InkWell(
                                     onTap: () {
                                       onSelected(option);
@@ -1883,7 +1881,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                 ),
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
-                                  size: 20,
+                                  size: 18,
                                   color: AppColors.textSecondary,
                                 ),
                               ),
@@ -1901,7 +1899,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                 ),
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
-                                  size: 20,
+                                  size: 18,
                                   color: AppColors.textSecondary,
                                 ),
                               ),

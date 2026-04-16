@@ -276,7 +276,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 160,
+          height: 110,
           child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(
@@ -315,11 +315,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Expanded(
                       child: CommonText(
                         '${horse!.name} - ${horse!.displayDiscipline}',
-                        fontSize: 24,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -327,18 +328,18 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 6,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: horse!.isActive
                             ? const Color(0xFFECFDF3)
                             : const Color(0xFFFEF3F2),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(4),
                       ),
                       child: CommonText(
                         horse!.isActive ? 'Active' : 'Inactive',
-                        fontSize: 10,
+                        fontSize: 9,
                         fontWeight: FontWeight.bold,
                         color: horse!.isActive
                             ? const Color(0xFF027A48)
@@ -347,7 +348,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -359,7 +360,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                             padding: EdgeInsets.only(
                               right: entry.key == horse!.listingTypes.length - 1
                                   ? 0
-                                  : 8,
+                                  : 6,
                             ),
                             child: _buildOverlayBadge(
                               entry.value,
@@ -371,13 +372,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         .toList(),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     const Icon(
                       Icons.location_on_outlined,
                       color: Colors.white,
-                      size: 16,
+                      size: 14,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -385,7 +386,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         (horse!.location == null || horse!.location!.isEmpty)
                             ? 'N/A'
                             : horse!.location!,
-                        fontSize: 12,
+                        fontSize: 11,
                         color: Colors.white,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1090,7 +1091,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       children: [
         Row(
           children: [
-            CommonText(label, fontSize: 13, color: AppColors.textSecondary),
+            Flexible(child: CommonText(label, fontSize: 13, color: AppColors.textSecondary,maxLines: 1,overflow: TextOverflow.ellipsis,)),
             if (onLabelTap != null) ...[
               const SizedBox(width: 6),
               GestureDetector(

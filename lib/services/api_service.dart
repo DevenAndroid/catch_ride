@@ -12,11 +12,11 @@ class ApiService extends GetConnect implements GetxService {
   @override
   void onInit() {
     httpClient.baseUrl = AppUrls.baseUrl;
-    httpClient.timeout = const Duration(seconds: 20);
+    httpClient.timeout = const Duration(seconds: 300);
 
     // Request interceptor (for headers/auth)
     httpClient.addRequestModifier<dynamic>((request) async {
-      httpClient.timeout = const Duration(seconds: 20);
+      httpClient.timeout = const Duration(seconds: 300);
       return request;
     });
 
