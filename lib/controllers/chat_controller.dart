@@ -19,6 +19,8 @@ class ChatController extends GetxController {
   final RxList<ChatMessage> currentMessages = <ChatMessage>[].obs;
   final RxBool isLoadingConversations = false.obs;
   final RxBool isLoadingMessages = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxBool hasMoreMessages = true.obs;
   final RxString activeConversationId = ''.obs;
   final RxBool isUpdatingStatus = false.obs;
 
@@ -105,6 +107,7 @@ class ChatController extends GetxController {
 
       activeConversationId.value = convoId;
       isLoadingMessages.value = true;
+      hasMoreMessages.value = true;
       currentMessages.clear();
 
       // Join new room
@@ -113,12 +116,17 @@ class ChatController extends GetxController {
       // Production API Call
       final response = await _apiService.getRequest(
         '${AppUrls.messagesByConversation}$convoId/messages',
+        query: {'limit': '30'},
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
         currentMessages.value = data
             .map((json) => ChatMessage.fromJson(json))
             .toList();
+
+        if (data.length < 30) {
+          hasMoreMessages.value = false;
+        }
 
         // Mark as read locally and on server
         _socketService.emit('message:read', {'conversationId': convoId});
@@ -127,6 +135,43 @@ class ChatController extends GetxController {
       _logger.e('Error fetching messages: $e');
     } finally {
       isLoadingMessages.value = false;
+    }
+  }
+
+  Future<void> loadMoreMessages() async {
+    if (isLoadingMore.value || !hasMoreMessages.value || activeConversationId.isEmpty) return;
+
+    try {
+      isLoadingMore.value = true;
+      final String convoId = activeConversationId.value;
+      final String? before = currentMessages.isNotEmpty ? currentMessages.last.timestamp?.toIso8601String() : null;
+
+      final response = await _apiService.getRequest(
+        '${AppUrls.messagesByConversation}$convoId/messages',
+        query: {
+          'limit': '30',
+          if (before != null) 'before': before,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.body['data'] ?? [];
+        final List<ChatMessage> olderMessages = data
+            .map((json) => ChatMessage.fromJson(json))
+            .toList();
+
+        if (olderMessages.isEmpty || olderMessages.length < 30) {
+          hasMoreMessages.value = false;
+        }
+
+        if (olderMessages.isNotEmpty) {
+          currentMessages.addAll(olderMessages);
+        }
+      }
+    } catch (e) {
+      _logger.e('Error loading more messages: $e');
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
@@ -165,7 +210,7 @@ class ChatController extends GetxController {
       status: 'active',
     );
 
-    currentMessages.add(optimisticMsg);
+    currentMessages.insert(0, optimisticMsg);
 
     // Emit via socket
     _socketService.emit('message:send', {
@@ -256,7 +301,7 @@ class ChatController extends GetxController {
       }
 
       if (!exists) {
-        currentMessages.add(message);
+        currentMessages.insert(0, message);
       }
 
       _socketService.emit('message:read', {
@@ -288,7 +333,7 @@ class ChatController extends GetxController {
     } else {
       // If the optimistic message is gone but we didn't find the real ID yet, add it
       if (!currentMessages.any((m) => m.id == message.id)) {
-        currentMessages.add(message);
+        currentMessages.insert(0, message);
       }
     }
     fetchConversations(); // Sync last message in sidebar

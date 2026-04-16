@@ -52,10 +52,12 @@ class _SingleChatViewState extends State<SingleChatView> {
       });
     });
 
-    // Listen for new messages to scroll to bottom
-    controller.currentMessages.listen((_) {
-      if (mounted) {
-        _scrollToBottom();
+    // Pagination Listener
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+          !controller.isLoadingMore.value &&
+          controller.hasMoreMessages.value) {
+        controller.loadMoreMessages();
       }
     });
   }
@@ -273,6 +275,13 @@ class _SingleChatViewState extends State<SingleChatView> {
 
                 Expanded(
                   child: Obx(() {
+                    if (controller.currentMessages.isNotEmpty) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                           _scrollController.jumpTo(0);
+                        }
+                      });
+                    }
                     if (controller.isLoadingMessages.value &&
                         controller.currentMessages.isEmpty) {
                       return const Center(child: CircularProgressIndicator());
@@ -288,16 +297,29 @@ class _SingleChatViewState extends State<SingleChatView> {
                     }
 
                     return ListView.builder(
+                      key: ValueKey(controller.activeConversationId.value),
                       controller: _scrollController,
+                      reverse: true,
+                      physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      itemCount: controller.currentMessages.length,
+                      itemCount: controller.currentMessages.length + (controller.hasMoreMessages.value ? 1 : 0),
                       itemBuilder: (context, index) {
+                        if (index == controller.currentMessages.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        }
+                        
                         final msgIndex = index;
-                        if (msgIndex >= controller.currentMessages.length)
+                        if (msgIndex < 0 || msgIndex >= controller.currentMessages.length) {
                           return const SizedBox.shrink();
+                        }
 
                         final msg = controller.currentMessages[msgIndex];
                         final String currentUserId =
