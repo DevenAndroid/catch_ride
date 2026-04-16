@@ -10,6 +10,7 @@ import 'package:catch_ride/view/barn_manager/settings/barn_manager_settings_view
 import 'package:catch_ride/view/barn_manager/home/barn_manager_explore_view.dart';
 import 'package:catch_ride/view/barn_manager/list/barn_manager_horse_listing_view.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../trainer/home/trainer_explore_view.dart';
 import 'chats/barn_manager_chat_list_view.dart';
 
 class BarnManagerBottomNav extends StatefulWidget {
@@ -30,7 +31,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
   // Tabs: Bookings, Explore, List, Inbox, Profile
   final List<Widget> _views = [
     const BarnManagerBookingsView(),
-    const BarnManagerExploreView(),
+    const TrainerExploreView(),
     const BarnManagerHorseListingView(),
     const BarnManagerInboxView(),
     const BarnManagerSettingsView(),
