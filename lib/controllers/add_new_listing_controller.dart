@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+import 'package:dio/dio.dart' as dio_lib;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_urls.dart';
@@ -7,6 +10,10 @@ import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 import '../constant/app_colors.dart';
 import '../models/horse_model.dart';
@@ -71,6 +78,10 @@ class AddNewListingController extends GetxController {
   final ImagePicker picker = ImagePicker();
   var localImages = <File>[].obs;
   var localVideos = <File>[].obs;
+  var uploadProgress = 0.0.obs;
+  var isUploadingVideo = false.obs;
+  var isUploadCancelled = false.obs;
+  dio_lib.CancelToken? uploadCancelToken;
   var gender = 'Gelding'.obs;
   var editingHorseId = RxnString();
   bool get isEditMode => editingHorseId.value != null;
@@ -163,6 +174,7 @@ class AddNewListingController extends GetxController {
     calculatedAge.value = horse.age;
     heightController.text = horse.height ?? '';
     breedController.text = horse.breed;
+    print("asdfasdfasdf4${breedController.text}");
     colorController.text = horse.color ?? '';
     selectedColor.value = horse.color ?? '';
     descriptionController.text = horse.description ?? '';
@@ -236,8 +248,31 @@ class AddNewListingController extends GetxController {
         entry.cityStateController.text = avail.cityState ?? '';
         entry.showVenueController.text = avail.showVenue ?? '';
         entry.showIdController.text = avail.showId ?? '';
-        entry.startDateController.text = avail.startDate ?? '';
-        entry.endDateController.text = avail.endDate ?? '';
+        
+        final DateFormat formatter = DateFormat('dd MMM yyyy');
+
+        if (avail.startDate != null && avail.startDate!.isNotEmpty) {
+          try {
+            final start = DateTime.parse(avail.startDate!);
+            entry.startDateController.text = formatter.format(start);
+          } catch (_) {
+            entry.startDateController.text = avail.startDate ?? '';
+          }
+        } else {
+          entry.startDateController.text = '';
+        }
+
+        if (avail.endDate != null && avail.endDate!.isNotEmpty) {
+          try {
+            final end = DateTime.parse(avail.endDate!);
+            entry.endDateController.text = formatter.format(end);
+          } catch (_) {
+            entry.endDateController.text = avail.endDate ?? '';
+          }
+        } else {
+          entry.endDateController.text = '';
+        }
+        
         availabilityEntries.add(entry);
       }
     }
@@ -276,8 +311,114 @@ class AddNewListingController extends GetxController {
     try {
       if (!validateStep5()) return;
       isPublishing.value = true;
+      
+      // Reset cancellation state
+      isUploadCancelled.value = false;
+      uploadCancelToken = dio_lib.CancelToken();
+
+      // Initial loader
       Get.dialog(
-        const Center(child: CircularProgressIndicator()),
+        Obx(() => WillPopScope(
+          onWillPop: () async => false, // Prevent dismissing by back button
+          child: Center(
+            child: Material(
+              type: MaterialType.transparency,
+              child: Container(
+                width: Get.width * 0.85,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 24,
+                      spreadRadius: 8,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isUploadingVideo.value) ...[
+                      // Premium circular progress UI
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            height: 80,
+                            width: 80,
+                            child: CircularProgressIndicator(
+                              value: uploadProgress.value,
+                              strokeWidth: 6,
+                              backgroundColor: AppColors.borderLight,
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              strokeCap: StrokeCap.round,
+                            ),
+                          ),
+                          CommonText(
+                            '${(uploadProgress.value * 100).toStringAsFixed(0)}%',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const CommonText(
+                        'Uploading Video',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 8),
+                      const CommonText(
+                        'Please do not close the app.',
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton(
+                          onPressed: () => cancelUpload(),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.accentRed),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const CommonText(
+                            'Cancel Upload',
+                            color: AppColors.accentRed,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      const SizedBox(height: 16),
+                      const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 24),
+                      const CommonText(
+                        'Publishing Listing...',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )),
         barrierDismissible: false,
       );
 
@@ -288,34 +429,42 @@ class AddNewListingController extends GetxController {
       ];
       
       for (var imageFile in localImages) {
+        if (isUploadCancelled.value) return; // Check for cancellation
         final url = await _uploadFile(imageFile);
         if (url != null) {
           finalImages.add(url);
         } else {
-          Get.back();
-          Get.snackbar('Error', 'Failed to upload image',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
+          if (Get.isDialogOpen ?? false) Get.back();
+          if (!isUploadCancelled.value) {
+            Get.snackbar('Error', 'Failed to upload image',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red,
+                colorText: Colors.white);
+          }
           isPublishing.value = false;
           return;
         }
       }
       
       for (var videoFile in localVideos) {
+        if (isUploadCancelled.value) return; // Check for cancellation
         final url = await _uploadFile(videoFile);
         if (url != null) {
           finalImages.add(url);
         } else {
-          Get.back();
-          Get.snackbar('Error', 'Failed to upload video',
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white);
+          if (Get.isDialogOpen ?? false) Get.back();
+          if (!isUploadCancelled.value) {
+            Get.snackbar('Error', 'Failed to upload video',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red,
+                colorText: Colors.white);
+          }
           isPublishing.value = false;
           return;
         }
       }
+
+      if (isUploadCancelled.value) return; // Final check before creating listing
  
       final horseData = {
         'listingTitle': listingTitleController.text,
@@ -429,43 +578,152 @@ class AddNewListingController extends GetxController {
   }
 
   Future<String?> _uploadFile(File file) async {
+    final client = http.Client();
     try {
       final String fileName = path.basename(file.path);
       final String extension = path.extension(file.path).toLowerCase();
       String contentType = 'image/jpeg';
-      
+
       if (extension == '.mp4' || extension == '.mov' || extension == '.avi') {
         contentType = 'video/mp4';
       } else if (extension == '.png') {
         contentType = 'image/png';
       }
 
-      final FormData formData = FormData({
-        'media': MultipartFile(
+      final bool isVideo =
+          (extension == '.mp4' || extension == '.mov' || extension == '.avi');
+
+      String baseUrl = AppUrls.baseUrl;
+      if (baseUrl.endsWith('/')) {
+        baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+      }
+
+      // Get token for authentication
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? token = prefs.getString('token');
+
+      // --- FLOW FOR VIDEOS: S3 SIGNED URL ---
+      if (isVideo) {
+        debugPrint('🎬 VIDEO DETECTED: Using Signed URL flow with Progress Bar');
+        isUploadingVideo.value = true;
+        uploadProgress.value = 0.0;
+        
+        final String signUrlEndpoint =
+            "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
+        
+        final signResponse = await http.get(
+          Uri.parse(signUrlEndpoint),
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+          },
+        );
+
+        if (signResponse.statusCode == 200) {
+          final signData = json.decode(signResponse.body);
+          final String uploadUrl = signData['data']['uploadUrl'];
+          final String publicUrl = signData['data']['publicUrl'];
+
+          final dio = dio_lib.Dio();
+          final putResponse = await dio.put(
+            uploadUrl,
+            data: file.openRead(),
+            cancelToken: uploadCancelToken, // Add cancellation support
+            options: dio_lib.Options(
+              headers: {
+                'Content-Type': contentType,
+                'Content-Length': file.lengthSync(),
+              },
+            ),
+            onSendProgress: (sent, total) {
+              if (total > 0) {
+                uploadProgress.value = sent / total;
+              }
+            },
+          );
+
+          isUploadingVideo.value = false;
+          if (putResponse.statusCode == 200) {
+            debugPrint('✅ Video upload successful: $publicUrl');
+            return publicUrl;
+          } else {
+            debugPrint('❌ S3 PUT failed [${putResponse.statusCode}]');
+            return null;
+          }
+        } else {
+          isUploadingVideo.value = false;
+          debugPrint('❌ Failed to get signed URL [${signResponse.statusCode}]');
+          return null;
+        }
+      }
+
+      // --- FLOW FOR IMAGES: TRADITIONAL API ---
+      isUploadingVideo.value = false;
+      String uploadPath = AppUrls.upload;
+      if (!uploadPath.startsWith('/')) {
+        uploadPath = '/$uploadPath';
+      }
+
+      final String uploadUrl = "$baseUrl$uploadPath?type=horse";
+      debugPrint('📸 IMAGE DETECTED: Using standard API');
+
+      var request = http.MultipartRequest('POST', Uri.parse(uploadUrl));
+
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      request.headers['Connection'] = 'keep-alive';
+      request.headers['Accept'] = '*/*';
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'media',
           file.path,
           filename: fileName,
-          contentType: contentType,
+          contentType: MediaType.parse(contentType),
         ),
-      });
+      );
 
-      final String type = (extension == '.mp4' || extension == '.mov' || extension == '.avi') ? 'video' : 'horse';
-      
-      final response = await _apiService.postRequest(
-        "${AppUrls.upload}?type=$type",
-        formData,
+      var streamedResponse = await client.send(request).timeout(
+        const Duration(minutes: 5),
       );
       
+      var response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.body['data']['url'];
+        final data = json.decode(response.body);
+        return data['data']['url'];
       } else {
-        print('Upload failed with status: ${response.statusCode}');
-        print('Response body: ${response.bodyString}');
+        debugPrint('❌ Upload failed [${response.statusCode}]: ${response.body}');
         return null;
       }
-    } catch (e) {
-      print('Error uploading file: $e');
-      return null;
+      // if (e is dio_lib.DioException && e.type == dio_lib.DioExceptionType.cancel) {
+      //   debugPrint('⏹️ Upload cancelled by user');
+      //   return null;
+      // }
+      // isUploadingVideo.value = false;
+      // debugPrint('❌ Error uploading file: $e');
+      // return null;
+    } finally {
+      client.close();
     }
+  }
+
+  void cancelUpload() {
+    isUploadCancelled.value = true;
+    uploadCancelToken?.cancel('User cancelled the upload');
+    if (Get.isDialogOpen ?? false) {
+      Get.back(); // Dismiss dialog
+    }
+    isPublishing.value = false;
+    isUploadingVideo.value = false;
+    Get.snackbar(
+      'Cancelled',
+      'Media upload was terminated.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.orange,
+      colorText: Colors.white,
+    );
   }
 
   Future<void> pickImage() async {
