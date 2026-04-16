@@ -86,8 +86,9 @@ class AuthController extends GetxController {
       // Auto-authenticate socket if possible
       Get.find<SocketService>().authenticate(
         box.read('userId') ?? '',
-        email,
+        '${box.read('userFirstName') ?? ''} ${box.read('userLastName') ?? ''}'.trim(),
         role,
+        avatar: box.read('userAvatar'),
       );
       
       // Update notification token if service is ready
@@ -259,6 +260,9 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileApprove', isProfileApprove);
         await prefs.setString('status', user['status'] ?? 'active');
         box.write('userId', user['_id'] ?? user['id']);
+        box.write('userAvatar', user['avatar']);
+        box.write('userFirstName', user['firstName']);
+        box.write('userLastName', user['lastName']);
 
         currentUser.value = UserModel.fromJson(user);
 
@@ -266,8 +270,9 @@ class AuthController extends GetxController {
 
         Get.find<SocketService>().authenticate(
           user['_id'] ?? user['id'],
-          user['email'],
+          '${user['firstName'] ?? ''} ${user['lastName'] ?? ''}'.trim(),
           user['role'],
+          avatar: user['avatar'],
         );
 
         isLoggedIn.value = true;
@@ -424,6 +429,9 @@ class AuthController extends GetxController {
           await prefs.setBool('isProfileApprove', isProfileApprove);
           await prefs.setString('status', user['status'] ?? 'active');
           box.write('userId', user['_id'] ?? user['id']);
+          box.write('userAvatar', user['avatar']);
+          box.write('userFirstName', user['firstName']);
+          box.write('userLastName', user['lastName']);
 
           currentUser.value = UserModel.fromJson(user);
           _apiService.setToken(token);
@@ -433,6 +441,7 @@ class AuthController extends GetxController {
             user['_id'] ?? user['id'],
             user['email'] ?? '',
             user['role'] ?? '',
+            avatar: user['avatar'],
           );
 
           isLoggedIn.value = true;
@@ -545,6 +554,9 @@ class AuthController extends GetxController {
           await prefs.setBool('isProfileApprove', isProfileApprove);
           await prefs.setString('status', user['status'] ?? 'active');
           box.write('userId', user['_id'] ?? user['id']);
+          box.write('userAvatar', user['avatar']);
+          box.write('userFirstName', user['firstName']);
+          box.write('userLastName', user['lastName']);
 
           currentUser.value = UserModel.fromJson(user);
           _apiService.setToken(token);
@@ -552,8 +564,9 @@ class AuthController extends GetxController {
           // Socket Auth
           Get.find<SocketService>().authenticate(
             user['_id'] ?? user['id'],
-            user['email'] ?? '',
+            '${user['firstName'] ?? ''} ${user['lastName'] ?? ''}'.trim(),
             user['role'] ?? '',
+            avatar: user['avatar'],
           );
 
           isLoggedIn.value = true;

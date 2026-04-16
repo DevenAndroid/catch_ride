@@ -57,19 +57,20 @@ class SocketService extends GetxService {
     connect();
   }
 
-  void authenticate(String userId, String userName, String? userRole) {
+  void authenticate(String userId, String userName, String? userRole, {String? avatar}) {
     if (socket.connected) {
       _logger.i('Authenticating Socket for $userName ($userId)');
       socket.emit('user:authenticate', {
         'userId': userId,
         'userName': userName,
         'userRole': userRole,
+        'avatar': avatar,
       });
     } else {
       _logger.w(
         'Cannot authenticate: Socket not connected. Will retry on connect.',
       );
-      socket.once('connect', (_) => authenticate(userId, userName, userRole));
+      socket.once('connect', (_) => authenticate(userId, userName, userRole, avatar: avatar));
     }
   }
 
