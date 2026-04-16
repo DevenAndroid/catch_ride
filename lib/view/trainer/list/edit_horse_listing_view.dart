@@ -61,6 +61,27 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     }
   }
 
+  List<String> get _locationSuggestions {
+    final Set<String> locations = {};
+    for (var show in profileController.rawHorseShows) {
+      final city = show['city']?.toString().trim() ?? '';
+      final state = show['state']?.toString().trim() ?? '';
+      final country = show['country']?.toString().trim() ?? '';
+
+      List<String> parts = [];
+      if (city.isNotEmpty) parts.add(city);
+      if (state.isNotEmpty) parts.add(state);
+      if (country.isNotEmpty) parts.add(country);
+
+      if (parts.isNotEmpty) {
+        locations.add(parts.join(', '));
+      }
+    }
+    final list = locations.toList();
+    list.sort();
+    return list;
+  }
+
   void _showVenueBottomSheet(AvailabilityEntry availabilityEntry) {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
@@ -865,16 +886,114 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 },
               ),
               const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Location',
-                controller: controller.locationController,
-                hintText: 'Enter horse\'s location',
-                isRequired: true,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Please enter the location';
-                  return null;
-                },
+              RichText(
+                text: const TextSpan(
+                  text: 'Location',
+                  style: TextStyle(
+                    fontSize: AppTextSizes.size14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontFamily: 'Inter',
+                  ),
+                  children: [
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Color(0xFFD92D20)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              LayoutBuilder(
+                builder: (context, constraints) => Autocomplete<String>(
+                  initialValue: TextEditingValue(text: widget.horse.location ?? ''),
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      return const Iterable<String>.empty();
+                    }
+                    final query = textEditingValue.text.toLowerCase();
+                    return _locationSuggestions.where((String option) {
+                      return option.toLowerCase().contains(query);
+                    });
+                  },
+                  onSelected: (String selection) {
+                    controller.locationController.text = selection;
+                  },
+                  fieldViewBuilder: (
+                    BuildContext context,
+                    TextEditingController fieldTextEditingController,
+                    FocusNode fieldFocusNode,
+                    VoidCallback onFieldSubmitted,
+                  ) {
+                    return TextFormField(
+                      controller: fieldTextEditingController,
+                      focusNode: fieldFocusNode,
+                      onChanged: (val) {
+                        controller.locationController.text = val;
+                      },
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty)
+                          return 'Please enter the location';
+                        return null;
+                      },
+                      style: const TextStyle(
+                        fontSize: AppTextSizes.size14,
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: const InputDecoration(
+                        hintText: 'Enter horse\'s location',
+                      ),
+                    );
+                  },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4.0,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: constraints.maxWidth,
+                          constraints: const BoxConstraints(maxHeight: 200),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final String option = options.elementAt(index);
+                              return InkWell(
+                                onTap: () {
+                                  onSelected(option);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: index == options.length - 1
+                                            ? Colors.transparent
+                                            : AppColors.border,
+                                      ),
+                                    ),
+                                  ),
+                                  child: CommonText(
+                                    option,
+                                    fontSize: AppTextSizes.size14,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 16),
               Row(
@@ -1693,9 +1812,15 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                   // Auto-fill City/State
                                   final city = selection['city'] ?? '';
                                   final state = selection['state'] ?? '';
-                                  if (city.isNotEmpty || state.isNotEmpty) {
-                                    availabilityEntry.cityStateController.text =
-                                        '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
+                                  final country = selection['country'] ?? '';
+                                  
+                                  List<String> parts = [];
+                                  if (city.isNotEmpty) parts.add(city.toString());
+                                  if (state.isNotEmpty) parts.add(state.toString());
+                                  if (country.isNotEmpty) parts.add(country.toString());
+                                  
+                                  if (parts.isNotEmpty) {
+                                    availabilityEntry.cityStateController.text = parts.join(', ');
                                   }
 
                                   // Auto-fill Dates
@@ -1799,6 +1924,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                                 'Unknown Venue';
                                             final city = show['city'] ?? '';
                                             final state = show['state'] ?? '';
+                                            final country = show['country'] ?? '';
 
                                             String dateRange = '';
                                             try {
@@ -1839,7 +1965,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                                     ),
                                                     const SizedBox(height: 4),
                                                     CommonText(
-                                                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state • $dateRange',
+                                                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country • $dateRange',
                                                       fontSize: 12,
                                                       color: AppColors
                                                           .textSecondary,

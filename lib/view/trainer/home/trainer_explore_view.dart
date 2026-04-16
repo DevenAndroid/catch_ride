@@ -138,7 +138,21 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
-                        if (isVendors)
+                        if (isVendors && !controller.isSearchActive && controller.isGridView.value)
+                          SliverPadding(
+                            padding: const EdgeInsets.all(12),
+                            sliver: SliverMasonryGrid.count(
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 4,
+                              crossAxisSpacing: 4,
+                              itemBuilder: (context, index) {
+                                final vendor = controller.vendors[index];
+                                return _buildMasonryVendorCard(vendor, index);
+                              },
+                              childCount: controller.vendors.length,
+                            ),
+                          )
+                        else if (isVendors)
                           SliverPadding(
                             padding: const EdgeInsets.all(16),
                             sliver: SliverList(
@@ -463,11 +477,15 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           color: AppColors.textSecondary.withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 8),
-                        CommonText(
-                          vendor.location!,
-                          fontSize: 14,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
+                        Flexible(
+                          child: CommonText(
+                            vendor.location!,
+                            fontSize: 14,
+                            color: AppColors.textSecondary.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w500,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -523,7 +541,6 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   }
 
   Widget _buildMasonryHorseCard(HorseModel horse, int index) {
-    // Generate varying heights to create the masonry effect
     // Generate varying heights to create the masonry effect for 3 columns
     final double cardHeight = (index % 5 == 0)
         ? 260
@@ -581,6 +598,81 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   ),
                   child: Text(
                     horse.name,
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMasonryVendorCard(VendorModel vendor, int index) {
+    // Generate varying heights to create the masonry effect for 3 columns
+    final double cardHeight = (index % 5 == 0)
+        ? 260
+        : (index % 4 == 0)
+        ? 180
+        : (index % 3 == 0)
+        ? 240
+        : (index % 2 == 0)
+        ? 200
+        : 220;
+
+    return GestureDetector(
+      onTap: () => Get.to(() => const VendorDetailsView(), arguments: {'id': vendor.id}),
+      child: Container(
+        height: cardHeight,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.zero,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.zero,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CommonImageView(
+                url: vendor.profilePhoto,
+                fit: BoxFit.cover,
+                isUserImage: true,
+              ),
+
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 32, 12, 12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.8),
+                        Colors.black.withValues(alpha: 0.4),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                  child: Text(
+                    vendor.fullName,
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       color: Colors.white,
