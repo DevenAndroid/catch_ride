@@ -7,12 +7,12 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'google_api_controller.dart';
 
 class ExploreController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final ProfileController _profileController = Get.find<ProfileController>();
+  final  googleApiController = Get.put(GoogleApiController());
   final Logger _logger = Logger();
 
   final RxList<HorseModel> horses = <HorseModel>[].obs;
@@ -60,11 +60,8 @@ class ExploreController extends GetxController {
       <Map<String, String>>[].obs;
   final RxList<Map<String, String>> venuesSuggestions =
       <Map<String, String>>[].obs;
-  final RxList<Map<String, String>> googleSuggestions =
-      <Map<String, String>>[].obs;
   final RxBool isSuggestionsLoading = false.obs;
 
-  static const String googleApiKey = "AIzaSyDRqZ4i4F45x8xZkgRqq31x1CwIBy_QHmM";
 
   void clearAllFilters() {
     searchQuery.value = '';
@@ -390,11 +387,11 @@ class ExploreController extends GetxController {
   Future<void> searchLocations(String query) async {
     if (query.isEmpty) {
       locationsSuggestions.clear();
-      googleSuggestions.clear();
+      googleApiController.googleSuggestions.clear();
       return;
     }
 
-    searchGooglePlaces(query);
+    googleApiController.searchGooglePlaces(query);
 
     //isSuggestionsLoading.value = true;
     try {
@@ -462,32 +459,5 @@ class ExploreController extends GetxController {
     }
   }
 
-  Future<void> searchGooglePlaces(String query) async {
-    if (query.trim().isEmpty) {
-      googleSuggestions.clear();
-      return;
-    }
 
-    try {
-      final url =
-          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey";
-
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List predictions = data['predictions'] ?? [];
-        final List<Map<String, String>> suggestions = predictions.map((p) {
-          return {
-            'name': p['description']?.toString() ?? '',
-            'place_id': p['place_id']?.toString() ?? '',
-          };
-        }).toList();
-
-        googleSuggestions.assignAll(suggestions);
-      }
-    } catch (e) {
-      _logger.e('Error searching Google Places: $e');
-    }
-  }
 }

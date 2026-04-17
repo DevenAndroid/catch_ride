@@ -15,6 +15,8 @@ import 'package:catch_ride/models/horse_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../controllers/google_api_controller.dart';
+
 class EditHorseListingView extends StatefulWidget {
   final HorseModel horse;
   const EditHorseListingView({super.key, required this.horse});
@@ -26,6 +28,7 @@ class EditHorseListingView extends StatefulWidget {
 class _EditHorseListingViewState extends State<EditHorseListingView> {
   late final AddNewListingController controller;
   final ProfileController profileController = Get.find<ProfileController>();
+  final  googleApiController = Get.put(GoogleApiController());
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   int _currentStep = 1;
@@ -909,8 +912,8 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
               const SizedBox(height: 6),
               LayoutBuilder(
                 builder: (context, constraints) => Obx(() {
-                  if(controller.refreshInt.value>=0){}
-                  final gSuggestions = controller.googleSuggestions;
+                  if(googleApiController.refreshInt.value>=0){}
+                  final gSuggestions = googleApiController.googleSuggestions;
 
                   return Autocomplete<String>(
                     optionsBuilder: (TextEditingValue textEditingValue) {
@@ -950,7 +953,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                             focusNode: fieldFocusNode,
                             onChanged: (val) {
                               controller.locationController.text = val;
-                              controller.searchGooglePlaces(val);
+                              googleApiController.searchGooglePlaces(val);
                             },
                             // validator: (val) {
                             //   if (val == null || val.trim().isEmpty)

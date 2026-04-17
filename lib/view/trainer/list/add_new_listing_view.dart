@@ -14,6 +14,8 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../controllers/google_api_controller.dart';
+
 class AddNewListingView extends StatefulWidget {
   const AddNewListingView({super.key});
 
@@ -23,6 +25,7 @@ class AddNewListingView extends StatefulWidget {
 
 class _AddNewListingViewState extends State<AddNewListingView> {
   final AddNewListingController controller = Get.put(AddNewListingController());
+  final  googleApiController = Get.put(GoogleApiController());
   final ProfileController profileController = Get.find<ProfileController>();
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
@@ -736,9 +739,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   const SizedBox(height: 6),
                   LayoutBuilder(
                     builder: (context, constraints) => Obx(() {
-                      if(controller.refreshInt.value>=0){}
+                      if(googleApiController.refreshInt.value>=0){}
                       // Accessing googleSuggestions here makes Obx listen to it
-                      final gSuggestions = controller.googleSuggestions;
+                      final gSuggestions = googleApiController.googleSuggestions;
 
                       return Autocomplete<String>(
                         optionsBuilder: (TextEditingValue textEditingValue) {
@@ -783,7 +786,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                 focusNode: fieldFocusNode,
                                 onChanged: (val) {
                                   controller.locationController.text = val;
-                                  controller.searchGooglePlaces(val);
+                                  googleApiController.searchGooglePlaces(val);
                                 },
                                 // validator: (val) {
                                 //   if (val == null || val.trim().isEmpty)

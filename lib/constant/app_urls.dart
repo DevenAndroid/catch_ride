@@ -1,18 +1,16 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class AppUrls {
   static String get host {
     if (kIsWeb) return 'localhost';
-    if (Platform.isAndroid) return '192.168.1.25';
+    //   if (Platform.isAndroid) return '192.168.1.25';
     return 'localhost';
   }
 
-  static bool isLive = false ;
+  static bool isLive = true;
 
   static String get baseUrl {
     try {
-
       if (isLive) return 'https://api.catchrideapp.com/api';
     } catch (_) {}
     return 'http://$host:5000/api';
@@ -20,7 +18,6 @@ class AppUrls {
 
   static String get socketUrl {
     try {
-
       if (isLive) return 'https://api.catchrideapp.com';
     } catch (_) {}
     return 'http://$host:5000';
@@ -62,7 +59,8 @@ class AppUrls {
   static const String opportunityTags = '$systemConfig/opportunity-tags';
   static const String experienceLevels = '$systemConfig/experience-levels';
   static const String personalityTags = '$systemConfig/personality-tags';
-  static const String tagTypesWithValues = '$systemConfig/tag-types/with-values';
+  static const String tagTypesWithValues =
+      '$systemConfig/tag-types/with-values';
 
   // Settings
   static const String settings = '/settings';

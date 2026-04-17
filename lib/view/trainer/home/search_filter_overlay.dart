@@ -7,6 +7,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:intl/intl.dart';
 
 import '../../../controllers/explore_controller.dart';
+import '../../../controllers/google_api_controller.dart';
 
 class SearchFilterOverlay extends StatefulWidget {
   const SearchFilterOverlay({super.key});
@@ -18,6 +19,7 @@ class SearchFilterOverlay extends StatefulWidget {
 class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   final ExploreController controller = Get.put(ExploreController());
   final TextEditingController _searchController = TextEditingController();
+  final  googleApiController = Get.put(GoogleApiController());
 
   String _selectedSection = 'location'; // 'location' or 'date'
   late String _selectedCategory;
@@ -380,7 +382,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   final displayList =
                       _showAllLocations ? list : list.take(3).toList();
 
-                  if (list.isEmpty && controller.googleSuggestions.isEmpty) {
+                  if (list.isEmpty && googleApiController.googleSuggestions.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: CommonText(
@@ -419,8 +421,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                         ),
 
                       // Google Suggestions
-                      if (isSearching && controller.googleSuggestions.isNotEmpty)
-                        ...controller.googleSuggestions.map(
+                      if (isSearching && googleApiController.googleSuggestions.isNotEmpty)
+                        ...googleApiController.googleSuggestions.map(
                           (g) => _buildLocationItem(g['name'] ?? ''),
                         ),
                     ],
