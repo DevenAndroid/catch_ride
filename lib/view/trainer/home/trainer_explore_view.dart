@@ -1,15 +1,13 @@
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:catch_ride/view/trainer/home/search_filter_overlay.dart';
+import 'package:catch_ride/view/trainer/home/filter_bottom_sheet.dart';
 import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:catch_ride/view/vendor/vendor_details_view.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
@@ -140,7 +138,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                       slivers: [
                         if (isVendors && !controller.isSearchActive && controller.isGridView.value)
                           SliverPadding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             sliver: SliverMasonryGrid.count(
                               crossAxisCount: 3,
                               mainAxisSpacing: 4,
@@ -154,7 +152,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           )
                         else if (isVendors)
                           SliverPadding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(vertical: 16,horizontal: 12),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
@@ -167,7 +165,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           )
                         else if (controller.isSearchActive)
                           SliverPadding(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.symmetric(vertical: 16,horizontal: 12),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {
@@ -195,7 +193,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           )
                         else if (controller.isGridView.value)
                           SliverPadding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             sliver: SliverMasonryGrid.count(
                               crossAxisCount: 3,
                               mainAxisSpacing: 4,
@@ -266,83 +264,111 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: const Color(0xFFEAECF0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0xFFEAECF0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: InkWell(
+                onTap: () => Get.to(
+                  () => const SearchFilterOverlay(),
+                  fullscreenDialog: true,
+                  opaque: false,
+                ),
+                borderRadius: BorderRadius.circular(30),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 16),
+                    const Icon(
+                      Icons.search_rounded,
+                      size: 28,
+                      color: Color(0xFF101828),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Obx(() {
+                        String mainText = "How can we help you?";
+                        String subText = "Search horses, services and circuits";
+
+                        if (controller.isSearchActive) {
+                          if (controller.showVenue.value.isNotEmpty) {
+                            mainText = controller.showVenue.value;
+                          } else if (controller.location.value.isNotEmpty) {
+                            mainText = controller.location.value;
+                          } else if (controller.searchQuery.value.isNotEmpty) {
+                            mainText = controller.searchQuery.value;
+                          }
+
+                          if (controller.startDate.value != null &&
+                              controller.endDate.value != null) {
+                            subText = DateUtil.formatRange(
+                              controller.startDate.value,
+                              controller.endDate.value,
+                            );
+                          } else {
+                            subText = "Refined Search";
+                          }
+                        }
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CommonText(
+                              mainText,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF101828),
+                            ),
+                            CommonText(
+                              subText,
+                              fontSize: 12,
+                              color: const Color(0xFF667085),
+                            ),
+                          ],
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
-        child: InkWell(
-          onTap: () => Get.to(
-            () => const SearchFilterOverlay(),
-            fullscreenDialog: true,
-            opaque: false,
           ),
-          borderRadius: BorderRadius.circular(30),
-          child: Row(
-            children: [
-              const SizedBox(width: 16),
-              const Icon(
-                Icons.search_rounded,
-                size: 28,
-                color: Color(0xFF101828),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Obx(() {
-                  String mainText = "How can we help you?";
-                  String subText = "Search horses, services and circuits";
-
-                  if (controller.isSearchActive) {
-                    if (controller.showVenue.value.isNotEmpty) {
-                      mainText = controller.showVenue.value;
-                    } else if (controller.location.value.isNotEmpty) {
-                      mainText = controller.location.value;
-                    } else if (controller.searchQuery.value.isNotEmpty) {
-                      mainText = controller.searchQuery.value;
-                    }
-
-                    if (controller.startDate.value != null &&
-                        controller.endDate.value != null) {
-                      subText = DateUtil.formatRange(
-                        controller.startDate.value,
-                        controller.endDate.value,
-                      );
-                    } else {
-                      subText = "Refined Search";
-                    }
-                  }
-
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(
-                        mainText,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF101828),
-                      ),
-                      CommonText(
-                        subText,
-                        fontSize: 12,
-                        color: const Color(0xFF667085),
-                      ),
-                    ],
-                  );
-                }),
-              ),
-            ],
+          const SizedBox(width: 12),
+          GestureDetector(
+             onTap: () {
+               showModalBottomSheet(
+                 context: context,
+                 isScrollControlled: true,
+                 backgroundColor: Colors.transparent,
+                 builder: (context) => SizedBox(
+                   height: MediaQuery.of(context).size.height * 0.85,
+                   child: const FilterBottomSheet()
+                 ),
+               );
+             },
+             child: Container(
+               padding: const EdgeInsets.all(8),
+               child: const Icon(
+                 Icons.tune_rounded,
+                 size: 28,
+                 color: Color(0xFF101828),
+               )
+             ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -19,6 +19,7 @@ import '../constant/app_colors.dart';
 import '../models/horse_model.dart';
 import '../widgets/common_text.dart';
 import 'explore_controller.dart';
+import 'package:http/http.dart' as http;
 
 class AddNewListingController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -86,6 +87,43 @@ class AddNewListingController extends GetxController {
   var editingHorseId = RxnString();
   bool get isEditMode => editingHorseId.value != null;
   var selectedColor = ''.obs;
+  
+  // Google Places Suggestions
+  final RxList<Map<String, String>> googleSuggestions = <Map<String, String>>[].obs;
+  final RxBool isSuggestionsLoading = false.obs;
+  final RxInt refreshInt = 0.obs;
+  static const String googleApiKey = "AIzaSyDRqZ4i4F45x8xZkgRqq31x1CwIBy_QHmM";
+
+  Future<void> searchGooglePlaces(String query) async {
+    if (query.trim().isEmpty) {
+      googleSuggestions.clear();
+      return;
+    }
+
+    try {
+      final url =
+          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey";
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List predictions = data['predictions'] ?? [];
+        final List<Map<String, String>> suggestions = predictions.map((p) {
+          return {
+            'name': p['description']?.toString() ?? '',
+            'place_id': p['place_id']?.toString() ?? '',
+          };
+        }).toList();
+
+        googleSuggestions.assignAll(suggestions);
+      }
+      refreshInt.value=DateTime.now().millisecondsSinceEpoch;
+    } catch (e) {
+      debugPrint('Error searching Google Places: $e');
+    }
+  }
+
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;
