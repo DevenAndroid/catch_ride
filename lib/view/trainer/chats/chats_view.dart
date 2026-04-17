@@ -6,7 +6,7 @@ import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/view/trainer/chats/trainer_requests_view.dart';
 import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
-import 'package:catch_ride/view/trainer/chats/barn_manager_conversations_view.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -123,11 +123,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
             return c.status != 'request-pending' || c.senderId == currentUserId;
           }).toList();
 
-          final bool showBMRow =
-              me?.linkedBarnManager != null &&
-              me?.linkedBarnManager?.userId != null;
-
-          if (conversations.isEmpty && !showBMRow) {
+          if (conversations.isEmpty) {
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: SizedBox(
@@ -156,7 +152,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
 
           return ListView.separated(
             physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: conversations.length + (showBMRow ? 1 : 0),
+            itemCount: conversations.length,
             padding: EdgeInsets.zero,
             separatorBuilder: (_, index) {
               // If it's the divider after the BM row, we might want a different padding or color
@@ -166,10 +162,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
               );
             },
             itemBuilder: (context, index) {
-              if (showBMRow && index == 0) {
-                return _buildBarnManagerRow(me!.linkedBarnManager!);
-              }
-              final convo = conversations[index - (showBMRow ? 1 : 0)];
+              final convo = conversations[index];
               return _buildChatItem(convo);
             },
           );
@@ -178,71 +171,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
     );
   }
 
-  Widget _buildBarnManagerRow(BarnManager bm) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-      child: InkWell(
-        onTap:
-            () => Get.to(
-              () => BarnManagerConversationsListView(
-                barnManagerUserId: bm.userId!,
-                barnManagerName: bm.fullName,
-              ),
-            ),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF5F8FF), // Light blue background
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFE0E7FF), width: 1.5),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE0E7FF),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: Color(0xFF4338CA),
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText(
-                      'Barn Manger Conversations',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF101828),
-                    ),
-                    SizedBox(height: 4),
-                    CommonText(
-                      'View chats your barn manager has with trainers and providers.',
-                      fontSize: 13,
-                      color: Color(0xFF667085),
-                      maxLines: 2,
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Color(0xFF667085),
-                size: 18,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildTab(int index, String label) {
     final isSelected = _selectedTab == index;

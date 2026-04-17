@@ -12,6 +12,7 @@ class ChatMessage {
   final bool flagged;
   final String status;
   final String type;
+  final String? senderImage;
 
   ChatMessage({
     required this.id,
@@ -19,6 +20,7 @@ class ChatMessage {
     required this.senderId,
     required this.senderName,
     this.senderRole,
+    this.senderImage,
     required this.content,
     required this.timestamp,
     this.read = false,
@@ -34,7 +36,9 @@ class ChatMessage {
       senderId: json['senderId'] ?? '',
       senderName: json['senderName'] ?? 'Unknown',
       senderRole: json['senderRole'],
+      senderImage: json['senderImage'],
       content: json['content'] ?? '',
+
       timestamp: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : (json['timestamp'] != null

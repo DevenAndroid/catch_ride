@@ -310,7 +310,7 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                                     ?.id ??
                                 '';
 
-                        final bool isMe = msg.senderId == currentUserId ||
+                        final bool isMe = (msg.senderId == currentUserId && currentUserId.isNotEmpty) ||
                             msg.senderName == 'You';
 
                         return ChatBubble(
@@ -322,6 +322,9 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                               : '',
                           isRead: msg.read &&
                               index == controller.currentMessages.length - 1,
+                          senderName: msg.senderName,
+                          senderImage: msg.senderImage,
+                          senderRole: msg.senderRole,
                         );
                       },
                     );
