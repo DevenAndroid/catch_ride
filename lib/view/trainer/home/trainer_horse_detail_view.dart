@@ -449,6 +449,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         } else if (value == 'delete') {
           _confirmDelete();
         } else if (value == 'trainer') {
+          if(horse?.trainerId == null){
+            Get.snackbar(
+              'Error', 'This trainer has been deleted.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+            return;}
           Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
         }
       },
@@ -565,8 +573,16 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () =>
-                  Get.to(() => TrainerProfileView(trainerId: horse?.trainerId)),
+              onTap: () {
+                if(horse?.trainerId == null){
+          Get.snackbar(
+          'Error', 'This trainer has been deleted.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          );
+          return;}
+                  Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));},
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -826,8 +842,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               const SizedBox(width: 12),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Get.to(() => TrainerProfileView()),
-                  child: Column(
+                  onTap: (){
+
+                    if(horse?.trainerId == null){
+                      Get.snackbar(
+                        'Error', 'This trainer has been deleted.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
+                      return;}
+    Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
+    }
+            ,      child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonText(

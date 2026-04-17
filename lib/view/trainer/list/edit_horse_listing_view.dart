@@ -15,6 +15,8 @@ import 'package:catch_ride/models/horse_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../controllers/google_api_controller.dart';
+
 class EditHorseListingView extends StatefulWidget {
   final HorseModel horse;
   const EditHorseListingView({super.key, required this.horse});
@@ -26,6 +28,7 @@ class EditHorseListingView extends StatefulWidget {
 class _EditHorseListingViewState extends State<EditHorseListingView> {
   late final AddNewListingController controller;
   final ProfileController profileController = Get.find<ProfileController>();
+  final  googleApiController = Get.put(GoogleApiController());
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
   int _currentStep = 1;
@@ -243,7 +246,9 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -385,7 +390,8 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
           ],
         ),
       ),
-    );
+    ),
+   );
   }
 
   Widget _buildStepIndicator() {
@@ -896,127 +902,202 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                     fontFamily: 'Inter',
                   ),
                   children: [
-                    TextSpan(
-                      text: ' *',
-                      style: TextStyle(color: Color(0xFFD92D20)),
-                    ),
+                    // TextSpan(
+                    //   text: ' *',
+                    //   style: TextStyle(color: Color(0xFFD92D20)),
+                    // ),
                   ],
                 ),
               ),
               const SizedBox(height: 6),
               LayoutBuilder(
-                builder: (context, constraints) => Autocomplete<String>(
-                  initialValue: TextEditingValue(text: widget.horse.location ?? ''),
-                  optionsBuilder: (TextEditingValue textEditingValue) {
-                    if (textEditingValue.text.isEmpty) {
-                      return const Iterable<String>.empty();
-                    }
-                    final query = textEditingValue.text.toLowerCase();
-                    return _locationSuggestions.where((String option) {
-                      return option.toLowerCase().contains(query);
-                    });
-                  },
-                  onSelected: (String selection) {
-                    controller.locationController.text = selection;
-                  },
-                  fieldViewBuilder: (
-                    BuildContext context,
-                    TextEditingController fieldTextEditingController,
-                    FocusNode fieldFocusNode,
-                    VoidCallback onFieldSubmitted,
-                  ) {
-                    return TextFormField(
-                      controller: fieldTextEditingController,
-                      focusNode: fieldFocusNode,
-                      onChanged: (val) {
-                        controller.locationController.text = val;
-                      },
-                      validator: (val) {
-                        if (val == null || val.trim().isEmpty)
-                          return 'Please enter the location';
-                        return null;
-                      },
-                      style: const TextStyle(
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textPrimary,
-                      ),
-                      decoration: const InputDecoration(
-                        hintText: 'Enter horse\'s location',
-                      ),
-                    );
-                  },
-                  optionsViewBuilder: (context, onSelected, options) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 4.0,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          width: constraints.maxWidth,
-                          constraints: const BoxConstraints(maxHeight: 200),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: options.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              final String option = options.elementAt(index);
-                              return InkWell(
-                                onTap: () {
-                                  onSelected(option);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: index == options.length - 1
-                                            ? Colors.transparent
-                                            : AppColors.border,
-                                      ),
+                builder: (context, constraints) => Obx(() {
+                  if(googleApiController.refreshInt.value>=0){}
+                  final gSuggestions = googleApiController.googleSuggestions;
+
+                  return Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      final query = textEditingValue.text.trim();
+                      
+                      if (query.isEmpty) {
+                        return _locationSuggestions;
+                      }
+
+                      final queryLower = query.toLowerCase();
+                      final local = _locationSuggestions.where((String option) {
+                        return option.toLowerCase().contains(queryLower);
+                      }).toList();
+                      
+                      final google = gSuggestions.map((e) => e['name']!).toList();
+                      
+                      return [...local, ...google].toSet().toList();
+                    },
+                    onSelected: (String selection) {
+                      controller.locationController.text = selection;
+                    },
+                    fieldViewBuilder:
+                        (
+                          BuildContext context,
+                          TextEditingController fieldTextEditingController,
+                          FocusNode fieldFocusNode,
+                          VoidCallback onFieldSubmitted,
+                        ) {
+                          if (controller.locationController.text.isNotEmpty &&
+                              fieldTextEditingController.text.isEmpty) {
+                            fieldTextEditingController.text =
+                                controller.locationController.text;
+                          }
+
+                          return TextFormField(
+                            controller: fieldTextEditingController,
+                            focusNode: fieldFocusNode,
+                            onChanged: (val) {
+                              controller.locationController.text = val;
+                              googleApiController.searchGooglePlaces(val);
+                            },
+                            // validator: (val) {
+                            //   if (val == null || val.trim().isEmpty)
+                            //     return 'Please enter the location';
+                            //   return null;
+                            // },
+                            style: const TextStyle(
+                              fontSize: AppTextSizes.size14,
+                              color: AppColors.textPrimary,
+                            ),
+                            decoration: const InputDecoration(
+                              hintText: 'Enter horse\'s location',
+                            ),
+                          );
+                        },
+                    optionsViewBuilder: (context, onSelected, options) {
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: Material(
+                          elevation: 4.0,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            constraints: const BoxConstraints(maxHeight: 250),
+                            width: constraints.maxWidth,
+                            child: ListView.separated(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: options.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 1, color: AppColors.border),
+                              itemBuilder: (BuildContext context, int index) {
+                                final String option = options.elementAt(index);
+                                return InkWell(
+                                  onTap: () => onSelected(option),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.lightGray
+                                                .withOpacity(0.7),
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: const Icon(
+                                            Icons.location_on_rounded,
+                                            size: 16,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            option,
+                                            style: const TextStyle(
+                                              color: AppColors.textPrimary,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  child: CommonText(
-                                    option,
-                                    fontSize: AppTextSizes.size14,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              );
-                            },
+                                );
+                              },
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  );
+                }),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
-                    child: CommonTextField(
-                      label: 'Age',
-                      controller: controller.ageController,
-                      hintText: 'Enter age',
-                      keyboardType: TextInputType.number,
-                      isRequired: false,
-                    ),
+                    child: Obx(() {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CommonTextField(
+                            label: 'Year Foaled',
+                            controller: controller.ageController,
+                            hintText: 'Enter year foaled',
+                            keyboardType: TextInputType.number,
+                            // isRequired: true,
+                            //  validator: (val) {
+                            //    if (val == null || val.trim().isEmpty)
+                            //      return 'Required';
+                            //    final year = int.tryParse(val);
+                            //    if (year == null || val.length != 4)
+                            //      return 'Enter 4-digit year';
+                            //    if (year < 1900 || year > DateTime.now().year)
+                            //      return 'Invalid year';
+                            //    return null;
+                            //  },
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              controller.calculatedAge.value > 0
+                                  ? '${controller.calculatedAge.value} years old'
+                                  : "",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: CommonTextField(
-                      label: 'Height',
-                      controller: controller.heightController,
-                      hintText: 'Enter height',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      isRequired: false,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommonTextField(
+                          label: 'Height',
+                          controller: controller.heightController,
+                          hintText: 'Enter height',
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          isRequired: false,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(""),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1035,10 +1116,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        TextSpan(
-                          text: ' *',
-                          style: TextStyle(color: Color(0xFFD92D20)),
-                        ),
+                        // TextSpan(
+                        //   text: ' *',
+                        //   style: TextStyle(color: Color(0xFFD92D20)),
+                        // ),
                       ],
                     ),
                   ),
@@ -1070,11 +1151,11 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           onChanged: (val) {
                             controller.breedController.text = val;
                           },
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty)
-                                  return 'Please enter the breed';
-                                return null;
-                              },
+                              // validator: (val) {
+                              //   if (val == null || val.trim().isEmpty)
+                              //     return 'Please enter the breed';
+                              //   return null;
+                              // },
                               style: const TextStyle(
                                 fontSize: AppTextSizes.size14,
                                 color: AppColors.textPrimary,
@@ -1186,13 +1267,13 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 label: 'Description',
                 controller: controller.descriptionController,
                 hintText: 'Write here...',
-                isRequired: true,
+              //  isRequired: true,
                 maxLines: 4,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Please enter the description';
-                  return null;
-                },
+                // validator: (val) {
+                //   if (val == null || val.trim().isEmpty)
+                //     return 'Please enter the description';
+                //   return null;
+                // },
               ),
             ],
           ),

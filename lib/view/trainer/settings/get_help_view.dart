@@ -5,13 +5,9 @@ import 'package:catch_ride/view/trainer/settings/support_tickets_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/view/trainer/settings/request_horse_show_view.dart';
-
-import '../../barn_manager/barn_manager_create_profile_view.dart';
-import '../trainer_complete_profile_view.dart';
-import '../trainer_profile_setup_view.dart';
+import '../../../controllers/google_api_controller.dart';
 
 class GetHelpView extends StatefulWidget {
   const GetHelpView({super.key});
@@ -23,6 +19,7 @@ class GetHelpView extends StatefulWidget {
 class _GetHelpViewState extends State<GetHelpView> {
   final SupportController _controller = Get.put(SupportController());
   final ProfileController _profileController = Get.find<ProfileController>();
+  final  googleApiController = Get.put(GoogleApiController());
   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -152,14 +149,9 @@ class _GetHelpViewState extends State<GetHelpView> {
                       child: GestureDetector(
                         onTap: () async {
 
+                          googleApiController.openSMS(phoneNo);
 
 
-                          final Uri url = Uri.parse('sms:$phoneNo');
-                          if (await canLaunchUrl(url)) {
-                            await launchUrl(url);
-                          } else {
-                            Get.snackbar('Error', 'Could not open messaging app');
-                          }
                         },
                         child: Container(
                           width: double.infinity,

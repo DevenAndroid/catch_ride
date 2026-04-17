@@ -14,6 +14,8 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../controllers/google_api_controller.dart';
+
 class AddNewListingView extends StatefulWidget {
   const AddNewListingView({super.key});
 
@@ -23,6 +25,7 @@ class AddNewListingView extends StatefulWidget {
 
 class _AddNewListingViewState extends State<AddNewListingView> {
   final AddNewListingController controller = Get.put(AddNewListingController());
+  final  googleApiController = Get.put(GoogleApiController());
   final ProfileController profileController = Get.find<ProfileController>();
   final _formKey = GlobalKey<FormState>();
   final ScrollController _scrollController = ScrollController();
@@ -67,7 +70,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -209,7 +214,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ],
         ),
       ),
-    );
+    ),
+   );
   }
 
   Widget _buildStepIndicator() {
@@ -723,113 +729,147 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        TextSpan(
-                          text: ' *',
-                          style: TextStyle(color: Color(0xFFD92D20)),
-                        ),
+                        // TextSpan(
+                        //   text: ' *',
+                        //   style: TextStyle(color: Color(0xFFD92D20)),
+                        // ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 6),
                   LayoutBuilder(
-                    builder: (context, constraints) => Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        if (textEditingValue.text.isEmpty) {
-                          return const Iterable<String>.empty();
-                        }
-                        final query = textEditingValue.text.toLowerCase();
-                        return _locationSuggestions.where((String option) {
-                          return option.toLowerCase().contains(query);
-                        });
-                      },
-                      onSelected: (String selection) {
-                        controller.locationController.text = selection;
-                      },
-                      fieldViewBuilder:
-                          (
-                            BuildContext context,
-                            TextEditingController fieldTextEditingController,
-                            FocusNode fieldFocusNode,
-                            VoidCallback onFieldSubmitted,
-                          ) {
-                            if (controller.locationController.text.isNotEmpty &&
-                                fieldTextEditingController.text.isEmpty) {
-                              fieldTextEditingController.text =
-                                  controller.locationController.text;
-                            }
+                    builder: (context, constraints) => Obx(() {
+                      if(googleApiController.refreshInt.value>=0){}
+                      // Accessing googleSuggestions here makes Obx listen to it
+                      final gSuggestions = googleApiController.googleSuggestions;
 
-                            fieldTextEditingController.addListener(() {
-                              controller.locationController.text =
-                                  fieldTextEditingController.text;
-                            });
+                      return Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          final query = textEditingValue.text.trim();
+                          
+                          // If query is empty, show all local suggestions (on tap behavior)
+                          if (query.isEmpty) {
+                            return _locationSuggestions;
+                          }
 
-                            return TextFormField(
-                              controller: fieldTextEditingController,
-                              focusNode: fieldFocusNode,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty)
-                                  return 'Please enter the location';
-                                return null;
-                              },
-                              style: const TextStyle(
-                                fontSize: AppTextSizes.size14,
-                                color: AppColors.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: 'Enter horse\'s location',
-                                // suffixIcon: const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
-                              ),
-                            );
-                          },
-                      optionsViewBuilder: (context, onSelected, options) {
-                        return Align(
-                          alignment: Alignment.topLeft,
-                          child: Material(
-                            elevation: 4.0,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.border),
-                              ),
-                              constraints: const BoxConstraints(maxHeight: 200),
-                              width: constraints.maxWidth,
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                shrinkWrap: true,
-                                itemCount: options.length,
-                                separatorBuilder: (context, index) =>
-                                    const Divider(
-                                      height: 1,
-                                      color: AppColors.border,
-                                    ),
-                                itemBuilder: (BuildContext context, int index) {
-                                  final String option = options.elementAt(
-                                    index,
-                                  );
-                                  return InkWell(
-                                    onTap: () {
-                                      onSelected(option);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Text(
-                                        option,
-                                        style: const TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 14,
+                          final queryLower = query.toLowerCase();
+                          final local = _locationSuggestions.where((String option) {
+                            return option.toLowerCase().contains(queryLower);
+                          }).toList();
+                          
+                          final google = gSuggestions.map((e) => e['name']!).toList();
+                          
+                          // Combine and return unique results
+                          return [...local, ...google].toSet().toList();
+                        },
+                        onSelected: (String selection) {
+                          controller.locationController.text = selection;
+                        },
+                        fieldViewBuilder:
+                            (
+                              BuildContext context,
+                              TextEditingController fieldTextEditingController,
+                              FocusNode fieldFocusNode,
+                              VoidCallback onFieldSubmitted,
+                            ) {
+                              if (controller.locationController.text.isNotEmpty &&
+                                  fieldTextEditingController.text.isEmpty) {
+                                fieldTextEditingController.text =
+                                    controller.locationController.text;
+                              }
+
+                              // Use a custom listener instead of adding one every build
+                              // For simplicity and alignment with search_filter_overlay, we use onChanged
+                              
+                              return TextFormField(
+                                controller: fieldTextEditingController,
+                                focusNode: fieldFocusNode,
+                                onChanged: (val) {
+                                  controller.locationController.text = val;
+                                  googleApiController.searchGooglePlaces(val);
+                                },
+                                // validator: (val) {
+                                //   if (val == null || val.trim().isEmpty)
+                                //     return 'Please enter the location';
+                                //   return null;
+                                // },
+                                style: const TextStyle(
+                                  fontSize: AppTextSizes.size14,
+                                  color: AppColors.textPrimary,
+                                ),
+                                decoration: const InputDecoration(
+                                  hintText: 'Enter horse\'s location',
+                                ),
+                              );
+                            },
+                        optionsViewBuilder: (context, onSelected, options) {
+                          return Align(
+                            alignment: Alignment.topLeft,
+                            child: Material(
+                              elevation: 4.0,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                constraints: const BoxConstraints(maxHeight: 250),
+                                width: constraints.maxWidth,
+                                child: ListView.separated(
+                                  padding: EdgeInsets.zero,
+                                  shrinkWrap: true,
+                                  itemCount: options.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(height: 1, color: AppColors.border),
+                                  itemBuilder: (BuildContext context, int index) {
+                                    final String option = options.elementAt(index);
+                                    return InkWell(
+                                      onTap: () => onSelected(option),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.lightGray
+                                                    .withOpacity(0.7),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: const Icon(
+                                                Icons.location_on_rounded,
+                                                size: 16,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                option,
+                                                style: const TextStyle(
+                                                  color: AppColors.textPrimary,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                  );
-                                },
+                                    );
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      );
+                    }),
                   ),
                 ],
               ),
@@ -846,17 +886,17 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             controller: controller.ageController,
                             hintText: 'Enter year foaled',
                             keyboardType: TextInputType.number,
-                            isRequired: true,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty)
-                                return 'Required';
-                              final year = int.tryParse(val);
-                              if (year == null || val.length != 4)
-                                return 'Enter 4-digit year';
-                              if (year < 1900 || year > DateTime.now().year)
-                                return 'Invalid year';
-                              return null;
-                            },
+                           // isRequired: true,
+                           //  validator: (val) {
+                           //    if (val == null || val.trim().isEmpty)
+                           //      return 'Required';
+                           //    final year = int.tryParse(val);
+                           //    if (year == null || val.length != 4)
+                           //      return 'Enter 4-digit year';
+                           //    if (year < 1900 || year > DateTime.now().year)
+                           //      return 'Invalid year';
+                           //    return null;
+                           //  },
                           ),
                           Padding(
                             padding: const EdgeInsets.only(top: 2),
@@ -911,10 +951,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        TextSpan(
-                          text: ' *',
-                          style: TextStyle(color: Color(0xFFD92D20)),
-                        ),
+                        // TextSpan(
+                        //   text: ' *',
+                        //   style: TextStyle(color: Color(0xFFD92D20)),
+                        // ),
                       ],
                     ),
                   ),
@@ -953,11 +993,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             return TextFormField(
                               controller: fieldTextEditingController,
                               focusNode: fieldFocusNode,
-                              validator: (val) {
-                                if (val == null || val.trim().isEmpty)
-                                  return 'Please enter the breed';
-                                return null;
-                              },
+                              // validator: (val) {
+                              //   if (val == null || val.trim().isEmpty)
+                              //     return 'Please enter the breed';
+                              //   return null;
+                              // },
                               style: const TextStyle(
                                 fontSize: AppTextSizes.size14,
                                 color: AppColors.textPrimary,
@@ -1029,13 +1069,13 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 label: 'Description',
                 controller: controller.descriptionController,
                 hintText: 'Write here...',
-                isRequired: true,
+              //  isRequired: true,
                 maxLines: 4,
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty)
-                    return 'Please enter the description';
-                  return null;
-                },
+                // validator: (val) {
+                //   if (val == null || val.trim().isEmpty)
+                //     return 'Please enter the description';
+                //   return null;
+                // },
               ),
             ],
           ),
@@ -1650,6 +1690,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
+                            SizedBox(height: 2,),
                             if (controller.availabilityEntries.length > 1)
                               GestureDetector(
                                 onTap: () {

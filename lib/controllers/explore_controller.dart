@@ -7,10 +7,12 @@ import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'google_api_controller.dart';
 
 class ExploreController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final ProfileController _profileController = Get.find<ProfileController>();
+  final  googleApiController = Get.put(GoogleApiController());
   final Logger _logger = Logger();
 
   final RxList<HorseModel> horses = <HorseModel>[].obs;
@@ -24,7 +26,7 @@ class ExploreController extends GetxController {
   final Rxn<DateTime> endDate = Rxn<DateTime>();
   final RxList<String> recentSearches = <String>[].obs;
   final RxBool isGridView = true.obs;
-  
+
   // Pagination
   final RxInt currentPage = 1.obs;
   final RxBool hasMore = true.obs;
@@ -32,12 +34,18 @@ class ExploreController extends GetxController {
   final int limit = 15;
   final RxnInt ageMin = RxnInt();
   final RxnInt ageMax = RxnInt();
+  final RxnDouble heightMin = RxnDouble();
+  final RxnDouble heightMax = RxnDouble();
+  final RxString listingType = ''.obs;
   final RxString breedFilter = ''.obs;
   final RxString genderFilter = ''.obs;
   final RxnDouble priceMin = RxnDouble();
   final RxnDouble priceMax = RxnDouble();
   final RxList<String> selectedTags = <String>[].obs;
-  
+
+  final RxList<dynamic> tagTypes = <dynamic>[].obs;
+  final RxBool isTagsLoading = false.obs;
+
   bool get isSearchActive =>
       searchQuery.value.isNotEmpty ||
       location.value.isNotEmpty ||
@@ -54,6 +62,7 @@ class ExploreController extends GetxController {
       <Map<String, String>>[].obs;
   final RxBool isSuggestionsLoading = false.obs;
 
+
   void clearAllFilters() {
     searchQuery.value = '';
     location.value = '';
@@ -63,6 +72,9 @@ class ExploreController extends GetxController {
     endDate.value = null;
     ageMin.value = null;
     ageMax.value = null;
+    heightMin.value = null;
+    heightMax.value = null;
+    listingType.value = '';
     breedFilter.value = '';
     genderFilter.value = '';
     priceMin.value = null;
@@ -75,7 +87,25 @@ class ExploreController extends GetxController {
     super.onInit();
     _loadRecentSearches();
     fetchDefaultSearchMetadata();
+    fetchTags();
     // fetchHorses(); // Removed to prevent fetching without profile exclusion filters
+  }
+
+  Future<void> fetchTags() async {
+    try {
+      isTagsLoading.value = true;
+      final response = await _apiService.getRequest(
+        '${AppUrls.tagTypesWithValues}?category=Horse',
+      );
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        tagTypes.assignAll(data);
+      }
+    } catch (e) {
+      _logger.e('Error fetching tags: $e');
+    } finally {
+      isTagsLoading.value = false;
+    }
   }
 
   Future<void> _loadRecentSearches() async {
@@ -102,9 +132,9 @@ class ExploreController extends GetxController {
     await prefs.setStringList('recent_searches', recentSearches);
   }
 
-  Future<void> fetchHorses({bool isLoadMore = false}) async {
+  Future<void> fetchHorses({bool isLoadMore = false, bool showLoading = true}) async {
     if (selectedDiscipline.value == 'Services') {
-      await fetchVendors(isLoadMore: isLoadMore);
+      await fetchVendors(isLoadMore: isLoadMore, showLoading: showLoading);
       return;
     }
 
@@ -114,7 +144,7 @@ class ExploreController extends GetxController {
       currentPage.value++;
     } else {
       // Only show full-screen loader if we have no data yet
-      if (horses.isEmpty && vendors.isEmpty) {
+      if (showLoading && horses.isEmpty && vendors.isEmpty) {
         isLoading.value = true;
       }
       currentPage.value = 1;
@@ -163,7 +193,6 @@ class ExploreController extends GetxController {
 
       if (location.value.isNotEmpty) {
         queryParams['location'] = location.value;
-
       }
 
       if (showVenue.value.isNotEmpty) {
@@ -183,12 +212,22 @@ class ExploreController extends GetxController {
       }
 
       // Add advanced filters
-      if (ageMin.value != null) queryParams['ageMin'] = ageMin.value.toString();
-      if (ageMax.value != null) queryParams['ageMax'] = ageMax.value.toString();
-      if (breedFilter.value.isNotEmpty) queryParams['breed'] = breedFilter.value;
-      if (genderFilter.value.isNotEmpty) queryParams['gender'] = genderFilter.value;
-      if (priceMin.value != null) queryParams['priceMin'] = priceMin.value.toString();
-      if (priceMax.value != null) queryParams['priceMax'] = priceMax.value.toString();
+      if (ageMin.value != null) queryParams['minAge'] = ageMin.value.toString();
+      if (ageMax.value != null) queryParams['maxAge'] = ageMax.value.toString();
+      if (heightMin.value != null)
+        queryParams['minHeight'] = heightMin.value.toString();
+      if (heightMax.value != null)
+        queryParams['maxHeight'] = heightMax.value.toString();
+      if (listingType.value.isNotEmpty)
+        queryParams['listingType'] = listingType.value;
+      if (breedFilter.value.isNotEmpty)
+        queryParams['breed'] = breedFilter.value;
+      if (genderFilter.value.isNotEmpty)
+        queryParams['gender'] = genderFilter.value;
+      if (priceMin.value != null)
+        queryParams['minPrice'] = priceMin.value.toString();
+      if (priceMax.value != null)
+        queryParams['maxPrice'] = priceMax.value.toString();
       if (selectedTags.isNotEmpty) queryParams['tags'] = selectedTags.join(',');
 
       final response = await _apiService.getRequest(
@@ -210,12 +249,14 @@ class ExploreController extends GetxController {
 
         final pagination = response.body['pagination'];
         if (pagination != null) {
-           hasMore.value = currentPage.value < (pagination['totalPages'] ?? 0);
+          hasMore.value = currentPage.value < (pagination['totalPages'] ?? 0);
         } else {
-           hasMore.value = newHorses.length == limit;
+          hasMore.value = newHorses.length == limit;
         }
 
-        _logger.i('Fetched ${newHorses.length} horses (Page ${currentPage.value})');
+        _logger.i(
+          'Fetched ${newHorses.length} horses (Page ${currentPage.value})',
+        );
       } else {
         _logger.e('Failed to fetch horses: ${response.statusText}');
       }
@@ -227,13 +268,15 @@ class ExploreController extends GetxController {
     }
   }
 
-  Future<void> fetchVendors({bool isLoadMore = false}) async {
+  Future<void> fetchVendors({bool isLoadMore = false, bool showLoading = true}) async {
     if (isLoadMore) {
       if (!hasMore.value || isLoadMoreLoading.value) return;
       isLoadMoreLoading.value = true;
       currentPage.value++;
     } else {
-      isLoading.value = true;
+      if (showLoading) {
+        isLoading.value = true;
+      }
       currentPage.value = 1;
       hasMore.value = true;
       // Clear horses when switching to/refreshing vendors
@@ -271,12 +314,14 @@ class ExploreController extends GetxController {
 
         final pagination = response.body['pagination'];
         if (pagination != null) {
-           hasMore.value = currentPage.value < (pagination['totalPages'] ?? 0);
+          hasMore.value = currentPage.value < (pagination['totalPages'] ?? 0);
         } else {
-           hasMore.value = newVendors.length == limit;
+          hasMore.value = newVendors.length == limit;
         }
 
-        _logger.i('Fetched ${newVendors.length} vendors (Page ${currentPage.value})');
+        _logger.i(
+          'Fetched ${newVendors.length} vendors (Page ${currentPage.value})',
+        );
       } else {
         _logger.e('Failed to fetch vendors: ${response.statusText}');
       }
@@ -342,8 +387,11 @@ class ExploreController extends GetxController {
   Future<void> searchLocations(String query) async {
     if (query.isEmpty) {
       locationsSuggestions.clear();
+      googleApiController.googleSuggestions.clear();
       return;
     }
+
+    googleApiController.searchGooglePlaces(query);
 
     //isSuggestionsLoading.value = true;
     try {
@@ -381,7 +429,7 @@ class ExploreController extends GetxController {
       return;
     }
 
-   // isSuggestionsLoading.value = true;
+    // isSuggestionsLoading.value = true;
     try {
       final response = await _apiService.getRequest(
         AppUrls.horseShows,
@@ -398,10 +446,7 @@ class ExploreController extends GetxController {
           final state = item['state'] ?? '';
           if (venue.isNotEmpty) {
             if (!suggestions.any((s) => s['name'] == venue)) {
-              suggestions.add({
-                'name': venue,
-                'subtitle': "$city, $state",
-              });
+              suggestions.add({'name': venue, 'subtitle': "$city, $state"});
             }
           }
         }
@@ -413,4 +458,6 @@ class ExploreController extends GetxController {
       isSuggestionsLoading.value = false;
     }
   }
+
+
 }

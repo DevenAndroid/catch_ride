@@ -57,10 +57,7 @@ class CommonImageView extends StatelessWidget {
       
       // If we are in live mode, any local host in the data should be replaced by the live domain
       if (AppUrls.isLive) {
-        return url
-            .replaceFirst('localhost', 'api.catchrideapp.com')
-            .replaceFirst('127.0.0.1', 'api.catchrideapp.com')
-            .replaceFirst('10.0.2.2', 'api.catchrideapp.com');
+        return url.replaceFirst('localhost', 'api.catchrideapp.com').replaceFirst('127.0.0.1', 'api.catchrideapp.com').replaceFirst('10.0.2.2', 'api.catchrideapp.com');
       }
       
       // Otherwise map to current host constant
@@ -199,7 +196,7 @@ class CommonImageView extends StatelessWidget {
         isUserImage ? AppConstants.userPlaceholder : AppConstants.horsePlaceholder,
         height: height,
         width: width,
-        fit: fit,
+        fit: BoxFit.contain,
       ),
     );
   }

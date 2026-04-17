@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
 import '../constant/app_colors.dart';
+import '../main.dart';
 import '../models/horse_model.dart';
 import '../widgets/common_text.dart';
 import 'explore_controller.dart';
@@ -86,6 +87,13 @@ class AddNewListingController extends GetxController {
   var editingHorseId = RxnString();
   bool get isEditMode => editingHorseId.value != null;
   var selectedColor = ''.obs;
+  
+
+  final RxBool isSuggestionsLoading = false.obs;
+
+
+
+
   // Step 1
   final videoLinkController = TextEditingController();
   var uploadedImages = <String>[].obs;

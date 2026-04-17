@@ -28,8 +28,9 @@ class HorseController extends GetxController {
   }) async {
     if (refresh) {
       currentPage.value = 1;
-      horses.clear();
-      isLoading.value = true;
+      if (horses.isEmpty) {
+        isLoading.value = true;
+      }
     } else {
       if (currentPage.value >= totalPages.value) return;
       isMoreLoading.value = true;

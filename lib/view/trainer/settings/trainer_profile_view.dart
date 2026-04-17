@@ -31,6 +31,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
       final bool isTrainer = _controller.user.value?.role == 'trainer';
       final bool isSameId =
           widget.trainerId == _controller.user.value?.trainerProfileId;
+      print("www  ${widget.trainerId}");
+      print("www  ${_controller.user.value?.trainerProfileId}");
 
       if (widget.trainerId != null && (!isTrainer || !isSameId)) {
         _controller.fetchPublicTrainerProfile(widget.trainerId!);

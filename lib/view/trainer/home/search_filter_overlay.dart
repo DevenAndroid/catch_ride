@@ -7,6 +7,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:intl/intl.dart';
 
 import '../../../controllers/explore_controller.dart';
+import '../../../controllers/google_api_controller.dart';
 
 class SearchFilterOverlay extends StatefulWidget {
   const SearchFilterOverlay({super.key});
@@ -18,6 +19,7 @@ class SearchFilterOverlay extends StatefulWidget {
 class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   final ExploreController controller = Get.put(ExploreController());
   final TextEditingController _searchController = TextEditingController();
+  final  googleApiController = Get.put(GoogleApiController());
 
   String _selectedSection = 'location'; // 'location' or 'date'
   late String _selectedCategory;
@@ -27,6 +29,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   late DateTime _focusedDate;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
+  bool _showAllLocations = false;
+  bool _showAllVenues = false;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -38,7 +43,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     _rangeEnd = controller.endDate.value;
   }
 
-  void _onSearchPressed() {
+  Future<void> _onSearchPressed() async {
+    setState(() {
+      _isSearching = true;
+    });
     controller.selectedDiscipline.value = _selectedCategory;
     controller.searchQuery.value = _searchController.text;
     controller.startDate.value = _rangeStart;
@@ -49,8 +57,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       controller.addToHistory(_searchController.text.trim());
     }
 
-    controller.fetchHorses();
-    Get.back();
+    await controller.fetchHorses(showLoading: false);
+    if (mounted) {
+      Get.back();
+    }
   }
 
   void _onClearAll() {
@@ -62,7 +72,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       _rangeStart = null;
       _rangeEnd = null;
     });
-    controller.fetchHorses();
+    controller.fetchHorses(showLoading: false);
     Get.back();
   }
 
@@ -70,7 +80,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
 
     {'name': 'Hunter', 'icon': 'assets/icons/hunter.svg', 'isSvg': true},
-    {'name': 'Jumper', 'icon': Icons.flag_rounded, 'isSvg': false},
+    {'name': 'Jumper', 'icon': "assets/icons/jumper.svg", 'isSvg': true},
     {
       'name': 'Equitation',
       'icon': 'assets/icons/equitation.svg',
@@ -111,7 +121,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                           _buildLocationSection(),
                         if (_selectedSection == 'date') _buildDateSection(),
                       ],
-                    ),)),
+                    ),
+                  ),
+                ),
                 _buildFooter(),
                 const SizedBox(height: 10),
               ],
@@ -250,7 +262,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   } else {
                     controller.searchLocations(val);
                   }
-                  setState(() {}); // Rebuild to switch between default and suggestions
+                  setState(
+                    () {},
+                  ); // Rebuild to switch between default and suggestions
                 },
                 decoration: InputDecoration(
                   hintText: 'Search horses, services, and circuits',
@@ -307,9 +321,14 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 final isSearching = _searchController.text.isNotEmpty;
 
                 if (isShowVenue) {
-                  final list = isSearching
-                      ? controller.venuesSuggestions
-                      : controller.defaultVenues;
+                  var list = (isSearching
+                          ? controller.venuesSuggestions
+                          : controller.defaultVenues)
+                      .toList();
+
+                  final bool hasMore = list.length > 3;
+                  final displayList =
+                      _showAllVenues ? list : list.take(3).toList();
 
                   if (list.isEmpty) {
                     return Padding(
@@ -322,35 +341,91 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     );
                   }
                   return Column(
-                    children: list
-                        .map(
-                          (v) => _buildLocationItem(
-                            v['name'] ?? '',
-                            isVenue: true,
-                            subtitle: v['subtitle'],
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...displayList.map(
+                        (v) => _buildLocationItem(
+                          v['name'] ?? '',
+                          isVenue: true,
+                          subtitle: v['subtitle'],
+                        ),
+                      ),
+                      if (hasMore && !_showAllVenues)
+                        GestureDetector(
+                          onTap: () => setState(() => _showAllVenues = true),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                CommonText(
+                                  'See All',
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.keyboard_arrow_down,
+                                    size: 16, color: AppColors.primary),
+                              ],
+                            ),
                           ),
-                        )
-                        .toList(),
+                        ),
+                    ],
                   );
                 } else {
-                  final list = isSearching
-                      ? controller.locationsSuggestions
-                      : controller.defaultLocations;
+                  var list = (isSearching
+                          ? controller.locationsSuggestions
+                          : controller.defaultLocations)
+                      .toList();
 
-                  if (list.isEmpty) {
+                  final bool hasMore = list.length > 3;
+                  final displayList =
+                      _showAllLocations ? list : list.take(3).toList();
+
+                  if (list.isEmpty && googleApiController.googleSuggestions.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: CommonText(
-                        isSearching ? 'No locations found' : 'Loading locations...',
+                        isSearching
+                            ? 'No locations found'
+                            : 'Loading locations...',
                         fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
                     );
                   }
                   return Column(
-                    children: list
-                        .map((l) => _buildLocationItem(l['name'] ?? ''))
-                        .toList(),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...displayList.map(
+                          (l) => _buildLocationItem(l['name'] ?? '')),
+                      if (hasMore && !_showAllLocations)
+                        GestureDetector(
+                          onTap: () => setState(() => _showAllLocations = true),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                CommonText(
+                                  'See All',
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.keyboard_arrow_down,
+                                    size: 16, color: AppColors.primary),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      // Google Suggestions
+                      if (isSearching && googleApiController.googleSuggestions.isNotEmpty)
+                        ...googleApiController.googleSuggestions.map(
+                          (g) => _buildLocationItem(g['name'] ?? ''),
+                        ),
+                    ],
                   );
                 }
               }),
@@ -600,7 +675,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             title,
             fontSize: 14,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            color: isActive ? AppColors.textPrimary : AppColors.textSecondary.withOpacity(0.6),
+            color: isActive
+                ? AppColors.textPrimary
+                : AppColors.textSecondary.withOpacity(0.6),
           ),
         ),
       ),
@@ -919,19 +996,31 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   color: AppColors.primary,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.search_rounded, color: Colors.white, size: 22),
-                    const SizedBox(width: 8),
-                    const CommonText(
-                      'Search',
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ],
-                ),
+                child: _isSearching
+                    ? const Center(
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.search_rounded,
+                              color: Colors.white, size: 22),
+                          const SizedBox(width: 8),
+                          const CommonText(
+                            'Search',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ],
+                      ),
               ),
             ),
           ),
@@ -940,4 +1029,3 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     );
   }
 }
-

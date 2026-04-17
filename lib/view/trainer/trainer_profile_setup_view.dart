@@ -16,6 +16,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/auth_controller.dart';
+import '../../controllers/google_api_controller.dart';
 import '../../utils/validators.dart';
 
 class TrainerProfileSetupView extends StatefulWidget {
@@ -29,6 +30,7 @@ class TrainerProfileSetupView extends StatefulWidget {
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final AuthController _authController = Get.find<AuthController>();
   final ProfileController _profileController = Get.put(ProfileController());
+  final  googleApiController = Get.put(GoogleApiController());
   final _formKey = GlobalKey<FormState>();
 
   // References controllers
@@ -51,6 +53,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+
 
 
   bool _confirm18 = false;
@@ -246,12 +249,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           padding: const EdgeInsets.only(bottom: 85), // Hover clearly in the white area per image
           child: FloatingActionButton.extended(
             onPressed: () async {
-              final Uri url = Uri.parse('sms:$phoneNo');
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url);
-              } else {
-                Get.snackbar('Error', 'Could not open messaging app');
-              }
+              googleApiController.openSMS(phoneNo);
             },
             elevation: 4,
             backgroundColor: AppColors.primary,
