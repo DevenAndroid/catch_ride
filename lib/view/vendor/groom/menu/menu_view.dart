@@ -79,6 +79,15 @@ class MenuView extends StatelessWidget {
               _buildMenuItem(Icons.history, 'Past Clients', onTap: () => Get.to(() => const PastClientsView())),
               _buildMenuItem(Icons.people_outline, 'Upcoming Clients', onTap: () => Get.to(() => const UpcomingClientsView())),
               _buildMenuItem(Icons.calendar_month_outlined, 'Calendar & Availability', onTap: () => Get.to(() => const AvailabilityView())),
+              if (_hasRole(['farrier']))
+                _buildMenuItem(iconPath: "assets/icons/operations.svg", Icons.fact_check_outlined, 'Operations & Compliance', onTap: () {
+                  // Navigate to Operations & Compliance view
+                }),
+
+              if (_hasRole(['bodywork']))
+                _buildMenuItem(iconPath: "assets/icons/insurance.svg", Icons.fact_check_outlined, 'Insurance', onTap: () {
+                  // Navigate to Operations & Compliance view
+                }),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('Referrals'),
@@ -152,14 +161,14 @@ class MenuView extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {VoidCallback? onTap}) {
+  Widget _buildMenuItem(IconData icon, String title, {VoidCallback? onTap,String? iconPath }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            Icon(icon, color: AppColors.textSecondary, size: 22),
+            iconPath != null ? SvgPicture.asset(iconPath) :Icon(icon, color: AppColors.textSecondary, size: 22),
             const SizedBox(width: 16),
             Expanded(child: CommonText(title, fontSize: AppTextSizes.size16, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
             const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
@@ -190,6 +199,22 @@ class MenuView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  bool _hasRole(List<String> targetRoles) {
+    final user = Get.find<AuthController>().currentUser.value;
+    if (user == null) return false;
+
+    final targetLower = targetRoles.map((e) => e.toLowerCase()).toList();
+
+    // 1. Check primary role
+    if (targetLower.contains(user.role.toLowerCase())) return true;
+
+    // 2. Check roles list
+    if (user.roles.any((r) => targetLower.contains(r.toLowerCase()))) return true;
+
+    // 3. Check assigned services (vendorServices)
+    return user.vendorServices.any((s) => targetLower.contains(s.toLowerCase()));
   }
 
   void _showLogoutDialog(BuildContext context) {

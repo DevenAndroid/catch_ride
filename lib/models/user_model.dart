@@ -121,8 +121,9 @@ class UserModel {
         : null;
 
     List<String> parsedServices = [];
-    if (vendorData != null && vendorData['assignedServices'] is List) {
-       for (var s in (vendorData['assignedServices'] as List)) {
+    final rawAssignedServices = json['assignedServices'] ?? (vendorData != null ? vendorData['assignedServices'] : null);
+    if (rawAssignedServices is List) {
+       for (var s in rawAssignedServices) {
          if (s is Map && s['serviceType'] != null) {
            parsedServices.add(s['serviceType'] as String);
          } else if (s is String) {
