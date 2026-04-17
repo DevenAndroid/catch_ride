@@ -329,7 +329,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                                     ?.id ??
                                 '';
 
-                        final bool isMe = msg.senderId == currentUserId ||
+                        final bool isMe = (msg.senderId == currentUserId && currentUserId.isNotEmpty) ||
                             msg.senderName == 'You';
                         final bool isSystem = msg.senderId == 'system' ||
                             msg.status == 'request-declined' ||
@@ -362,6 +362,9 @@ class _SingleChatViewState extends State<SingleChatView> {
                           isMe: isMe,
                           time: '',
                           isRead: msg.read,
+                          senderName: msg.senderName,
+                          senderImage: msg.senderImage,
+                          senderRole: msg.senderRole,
                         );
                       },
                     );

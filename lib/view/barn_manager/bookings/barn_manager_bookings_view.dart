@@ -451,31 +451,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                       ),
                     ),
 
-                  // Accept/Decline Action Buttons for Pending Received Bookings
-                  if (booking.status.toLowerCase() == 'pending' && _tabController.index == 0) ... [
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: CommonButton(
-                            text: 'Decline',
-                            backgroundColor: Colors.white,
-                            textColor: AppColors.accentRed,
-                            onPressed: () => bookingController.updateBookingStatus(booking.id ?? '', 'cancelled'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CommonButton(
-                            text: 'Accept',
-                            backgroundColor: AppColors.primary,
-                            textColor: Colors.white,
-                            onPressed: () => bookingController.updateBookingStatus(booking.id ?? '', 'confirmed'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+
                 ],
               ),
             ),
