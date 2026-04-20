@@ -177,4 +177,5 @@ class VendorDetailsController extends GetxController {
     }
     return 'Flexible (24+ hrs)';
   }
+
 }

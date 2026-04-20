@@ -11,6 +11,7 @@ import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/widgets/common_button.dart';
+import 'package:catch_ride/view/vendor/vendor_details_view.dart';
 
 
 
@@ -30,15 +31,17 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   final ProfileController profileController = Get.find<ProfileController>();
 
   final List<String> _receivedFilters = [
-    'Accepted',
-    'Rejected',
+    'Upcoming',
+    'Past',
     'Pending',
+    'Rejected',
     'Cancelled',
   ];
   final List<String> _sentFilters = [
-    'Accepted',
-    'Rejected',
+    'Upcoming',
+    'Past',
     'Pending',
+    'Rejected',
     'Cancelled',
   ];
 
@@ -67,24 +70,41 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     if (_selectedFilterIndex >= filters.length) {
       _selectedFilterIndex = 0;
     }
-    final statusStr = filters[_selectedFilterIndex];
+    final filterStr = filters[_selectedFilterIndex];
 
-    String apiStatus = statusStr.toLowerCase();
-    if (statusStr == 'Accepted') apiStatus = 'confirmed';
-    if (statusStr == 'Canceled') apiStatus = 'cancelled';
-    // 'Completed', 'Rejected', 'Pending' map directly to lowercase
+    String apiStatus = '';
+    String apiTime = 'upcoming';
+
+    if (filterStr == 'Upcoming') {
+      apiStatus = 'confirmed';
+      apiTime = 'upcoming';
+    } else if (filterStr == 'Past') {
+      apiStatus = ''; // Show all past statuses (confirmed, completed, etc)
+      apiTime = 'past';
+    } else {
+      apiStatus = filterStr.toLowerCase();
+      if (filterStr == 'Accepted') apiStatus = 'confirmed';
+      if (filterStr == 'Canceled') apiStatus = 'cancelled';
+      apiTime = (apiStatus == 'pending') ? 'upcoming' : 'upcoming'; 
+      
+      // If it's a terminal state, we might want to show it in past or upcoming?
+      // Usually Rejected/Cancelled are considered "Past/History"
+      if (['rejected', 'cancelled'].contains(apiStatus)) {
+        apiTime = 'past';
+      }
+    }
 
     if (_tabController.index == 0) {
       bookingController.fetchBookings(
         type: 'received',
         status: apiStatus,
-        time: 'upcoming',
+        time: apiTime,
       );
     } else {
       bookingController.fetchBookings(
         type: 'sent',
         status: apiStatus,
-        time: 'upcoming',
+        time: apiTime,
       );
     }
   }
@@ -283,11 +303,23 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     required BookingModel booking,
     required String status,
   }) {
+    final isVendorBooking = _isServiceProviderBooking(booking);
+
     return GestureDetector(
-      onTap: () => Get.to(
-        () =>
-            TrainerHorseDetailView(horseId: booking.horseId, fromBooking: true),
-      ),
+      onTap: () {
+        if (isVendorBooking) {
+          final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
+          Get.to(
+            () => const VendorDetailsView(),
+            arguments: {'id': targetId},
+          );
+        } else {
+          Get.to(
+            () => TrainerHorseDetailView(
+                horseId: booking.horseId, fromBooking: true),
+          );
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
@@ -316,9 +348,13 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   fit: StackFit.expand,
                   children: [
                     CommonImageView(
-                      url: booking.horseImage,
+                      url: isVendorBooking
+                          ? (profileController.user.value?.role == 'service_provider' 
+                              ? (booking.clientImage ?? booking.horseImage)
+                              : (booking.vendorImage ?? booking.horseImage))
+                          : booking.horseImage,
+                      isUserImage: isVendorBooking,
                     ),
-
                     Positioned(
                       top: 8,
                       left: 8,
@@ -330,7 +366,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                         decoration: BoxDecoration(
                           color: _getStatusBgColor(booking.status),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: _getStatusTextColor(booking.status).withValues(alpha: 0.2)),
+                          border: Border.all(
+                              color: _getStatusTextColor(booking.status)
+                                  .withValues(alpha: 0.2)),
                         ),
                         child: CommonText(
                           status,
@@ -355,7 +393,12 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                     children: [
                       Expanded(
                         child: CommonText(
-                          booking.horseName ?? 'Horse Name',
+                          isVendorBooking
+                              ? (booking.vendorName ??
+                                  booking.acceptedByName ??
+                                  booking.trainerName ??
+                                  'Service Provider')
+                              : (booking.horseName ?? 'Horse Name'),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -383,7 +426,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    'Trainer : ${booking.trainerName ?? ''}',
+                    isVendorBooking
+                        ? (booking.type.capitalizeFirst ?? 'Service')
+                        : 'Trainer : ${booking.trainerName ?? ''}',
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
@@ -430,8 +475,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       ),
                     ],
                   ),
-                  // Accepted/Rejected By Info below the date
-                  if (booking.acceptedByName != null &&
+                  // Accepted/Rejected By Info below the date (Hidden for Vendor Bookings)
+                  if (!isVendorBooking &&
+                      booking.acceptedByName != null &&
                       (booking.status == 'confirmed' ||
                           booking.status == 'cancelled' ||
                           booking.status == 'Accepted' ||
@@ -475,14 +521,26 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       ),
                     ),
                   ],
-                  ],
-                ),
+                ],
               ),
-
+            ),
           ],
         ),
       ),
     );
+  }
+
+  bool _isServiceProviderBooking(BookingModel booking) {
+    final vendorTypes = [
+      'grooming',
+      'braiding',
+      'clipping',
+      'farrier',
+      'bodywork',
+      'shipping',
+      'transportation'
+    ];
+    return vendorTypes.contains(booking.type.toLowerCase());
   }
   
   Color _getStatusBgColor(String status) {

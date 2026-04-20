@@ -52,7 +52,8 @@ class VendorAvailabilityController extends GetxController {
       try {
         final response = await _apiService.getRequest('/vendors/me');
         if (response.statusCode == 200) {
-          isAcceptingRequests.value = response.body['data']['isAcceptingRequests'] ?? true;
+          isAcceptingRequests.value = response.body['data']['compliance']?['acceptingRequests'] ?? 
+                                    response.body['data']['isAcceptingRequests'] ?? true;
         }
       } catch (e) {
         debugPrint('Error fetching accepting requests status: $e');
@@ -65,7 +66,9 @@ class VendorAvailabilityController extends GetxController {
     try {
        // Sync with backend - updating vendor profile
        await _apiService.putRequest('/vendors/profile', {
-         'isAcceptingRequests': value,
+         'compliance': {
+           'acceptingRequests': value,
+         },
          'isProfileCompleted': true,
          'isProfileSetup': true,
        });

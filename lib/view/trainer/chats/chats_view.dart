@@ -120,7 +120,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
             }
             if (!belongsToTab) return false;
 
-            return c.status != 'request-pending' || c.senderId == currentUserId;
+            return c.status != 'request-pending';
           }).toList();
 
           if (conversations.isEmpty) {

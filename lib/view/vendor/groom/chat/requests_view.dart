@@ -12,8 +12,8 @@ class RequestsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
-    final BookingController bookingController = Get.find<BookingController>();
+    final ChatController controller = Get.put(ChatController());
+    final BookingController bookingController = Get.put(BookingController());
 
     return Scaffold(
       backgroundColor: AppColors.background,

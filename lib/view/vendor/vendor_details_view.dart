@@ -144,15 +144,6 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
               ),
             ),
             Positioned(
-              top: 50,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.5), shape: BoxShape.circle),
-                child: const Icon(Icons.more_vert, color: Colors.black, size: 20),
-              ),
-            ),
-            Positioned(
               bottom: -45,
               left: 20,
               child: Container(
@@ -581,12 +572,31 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
             Expanded(
               flex: controller.canMessage.value ? 2 : 1,
               child: ElevatedButton(
-                onPressed: () => _showServiceSelectionBottomSheet(),
+                onPressed: () {
+                  if (!controller.isAcceptingRequests) {
+                    Get.snackbar(
+                      'Requests Closed',
+                      'This service provider not accepting requests please try again later',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.redAccent,
+                      colorText: Colors.white,
+                      margin: const EdgeInsets.all(20),
+                    );
+                    return;
+                  }
+                  _showServiceSelectionBottomSheet();
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const CommonText('Send Booking Request', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold, color: Colors.white),
+                child: const CommonText('Send Booking Request',
+                    fontSize: AppTextSizes.size16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
             ),
             if (controller.canMessage.value) ...[

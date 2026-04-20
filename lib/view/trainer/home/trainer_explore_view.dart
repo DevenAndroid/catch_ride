@@ -527,11 +527,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   ],
                   Row(
                     children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 16,
-                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                      ),
+                     SvgPicture.asset("assets/icons/badge.svg",
+                          width: 16,
+                          height: 16,
+                        ),
                       const SizedBox(width: 8),
                       CommonText(
                         vendor.serviceType.isEmpty ||
@@ -554,14 +553,18 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           color: AppColors.textSecondary.withValues(alpha: 0.7),
                         ),
                         const SizedBox(width: 8),
-                        CommonText(
-                          vendor.serviceAvailability.first.startDate ==
-                                  vendor.serviceAvailability.first.endDate
-                              ? (vendor.serviceAvailability.first.startDate ?? '')
-                              : '${vendor.serviceAvailability.first.startDate ?? ''} - ${vendor.serviceAvailability.first.endDate ?? ''}',
-                          fontSize: 14,
-                          color: AppColors.textSecondary.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
+                        Flexible(
+                          child: CommonText(
+                            vendor.serviceAvailability.first.startDate ==
+                                    vendor.serviceAvailability.first.endDate
+                                ? (vendor.serviceAvailability.first.startDate ?? '')
+                                : '${vendor.serviceAvailability.first.startDate ?? ''} - ${vendor.serviceAvailability.first.endDate ?? ''}',
+                            fontSize: 14,
+                            color: AppColors.textSecondary.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w500,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),

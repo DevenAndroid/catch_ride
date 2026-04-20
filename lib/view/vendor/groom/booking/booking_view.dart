@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,6 +17,7 @@ class BookingView extends StatefulWidget {
 
 class _BookingViewState extends State<BookingView> {
   final controller = Get.put(BookingController());
+  final chatController = Get.put(ChatController());
   int _selectedTab = 0; // 0 for Upcoming, 1 for Past Clients
 
   @override
@@ -140,7 +142,7 @@ class _BookingViewState extends State<BookingView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CommonImageView(
-                url: booking.trainerImage ?? booking.horseImage ?? '',
+                url: booking.clientImage ?? booking.horseImage ?? '',
                 height: 68,
                 width: 68,
                 shape: BoxShape.circle,
@@ -212,7 +214,20 @@ class _BookingViewState extends State<BookingView> {
               width: double.infinity,
               child: OutlinedButton(
                 onPressed: () {
-                  // Navigate to chat or handle message
+                  if (booking.id != null && booking.clientId != null) {
+                    chatController.openBookingChat(
+                      bookingId: booking.id!,
+                      otherId: booking.clientId!,
+                      otherName: booking.clientName ?? 'Client',
+                      otherImage: booking.clientImage ?? '',
+                    );
+                  } else {
+                    Get.snackbar(
+                      'Chat Unavailable',
+                      'Conversation details are not properly loaded for this booking.',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  }
                 },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.secondary),

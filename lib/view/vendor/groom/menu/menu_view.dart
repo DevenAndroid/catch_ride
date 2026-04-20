@@ -11,6 +11,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../constant/app_colors.dart';
 import '../../../../constant/app_text_sizes.dart';
@@ -29,6 +30,8 @@ import '../../../trainer/settings/privacy_policy_view.dart';
 import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
+import '../../farrier/profile/add_operations_and_compliance_view.dart';
+import '../../shipping/trip/shipping_trip_view.dart';
 import '../availability/availability_view.dart';
 import '../profile/groom_view_profile.dart';
 
@@ -66,23 +69,40 @@ class MenuView extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('Account Settings'),
             _buildMenuCard([
-              _buildMenuItem(Icons.person_outline, 'Personal Information', onTap: () => Get.to(() => const ProfileInformationView())),
-              _buildMenuItem(Icons.edit_note, 'Edit Profile', onTap: () => Get.to(() =>  EditVendorProfileView())),
-              _buildMenuItem(Icons.bookmark_border, 'Login & Security', onTap: () => Get.to(() => const AccountSettingsView())),
+              _buildMenuItem(Icons.person_outline,iconPath: "assets/icons/person.svg", 'Personal Information', onTap: () => Get.to(() => const ProfileInformationView())),
+              _buildMenuItem(Icons.edit_note,iconPath: "assets/icons/edit_profile.svg", 'Edit Profile', onTap: () => Get.to(() =>  EditVendorProfileView())),
+              _buildMenuItem(Icons.bookmark_border,iconPath: "assets/icons/security.svg", 'Login & Security', onTap: () => Get.to(() => const AccountSettingsView())),
               _buildMenuItem(Icons.notifications_outlined, 'Notifications', onTap: () => Get.to(() => const NotificationSettingsView())),
             /*  _buildMenuItem(Icons.settings_outlined, 'Privacy and sharing'),*/
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('Services'),
             _buildMenuCard([
-              _buildMenuItem(Icons.room_service_outlined, 'Services & Rates', onTap: () => Get.to(() => const ServicesRatesView())),
-              _buildMenuItem(Icons.history, 'Past Clients', onTap: () => Get.to(() => const PastClientsView())),
-              _buildMenuItem(Icons.people_outline, 'Upcoming Clients', onTap: () => Get.to(() => const UpcomingClientsView())),
-              _buildMenuItem(Icons.calendar_month_outlined, 'Calendar & Availability', onTap: () => Get.to(() => const AvailabilityView())),
-              if (_hasRole(['farrier']))
-                _buildMenuItem(iconPath: "assets/icons/operations.svg", Icons.fact_check_outlined, 'Operations & Compliance', onTap: () {
-                  // Navigate to Operations & Compliance view
-                }),
+              if (_hasRole(['shipping']))...[
+                _buildMenuItem(Icons.room_service_outlined,iconPath: "assets/icons/rates.svg", 'Pricing', onTap: () => Get.to(() => const ServicesRatesView())),
+                _buildMenuItem(Icons.room_service_outlined,iconPath: "assets/icons/route.svg", 'Current Trips', onTap: () => Get.to(() => const ShippingTripView())),
+              ],
+
+
+              if (_hasRole(['grooming']) || _hasRole(['braiding']) || _hasRole(['clapping']) || _hasRole(['farrier']) || _hasRole(['bodywork']) )
+              _buildMenuItem(Icons.room_service_outlined,iconPath: "assets/icons/rates.svg", 'Services & Rates', onTap: () => Get.to(() => const ServicesRatesView())),
+
+              _buildMenuItem(Icons.history,iconPath: "assets/icons/clock.svg", 'Past Clients', onTap: () => Get.to(() => const PastClientsView())),
+              _buildMenuItem(Icons.people_outline,iconPath: "assets/icons/upcoming.svg", 'Upcoming Clients', onTap: () => Get.to(() => const UpcomingClientsView())),
+
+
+
+              if (_hasRole(['grooming']) || _hasRole(['braiding']) || _hasRole(['clapping']) || _hasRole(['farrier']) || _hasRole(['bodywork']) )
+              _buildMenuItem(Icons.calendar_month_outlined,iconPath: "assets/icons/calendar.svg", 'Calendar & Availability', onTap: () => Get.to(() => const AvailabilityView())),
+
+
+              if (_hasRole(['farrier']) || _hasRole(['shipping']))
+                _buildMenuItem(iconPath: "assets/icons/operations.svg", Icons.fact_check_outlined, 'Operations & Compliance', onTap: () =>  Get.to(()=> OperationsAndComplianceView()),
+                ),
+
+              if (_hasRole(['shipping']))...[
+                _buildMenuItem(Icons.room_service_outlined,iconPath: "assets/icons/calendar.svg", 'Manage trips', onTap: () => Get.to(() => const ShippingTripView())),
+              ],
 
               if (_hasRole(['bodywork']))
                 _buildMenuItem(iconPath: "assets/icons/insurance.svg", Icons.fact_check_outlined, 'Insurance', onTap: () {
@@ -92,14 +112,14 @@ class MenuView extends StatelessWidget {
             const SizedBox(height: 24),
             _buildSectionHeader('Referrals'),
             _buildMenuCard([
-              _buildMenuItem(Icons.group_add_outlined, 'Refer a New Member', onTap: () => Get.to(() => const ReferNewMemberView())),
+              _buildMenuItem(Icons.group_add_outlined,iconPath: "assets/icons/refer.svg", 'Refer a New Member', onTap: () => Get.to(() => const ReferNewMemberView())),
             ]),
             const SizedBox(height: 24),
             _buildSectionHeader('Support'),
             _buildMenuCard([
               _buildMenuItem(Icons.help_outline, 'Get Help', onTap: () => Get.to(() => const GetHelpView())),
-              _buildMenuItem(Icons.message_outlined, 'Share your feedback', onTap: () => Get.to(() => const FeedbackView())),
-              _buildMenuItem(Icons.article_outlined, 'Privacy policy', onTap: () => Get.to(() => const PrivacyPolicyView())),
+              _buildMenuItem(LucideIcons.messageSquare, 'Share your feedback', onTap: () => Get.to(() => const FeedbackView())),
+              _buildMenuItem(Icons.description_outlined, 'Privacy policy', onTap: () => Get.to(() => const PrivacyPolicyView())),
               _buildMenuItem(Icons.description_outlined, 'Terms & conditions', onTap: () => Get.to(() => const TermsAndConditionsView())),
             ]),
             const SizedBox(height: 32),
