@@ -52,6 +52,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     controller.startDate.value = _rangeStart;
     controller.endDate.value = _rangeEnd;
 
+
+
     // Save to history if text is not empty
     if (_searchController.text.trim().isNotEmpty) {
       controller.addToHistory(_searchController.text.trim());
@@ -397,6 +399,28 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_selectedCategory == 'Services' && isSearching) ...[
+                        Obx(() {
+                          final regionType = controller.serviceTagTypes.firstWhereOrNull(
+                            (t) => t['name'] == 'Regions Covered'
+                          );
+                          final List<String> regionOptions = regionType != null
+                              ? List<String>.from(regionType['values'].map((v) => v['name']))
+                              : [
+                                  'Florida (Wellington • Ocala • Gulf Coast)',
+                                  'Southwest (Thermal • AZ winter circuit)',
+                                  'Southeast (Aiken • Tryon • Wills Park • Chatt Hills)'
+                                ];
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: regionOptions
+                                .where((r) => r.toLowerCase().contains(_searchController.text.toLowerCase()))
+                                .map((r) => _buildLocationItem(r, isRegion: true))
+                                .toList(),
+                          );
+                        }),
+                      ],
                       ...displayList.map(
                           (l) => _buildLocationItem(l['name'] ?? '')),
                       if (hasMore && !_showAllLocations)
@@ -687,16 +711,24 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   Widget _buildLocationItem(
     String location, {
     bool isVenue = false,
+    bool isRegion = false,
     String? subtitle,
   }) {
     return GestureDetector(
       onTap: () {
-        if (isVenue) {
+        if (isRegion) {
+          controller.regionsCovered.assignAll([location]);
+          controller.location.value = '';
+          controller.showVenue.value = '';
+          controller.isServiceFilterApplied.value = true;
+        } else if (isVenue) {
           controller.showVenue.value = location;
           controller.location.value = '';
+          controller.regionsCovered.clear();
         } else {
           controller.location.value = location;
           controller.showVenue.value = '';
+          controller.regionsCovered.clear();
         }
         _searchController.clear();
         _onSearchPressed();
@@ -989,7 +1021,11 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           Expanded(
             flex: 2,
             child: GestureDetector(
-              onTap: _onSearchPressed,
+              onTap:() {
+                controller.regionsCovered.clear();
+              controller.location.value="";
+                _onSearchPressed();
+              } ,
               child: Container(
                 height: 56,
                 decoration: BoxDecoration(

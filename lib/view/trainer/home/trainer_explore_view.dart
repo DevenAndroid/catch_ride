@@ -6,6 +6,7 @@ import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:catch_ride/view/trainer/home/search_filter_overlay.dart';
 import 'package:catch_ride/view/trainer/home/filter_bottom_sheet.dart';
+import 'package:catch_ride/view/trainer/home/services_filter_bottom_sheet.dart';
 import 'package:get/get.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -307,6 +308,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                             mainText = controller.showVenue.value;
                           } else if (controller.location.value.isNotEmpty) {
                             mainText = controller.location.value;
+                          } else if (controller.regionsCovered.isNotEmpty) {
+                            mainText = controller.regionsCovered.first;
                           } else if (controller.searchQuery.value.isNotEmpty) {
                             mainText = controller.searchQuery.value;
                           }
@@ -331,11 +334,15 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF101828),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                             CommonText(
                               subText,
                               fontSize: 12,
                               color: const Color(0xFF667085),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                           ],
                         );
@@ -349,13 +356,14 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
           const SizedBox(width: 12),
           GestureDetector(
              onTap: () {
+               final bool isServices = controller.selectedDiscipline.value == 'Services';
                showModalBottomSheet(
                  context: context,
                  isScrollControlled: true,
                  backgroundColor: Colors.transparent,
                  builder: (context) => SizedBox(
                    height: MediaQuery.of(context).size.height * 0.85,
-                   child: const FilterBottomSheet()
+                   child: isServices ? const ServicesFilterBottomSheet() : const FilterBottomSheet()
                  ),
                );
              },

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 class AppUrls {
@@ -7,7 +9,7 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = true;
+  static bool isLive = false;
 
   static String get baseUrl {
     try {

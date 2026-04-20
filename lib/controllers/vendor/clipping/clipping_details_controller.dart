@@ -48,7 +48,7 @@ class ClippingDetailsController extends GetxController {
   }
 
   // Travel Preferences
-  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
+  final travelOptions = ['Local Only', 'Regional',];
   final travelFees = <String, Map<String, dynamic>>{}.obs;
 
   // Temporary controllers for Travel Fee Bottom Sheet

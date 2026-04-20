@@ -157,10 +157,24 @@ class VendorDetailsController extends GetxController {
 
   List<String> get photos {
     return {
-      ...List<String>.from(_activeProfileData['media'] ?? []),
-      ...List<String>.from(_activeApplicationData['media'] ?? []),
+      ..._safeList(_activeProfileData['media']),
+      ..._safeList(_activeApplicationData['media']),
     }.toList();
   }
+  List<String> _safeList(dynamic data) {
+    if (data is List) {
+      return data.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+  dynamic get cancellationPolicy {
+    final data = _activeProfileData['cancellationPolicy'];
 
-  String get cancellationPolicy => _activeProfileData['cancellationPolicy']?['policy'] ?? 'Flexible (24+ hrs)';
+    if (data is String) {
+      return data;
+    } else if (data is Map) {
+      return data['policy'] ?? 'Flexible (24+ hrs)';
+    }
+    return 'Flexible (24+ hrs)';
+  }
 }
