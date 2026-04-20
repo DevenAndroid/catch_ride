@@ -7,7 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import '../constant/app_colors.dart';
+import '../view/trainer/chats/single_chat_view.dart';
 import 'booking_controller.dart';
+import 'profile_controller.dart';
 
 class ChatController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -320,6 +322,26 @@ class ChatController extends GetxController {
     } else {
       fetchConversations(); // New conversation appeared
     }
+  }
+
+  void openBookingChat({
+    required String bookingId,
+    required String otherId,
+    required String otherName,
+    required String otherImage,
+  }) {
+    final myId = Get.find<ProfileController>().id;
+    if (myId.isEmpty) return;
+
+    final sorted = [myId, otherId]..sort();
+    final conversationId = "${sorted[0]}-${sorted[1]}-BK-$bookingId";
+
+    Get.to(() => SingleChatView(
+          name: otherName,
+          image: otherImage,
+          conversationId: conversationId,
+          otherId: otherId,
+        ));
   }
 
   void _handleSentConfirmation(String tempId, ChatMessage message) {

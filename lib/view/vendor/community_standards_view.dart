@@ -53,12 +53,15 @@ class CommunityStandardsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 60),
-          CommonText(
-            'This is a private network of professionals. Access is maintained by upholding these standards',
-            fontSize: 14,
-            color: AppColors.textSecondary,
-            textAlign: TextAlign.center,
-            fontStyle: FontStyle.italic,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0),
+            child: CommonText(
+              'This is a private network of professionals. Access is maintained by upholding these standards',
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              textAlign: TextAlign.center,
+              fontStyle: FontStyle.italic,
+            ),
           ),
           const SizedBox(height: 60),
           // Bottom Button
