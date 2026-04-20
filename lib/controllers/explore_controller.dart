@@ -45,11 +45,53 @@ class ExploreController extends GetxController {
 
   final RxList<dynamic> tagTypes = <dynamic>[].obs;
   final RxBool isTagsLoading = false.obs;
+  
+  final RxList<dynamic> serviceTagTypes = <dynamic>[].obs;
+  final RxBool isServiceTagsLoading = false.obs;
+  final RxBool isServiceFilterApplied = false.obs;
+
+  // Service Filters (Generic & Service-Specific)
+  final RxnInt minExperience = RxnInt();
+  final RxList<String> groomingServices = <String>[].obs;
+  final RxList<String> braidingServices = <String>[].obs;
+  final RxList<String> clippingServices = <String>[].obs;
+  final RxList<String> farrierServices = <String>[].obs;
+  final RxList<String> bodyworkServices = <String>[].obs;
+  
+  final RxList<String> groomingDisciplines = <String>[].obs;
+  final RxList<String> groomingHorseLevels = <String>[].obs;
+  final RxnDouble minDailyRate = RxnDouble();
+  final RxnDouble maxDailyRate = RxnDouble();
+  
+  final RxString selectedServiceTab = 'Groom'.obs;
+  final RxList<String> groomingSupport = <String>[].obs;
+  final RxList<String> horseHandling = <String>[].obs;
+  final RxList<String> additionalServices = <String>[].obs; // Also used as Add-ons
+  final RxList<String> travelPreferences = <String>[].obs;
+  final RxList<String> regionsCovered = <String>[].obs;
+  final RxnInt horseMinCapacity = RxnInt();
+  final RxnInt horseMaxCapacity = RxnInt();
+
+  // Farrier specific
+  final RxList<String> farrierIntake = <String>[].obs;
+  final RxList<String> farrierTimeframe = <String>[].obs;
+  final RxString farrierAvailabilityMode = ''.obs;
+
+  // Bodywork specific
+  final RxList<String> bodyworkTimeframe = <String>[].obs;
+  final RxString bodyworkLocationType = ''.obs;
+
+  // Shipping specific
+  final RxString shippingStartLocation = ''.obs;
+  final RxString shippingEndLocation = ''.obs;
+  final RxList<String> shippingTravelScope = <String>[].obs;
+  final RxList<String> shippingStallTypes = <String>[].obs;
 
   bool get isSearchActive =>
       searchQuery.value.isNotEmpty ||
       location.value.isNotEmpty ||
       showVenue.value.isNotEmpty ||
+      regionsCovered.isNotEmpty ||
       (startDate.value != null && endDate.value != null);
 
   // Suggested search items
@@ -80,6 +122,41 @@ class ExploreController extends GetxController {
     priceMin.value = null;
     priceMax.value = null;
     selectedTags.clear();
+    
+    // Clear Grooming & Service Filters
+    minExperience.value = null;
+    groomingServices.clear();
+    braidingServices.clear();
+    clippingServices.clear();
+    farrierServices.clear();
+    bodyworkServices.clear();
+    groomingDisciplines.clear();
+    groomingHorseLevels.clear();
+    minDailyRate.value = null;
+    maxDailyRate.value = null;
+    
+    selectedServiceTab.value = 'Groom';
+    groomingSupport.clear();
+    horseHandling.clear();
+    additionalServices.clear();
+    travelPreferences.clear();
+    regionsCovered.clear();
+    horseMinCapacity.value = null;
+    horseMaxCapacity.value = null;
+
+    farrierIntake.clear();
+    farrierTimeframe.clear();
+    farrierAvailabilityMode.value = '';
+    
+    bodyworkTimeframe.clear();
+    bodyworkLocationType.value = '';
+
+    shippingStartLocation.value = '';
+    shippingEndLocation.value = '';
+    shippingTravelScope.clear();
+    shippingStallTypes.clear();
+
+    isServiceFilterApplied.value = false;
   }
 
   @override
@@ -88,6 +165,7 @@ class ExploreController extends GetxController {
     _loadRecentSearches();
     fetchDefaultSearchMetadata();
     fetchTags();
+    fetchServiceTags('Grooming');
     // fetchHorses(); // Removed to prevent fetching without profile exclusion filters
   }
 
@@ -105,6 +183,23 @@ class ExploreController extends GetxController {
       _logger.e('Error fetching tags: $e');
     } finally {
       isTagsLoading.value = false;
+    }
+  }
+
+  Future<void> fetchServiceTags(String category) async {
+    try {
+      //isServiceTagsLoading.value = true;
+      final response = await _apiService.getRequest(
+        '/system-config/tag-types/with-values?category=$category',
+      );
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        serviceTagTypes.assignAll(data);
+      }
+    } catch (e) {
+      _logger.e('Error fetching $category tags: $e');
+    } finally {
+      isServiceTagsLoading.value = false;
     }
   }
 
@@ -293,6 +388,95 @@ class ExploreController extends GetxController {
       }
       if (location.value.isNotEmpty) {
         queryParams['location'] = location.value;
+      }
+
+      // Add grooming filters
+      if (selectedDiscipline.value == 'Services' && isServiceFilterApplied.value) {
+        String serviceTypeVal = '';
+        if (selectedServiceTab.value == 'Groom') serviceTypeVal = 'Grooming';
+        else if (selectedServiceTab.value == 'Braider') serviceTypeVal = 'Braiding';
+        else if (selectedServiceTab.value == 'Clipping') serviceTypeVal = 'Clipping';
+        else if (selectedServiceTab.value == 'Farrier') serviceTypeVal = 'Farrier';
+        else if (selectedServiceTab.value == 'Bodywork') serviceTypeVal = 'Bodywork';
+        else if (selectedServiceTab.value == 'Shipping') serviceTypeVal = 'Shipping';
+        
+        // If we have a serviceType and we are NOT just searching by region from overlay
+        // (If regionsCovered is the ONLY thing and we are in 'Services' discipline, we might want all services)
+        bool hasOtherFilters = groomingServices.isNotEmpty || braidingServices.isNotEmpty || 
+                             clippingServices.isNotEmpty || farrierServices.isNotEmpty || 
+                             bodyworkServices.isNotEmpty || groomingDisciplines.isNotEmpty || 
+                             groomingHorseLevels.isNotEmpty || minDailyRate.value != null || 
+                             maxDailyRate.value != null || minExperience.value != null;
+
+        if (serviceTypeVal.isNotEmpty && (hasOtherFilters || regionsCovered.isEmpty)) {
+          queryParams['serviceType'] = serviceTypeVal;
+        }
+        
+        if (minExperience.value != null) {
+          queryParams['minExperience'] = minExperience.value.toString();
+        }
+        if (groomingServices.isNotEmpty) {
+          queryParams['groomingServices'] = groomingServices.join(',');
+        }
+        if (braidingServices.isNotEmpty) {
+          queryParams['braidingServices'] = braidingServices.join(',');
+        }
+        if (clippingServices.isNotEmpty) {
+          queryParams['clippingServices'] = clippingServices.join(',');
+        }
+        if (farrierServices.isNotEmpty) {
+          queryParams['farrierServices'] = farrierServices.join(',');
+        }
+        if (bodyworkServices.isNotEmpty) {
+          queryParams['bodyworkServices'] = bodyworkServices.join(',');
+        }
+        if (groomingDisciplines.isNotEmpty) {
+          queryParams['disciplines'] = groomingDisciplines.join(',');
+        }
+        if (groomingHorseLevels.isNotEmpty) {
+          queryParams['horseLevels'] = groomingHorseLevels.join(',');
+        }
+        if (minDailyRate.value != null) {
+          queryParams['minDailyRate'] = minDailyRate.value.toString();
+        }
+        if (maxDailyRate.value != null) {
+          queryParams['maxDailyRate'] = maxDailyRate.value.toString();
+        }
+        
+        if (groomingSupport.isNotEmpty) {
+          queryParams['support'] = groomingSupport.join(',');
+        }
+        if (horseHandling.isNotEmpty) {
+          queryParams['handling'] = horseHandling.join(',');
+        }
+        if (additionalServices.isNotEmpty) {
+          queryParams['additionalServices'] = additionalServices.join(',');
+        }
+        if (travelPreferences.isNotEmpty) {
+          queryParams['travelPreferences'] = travelPreferences.join(',');
+        }
+        if (regionsCovered.isNotEmpty) {
+          queryParams['regions'] = regionsCovered.join(',');
+        }
+        if (horseMinCapacity.value != null) {
+          queryParams['minCapacity'] = horseMinCapacity.value.toString();
+        }
+        if (horseMaxCapacity.value != null) {
+          queryParams['maxCapacity'] = horseMaxCapacity.value.toString();
+        }
+
+        // Farrier / Bodywork / Shipping specific
+        if (farrierIntake.isNotEmpty) queryParams['intake'] = farrierIntake.join(',');
+        if (farrierTimeframe.isNotEmpty) queryParams['timeframe'] = farrierTimeframe.join(',');
+        if (farrierAvailabilityMode.value.isNotEmpty) queryParams['availabilityMode'] = farrierAvailabilityMode.value;
+
+        if (bodyworkTimeframe.isNotEmpty) queryParams['bodyworkTimeframe'] = bodyworkTimeframe.join(',');
+        if (bodyworkLocationType.value.isNotEmpty) queryParams['locationType'] = bodyworkLocationType.value;
+
+        if (shippingStartLocation.value.isNotEmpty) queryParams['startLocation'] = shippingStartLocation.value;
+        if (shippingEndLocation.value.isNotEmpty) queryParams['endLocation'] = shippingEndLocation.value;
+        if (shippingTravelScope.isNotEmpty) queryParams['travelScope'] = shippingTravelScope.join(',');
+        if (shippingStallTypes.isNotEmpty) queryParams['stallTypes'] = shippingStallTypes.join(',');
       }
 
       final response = await _apiService.getRequest(

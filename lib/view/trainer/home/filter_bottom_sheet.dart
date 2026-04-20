@@ -38,12 +38,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void initState() {
     super.initState();
     // Initialize from controller
-    if (controller.ageMin.value != null) minAgeController.text = controller.ageMin.value.toString();
-    if (controller.ageMax.value != null) maxAgeController.text = controller.ageMax.value.toString();
-    if (controller.heightMin.value != null) minHeightController.text = controller.heightMin.value.toString();
-    if (controller.heightMax.value != null) maxHeightController.text = controller.heightMax.value.toString();
-    if (controller.priceMin.value != null) minPriceController.text = controller.priceMin.value.toString();
-    if (controller.priceMax.value != null) maxPriceController.text = controller.priceMax.value.toString();
+    if (controller.ageMin.value != null)
+      minAgeController.text = controller.ageMin.value.toString();
+    if (controller.ageMax.value != null)
+      maxAgeController.text = controller.ageMax.value.toString();
+    if (controller.heightMin.value != null)
+      minHeightController.text = controller.heightMin.value.toString();
+    if (controller.heightMax.value != null)
+      maxHeightController.text = controller.heightMax.value.toString();
+    if (controller.priceMin.value != null)
+      minPriceController.text = controller.priceMin.value.toString();
+    if (controller.priceMax.value != null)
+      maxPriceController.text = controller.priceMax.value.toString();
     selectedListingType = controller.listingType.value;
     _localSelectedTags.addAll(controller.selectedTags);
   }
@@ -59,7 +65,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       selectedListingType = '';
       _localSelectedTags.clear();
     });
-    
+
     // Hit API again without loader
     controller.ageMin.value = null;
     controller.ageMax.value = null;
@@ -69,7 +75,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.priceMax.value = null;
     controller.listingType.value = '';
     controller.selectedTags.clear();
-    
+
     controller.fetchHorses(showLoading: false);
   }
 
@@ -143,7 +149,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     color: const Color(0xFFF3F4F6),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, size: 20, color: Color(0xFF4B5563)),
+                  child: const Icon(
+                    Icons.close,
+                    size: 20,
+                    color: Color(0xFF4B5563),
+                  ),
                 ),
               ),
             ],
@@ -155,11 +165,31 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTextFieldRow('Horse Min Age', 'Horse Max Age', 'Enter Age', 'Enter Age', minAgeController, maxAgeController),
+                  _buildTextFieldRow(
+                    'Horse Min Age',
+                    'Horse Max Age',
+                    'Enter Age',
+                    'Enter Age',
+                    minAgeController,
+                    maxAgeController,
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextFieldRow('Horse Min Height', 'Horse Max Height', 'Enter Height', 'Enter Height', minHeightController, maxHeightController, isDecimal: true),
+                  _buildTextFieldRow(
+                    'Horse Min Height',
+                    'Horse Max Height',
+                    'Enter Height',
+                    'Enter Height',
+                    minHeightController,
+                    maxHeightController,
+                    isDecimal: true,
+                  ),
                   const SizedBox(height: 20),
-                  const CommonText('Listing Type', fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                  const CommonText(
+                    'Listing Type',
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                   const SizedBox(height: 8),
                   Container(
                     height: 48,
@@ -170,14 +200,25 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
-                        value: selectedListingType.isEmpty ? null : selectedListingType,
-                        hint: const CommonText('Select Listing Type', color: AppColors.textSecondary),
+                        value: selectedListingType.isEmpty
+                            ? null
+                            : selectedListingType,
+                        hint: const CommonText(
+                          'Select Listing Type',
+                          color: AppColors.textSecondary,
+                        ),
                         isExpanded: true,
-                        icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                        icon: const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: AppColors.textSecondary,
+                        ),
                         items: listingTypes.map((type) {
                           return DropdownMenuItem<String>(
                             value: type,
-                            child: CommonText(type, color: AppColors.textPrimary),
+                            child: CommonText(
+                              type,
+                              color: AppColors.textPrimary,
+                            ),
                           );
                         }).toList(),
                         onChanged: (val) {
@@ -189,16 +230,26 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildTextFieldRow('Min Price', 'Max Price', 'Enter min price', 'Enter max price', minPriceController, maxPriceController, isDecimal: true),
+                  _buildTextFieldRow(
+                    'Min Price',
+                    'Max Price',
+                    'Enter min price',
+                    'Enter max price',
+                    minPriceController,
+                    maxPriceController,
+                    isDecimal: true,
+                  ),
                   const SizedBox(height: 24),
-                  
+
                   // Tags Groups Dynamic Render
                   Obx(() {
                     if (controller.isTagsLoading.value) {
-                      return const Center(child: Padding(
-                        padding: EdgeInsets.only(top: 20),
-                        child: CircularProgressIndicator(),
-                      ));
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 20),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
                     }
                     if (controller.tagTypes.isEmpty) {
                       return const SizedBox.shrink();
@@ -216,15 +267,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CommonText(catName, fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                              CommonText(
+                                catName,
+                                fontSize: 13,
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
                               const SizedBox(height: 12),
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
                                 children: values.map<Widget>((valObj) {
                                   final String tagName = valObj['name'] ?? '';
-                                  final bool isSelected = _localSelectedTags.contains(tagName);
-                                  
+                                  final bool isSelected = _localSelectedTags
+                                      .contains(tagName);
+
                                   return GestureDetector(
                                     onTap: () {
                                       setState(() {
@@ -236,19 +293,30 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                       });
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isSelected ? const Color(0xFFEFF4FF) : Colors.white,
+                                        color: isSelected
+                                            ? const Color(0xFFEFF4FF)
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(20),
                                         border: Border.all(
-                                          color: isSelected ? AppColors.primary : AppColors.border,
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : AppColors.border,
                                         ),
                                       ),
                                       child: CommonText(
                                         tagName,
                                         fontSize: 12,
-                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                        color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                        color: isSelected
+                                            ? AppColors.primary
+                                            : AppColors.textPrimary,
                                       ),
                                     ),
                                   );
@@ -282,7 +350,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const CommonText('Clear all', color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                    child: const CommonText(
+                      'Clear all',
+                      color: AppColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -305,7 +377,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const CommonText('Show results', color: Colors.white, fontWeight: FontWeight.bold),
+                        : const CommonText(
+                            'Show results',
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                   ),
                 ),
               ],
@@ -316,14 +392,27 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
   }
 
-  Widget _buildTextFieldRow(String label1, String label2, String hint1, String hint2, TextEditingController c1, TextEditingController c2, {bool isDecimal = false}) {
+  Widget _buildTextFieldRow(
+    String label1,
+    String label2,
+    String hint1,
+    String hint2,
+    TextEditingController c1,
+    TextEditingController c2, {
+    bool isDecimal = false,
+  }) {
     return Row(
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(label1, fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+              CommonText(
+                label1,
+                fontSize: 12,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
               const SizedBox(height: 8),
               Container(
                 height: 48,
@@ -333,12 +422,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 ),
                 child: TextField(
                   controller: c1,
-                  keyboardType: isDecimal ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number,
+                  keyboardType: isDecimal
+                      ? const TextInputType.numberWithOptions(decimal: true)
+                      : TextInputType.number,
                   decoration: InputDecoration(
                     hintText: hint1,
-                    hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    hintStyle: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),
@@ -350,7 +447,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(label2, fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+              CommonText(
+                label2,
+                fontSize: 12,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
               const SizedBox(height: 8),
               Container(
                 height: 48,
@@ -360,12 +462,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 ),
                 child: TextField(
                   controller: c2,
-                  keyboardType: isDecimal ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.number,
+                  keyboardType: isDecimal
+                      ? const TextInputType.numberWithOptions(decimal: true)
+                      : TextInputType.number,
                   decoration: InputDecoration(
                     hintText: hint2,
-                    hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                    hintStyle: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ),

@@ -2,11 +2,8 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../view/vendor/braiding/profile_create/braiding_details_view.dart';
 import '../../../view/vendor/clipping/profile_create/clipping_detail_view.dart';
 import '../../../view/vendor/bodywork/create_profile/bodywork_details_view.dart';
