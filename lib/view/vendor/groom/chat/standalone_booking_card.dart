@@ -6,6 +6,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../trainer/chats/single_chat_view.dart';
+
 class StandaloneBookingCard extends StatelessWidget {
   final BookingModel booking;
   final VoidCallback onAction;
@@ -94,11 +96,12 @@ class StandaloneBookingCard extends StatelessWidget {
                   Stack(
                     children: [
                       CommonImageView(
-                        url: booking.horseImage,
+                        url: booking.clientImage ?? avatar,
                         height: 80,
                         width: 80,
                         radius: 8,
                         fit: BoxFit.cover,
+                        isUserImage: true,
                       ),
                       Positioned(
                         top: 4,
@@ -239,10 +242,26 @@ class StandaloneBookingCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                       if (booking.id != null) {
-                        bool success = await controller.updateBookingStatus(booking.id!, 'confirmed');
-                        if (success) {
+                      if (booking.id != null) {
+                        final dynamic result = await controller.updateBookingStatus(booking.id!, 'confirmed');
+                        if (result != null && result is Map) {
                           onAction();
+                          final String? conversationId = result['conversationId'];
+                          if (conversationId != null) {
+                            String? otherId;
+                            if (booking.trainerId is Map) {
+                              otherId = (booking.trainerId as Map)['_id'];
+                            } else if (booking.trainerId is String) {
+                              otherId = booking.trainerId as String;
+                            }
+
+                            Get.to(() => SingleChatView(
+                              name: name,
+                              image: avatar ?? '',
+                              conversationId: conversationId,
+                              otherId: otherId,
+                            ));
+                          }
                         }
                       }
                     },

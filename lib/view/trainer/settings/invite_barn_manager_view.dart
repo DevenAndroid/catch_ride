@@ -326,7 +326,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CommonText(
-            "Send a direct invitation to someone you'd like to work with. They'll receive priority review.",
+            "Invite a Barn Manager to help manage listings and barn activity on your account. They’ll receive priority review",
             fontSize: 14,
             color: AppColors.textSecondary,
             height: 1.5,

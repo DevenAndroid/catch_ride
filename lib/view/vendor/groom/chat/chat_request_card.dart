@@ -98,11 +98,12 @@ class ChatRequestCard extends StatelessWidget {
                   Stack(
                     children: [
                       CommonImageView(
-                        url: request.booking?.horseImage,
+                        url: avatar,
                         height: 80,
                         width: 80,
                         radius: 8,
                         fit: BoxFit.cover,
+                        isUserImage: true,
                       ),
                       if (request.booking?.type != null)
                         Positioned(

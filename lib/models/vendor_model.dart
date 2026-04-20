@@ -120,7 +120,7 @@ class VendorAvailability {
           'Nov',
           'Dec',
         ];
-        return '${months[dt.month - 1]} ${dt.day}';
+        return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
       } catch (e) {
         return dateStr.split('T')[0];
       }

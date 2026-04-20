@@ -163,4 +163,6 @@ class VendorDetailsController extends GetxController {
   }
 
   String get cancellationPolicy => _activeProfileData['cancellationPolicy']?['policy'] ?? 'Flexible (24+ hrs)';
+
+  bool get isAcceptingRequests => vendorData['compliance']?['acceptingRequests'] ?? true;
 }

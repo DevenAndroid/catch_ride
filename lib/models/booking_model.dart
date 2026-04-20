@@ -9,6 +9,8 @@ class BookingModel {
   final String? clientName;
   final String? trainerId;
   final String? trainerName;
+  final String? vendorId;
+  final String? vendorName;
   final String? horseId;
   final String? horseName;
   final String date;
@@ -17,6 +19,8 @@ class BookingModel {
   final double price;
   final String? paymentStatus;
   final String? horseImage;
+  final String? clientImage;
+  final String? vendorImage;
   final String? trainerImage;
   final String? location;
   final String? notes;
@@ -36,6 +40,8 @@ class BookingModel {
     this.clientName,
     this.trainerId,
     this.trainerName,
+    this.vendorId,
+    this.vendorName,
     this.horseId,
     this.horseName,
     required this.date,
@@ -53,6 +59,8 @@ class BookingModel {
     this.acceptedById,
     this.acceptedByName,
     this.acceptedByRole,
+    this.clientImage,
+    this.vendorImage,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -136,12 +144,28 @@ class BookingModel {
       return null;
     }
 
-    String? trainerImg = deepSearchPhoto(json);
-    
-    // Explicit Fallbacks if deep search missed some specifics
+    // Robust image extraction for both sides
+    String? vendorImg;
+    if (json['vendorId'] != null) {
+      vendorImg = deepSearchPhoto(json['vendorId']);
+    }
+    if (vendorImg == null && json['acceptedById'] != null && json['acceptedByRole'] != 'user') {
+      vendorImg = deepSearchPhoto(json['acceptedById']);
+    }
+
+    String? clientImg;
+    if (json['clientId'] != null) {
+      clientImg = deepSearchPhoto(json['clientId']);
+    }
+    if (clientImg == null && json['trainerId'] != null) {
+      clientImg = deepSearchPhoto(json['trainerId']);
+    }
+
+    // Existing trainerImage logic (for backward compatibility if needed)
+    String? trainerImg = vendorImg ?? clientImg ?? deepSearchPhoto(json);
     trainerImg ??= json['trainerProfilePhoto'] ?? json['clientProfilePhoto'];
 
-    print('Booking ID: ${json['_id']} - Start: $sDate, End: $eDate, Found Img: $trainerImg');
+    print('Booking ID: ${json['_id']} - VendorImg: $vendorImg, ClientImg: $clientImg');
 
     return BookingModel(
       id: json['_id'],
@@ -150,11 +174,14 @@ class BookingModel {
       status: json['status'] ?? 'pending',
       clientId: json['clientId'] is Map ? json['clientId']['_id'] : json['clientId'],
       clientName: json['clientName'] ?? (json['clientId'] is Map ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}".trim() : null),
-      trainerId: json['trainerId'] is Map ? json['trainerId']['_id'] : (json['vendorId'] is Map ? json['vendorId']['_id'] : json['vendorId'] ?? json['trainerId']),
+      trainerId: json['trainerId'] is Map ? json['trainerId']['_id'] : json['trainerId'],
       trainerName: (json['trainerName'] != null && json['trainerName'].toString().isNotEmpty)
           ? json['trainerName']
-          : (json['trainerId'] is Map ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() 
-             : (json['vendorId'] is Map ? "${json['vendorId']['firstName'] ?? ''} ${json['vendorId']['lastName'] ?? ''}".trim() : null)),
+          : (json['trainerId'] is Map ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() : null),
+      vendorId: json['vendorId'] is Map 
+          ? (json['vendorId']['vendorProfileId'] ?? json['vendorId']['_id'] ?? json['vendorId']['id']) 
+          : (json['vendorProfileId'] ?? json['vendorId']),
+      vendorName: json['vendorId'] is Map ? "${json['vendorId']['firstName'] ?? ''} ${json['vendorId']['lastName'] ?? ''}".trim() : null,
       horseId: json['horseId'] is Map ? json['horseId']['_id'] : json['horseId'],
       horseName: (json['horseName'] != null && json['horseName'].toString().isNotEmpty)
           ? json['horseName']
@@ -174,6 +201,8 @@ class BookingModel {
       acceptedById: json['acceptedById'] is Map ? json['acceptedById']['_id'] : json['acceptedById'],
       acceptedByName: acceptedByN,
       acceptedByRole: json['acceptedByRole'],
+      clientImage: clientImg,
+      vendorImage: vendorImg,
     );
   }
 

@@ -36,6 +36,7 @@ class UserModel {
   final List<String> roles;
   final List<String> vendorServices;
   final String? notesForTrainer;
+  final VendorCompliance? compliance;
   final DateTime? createdAt;
 
   UserModel({
@@ -74,6 +75,7 @@ class UserModel {
     this.linkedTrainer,
     this.yearsInIndustry,
     this.notesForTrainer,
+    this.compliance,
     this.createdAt,
   });
 
@@ -191,6 +193,9 @@ class UserModel {
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
       notesForTrainer: json['notesForTrainer'] ?? (proData != null ? proData['notesForTrainer'] : null),
+      compliance: (json['compliance'] != null || (proData != null && proData['compliance'] != null))
+          ? VendorCompliance.fromJson(json['compliance'] ?? proData!['compliance'])
+          : null,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
     );
   }
@@ -231,6 +236,7 @@ class UserModel {
         'linkedBarnManager': linkedBarnManager!.toJson(),
       if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
       if (notesForTrainer != null) 'notesForTrainer': notesForTrainer,
+      if (compliance != null) 'compliance': compliance!.toJson(),
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
   }
@@ -426,4 +432,56 @@ class BarnManager {
       'status': status,
     };
   }
+}
+
+class VendorCompliance {
+  final bool acceptingRequests;
+  final Insurance? insurance;
+
+  VendorCompliance({
+    this.acceptingRequests = true,
+    this.insurance,
+  });
+
+  factory VendorCompliance.fromJson(Map<String, dynamic> json) {
+    return VendorCompliance(
+      acceptingRequests: json['acceptingRequests'] ?? true,
+      insurance: json['insurance'] != null ? Insurance.fromJson(json['insurance'] as Map<String, dynamic>) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'acceptingRequests': acceptingRequests,
+    if (insurance != null) 'insurance': insurance!.toJson(),
+  };
+}
+
+class Insurance {
+  final String? providerName;
+  final String? policyNumber;
+  final DateTime? expirationDate;
+  final String? documentUrl;
+
+  Insurance({
+    this.providerName,
+    this.policyNumber,
+    this.expirationDate,
+    this.documentUrl,
+  });
+
+  factory Insurance.fromJson(Map<String, dynamic> json) {
+    return Insurance(
+      providerName: json['providerName'],
+      policyNumber: json['policyNumber'],
+      expirationDate: json['expirationDate'] != null ? DateTime.parse(json['expirationDate'].toString()) : null,
+      documentUrl: json['documentUrl'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    if (providerName != null) 'providerName': providerName,
+    if (policyNumber != null) 'policyNumber': policyNumber,
+    if (expirationDate != null) 'expirationDate': expirationDate!.toIso8601String(),
+    if (documentUrl != null) 'documentUrl': documentUrl,
+  };
 }

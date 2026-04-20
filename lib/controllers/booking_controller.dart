@@ -102,7 +102,7 @@ class BookingController extends GetxController {
       }
     }
 
-    Future<bool> updateBookingStatus(String bookingId, String status) async {
+    Future<dynamic> updateBookingStatus(String bookingId, String status) async {
       try {
         isLoading.value = true;
         final response = await _apiService.putRequest(
@@ -122,14 +122,14 @@ class BookingController extends GetxController {
           // Refresh both lists to move the booking to the correct section
           fetchBookings(type: 'received');
           fetchBookings(type: 'sent');
-          return true;
+          return response.body['data']; // Returns the updated booking object including conversationId
         } else {
           _logger.e('Failed to update booking status: ${response.statusText}');
-          return false;
+          return null;
         }
       } catch (e) {
         _logger.e('Error updating booking status: $e');
-        return false;
+        return null;
       } finally {
         isLoading.value = false;
       }
