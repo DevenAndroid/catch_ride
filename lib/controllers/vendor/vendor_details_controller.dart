@@ -177,5 +177,7 @@ class VendorDetailsController extends GetxController {
     }
     return 'Flexible (24+ hrs)';
   }
+  bool get isAcceptingRequests => vendorData['compliance']?['acceptingRequests'] ?? true;
+
 
 }
