@@ -785,12 +785,12 @@ class EditVendorProfileController extends GetxController {
   }
 
   Future<void> pickProfileImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
     if (image != null) newProfileImage.value = File(image.path);
   }
 
   Future<void> pickCoverImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
     if (image != null) newCoverImage.value = File(image.path);
   }
 

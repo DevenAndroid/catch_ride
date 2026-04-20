@@ -99,7 +99,7 @@ class _EditBasicInfoViewState extends State<EditBasicInfoView> {
 
   Future<void> _pickImage(bool isProfile) async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
       if (image != null) {
         setState(() {
           if (isProfile) {

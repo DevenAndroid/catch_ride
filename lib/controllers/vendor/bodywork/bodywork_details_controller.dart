@@ -237,14 +237,14 @@ class BodyworkDetailsController extends GetxController {
   }
 
   Future<void> pickCertification() async {
-    final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? file = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
     if (file != null) {
       certifications.add(File(file.path));
     }
   }
 
   Future<void> pickInsuranceDoc() async {
-    final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? file = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
     if (file != null) {
       insuranceDocument.value = File(file.path);
     }
