@@ -200,7 +200,7 @@ class FarrierApplicationController extends GetxController {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
     if (image != null) {
       photos.add(File(image.path));
     }
