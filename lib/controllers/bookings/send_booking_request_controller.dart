@@ -339,14 +339,9 @@ class SendBookingRequestController extends GetxController {
   String get vendorFullName => '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
   String get businessName => vendorData['businessName'] ?? 'Independent';
   String get profilePhoto => vendorData['profilePhoto'] ?? '';
-  String get locationStr {
-    final city = vendorData['city'] ?? vendorData['homeBase']?['city'] ?? vendorData['location'] ?? '';
-    final state = vendorData['state'] ?? vendorData['homeBase']?['state'] ?? vendorData['location2'] ?? '';
-    if (city.isEmpty && state.isEmpty) return 'N/A';
-    if (city.isEmpty) return state.toString();
-    if (state.isEmpty) return city.toString();
-    return '$city, $state';
-  }
+  String get locationStr => vendorData['homeBase'] != null 
+      ? '${vendorData['homeBase']['city'] ?? ''}, ${vendorData['homeBase']['state'] ?? ''}, ${vendorData['homeBase']['country'] ?? ''}'
+      : 'N/A';
   
   List<Map<String, dynamic>> get rateOptions {
     final List services = vendorData['assignedServices'] ?? [];
