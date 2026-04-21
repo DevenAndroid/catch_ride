@@ -84,7 +84,7 @@ class MenuView extends StatelessWidget {
               ],
 
 
-              if (_hasRole(['grooming']) || _hasRole(['braiding']) || _hasRole(['clapping']) || _hasRole(['farrier']) || _hasRole(['bodywork']) )
+              if (_hasRole(['grooming', 'braiding', 'clipping', 'farrier', 'bodywork']))
               _buildMenuItem(Icons.room_service_outlined,iconPath: "assets/icons/rates.svg", 'Services & Rates', onTap: () => Get.to(() => const ServicesRatesView())),
 
               _buildMenuItem(Icons.history,iconPath: "assets/icons/clock.svg", 'Past Clients', onTap: () => Get.to(() => const PastClientsView())),
@@ -92,7 +92,7 @@ class MenuView extends StatelessWidget {
 
 
 
-              if (_hasRole(['grooming']) || _hasRole(['braiding']) || _hasRole(['clapping']) || _hasRole(['farrier']) || _hasRole(['bodywork']) )
+              if (_hasRole(['grooming', 'braiding', 'clipping', 'farrier', 'bodywork']))
               _buildMenuItem(Icons.calendar_month_outlined,iconPath: "assets/icons/calendar.svg", 'Calendar & Availability', onTap: () => Get.to(() => const AvailabilityView())),
 
 
@@ -233,8 +233,12 @@ class MenuView extends StatelessWidget {
     // 2. Check roles list
     if (user.roles.any((r) => targetLower.contains(r.toLowerCase()))) return true;
 
-    // 3. Check assigned services (vendorServices)
-    return user.vendorServices.any((s) => targetLower.contains(s.toLowerCase()));
+    // 3. Check assigned services (vendorServices in model)
+    // Using partial match to handle naming variations (e.g. "Grooming Service" matches "grooming")
+    return user.vendorServices.any((s) {
+      final sLower = s.toLowerCase();
+      return targetLower.any((target) => sLower.contains(target));
+    });
   }
 
   void _showLogoutDialog(BuildContext context) {

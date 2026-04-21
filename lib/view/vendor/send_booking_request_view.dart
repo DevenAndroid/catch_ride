@@ -36,9 +36,9 @@ class SendBookingRequestView extends StatelessWidget {
               _buildVendorSummary(controller),
               Obx(() => controller.isSummaryVisible.value ? _buildServiceSummary(controller) : const SizedBox.shrink()),
               const SizedBox(height: 24),
-              const CommonText('Services Included', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              const SizedBox(height: 16),
-              _buildIncludedChips(controller),
+              // const CommonText('Services Included', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              // const SizedBox(height: 16),
+              // _buildIncludedChips(controller),
               const SizedBox(height: 24),
               Obx(() {
                 if (controller.isBraiding) return _buildBraidingForm(controller);
@@ -316,7 +316,7 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
         const SizedBox(height: 20),
         // Location
-        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -385,7 +385,7 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], controller.selectedNumHorses),
         const SizedBox(height: 20),
         // Location
-        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -454,7 +454,7 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], controller.selectedNumHorses),
         const SizedBox(height: 20),
         // Location
-        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -532,7 +532,7 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
         const SizedBox(height: 20),
         // Location
-        _buildDropdownField('Location', 'WEF, Wellington', ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'], controller.selectedLocation),
+        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -702,12 +702,13 @@ class SendBookingRequestView extends StatelessWidget {
           controller.selectedNumHorses,
         ),
         const SizedBox(height: 20),
-        _buildDropdownField(
+        Obx(() => _buildDropdownField(
           'Location', 
-          'WEF, Wellington', 
-          ['WEF, Wellington', 'Ocala, WEC', 'Aiken, SC', 'Other'],
+          'Select Location', 
+          controller.availableLocations,
           controller.selectedLocation,
-        ),
+          isLoading: controller.isLoadingAvailability.value,
+        )),
         const SizedBox(height: 20),
         _buildTextField('Notes to your Groom', 'Add a note for the service provider...', controller.notesController),
       ],
@@ -751,7 +752,7 @@ class SendBookingRequestView extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdownField(String label, String hint, List<String> options, RxnString selectedValue) {
+  Widget _buildDropdownField(String label, String hint, List<String> options, RxnString selectedValue, {bool isLoading = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -759,21 +760,24 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 52, // Fixed height for consistency
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: const Color(0xFFE4E7EC)),
           ),
-          child: Obx(() => DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: selectedValue.value,
-              hint: CommonText(hint, color: const Color(0xFF98A2B3), fontSize: 14),
-              items: options.map((o) => DropdownMenuItem(value: o, child: CommonText(o, fontSize: 14))).toList(),
-              onChanged: (val) => selectedValue.value = val,
-              icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-            ),
-          )),
+          child: isLoading 
+            ? const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary)))
+            : DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: (options.contains(selectedValue.value)) ? selectedValue.value : null,
+                  hint: CommonText(hint, color: const Color(0xFF98A2B3), fontSize: 14),
+                  items: options.map((o) => DropdownMenuItem(value: o, child: CommonText(o, fontSize: 14))).toList(),
+                  onChanged: (val) => selectedValue.value = val,
+                  icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+                ),
+              ),
         ),
       ],
     );
