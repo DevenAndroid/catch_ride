@@ -85,164 +85,6 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     return list;
   }
 
-  void _showVenueBottomSheet(AvailabilityEntry availabilityEntry) {
-    final TextEditingController searchController = TextEditingController();
-    final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
-    final RxList<Map<String, dynamic>> filteredShows =
-        RxList<Map<String, dynamic>>(allShows);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (_, scrollController) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const CommonText(
-                        'Select Show Venue',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: searchController,
-                    onChanged: (val) {
-                      filteredShows.assignAll(
-                        allShows
-                            .where(
-                              (s) => (s['name'] as String)
-                                  .toLowerCase()
-                                  .contains(val.toLowerCase()),
-                            )
-                            .toList(),
-                      );
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search horse shows...',
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: AppColors.textSecondary,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.border),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: Obx(
-                      () => ListView.builder(
-                        controller: scrollController,
-                        itemCount: filteredShows.length,
-                        itemBuilder: (context, index) {
-                          final show = filteredShows[index];
-                          final name = show['name'] ?? '';
-                          final isSelected =
-                              availabilityEntry.showVenueController.text ==
-                              name;
-                          return ListTile(
-                            title: CommonText(
-                              name,
-                              fontSize: 15,
-                              fontWeight: isSelected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                            ),
-                            subtitle: CommonText(
-                              '${show['city'] ?? ''}, ${show['state'] ?? ''}',
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                            trailing: isSelected
-                                ? const Icon(
-                                    Icons.check,
-                                    color: AppColors.primary,
-                                  )
-                                : null,
-                            onTap: () {
-                              availabilityEntry.showVenueController.text = name;
-                              availabilityEntry.showIdController.text =
-                                  show['_id'] ?? show['id'] ?? '';
-
-                              // Auto-fill fields
-                              final city = show['city'] ?? '';
-                              final state = show['state'] ?? '';
-                              if (city.isNotEmpty || state.isNotEmpty) {
-                                availabilityEntry.cityStateController.text =
-                                    '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state';
-                              }
-
-                              final DateFormat formatter = DateFormat(
-                                'dd MMM yyyy',
-                              );
-                              if (show['startDate'] != null) {
-                                try {
-                                  final start = DateTime.parse(
-                                    show['startDate'],
-                                  );
-                                  availabilityEntry.startDateController.text =
-                                      formatter.format(start);
-                                } catch (_) {}
-                              }
-                              if (show['endDate'] != null) {
-                                try {
-                                  final end = DateTime.parse(show['endDate']);
-                                  availabilityEntry.endDateController.text =
-                                      formatter.format(end);
-                                } catch (_) {}
-                              }
-
-                              Navigator.pop(context);
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -871,6 +713,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
               CommonTextField(
                 label: 'Listing Title',
                 controller: controller.listingTitleController,
+                //textCapitalization: TextCapitalization.words,
                 hintText: 'Children\'s Hunter',
                 isRequired: true,
                 validator: (val) {
@@ -883,6 +726,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
               CommonTextField(
                 label: 'Horse\'s Registered Name',
                 controller: controller.horseNameController,
+                //textCapitalization: TextCapitalization.words,
                 hintText: 'Enter name',
                 isRequired: true,
                 validator: (val) {
@@ -951,6 +795,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           return TextFormField(
                             controller: fieldTextEditingController,
                             focusNode: fieldFocusNode,
+                            textCapitalization: TextCapitalization.words,
                             onChanged: (val) {
                               controller.locationController.text = val;
                               googleApiController.searchGooglePlaces(val);
@@ -1148,6 +993,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         return TextFormField(
                           controller: fieldTextEditingController,
                           focusNode: fieldFocusNode,
+                          textCapitalization: TextCapitalization.words,
                           onChanged: (val) {
                             controller.breedController.text = val;
                           },
@@ -1267,6 +1113,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 label: 'Description',
                 controller: controller.descriptionController,
                 hintText: 'Write here...',
+                //textCapitalization: TextCapitalization.sentences,
               //  isRequired: true,
                 maxLines: 4,
                 // validator: (val) {

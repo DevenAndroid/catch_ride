@@ -426,6 +426,7 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                 ),
                 child: TextField(
                   controller: textController,
+                  //textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
                     hintText: 'Message',
                     hintStyle: TextStyle(

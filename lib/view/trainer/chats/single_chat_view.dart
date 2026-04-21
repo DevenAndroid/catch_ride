@@ -461,6 +461,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                 ),
                 child: TextField(
                   controller: textController,
+                  //textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
                     hintText: 'Message',
                     hintStyle: TextStyle(

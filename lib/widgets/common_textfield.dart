@@ -23,6 +23,7 @@ class CommonTextField extends StatelessWidget {
   final InputBorder? border;
   final InputBorder? enabledBorder;
   final EdgeInsetsGeometry? contentPadding;
+ // final TextCapitalization? textCapitalization;
 
 
   const CommonTextField({
@@ -45,6 +46,7 @@ class CommonTextField extends StatelessWidget {
     this.border,
     this.enabledBorder,
     this.contentPadding,
+  //  this.textCapitalization
   });
 
 
@@ -91,6 +93,7 @@ class CommonTextField extends StatelessWidget {
           readOnly: readOnly,
           onTap: onTap,
           validator: validator,
+         // textCapitalization: textCapitalization??TextCapitalization.none,
           style: const TextStyle(
             fontSize: AppTextSizes.size14,
             color: AppColors.textPrimary,
@@ -100,6 +103,7 @@ class CommonTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             suffixIconColor: AppColors.textSecondary,
+
             fillColor: fillColor,
             filled: filled,
             border: border,

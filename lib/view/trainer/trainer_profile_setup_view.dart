@@ -53,6 +53,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _whyJoinController = TextEditingController();
 
 
 
@@ -87,6 +88,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     _websiteController.dispose();
     _instagramController.dispose();
     _nameController.dispose();
+    _whyJoinController.dispose();
     super.dispose();
 
   }
@@ -218,7 +220,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
                       // Compilation & Submission
                       final Map<String, dynamic> applicationData = {
-                        'whyJoin': AppStrings.whyJoinText,
+                        'whyJoin': _whyJoinController.text.trim().isEmpty 
+                            ? AppStrings.whyJoinText 
+                            : _whyJoinController.text.trim(),
                         'facebook': _facebookController.text.trim(),
                         'website': _websiteController.text.trim(),
                         'instagram': _instagramController.text.trim(),
@@ -332,19 +336,12 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   Widget _buildWhyJoinCard() {
     return _buildCard(
       title: AppStrings.whyJoinCommunity,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9FAFB),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: const CommonText(
-          AppStrings.whyJoinText,
-          fontSize: AppTextSizes.size14,
-          color: AppColors.textSecondary,
-          height: 1.5,
-        ),
+      child: CommonTextField(
+        controller: _whyJoinController,
+        label: '',
+        hintText: 'Tell us about your experience, what you’re looking for, and how Catch Ride can help you connect with the right programs and opportunities.',
+        maxLines: 5,
+        isRequired: false,
       ),
     );
   }

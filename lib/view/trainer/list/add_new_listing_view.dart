@@ -696,6 +696,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 label: 'Listing Title',
                 controller: controller.listingTitleController,
                 hintText: 'Children\'s Hunter',
+                //textCapitalization: TextCapitalization.words,
                 isRequired: true,
                 validator: (val) {
                   if (val == null || val.trim().isEmpty)
@@ -707,6 +708,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               CommonTextField(
                 label: 'Horse\'s Registered Name',
                 controller: controller.horseNameController,
+                //textCapitalization: TextCapitalization.words,
                 hintText: 'Enter name',
                 isRequired: true,
                 validator: (val) {
@@ -784,6 +786,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                               return TextFormField(
                                 controller: fieldTextEditingController,
                                 focusNode: fieldFocusNode,
+                                textCapitalization: TextCapitalization.words,
                                 onChanged: (val) {
                                   controller.locationController.text = val;
                                   googleApiController.searchGooglePlaces(val);
@@ -993,6 +996,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             return TextFormField(
                               controller: fieldTextEditingController,
                               focusNode: fieldFocusNode,
+                              textCapitalization: TextCapitalization.words,
                               // validator: (val) {
                               //   if (val == null || val.trim().isEmpty)
                               //     return 'Please enter the breed';
@@ -1068,6 +1072,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               CommonTextField(
                 label: 'Description',
                 controller: controller.descriptionController,
+               // textCapitalization: TextCapitalization.sentences,
                 hintText: 'Write here...',
               //  isRequired: true,
                 maxLines: 4,

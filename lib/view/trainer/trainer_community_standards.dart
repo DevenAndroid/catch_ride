@@ -20,16 +20,6 @@ class TrainerCommunityStandardsView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        // leading: IconButton(
-        //   icon: const Icon(
-        //     Icons.arrow_back_ios_new,
-        //     color: AppColors.textPrimary,
-        //     size: 20,
-        //   ),
-        //   onPressed: () {
-        //     Get.back();
-        //   },
-        // ),
         title: const CommonText(
           'Community Standards',
           fontSize: AppTextSizes.size18,
@@ -48,15 +38,15 @@ class TrainerCommunityStandardsView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
               child: Column(
                 children: [
-                  _buildCenteredSection('Communicate Professionally', 'Clear, respectful, business-first communication\nat all times'),
+                  _buildCenteredSection('Communicate Professionally', 'Clear, respectful, business-first communication at all times'),
                   const SizedBox(height: 32),
-                  _buildCenteredSection('Accurately Represent Horses & Availability', 'All listings and program details should reflect\ncurrent, honest information'),
+                  _buildCenteredSection('Accurately Represent Horses & Availability', 'All listings and program details should reflect current, honest information'),
                   const SizedBox(height: 32),
-                  _buildCenteredSection('Prioritize Horse Welfare', 'Decisions should reflect responsible, welfare-first\nhorsemanship'),
+                  _buildCenteredSection('Prioritize Horse Welfare', 'Decisions should reflect responsible, welfare-first horsemanship'),
                   const SizedBox(height: 32),
-                  _buildCenteredSection('Honor Commitments', 'Respect agreed terms, communicate changes,\nand follow through reliably'),
+                  _buildCenteredSection('Honor Commitments', 'Respect agreed terms, communicate changes, and follow through reliably'),
                   const SizedBox(height: 32),
-                  _buildCenteredSection('Operate with Clarity', 'Key details—including pricing and expectations—\nshould be confirmed in writing'),
+                  _buildCenteredSection('Operate with Clarity', 'Key details—including pricing and expectations—should be confirmed in writing'),
                 ],
               ),
             ),
@@ -65,7 +55,7 @@ class TrainerCommunityStandardsView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40.0),
             child: const CommonText(
-              'This is a private network of professionals, built on trust,\nconsistency, and high standards.',
+              'This is a private network of professionals, built on trust, consistency, and high standards.',
               fontSize: 12,
               color: AppColors.textSecondary,
               textAlign: TextAlign.center,
@@ -94,8 +84,8 @@ class TrainerCommunityStandardsView extends StatelessWidget {
       children: [
         CommonText(
           title,
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
+          fontSize: AppTextSizes.size16,
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           textAlign: TextAlign.center,
         ),
