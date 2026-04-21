@@ -8,12 +8,26 @@ import 'package:catch_ride/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BarnManagerRequestsView extends StatelessWidget {
+class BarnManagerRequestsView extends StatefulWidget {
   const BarnManagerRequestsView({super.key});
 
   @override
+  State<BarnManagerRequestsView> createState() => _BarnManagerRequestsViewState();
+}
+
+class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
+  final ChatController controller = Get.find<ChatController>();
+
+
+  @override
+  void initState() {
+    controller.fetchConversations();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
+
 
     return Scaffold(
       backgroundColor: AppColors.background,

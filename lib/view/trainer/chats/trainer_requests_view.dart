@@ -8,12 +8,26 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 
-class TrainerRequestsView extends StatelessWidget {
+class TrainerRequestsView extends StatefulWidget {
   const TrainerRequestsView({super.key});
 
   @override
+  State<TrainerRequestsView> createState() => _TrainerRequestsViewState();
+}
+
+class _TrainerRequestsViewState extends State<TrainerRequestsView> {
+  final ChatController controller = Get.find<ChatController>();
+
+  @override
+  void initState() {
+    controller.fetchConversations();
+    super.initState();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
+
 
     return Scaffold(
       backgroundColor: AppColors.background,

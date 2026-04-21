@@ -19,61 +19,67 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget build(BuildContext context) {
     final controller = Get.put(GroomingDetailsController());
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
-        ),
-        title: const CommonText(
-          'Grooming Details',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildRateSection(controller),
-              const SizedBox(height: 16),
-              _buildGroomingServices(controller),
-              const SizedBox(height: 16),
-              _buildSupportSection(controller),
-              const SizedBox(height: 16),
-              _buildHorseHandling(controller),
-              const SizedBox(height: 16),
-              _buildAdditionalServices(controller),
-              const SizedBox(height: 16),
-              _buildTravelPreferences(controller),
-              const SizedBox(height: 16),
-              _buildReadOnlyInfo(controller),
-              const SizedBox(height: 16),
-              _buildCancellationPolicy(controller),
-              const SizedBox(height: 32),
-              Obx(() => CommonButton(
-                text: 'Continue',
-                isLoading: controller.isSubmitting.value,
-                backgroundColor: const Color(0xFF001144),
-                onPressed: controller.submit,
-              )),
-              const SizedBox(height: 40),
-            ],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText(
+            'Grooming Details',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
           ),
         ),
-      ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildRateSection(controller),
+                const SizedBox(height: 16),
+                _buildGroomingServices(controller),
+                const SizedBox(height: 16),
+                _buildSupportSection(controller),
+                const SizedBox(height: 16),
+                _buildHorseHandling(controller),
+                const SizedBox(height: 16),
+                _buildAdditionalServices(controller),
+                const SizedBox(height: 16),
+                _buildTravelPreferences(controller),
+                const SizedBox(height: 16),
+                _buildReadOnlyInfo(controller),
+                const SizedBox(height: 16),
+                _buildCancellationPolicy(controller),
+                const SizedBox(height: 32),
+                Obx(() => CommonButton(
+                  text: 'Continue',
+                  isLoading: controller.isSubmitting.value,
+                  backgroundColor: const Color(0xFF001144),
+                  onPressed: controller.submit,
+                )),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
 
+      ),
     );
   }
 

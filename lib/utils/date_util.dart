@@ -81,10 +81,10 @@ class DateUtil {
 
     DateTime? dateTime;
     if (date is DateTime) {
-      dateTime = date;
+      dateTime = date.toLocal();
     } else if (date is String) {
       if (date.isEmpty) return '';
-      dateTime = DateTime.tryParse(date);
+      dateTime = DateTime.tryParse(date)!.toLocal();
     }
 
     if (dateTime != null) {

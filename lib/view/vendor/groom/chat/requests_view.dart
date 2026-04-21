@@ -7,13 +7,27 @@ import 'package:get/get.dart';
 import 'chat_request_card.dart';
 import 'standalone_booking_card.dart';
 
-class RequestsView extends StatelessWidget {
+class RequestsView extends StatefulWidget {
   const RequestsView({super.key});
+
+  @override
+  State<RequestsView> createState() => _RequestsViewState();
+}
+
+class _RequestsViewState extends State<RequestsView> {
+  final BookingController bookingController = Get.put(BookingController());
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((c) async {
+      await bookingController.fetchBookings(type: 'received');
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final ChatController controller = Get.put(ChatController());
-    final BookingController bookingController = Get.put(BookingController());
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -22,16 +36,10 @@ class RequestsView extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF1F2937), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1F2937), size: 20),
           onPressed: () => Get.back(),
         ),
-        title: const CommonText(
-          'Requests',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF101828),
-        ),
+        title: const CommonText('Requests', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF101828)),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(color: AppColors.border, height: 1.0),
@@ -41,25 +49,19 @@ class RequestsView extends StatelessWidget {
         // 1. Get Chat Conversations that are requests
         final chatRequests = controller.conversations.where((c) {
           final otherUserRole = c.otherUser?.role?.toLowerCase();
-          final isTargetRole =
-              otherUserRole == 'trainer' || otherUserRole == 'barn_manager';
+          final isTargetRole = otherUserRole == 'trainer' || otherUserRole == 'barn_manager';
           return c.status == 'request-pending' && isTargetRole;
         }).toList();
 
         // 2. Get Pending Bookings that aren't linked to a chat request yet
-        final existingBookingIds =
-            chatRequests.map((c) => c.booking?.id).toSet();
-        final standaloneBookings =
-            bookingController.receivedBookings.where((b) {
-          return b.status.toLowerCase() == 'pending' &&
-              !existingBookingIds.contains(b.id);
+        final existingBookingIds = chatRequests.map((c) => c.booking?.id).toSet();
+        final standaloneBookings = bookingController.receivedBookings.where((b) {
+          return b.status.toLowerCase() == 'pending' && !existingBookingIds.contains(b.id);
         }).toList();
 
         return Stack(
           children: [
-            if (controller.isLoadingConversations.value &&
-                chatRequests.isEmpty &&
-                standaloneBookings.isEmpty)
+            if (controller.isLoadingConversations.value && chatRequests.isEmpty && standaloneBookings.isEmpty)
               const Center(child: CircularProgressIndicator())
             else if (chatRequests.isEmpty && standaloneBookings.isEmpty)
               RefreshIndicator(
@@ -76,11 +78,9 @@ class RequestsView extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.mail_outline,
-                                size: 64, color: Colors.grey[300]),
+                            Icon(Icons.mail_outline, size: 64, color: Colors.grey[300]),
                             const SizedBox(height: 16),
-                            const CommonText('No pending requests',
-                                color: AppColors.textSecondary),
+                            const CommonText('No pending requests', color: AppColors.textSecondary),
                           ],
                         ),
                       ),
@@ -99,35 +99,24 @@ class RequestsView extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   children: [
                     if (chatRequests.isNotEmpty) ...[
-                      const CommonText(
-                        'Chat Requests',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF667085),
-                      ),
+                      const CommonText('Chat Requests', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF667085)),
                       const SizedBox(height: 16),
-                      ...chatRequests
-                          .map((chat) => ChatRequestCard(request: chat))
-                          .toList(),
+                      ...chatRequests.map((chat) => ChatRequestCard(request: chat)).toList(),
                       const SizedBox(height: 24),
                     ],
                     if (standaloneBookings.isNotEmpty) ...[
-                      const CommonText(
-                        'Direct Bookings',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF667085),
-                      ),
+                      const CommonText('Direct Bookings', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF667085)),
                       const SizedBox(height: 16),
                       ...standaloneBookings
-                          .map((booking) => StandaloneBookingCard(
-                                booking: booking,
-                                onAction: () {
-                                  controller.fetchConversations();
-                                  bookingController.fetchBookings(type: 'received');
-                                },
-                              ))
-                          .toList(),
+                          .map(
+                            (booking) => StandaloneBookingCard(
+                              booking: booking,
+                              onAction: () {
+                                controller.fetchConversations();
+                                bookingController.fetchBookings(type: 'received');
+                              },
+                            ),
+                          ),
                     ],
                   ],
                 ),
@@ -135,9 +124,7 @@ class RequestsView extends StatelessWidget {
             if (controller.isUpdatingStatus.value)
               Container(
                 color: Colors.black.withOpacity(0.3),
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
           ],
         );

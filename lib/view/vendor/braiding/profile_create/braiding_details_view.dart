@@ -18,49 +18,55 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
   Widget build(BuildContext context) {
     final controller = Get.put(BraidingDetailsController());
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText(
+            'Braiding Details',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        title: const CommonText(
-          'Braiding Details',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCoreBraidingServices(controller),
-              const SizedBox(height: 24),
-              _buildTravelPreferences(controller),
-              const SizedBox(height: 24),
-              _buildReadOnlyInfo(controller),
-              const SizedBox(height: 24),
-              _buildCancellationPolicy(controller),
-              const SizedBox(height: 32),
-              Obx(() => CommonButton(
-                text: 'Continue',
-                isLoading: controller.isSubmitting.value,
-                backgroundColor: AppColors.primary,
-                onPressed: controller.submit,
-              )),
-              const SizedBox(height: 20),
-            ],
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCoreBraidingServices(controller),
+                const SizedBox(height: 24),
+                _buildTravelPreferences(controller),
+                const SizedBox(height: 24),
+                _buildReadOnlyInfo(controller),
+                const SizedBox(height: 24),
+                _buildCancellationPolicy(controller),
+                const SizedBox(height: 32),
+                Obx(() => CommonButton(
+                  text: 'Continue',
+                  isLoading: controller.isSubmitting.value,
+                  backgroundColor: AppColors.primary,
+                  onPressed: controller.submit,
+                )),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),

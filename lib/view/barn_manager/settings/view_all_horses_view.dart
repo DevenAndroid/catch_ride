@@ -8,6 +8,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+/*
 
 class ViewAllHorsesView extends StatefulWidget {
   const ViewAllHorsesView({super.key});
@@ -369,3 +370,6 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
     );
   }
 }
+
+*/
+

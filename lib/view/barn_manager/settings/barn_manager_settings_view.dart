@@ -26,6 +26,7 @@ import '../../trainer/settings/notification_settings_view.dart';
 import '../../trainer/settings/privacy_policy_view.dart';
 import '../../trainer/settings/profile_information_view.dart';
 import '../../trainer/settings/terms_and_conditions_view.dart';
+import '../list/barn_manager_horse_listing_view.dart';
 
 class BarnManagerSettingsView extends StatelessWidget {
   const BarnManagerSettingsView({super.key});
@@ -115,7 +116,8 @@ class BarnManagerSettingsView extends StatelessWidget {
               _buildSettingsTile(
                 icon: Icons.visibility_outlined,
                 title: 'View all Horses',
-                onTap: () => Get.to(() => const ViewAllHorsesView()),
+            //   onTap: () => Get.to(() => const ViewAllHorsesView()),
+                onTap: () => Get.to(() => const BarnManagerHorseListingView()),
               ),
               _buildSettingsTile(
                 icon: Icons.history,
@@ -237,15 +239,19 @@ class BarnManagerSettingsView extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 54,
+            height: 54,
+            padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
               color: Color(0xFF00083B),
               shape: BoxShape.circle,
             ),
-            child: SvgPicture.string(
-              '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 19V11.53M19 11.53C19 9.8 19 8.93 18.66 8.26C18.32 7.6 17.73 7.07 17.03 6.82C16.34 6.57 15.47 6.64 13.73 6.78L13 6.85M19 11.53C19.34 11.53 19.68 11.66 19.92 11.91C20.17 12.15 20.31 12.48 20.31 12.83C20.31 13.52 19.74 14.08 19.05 14.08H18.99C18.61 14.08 18.25 14.24 17.99 14.51C17.73 14.78 17.58 15.13 17.58 15.51V15.51C17.58 15.89 17.73 16.24 18 16.51C18.26 16.78 18.63 16.94 19.01 16.94H19.09C19.74 16.94 20.3 17.47 20.33 18.12V18.12C20.36 18.8 19.83 19.37 19.15 19.37C18.49 19.37 17.96 19.88 17.96 20.54V21M13 6.85L12.56 6.89C10.74 7.04 9.83 7.12 9.17 6.76C8.5 6.4 8.1 5.61 7.29 4.02L7 3.45M13 6.85V11V15V19V21M13 19H9.42M13 15H11M13 11H12M8 10L6.75 10C5.78 10 5.3 10 4.93 10.19C4.6 10.35 4.35 10.6 4.19 10.93C4 11.3 4 11.78 4 12.75V15.25C4 16.22 4 16.7 4.19 17.07C4.35 17.4 4.6 17.65 4.93 17.81C5.3 18 5.78 18 6.75 18L8 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-              width: 24,
-              height: 24,
+            child: SvgPicture.asset(
+              "assets/images/logo.svg",
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
           ),
           const SizedBox(width: 16),

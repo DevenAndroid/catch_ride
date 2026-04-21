@@ -15,272 +15,278 @@ class ShippingDetailsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ShippingDetailsController());
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.cardColor,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.cardColor,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText(
+            'Shipping Details',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        title: const CommonText(
-          'Shipping Details',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Pricing
-                _buildGroupedSection(
-                  'Pricing',
-                  description: 'Set your shipping rates',
-                  children: [
-                    GestureDetector(
-                      onTap: () => controller.inquiryPrice.toggle(),
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            visualDensity: VisualDensity(horizontal: -4),
-                            value: controller.inquiryPrice.value, 
-                            onChanged: (val) => controller.inquiryPrice.value = val ?? false,
-                            activeColor: AppColors.primary,
-                          ),
-                          const CommonText('Inquire for Price', fontSize: 14, color: AppColors.textPrimary),
-                        ],
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Pricing
+                  _buildGroupedSection(
+                    'Pricing',
+                    description: 'Set your shipping rates',
+                    children: [
+                      GestureDetector(
+                        onTap: () => controller.inquiryPrice.toggle(),
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              visualDensity: VisualDensity(horizontal: -4),
+                              value: controller.inquiryPrice.value,
+                              onChanged: (val) => controller.inquiryPrice.value = val ?? false,
+                              activeColor: AppColors.primary,
+                            ),
+                            const CommonText('Inquire for Price', fontSize: 14, color: AppColors.textPrimary),
+                          ],
+                        ),
                       ),
-                    ),
-                    if (!controller.inquiryPrice.value) ...[
-                      const SizedBox(height: 12),
-                      _buildRateField('Base Rate', controller.baseRateController),
-                      const SizedBox(height: 16),
-                      _buildRateField('Fully Loaded Rate', controller.loadedRateController),
+                      if (!controller.inquiryPrice.value) ...[
+                        const SizedBox(height: 12),
+                        _buildRateField('Base Rate', controller.baseRateController),
+                        const SizedBox(height: 16),
+                        _buildRateField('Fully Loaded Rate', controller.loadedRateController),
+                      ],
                     ],
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  ),
+                  const SizedBox(height: 24),
 
-                // 2. Services Offered
-                _buildGroupedSection(
-                  'Services Offered',
-                  children: [
-                    _buildChipSelection(
-                      options: controller.serviceOptions,
-                      selectedItems: controller.selectedServices,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 3. Equipment Summary
-                _buildGroupedSection(
-                  'Equipment Summary',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.equipmentSummaryController,
-                      hintText: 'Briefly describe your equipment and setup (truck, trailer, capacity, etc.)',
-                      maxLines: 3,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 4. Read-only Data
-                _buildReadOnlyField('Location', controller.locationDisplay.value),
-                const SizedBox(height: 16),
-                _buildReadOnlyField('Years of Experience', controller.experienceDisplay.value),
-                const SizedBox(height: 16),
-                _buildReadOnlyField('USDOT Number', controller.usdotDisplay.value, isRequired: true),
-                const SizedBox(height: 24),
-
-                // 5. Travel Scope
-                _buildGroupedSection(
-                  'Travel Scope',
-                  description: 'Select how you typically operate',
-                  children: [
-                    _buildChipSelection(
-                      options: controller.travelOptions,
-                      selectedItems: controller.travelScope,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 6. Rig Types
-                _buildGroupedSection(
-                  'Rig Types',
-                  children: [
-                    _buildChipSelection(
-                      options: controller.rigOptions,
-                      selectedItems: controller.rigTypes,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 7. Regions Covered
-                _buildGroupedSection(
-                  'Regions Covered',
-                  description: 'Select the regions you regularly service',
-                  children: [
-                    _buildChipSelection(
-                      options: controller.regionOptions,
-                      selectedItems: controller.regionsCovered,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 8. Operation Type
-                _buildGroupedSection(
-                  'Operation Type',
-                  children: [
-                    _buildRadioOption('Independent / Small Operation', 'Independent Small Operation', controller.operationType),
-                    const SizedBox(height: 12),
-                    _buildRadioOption('Established Shipping Company', 'Established Shipping Company', controller.operationType),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 9. Driver Credentials
-                _buildGroupedSection(
-                  'Driver Credentials',
-                  children: [
-                    GestureDetector(
-                      onTap: () => controller.hasCDL.toggle(),
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            value: controller.hasCDL.value,
-                            onChanged: (val) => controller.hasCDL.value = val ?? false,
-                            activeColor: const Color(0xFF001149),
-                          ),
-                          const Expanded(child: CommonText('I have a valid CDL (if required for my rig size)', fontSize: 13)),
-                        ],
+                  // 2. Services Offered
+                  _buildGroupedSection(
+                    'Services Offered',
+                    children: [
+                      _buildChipSelection(
+                        options: controller.serviceOptions,
+                        selectedItems: controller.selectedServices,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    const CommonText('Upload CDL (optional)', fontSize: 14),
-                    const SizedBox(height: 8),
-                    _buildFileUploadTrigger(
-                      target: controller.cdlFile,
-                      existingUrl: controller.currentCdlUrl,
-                      onTap: () => controller.pickFile(controller.cdlFile),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 10. Insurance
-                _buildGroupedSection(
-                  'Insurance',
-                  description: 'Active commercial insurance is required. Documentation may be reviewed as part of the approval process.',
-                  children: [
-                    const CommonText('Upload Document', fontSize: 14),
-                    const SizedBox(height: 8),
-                    _buildFileUploadTrigger(
-                      target: controller.insuranceFile,
-                      existingUrl: controller.currentInsuranceUrl,
-                      onTap: () => controller.pickFile(controller.insuranceFile),
-                    ),
-                    const SizedBox(height: 16),
-                    CommonTextField(
-                      label: 'Expiration date',
-                      isRequired: true,
-                      controller: controller.insuranceExpiryController,
-                      hintText: 'Select Date...',
-                      readOnly: true,
-                      onTap: () => controller.selectDate(context),
-                      prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 11. Cancellation Policy
-                _buildGroupedSection(
-                  'Cancellation Policy',
-                  description: 'Set your cancellation preference for bookings',
-                  children: [
-                    _buildDropdownTrigger(
-                      value: controller.cancellationPolicy.value,
-                      hint: 'Select Cancellation Policy', 
-                      onTap: () => _showPolicyBottomSheet(context, controller),
-                    ),
-                    GestureDetector(
-                      onTap: () => controller.isCustomCancellation.toggle(),
-                      behavior: HitTestBehavior.opaque,
-                      child: Row(
-                        children: [
-                          Checkbox(
-                            value: controller.isCustomCancellation.value, 
-                            onChanged: (v) => controller.isCustomCancellation.value = v ?? false, 
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          ),
-                          const CommonText('Custom', fontSize: 14),
-                        ],
-                      ),
-                    ),
-                    if (controller.isCustomCancellation.value) ...[
-                      const SizedBox(height: 12),
+                  // 3. Equipment Summary
+                  _buildGroupedSection(
+                    'Equipment Summary',
+                    children: [
                       CommonTextField(
                         label: '',
-                        controller: controller.customCancellationController,
-                        hintText: 'Describe your custom cancellation policy...',
+                        controller: controller.equipmentSummaryController,
+                        hintText: 'Briefly describe your equipment and setup (truck, trailer, capacity, etc.)',
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 4. Read-only Data
+                  _buildReadOnlyField('Location', controller.locationDisplay.value),
+                  const SizedBox(height: 16),
+                  _buildReadOnlyField('Years of Experience', controller.experienceDisplay.value),
+                  const SizedBox(height: 16),
+                  _buildReadOnlyField('USDOT Number', controller.usdotDisplay.value, isRequired: true),
+                  const SizedBox(height: 24),
+
+                  // 5. Travel Scope
+                  _buildGroupedSection(
+                    'Travel Scope',
+                    description: 'Select how you typically operate',
+                    children: [
+                      _buildChipSelection(
+                        options: controller.travelOptions,
+                        selectedItems: controller.travelScope,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 6. Rig Types
+                  _buildGroupedSection(
+                    'Rig Types',
+                    children: [
+                      _buildChipSelection(
+                        options: controller.rigOptions,
+                        selectedItems: controller.rigTypes,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 7. Regions Covered
+                  _buildGroupedSection(
+                    'Regions Covered',
+                    description: 'Select the regions you regularly service',
+                    children: [
+                      _buildChipSelection(
+                        options: controller.regionOptions,
+                        selectedItems: controller.regionsCovered,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 8. Operation Type
+                  _buildGroupedSection(
+                    'Operation Type',
+                    children: [
+                      _buildRadioOption('Independent / Small Operation', 'Independent Small Operation', controller.operationType),
+                      const SizedBox(height: 12),
+                      _buildRadioOption('Established Shipping Company', 'Established Shipping Company', controller.operationType),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 9. Driver Credentials
+                  _buildGroupedSection(
+                    'Driver Credentials',
+                    children: [
+                      GestureDetector(
+                        onTap: () => controller.hasCDL.toggle(),
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: controller.hasCDL.value,
+                              onChanged: (val) => controller.hasCDL.value = val ?? false,
+                              activeColor: const Color(0xFF001149),
+                            ),
+                            const Expanded(child: CommonText('I have a valid CDL (if required for my rig size)', fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const CommonText('Upload CDL (optional)', fontSize: 14),
+                      const SizedBox(height: 8),
+                      _buildFileUploadTrigger(
+                        target: controller.cdlFile,
+                        existingUrl: controller.currentCdlUrl,
+                        onTap: () => controller.pickFile(controller.cdlFile),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 10. Insurance
+                  _buildGroupedSection(
+                    'Insurance',
+                    description: 'Active commercial insurance is required. Documentation may be reviewed as part of the approval process.',
+                    children: [
+                      const CommonText('Upload Document', fontSize: 14),
+                      const SizedBox(height: 8),
+                      _buildFileUploadTrigger(
+                        target: controller.insuranceFile,
+                        existingUrl: controller.currentInsuranceUrl,
+                        onTap: () => controller.pickFile(controller.insuranceFile),
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        label: 'Expiration date',
+                        isRequired: true,
+                        controller: controller.insuranceExpiryController,
+                        hintText: 'Select Date...',
+                        readOnly: true,
+                        onTap: () => controller.selectDate(context),
+                        prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 11. Cancellation Policy
+                  _buildGroupedSection(
+                    'Cancellation Policy',
+                    description: 'Set your cancellation preference for bookings',
+                    children: [
+                      _buildDropdownTrigger(
+                        value: controller.cancellationPolicy.value,
+                        hint: 'Select Cancellation Policy',
+                        onTap: () => _showPolicyBottomSheet(context, controller),
+                      ),
+                      GestureDetector(
+                        onTap: () => controller.isCustomCancellation.toggle(),
+                        behavior: HitTestBehavior.opaque,
+                        child: Row(
+                          children: [
+                            Checkbox(
+                              value: controller.isCustomCancellation.value,
+                              onChanged: (v) => controller.isCustomCancellation.value = v ?? false,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            ),
+                            const CommonText('Custom', fontSize: 14),
+                          ],
+                        ),
+                      ),
+                      if (controller.isCustomCancellation.value) ...[
+                        const SizedBox(height: 12),
+                        CommonTextField(
+                          label: '',
+                          controller: controller.customCancellationController,
+                          hintText: 'Describe your custom cancellation policy...',
+                          maxLines: 4,
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 12. Additional Notes
+                  _buildGroupedSection(
+                    'Additional Notes (optional)',
+                    description: 'Share any specific preferences, needs, or details that would help us better match you with the right horses, programs, or service providers.',
+                    children: [
+                      CommonTextField(
+                        label: '',
+                        controller: controller.additionalNotesController,
+                        hintText: 'Write here...',
                         maxLines: 4,
                       ),
                     ],
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  ),
+                  const SizedBox(height: 40),
 
-                // 12. Additional Notes
-                _buildGroupedSection(
-                  'Additional Notes (optional)',
-                  description: 'Share any specific preferences, needs, or details that would help us better match you with the right horses, programs, or service providers.',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.additionalNotesController,
-                      hintText: 'Write here...',
-                      maxLines: 4,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-
-                // 13. Continue Button
-                CommonButton(
-                  text: 'Continue',
-                  isLoading: controller.isSubmitting.value,
-                  onPressed: controller.submitDetails,
-                  height: 56,
-                  backgroundColor: const Color(0xFF001149),
-                ),
-                const SizedBox(height: 40),
-              ],
+                  // 13. Continue Button
+                  CommonButton(
+                    text: 'Continue',
+                    isLoading: controller.isSubmitting.value,
+                    onPressed: controller.submitDetails,
+                    height: 56,
+                    backgroundColor: const Color(0xFF001149),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 

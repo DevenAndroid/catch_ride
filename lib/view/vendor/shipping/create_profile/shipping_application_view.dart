@@ -16,430 +16,436 @@ class ShippingApplicationView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(ShippingApplicationController());
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.cardColor,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.cardColor,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText(
+            'Shipping Application',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        title: const CommonText(
-          'Shipping Application',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: controller.formKey,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Full Name
-                _buildGroupedSection(
-                  'Full Name',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      isRequired: true,
-                      controller: controller.fullNameController,
-                      hintText: 'Enter Your Full Name',
-                      validator: RequiredValidator(errorText: "Please enter your full name").call,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 2. Services Bio
-                _buildGroupedSection(
-                  'Why Join Our Community?',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      isRequired: true,
-                      controller: controller.bioController,
-                      hintText: 'Briefly describe your operation, services, and the type of routes or clients you typically work with.',
-                      maxLines: 4,
-                      validator: RequiredValidator(errorText: "Please tell us about your services").call,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 3. Physical Address
-                _buildGroupedSection(
-                  'Home Base Location',
-                  children: [
-                    _buildSectionHeader('Country', isRequired: true),
-                    _buildBottomTrigger(
-                      value: 'USA',
-                      hint: 'USA',
-                      onTap: null, // Disabled as per requirement
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSectionHeader('State', isRequired: true),
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.selectedState.value?['name'],
-                      hint: 'Select State',
-                      isLoading: controller.isLoadingStates.value,
-                      onTap: () => _showLocationBottomSheet(
-                        context: context,
-                        title: 'Select State',
-                        options: controller.states,
-                        onSelected: (val) => controller.onStateSelected(val),
+        body: SingleChildScrollView(
+          child: Form(
+            key: controller.formKey,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Full Name
+                  _buildGroupedSection(
+                    'Full Name',
+                    children: [
+                      CommonTextField(
+                        label: '',
+                        isRequired: true,
+                        controller: controller.fullNameController,
+                        hintText: 'Enter Your Full Name',
+                        validator: RequiredValidator(errorText: "Please enter your full name").call,
                       ),
-                    )),
-                    const SizedBox(height: 16),
-                    _buildSectionHeader('City', isRequired: true),
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.selectedCity.value?['name'],
-                      hint: controller.selectedState.value == null ? 'Select State first' : 'Select City',
-                      isLoading: controller.isLoadingCities.value,
-                      onTap: controller.selectedState.value == null 
-                        ? null 
-                        : () => _showLocationBottomSheet(
-                            context: context,
-                            title: 'Select City',
-                            options: controller.cities,
-                            onSelected: (val) => controller.onCitySelected(val),
-                          ),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 4. Business Information
-                _buildGroupedSection(
-                  'Business Information',
-                  children: [
-                    CommonTextField(
-                      label: 'Legal Business Name',
-                      isRequired: true,
-                      controller: controller.legalNameController,
-                      hintText: 'Enter Legal Business Name',
-                      validator: RequiredValidator(errorText: "Enter Legal Business Name").call,
-                    ),
-                    const SizedBox(height: 16),
-                    CommonTextField(
-                      label: 'USDOT Number',
-                      isRequired: true,
-                      controller: controller.dotNumberController,
-                      hintText: 'Enter USDOT Number',
-                      validator: RequiredValidator(errorText: "Enter USDOT Number").call,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 5. Experience
-                _buildGroupedSection(
-                  'Experience',
-                  isRequired: true,
-                  children: [
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.experience.value,
-                      hint: 'Select Years of Experience',
-                      onTap: () => _showExperienceBottomSheet(
-                        context: context,
-                        title: 'Hauling Experience',
-                        currentValue: controller.experience.value,
-                        options: controller.experienceOptions,
-                        onSelected: (val) => controller.experience.value = val,
+                  // 2. Services Bio
+                  _buildGroupedSection(
+                    'Why Join Our Community?',
+                    children: [
+                      CommonTextField(
+                        label: '',
+                        isRequired: true,
+                        controller: controller.bioController,
+                        hintText: 'Briefly describe your operation, services, and the type of routes or clients you typically work with.',
+                        maxLines: 4,
+                        validator: RequiredValidator(errorText: "Please tell us about your services").call,
                       ),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 6. Operation Type
-                _buildGroupedSection(
-                  'Operation Type',
-                  isRequired: true,
-                  children: [
-                    Obx(() => Column(
-                      children: [
-                        _buildSelectionTile(
-                          title: 'Independent Small Operation',
-                          isSelected: controller.operationType.value == 'Independent Small Operation',
-                          onTap: () => controller.operationType.value = 'Independent Small Operation',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildSelectionTile(
-                          title: 'Established Shipping Company',
-                          isSelected: controller.operationType.value == 'Established Shipping Company',
-                          onTap: () => controller.operationType.value = 'Established Shipping Company',
-                        ),
-                      ],
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 7. USDOT
-                _buildGroupedSection(
-                  'Insurance',
-                  description: 'Transport providers must carry active commercial insurance applicable to hauling client-owned horses. Documentation is reviewed as part of the approval process',
-                  children: [
-                    _buildFileUploadBox(
-                      title: 'Click to upload',
-                      targetFile: controller.dotCopy,
-                      onTap: () => controller.pickFile(controller.dotCopy),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Obx(() => Checkbox(
-                          value: controller.confirmUSDOT.value,
-                          onChanged: (val) => controller.confirmUSDOT.value = val ?? false,
-                          activeColor: AppColors.primary,
-                        )),
-                        const Expanded(
-                          child: CommonText(
-                            'I confirm I transport client-owned horses for compensation and am legally authorized to do so',
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 8. Travel Scope
-                _buildGroupedSection(
-                  'Travel Scope',
-                  description: 'Select matching travel options',
-                  children: [
-                    Obx(() => _buildChipSelection(
-                      options: controller.travelScopeOptions.toList(),
-                      selectedItems: controller.selectedTravelScope,
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 9. Regions Covered
-                _buildGroupedSection(
-                  'Regions Covered',
-                  description: 'Select the regions you most commonly haul in.',
-                  children: [
-                    _buildBottomTrigger(
-                      hint: 'Search regions...',
-                      onTap: () => _showMultiSelectBottomSheet(
-                        context: context,
-                        title: 'Select Regions',
-                        options: controller.regionOptions,
-                        selectedItems: controller.selectedRegions,
+                  // 3. Physical Address
+                  _buildGroupedSection(
+                    'Home Base Location',
+                    children: [
+                      _buildSectionHeader('Country', isRequired: true),
+                      _buildBottomTrigger(
+                        value: 'USA',
+                        hint: 'USA',
+                        onTap: null, // Disabled as per requirement
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: controller.selectedRegions.map((region) => Chip(
-                        label: CommonText(region, fontSize: 12),
-                        onDeleted: () => controller.selectedRegions.remove(region),
-                        deleteIcon: const Icon(Icons.close, size: 14),
-                      )).toList(),
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 10. Rig Types
-                _buildGroupedSection(
-                  'Rig Types',
-                  children: [
-                    Obx(() => _buildChipSelection(
-                      options: controller.rigTypeOptions.toList(),
-                      selectedItems: controller.selectedRigTypes,
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 11. Driver Credentials
-                _buildGroupedSection(
-                  'Driver Credentials',
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Obx(() => Checkbox(
-                          value: controller.confirmLicense.value,
-                          onChanged: (val) => controller.confirmLicense.value = val ?? false,
-                          activeColor: const Color(0xFF001149),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        )),
-                        const Expanded(
-                          child: CommonText(
-                            'I hold a valid CDL (if required for my operation)',
-                            fontSize: 14,
-                            color: AppColors.textPrimary,
-                          ),
+                      const SizedBox(height: 16),
+                      _buildSectionHeader('State', isRequired: true),
+                      Obx(() => _buildBottomTrigger(
+                        value: controller.selectedState.value?['name'],
+                        hint: 'Select State',
+                        isLoading: controller.isLoadingStates.value,
+                        onTap: () => _showLocationBottomSheet(
+                          context: context,
+                          title: 'Select State',
+                          options: controller.states,
+                          onSelected: (val) => controller.onStateSelected(val),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    const CommonText(
-                      'Upload CDL (optional)',
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildFileUploadBox(
-                      title: 'Click to upload',
-                      targetFile: controller.licensePhoto,
-                      onTap: () => controller.pickFile(controller.licensePhoto),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                      )),
+                      const SizedBox(height: 16),
+                      _buildSectionHeader('City', isRequired: true),
+                      Obx(() => _buildBottomTrigger(
+                        value: controller.selectedCity.value?['name'],
+                        hint: controller.selectedState.value == null ? 'Select State first' : 'Select City',
+                        isLoading: controller.isLoadingCities.value,
+                        onTap: controller.selectedState.value == null
+                          ? null
+                          : () => _showLocationBottomSheet(
+                              context: context,
+                              title: 'Select City',
+                              options: controller.cities,
+                              onSelected: (val) => controller.onCitySelected(val),
+                            ),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 12. Rig Capacity
-                _buildGroupedSection(
-                  'Horse Capacity',
-                  description: 'Max Horses',
-                  children: [
-                    _buildStepperField(
-                      value: controller.rigCapacity,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  // 4. Business Information
+                  _buildGroupedSection(
+                    'Business Information',
+                    children: [
+                      CommonTextField(
+                        label: 'Legal Business Name',
+                        isRequired: true,
+                        controller: controller.legalNameController,
+                        hintText: 'Enter Legal Business Name',
+                        validator: RequiredValidator(errorText: "Enter Legal Business Name").call,
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        label: 'USDOT Number',
+                        isRequired: true,
+                        controller: controller.dotNumberController,
+                        hintText: 'Enter USDOT Number',
+                        validator: RequiredValidator(errorText: "Enter USDOT Number").call,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 12b. Social Media & Website
-                _buildGroupedSection(
-                  'Social Media & Website',
-                  description: 'Please include at least one profile for verification',
-                  children: [
-                    CommonTextField(
-                      label: 'Facebook',
-                      controller: controller.facebookController,
-                      hintText: 'facebook.com/yourpage',
-                    ),
-                    const SizedBox(height: 16),
-                    CommonTextField(
-                      label: 'Instagram',
-                      controller: controller.instagramController,
-                      hintText: '@yourusername',
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  // 5. Experience
+                  _buildGroupedSection(
+                    'Experience',
+                    isRequired: true,
+                    children: [
+                      Obx(() => _buildBottomTrigger(
+                        value: controller.experience.value,
+                        hint: 'Select Years of Experience',
+                        onTap: () => _showExperienceBottomSheet(
+                          context: context,
+                          title: 'Hauling Experience',
+                          currentValue: controller.experience.value,
+                          options: controller.experienceOptions,
+                          onSelected: (val) => controller.experience.value = val,
+                        ),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 14. Rig Photos
-                _buildGroupedSection(
-                  'Add Photos',
-                  description: 'Upload high-quality images of your hauling equipment.',
-                  children: [
-                    _buildPhotoGrid(controller),
-                  ],
-                ),
-                const SizedBox(height: 24),
+                  // 6. Operation Type
+                  _buildGroupedSection(
+                    'Operation Type',
+                    isRequired: true,
+                    children: [
+                      Obx(() => Column(
+                        children: [
+                          _buildSelectionTile(
+                            title: 'Independent Small Operation',
+                            isSelected: controller.operationType.value == 'Independent Small Operation',
+                            onTap: () => controller.operationType.value = 'Independent Small Operation',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSelectionTile(
+                            title: 'Established Shipping Company',
+                            isSelected: controller.operationType.value == 'Established Shipping Company',
+                            onTap: () => controller.operationType.value = 'Established Shipping Company',
+                          ),
+                        ],
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 15. Professional References
-                _buildProfessionalReferences(controller),
-                const SizedBox(height: 24),
+                  // 7. USDOT
+                  _buildGroupedSection(
+                    'Insurance',
+                    description: 'Transport providers must carry active commercial insurance applicable to hauling client-owned horses. Documentation is reviewed as part of the approval process',
+                    children: [
+                      _buildFileUploadBox(
+                        title: 'Click to upload',
+                        targetFile: controller.dotCopy,
+                        onTap: () => controller.pickFile(controller.dotCopy),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Obx(() => Checkbox(
+                            value: controller.confirmUSDOT.value,
+                            onChanged: (val) => controller.confirmUSDOT.value = val ?? false,
+                            activeColor: AppColors.primary,
+                          )),
+                          const Expanded(
+                            child: CommonText(
+                              'I confirm I transport client-owned horses for compensation and am legally authorized to do so',
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                // 16. Experience Highlights
-                _buildGroupedSection(
-                  'Experience Highlights (optional)',
-                  description: 'Share key experience, programs, or specialties you\'d like clients to know',
-                  children: [
-                    Obx(() => Column(
-                      children: controller.highlightsControllers.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final ctrl = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                  // 8. Travel Scope
+                  _buildGroupedSection(
+                    'Travel Scope',
+                    description: 'Select matching travel options',
+                    children: [
+                      Obx(() => _buildChipSelection(
+                        options: controller.travelScopeOptions.toList(),
+                        selectedItems: controller.selectedTravelScope,
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 9. Regions Covered
+                  _buildGroupedSection(
+                    'Regions Covered',
+                    description: 'Select the regions you most commonly haul in.',
+                    children: [
+                      _buildBottomTrigger(
+                        hint: 'Search regions...',
+                        onTap: () => _showMultiSelectBottomSheet(
+                          context: context,
+                          title: 'Select Regions',
+                          options: controller.regionOptions,
+                          selectedItems: controller.selectedRegions,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Obx(() => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: controller.selectedRegions.map((region) => Chip(
+                          label: CommonText(region, fontSize: 12),
+                          onDeleted: () => controller.selectedRegions.remove(region),
+                          deleteIcon: const Icon(Icons.close, size: 14),
+                        )).toList(),
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 10. Rig Types
+                  _buildGroupedSection(
+                    'Rig Types',
+                    children: [
+                      Obx(() => _buildChipSelection(
+                        options: controller.rigTypeOptions.toList(),
+                        selectedItems: controller.selectedRigTypes,
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 11. Driver Credentials
+                  _buildGroupedSection(
+                    'Driver Credentials',
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Obx(() => Checkbox(
+                            value: controller.confirmLicense.value,
+                            onChanged: (val) => controller.confirmLicense.value = val ?? false,
+                            activeColor: const Color(0xFF001149),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          )),
+                          const Expanded(
+                            child: CommonText(
+                              'I hold a valid CDL (if required for my operation)',
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const CommonText(
+                        'Upload CDL (optional)',
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildFileUploadBox(
+                        title: 'Click to upload',
+                        targetFile: controller.licensePhoto,
+                        onTap: () => controller.pickFile(controller.licensePhoto),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 12. Rig Capacity
+                  _buildGroupedSection(
+                    'Horse Capacity',
+                    description: 'Max Horses',
+                    children: [
+                      _buildStepperField(
+                        value: controller.rigCapacity,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 12b. Social Media & Website
+                  _buildGroupedSection(
+                    'Social Media & Website',
+                    description: 'Please include at least one profile for verification',
+                    children: [
+                      CommonTextField(
+                        label: 'Facebook',
+                        controller: controller.facebookController,
+                        hintText: 'facebook.com/yourpage',
+                      ),
+                      const SizedBox(height: 16),
+                      CommonTextField(
+                        label: 'Instagram',
+                        controller: controller.instagramController,
+                        hintText: '@yourusername',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 14. Rig Photos
+                  _buildGroupedSection(
+                    'Add Photos',
+                    description: 'Upload high-quality images of your hauling equipment.',
+                    children: [
+                      _buildPhotoGrid(controller),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 15. Professional References
+                  _buildProfessionalReferences(controller),
+                  const SizedBox(height: 24),
+
+                  // 16. Experience Highlights
+                  _buildGroupedSection(
+                    'Experience Highlights (optional)',
+                    description: 'Share key experience, programs, or specialties you\'d like clients to know',
+                    children: [
+                      Obx(() => Column(
+                        children: controller.highlightsControllers.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final ctrl = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CommonTextField(
+                                    label: '',
+                                    controller: ctrl,
+                                    hintText: 'Write here...',
+                                  ),
+                                ),
+                                if (controller.highlightsControllers.length > 1)
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline, color: AppColors.accentRed, size: 20),
+                                    onPressed: () => controller.removeHighlight(index),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      )),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: controller.addHighlight,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 4),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(
-                                child: CommonTextField(
-                                  label: '',
-                                  controller: ctrl,
-                                  hintText: 'Write here...',
-                                ),
+                              Icon(Icons.add, color: AppColors.linkBlue, size: 18),
+                              SizedBox(width: 4),
+                              CommonText(
+                                'Add More',
+                                color: AppColors.linkBlue,
+                                fontWeight: FontWeight.w600,
+                                fontSize: AppTextSizes.size14,
                               ),
-                              if (controller.highlightsControllers.length > 1)
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: AppColors.accentRed, size: 20),
-                                  onPressed: () => controller.removeHighlight(index),
-                                ),
                             ],
                           ),
-                        );
-                      }).toList(),
-                    )),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: controller.addHighlight,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add, color: AppColors.linkBlue, size: 18), 
-                            SizedBox(width: 4),
-                            CommonText(
-                              'Add More',
-                              color: AppColors.linkBlue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: AppTextSizes.size14,
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
 
-                // 17. Final Checkboxes
-                _buildAgreementCheckbox(
-                  value: controller.is18OrOlder,
-                  label: 'I confirm that I am at least 18 years or older.',
-                ),
-                _buildAgreementCheckbox(
-                  value: controller.agreeTerms,
-                  label: 'I agree to the Terms of Service and Privacy Policy.',
-                ),
-                _buildAgreementCheckbox(
-                  value: controller.agreeReferences,
-                  label: 'I understand that my professional references may be contacted regarding my work history, competence, and reliability.',
-                ),
-                _buildAgreementCheckbox(
-                  value: controller.agreeCompliance,
-                  label: 'I operate in compliance with applicable transport regulations and licensing requirements',
-                ),
-                _buildAgreementCheckbox(
-                  value: controller.agreeVerification,
-                  label: 'I understand that Catch Ride reviews and verifies USDOT and licensing information to maintain a trusted provider network',
-                ),
-                const SizedBox(height: 40),
+                  // 17. Final Checkboxes
+                  _buildAgreementCheckbox(
+                    value: controller.is18OrOlder,
+                    label: 'I confirm that I am at least 18 years or older.',
+                  ),
+                  _buildAgreementCheckbox(
+                    value: controller.agreeTerms,
+                    label: 'I agree to the Terms of Service and Privacy Policy.',
+                  ),
+                  _buildAgreementCheckbox(
+                    value: controller.agreeReferences,
+                    label: 'I understand that my professional references may be contacted regarding my work history, competence, and reliability.',
+                  ),
+                  _buildAgreementCheckbox(
+                    value: controller.agreeCompliance,
+                    label: 'I operate in compliance with applicable transport regulations and licensing requirements',
+                  ),
+                  _buildAgreementCheckbox(
+                    value: controller.agreeVerification,
+                    label: 'I understand that Catch Ride reviews and verifies USDOT and licensing information to maintain a trusted provider network',
+                  ),
+                  const SizedBox(height: 40),
 
-                // 19. Submit Button
-                Obx(() => CommonButton(
-                  text: 'Submit Application',
-                  isLoading: controller.isSubmitting.value,
-                  onPressed: controller.submitApplication,
-                  height: 56,
-                  backgroundColor: const Color(0xFF001149), 
-                )),
-                const SizedBox(height: 48),
-              ],
+                  // 19. Submit Button
+                  Obx(() => CommonButton(
+                    text: 'Submit Application',
+                    isLoading: controller.isSubmitting.value,
+                    onPressed: controller.submitApplication,
+                    height: 56,
+                    backgroundColor: const Color(0xFF001149),
+                  )),
+                  const SizedBox(height: 48),
+                ],
+              ),
             ),
           ),
         ),
