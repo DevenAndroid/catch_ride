@@ -221,9 +221,28 @@ class SendBookingRequestController extends GetxController {
     additionalTotal.value = addOnTotal;
     totalPrice.value = basePrice.value + additionalTotal.value;
     
-    if (totalPrice.value > 0) {
+    if (totalPrice.value > 0 && bookedServices.isNotEmpty) {
       isSummaryVisible.value = true;
     }
+  }
+
+  void editService(int index) {
+    if (index < 0 || index >= bookedServices.length) return;
+    
+    final booking = bookedServices[index];
+    
+    selectedService.value = booking['serviceType'] ?? '';
+    selectedRateType.value = booking['rateType']?.toString().isEmpty == true ? null : booking['rateType'];
+    startDate.value = booking['startDate'];
+    endDate.value = booking['endDate'];
+    selectedNumHorses.value = booking['horses'];
+    selectedLocation.value = booking['location'];
+    notesController.text = booking['notes'] ?? '';
+    selectedAdditionalIds.assignAll(List<String>.from(booking['additionalIds'] ?? []));
+    selectedCoreServiceIds.assignAll(List<String>.from(booking['coreIds'] ?? []));
+    
+    bookedServices.removeAt(index);
+    calculatePrice();
   }
 
   void toggleAdditionalService(String id) {
@@ -239,7 +258,7 @@ class SendBookingRequestController extends GetxController {
     startDate.value = null;
     endDate.value = null;
     selectedNumHorses.value = null;
-    selectedLocation.value = 'WEF, Wellington';
+    selectedLocation.value = null;
     notesController.clear();
     selectedAdditionalIds.clear();
     selectedCoreServiceIds.clear();
@@ -273,6 +292,7 @@ class SendBookingRequestController extends GetxController {
 
     clearFormFields();
   }
+
 
   Future<void> sendRequest() async {
     // If there's something in the form but not yet 'added', we might want to include it or alert
@@ -339,9 +359,23 @@ class SendBookingRequestController extends GetxController {
   String get vendorFullName => '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
   String get businessName => vendorData['businessName'] ?? 'Independent';
   String get profilePhoto => vendorData['profilePhoto'] ?? '';
-  String get locationStr => vendorData['homeBase'] != null 
-      ? '${vendorData['homeBase']['city'] ?? ''}, ${vendorData['homeBase']['state'] ?? ''}, ${vendorData['homeBase']['country'] ?? ''}'
-      : 'N/A';
+
+  dynamic get _activeServiceData {
+     final List services = vendorData['assignedServices'] ?? [];
+     return services.firstWhere((s) => s['serviceType'] == selectedService.value, orElse: () => null);
+  }
+
+  String get locationStr {
+    final homeBase = vendorData['homeBase'] ?? _activeServiceData?['application']?['applicationData']?['homeBase'];
+    if (homeBase == null) return 'N/A';
+    
+    final city = homeBase['city'] ?? '';
+    final state = homeBase['state'] ?? '';
+    
+    if (city.isEmpty || state.isEmpty) return 'N/A';
+    return '$city, $state, ${homeBase['country'] ?? 'USA'}';
+  }
+
   
   List<Map<String, dynamic>> get rateOptions {
     final List services = vendorData['assignedServices'] ?? [];

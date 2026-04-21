@@ -413,7 +413,7 @@ class RequestCard extends StatelessWidget {
                         Get.to(() => SingleChatView(
                               name: name,
                               image: avatar ?? '',
-                              conversationId: generalId,
+                              conversationId: request.conversationId,
                               otherId: request.otherUser?.id,
                             ));
                       } else {

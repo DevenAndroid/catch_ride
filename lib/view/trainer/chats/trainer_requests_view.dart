@@ -20,8 +20,10 @@ class _TrainerRequestsViewState extends State<TrainerRequestsView> {
 
   @override
   void initState() {
-    controller.fetchConversations();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchConversations();
+    });
   }
 
 
@@ -400,11 +402,11 @@ class RequestCard extends StatelessWidget {
                             margin: const EdgeInsets.all(16),
                           );
 
-                          // Redirect to the same chat view (unlocked)
+                          // Redirect to the same chat view (unlocked) using the original thread ID
                           Get.to(() => SingleChatView(
                                 name: name,
                                 image: avatar ?? '',
-                                conversationId: generalId,
+                                conversationId: request.conversationId, 
                                 otherId: request.otherUser?.id,
                               ));
                         } else {
