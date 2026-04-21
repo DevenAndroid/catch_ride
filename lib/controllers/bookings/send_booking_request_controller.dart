@@ -11,13 +11,14 @@ class SendBookingRequestController extends GetxController {
   final RxMap vendorData = {}.obs;
   final RxString selectedService = ''.obs;
   final RxList availabilityList = [].obs;
+  final RxBool isLoadingAvailability = false.obs;
 
   // Form fields
   final RxnString selectedRateType = RxnString();
   final Rxn<DateTime> startDate = Rxn<DateTime>();
   final Rxn<DateTime> endDate = Rxn<DateTime>();
   final RxnString selectedNumHorses = RxnString();
-  final RxnString selectedLocation = RxnString('WEF, Wellington');
+  final RxnString selectedLocation = RxnString();
   final notesController = TextEditingController();
 
   final RxList<Map<String, dynamic>> additionalServicesList = <Map<String, dynamic>>[].obs;
@@ -61,7 +62,102 @@ class SendBookingRequestController extends GetxController {
       
       // Auto-recalculate price when fields change
       everAll([selectedRateType, startDate, endDate, selectedNumHorses, selectedAdditionalIds, selectedCoreServiceIds], (_) => calculatePrice());
+      
+      // Fetch availability to populate locations
+      fetchAvailability();
     }
+  }
+
+  Future<void> fetchAvailability() async {
+    final id = vendorData['_id'] ?? vendorData['id'];
+    if (id == null) return;
+
+    isLoadingAvailability.value = true;
+    try {
+      final response = await _apiService.getRequest('/availability/vendors/$id');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        final List data = response.body['data'] ?? [];
+        availabilityList.assignAll(data);
+        
+        // Initialize location with first available after fetch
+        final locations = availableLocations;
+        if (locations.isNotEmpty && locations.first != 'Other') {
+          selectedLocation.value = locations.first;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching availability: $e');
+    } finally {
+      isLoadingAvailability.value = false;
+    }
+  }
+
+  List<String> get availableLocations {
+    final today = DateTime.now();
+    final todayOnlyDate = DateTime(today.year, today.month, today.day);
+
+    // Initial filter: Only show availability that ends today or in the future
+    Iterable filtered = availabilityList.where((avail) {
+      final endStr = avail['endDate'] ?? avail['specificDate'];
+      if (endStr == null) return false;
+      final endDate = DateTime.parse(endStr);
+      final endDateOnly = DateTime(endDate.year, endDate.month, endDate.day);
+      return endDateOnly.isAtSameMomentAs(todayOnlyDate) || endDateOnly.isAfter(todayOnlyDate);
+    });
+
+    // Second filter: If booking dates are selected, the range must fit within the availability
+    if (startDate.value != null && endDate.value != null) {
+      filtered = filtered.where((avail) {
+        final startStr = avail['startDate'] ?? avail['specificDate'];
+        final endStr = avail['endDate'] ?? avail['specificDate'];
+        if (startStr == null || endStr == null) return false;
+        
+        final availStart = DateTime.parse(startStr);
+        final availEnd = DateTime.parse(endStr);
+        
+        // Remove time component for comparison
+        final bStart = DateTime(startDate.value!.year, startDate.value!.month, startDate.value!.day);
+        final bEnd = DateTime(endDate.value!.year, endDate.value!.month, endDate.value!.day);
+        final aStart = DateTime(availStart.year, availStart.month, availStart.day);
+        final aEnd = DateTime(availEnd.year, availEnd.month, availEnd.day);
+
+        return (aStart.isAtSameMomentAs(bStart) || aStart.isBefore(bStart)) &&
+               (aEnd.isAtSameMomentAs(bEnd) || aEnd.isAfter(bEnd));
+      });
+    }
+
+    final List<String> locations = [];
+    for (var avail in filtered) {
+      // Check showVenues (List of Strings)
+      if (avail['showVenues'] != null && avail['showVenues'] is List) {
+        locations.addAll(List<String>.from(avail['showVenues']));
+      } else if (avail['showVenues'] != null && avail['showVenues'] is String && avail['showVenues'].toString().isNotEmpty) {
+        locations.add(avail['showVenues'].toString());
+      }
+      
+      // Check location object (city, state)
+      if (avail['location'] != null && avail['location'] is Map) {
+        final loc = avail['location'];
+        final city = loc['city']?.toString() ?? '';
+        final state = loc['state']?.toString() ?? '';
+        if (city.isNotEmpty && state.isNotEmpty) {
+          locations.add('$city, $state');
+        }
+      }
+    }
+
+    final uniqueLocations = locations.where((l) => l.isNotEmpty).toSet().toList();
+    
+    // Safety check: if current value is not in uniqueLocations, and we aren't empty, 
+    // we should technically add it to items to avoid the Dropdown crash, 
+    // but a better way is to reset it in fetchAvailability or via a separate listener.
+    if (selectedLocation.value != null && !uniqueLocations.contains(selectedLocation.value)) {
+       // We'll temporarily add it to the list to prevent the crash during the build cycle
+       // before the next update triggers.
+       return [selectedLocation.value!, ...uniqueLocations];
+    }
+
+    return uniqueLocations.isEmpty ? ['Other'] : uniqueLocations;
   }
 
   bool get isBraiding => selectedService.value.toLowerCase().contains('braid');
@@ -243,9 +339,14 @@ class SendBookingRequestController extends GetxController {
   String get vendorFullName => '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
   String get businessName => vendorData['businessName'] ?? 'Independent';
   String get profilePhoto => vendorData['profilePhoto'] ?? '';
-  String get locationStr => vendorData['homeBase'] != null 
-      ? '${vendorData['homeBase']['city'] ?? ''}, ${vendorData['homeBase']['state'] ?? ''}, ${vendorData['homeBase']['country'] ?? ''}'
-      : 'N/A';
+  String get locationStr {
+    final city = vendorData['city'] ?? vendorData['homeBase']?['city'] ?? vendorData['location'] ?? '';
+    final state = vendorData['state'] ?? vendorData['homeBase']?['state'] ?? vendorData['location2'] ?? '';
+    if (city.isEmpty && state.isEmpty) return 'N/A';
+    if (city.isEmpty) return state.toString();
+    if (state.isEmpty) return city.toString();
+    return '$city, $state';
+  }
   
   List<Map<String, dynamic>> get rateOptions {
     final List services = vendorData['assignedServices'] ?? [];
