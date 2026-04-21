@@ -127,7 +127,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
             children: [
               _buildNavItem(0, 'Bookings', LucideIcons.calendarDays),
               _buildNavItem(1, 'Explore', Icons.search_rounded),
-              _buildNavItem(2, 'List', Icons.add_rounded),
+              _buildNavItem(2, 'List', LucideIcons.circlePlus),
               _buildNavItem(3, 'Inbox', LucideIcons.messageCircleMore),
               _buildNavItem(4, 'Profile', Icons.person_outline_sharp),
             ],

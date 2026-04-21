@@ -31,15 +31,13 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   final ProfileController profileController = Get.find<ProfileController>();
 
   final List<String> _receivedFilters = [
-    'Upcoming',
-    'Past',
+    'Accepted',
     'Pending',
     'Rejected',
     'Cancelled',
   ];
   final List<String> _sentFilters = [
-    'Upcoming',
-    'Past',
+    'Accepted',
     'Pending',
     'Rejected',
     'Cancelled',

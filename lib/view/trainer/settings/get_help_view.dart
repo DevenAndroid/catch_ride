@@ -25,11 +25,11 @@ class _GetHelpViewState extends State<GetHelpView> {
   final TextEditingController _descriptionController = TextEditingController();
 
   final List<String> _categories = [
-    'Technical',
-    'Billing',
-    'General',
-    'Feedback',
-    'Other',
+    'Account Access',
+    'Listings (Horse / Vendor)',
+    'Connections & Messaging',
+    'Horse Show Requests',
+    'Other Support',
   ];
 
   @override
