@@ -34,12 +34,15 @@ class SendBookingRequestView extends StatelessWidget {
             children: [
               const SizedBox(height: 16),
               _buildVendorSummary(controller),
-              Obx(() => controller.isSummaryVisible.value ? _buildServiceSummary(controller) : const SizedBox.shrink()),
-              const SizedBox(height: 24),
-              // const CommonText('Services Included', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              // const SizedBox(height: 16),
-              // _buildIncludedChips(controller),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              Obx(() => controller.bookedServices.isNotEmpty 
+                ? Column(
+                    children: [
+                      _buildServiceSummary(controller),
+                      const SizedBox(height: 16),
+                    ],
+                  ) 
+                : const SizedBox.shrink()),
               Obx(() {
                 if (controller.isBraiding) return _buildBraidingForm(controller);
                 if (controller.isClipping) return _buildClippingForm(controller);
@@ -48,6 +51,7 @@ class SendBookingRequestView extends StatelessWidget {
                 if (controller.isShipping) return _buildShippingForm(controller);
                 return _buildForm(controller);
               }),
+
               Obx(() => (controller.isBraiding || controller.isClipping || controller.isFarrier || controller.isBodywork || controller.isShipping) ? const SizedBox.shrink() : const SizedBox(height: 24)),
               Obx(() => (controller.isBraiding || controller.isClipping || controller.isFarrier || controller.isBodywork || controller.isShipping) ? const SizedBox.shrink() : _buildAdditionalServices(controller)),
               const SizedBox(height: 12),
@@ -65,7 +69,7 @@ class SendBookingRequestView extends StatelessWidget {
   Widget _buildVendorSummary(SendBookingRequestController controller) {
     return Container(
       padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 24),
+
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -119,18 +123,11 @@ class SendBookingRequestView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const CommonText('Service Summary', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.edit_outlined, size: 14),
-              label: const CommonText('Edit', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-              style: TextButton.styleFrom(padding: EdgeInsets.zero),
-            ),
-          ],
-        ),
+        const CommonText('Service Summary', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+        const SizedBox(height: 12),
+
+
+
         Obx(() => Column(
           children: [
             // List already added services
@@ -153,12 +150,23 @@ class SendBookingRequestView extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        CommonText(
-                          '${booking['serviceType']} ($duration ${duration > 1 ? 'Days' : 'Day'})', 
-                          fontSize: 14, 
-                          fontWeight: FontWeight.bold
+                        Expanded(
+                          child: CommonText(
+                            '${booking['serviceType']} ($duration ${duration > 1 ? 'Days' : 'Day'})', 
+                            fontSize: 14, 
+                            fontWeight: FontWeight.bold
+                          ),
                         ),
-                        CommonText(currencyFormat.format(booking['basePrice']), fontSize: 14, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            CommonText(currencyFormat.format(booking['basePrice']), fontSize: 14, fontWeight: FontWeight.bold),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => controller.editService(controller.bookedServices.indexOf(booking)),
+                              child: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -267,8 +275,8 @@ class SendBookingRequestView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+
         const SizedBox(height: 16),
         Obx(() => Column(
           children: controller.coreServicesList.map((service) {
@@ -336,8 +344,8 @@ class SendBookingRequestView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+
         const SizedBox(height: 16),
         Obx(() => Column(
           children: controller.coreServicesList.map((service) {
@@ -405,8 +413,8 @@ class SendBookingRequestView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+
         const SizedBox(height: 16),
         Obx(() => Column(
           children: controller.coreServicesList.map((service) {
@@ -474,8 +482,8 @@ class SendBookingRequestView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+
         const SizedBox(height: 16),
         Obx(() => Column(
           children: controller.coreServicesList.map((service) {
@@ -613,8 +621,8 @@ class SendBookingRequestView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 24),
         const CommonText('Select Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+
         const SizedBox(height: 16),
         Obx(() => Column(
           children: controller.coreServicesList.map((service) {

@@ -29,7 +29,8 @@ class ChatController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchConversations();
+    // Use microtask to ensure this doesn't run during a build phase
+    Future.microtask(() => fetchConversations());
     _setupSocketListeners();
   }
 
@@ -49,9 +50,7 @@ class ChatController extends GetxController {
 
     // 3. Status Updated
     _socketService.socket.on('conversation:status:updated', (data) {
-      final String cid = data['conversationId'];
-      final String status = data['status'];
-      _handleStatusUpdate(cid, status);
+      _handleStatusUpdate(data);
     });
   }
 
@@ -232,7 +231,11 @@ class ChatController extends GetxController {
       );
       if (response.statusCode == 200) {
         final String? generalId = response.body['data']?['generalConversationId'];
-        _handleStatusUpdate(conversationId, 'request-accepted');
+        _handleStatusUpdate({
+          'conversationId': conversationId,
+          'status': 'request-accepted',
+          'generalConversationId': generalId,
+        });
         await fetchConversations();
         return generalId ?? conversationId;
       }
@@ -253,7 +256,10 @@ class ChatController extends GetxController {
         {'bookingId': bookingId},
       );
       if (response.statusCode == 200) {
-        _handleStatusUpdate(conversationId, 'request-declined');
+        _handleStatusUpdate({
+          'conversationId': conversationId,
+          'status': 'request-declined',
+        });
         await fetchConversations();
         return true;
       }
@@ -361,9 +367,12 @@ class ChatController extends GetxController {
     fetchConversations(); // Sync last message in sidebar
   }
 
-  void _handleStatusUpdate(String conversationId, String status) {
+  void _handleStatusUpdate(Map<String, dynamic> data) {
+    final String conversationId = data['conversationId'];
+    final String status = data['status'];
+
     if (conversationId == activeConversationId.value) {
-      // Update local messages if they share this status
+      // 2. Update local messages if they share this status
       final updatedMessages = currentMessages
           .map(
             (m) => ChatMessage(
