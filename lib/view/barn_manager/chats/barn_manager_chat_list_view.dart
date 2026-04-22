@@ -114,20 +114,12 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
 
             // 2. Tab filtering
             bool belongsToTab = false;
-            final other = c.otherUser;
             if (_selectedTab == 0) {
-              // Trainer Tab: Show anyone with trainer/bm role OR anyone with a trainer/BM profile
-              // Also show 'user' roles who aren't vendors/service providers (Clients)
-              belongsToTab = other?.role == 'trainer' || 
-                             other?.role == 'barn_manager' || 
-                             other?.trainerId != null || 
-                             other?.barnManagerId != null ||
-                             (other?.role == 'user' && other?.vendorId == null);
+              belongsToTab = c.otherUser?.role == 'trainer' ||
+                  c.otherUser?.role == 'barn_manager';
             } else {
-              // Service Provider Tab
-              belongsToTab = other?.role == 'service_provider' || 
-                             other?.role == 'vendor' || 
-                             other?.vendorId != null;
+              belongsToTab = c.otherUser?.role == 'service_provider' ||
+                  c.otherUser?.role == 'vendor';
             }
             if (!belongsToTab) return false;
 

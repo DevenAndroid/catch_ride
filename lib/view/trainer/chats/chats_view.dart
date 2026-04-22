@@ -111,19 +111,12 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
             if (c.otherUser?.id == currentUserId) return false;
 
             bool belongsToTab = false;
-            final other = c.otherUser;
             if (_selectedTab == 0) {
-              // Show trainers, bms, or regular users (Clients)
-              belongsToTab = other?.role == 'trainer' || 
-                             other?.role == 'barn_manager' || 
-                             other?.trainerId != null || 
-                             other?.barnManagerId != null ||
-                             (other?.role == 'user' && other?.vendorId == null);
+              belongsToTab = c.otherUser?.role == 'trainer' ||
+                  c.otherUser?.role == 'barn_manager';
             } else {
-              // Show service providers/vendors
-              belongsToTab = other?.role == 'service_provider' || 
-                             other?.role == 'vendor' || 
-                             other?.vendorId != null;
+              belongsToTab = c.otherUser?.role == 'service_provider' ||
+                  c.otherUser?.role == 'vendor';
             }
             return belongsToTab;
           }).toList();
