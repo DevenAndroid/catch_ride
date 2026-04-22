@@ -351,117 +351,120 @@ class _AccountSettingsViewState extends State<AccountSettingsView> {
     );
   }
 
-  void _showDeleteAccountDialog(BuildContext context) {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3F2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.delete_forever_rounded,
-                  color: Color(0xFFD92D20),
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 20),
-              const CommonText(
-                'Delete Account',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              CommonText(
-                'Are you sure you want to delete your account? All your profile information, listings, and photos will be permanently removed. This action cannot be undone.',
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        side: BorderSide(color: AppColors.border),
-                      ),
-                      child: const CommonText(
-                        'Cancel',
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        final userId = authController.currentUser.value?.id ?? '';
-                        if (userId.isEmpty) {
-                          Get.snackbar('Error', 'User ID not found');
-                          return;
-                        }
 
-                        // Close dialog before starting process
-                        Get.back();
-                        
-                        // Show a global loading indicator or use controller state
-                        final success = await controller.deleteAccount(userId);
-                        
-                        if (success) {
-                          Get.snackbar(
-                            'Account Deleted',
-                            'Your account and data have been removed.',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.green,
-                            colorText: Colors.white,
-                          );
-                          // Small delay to let the toast be seen
-                          await Future.delayed(const Duration(seconds: 1));
-                          authController.logout();
-                        } else {
-                          Get.snackbar(
-                            'Error',
-                            'Failed to delete account. Please contact support.',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.red,
-                            colorText: Colors.white,
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD92D20),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const CommonText(
-                        'Delete',
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+}
+void showDeleteAccountDialog(BuildContext context) {
+  final SettingsController controller = Get.put(SettingsController());
+  final AuthController authController = Get.find<AuthController>();
+  Get.dialog(
+    Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3F2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.delete_forever_rounded,
+                color: Color(0xFFD92D20),
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const CommonText(
+              'Delete Account',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            CommonText(
+              'Are you sure you want to delete your account? All your profile information, listings, and photos will be permanently removed. This action cannot be undone.',
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.back(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      side: BorderSide(color: AppColors.border),
+                    ),
+                    child: const CommonText(
+                      'Cancel',
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final userId = authController.currentUser.value?.id ?? '';
+                      if (userId.isEmpty) {
+                        Get.snackbar('Error', 'User ID not found');
+                        return;
+                      }
+
+                      // Close dialog before starting process
+                      Get.back();
+
+                      // Show a global loading indicator or use controller state
+                      final success = await controller.deleteAccount(userId);
+
+                      if (success) {
+                        Get.snackbar(
+                          'Account Deleted',
+                          'Your account and data have been removed.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.green,
+                          colorText: Colors.white,
+                        );
+                        // Small delay to let the toast be seen
+                        await Future.delayed(const Duration(seconds: 1));
+                        authController.logout();
+                      } else {
+                        Get.snackbar(
+                          'Error',
+                          'Failed to delete account. Please contact support.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFD92D20),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const CommonText(
+                      'Delete',
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      barrierDismissible: false,
-    );
-  }
+    ),
+    barrierDismissible: false,
+  );
 }

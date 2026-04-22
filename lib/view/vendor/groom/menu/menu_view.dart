@@ -122,6 +122,16 @@ class MenuView extends StatelessWidget {
               _buildMenuItem(Icons.description_outlined, 'Privacy policy', onTap: () => Get.to(() => const PrivacyPolicyView())),
               _buildMenuItem(Icons.description_outlined, 'Terms & conditions', onTap: () => Get.to(() => const TermsAndConditionsView())),
             ]),
+
+            const SizedBox(height: 24),
+            _buildSectionHeader('Account'),
+            _buildMenuCard([
+              _buildMenuItem(
+                Icons.delete_outline_rounded,
+                'Delete Account',
+                onTap: () => showDeleteAccountDialog(context),
+              ),
+            ]),
             const SizedBox(height: 32),
             _buildLogoutButton(),
             const SizedBox(height: 40),

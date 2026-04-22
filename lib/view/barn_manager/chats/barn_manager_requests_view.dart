@@ -1,12 +1,15 @@
-import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/controllers/profile_controller.dart';
-import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
-import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
-import 'package:catch_ride/models/message_model.dart';
+import 'package:catch_ride/models/booking_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
+import '../../../constant/app_colors.dart';
+import '../../../controllers/profile_controller.dart';
+import '../../../widgets/common_image_view.dart';
+import '../../../widgets/common_text.dart';
+import 'barn_manager_single_chat_view.dart';
 
 class BarnManagerRequestsView extends StatefulWidget {
   const BarnManagerRequestsView({super.key});
@@ -17,12 +20,17 @@ class BarnManagerRequestsView extends StatefulWidget {
 
 class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
   final ChatController controller = Get.find<ChatController>();
-
+  final BookingController bookingController = Get.isRegistered<BookingController>() 
+      ? Get.find<BookingController>() 
+      : Get.put(BookingController());
 
   @override
   void initState() {
-    controller.fetchConversations();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.find<BookingController>().fetchBookings(type: 'received');
+      Get.find<ChatController>().fetchConversations();
+    });
   }
 
   @override
@@ -55,21 +63,17 @@ class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
         ),
       ),
       body: Obx(() {
-        final currentUserId = Get.find<ProfileController>().id;
-        final requests = controller.conversations
-            .where(
-              (c) =>
-                  c.status == 'request-pending' && c.senderId != currentUserId,
-            )
+        final pendingBookings = bookingController.receivedBookings
+            .where((b) => b.status == 'pending' || b.status == 'requested')
             .toList();
 
         return Stack(
           children: [
-            if (controller.isLoadingConversations.value && requests.isEmpty)
+            if (bookingController.isLoading.value && pendingBookings.isEmpty)
               const Center(child: CircularProgressIndicator())
-            else if (requests.isEmpty)
+            else if (pendingBookings.isEmpty)
               RefreshIndicator(
-                onRefresh: () async => controller.fetchConversations(),
+                onRefresh: () async => bookingController.fetchBookings(type: 'received'),
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   children: [
@@ -87,14 +91,14 @@ class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
               )
             else
               RefreshIndicator(
-                onRefresh: () async => controller.fetchConversations(),
+                onRefresh: () async => bookingController.fetchBookings(type: 'received'),
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  itemCount: requests.length,
+                  itemCount: pendingBookings.length,
                   itemBuilder: (context, index) {
-                    return RequestCard(request: requests[index]);
+                    return RequestCard(booking: pendingBookings[index]);
                   },
                 ),
               ),
@@ -113,25 +117,31 @@ class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
 }
 
 class RequestCard extends StatelessWidget {
-  final ChatConversation request;
-  const RequestCard({super.key, required this.request});
+  final BookingModel booking;
+  const RequestCard({super.key, required this.booking});
 
   @override
   Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
-    final String name = request.otherUser?.name ?? 'Unknown';
-    final String role = request.otherUser?.role ?? 'User';
-    final String? avatar = request.otherUser?.avatar;
+    final ChatController chatController = Get.find<ChatController>();
+    final String name = booking.clientName ?? 'Unknown';
+    final String role = booking.acceptedByRole ?? 'User';
+    final String? avatar = booking.clientImage;
 
     return GestureDetector(
-      onTap: () => Get.to(
-        () => SingleChatView(
-          name: name,
-          image: avatar ?? '',
-          conversationId: request.conversationId,
-          otherId: request.otherUser?.id,
-        ),
-      ),
+      onTap: () {
+         final String cid = chatController.getNormalizedConversationId(
+              booking.clientId ?? '', 
+              Get.find<ProfileController>().id
+            );
+        Get.to(
+          () => BarnManagerSingleChatView(
+            name: name,
+            image: avatar ?? '',
+            conversationId: cid,
+            otherId: booking.clientId,
+          ),
+        );
+      },
       child: Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -210,13 +220,13 @@ class RequestCard extends StatelessWidget {
                   Stack(
                     children: [
                       CommonImageView(
-                        url: request.booking?.horseImage,
+                        url: booking.horseImage,
                         height: 80,
                         width: 80,
                         radius: 8,
                         fit: BoxFit.cover,
                       ),
-                      if (request.booking?.type != null)
+                      if (booking.type.isNotEmpty)
                         Positioned(
                           top: 4,
                           right: 4,
@@ -230,7 +240,7 @@ class RequestCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: CommonText(
-                              request.booking!.type,
+                              booking.type,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
@@ -248,30 +258,13 @@ class RequestCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             CommonText(
-                              request.booking?.horseName ?? "Booking Request",
+                              booking.horseName ?? "Booking Request",
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
-                            if (request.booking?.type != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF2F4F7),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: CommonText(
-                                  request.booking!.type,
-                                  fontSize: 12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
                           ],
                         ),
-                        const SizedBox(height: 8),
                         Row(
                           children: [
                             const Icon(
@@ -282,7 +275,7 @@ class RequestCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: CommonText(
-                                request.booking?.location ?? 'N/A',
+                                booking.location ?? 'N/A',
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                                 maxLines: 1,
@@ -301,7 +294,7 @@ class RequestCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             CommonText(
-                              request.booking?.date ?? 'N/A',
+                              booking.date,
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -328,9 +321,7 @@ class RequestCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  request.booking?.notes ??
-                      request.lastMessage ??
-                      'No message provided',
+                  booking.notes ?? 'No message provided',
                   fontSize: 14,
                   color: AppColors.textPrimary,
                   maxLines: 5,
@@ -347,11 +338,14 @@ class RequestCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      final success = await controller.declineRequest(
-                        request.conversationId,
-                        bookingId: request.booking?.id,
-                      );
+                      final bController = Get.find<BookingController>();
+                      bool success = await bController.updateBookingStatus(
+                        booking.id!, 
+                        'rejected'
+                      ) != null;
+                      
                       if (success) {
+                        chatController.fetchConversations();
                         Get.snackbar(
                           'Success',
                           'Request declined',
@@ -394,30 +388,27 @@ class RequestCard extends StatelessWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () async {
-                      final String? generalId = await controller.acceptRequest(
-                        request.conversationId,
-                        bookingId: request.booking?.id,
+                      final bController = Get.find<BookingController>();
+                      final result = await bController.updateBookingStatus(
+                        booking.id!, 
+                        'confirmed'
                       );
-                      if (generalId != null) {
-                        Get.snackbar(
-                          'Success',
-                          'Request accepted',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: const Color(0xFF17B26A),
-                          colorText: Colors.white,
-                          barBlur: 0,
-                          margin: const EdgeInsets.all(16),
-                        );
-
-                        // Redirect to the same chat view (unlocked)
-                        Get.to(() => SingleChatView(
+                      
+                      if (result != null && result is Map) {
+                        final String? generalId = result['conversationId'];
+                        
+                        // Refresh chat list to reflect acceptance
+                        chatController.fetchConversations();
+                        
+                        // Redirect directly to the chat view
+                        Get.to(() => BarnManagerSingleChatView(
                               name: name,
                               image: avatar ?? '',
-                              conversationId: request.conversationId,
-                              otherId: request.otherUser?.id,
+                              conversationId: generalId ?? '', 
+                              otherId: booking.clientId,
                             ));
                       } else {
-                        Get.snackbar('Error', 'Failed to accept request');
+                        Get.snackbar('Error', 'Failed to accept booking');
                       }
                     },
                     child: Container(

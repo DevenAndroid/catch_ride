@@ -238,7 +238,18 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                           const SizedBox(width: 8),
                           _buildBannerButton(
                             'Accept',
-                            () => controller.acceptRequest(widget.conversationId),
+                            () async {
+                               final generalId = await controller.acceptRequest(widget.conversationId);
+                               if (generalId != null && generalId != widget.conversationId) {
+                                  // Navigate to new active thread and replace this current screen
+                                  Get.off(() => BarnManagerSingleChatView(
+                                      name: widget.name,
+                                      image: widget.image,
+                                      conversationId: generalId,
+                                      otherId: widget.otherId,
+                                  ));
+                               }
+                            }
                           ),
                         ],
                       );
@@ -259,7 +270,19 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                     if (controller.currentMessages.isNotEmpty) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (_scrollController.hasClients) {
-                           _scrollController.jumpTo(0);
+                          // Check if this is the first load or if we are already at the bottom
+                          final isAtBottom = _scrollController.offset < 50;
+                          
+                          if (isAtBottom) {
+                             _scrollController.animateTo(
+                                0.0,
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeOut,
+                              );
+                          } else {
+                            // If it's the very first render and we haven't scrolled yet, jump to bottom
+                             // Otherwise, don't interrupt the user's reading.
+                          }
                         }
                       });
                     }
@@ -312,6 +335,38 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
 
                         final bool isMe = (msg.senderId == currentUserId && currentUserId.isNotEmpty) ||
                             msg.senderName == 'You';
+                        final bool isSystem = msg.senderId == 'system' ||
+                            msg.status == 'request-declined' ||
+                            msg.status == 'request-blocked' ||
+                            msg.content.startsWith('[System]:');
+
+                        if (isSystem) {
+                          String displayContent = msg.content;
+                          if (displayContent.startsWith('[System]:')) {
+                            displayContent =
+                                displayContent.replaceFirst('[System]:', '').trim();
+                          }
+                          return Center(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF9FAFB),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: CommonText(
+                                displayContent,
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                textAlign: TextAlign.center,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }
 
                         return ChatBubble(
                           message: msg.content,

@@ -185,8 +185,9 @@ class _SingleChatViewState extends State<SingleChatView> {
         final isLoading = controller.isUpdatingStatus.value;
         return Stack(
           children: [
-            Column(
-              children: [
+            Positioned.fill(
+              child: Column(
+                children: [
                 // Offline Banner
                 Obx(() {
                   final isConnected =
@@ -216,46 +217,14 @@ class _SingleChatViewState extends State<SingleChatView> {
                   );
                 }),
 
-                // Banner for Pending/Declined status
+                // Banner for Declined/Blocked status
                 Obx(() {
                   final convo = controller.conversations.firstWhereOrNull(
                     (c) => c.conversationId == widget.conversationId,
                   );
                   if (convo == null) return const SizedBox.shrink();
 
-                  final currentUserId = Get.find<ProfileController>().id;
-                  final isSender = convo.senderId == currentUserId;
-
-                  if (convo.status == 'request-pending') {
-                    if (isSender) {
-                      return _buildStatusBanner(
-                        'Request Pending',
-                        'Waiting for professional to accept your request',
-                        Colors.blue.shade50,
-                        Colors.blue,
-                      );
-                    } else {
-                      return _buildStatusBanner(
-                        'Waiting for your response',
-                        'Accept request to start chatting',
-                        Colors.orange.shade50,
-                        Colors.orange,
-                        actions: [
-                          _buildBannerButton(
-                            'Decline',
-                            () =>
-                                controller.declineRequest(widget.conversationId),
-                            isAction: false,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildBannerButton(
-                            'Accept',
-                            () => controller.acceptRequest(widget.conversationId),
-                          ),
-                        ],
-                      );
-                    }
-                  } else if (convo.status == 'request-declined') {
+                  if (convo.status == 'request-declined') {
                     return _buildStatusBanner(
                       'Conversation Restricted',
                       'This request has been declined.',
@@ -278,7 +247,19 @@ class _SingleChatViewState extends State<SingleChatView> {
                     if (controller.currentMessages.isNotEmpty) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (_scrollController.hasClients) {
-                           _scrollController.jumpTo(0);
+                          // Check if this is the first load or if we are already at the bottom
+                          final isAtBottom = _scrollController.offset < 50;
+                          
+                          if (isAtBottom) {
+                             _scrollController.animateTo(
+                                0.0,
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeOut,
+                              );
+                          } else {
+                            // If it's the very first render and we haven't scrolled yet, jump to bottom
+                             // Otherwise, don't interrupt the user's reading.
+                          }
                         }
                       });
                     }
@@ -333,9 +314,14 @@ class _SingleChatViewState extends State<SingleChatView> {
                             msg.senderName == 'You';
                         final bool isSystem = msg.senderId == 'system' ||
                             msg.status == 'request-declined' ||
-                            msg.status == 'request-blocked';
+                            msg.status == 'request-blocked' ||
+                            msg.content.startsWith('[System]:');
 
                         if (isSystem) {
+                          String displayContent = msg.content;
+                          if (displayContent.startsWith('[System]:')) {
+                            displayContent = displayContent.replaceFirst('[System]:', '').trim();
+                          }
                           return Center(
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 12),
@@ -348,10 +334,11 @@ class _SingleChatViewState extends State<SingleChatView> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: CommonText(
-                                msg.content,
+                                displayContent,
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                                 textAlign: TextAlign.center,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           );
@@ -371,21 +358,10 @@ class _SingleChatViewState extends State<SingleChatView> {
                   }),
                 ),
 
-                Obx(() {
-                  final convo = controller.conversations.firstWhereOrNull(
-                    (c) => c.conversationId == widget.conversationId,
-                  );
-                  final bool canChat = convo?.status != 'request-declined' &&
-                      convo?.status != 'request-pending' &&
-                      convo?.status != 'request-blocked';
-
-                  if (!canChat || widget.readOnly)
-                    return const SizedBox.shrink();
-
-                  return _buildMessageInput(textController, controller);
-                }),
+                if (!widget.readOnly) _buildMessageInput(textController, controller),
               ],
             ),
+          ),
             if (isLoading)
               Container(
                 color: Colors.black.withOpacity(0.3),
