@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -22,9 +23,10 @@ class GoogleApiController extends GetxController{
 
     try {
       final url =
-          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey";
+          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey&types=(regions)";
 
       final response = await http.get(Uri.parse(url));
+      log(jsonEncode(jsonDecode(response.body)));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

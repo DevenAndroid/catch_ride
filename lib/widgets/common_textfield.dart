@@ -46,8 +46,12 @@ class CommonTextField extends StatelessWidget {
     this.border,
     this.enabledBorder,
     this.contentPadding,
-  //  this.textCapitalization
+    this.onChanged,
+    this.focusNode,
   });
+
+  final Function(String)? onChanged;
+  final FocusNode? focusNode;
 
 
   @override
@@ -87,6 +91,7 @@ class CommonTextField extends StatelessWidget {
         ],
         TextFormField(
           controller: controller,
+          focusNode: focusNode,
           obscureText: obscureText,
           keyboardType: keyboardType,
           maxLines: maxLines,
@@ -110,7 +115,7 @@ class CommonTextField extends StatelessWidget {
             enabledBorder: enabledBorder,
             contentPadding: contentPadding,
           ),
-
+          onChanged: onChanged,
         ),
       ],
     );

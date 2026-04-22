@@ -797,7 +797,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                 ),
                                 const SizedBox(width: 4),
                                 CommonText(
-                                  horse!.bookingDates!,
+                                  DateUtil.formatRangeString(horse!.bookingDates),
                                   fontSize: AppTextSizes.size12,
                                   color: AppColors.textSecondary,
                                 ),
@@ -1068,7 +1068,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       ? 'N/A'
                       : horse!.usefNumber.toString(),
                   onLabelTap: () async {
-                    final Uri url = Uri.parse('https://www.usef.org/');
+                    final Uri url = Uri.parse('https://www.usef.org/search/horses');
                     if (!await launchUrl(url)) {
                       Get.snackbar('Error', 'Could not launch $url');
                     }
@@ -1553,11 +1553,22 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 ),
               ),
               const SizedBox(height: 24),
-              const CommonText(
-                'Request a Trial',
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const CommonText(
+                    'Request a Trial',
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(Icons.close, color: AppColors.textPrimary),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -1577,11 +1588,102 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     ? DateFormat('dd MMM yyyy').format(startDate!)
                     : 'Select Date',
                 () async {
+                  if (selectedLocation == null) {
+                    Get.snackbar(
+                      'Select Location',
+                      'Please select a location first to see available dates.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.orange,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+
+                  // Find a valid initial date that satisfies the predicate
+                  DateTime initial = startDate ?? DateTime.now();
+                  
+                  if (selectedLocation != horse!.location) {
+                    final matchingShows = horse!.showAvailability.where(
+                      (s) => s.cityState == selectedLocation,
+                    );
+                    
+                    bool isInitialValid = false;
+                    DateTime? firstShowStart;
+
+                    for (var show in matchingShows) {
+                      final sDate = DateTime.tryParse(show.startDate);
+                      final eDate = DateTime.tryParse(show.endDate);
+                      if (sDate != null && eDate != null) {
+                        if (firstShowStart == null || sDate.isBefore(firstShowStart)) {
+                          firstShowStart = sDate;
+                        }
+                        
+                        final dateOnly = DateTime(initial.year, initial.month, initial.day);
+                        final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
+                        final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
+                        
+                        if ((dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
+                            (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly))) {
+                          isInitialValid = true;
+                          break;
+                        }
+                      }
+                    }
+
+                    if (!isInitialValid && firstShowStart != null) {
+                      // If today is before the show, use show start. 
+                      // If today is after the show, this show is technically invalid (handled by predicate)
+                      // but we must provide a valid initialDate for the picker to open.
+                      initial = firstShowStart.isBefore(DateTime.now()) ? DateTime.now() : firstShowStart;
+                      
+                      // Final check: if even firstShowStart is not valid (e.g. show ended), 
+                      // we'll just use firstShowStart as a fallback to avoid crash, 
+                      // though the user will see all days grayed out.
+                      if (firstShowStart.isBefore(DateTime.now())) {
+                        // Keep it as is or handle "Show ended" earlier
+                      }
+                    }
+                  }
+
                   final date = await showDatePicker(
                     context: context,
-                    initialDate: startDate ?? DateTime.now(),
+                    initialDate: initial,
                     firstDate: DateTime.now(),
                     lastDate: DateTime.now().add(const Duration(days: 365)),
+                    selectableDayPredicate: (DateTime day) {
+                      if (selectedLocation == horse!.location) return true;
+
+                      final matchingShows = horse!.showAvailability.where(
+                        (s) => s.cityState == selectedLocation,
+                      );
+                      if (matchingShows.isEmpty) return false;
+
+                      final dateOnly = DateTime(day.year, day.month, day.day);
+
+                      for (var show in matchingShows) {
+                        final sDate = DateTime.tryParse(show.startDate);
+                        final eDate = DateTime.tryParse(show.endDate);
+                        if (sDate != null && eDate != null) {
+                          final startOnly = DateTime(
+                            sDate.year,
+                            sDate.month,
+                            sDate.day,
+                          );
+                          final endOnly = DateTime(
+                            eDate.year,
+                            eDate.month,
+                            eDate.day,
+                          );
+                          if ((dateOnly.isAtSameMomentAs(startOnly) ||
+                                  dateOnly.isAfter(startOnly)) &&
+                              (dateOnly.isAtSameMomentAs(endOnly) ||
+                                  dateOnly.isBefore(endOnly))) {
+                            return true;
+                          }
+                        }
+                      }
+                      return false;
+                    },
                   );
                   if (date != null) {
                     setSheetState(() {
@@ -1599,6 +1701,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
               ),
+              const SizedBox(height: 4),
+              const CommonText(
+                'Note: Trials can be requested at horse shows or the horse\'s home location.',
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -1614,15 +1722,18 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   child: DropdownButton<String>(
                     value: selectedLocation,
                     isExpanded: true,
-                    items: horse!.showAvailability
-                        .map((show) => show.showVenue)
-                        .where((venue) => venue.isNotEmpty)
-                        .toSet() // Unique venues
+                    items: {
+                      if (horse!.location != null && horse!.location!.isNotEmpty)
+                        horse!.location!,
+                      ...horse!.showAvailability
+                          .map((show) => show.cityState)
+                          .where((venue) => venue.isNotEmpty)
+                    }
                         .map(
                           (venue) => DropdownMenuItem(
                             value: venue,
                             child: CommonText(
-                              venue,
+                              venue == horse!.location ? "$venue (Home)" : venue,
                               fontSize: 14,
                               color: AppColors.textPrimary,
                             ),
@@ -1637,6 +1748,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     onChanged: (val) {
                       setSheetState(() {
                         selectedLocation = val;
+                        // Reset date if it's invalid for the new location
+                        if (startDate != null && val != horse!.location) {
+                          final show = horse!.showAvailability.firstWhereOrNull(
+                            (s) => s.cityState == val,
+                          );
+                          if (show != null) {
+                            final sDate = DateTime.tryParse(show.startDate);
+                            final eDate = DateTime.tryParse(show.endDate);
+                            if (sDate != null && startDate!.isBefore(sDate)) {
+                              startDate = null;
+                            }
+                            if (eDate != null &&
+                                startDate != null &&
+                                startDate!.isAfter(eDate)) {
+                              startDate = null;
+                            }
+                          }
+                        }
                       });
                     },
                   ),
@@ -1720,6 +1849,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         onTap: bookingController.isLoading.value
                             ? null
                             : () async {
+
+
                                 if (startDate == null) {
                                   Get.snackbar(
                                     'Error',

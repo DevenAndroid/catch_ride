@@ -20,6 +20,7 @@ class TrainerCommunityStandardsView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
+        leading: SizedBox(),
         title: const CommonText(
           'Community Standards',
           fontSize: AppTextSizes.size18,

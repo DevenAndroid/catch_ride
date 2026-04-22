@@ -1693,8 +1693,11 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: ' *',
-                                    style: TextStyle(color: Color(0xFFD92D20)),
+                                    text: ' (optional)',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                   ),
                                 ],
                               ),

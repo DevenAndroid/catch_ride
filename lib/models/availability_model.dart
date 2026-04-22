@@ -3,6 +3,7 @@ class AvailabilityModel {
   final String? showId;
   final String cityState;
   final String showVenue;
+  final String? showName;
   final String startDate;
   final String endDate;
   final bool isActive;
@@ -12,6 +13,7 @@ class AvailabilityModel {
     this.showId,
     required this.cityState,
     required this.showVenue,
+    this.showName,
     required this.startDate,
     required this.endDate,
     this.isActive = true,
@@ -25,6 +27,7 @@ class AvailabilityModel {
           : null,
       cityState: json['cityState'] ?? '',
       showVenue: json['showVenue'] ?? '',
+      showName: json['showName'],
       startDate: json['startDate'] ?? '',
       endDate: json['endDate'] ?? '',
       isActive: json['isActive'] ?? true,
@@ -37,6 +40,7 @@ class AvailabilityModel {
       if (showId != null) 'showId': showId,
       'cityState': cityState,
       'showVenue': showVenue,
+      if (showName != null) 'showName': showName,
       'startDate': startDate,
       'endDate': endDate,
       'isActive': isActive,
