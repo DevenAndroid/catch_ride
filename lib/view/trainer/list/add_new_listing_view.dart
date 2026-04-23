@@ -1724,8 +1724,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: ' *',
-                                    style: TextStyle(color: Color(0xFFD92D20)),
+                                    text: ' (optional)',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.normal,
+                                    ),
                                   ),
                                 ],
                               ),

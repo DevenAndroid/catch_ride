@@ -34,12 +34,62 @@ class DateUtil {
   }
 
   static String formatRange(dynamic start, dynamic end) {
-    final s = formatDisplayDate(start);
-    final e = formatDisplayDate(end);
-    if (s.isEmpty && e.isEmpty) return '';
-    if (s.isEmpty) return e;
-    if (e.isEmpty) return s;
-    return '$s - $e';
+    if (start == null && end == null) return '';
+
+    DateTime? startDate;
+    if (start is DateTime) {
+      startDate = start;
+    } else if (start is String && start.isNotEmpty) {
+      startDate = DateTime.tryParse(start);
+      if (startDate == null) {
+        try {
+          startDate = DateFormat('dd MMM yyyy').parse(start);
+        } catch (_) {
+          try {
+            startDate = DateFormat('yyyy-MM-dd').parse(start);
+          } catch (_) {}
+        }
+      }
+    }
+
+    DateTime? endDate;
+    if (end is DateTime) {
+      endDate = end;
+    } else if (end is String && end.isNotEmpty) {
+      endDate = DateTime.tryParse(end);
+      if (endDate == null) {
+        try {
+          endDate = DateFormat('dd MMM yyyy').parse(end);
+        } catch (_) {
+          try {
+            endDate = DateFormat('yyyy-MM-dd').parse(end);
+          } catch (_) {}
+        }
+      }
+    }
+
+    if (startDate == null && endDate == null) return '';
+    if (startDate == null) return DateFormat(displayFormat).format(endDate!);
+    if (endDate == null) return DateFormat(displayFormat).format(startDate);
+
+    if (startDate.year == endDate.year) {
+      return "${DateFormat('dd MMM').format(startDate)} - ${DateFormat('dd MMM yyyy').format(endDate)}";
+    }
+
+    return "${DateFormat(displayFormat).format(startDate)} - ${DateFormat(displayFormat).format(endDate)}";
+  }
+
+  static String formatRangeString(String? rangeStr) {
+    if (rangeStr == null || rangeStr.isEmpty || rangeStr == 'N/A') return 'N/A';
+    if (rangeStr.contains(' to ')) {
+      final parts = rangeStr.split(' to ');
+      return formatRange(parts[0], parts[1]);
+    }
+    if (rangeStr.contains(' - ')) {
+      final parts = rangeStr.split(' - ');
+      return formatRange(parts[0], parts[1]);
+    }
+    return formatDisplayDate(rangeStr);
   }
 
   static String formatDate(dynamic date, {String format = displayFormat}) {

@@ -13,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import '../../controllers/google_api_controller.dart';
 import '../../utils/validators.dart';
 
 class TrainerCompleteProfileView extends StatefulWidget {
@@ -27,6 +28,7 @@ class TrainerCompleteProfileView extends StatefulWidget {
 class _TrainerCompleteProfileViewState
     extends State<TrainerCompleteProfileView> {
   final ProfileController profileController = Get.put(ProfileController());
+  final GoogleApiController googleApiController = Get.put(GoogleApiController());
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -39,6 +41,9 @@ class _TrainerCompleteProfileViewState
   final TextEditingController _yearsController = TextEditingController();
   final TextEditingController _searchCircuitsController =
       TextEditingController();
+  
+  final FocusNode _location1Focus = FocusNode();
+  final FocusNode _location2Focus = FocusNode();
 
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
@@ -114,6 +119,13 @@ class _TrainerCompleteProfileViewState
     _searchCircuitsController.addListener(() {
       setState(() {});
     });
+
+    _location1Focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+    _location2Focus.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -126,6 +138,8 @@ class _TrainerCompleteProfileViewState
     _location2Controller.dispose();
     _yearsController.dispose();
     _searchCircuitsController.dispose();
+    _location1Focus.dispose();
+    _location2Focus.dispose();
     super.dispose();
   }
 
@@ -136,20 +150,25 @@ class _TrainerCompleteProfileViewState
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
-          onPressed: () => Get.back(),
-        ),
+        centerTitle: true,
+        leading: SizedBox(),
+        // leading: IconButton(
+        //   icon: const Icon(
+        //     Icons.arrow_back_ios_new,
+        //     color: AppColors.textPrimary,
+        //     size: 20,
+        //   ),
+        //   onPressed: () => Get.back(),
+        // ),
         title: const CommonText(
           'Complete your Profile',
           fontSize: 20,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: AppColors.border, height: 1.0),
         ),
       ),
       body: Column(
@@ -363,17 +382,19 @@ class _TrainerCompleteProfileViewState
           ),
         ),
         const SizedBox(height: 20),
-        _buildTextField(
+        _buildLocationField(
           'Location I',
           _location1Controller,
+          focusNode: _location1Focus,
           hint: 'Enter barn location',
           isRequired: true,
-          validator: RequiredValidator(errorText: 'Please enter your location'),
+          validator: RequiredValidator(errorText: 'Please enter your location').call,
         ),
         const SizedBox(height: 20),
-        _buildTextField(
+        _buildLocationField(
           'Location II',
           _location2Controller,
+          focusNode: _location2Focus,
           hint: 'Enter barn location',
           suffix: '(optional)',
         ),
@@ -454,14 +475,6 @@ class _TrainerCompleteProfileViewState
         ),
       ],
     );
-  }
-
-  String _toTitleCase(String text) {
-    if (text.isEmpty) return text;
-    return text.toLowerCase().split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1);
-    }).join(' ');
   }
 
   String _normalizeHorseShow(String text) {
@@ -591,8 +604,8 @@ class _TrainerCompleteProfileViewState
                                 }
                               },
                               child: isSelected
-                                  ? _buildSelectedTag(_toTitleCase(label))
-                                  : _buildTag(_toTitleCase(label)),
+                                  ? _buildSelectedTag(label)
+                                  : _buildTag(label),
                             );
                           }).toList(),
                         ),
@@ -760,7 +773,7 @@ class _TrainerCompleteProfileViewState
             children: _selectedHorseShows.map((tag) {
               return GestureDetector(
                 onTap: () => _selectedHorseShows.remove(tag),
-                child: _buildSelectedTag(_toTitleCase(tag)),
+                child: _buildSelectedTag(tag),
               );
             }).toList(),
           );
@@ -908,7 +921,7 @@ class _TrainerCompleteProfileViewState
                           runSpacing: 12,
                           children: filteredValues.map((val) {
                             final tagId = val['_id'] ?? '';
-                            final tagName = _toTitleCase(val['name'] ?? '');
+                            final tagName = val['name'] ?? '';
                             final isSelected = _selectedTags.contains(tagId);
 
                             return GestureDetector(
@@ -1041,6 +1054,80 @@ class _TrainerCompleteProfileViewState
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildLocationField(
+    String label,
+    TextEditingController controller, {
+    required FocusNode focusNode,
+    String? hint,
+    bool isRequired = false,
+    String? suffix,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonTextField(
+          label: label,
+          controller: controller,
+          focusNode: focusNode,
+          hintText: hint ?? '',
+          isRequired: isRequired,
+          suffixLabel: suffix,
+          validator: validator,
+          onChanged: (val) {
+            googleApiController.searchGooglePlaces(val);
+          },
+        ),
+        Obx(() {
+          if (googleApiController.googleSuggestions.isEmpty || 
+              !controller.text.isNotEmpty || 
+              !focusNode.hasFocus) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(top: 4),
+            constraints: const BoxConstraints(maxHeight: 200),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: googleApiController.googleSuggestions.length,
+              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
+              itemBuilder: (context, index) {
+                final suggestion = googleApiController.googleSuggestions[index];
+                return ListTile(
+                  dense: true,
+                  title: CommonText(
+                    suggestion['name'] ?? '',
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  onTap: () {
+                    controller.text = suggestion['name'] ?? '';
+                    googleApiController.googleSuggestions.clear();
+                    FocusScope.of(context).unfocus();
+                  },
+                );
+              },
+            ),
+          );
+        }),
       ],
     );
   }

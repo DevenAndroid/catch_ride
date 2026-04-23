@@ -271,12 +271,12 @@ class ExploreController extends GetxController {
       queryParams['page'] = currentPage.value.toString();
       queryParams['limit'] = limit.toString();
 
-      if (trainerId.isNotEmpty) {
-        queryParams['excludeTrainerId'] = trainerId;
-      }
-      if (currentUserId.isNotEmpty) {
-        queryParams['excludeOwnerId'] = currentUserId;
-      }
+      // if (trainerId.isNotEmpty) {
+      //   queryParams['excludeTrainerId'] = trainerId;
+      // }
+      // if (currentUserId.isNotEmpty) {
+      //   queryParams['excludeOwnerId'] = currentUserId;
+      // }
 
       if (selectedDiscipline.value != 'All') {
         queryParams['discipline'] = selectedDiscipline.value;
@@ -388,6 +388,14 @@ class ExploreController extends GetxController {
       }
       if (location.value.isNotEmpty) {
         queryParams['location'] = location.value;
+      }
+
+      if (startDate.value != null) {
+        queryParams['startDate'] = DateFormat('yyyy-MM-dd').format(startDate.value!);
+      }
+
+      if (endDate.value != null) {
+        queryParams['endDate'] = DateFormat('yyyy-MM-dd').format(endDate.value!);
       }
 
       // Add grooming filters

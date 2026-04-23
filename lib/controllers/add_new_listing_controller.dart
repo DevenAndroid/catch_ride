@@ -616,8 +616,7 @@ class AddNewListingController extends GetxController {
         isUploadingVideo.value = true;
         uploadProgress.value = 0.0;
         
-        final String signUrlEndpoint =
-            "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
+        final String signUrlEndpoint = "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
         
         final signResponse = await http.get(
           Uri.parse(signUrlEndpoint),
@@ -940,27 +939,7 @@ class AddNewListingController extends GetxController {
   }
 
   bool validateStep5() {
-    if (activeStatus.value) {
-      if (availabilityEntries.isEmpty) {
-        _showError('Please add at least one availability entry');
-        return false;
-      }
-
-      bool anyFilled = false;
-      for (var entry in availabilityEntries) {
-        if (entry.showVenueController.text.trim().isNotEmpty ||
-            entry.cityStateController.text.trim().isNotEmpty ||
-            entry.startDateController.text.trim().isNotEmpty) {
-          anyFilled = true;
-          break;
-        }
-      }
-
-      if (!anyFilled) {
-        _showError('Please fill in at least one availability entry detail');
-        return false;
-      }
-    }
+    // Horse show availability is now optional
     return true;
   }
 

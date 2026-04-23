@@ -8,13 +8,11 @@ import 'package:catch_ride/view/trainer/settings/notification_settings_view.dart
 import 'package:catch_ride/view/trainer/settings/invite_barn_manager_view.dart';
 import 'package:catch_ride/view/trainer/settings/terms_and_conditions_view.dart';
 import 'package:catch_ride/view/trainer/settings/edit_profile.dart';
-import 'package:catch_ride/view/trainer/settings/horses_services_view.dart';
 import 'package:catch_ride/view/trainer/settings/refer_new_member_view.dart';
 import 'package:catch_ride/view/trainer/settings/get_help_view.dart';
 import 'package:catch_ride/view/trainer/settings/feedback_view.dart';
 import 'package:catch_ride/view/trainer/settings/trainer_profile_view.dart';
 import 'package:catch_ride/view/trainer/settings/view_all_horses_view.dart';
-import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
