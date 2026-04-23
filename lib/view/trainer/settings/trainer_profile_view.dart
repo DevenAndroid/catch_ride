@@ -28,13 +28,15 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final bool isTrainer = _controller.user.value?.role == 'trainer';
-      final bool isSameId =
+      // A user is viewing their OWN trainer profile only if:
+      //   - They are actually a 'trainer' (not a barn_manager who shares the trainerProfileId)
+      //   - AND the provided trainerId matches their own trainerProfileId
+      final bool isOwnTrainerProfile =
+          _controller.user.value?.role == 'trainer' &&
           widget.trainerId == _controller.user.value?.trainerProfileId;
-      print("www  ${widget.trainerId}");
-      print("www  ${_controller.user.value?.trainerProfileId}");
 
-      if (widget.trainerId != null && (!isTrainer || !isSameId)) {
+      if (widget.trainerId != null && !isOwnTrainerProfile) {
+        // Viewing another trainer's public profile (includes barn manager viewing their linked trainer)
         _controller.fetchPublicTrainerProfile(widget.trainerId!);
       } else {
         // Viewing own profile or no ID provided (which defaults to own profile)
@@ -47,29 +49,58 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
   @override
   void dispose() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fetchProfile();
-    });
-    // Clear viewed user when leaving this screen to prevent state leakage
-    // only if we were actually viewing someone else
-    if (widget.trainerId != null &&
-        widget.trainerId != _controller.user.value?.trainerProfileId) {
+    // Determine if we were viewing someone else's profile
+    final bool wasViewingOther =
+        widget.trainerId != null &&
+        !(_controller.user.value?.role == 'trainer' &&
+            widget.trainerId == _controller.user.value?.trainerProfileId);
+
+    if (wasViewingOther) {
+      // Eagerly clear viewed state BEFORE the async fetchProfile so there is
+      // no race condition where the caller's screen briefly shows trainer data.
       _controller.viewedUser.value = null;
       _controller.viewedUserHorses.clear();
     }
 
+    // Restore the logged-in user's own profile data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fetchProfile();
+    });
 
     super.dispose();
   }
 
+  /// Clears the viewed-user state BEFORE navigating back so that
+  /// BarnManagerProfileView never sees stale trainer data during the
+  /// back-slide animation (dispose() fires too late — after the animation).
+  void _clearAndBack() {
+    final bool isViewingOther =
+        widget.trainerId != null &&
+        !(_controller.user.value?.role == 'trainer' &&
+            widget.trainerId == _controller.user.value?.trainerProfileId);
+    if (isViewingOther) {
+      _controller.viewedUser.value = null;
+      _controller.viewedUserHorses.clear();
+    }
+    Get.back();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      // Intercept swipe-back (iOS) and Android back-button
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _clearAndBack();
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: Obx(() {
+        // A barn manager who has the same trainerProfileId is still viewing ANOTHER person's profile.
         final bool isViewingOther =
             widget.trainerId != null &&
-            widget.trainerId != _controller.user.value?.trainerProfileId;
+            !(_controller.user.value?.role == 'trainer' &&
+                widget.trainerId == _controller.user.value?.trainerProfileId);
         final profile = isViewingOther
             ? _controller.viewedUser.value
             : _controller.user.value;
@@ -148,7 +179,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                             children: [
                               // Back Button
                               GestureDetector(
-                                onTap: () => Get.back(),
+                                onTap: _clearAndBack,
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
@@ -491,7 +522,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
           ),
         );
       }),
-    );
+    ),   // closes Scaffold
+    );   // closes PopScope
   }
 
   String _normalizeHorseShow(String text) {

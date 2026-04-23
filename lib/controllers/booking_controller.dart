@@ -112,9 +112,14 @@ class BookingController extends GetxController {
 
         if (response.statusCode == 200) {
           _logger.i('Booking status updated to $status');
+          String successMsg = 'Booking status updated successfully';
+          if (status == 'confirmed') successMsg = 'Booking accepted successfully';
+          if (status == 'cancelled') successMsg = 'Booking cancelled successfully';
+          if (status == 'rejected') successMsg = 'Booking declined successfully';
+
           Get.snackbar(
             'Success',
-            'Booking ${status == 'confirmed' ? 'accepted' : 'declined'} successfully',
+            successMsg,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: const Color(0xFF17B26A),
             colorText: Colors.white,

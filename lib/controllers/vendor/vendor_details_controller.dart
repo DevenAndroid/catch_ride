@@ -14,6 +14,11 @@ class VendorDetailsController extends GetxController {
   final RxBool isAvailabilityLoading = false.obs;
   final RxBool canMessage = false.obs;
 
+  // Booking specific (if coming from booking screen)
+  final RxString bookingId = ''.obs;
+  final RxBool fromBooking = false.obs;
+  final RxString bookingStatus = ''.obs;
+
   // Tabs management
   final RxInt selectedTabIndex = 0.obs;
   final RxList<String> availableServices = <String>[].obs;
@@ -25,6 +30,9 @@ class VendorDetailsController extends GetxController {
     String? id;
     if (args != null && args is Map) {
       id = args['id'] ?? args['vendorId'];
+      bookingId.value = args['bookingId'] ?? '';
+      fromBooking.value = args['fromBooking'] ?? false;
+      bookingStatus.value = args['bookingStatus'] ?? '';
     }
     id ??= Get.parameters['id'];
 

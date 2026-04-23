@@ -32,14 +32,14 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
 
   final List<String> _receivedFilters = [
     'Accepted',
-    'Pending',
     'Rejected',
+    'Pending',
     'Cancelled',
   ];
   final List<String> _sentFilters = [
     'Accepted',
-    'Pending',
     'Rejected',
+    'Pending',
     'Cancelled',
   ];
 
@@ -309,12 +309,32 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
           Get.to(
             () => const VendorDetailsView(),
-            arguments: {'id': targetId},
+            arguments: {
+              'id': targetId,
+              'fromBooking': true,
+              'bookingId': booking.id,
+              'bookingStatus': booking.status,
+            },
           );
         } else {
+          final bool isReceived = _tabController.index == 0;
+          final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
+          final String otherName = isReceived ? (booking.clientName ?? '') : (booking.trainerName ?? '');
+          final String otherImage = isReceived ? (booking.clientImage ?? '') : (booking.trainerImage ?? '');
+          // myTeamId is the Trainer's User ID (for chat thread reconstruction)
+          final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
+
           Get.to(
             () => TrainerHorseDetailView(
-                horseId: booking.horseId, fromBooking: true),
+              horseId: booking.horseId,
+              fromBooking: true,
+              bookingId: booking.id,
+              bookingStatus: booking.status,
+              otherId: otherId,
+              otherName: otherName,
+              otherImage: otherImage,
+              myTeamId: myTeamId,
+            ),
           );
         }
       },

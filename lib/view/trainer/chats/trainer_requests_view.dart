@@ -111,32 +111,44 @@ class _TrainerRequestsViewState extends State<TrainerRequestsView> {
   }
 }
 
-class RequestCard extends StatelessWidget {
+class RequestCard extends StatefulWidget {
   final BookingModel booking;
   const RequestCard({super.key, required this.booking});
 
   @override
+  State<RequestCard> createState() => _RequestCardState();
+}
+
+class _RequestCardState extends State<RequestCard> {
+  bool _isAccepting = false;
+  bool _isRejecting = false;
+
+  bool get _isBusy => _isAccepting || _isRejecting;
+
+  @override
   Widget build(BuildContext context) {
     final ChatController chatController = Get.find<ChatController>();
-    final String name = booking.clientName ?? 'Unknown';
-    final String role = booking.acceptedByRole ?? 'User';
-    final String? avatar = booking.clientImage;
+    final String name = widget.booking.clientName ?? 'Unknown';
+    final String role = widget.booking.acceptedByRole ?? 'User';
+    final String? avatar = widget.booking.clientImage;
 
     return GestureDetector(
-      onTap: () {
-         final String cid = chatController.getNormalizedConversationId(
-              booking.clientId ?? '', 
-              Get.find<ProfileController>().id
-            );
-        Get.to(
-          () => SingleChatView(
-            name: name,
-            image: avatar ?? '',
-            conversationId: cid,
-            otherId: booking.clientId,
-          ),
-        );
-      },
+      onTap: _isBusy
+          ? null
+          : () {
+                final String cid = chatController.getNormalizedConversationId(
+                  widget.booking.clientId ?? '', 
+                  Get.find<ProfileController>().id
+                );
+                Get.to(
+                  () => SingleChatView(
+                    name: name,
+                    image: avatar ?? '',
+                    conversationId: cid,
+                    otherId: widget.booking.clientId,
+                  ),
+                );
+              },
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
@@ -212,13 +224,13 @@ class RequestCard extends StatelessWidget {
                     Stack(
                       children: [
                         CommonImageView(
-                          url: booking.horseImage,
+                          url: widget.booking.horseImage,
                           height: 80,
                           width: 80,
                           radius: 8,
                           fit: BoxFit.cover,
                         ),
-                        if (booking.type.isNotEmpty)
+                        if (widget.booking.type.isNotEmpty)
                           Positioned(
                             top: 4,
                             right: 4,
@@ -232,7 +244,7 @@ class RequestCard extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: CommonText(
-                                booking.type,
+                                widget.booking.type,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textSecondary,
@@ -250,7 +262,7 @@ class RequestCard extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               CommonText(
-                                booking.horseName ?? "Booking Request",
+                                widget.booking.horseName ?? "Booking Request",
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
@@ -267,7 +279,7 @@ class RequestCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: CommonText(
-                                  booking.location ?? 'N/A',
+                                  widget.booking.location ?? 'N/A',
                                   fontSize: 13,
                                   color: AppColors.textSecondary,
                                   maxLines: 1,
@@ -286,7 +298,7 @@ class RequestCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               CommonText(
-                                booking.date,
+                                widget.booking.date,
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
@@ -312,7 +324,7 @@ class RequestCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   CommonText(
-                    booking.notes ?? 'No message provided',
+                    widget.booking.notes ?? 'No message provided',
                     fontSize: 14,
                     color: AppColors.textPrimary,
                     maxLines: 5,
@@ -326,50 +338,66 @@ class RequestCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () async {
-                        final bookingController = Get.find<BookingController>();
-                        bool success = await bookingController.updateBookingStatus(
-                          booking.id!, 
-                          'rejected'
-                        ) != null;
-                        
-                        if (success) {
-                          chatController.fetchConversations();
-                          Get.snackbar(
-                            'Success',
-                            'Request declined',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.black87,
-                            colorText: Colors.white,
-                            barBlur: 0,
-                            margin: const EdgeInsets.all(16),
-                          );
-                        } else {
-                          Get.snackbar(
-                            'Error',
-                            'Failed to decline request',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.redAccent,
-                            colorText: Colors.white,
-                            barBlur: 0,
-                            margin: const EdgeInsets.all(16),
-                          );
-                        }
-                      },
+                      onTap: _isBusy
+                          ? null
+                          : () async {
+                              setState(() => _isRejecting = true);
+                              final bookingController = Get.find<BookingController>();
+                              bool success = await bookingController.updateBookingStatus(
+                                widget.booking.id!, 
+                                'rejected'
+                              ) != null;
+                              
+                              if (mounted) setState(() => _isRejecting = false);
+                              
+                              if (success) {
+                                chatController.fetchConversations();
+                                Get.snackbar(
+                                  'Success',
+                                  'Request declined',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.black87,
+                                  colorText: Colors.white,
+                                  barBlur: 0,
+                                  margin: const EdgeInsets.all(16),
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  'Failed to decline request',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.redAccent,
+                                  colorText: Colors.white,
+                                  barBlur: 0,
+                                  margin: const EdgeInsets.all(16),
+                                );
+                              }
+                            },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: _isRejecting
+                              ? Colors.grey.shade100
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppColors.border),
                         ),
-                        child: const Center(
-                          child: CommonText(
-                            'Reject',
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        child: Center(
+                          child: _isRejecting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                )
+                              : const CommonText(
+                                  'Reject',
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                         ),
                       ),
                     ),
@@ -377,43 +405,59 @@ class RequestCard extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () async {
-                        final bookingController = Get.find<BookingController>();
-                        final result = await bookingController.updateBookingStatus(
-                          booking.id!, 
-                          'confirmed'
-                        );
-                        
-                        if (result != null && result is Map) {
-                          final String? generalId = result['conversationId'];
-                          
-                          // Refresh chat list to reflect acceptance
-                          chatController.fetchConversations();
-                          
-                          // Redirect directly to the chat view
-                          Get.to(() => SingleChatView(
-                                name: name,
-                                image: avatar ?? '',
-                                conversationId: generalId ?? '', 
-                                otherId: booking.clientId,
-                              ));
-                        } else {
-                          Get.snackbar('Error', 'Failed to accept booking');
-                        }
-                      },
+                      onTap: _isBusy
+                          ? null
+                          : () async {
+                              setState(() => _isAccepting = true);
+                              final bookingController = Get.find<BookingController>();
+                              final result = await bookingController.updateBookingStatus(
+                                widget.booking.id!, 
+                                'confirmed'
+                              );
+                              
+                              if (mounted) setState(() => _isAccepting = false);
+                              
+                              if (result != null && result is Map) {
+                                final String? generalId = result['conversationId'];
+                                
+                                // Refresh chat list to reflect acceptance
+                                chatController.fetchConversations();
+                                
+                                // Redirect directly to the chat view
+                                Get.to(() => SingleChatView(
+                                      name: name,
+                                      image: avatar ?? '',
+                                      conversationId: generalId ?? '', 
+                                      otherId: widget.booking.clientId,
+                                    ));
+                              } else {
+                                Get.snackbar('Error', 'Failed to accept booking');
+                              }
+                            },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xff12937E),
+                          color: _isAccepting
+                              ? const Color(0xFF0e7a68)
+                              : const Color(0xff12937E),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Center(
-                          child: CommonText(
-                            'Accept',
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        child: Center(
+                          child: _isAccepting
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const CommonText(
+                                  'Accept',
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                         ),
                       ),
                     ),

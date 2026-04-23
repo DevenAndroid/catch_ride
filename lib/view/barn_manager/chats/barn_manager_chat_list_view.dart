@@ -123,8 +123,8 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
             }
             if (!belongsToTab) return false;
 
-            // 3. Status filtering
-            return c.status != 'request-pending' || c.senderId == currentUserId;
+            // 3. Keep all statuses visible (including pending requests)
+            return true;
           }).toList();
 
           if (conversations.isEmpty) {

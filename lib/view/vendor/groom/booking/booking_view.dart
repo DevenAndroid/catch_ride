@@ -8,6 +8,8 @@ import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../vendor_details_view.dart';
+
 class BookingView extends StatefulWidget {
   const BookingView({super.key});
 
@@ -125,132 +127,156 @@ class _BookingViewState extends State<BookingView> {
   }
 
   Widget _buildBookingCard(BookingModel booking) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderLight),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CommonImageView(
-                url: booking.clientImage ?? booking.horseImage ?? '',
-                height: 68,
-                width: 68,
-                shape: BoxShape.circle,
-                isUserImage: true,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonText(
-                      'Trainer : ${booking.trainerName ?? 'N/A'}',
-                      fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    if (booking.horseName != null) ...[
-                      const SizedBox(height: 2),
+    return GestureDetector(
+      onTap: () {
+        // Redirect to VendorDetailsView
+        final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
+        Get.to(
+          () => const VendorDetailsView(),
+          arguments: {
+            'id': targetId,
+            'fromBooking': true,
+            'bookingId': booking.id,
+            'bookingStatus': booking.status,
+          },
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.borderLight),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonImageView(
+                  url: booking.clientImage ?? booking.horseImage ?? '',
+                  height: 68,
+                  width: 68,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       CommonText(
-                        'Horse : ${booking.horseName}',
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
+                        'Trainer : ${booking.trainerName ?? 'N/A'}',
+                        fontSize: AppTextSizes.size16,
+                        fontWeight: FontWeight.bold,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (booking.horseName != null) ...[
+                        const SizedBox(height: 2),
+                        CommonText(
+                          'Horse : ${booking.horseName}',
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Expanded(child: CommonText(booking.location ?? 'N/A', fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today_outlined,
+                              size: 14, color: AppColors.textSecondary),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: CommonText(booking.date,
+                                fontSize: AppTextSizes.size12,
+                                color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
                     ],
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
-                        const SizedBox(width: 4),
-                        Expanded(child: CommonText(booking.location ?? 'N/A', fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: 6),
-                        CommonText(booking.date, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightGray,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: CommonText(
+                    booking.type,
+                    fontSize: AppTextSizes.size12,
+                    color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            if (booking.notes != null && booking.notes!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              CommonText(
+                'NOTE : ${booking.notes}',
+                fontSize: AppTextSizes.size14,
+                color: AppColors.textPrimary,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.lightGray,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: CommonText(
-                  booking.type,
-                  fontSize: AppTextSizes.size12,
-                  color: AppColors.textSecondary,
+            ],
+            if (booking.status.toLowerCase() == 'confirmed' || booking.status.toLowerCase() == 'accepted') ...[
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    if (booking.id != null && booking.clientId != null) {
+                      chatController.openBookingChat(
+                        bookingId: booking.id!,
+                        otherId: booking.clientId!,
+                        otherName: booking.clientName ?? 'Client',
+                        otherImage: booking.clientImage ?? '',
+                      );
+                    } else {
+                      Get.snackbar(
+                        'Chat Unavailable',
+                        'Conversation details are not properly loaded for this booking.',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.secondary),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Icon(Icons.chat_bubble_outline, color: AppColors.secondary, size: 20),
+                      SizedBox(width: 8),
+                      CommonText(
+                        'Message',
+                        color: AppColors.secondary,
+                        fontSize: AppTextSizes.size16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
-          ),
-          if (booking.notes != null && booking.notes!.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            CommonText(
-              'NOTE : ${booking.notes}',
-              fontSize: AppTextSizes.size14,
-              color: AppColors.textPrimary,
-            ),
           ],
-          if (booking.status.toLowerCase() == 'confirmed' || booking.status.toLowerCase() == 'accepted') ...[
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  if (booking.id != null && booking.clientId != null) {
-                    chatController.openBookingChat(
-                      bookingId: booking.id!,
-                      otherId: booking.clientId!,
-                      otherName: booking.clientName ?? 'Client',
-                      otherImage: booking.clientImage ?? '',
-                    );
-                  } else {
-                    Get.snackbar(
-                      'Chat Unavailable',
-                      'Conversation details are not properly loaded for this booking.',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  }
-                },
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.secondary),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.chat_bubble_outline, color: AppColors.secondary, size: 20),
-                    SizedBox(width: 8),
-                    CommonText(
-                      'Message',
-                      color: AppColors.secondary,
-                      fontSize: AppTextSizes.size16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

@@ -6,6 +6,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/url_helper.dart';
 import 'package:catch_ride/view/vendor/send_booking_request_view.dart';
 import 'package:catch_ride/view/vendor/upcoming_availability.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -563,66 +565,253 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
 
   Widget _buildBottomActions() {
     return Positioned(
-      bottom: 0, left: 0, right: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -2))]),
-        child: Obx(() => Row(
-          children: [
-            Expanded(
-              flex: controller.canMessage.value ? 2 : 1,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (!controller.isAcceptingRequests) {
-                    Get.snackbar(
-                      'Requests Closed',
-                      'This service provider not accepting requests please try again later',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.redAccent,
-                      colorText: Colors.white,
-                      margin: const EdgeInsets.all(20),
-                    );
-                    return;
-                  }
-                  _showServiceSelectionBottomSheet();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const CommonText('Send Booking Request',
-                    fontSize: AppTextSizes.size16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
-              ),
-            ),
-            if (controller.canMessage.value) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary, foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.chat_bubble_outline, size: 18),
-                      SizedBox(width: 8),
-                      CommonText('Message', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            )
           ],
-        )),
+        ),
+        child: Obx(() {
+          if (controller.fromBooking.value) {
+            return _buildBookingSpecificActions();
+          }
+
+          return Row(
+            children: [
+              Expanded(
+                flex: controller.canMessage.value ? 2 : 1,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!controller.isAcceptingRequests) {
+                      Get.snackbar(
+                        'Requests Closed',
+                        'This service provider not accepting requests please try again later',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white,
+                        margin: const EdgeInsets.all(20),
+                      );
+                      return;
+                    }
+                    _showServiceSelectionBottomSheet();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const CommonText('Send Booking Request',
+                      fontSize: AppTextSizes.size16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
+              if (controller.canMessage.value) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.chat_bubble_outline, size: 18),
+                        SizedBox(width: 8),
+                        CommonText('Message',
+                            fontSize: AppTextSizes.size16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          );
+        }),
       ),
     );
+  }
+
+  Widget _buildBookingSpecificActions() {
+    final status = controller.bookingStatus.value.toLowerCase();
+    final bool canCancel =
+        status == 'pending' || status == 'confirmed' || status == 'accepted';
+
+    return Row(
+      children: [
+        if (canCancel)
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _showCancelConfirmation(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.red,
+                elevation: 0,
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const CommonText(
+                'Cancel Booking',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+          ),
+        if (canCancel) const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              final chatController = Get.find<ChatController>();
+              chatController.openBookingChat(
+                bookingId: controller.bookingId.value,
+                otherId: controller.vendorId.value,
+                otherName: controller.fullName,
+                otherImage: controller.profilePhoto,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.chat_bubble_outline, size: 18),
+                SizedBox(width: 8),
+                CommonText(
+                  'Message',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCancelConfirmation() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                    color: Color(0xFFFEF2F2), shape: BoxShape.circle),
+                child: const Icon(Icons.warning_amber_rounded,
+                    color: Colors.red, size: 32),
+              ),
+              const SizedBox(height: 20),
+              const CommonText('Cancel Booking',
+                  fontSize: 20, fontWeight: FontWeight.bold),
+              const SizedBox(height: 12),
+              const CommonText(
+                'Are you sure you want to cancel this booking? This action cannot be undone.',
+                fontSize: 14,
+                textAlign: TextAlign.center,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const CommonText('No, Keep It',
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back();
+                        _handleCancelBooking();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const CommonText('Yes, Cancel',
+                          color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _handleCancelBooking() async {
+    final bookingController = Get.find<BookingController>();
+    final success = await bookingController.updateBookingStatus(
+      controller.bookingId.value,
+      'cancelled',
+    );
+
+    if (success) {
+      Get.snackbar(
+        'Booking Cancelled',
+        'Your booking has been successfully cancelled.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.black87,
+        colorText: Colors.white,
+      );
+      // Refresh details or go back
+      controller.bookingStatus.value = 'cancelled';
+    } else {
+      Get.snackbar(
+        'Action Failed',
+        'Failed to cancel booking. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
   }
 
   void _showServiceSelectionBottomSheet() {
