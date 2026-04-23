@@ -211,50 +211,8 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                   );
                   if (convo == null) return const SizedBox.shrink();
 
-                  final currentUserId = Get.find<ProfileController>().id;
-                  final isSender = convo.senderId == currentUserId;
 
-                  if (convo.status == 'request-pending') {
-                    if (isSender) {
-                      return _buildStatusBanner(
-                        'Request Pending',
-                        'Waiting for professional to accept your request',
-                        Colors.blue.shade50,
-                        Colors.blue,
-                      );
-                    } else {
-                      return _buildStatusBanner(
-                        'Waiting for your response',
-                        'Accept request to start chatting',
-                        Colors.orange.shade50,
-                        Colors.orange,
-                        actions: [
-                          _buildBannerButton(
-                            'Decline',
-                            () =>
-                                controller.declineRequest(widget.conversationId),
-                            isAction: false,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildBannerButton(
-                            'Accept',
-                            () async {
-                               final generalId = await controller.acceptRequest(widget.conversationId);
-                               if (generalId != null && generalId != widget.conversationId) {
-                                  // Navigate to new active thread and replace this current screen
-                                  Get.off(() => BarnManagerSingleChatView(
-                                      name: widget.name,
-                                      image: widget.image,
-                                      conversationId: generalId,
-                                      otherId: widget.otherId,
-                                  ));
-                               }
-                            }
-                          ),
-                        ],
-                      );
-                    }
-                  } else if (convo.status == 'request-declined') {
+                  if (convo.status == 'request-declined') {
                     return _buildStatusBanner(
                       'Conversation Restricted',
                       'This request has been declined.',
@@ -391,7 +349,6 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
                     (c) => c.conversationId == widget.conversationId,
                   );
                   final bool canChat = convo?.status != 'request-declined' &&
-                      convo?.status != 'request-pending' &&
                       convo?.status != 'request-blocked';
 
                   if (!canChat) return const SizedBox.shrink();
@@ -439,25 +396,6 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
     );
   }
 
-  Widget _buildBannerButton(
-    String label,
-    VoidCallback onTap, {
-    bool isAction = true,
-  }) {
-    return ElevatedButton(
-      onPressed: onTap,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isAction
-            ? const Color(0xFF00083B)
-            : const Color(0xFFF2F4F7),
-        foregroundColor: isAction ? Colors.white : const Color(0xFF344054),
-        elevation: 0,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: CommonText(label, fontSize: 12, fontWeight: FontWeight.bold),
-    );
-  }
 
   Widget _buildMessageInput(
     TextEditingController textController,

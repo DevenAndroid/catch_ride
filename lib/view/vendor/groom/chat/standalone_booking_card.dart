@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 import '../../../trainer/chats/single_chat_view.dart';
 
-class StandaloneBookingCard extends StatelessWidget {
+class StandaloneBookingCard extends StatefulWidget {
   final BookingModel booking;
   final VoidCallback onAction;
 
@@ -19,11 +19,23 @@ class StandaloneBookingCard extends StatelessWidget {
   });
 
   @override
+  State<StandaloneBookingCard> createState() => _StandaloneBookingCardState();
+}
+
+class _StandaloneBookingCardState extends State<StandaloneBookingCard> {
+  bool _isAccepting = false;
+  bool _isRejecting = false;
+
+  bool get _isBusy => _isAccepting || _isRejecting;
+
+  @override
   Widget build(BuildContext context) {
     final BookingController controller = Get.find<BookingController>();
 
-    final String name = booking.trainerName ?? 'Unknown';
-    final String? avatar = booking.trainerImage; 
+    final String name = (widget.booking.trainerName != null && widget.booking.trainerName != 'Unknown' && widget.booking.trainerName!.isNotEmpty)
+        ? widget.booking.trainerName!
+        : (widget.booking.clientName ?? 'Unknown');
+    final String? avatar = widget.booking.trainerImage ?? widget.booking.clientImage; 
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -50,7 +62,7 @@ class StandaloneBookingCard extends StatelessWidget {
             child: Row(
               children: [
                 CommonImageView(
-                  url: avatar,
+                 url: widget.booking.clientImage ?? avatar,
                   height: 40,
                   width: 40,
                   shape: BoxShape.circle,
@@ -96,7 +108,7 @@ class StandaloneBookingCard extends StatelessWidget {
                   Stack(
                     children: [
                       CommonImageView(
-                        url: booking.clientImage ?? avatar,
+                        url: widget.booking.clientImage ?? avatar,
                         height: 80,
                         width: 80,
                         radius: 8,
@@ -116,7 +128,7 @@ class StandaloneBookingCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: CommonText(
-                            booking.type,
+                            widget.booking.type,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textSecondary,
@@ -134,7 +146,7 @@ class StandaloneBookingCard extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             CommonText(
-                              booking.horseName ?? "Booking Request",
+                              widget.booking.horseName ?? "Booking Request",
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -152,7 +164,7 @@ class StandaloneBookingCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: CommonText(
-                                booking.location ?? 'N/A',
+                                widget.booking.location ?? 'N/A',
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                                 maxLines: 1,
@@ -171,7 +183,7 @@ class StandaloneBookingCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             CommonText(
-                              booking.date,
+                              widget.booking.date,
                               fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
@@ -184,7 +196,7 @@ class StandaloneBookingCard extends StatelessWidget {
               ),
             ),
           ),
-          if (booking.notes != null && booking.notes!.isNotEmpty)
+          if (widget.booking.notes != null && widget.booking.notes!.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
@@ -198,7 +210,7 @@ class StandaloneBookingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   CommonText(
-                    booking.notes!,
+                    widget.booking.notes!,
                     fontSize: 14,
                     color: AppColors.textPrimary,
                     maxLines: 5,
@@ -212,28 +224,41 @@ class StandaloneBookingCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () async {
-                      if (booking.id != null) {
-                        bool success = await controller.updateBookingStatus(booking.id!, 'declined');
-                        if (success) {
-                          onAction();
-                        }
-                      }
-                    },
+                    onTap: _isBusy
+                        ? null
+                        : () async {
+                              if (widget.booking.id != null) {
+                                setState(() => _isRejecting = true);
+                                bool success = await controller.updateBookingStatus(widget.booking.id!, 'declined');
+                                if (mounted) setState(() => _isRejecting = false);
+                                if (success) {
+                                  widget.onAction();
+                                }
+                              }
+                            },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: _isRejecting ? Colors.grey.shade100 : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Center(
-                        child: CommonText(
-                          'Reject',
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      child: Center(
+                        child: _isRejecting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.textPrimary,
+                              ),
+                            )
+                          : const CommonText(
+                              'Reject',
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                       ),
                     ),
                   ),
@@ -241,43 +266,57 @@ class StandaloneBookingCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () async {
-                      if (booking.id != null) {
-                        final dynamic result = await controller.updateBookingStatus(booking.id!, 'confirmed');
-                        if (result != null && result is Map) {
-                          onAction();
-                          final String? conversationId = result['conversationId'];
-                          if (conversationId != null) {
-                            String? otherId;
-                            if (booking.trainerId is Map) {
-                              otherId = (booking.trainerId as Map)['_id'];
-                            } else if (booking.trainerId is String) {
-                              otherId = booking.trainerId as String;
-                            }
+                    onTap: _isBusy
+                        ? null
+                        : () async {
+                              if (widget.booking.id != null) {
+                                setState(() => _isAccepting = true);
+                                final dynamic result = await controller.updateBookingStatus(widget.booking.id!, 'confirmed');
+                                if (mounted) setState(() => _isAccepting = false);
+                                
+                                if (result != null && result is Map) {
+                                  widget.onAction();
+                                  final String? conversationId = result['conversationId'];
+                                  if (conversationId != null) {
+                                    String? otherId;
+                                    if (widget.booking.trainerId is Map) {
+                                      otherId = (widget.booking.trainerId as Map)['_id'];
+                                    } else if (widget.booking.trainerId is String) {
+                                      otherId = widget.booking.trainerId as String;
+                                    }
 
-                            Get.to(() => SingleChatView(
-                              name: name,
-                              image: avatar ?? '',
-                              conversationId: conversationId,
-                              otherId: otherId,
-                            ));
-                          }
-                        }
-                      }
-                    },
+                                    Get.to(() => SingleChatView(
+                                      name: name,
+                                      image: avatar ?? '',
+                                      conversationId: conversationId,
+                                      otherId: otherId,
+                                    ));
+                                  }
+                                }
+                              }
+                            },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xff12937E),
+                        color: _isAccepting ? const Color(0xFF0e7a68) : const Color(0xff12937E),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
-                        child: CommonText(
-                          'Accept',
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      child: Center(
+                        child: _isAccepting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const CommonText(
+                              'Accept',
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                       ),
                     ),
                   ),

@@ -7,8 +7,9 @@ class BookingModel {
   final String status;
   final String? clientId;
   final String? clientName;
-  final String? trainerId;
+  final String? trainerId;   // Trainer Profile ID
   final String? trainerName;
+  final String? trainerUserId; // Trainer's User ID (for chat threads)
   final String? vendorId;
   final String? vendorName;
   final String? horseId;
@@ -40,6 +41,7 @@ class BookingModel {
     this.clientName,
     this.trainerId,
     this.trainerName,
+    this.trainerUserId,
     this.vendorId,
     this.vendorName,
     this.horseId,
@@ -175,6 +177,7 @@ class BookingModel {
       clientId: json['clientId'] is Map ? json['clientId']['_id'] : json['clientId'],
       clientName: json['clientName'] ?? (json['clientId'] is Map ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}".trim() : null),
       trainerId: json['trainerId'] is Map ? json['trainerId']['_id'] : json['trainerId'],
+      trainerUserId: json['trainerId'] is Map ? json['trainerId']['userId']?.toString() : null,
       trainerName: (json['trainerName'] != null && json['trainerName'].toString().isNotEmpty)
           ? json['trainerName']
           : (json['trainerId'] is Map ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() : null),

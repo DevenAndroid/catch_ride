@@ -363,17 +363,70 @@ class ChatController extends GetxController {
     required String otherId,
     required String otherName,
     required String otherImage,
+    String? myTeamId,
   }) {
-    final myId = Get.find<ProfileController>().id;
-    if (myId.isEmpty) return;
+    // 1. Try to find an existing conversation for this specific booking
+    // This is the most accurate way as it works for both Trainer and Barn Manager
+    final existingConvo = conversations.firstWhereOrNull(
+      (c) =>
+          c.booking?.id == bookingId ||
+          c.id == bookingId ||
+          c.conversationId == bookingId,
+    );
 
-    final sorted = [myId, otherId]..sort();
-    final conversationId = "${sorted[0]}-${sorted[1]}";
+    if (existingConvo != null) {
+      Get.to(() => SingleChatView(
+            name: otherName,
+            image: otherImage,
+            conversationId: existingConvo.conversationId,
+            otherId: otherId,
+          ));
+      return;
+    }
 
+    // 1.2 Fallback: If no specific booking thread found, try to find ANY existing general chat 
+    // with this specific user in our current inbox list.
+    final existingWithUser = conversations.firstWhereOrNull(
+      (c) => c.otherUser?.id == otherId || c.otherUser?.trainerId == otherId || c.otherUser?.vendorId == otherId,
+    );
+    if (existingWithUser != null) {
+      Get.to(() => SingleChatView(
+            name: otherName,
+            image: otherImage,
+            conversationId: existingWithUser.conversationId,
+            otherId: otherId,
+          ));
+      return;
+    }
+
+    // 2. Identify identities
+    final profile = Get.find<ProfileController>();
+    // Use the explicitly provided team ID (Trainer User ID) if available, otherwise fallback to our own personal ID.
+    final String myPersonalId = (myTeamId != null && myTeamId.isNotEmpty) ? myTeamId : profile.id;
+
+    // 3. Try fallback to General Chat - First try personal identity
+    final personalSorted = [myPersonalId, otherId]..sort();
+    final personalConvoId = "${personalSorted[0]}-${personalSorted[1]}";
+    
+    final existingPersonal = conversations.firstWhereOrNull(
+      (c) => c.conversationId == personalConvoId,
+    );
+
+    if (existingPersonal != null) {
+      Get.to(() => SingleChatView(
+            name: otherName,
+            image: otherImage,
+            conversationId: existingPersonal.conversationId,
+            otherId: otherId,
+          ));
+      return;
+    }
+
+    // 5. Final fallback - Create new personal thread
     Get.to(() => SingleChatView(
           name: otherName,
           image: otherImage,
-          conversationId: conversationId,
+          conversationId: personalConvoId,
           otherId: otherId,
         ));
   }

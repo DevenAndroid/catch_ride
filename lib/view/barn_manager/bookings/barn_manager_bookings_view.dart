@@ -12,6 +12,7 @@ import 'package:get/get.dart';
 
 import '../../../constant/app_constants.dart';
 import '../../../widgets/common_button.dart';
+import '../../vendor/vendor_details_view.dart';
 
 
 class BarnManagerBookingsView extends StatefulWidget {
@@ -285,13 +286,43 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     required BookingModel booking,
     required String status,
   }) {
+    final isVendorBooking = _isServiceProviderBooking(booking);
+
     return GestureDetector(
-      onTap: () => Get.to(
-        () => BarnManagerHorseDetailView(
-          horseId: booking.horseId,
-          fromBooking: true,
-        ),
-      ),
+      onTap: () {
+        if (isVendorBooking) {
+          final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
+          Get.to(
+            () => const VendorDetailsView(),
+            arguments: {
+              'id': targetId,
+              'fromBooking': true,
+              'bookingId': booking.id,
+              'bookingStatus': booking.status,
+            },
+          );
+        } else {
+          final bool isReceived = _tabController.index == 0;
+          final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
+          final String otherName = isReceived ? (booking.clientName ?? '') : (booking.trainerName ?? '');
+          final String otherImage = isReceived ? (booking.clientImage ?? '') : (booking.trainerImage ?? '');
+          // myTeamId is the Trainer's User ID (for chat thread reconstruction)
+          final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
+
+          Get.to(
+            () => BarnManagerHorseDetailView(
+              horseId: booking.horseId,
+              fromBooking: true,
+              bookingId: booking.id,
+              bookingStatus: booking.status,
+              otherId: otherId,
+              otherName: otherName,
+              otherImage: otherImage,
+              myTeamId: myTeamId,
+            ),
+          );
+        }
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
@@ -320,9 +351,13 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   fit: StackFit.expand,
                   children: [
                     CommonImageView(
-                      url: booking.horseImage,
+                      url: isVendorBooking
+                          ? (profileController.user.value?.role == 'service_provider' 
+                              ? (booking.clientImage ?? booking.horseImage)
+                              : (booking.vendorImage ?? booking.horseImage))
+                          : booking.horseImage,
+                      isUserImage: isVendorBooking,
                     ),
-
                     Positioned(
                       top: 8,
                       left: 8,
@@ -332,15 +367,17 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFECFDF3),
+                          color: _getStatusBgColor(booking.status),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: const Color(0xFFABEFC6)),
+                          border: Border.all(
+                              color: _getStatusTextColor(booking.status)
+                                  .withValues(alpha: 0.2)),
                         ),
                         child: CommonText(
                           status,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF067647),
+                          color: _getStatusTextColor(booking.status),
                         ),
                       ),
                     ),
@@ -359,7 +396,12 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                     children: [
                       Expanded(
                         child: CommonText(
-                          booking.horseName ?? 'Horse Name',
+                          isVendorBooking
+                              ? (booking.vendorName ??
+                                  booking.acceptedByName ??
+                                  booking.trainerName ??
+                                  'Service Provider')
+                              : (booking.horseName ?? 'Horse Name'),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -387,7 +429,9 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    'Trainer : ${booking.trainerName ?? ''}',
+                    isVendorBooking
+                        ? (booking.type.capitalizeFirst ?? 'Service')
+                        : 'Trainer : ${booking.trainerName ?? ''}',
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
@@ -419,13 +463,13 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                     children: [
                       const Icon(
                         Icons.calendar_today_outlined,
-                        size: 15,
+                        size: 14,
                         color: Color(0xFF98A2B3),
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          DateUtil.formatDisplayDate(booking.date),
+                          booking.date,
                           fontSize: 13,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
@@ -451,8 +495,35 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                         color: AppColors.secondary,
                       ),
                     ),
-
-
+                  if (booking.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: booking.tags
+                            .map(
+                              (tag) => Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEEF2FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: CommonText(
+                                  tag,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF3730A3),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -460,5 +531,50 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
         ),
       ),
     );
+  }
+
+  bool _isServiceProviderBooking(BookingModel booking) {
+    final vendorTypes = [
+      'grooming',
+      'braiding',
+      'clipping',
+      'farrier',
+      'bodywork',
+      'shipping',
+      'transportation'
+    ];
+    return vendorTypes.contains(booking.type.toLowerCase());
+  }
+
+  Color _getStatusBgColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFFECFDF3); // Greenish
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFFEF3F2); // Reddish
+      case 'pending':
+        return const Color(0xFFFFFAEB); // Yellowish
+      default:
+        return const Color(0xFFF2F4F7); // Grey
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFF067647); // Dark Green
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFB42318); // Dark Red
+      case 'pending':
+        return const Color(0xFFB54708); // Dark Orange
+      default:
+        return const Color(0xFF344054); // Dark Grey
+    }
   }
 }

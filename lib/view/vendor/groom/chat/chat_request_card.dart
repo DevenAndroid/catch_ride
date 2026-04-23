@@ -7,24 +7,36 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ChatRequestCard extends StatelessWidget {
+class ChatRequestCard extends StatefulWidget {
   final ChatConversation request;
   const ChatRequestCard({super.key, required this.request});
 
   @override
+  State<ChatRequestCard> createState() => _ChatRequestCardState();
+}
+
+class _ChatRequestCardState extends State<ChatRequestCard> {
+  bool _isAccepting = false;
+  bool _isRejecting = false;
+
+  bool get _isBusy => _isAccepting || _isRejecting;
+
+  @override
   Widget build(BuildContext context) {
     final ChatController controller = Get.find<ChatController>();
-    final String name = request.otherUser?.name ?? 'Unknown';
-    final String role = request.otherUser?.role ?? 'User';
-    final String? avatar = request.otherUser?.avatar;
+    final String name = (widget.request.otherUser?.name != null && widget.request.otherUser!.name!.isNotEmpty && widget.request.otherUser!.name != 'Unknown')
+        ? widget.request.otherUser!.name!
+        : (widget.request.booking?.trainerName ?? widget.request.booking?.clientName ?? 'Unknown');
+    final String role = widget.request.otherUser?.role ?? 'User';
+    final String? avatar = widget.request.otherUser?.avatar ?? widget.request.booking?.trainerImage ?? widget.request.booking?.clientImage;
 
     return GestureDetector(
       onTap: () => Get.to(
         () => SingleChatView(
           name: name,
           image: avatar ?? '',
-          conversationId: request.conversationId,
-          otherId: request.otherUser?.id,
+          conversationId: widget.request.conversationId,
+          otherId: widget.request.otherUser?.id,
         ),
       ),
       child: Container(
@@ -68,6 +80,8 @@ class ChatRequestCard extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       CommonText(
@@ -105,7 +119,7 @@ class ChatRequestCard extends StatelessWidget {
                         fit: BoxFit.cover,
                         isUserImage: true,
                       ),
-                      if (request.booking?.type != null)
+                      if (widget.request.booking?.type != null)
                         Positioned(
                           top: 4,
                           right: 4,
@@ -119,7 +133,7 @@ class ChatRequestCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: CommonText(
-                              request.booking!.type,
+                              widget.request.booking!.type,
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
@@ -136,13 +150,17 @@ class ChatRequestCard extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CommonText(
-                              request.booking?.horseName ?? "Booking Request",
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                            Expanded(
+                              child: CommonText(
+                                widget.request.booking?.horseName ?? "Booking Request",
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            if (request.booking?.type != null)
+                            if (widget.request.booking?.type != null)
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
@@ -153,7 +171,7 @@ class ChatRequestCard extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: CommonText(
-                                  request.booking!.type,
+                                  widget.request.booking!.type,
                                   fontSize: 12,
                                   color: AppColors.textSecondary,
                                 ),
@@ -171,7 +189,7 @@ class ChatRequestCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: CommonText(
-                                request.booking?.location ?? 'N/A',
+                                widget.request.booking?.location ?? 'N/A',
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                                 maxLines: 1,
@@ -189,10 +207,14 @@ class ChatRequestCard extends StatelessWidget {
                               color: AppColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
-                            CommonText(
-                              request.booking?.date ?? 'N/A',
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
+                            Expanded(
+                              child: CommonText(
+                                widget.request.booking?.date ?? 'N/A',
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -216,8 +238,8 @@ class ChatRequestCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 CommonText(
-                  request.booking?.notes ??
-                      request.lastMessage ??
+                  widget.request.booking?.notes ??
+                      widget.request.lastMessage ??
                       'No message provided',
                   fontSize: 14,
                   color: AppColors.textPrimary,
@@ -232,47 +254,61 @@ class ChatRequestCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: GestureDetector(
-                    onTap: () async {
-                      final success = await controller.declineRequest(
-                        request.conversationId,
-                        bookingId: request.booking?.id,
-                      );
-                      if (success) {
-                        Get.snackbar(
-                          'Success',
-                          'Request declined',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.black87,
-                          colorText: Colors.white,
-                          barBlur: 0,
-                          margin: const EdgeInsets.all(16),
-                        );
-                      } else {
-                        Get.snackbar(
-                          'Error',
-                          'Failed to decline request',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.redAccent,
-                          colorText: Colors.white,
-                          barBlur: 0,
-                          margin: const EdgeInsets.all(16),
-                        );
-                      }
-                    },
+                    onTap: _isBusy
+                        ? null
+                        : () async {
+                              setState(() => _isRejecting = true);
+                              final success = await controller.declineRequest(
+                                widget.request.conversationId,
+                                bookingId: widget.request.booking?.id,
+                              );
+                              if (mounted) setState(() => _isRejecting = false);
+                              
+                              if (success) {
+                                Get.snackbar(
+                                  'Success',
+                                  'Request declined',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.black87,
+                                  colorText: Colors.white,
+                                  barBlur: 0,
+                                  margin: const EdgeInsets.all(16),
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'Error',
+                                  'Failed to decline request',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.redAccent,
+                                  colorText: Colors.white,
+                                  barBlur: 0,
+                                  margin: const EdgeInsets.all(16),
+                                );
+                              }
+                            },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: _isRejecting ? Colors.grey.shade100 : Colors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.border),
                     ),
-                    child: const Center(
-                      child: CommonText(
-                        'Reject',
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                    child: Center(
+                      child: _isRejecting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.textPrimary,
+                            ),
+                          )
+                        : const CommonText(
+                            'Reject',
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                     ),
                   ),
                 ),
@@ -280,46 +316,60 @@ class ChatRequestCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: GestureDetector(
-                    onTap: () async {
-                      final String? generalId = await controller.acceptRequest(
-                        request.conversationId,
-                        bookingId: request.booking?.id,
-                      );
-                      if (generalId != null) {
-                        Get.snackbar(
-                          'Success',
-                          'Request accepted',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: const Color(0xFF17B26A),
-                          colorText: Colors.white,
-                          barBlur: 0,
-                          margin: const EdgeInsets.all(16),
-                        );
+                    onTap: _isBusy
+                        ? null
+                        : () async {
+                              setState(() => _isAccepting = true);
+                              final String? generalId = await controller.acceptRequest(
+                                widget.request.conversationId,
+                                bookingId: widget.request.booking?.id,
+                              );
+                              if (mounted) setState(() => _isAccepting = false);
 
-                        // Redirect to the same chat view (unlocked)
-                        Get.to(() => SingleChatView(
-                              name: name,
-                              image: avatar ?? '',
-                              conversationId: generalId,
-                              otherId: request.otherUser?.id,
-                            ));
-                      } else {
-                        Get.snackbar('Error', 'Failed to accept request');
-                      }
-                    },
+                              if (generalId != null) {
+                                Get.snackbar(
+                                  'Success',
+                                  'Request accepted',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: const Color(0xFF17B26A),
+                                  colorText: Colors.white,
+                                  barBlur: 0,
+                                  margin: const EdgeInsets.all(16),
+                                );
+
+                                // Redirect to the same chat view (unlocked)
+                                Get.to(() => SingleChatView(
+                                      name: name,
+                                      image: avatar ?? '',
+                                      conversationId: generalId,
+                                      otherId: widget.request.otherUser?.id,
+                                    ));
+                              } else {
+                                Get.snackbar('Error', 'Failed to accept request');
+                              }
+                            },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: const Color(0xff12937E),
+                        color: _isAccepting ? const Color(0xFF0e7a68) : const Color(0xff12937E),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Center(
-                        child: CommonText(
-                          'Accept',
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      child: Center(
+                        child: _isAccepting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const CommonText(
+                              'Accept',
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                       ),
                     ),
                   ),
