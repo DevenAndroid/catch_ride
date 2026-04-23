@@ -84,9 +84,13 @@ class SettingsController extends GetxController {
         Get.snackbar(
           'Success',
           'Password changed successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: const Color(0xFF4CAF50),
           colorText: Colors.white,
+          icon: const Icon(Icons.check_circle_outline, color: Colors.white),
+          margin: const EdgeInsets.all(15),
+          borderRadius: 10,
+          duration: const Duration(seconds: 3),
         );
         return true;
       } else {

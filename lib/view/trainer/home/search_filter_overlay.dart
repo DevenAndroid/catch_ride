@@ -44,6 +44,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   }
 
   Future<void> _onSearchPressed() async {
+    FocusManager.instance.primaryFocus!.unfocus();
     setState(() {
       _isSearching = true;
     });
@@ -54,9 +55,21 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
 
 
-    // Save to history if text is not empty
+    // Save all active filters to history
     if (_searchController.text.trim().isNotEmpty) {
       controller.addToHistory(_searchController.text.trim());
+    }
+    if (controller.location.value.isNotEmpty) {
+      controller.addToHistory(controller.location.value);
+    }
+    if (controller.showVenue.value.isNotEmpty) {
+      controller.addToHistory(controller.showVenue.value);
+    }
+    if (_rangeStart != null) {
+      final dateStr = _rangeEnd != null
+          ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}'
+          : DateFormat('dd MMM yyyy').format(_rangeStart!);
+      controller.addToHistory(dateStr);
     }
 
     await controller.fetchHorses(showLoading: false);
@@ -777,7 +790,48 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   Widget _buildHistoryItem(String address) {
     return GestureDetector(
       onTap: () {
-        _searchController.text = address;
+        // Logic to restore the correct filter type from history string
+        bool isDateRange = address.contains(' - ') && address.length > 20;
+        bool isSingleDate =
+            RegExp(r'^\d{2} [A-Za-z]{3} \d{4}$').hasMatch(address);
+
+        if (isDateRange || isSingleDate) {
+          try {
+            if (isDateRange) {
+              final parts = address.split(' - ');
+              _rangeStart = DateFormat('dd MMM yyyy').parse(parts[0]);
+              _rangeEnd = DateFormat('dd MMM yyyy').parse(parts[1]);
+            } else {
+              _rangeStart = DateFormat('dd MMM yyyy').parse(address);
+              _rangeEnd = null;
+            }
+            controller.startDate.value = _rangeStart;
+            controller.endDate.value = _rangeEnd;
+            _searchController.clear();
+            _selectedSection = 'date';
+          } catch (e) {
+            _searchController.text = address;
+          }
+        } else {
+          // Try to match against known locations or venues first
+          bool isKnownLocation = controller.defaultLocations
+              .any((l) => l['name'] == address || l['subtitle'] == address);
+          bool isKnownVenue = controller.defaultVenues
+              .any((v) => v['name'] == address || v['subtitle'] == address);
+
+          if (isKnownVenue) {
+            controller.showVenue.value = address;
+            controller.location.value = '';
+            _searchController.clear();
+          } else if (isKnownLocation) {
+            controller.location.value = address;
+            controller.showVenue.value = '';
+            _searchController.clear();
+          } else {
+            // Default to text search
+            _searchController.text = address;
+          }
+        }
         _onSearchPressed();
       },
       child: Padding(
@@ -790,7 +844,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               color: AppColors.textSecondary,
             ),
             const SizedBox(width: 16),
-            CommonText(address, fontSize: 15, color: AppColors.textPrimary),
+            Expanded(child: CommonText(address, fontSize: 15, color: AppColors.textPrimary)),
           ],
         ),
       ),

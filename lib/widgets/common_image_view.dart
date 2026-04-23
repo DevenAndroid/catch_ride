@@ -28,7 +28,7 @@ class CommonImageView extends StatelessWidget {
     this.fallbackIcon,
     this.file,
     this.assetPath,
-    this.isUserImage = false,
+    this.isUserImage = true,
   });
 
   String _getProcessedUrl(String url) {
@@ -186,17 +186,51 @@ class CommonImageView extends StatelessWidget {
       width: width,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.border.withOpacity(0.1),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withOpacity(0.02),
+            AppColors.primary.withOpacity(0.08),
+          ],
+        ),
         shape: shape,
         borderRadius: shape == BoxShape.circle
             ? null
             : BorderRadius.circular(radius),
       ),
-      child: Image.asset(
-        isUserImage ? AppConstants.userPlaceholder : AppConstants.horsePlaceholder,
-        height: height,
-        width: width,
-        fit: BoxFit.contain,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isUserImage ? Icons.person_rounded : Icons.pets_rounded,
+                size: (width != null && width! < 100) ? 20 : 28,
+                color: AppColors.primary.withOpacity(0.4),
+              ),
+            ),
+            if (width == null || width! >= 120) ...[
+              const SizedBox(height: 8),
+              Text(
+                isUserImage ? 'Profile Not Set' : 'No Photo Available',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                  color: AppColors.primary.withOpacity(0.4),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

@@ -326,18 +326,86 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CommonText(
-            "Invite a Barn Manager to help manage listings and barn activity on your account. They’ll receive priority review",
+            "Invite a Barn Manager to help manage listings and barn activity on your account.",
             fontSize: 14,
             color: AppColors.textSecondary,
             height: 1.5,
           ),
+          const SizedBox(height: 20),
+          _buildSetupSteps(),
+          const SizedBox(height: 24),
+          const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 24),
           CommonTextField(
             controller: _emailController,
-            label: 'Email',
-            hintText: 'barn.manager@email.com',
+            label: 'Email Address',
+            hintText: 'name@email.com',
             isRequired: true,
             keyboardType: TextInputType.emailAddress,
+            prefixIcon: const Icon(Icons.email_outlined, size: 20),
+            onChanged: (val) {
+              if (val != val.toLowerCase()) {
+                _emailController.value = _emailController.value.copyWith(
+                  text: val.toLowerCase(),
+                  selection: TextSelection.collapsed(offset: val.length),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSetupSteps() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          'Setup Steps',
+          fontSize: 15,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 12),
+        _buildStepItem(1, 'Enter their email address below.'),
+        _buildStepItem(2, 'They will receive an invitation link.'),
+        _buildStepItem(3, 'They click the link to create their profile.'),
+        _buildStepItem(4, 'Once joined, they can manage your barn activity.'),
+      ],
+    );
+  }
+
+  Widget _buildStepItem(int number, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: CommonText(
+                number.toString(),
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CommonText(
+              text,
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
           ),
         ],
       ),

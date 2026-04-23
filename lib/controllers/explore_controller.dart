@@ -369,13 +369,13 @@ class ExploreController extends GetxController {
       isLoadMoreLoading.value = true;
       currentPage.value++;
     } else {
-      if (showLoading) {
+      if (showLoading && vendors.isEmpty) {
         isLoading.value = true;
       }
       currentPage.value = 1;
       hasMore.value = true;
       // Clear horses when switching to/refreshing vendors
-      horses.clear();
+      // horses.clear(); 
     }
 
     try {

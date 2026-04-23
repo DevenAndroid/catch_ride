@@ -55,6 +55,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _whyJoinController = TextEditingController();
 
+  final FocusNode _nameFocus = FocusNode();
+  final FocusNode _instagramFocus = FocusNode();
+  final FocusNode _federationIdFocus = FocusNode();
+
 
 
   bool _confirm18 = false;
@@ -89,6 +93,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     _instagramController.dispose();
     _nameController.dispose();
     _whyJoinController.dispose();
+    _nameFocus.dispose();
+    _instagramFocus.dispose();
+    _federationIdFocus.dispose();
     super.dispose();
 
   }
@@ -175,6 +182,27 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
                       // 1. Trigger Form Validation
                       if (!_formKey.currentState!.validate()) {
+                        // Scroll to first error
+                        FocusNode? firstErrorFocus;
+                        if (_nameController.text.trim().isEmpty) {
+                          firstErrorFocus = _nameFocus;
+                        } else if (_instagramController.text.trim().isEmpty) {
+                          firstErrorFocus = _instagramFocus;
+                        } else if (_federationIdController.text.trim().isEmpty) {
+                          firstErrorFocus = _federationIdFocus;
+                        }
+
+                        if (firstErrorFocus != null) {
+                          firstErrorFocus.requestFocus();
+                          if (firstErrorFocus.context != null) {
+                            Scrollable.ensureVisible(
+                              firstErrorFocus.context!,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              alignment: 0.1,
+                            );
+                          }
+                        }
                         return;
                       }
 
@@ -297,6 +325,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
         children: [
           CommonTextField(
             controller: _nameController,
+            focusNode: _nameFocus,
             label: AppStrings.fullName,
             isRequired: true,
             hintText: "Enter your full name",
@@ -432,12 +461,16 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           const SizedBox(height: 16),
           CommonTextField(
             controller: _instagramController,
+            focusNode: _instagramFocus,
             label: AppStrings.instagram,
             hintText: "@yourusername",
             isRequired: true,
-            validator: (val) => (val == null || val.isEmpty)
-                ? null
-                : Validations.instagramValidator(val),
+            validator: (val) {
+              if (val == null || val.trim().isEmpty) {
+                return 'Instagram handle is required';
+              }
+              return Validations.instagramValidator(val);
+            },
           ),
         ],
       ),
@@ -486,6 +519,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
           const SizedBox(height: 16),
           CommonTextField(
             controller: _federationIdController,
+            focusNode: _federationIdFocus,
             label: AppStrings.federationIdNumber,
             hintText: AppStrings.idNumber,
           ),

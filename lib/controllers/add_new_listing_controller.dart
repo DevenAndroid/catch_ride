@@ -308,8 +308,21 @@ class AddNewListingController extends GetxController {
       horse.prices!.forEach((type, data) {
         if (data is Map) {
           inquireForPrice[type] = data['inquire'] ?? false;
-          minPriceControllers[type]?.text = data['min']?.toString() ?? '';
-          maxPriceControllers[type]?.text = data['max']?.toString() ?? '';
+
+          String formatPrice(String? p) {
+            if (p == null || p.isEmpty || p == 'null') return '';
+            try {
+              final double val = double.parse(p.toString().replaceAll(',', ''));
+              return NumberFormat.decimalPattern().format(val);
+            } catch (e) {
+              return p;
+            }
+          }
+
+          minPriceControllers[type]?.text =
+              formatPrice(data['min']?.toString());
+          maxPriceControllers[type]?.text =
+              formatPrice(data['max']?.toString());
         }
       });
     }

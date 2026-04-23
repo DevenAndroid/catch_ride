@@ -51,7 +51,7 @@ class GoogleApiController extends GetxController{
       scheme: 'sms',
       path: phoneNo,
       queryParameters: {
-        'body': 'Hi, I need help.', // optional
+        'body': '', // optional
       },
     );
 
