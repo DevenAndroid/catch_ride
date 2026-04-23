@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/explore_controller.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -46,10 +48,15 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       minHeightController.text = controller.heightMin.value.toString();
     if (controller.heightMax.value != null)
       maxHeightController.text = controller.heightMax.value.toString();
-    if (controller.priceMin.value != null)
-      minPriceController.text = controller.priceMin.value.toString();
-    if (controller.priceMax.value != null)
-      maxPriceController.text = controller.priceMax.value.toString();
+    final priceFormatter = NumberFormat("#,###", "en_US");
+    if (controller.priceMin.value != null) {
+      minPriceController.text =
+          priceFormatter.format(controller.priceMin.value);
+    }
+    if (controller.priceMax.value != null) {
+      maxPriceController.text =
+          priceFormatter.format(controller.priceMax.value);
+    }
     selectedListingType = controller.listingType.value;
     _localSelectedTags.addAll(controller.selectedTags);
   }
@@ -88,8 +95,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.ageMax.value = int.tryParse(maxAgeController.text);
     controller.heightMin.value = double.tryParse(minHeightController.text);
     controller.heightMax.value = double.tryParse(maxHeightController.text);
-    controller.priceMin.value = double.tryParse(minPriceController.text);
-    controller.priceMax.value = double.tryParse(maxPriceController.text);
+    controller.priceMin.value =
+        double.tryParse(minPriceController.text.replaceAll(',', ''));
+    controller.priceMax.value =
+        double.tryParse(maxPriceController.text.replaceAll(',', ''));
     controller.listingType.value = selectedListingType;
     controller.selectedTags.assignAll(_localSelectedTags.toList());
 
@@ -237,7 +246,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     'Enter max price',
                     minPriceController,
                     maxPriceController,
-                    isDecimal: true,
+                    isDecimal: false,
+                    inputFormatters: [CurrencyInputFormatter()],
                   ),
                   const SizedBox(height: 24),
 
@@ -400,6 +410,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     TextEditingController c1,
     TextEditingController c2, {
     bool isDecimal = false,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Row(
       children: [
@@ -437,6 +448,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       vertical: 12,
                     ),
                   ),
+                  inputFormatters: inputFormatters,
                 ),
               ),
             ],
@@ -477,12 +489,38 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       vertical: 12,
                     ),
                   ),
+                  inputFormatters: inputFormatters,
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Remove all non-digits
+    String newText = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+
+    if (newText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    final formatter = NumberFormat("#,###", "en_US");
+    String formattedText = formatter.format(int.parse(newText));
+
+    return newValue.copyWith(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
     );
   }
 }

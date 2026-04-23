@@ -9,7 +9,9 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:intl/intl.dart';
 
 import '../../../utils/date_util.dart';
 
@@ -436,36 +438,36 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   Widget _buildGridItem(String label, String value, {bool isExternal = false}) {
     if (label.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Flexible(
-              child: CommonText(
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CommonText(
                 label,
                 fontSize: 13,
                 color: AppColors.textSecondary,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-            ),
-            if (isExternal && value.isNotEmpty) ...[
-              const SizedBox(width: 6),
-              const Icon(Icons.open_in_new, size: 16, color: Color(0xFF3B82F6)),
+              if (isExternal && value.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.open_in_new, size: 16, color: Color(0xFF3B82F6)),
+              ],
             ],
-          ],
-        ),
-        const SizedBox(height: 6),
-        CommonText(
-          value,
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+          ),
+          const SizedBox(height: 6),
+          CommonText(
+            value,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -508,41 +510,58 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
             ],
           ),
           child: Column(
-            children: List.generate((types.length / 2).ceil(), (index) {
-              final start = index * 2;
-              final end = (start + 2 < types.length) ? start + 2 : types.length;
-              final pair = types.sublist(start, end);
+            children: types.asMap().entries.map((entry) {
+              final index = entry.key;
+              final type = entry.value;
+
+              final isInquire = controller.inquireForPrice[type] ?? false;
+              final minPrice = controller.minPriceControllers[type]?.text ?? '';
+              final maxPrice = controller.maxPriceControllers[type]?.text ?? '';
+
+              String formatPrice(String? p) {
+                if (p == null || p.isEmpty || p == 'null') return '';
+                try {
+                  final double val =
+                      double.parse(p.toString().replaceAll(',', ''));
+                  return NumberFormat.decimalPattern().format(val);
+                } catch (e) {
+                  return p;
+                }
+              }
+
+              final fMin = formatPrice(minPrice);
+              final fMax = formatPrice(maxPrice);
+
+              String priceText = 'N/A';
+              if (isInquire) {
+                priceText = 'Inquire';
+              } else if (fMin.isNotEmpty && fMax.isNotEmpty) {
+                priceText = (fMin == fMax) ? '\$ $fMin' : '\$ $fMin - \$ $fMax';
+              } else if (fMin.isNotEmpty) {
+                priceText = '\$ $fMin';
+              } else if (fMax.isNotEmpty) {
+                priceText = '\$ $fMax';
+              }
+
+              if (priceText == 'N/A' && !isInquire) {
+                return const SizedBox.shrink();
+              }
 
               return Column(
                 children: [
                   Row(
-                    children: pair.map((type) {
-                      final isInquire =
-                          controller.inquireForPrice[type] ?? false;
-                      final minPrice =
-                          controller.minPriceControllers[type]?.text ?? '';
-                      final maxPrice =
-                          controller.maxPriceControllers[type]?.text ?? '';
-
-                      // Show 'N/A' for empty fields in preview
-                      String priceText = 'N/A';
-                      if (isInquire) {
-                        priceText = 'Inquire';
-                      } else if (minPrice.isNotEmpty && maxPrice.isNotEmpty) {
-                        priceText = '\$ $minPrice - \$ $maxPrice';
-                      }
-
-                      return Expanded(child: _buildGridItem(type, priceText));
-                    }).toList(),
+                    children: [
+                      _buildGridItem(type, priceText),
+                    ],
                   ),
-                  if (index < (types.length / 2).ceil() - 1)
+                  if (index < types.length - 1)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Divider(height: 1, color: AppColors.borderLight),
                     ),
                 ],
               );
-            }),
+            }).toList(),
           ),
         ),
       ],
@@ -666,6 +685,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
   }
 
   Widget _buildImageSection(List<dynamic> allImages, List<dynamic> allVideos, int totalItems) {
+    final List<dynamic> allMedia = [...allImages, ...allVideos];
+
     if (totalItems == 0) {
       return Container(
         height: 420,
@@ -681,6 +702,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
           height: 420,
           child: PageView.builder(
             controller: _pageController,
+            physics: const BouncingScrollPhysics(),
             onPageChanged: (index) {
               setState(() {
                 _currentPage = index;
@@ -688,26 +710,48 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
             },
             itemCount: totalItems,
             itemBuilder: (context, index) {
-              if (index < allImages.length) {
-                final image = allImages[index];
-                if (image is String) {
-                  return CommonImageView(
-                    url: image,
-                    height: 420,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+              final source = allMedia[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => _FullScreenMediaViewer(
+                        mediaSources: allMedia,
+                        initialIndex: index,
+                      ),
+                    ),
                   );
-                }
-                return CommonImageView(
-                  file: image as File,
-                  height: 420,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                );
-              } else {
-                final video = allVideos[index - allImages.length];
-                return _InlineVideoPlayer(source: video);
-              }
+                },
+                child: index < allImages.length
+                    ? (source is String
+                        ? CommonImageView(
+                            url: source,
+                            height: 420,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : CommonImageView(
+                            file: source as File,
+                            height: 420,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ))
+                    : _InlineVideoPlayer(
+                        source: source,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => _FullScreenMediaViewer(
+                                mediaSources: allMedia,
+                                initialIndex: index,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              );
             },
           ),
         ),
@@ -754,31 +798,36 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 }
 
 class _InlineVideoPlayer extends StatefulWidget {
-  final dynamic source; // Can be a File or a String url
-  const _InlineVideoPlayer({required this.source});
+  final dynamic source;
+  final VoidCallback? onTap;
+  const _InlineVideoPlayer({required this.source, this.onTap});
 
   @override
   State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
 }
 
-class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
+class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with AutomaticKeepAliveClientMixin {
   VideoPlayerController? _controller;
   YoutubePlayerController? _youtubeController;
   bool _isYoutube = false;
   bool _initialized = false;
   bool _error = false;
-  bool _hasStartedPlaying = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
+    _initController();
+  }
+
+  void _initController() {
     if (widget.source is File) {
       _controller = VideoPlayerController.file(widget.source as File)
         ..initialize().then((_) {
-          _setupController();
-        }).catchError((e) {
-          _handleError(e);
-        });
+          if (mounted) setState(() => _initialized = true);
+        }).catchError((e) => _handleError(e));
     } else if (widget.source is String) {
       final String url = widget.source as String;
       final youtubeId = YoutubePlayer.convertUrlToId(url);
@@ -787,60 +836,25 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
         _youtubeController = YoutubePlayerController(
           initialVideoId: youtubeId,
           flags: const YoutubePlayerFlags(
-            autoPlay: true,
-            mute: true,
-            loop: true,
+            autoPlay: false,
+            mute: false,
             hideControls: true,
             disableDragSeek: true,
           ),
-        )..addListener(() {
-            if (mounted) {
-              if (_youtubeController!.value.isPlaying && !_hasStartedPlaying) {
-                _hasStartedPlaying = true;
-              }
-              setState(() {});
-            }
-          });
+        );
         _initialized = true;
       } else {
         _controller = VideoPlayerController.networkUrl(Uri.parse(url))
           ..initialize().then((_) {
-            _setupController();
-          }).catchError((e) {
-            _handleError(e);
-          });
+            if (mounted) setState(() => _initialized = true);
+          }).catchError((e) => _handleError(e));
       }
-    } else {
-      _error = true;
-    }
-  }
-
-  void _setupController() {
-    if (mounted && _controller != null) {
-      _controller!.setVolume(0); // mute
-      _controller!.setLooping(true); // loop
-      _controller!.play(); // autoplay
-      _controller!.addListener(() {
-        if (mounted) {
-          if (_controller!.value.isPlaying && !_hasStartedPlaying) {
-            _hasStartedPlaying = true;
-          }
-          setState(() {});
-        }
-      });
-      setState(() {
-        _initialized = true;
-      });
     }
   }
 
   void _handleError(dynamic e) {
     debugPrint('Error loading video: $e');
-    if (mounted) {
-      setState(() {
-        _error = true;
-      });
-    }
+    if (mounted) setState(() => _error = true);
   }
 
   @override
@@ -852,22 +866,12 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (_error) {
       return Container(
         color: Colors.black,
         child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, color: Colors.white, size: 40),
-              SizedBox(height: 8),
-              CommonText(
-                'Error loading video',
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ],
-          ),
+          child: Icon(Icons.error_outline, color: Colors.white, size: 40),
         ),
       );
     }
@@ -876,104 +880,44 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
       return Container(
         color: Colors.black,
         child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
         ),
       );
     }
 
-    if (_isYoutube && _youtubeController != null) {
-      final isPlaying = _youtubeController!.value.isPlaying;
-      final isBuffering = !_hasStartedPlaying || _youtubeController!.value.playerState == PlayerState.buffering;
-      
-      return GestureDetector(
-        onTap: () {
-          setState(() {
-            _youtubeController!.value.isPlaying
-                ? _youtubeController!.pause()
-                : _youtubeController!.play();
-          });
-        },
-        child: Container(
-          color: Colors.black,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              AbsorbPointer(
-                child: YoutubePlayer(
-                  controller: _youtubeController!,
-                  showVideoProgressIndicator: false,
-                ),
-              ),
-              if (!isPlaying || isBuffering)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: isBuffering
-                      ? const SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : const Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 40,
-                        ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final isPlaying = _controller!.value.isPlaying;
-    final isBuffering = !_hasStartedPlaying || _controller!.value.isBuffering;
-    
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _controller!.value.isPlaying
-              ? _controller!.pause()
-              : _controller!.play();
-        });
-      },
+      onTap: widget.onTap,
       child: Container(
         color: Colors.black,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AspectRatio(
-              aspectRatio: _controller!.value.aspectRatio,
-              child: VideoPlayer(_controller!),
-            ),
-            if (!isPlaying || isBuffering)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
+            if (_isYoutube && _youtubeController != null)
+              AbsorbPointer(
+                child: YoutubePlayer(
+                  controller: _youtubeController!,
+                  showVideoProgressIndicator: false,
                 ),
-                child: isBuffering
-                    ? const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                        size: 40,
-                      ),
+              )
+            else if (_controller != null)
+              Center(
+                child: AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio,
+                  child: VideoPlayer(_controller!),
+                ),
               ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
           ],
         ),
       ),
@@ -981,3 +925,239 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
   }
 }
 
+class _FullScreenMediaViewer extends StatefulWidget {
+  final List<dynamic> mediaSources;
+  final int initialIndex;
+
+  const _FullScreenMediaViewer({
+    required this.mediaSources,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_FullScreenMediaViewer> createState() => _FullScreenMediaViewerState();
+}
+
+class _FullScreenMediaViewerState extends State<_FullScreenMediaViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  bool _isSourceVideo(dynamic source) {
+    if (source is File) {
+      final path = source.path.toLowerCase();
+      return path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.avi');
+    }
+    if (source is String) {
+      final lower = source.toLowerCase();
+      final isYoutube = lower.contains('youtube.com') || lower.contains('youtu.be');
+      return isYoutube ||
+          lower.contains('horsevideos') ||
+          lower.endsWith('.mp4') ||
+          lower.endsWith('.mov') ||
+          lower.endsWith('.avi');
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            physics: const BouncingScrollPhysics(),
+            itemCount: widget.mediaSources.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final source = widget.mediaSources[index];
+              if (_isSourceVideo(source)) {
+                return _VideoPlayerWidget(source: source);
+              } else {
+                return Center(
+                  child: InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: source is String
+                        ? CommonImageView(
+                            url: source,
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                            height: double.infinity,
+                          )
+                        : CommonImageView(
+                            file: source as File,
+                            fit: BoxFit.contain,
+                            width: double.infinity,
+                            height: double.infinity,
+                          ),
+                  ),
+                );
+              }
+            },
+          ),
+          // Close Button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 24),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoPlayerWidget extends StatefulWidget {
+  final dynamic source;
+  const _VideoPlayerWidget({required this.source});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKeepAliveClientMixin {
+  VideoPlayerController? _videoPlayerController;
+  ChewieController? _chewieController;
+  YoutubePlayerController? _youtubeController;
+  bool _isYoutube = false;
+  bool _initialized = false;
+  bool _error = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer();
+  }
+
+  void _initPlayer() {
+    if (widget.source is File) {
+      _videoPlayerController = VideoPlayerController.file(widget.source as File);
+      _setupChewie();
+    } else if (widget.source is String) {
+      final String url = widget.source as String;
+      final youtubeId = YoutubePlayer.convertUrlToId(url);
+      if (youtubeId != null) {
+        _isYoutube = true;
+        _youtubeController = YoutubePlayerController(
+          initialVideoId: youtubeId,
+          flags: const YoutubePlayerFlags(
+            autoPlay: true,
+            mute: false,
+          ),
+        );
+        _initialized = true;
+      } else {
+        _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
+        _setupChewie();
+      }
+    }
+  }
+
+  void _setupChewie() {
+    _videoPlayerController!.initialize().then((_) {
+      if (mounted) {
+        _chewieController = ChewieController(
+          videoPlayerController: _videoPlayerController!,
+          autoPlay: true,
+          looping: false,
+          aspectRatio: _videoPlayerController!.value.aspectRatio,
+          showControls: true,
+          materialProgressColors: ChewieProgressColors(
+            playedColor: AppColors.primary,
+            handleColor: AppColors.primary,
+            backgroundColor: Colors.grey,
+            bufferedColor: Colors.white.withOpacity(0.5),
+          ),
+          placeholder: Container(color: Colors.black),
+          autoInitialize: true,
+        );
+        setState(() {
+          _initialized = true;
+        });
+      }
+    }).catchError((e) {
+      debugPrint('Error initializing video: $e');
+      if (mounted) {
+        setState(() {
+          _error = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _videoPlayerController?.dispose();
+    _chewieController?.dispose();
+    _youtubeController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    if (_error) {
+      return const Center(
+        child: Icon(Icons.error_outline, color: Colors.white, size: 40),
+      );
+    }
+
+    if (!_initialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
+
+    if (_isYoutube && _youtubeController != null) {
+      return Center(
+        child: YoutubePlayer(
+          controller: _youtubeController!,
+          showVideoProgressIndicator: true,
+          progressIndicatorColor: AppColors.primary,
+        ),
+      );
+    }
+
+    if (_chewieController != null) {
+      return Center(
+        child: Chewie(controller: _chewieController!),
+      );
+    }
+
+    return const Center(
+      child: CircularProgressIndicator(color: Colors.white),
+    );
+  }
+}

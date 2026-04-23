@@ -12,12 +12,14 @@ import 'package:catch_ride/widgets/common_button.dart';
 import 'package:get/get.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../controllers/booking_controller.dart';
+import '../../../models/availability_model.dart';
 import '../../../services/api_service.dart';
 import '../settings/trainer_profile_view.dart';
 import '../list/edit_horse_listing_view.dart';
@@ -559,7 +561,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         : horse!.location;
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(14.0),
       child: Row(
         children: [
           CommonImageView(
@@ -658,7 +660,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     if (description.isEmpty && allTags.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -957,6 +959,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           height: 260,
           child: PageView.builder(
             controller: _pageController,
+            physics: const BouncingScrollPhysics(),
             onPageChanged: (index) {
               setState(() {
                 _currentPage = index;
@@ -965,16 +968,40 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             itemCount: totalItems,
             itemBuilder: (context, index) {
               final String url = allMedia[index];
-              if (_isUrlVideo(url)) {
-                return _InlineVideoPlayer(url: url);
-              } else {
-                return CommonImageView(
-                  url: url,
-                  height: 260,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                );
-              }
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => _FullScreenMediaViewer(
+                        mediaUrls: allMedia,
+                        initialIndex: index,
+                      ),
+                    ),
+                  );
+                },
+                child: _isUrlVideo(url)
+                    ? _InlineVideoPlayer(
+                        url: url,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => _FullScreenMediaViewer(
+                                mediaUrls: allMedia,
+                                initialIndex: index,
+                              ),
+                            ),
+                          );
+                        },
+                      )
+                    : CommonImageView(
+                        url: url,
+                        height: 260,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+              );
             },
           ),
         ),
@@ -1032,7 +1059,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildDetailsSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1043,7 +1070,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -1051,54 +1078,50 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 2.2,
+            child: Column(
               children: [
-                _buildPremiumDetailItem(
+                _buildDetailRow(
                   'Horse name',
                   horse!.name.isEmpty ? 'N/A' : horse!.name,
-                ),
-                _buildPremiumDetailItem(
                   'USEF',
                   (horse!.usefNumber == null ||
                           horse!.usefNumber.toString().isEmpty)
                       ? 'N/A'
                       : horse!.usefNumber.toString(),
-                  onLabelTap: () async {
-                    final Uri url = Uri.parse('https://www.usef.org/search/horses');
+                  onLabelTap2: () async {
+                    final Uri url =
+                        Uri.parse('https://www.usef.org/search/horses');
                     if (!await launchUrl(url)) {
                       Get.snackbar('Error', 'Could not launch $url');
                     }
                   },
                 ),
-                _buildPremiumDetailItem(
+                const SizedBox(height: 16),
+                _buildDetailRow(
                   'Age',
                   horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years',
-                ),
-                _buildPremiumDetailItem(
                   'Height',
                   (horse!.height == null || horse!.height!.isEmpty)
                       ? 'N/A'
                       : horse!.height!,
                 ),
-                _buildPremiumDetailItem(
+                const SizedBox(height: 16),
+                _buildDetailRow(
                   'Breed',
                   horse!.breed.isEmpty ? 'N/A' : horse!.breed,
-                ),
-                _buildPremiumDetailItem(
                   'Color',
                   (horse!.color == null || horse!.color!.isEmpty)
                       ? 'N/A'
                       : horse!.color!,
                 ),
-                _buildPremiumDetailItem(
+                const SizedBox(height: 16),
+                _buildDetailRow(
                   'Discipline',
                   horse!.displayDiscipline.isEmpty
                       ? 'N/A'
                       : horse!.displayDiscipline,
+                  '',
+                  '',
                 ),
               ],
             ),
@@ -1112,13 +1135,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     String label,
     String value, {
     VoidCallback? onLabelTap,
+    bool showDivider = true,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Flexible(child: CommonText(label, fontSize: 13, color: AppColors.textSecondary,maxLines: 1,overflow: TextOverflow.ellipsis,)),
+            Flexible(child: CommonText(label, fontSize: 13, color: AppColors.textSecondary)),
             if (onLabelTap != null) ...[
               const SizedBox(width: 6),
               GestureDetector(
@@ -1134,8 +1158,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         ),
         const SizedBox(height: 4),
         CommonText(value, fontSize: 15, fontWeight: FontWeight.bold),
-        const SizedBox(height: 4),
-        Container(height: 1, color: AppColors.border.withValues(alpha: 0.3)),
+        if (showDivider) ...[
+          const SizedBox(height: 4),
+          Container(height: 1, color: AppColors.border.withValues(alpha: 0.3)),
+        ],
       ],
     );
   }
@@ -1168,7 +1194,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       'Sale',
       'Weekly Lease',
       'Annual Lease',
-      'Short Term or Circuit Lease',
+      'Short Term or\nCircuit Lease',
     ];
 
     final List<MapEntry<String, dynamic>> sortedEntries = [];
@@ -1185,7 +1211,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1197,7 +1223,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -1205,11 +1231,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              childAspectRatio: 2.2,
+            child: Column(
               children: sortedEntries.map((entry) {
                 final type = entry.key;
                 final data = entry.value;
@@ -1220,18 +1242,42 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 String labelStr = type;
                 if (type == 'Sale') labelStr = 'For Sale';
 
+                String formatPrice(String? p) {
+                  if (p == null || p.isEmpty || p == 'null') return '';
+                  try {
+                    final double val =
+                        double.parse(p.toString().replaceAll(',', ''));
+                    return NumberFormat.decimalPattern().format(val);
+                  } catch (e) {
+                    return p;
+                  }
+                }
+
+                final formattedMin = formatPrice(minPrice);
+                final formattedMax = formatPrice(maxPrice);
+
                 String valStr = '';
                 if (inquire) {
                   valStr = 'Inquire';
-                } else if (minPrice == maxPrice || maxPrice.isEmpty) {
-                  valStr = '\$ $minPrice';
-                } else if (minPrice.isEmpty) {
-                  valStr = '\$ $maxPrice';
+                } else if (formattedMin.isNotEmpty &&
+                    formattedMax.isNotEmpty) {
+                  if (formattedMin == formattedMax) {
+                    valStr = '\$ $formattedMin';
+                  } else {
+                    valStr = '\$ $formattedMin - \$ $formattedMax';
+                  }
+                } else if (formattedMin.isNotEmpty) {
+                  valStr = '\$ $formattedMin';
+                } else if (formattedMax.isNotEmpty) {
+                  valStr = '\$ $formattedMax';
                 } else {
-                  valStr = '\$ $minPrice - \$ $maxPrice';
+                  return const SizedBox.shrink();
                 }
 
-                return _buildPremiumDetailItem(labelStr, valStr);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildPremiumDetailItem(labelStr, valStr),
+                );
               }).toList(),
             ),
           ),
@@ -1254,7 +1300,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -1514,7 +1560,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     DateTime? startDate;
     DateTime? endDate;
     String selectedType = 'Trial';
-    String? selectedLocation;
+    String? selectedLocation = horse!.location;
+    AvailabilityModel? selectedShow;
     final TextEditingController messageController = TextEditingController();
     final BookingController bookingController = Get.put(BookingController());
 
@@ -1600,47 +1647,43 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   }
 
                   // Find a valid initial date that satisfies the predicate
-                  DateTime initial = startDate ?? DateTime.now();
-                  
-                  if (selectedLocation != horse!.location) {
-                    final matchingShows = horse!.showAvailability.where(
-                      (s) => s.cityState == selectedLocation,
-                    );
-                    
-                    bool isInitialValid = false;
-                    DateTime? firstShowStart;
+                  DateTime now = DateTime.now();
+                  DateTime today = DateTime(now.year, now.month, now.day);
+                  DateTime initial = startDate ?? today;
+                  DateTime first = today;
 
-                    for (var show in matchingShows) {
-                      final sDate = DateTime.tryParse(show.startDate);
-                      final eDate = DateTime.tryParse(show.endDate);
-                      if (sDate != null && eDate != null) {
-                        if (firstShowStart == null || sDate.isBefore(firstShowStart)) {
-                          firstShowStart = sDate;
-                        }
-                        
-                        final dateOnly = DateTime(initial.year, initial.month, initial.day);
-                        final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
-                        final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
-                        
-                        if ((dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
-                            (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly))) {
-                          isInitialValid = true;
-                          break;
-                        }
+                  if (selectedLocation != horse!.location &&
+                      selectedShow != null) {
+                    final sDate = DateTime.tryParse(selectedShow!.startDate);
+                    final eDate = DateTime.tryParse(selectedShow!.endDate);
+
+                    if (sDate != null && eDate != null) {
+                      final startOnly =
+                          DateTime(sDate.year, sDate.month, sDate.day);
+                      final endOnly =
+                          DateTime(eDate.year, eDate.month, eDate.day);
+
+                      // Safety check: If the show is entirely in the past, don't open picker
+                      if (endOnly.isBefore(today)) {
+                        Get.snackbar(
+                          'Show Ended',
+                          'This show has already ended. Please select a different location.',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: Colors.orange,
+                          colorText: Colors.white,
+                        );
+                        return;
                       }
-                    }
 
-                    if (!isInitialValid && firstShowStart != null) {
-                      // If today is before the show, use show start. 
-                      // If today is after the show, this show is technically invalid (handled by predicate)
-                      // but we must provide a valid initialDate for the picker to open.
-                      initial = firstShowStart.isBefore(DateTime.now()) ? DateTime.now() : firstShowStart;
-                      
-                      // Final check: if even firstShowStart is not valid (e.g. show ended), 
-                      // we'll just use firstShowStart as a fallback to avoid crash, 
-                      // though the user will see all days grayed out.
-                      if (firstShowStart.isBefore(DateTime.now())) {
-                        // Keep it as is or handle "Show ended" earlier
+                      if (initial.isBefore(startOnly)) {
+                        initial = startOnly;
+                      } else if (initial.isAfter(endOnly)) {
+                        initial = startOnly;
+                      }
+
+                      // Ensure initial date is not before today
+                      if (initial.isBefore(today)) {
+                        initial = today;
                       }
                     }
                   }
@@ -1648,40 +1691,33 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   final date = await showDatePicker(
                     context: context,
                     initialDate: initial,
-                    firstDate: DateTime.now(),
+                    firstDate: first,
                     lastDate: DateTime.now().add(const Duration(days: 365)),
                     selectableDayPredicate: (DateTime day) {
-                      if (selectedLocation == horse!.location) return true;
-
-                      final matchingShows = horse!.showAvailability.where(
-                        (s) => s.cityState == selectedLocation,
-                      );
-                      if (matchingShows.isEmpty) return false;
-
                       final dateOnly = DateTime(day.year, day.month, day.day);
+                      final now = DateTime.now();
+                      final today = DateTime(now.year, now.month, now.day);
 
-                      for (var show in matchingShows) {
-                        final sDate = DateTime.tryParse(show.startDate);
-                        final eDate = DateTime.tryParse(show.endDate);
-                        if (sDate != null && eDate != null) {
-                          final startOnly = DateTime(
-                            sDate.year,
-                            sDate.month,
-                            sDate.day,
-                          );
-                          final endOnly = DateTime(
-                            eDate.year,
-                            eDate.month,
-                            eDate.day,
-                          );
-                          if ((dateOnly.isAtSameMomentAs(startOnly) ||
-                                  dateOnly.isAfter(startOnly)) &&
-                              (dateOnly.isAtSameMomentAs(endOnly) ||
-                                  dateOnly.isBefore(endOnly))) {
-                            return true;
-                          }
-                        }
+                      // Never allow past dates
+                      if (dateOnly.isBefore(today)) return false;
+
+                      if (selectedLocation == horse!.location) return true;
+                      if (selectedShow == null) return false;
+
+                      final sDate = DateTime.tryParse(selectedShow!.startDate);
+                      final eDate = DateTime.tryParse(selectedShow!.endDate);
+                      if (sDate != null && eDate != null) {
+                        final startOnly =
+                            DateTime(sDate.year, sDate.month, sDate.day);
+                        final endOnly =
+                            DateTime(eDate.year, eDate.month, eDate.day);
+
+                        return (dateOnly.isAtSameMomentAs(startOnly) ||
+                                dateOnly.isAfter(startOnly)) &&
+                            (dateOnly.isAtSameMomentAs(endOnly) ||
+                                dateOnly.isBefore(endOnly));
                       }
+
                       return false;
                     },
                   );
@@ -1722,24 +1758,62 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   child: DropdownButton<String>(
                     value: selectedLocation,
                     isExpanded: true,
-                    items: {
-                      if (horse!.location != null && horse!.location!.isNotEmpty)
-                        horse!.location!,
-                      ...horse!.showAvailability
-                          .map((show) => show.cityState)
-                          .where((venue) => venue.isNotEmpty)
-                    }
-                        .map(
-                          (venue) => DropdownMenuItem(
-                            value: venue,
-                            child: CommonText(
-                              venue == horse!.location ? "$venue (Home)" : venue,
-                              fontSize: 14,
-                              color: AppColors.textPrimary,
+                    itemHeight: null, // Allow custom height for Column
+                    items: [
+                      if (horse!.location != null &&
+                          horse!.location!.isNotEmpty)
+                        DropdownMenuItem(
+                          value: horse!.location!,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CommonText(
+                                  "${horse!.location!} (Home)",
+                                  fontSize: 14,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                const CommonText(
+                                  "Available at home",
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
                             ),
                           ),
-                        )
-                        .toList(),
+                        ),
+                      ...horse!.showAvailability.map((show) {
+                        final dateRange = DateUtil.formatRange(
+                            show.startDate, show.endDate);
+                        final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
+                        return DropdownMenuItem(
+                          value: uniqueValue,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CommonText(
+                                  show.cityState,
+                                  fontSize: 14,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                CommonText(
+                                  dateRange,
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
                     hint: const CommonText(
                       'Select Location',
                       fontSize: 14,
@@ -1748,20 +1822,29 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     onChanged: (val) {
                       setSheetState(() {
                         selectedLocation = val;
+                        selectedShow = horse!.showAvailability.firstWhereOrNull(
+                          (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
+                        );
+
                         // Reset date if it's invalid for the new location
-                        if (startDate != null && val != horse!.location) {
-                          final show = horse!.showAvailability.firstWhereOrNull(
-                            (s) => s.cityState == val,
-                          );
-                          if (show != null) {
-                            final sDate = DateTime.tryParse(show.startDate);
-                            final eDate = DateTime.tryParse(show.endDate);
-                            if (sDate != null && startDate!.isBefore(sDate)) {
-                              startDate = null;
+                        if (startDate != null) {
+                          if (val == horse!.location) {
+                            // All dates valid for home, no reset needed
+                          } else if (selectedShow != null) {
+                            final sDate = DateTime.tryParse(selectedShow!.startDate);
+                            final eDate = DateTime.tryParse(selectedShow!.endDate);
+                            bool isValid = false;
+                            if (sDate != null && eDate != null) {
+                              final dateOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);
+                              final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
+                              final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
+                              
+                              if ((dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
+                                  (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly))) {
+                                isValid = true;
+                              }
                             }
-                            if (eDate != null &&
-                                startDate != null &&
-                                startDate!.isAfter(eDate)) {
+                            if (!isValid) {
                               startDate = null;
                             }
                           }
@@ -1886,7 +1969,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                       'date': DateFormat(
                                         'yyyy-MM-dd',
                                       ).format(startDate!),
-                                      'location': selectedLocation ?? 'N/A',
+                                      'location': selectedShow?.cityState ??
+                                          horse!.location ??
+                                          'N/A',
                                       'notes': messageController.text,
                                       'service': selectedType,
                                       'price': horse!.price ?? 0,
@@ -2112,23 +2197,50 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       ),
     );
   }
+
+  Widget _buildDetailRow(String label1, String val1, String label2, String val2,
+      {VoidCallback? onLabelTap2}) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+                child: _buildPremiumDetailItem(label1, val1, showDivider: false)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: label2.isEmpty
+                  ? const SizedBox.shrink()
+                  : _buildPremiumDetailItem(label2, val2,
+                      onLabelTap: onLabelTap2, showDivider: false),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(height: 1, color: AppColors.border.withValues(alpha: 0.3)),
+      ],
+    );
+  }
 }
 
 class _InlineVideoPlayer extends StatefulWidget {
   final String url;
-  const _InlineVideoPlayer({required this.url});
+  final VoidCallback? onTap;
+  const _InlineVideoPlayer({required this.url, this.onTap});
 
   @override
   State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
 }
 
-class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
+class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with AutomaticKeepAliveClientMixin {
   VideoPlayerController? _controller;
   YoutubePlayerController? _youtubeController;
   bool _isYoutube = false;
   bool _initialized = false;
   bool _error = false;
-  bool _hasStartedPlaying = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -2139,50 +2251,29 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
       _youtubeController = YoutubePlayerController(
         initialVideoId: youtubeId,
         flags: const YoutubePlayerFlags(
-          autoPlay: true,
-          mute: true,
-          loop: true,
+          autoPlay: false, // Changed to false
+          mute: false,
           hideControls: true,
           disableDragSeek: true,
         ),
-      )..addListener(() {
-          if (mounted) {
-            if (_youtubeController!.value.isPlaying && !_hasStartedPlaying) {
-              _hasStartedPlaying = true;
-            }
-            setState(() {});
-          }
-        });
+      );
       _initialized = true;
     } else {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-        ..initialize()
-            .then((_) {
-              if (mounted) {
-                _controller!.setVolume(0); // mute
-                _controller!.setLooping(true); // loop
-                _controller!.play(); // autoplay
-                _controller!.addListener(() {
-                  if (mounted) {
-                    if (_controller!.value.isPlaying && !_hasStartedPlaying) {
-                      _hasStartedPlaying = true;
-                    }
-                    setState(() {});
-                  }
-                });
-                setState(() {
-                  _initialized = true;
-                });
-              }
-            })
-            .catchError((e) {
-              debugPrint('Error loading video: $e');
-              if (mounted) {
-                setState(() {
-                  _error = true;
-                });
-              }
+        ..initialize().then((_) {
+          if (mounted) {
+            setState(() {
+              _initialized = true;
             });
+          }
+        }).catchError((e) {
+          debugPrint('Error loading video: $e');
+          if (mounted) {
+            setState(() {
+              _error = true;
+            });
+          }
+        });
     }
   }
 
@@ -2195,22 +2286,12 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     if (_error) {
       return Container(
         color: Colors.black,
         child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, color: Colors.white, size: 40),
-              SizedBox(height: 8),
-              CommonText(
-                'Error loading video',
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ],
-          ),
+          child: Icon(Icons.error_outline, color: Colors.white, size: 40),
         ),
       );
     }
@@ -2219,107 +2300,263 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> {
       return Container(
         color: Colors.black,
         child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
         ),
       );
     }
 
-    if (_isYoutube && _youtubeController != null) {
-      final isPlaying = _youtubeController!.value.isPlaying;
-      final isBuffering = !_hasStartedPlaying || _youtubeController!.value.playerState == PlayerState.buffering;
-      
-      return GestureDetector(
-        onTap: () {
-          setState(() {
-            _youtubeController!.value.isPlaying
-                ? _youtubeController!.pause()
-                : _youtubeController!.play();
-          });
-        },
-        child: Container(
-          color: Colors.black,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              AbsorbPointer(
-                child: YoutubePlayer(
-                  controller: _youtubeController!,
-                  showVideoProgressIndicator: false,
-                ),
-              ),
-              if (!isPlaying || isBuffering)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: isBuffering
-                      ? const SizedBox(
-                          width: 40,
-                          height: 40,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : const Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 40,
-                        ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final isPlaying = _controller!.value.isPlaying;
-    final isBuffering = !_hasStartedPlaying || _controller!.value.isBuffering;
-    
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _controller!.value.isPlaying
-              ? _controller!.pause()
-              : _controller!.play();
-        });
-      },
+      onTap: widget.onTap,
       child: Container(
         color: Colors.black,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AspectRatio(
-              aspectRatio: _controller!.value.aspectRatio,
-              child: VideoPlayer(_controller!),
+            if (_isYoutube && _youtubeController != null)
+              AbsorbPointer(
+                child: YoutubePlayer(
+                  controller: _youtubeController!,
+                  showVideoProgressIndicator: false,
+                ),
+              )
+            else if (_controller != null)
+              Center(
+                child: AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio,
+                  child: VideoPlayer(_controller!),
+                ),
+              ),
+            // Play Button Overlay
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
             ),
-            if (!isPlaying || isBuffering)
-              Container(
-                padding: const EdgeInsets.all(12),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FullScreenMediaViewer extends StatefulWidget {
+  final List<String> mediaUrls;
+  final int initialIndex;
+
+  const _FullScreenMediaViewer({
+    required this.mediaUrls,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_FullScreenMediaViewer> createState() => _FullScreenMediaViewerState();
+}
+
+class _FullScreenMediaViewerState extends State<_FullScreenMediaViewer> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  bool _isUrlVideo(String url) {
+    if (url.isEmpty) return false;
+    final lower = url.toLowerCase();
+    final isYoutube =
+        lower.contains('youtube.com') || lower.contains('youtu.be');
+    return isYoutube ||
+        lower.contains('horsevideos') ||
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            physics: const BouncingScrollPhysics(),
+            itemCount: widget.mediaUrls.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              final url = widget.mediaUrls[index];
+              if (_isUrlVideo(url)) {
+                return _VideoPlayerWidget(url: url);
+              } else {
+                return Center(
+                  child: InteractiveViewer(
+                    minScale: 0.5,
+                    maxScale: 4.0,
+                    child: CommonImageView(
+                      url: url,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+          // Close Button
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 16,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
-                child: isBuffering
-                    ? const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 3,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                        size: 40,
-                      ),
+                child: const Icon(Icons.close, color: Colors.white, size: 24),
               ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _VideoPlayerWidget extends StatefulWidget {
+  final String url;
+  const _VideoPlayerWidget({required this.url});
+
+  @override
+  State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKeepAliveClientMixin {
+  VideoPlayerController? _videoPlayerController;
+  ChewieController? _chewieController;
+  YoutubePlayerController? _youtubeController;
+  bool _isYoutube = false;
+  bool _initialized = false;
+  bool _error = false;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer();
+  }
+
+  void _initPlayer() {
+    final youtubeId = YoutubePlayer.convertUrlToId(widget.url);
+    if (youtubeId != null) {
+      _isYoutube = true;
+      _youtubeController = YoutubePlayerController(
+        initialVideoId: youtubeId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: true,
+          mute: false,
+        ),
+      );
+      _initialized = true;
+    } else {
+      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+      _videoPlayerController!.initialize().then((_) {
+        if (mounted) {
+          _chewieController = ChewieController(
+            videoPlayerController: _videoPlayerController!,
+            autoPlay: true,
+            looping: false,
+            aspectRatio: _videoPlayerController!.value.aspectRatio,
+            showControls: true,
+            materialProgressColors: ChewieProgressColors(
+              playedColor: AppColors.primary,
+              handleColor: AppColors.primary,
+              backgroundColor: Colors.grey,
+              bufferedColor: Colors.white.withOpacity(0.5),
+            ),
+            placeholder: Container(color: Colors.black),
+            autoInitialize: true,
+          );
+          setState(() {
+            _initialized = true;
+          });
+        }
+      }).catchError((e) {
+        debugPrint('Error initializing video: $e');
+        if (mounted) {
+          setState(() {
+            _error = true;
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoPlayerController?.dispose();
+    _chewieController?.dispose();
+    _youtubeController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    if (_error) {
+      return const Center(
+        child: Icon(Icons.error_outline, color: Colors.white, size: 40),
+      );
+    }
+
+    if (!_initialized) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
+
+    if (_isYoutube && _youtubeController != null) {
+      return Center(
+        child: YoutubePlayer(
+          controller: _youtubeController!,
+          showVideoProgressIndicator: true,
+          progressIndicatorColor: AppColors.primary,
+        ),
+      );
+    }
+
+    if (_chewieController != null) {
+      return Center(
+        child: Chewie(controller: _chewieController!),
+      );
+    }
+
+    return const Center(
+      child: CircularProgressIndicator(color: Colors.white),
     );
   }
 }

@@ -1684,7 +1684,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           children: [
                             RichText(
                               text: const TextSpan(
-                                text: 'Show, Venue, or Circuit',
+                                text: 'Show Venue',
                                 style: TextStyle(
                                   fontSize: AppTextSizes.size14,
                                   fontWeight: FontWeight.bold,

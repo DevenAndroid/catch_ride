@@ -75,7 +75,13 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   await controller.fetchHorses();
                 },
                 child: Obx(() {
-                  if (controller.isLoading.value && controller.horses.isEmpty) {
+                  final bool isVendors =
+                      controller.selectedDiscipline.value == 'Services';
+
+                  if (controller.isLoading.value &&
+                      (isVendors
+                          ? controller.vendors.isEmpty
+                          : controller.horses.isEmpty)) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
@@ -83,8 +89,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                   final bookingController = Get.put(BookingController());
                   final _ = bookingController.bookings.length;
 
-                  final bool isVendors =
-                      controller.selectedDiscipline.value == 'Services';
+
 
                   if (!isVendors && controller.horses.isEmpty) {
                     return CustomScrollView(

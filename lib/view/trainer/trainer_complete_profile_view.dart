@@ -42,8 +42,12 @@ class _TrainerCompleteProfileViewState
   final TextEditingController _searchCircuitsController =
       TextEditingController();
   
+  final FocusNode _fullNameFocus = FocusNode();
+  final FocusNode _phoneFocus = FocusNode();
+  final FocusNode _barnNameFocus = FocusNode();
   final FocusNode _location1Focus = FocusNode();
   final FocusNode _location2Focus = FocusNode();
+  final FocusNode _bioFocus = FocusNode();
 
   final ImagePicker _picker = ImagePicker();
   File? _profileImage;
@@ -140,6 +144,10 @@ class _TrainerCompleteProfileViewState
     _searchCircuitsController.dispose();
     _location1Focus.dispose();
     _location2Focus.dispose();
+    _fullNameFocus.dispose();
+    _phoneFocus.dispose();
+    _barnNameFocus.dispose();
+    _bioFocus.dispose();
     super.dispose();
   }
 
@@ -356,6 +364,7 @@ class _TrainerCompleteProfileViewState
         _buildTextField(
           'Full Name',
           _fullNameController,
+          focusNode: _fullNameFocus,
           hint: 'Enter your full name',
           isRequired: true,
           validator: RequiredValidator(
@@ -375,6 +384,7 @@ class _TrainerCompleteProfileViewState
         _buildTextField(
           'Barn Name',
           _barnNameController,
+          focusNode: _barnNameFocus,
           hint: 'Enter your barn name',
           isRequired: true,
           validator: RequiredValidator(
@@ -411,6 +421,7 @@ class _TrainerCompleteProfileViewState
         _buildTextField(
           'Bio',
           _bioController,
+          focusNode: _bioFocus,
           hint: 'Write a short bio',
           maxLines: 4,
           isRequired: true,
@@ -968,6 +979,7 @@ class _TrainerCompleteProfileViewState
   Widget _buildTextField(
     String label,
     TextEditingController controller, {
+    FocusNode? focusNode,
     String? hint,
     bool isRequired = false,
     int maxLines = 1,
@@ -979,6 +991,7 @@ class _TrainerCompleteProfileViewState
     return CommonTextField(
       label: label,
       controller: controller,
+      focusNode: focusNode,
       hintText: hint ?? '',
       isRequired: isRequired,
       maxLines: maxLines,
@@ -1032,6 +1045,7 @@ class _TrainerCompleteProfileViewState
               Expanded(
                 child: TextFormField(
                   controller: _phoneController,
+                  focusNode: _phoneFocus,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(
                     fontSize: 15,
@@ -1180,6 +1194,31 @@ class _TrainerCompleteProfileViewState
               ? null
               : () async {
                   if (!_formKey.currentState!.validate()) {
+                    // Scroll to first error
+                    FocusNode? firstErrorFocus;
+                    if (_fullNameController.text.trim().isEmpty) {
+                      firstErrorFocus = _fullNameFocus;
+                    } else if (_phoneController.text.trim().isEmpty) {
+                      firstErrorFocus = _phoneFocus;
+                    } else if (_barnNameController.text.trim().isEmpty) {
+                      firstErrorFocus = _barnNameFocus;
+                    } else if (_location1Controller.text.trim().isEmpty) {
+                      firstErrorFocus = _location1Focus;
+                    } else if (_bioController.text.trim().isEmpty) {
+                      firstErrorFocus = _bioFocus;
+                    }
+
+                    if (firstErrorFocus != null) {
+                      firstErrorFocus.requestFocus();
+                      if (firstErrorFocus.context != null) {
+                        Scrollable.ensureVisible(
+                          firstErrorFocus.context!,
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                          alignment: 0.1,
+                        );
+                      }
+                    }
                     return;
                   }
 

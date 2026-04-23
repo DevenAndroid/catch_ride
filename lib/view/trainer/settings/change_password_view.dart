@@ -202,7 +202,11 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                   );
 
                   if (success) {
-                    Get.back();
+                    // Small delay to let user see the success snackbar
+                    await Future.delayed(const Duration(milliseconds: 1500));
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   }
                 },
           child: Container(

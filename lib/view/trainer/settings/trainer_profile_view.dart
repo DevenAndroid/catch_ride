@@ -241,7 +241,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                       children: [
                         const SizedBox(width: 130),
                         Expanded(
-                          child: Column(
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 16),
+                            child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               CommonText(
@@ -264,7 +266,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 5),
+                                    padding: const EdgeInsets.only(top: 2),
                                     child: const Icon(
                                       Icons.location_on,
                                       size: 16,
@@ -336,16 +338,10 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                  if (_controller
-                                      .yearsExperience
-                                      .isNotEmpty &&
+                                  if (_controller.yearsExperience.isNotEmpty &&
                                       _controller.yearsExperience != '0')
                                     CommonText(
-                                      _controller.yearsExperience.contains(
-                                        '+',
-                                      )
-                                          ? '${_controller.yearsExperience} Experience'
-                                          : '${_controller.yearsExperience} Years',
+                                      '${_controller.yearsExperience} yrs',
                                       fontSize: 14,
                                       color: const Color(0xFF667085),
                                       fontWeight: FontWeight.w500,
@@ -354,7 +350,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                               ),
                             ],
                           ),
-                        ),
+                        ),)
                       ],
                     ),
 
@@ -540,12 +536,12 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
           ...filteredTags.entries.map((entry) {
             final isLast =
                 filteredTags.keys.last == entry.key && horseShows.isEmpty;
-            return _buildInfoRow(entry.key, entry.value.join(" · "), !isLast);
+            return _buildInfoRow(entry.key, entry.value, !isLast);
           }).toList(),
           if (horseShows.isNotEmpty)
             _buildInfoRow(
               'Horse Shows & Circuits Frequented',
-              horseShows.join(" · "),
+              horseShows,
               false,
             ),
         ],
@@ -553,7 +549,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
     );
   }
 
-  Widget _buildInfoRow(String title, String content, bool showDivider) {
+  Widget _buildInfoRow(String title, dynamic content, bool showDivider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -569,12 +565,24 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                 fontWeight: FontWeight.w500,
               ),
               const SizedBox(height: 6),
-              CommonText(
-                content,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF101828),
-              ),
+              if (content is List)
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: content.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final tag = entry.value.toString();
+                    final isFirst = index == 0;
+                    return _buildTagItem(tag, !isFirst);
+                  }).toList(),
+                )
+              else
+                CommonText(
+                  content.toString(),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF101828),
+                ),
             ],
           ),
         ),
@@ -583,6 +591,28 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
             color: AppColors.borderLight.withValues(alpha: 0.5),
             height: 1,
           ),
+      ],
+    );
+  }
+
+  Widget _buildTagItem(String tag, bool showDot) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (showDot) ...[
+          const CommonText(
+            "·",
+            color: Color(0xFFD0D5DD),
+            fontWeight: FontWeight.bold,
+          ),
+          const SizedBox(width: 6),
+        ],
+        CommonText(
+          tag,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: const Color(0xFF101828),
+        ),
       ],
     );
   }
