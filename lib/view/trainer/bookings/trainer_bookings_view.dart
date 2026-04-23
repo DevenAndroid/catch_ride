@@ -286,7 +286,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
 
         final booking = bookings[index];
         String displayStatus = booking.status.capitalizeFirst ?? booking.status;
-        if (booking.status == 'confirmed') displayStatus = 'Accepted';
+        if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
         if (booking.status == 'cancelled') displayStatus = 'Canceled';
 
         return Padding(
@@ -477,6 +477,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   if (!isVendorBooking &&
                       booking.acceptedByName != null &&
                       (booking.status == 'confirmed' ||
+                          booking.status == 'accepted' ||
                           booking.status == 'cancelled' ||
                           booking.status == 'Accepted' ||
                           booking.status == 'Rejected' ||

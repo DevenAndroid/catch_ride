@@ -50,7 +50,7 @@ class _BookingViewState extends State<BookingView> {
 
         final filteredBookings = controller.receivedBookings.where((b) {
           if (_selectedTab == 0) {
-            return b.status.toLowerCase() == 'pending' || b.status.toLowerCase() == 'confirmed';
+            return b.status.toLowerCase() == 'pending' || b.status.toLowerCase() == 'confirmed' || b.status.toLowerCase() == 'accepted';
           } else {
             return b.status.toLowerCase() == 'completed';
           }
@@ -208,7 +208,7 @@ class _BookingViewState extends State<BookingView> {
               color: AppColors.textPrimary,
             ),
           ],
-          if (booking.status.toLowerCase() == 'confirmed') ...[
+          if (booking.status.toLowerCase() == 'confirmed' || booking.status.toLowerCase() == 'accepted') ...[
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,

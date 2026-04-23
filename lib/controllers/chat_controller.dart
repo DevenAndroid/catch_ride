@@ -77,6 +77,13 @@ class ChatController extends GetxController {
     }
   }
 
+  String getNormalizedConversationId(String id1, String id2) {
+    if (id1.isEmpty || id2.isEmpty) return '';
+    final List<String> ids = [id1, id2];
+    ids.sort();
+    return ids.join('-');
+  }
+
   Future<List<ChatConversation>> fetchConversationsForUser(String userId) async {
     try {
       final response = await _apiService.getRequest(
@@ -230,14 +237,35 @@ class ChatController extends GetxController {
         {'bookingId': bookingId},
       );
       if (response.statusCode == 200) {
-        final String? generalId = response.body['data']?['generalConversationId'];
+        final String? generalId = response.body['data']?['conversationId'] ?? conversationId;
+        
+        // Update local state immediately
+        final index = conversations.indexWhere((c) => c.conversationId == conversationId);
+        if (index != -1) {
+          final old = conversations[index];
+          conversations[index] = ChatConversation(
+            id: old.id,
+            conversationId: generalId ?? conversationId,
+            otherUser: old.otherUser,
+            lastMessage: old.lastMessage,
+            date: old.date,
+            unread: old.unread,
+            status: 'request-accepted',
+            senderId: old.senderId,
+            booking: old.booking,
+            pinned: old.pinned,
+            label: old.label,
+          );
+          conversations.refresh();
+        }
+
         _handleStatusUpdate({
           'conversationId': conversationId,
           'status': 'request-accepted',
           'generalConversationId': generalId,
         });
-        await fetchConversations();
-        return generalId ?? conversationId;
+        
+        return generalId;
       }
       return null;
     } catch (e) {
@@ -340,7 +368,7 @@ class ChatController extends GetxController {
     if (myId.isEmpty) return;
 
     final sorted = [myId, otherId]..sort();
-    final conversationId = "${sorted[0]}-${sorted[1]}-BK-$bookingId";
+    final conversationId = "${sorted[0]}-${sorted[1]}";
 
     Get.to(() => SingleChatView(
           name: otherName,
@@ -370,14 +398,38 @@ class ChatController extends GetxController {
   void _handleStatusUpdate(Map<String, dynamic> data) {
     final String conversationId = data['conversationId'];
     final String status = data['status'];
+    final String? generalId = data['generalConversationId'];
+
+    // Update conversation list item in-place
+    final convoIndex = conversations.indexWhere((c) => c.conversationId == conversationId);
+    if (convoIndex != -1) {
+      final old = conversations[convoIndex];
+      conversations[convoIndex] = ChatConversation(
+        id: old.id,
+        conversationId: generalId ?? old.conversationId,
+        otherUser: old.otherUser,
+        lastMessage: old.lastMessage,
+        date: old.date,
+        unread: old.unread,
+        status: status,
+        senderId: old.senderId,
+        booking: old.booking,
+        pinned: old.pinned,
+        label: old.label,
+      );
+      conversations.refresh();
+    }
 
     if (conversationId == activeConversationId.value) {
+      if (generalId != null) {
+        activeConversationId.value = generalId;
+      }
       // 2. Update local messages if they share this status
       final updatedMessages = currentMessages
           .map(
             (m) => ChatMessage(
               id: m.id,
-              conversationId: m.conversationId,
+              conversationId: generalId ?? m.conversationId,
               senderId: m.senderId,
               senderName: m.senderName,
               senderRole: m.senderRole,
@@ -392,7 +444,6 @@ class ChatController extends GetxController {
           .toList();
       currentMessages.value = updatedMessages;
     }
-    fetchConversations();
 
     // Refresh bookings to reflect new status (confirmed/rejected)
     if (Get.isRegistered<BookingController>()) {
@@ -402,3 +453,4 @@ class ChatController extends GetxController {
     }
   }
 }
+

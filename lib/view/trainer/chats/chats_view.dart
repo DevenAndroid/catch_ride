@@ -118,9 +118,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
               belongsToTab = c.otherUser?.role == 'service_provider' ||
                   c.otherUser?.role == 'vendor';
             }
-            if (!belongsToTab) return false;
-
-            return c.status != 'request-pending';
+            return belongsToTab;
           }).toList();
 
           if (conversations.isEmpty) {

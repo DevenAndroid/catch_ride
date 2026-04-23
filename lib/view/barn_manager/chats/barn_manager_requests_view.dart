@@ -1,6 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
-import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
+import 'barn_manager_single_chat_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
@@ -125,7 +125,7 @@ class RequestCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => Get.to(
-        () => SingleChatView(
+        () => BarnManagerSingleChatView(
           name: name,
           image: avatar ?? '',
           conversationId: request.conversationId,
@@ -410,10 +410,10 @@ class RequestCard extends StatelessWidget {
                         );
 
                         // Redirect to the same chat view (unlocked)
-                        Get.to(() => SingleChatView(
+                        Get.to(() => BarnManagerSingleChatView(
                               name: name,
                               image: avatar ?? '',
-                              conversationId: request.conversationId,
+                              conversationId: generalId,
                               otherId: request.otherUser?.id,
                             ));
                       } else {

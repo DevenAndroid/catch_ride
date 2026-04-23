@@ -270,7 +270,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
 
         final booking = bookings[index];
         String displayStatus = booking.status.capitalizeFirst ?? booking.status;
-        if (booking.status == 'confirmed') displayStatus = 'Accepted';
+        if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
         if (booking.status == 'cancelled') displayStatus = 'Canceled';
 
         return Padding(
@@ -437,6 +437,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                   // Accepted/Rejected By Info below the date
                   if (booking.acceptedByName != null &&
                       (booking.status == 'confirmed' ||
+                          booking.status == 'accepted' ||
                           booking.status == 'cancelled' ||
                           booking.status == 'Accepted' ||
                           booking.status == 'Rejected' ||

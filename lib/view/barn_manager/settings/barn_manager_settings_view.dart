@@ -154,6 +154,18 @@ class BarnManagerSettingsView extends StatelessWidget {
                 showDivider: false,
               ),
             ]),
+
+            const SizedBox(height: 24),
+            _buildSectionHeader('Account'),
+            _buildSettingsGroup([
+              _buildSettingsTile(
+                icon: Icons.delete_outline_rounded,
+                title: 'Delete Account',
+                onTap: () => showDeleteAccountDialog(context),
+              ),
+            ]),
+
+
             const SizedBox(height: 32),
             _buildLogoutButton(),
             const SizedBox(height: 40),
