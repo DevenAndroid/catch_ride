@@ -96,6 +96,7 @@ class CompleteProfileView extends StatelessWidget {
                       height: 100,
                       width: 100,
                       shape: BoxShape.circle,
+                      url: controller.existingProfilePhoto.value,
                       file: controller.profileImage.value,
                       isUserImage: true,
                     ),
@@ -130,39 +131,53 @@ class CompleteProfileView extends StatelessWidget {
         const SizedBox(height: 12),
         GestureDetector(
           onTap: controller.pickBannerImage,
-          child: Obx(() => Container(
+          child: Obx(() {
+                final hasFile = controller.bannerImage.value != null;
+                final hasExisting = controller.existingCoverImage.value.isNotEmpty;
+                return Container(
                 height: 140,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.white,
-                  image: controller.bannerImage.value != null
+                  image: hasFile
                       ? DecorationImage(image: FileImage(controller.bannerImage.value!), fit: BoxFit.cover)
                       : null,
                 ),
-                child: controller.bannerImage.value == null
-                    ? CustomPaint(
-                        painter: DashPainter(),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF5F5F5),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.add, size: 24, color: AppColors.textSecondary),
-                            ),
-                            const SizedBox(height: 12),
-                            const CommonText('Click to upload image', color: Color(0xFF3366FF), fontWeight: FontWeight.w600),
-                            const SizedBox(height: 4),
-                            const CommonText('PNG or JPG (max. 800x400px)', color: AppColors.textSecondary, fontSize: 10),
-                          ],
+                child: !hasFile && hasExisting
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CommonImageView(
+                          url: controller.existingCoverImage.value,
+                          fit: BoxFit.cover,
+                          height: 140,
+                          width: double.infinity,
                         ),
                       )
-                    : null,
-              )),
+                    : (!hasFile
+                        ? CustomPaint(
+                            painter: DashPainter(),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF5F5F5),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.add, size: 24, color: AppColors.textSecondary),
+                                ),
+                                const SizedBox(height: 12),
+                                const CommonText('Click to upload image', color: Color(0xFF3366FF), fontWeight: FontWeight.w600),
+                                const SizedBox(height: 4),
+                                const CommonText('PNG or JPG (max. 800x400px)', color: AppColors.textSecondary, fontSize: 10),
+                              ],
+                            ),
+                          )
+                        : null),
+              );
+          }),
         ),
         const SizedBox(height: 24),
         _buildInputField(

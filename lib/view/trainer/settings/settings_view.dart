@@ -19,6 +19,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../vendor/farrier/create_profile/farrier_application_view.dart';
 import '../list/add_new_listing_view.dart';
 import '../bookings/trainer_past_bookings_view.dart';
 import 'notifications_view.dart';
@@ -81,7 +82,7 @@ class SettingsView extends StatelessWidget {
 
             // Add a horse banner
             GestureDetector(
-              onTap: () => Get.to(() => const AddNewListingView()),
+              onTap: () => Get.to(() => const FarrierApplicationView()),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(

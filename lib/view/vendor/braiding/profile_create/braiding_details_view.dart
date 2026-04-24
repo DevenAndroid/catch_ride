@@ -189,18 +189,40 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
       if (controller.isLoading.value) {
         return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
       }
+      
+      final hasLocation = controller.location.value.isNotEmpty;
+      final hasExperience = controller.experience.value.isNotEmpty;
+      final hasDisciplines = controller.disciplines.isNotEmpty;
+      final hasHorseLevels = controller.horseLevels.isNotEmpty;
+      final hasRegions = controller.operatingRegions.isNotEmpty;
+      
+      if (!hasLocation && !hasExperience && !hasDisciplines && !hasHorseLevels && !hasRegions) {
+        return const SizedBox.shrink();
+      }
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildLabelValue('Location', controller.location.value),
-          const SizedBox(height: 24),
-          _buildLabelValue('Years of experience', controller.experience.value),
-          const SizedBox(height: 24),
-          _buildChipsList('Disciplines', controller.disciplines),
-          const SizedBox(height: 24),
-          _buildChipsList('Typical level of horses', controller.horseLevels),
-          const SizedBox(height: 24),
-          _buildChipsList('Regions covered', controller.operatingRegions),
+          if (hasLocation) ...[
+            _buildLabelValue('Location', controller.location.value),
+            const SizedBox(height: 24),
+          ],
+          if (hasExperience) ...[
+            _buildLabelValue('Years of experience', controller.experience.value),
+            const SizedBox(height: 24),
+          ],
+          if (hasDisciplines) ...[
+            _buildChipsList('Disciplines', controller.disciplines),
+            const SizedBox(height: 24),
+          ],
+          if (hasHorseLevels) ...[
+            _buildChipsList('Typical level of horses', controller.horseLevels),
+            const SizedBox(height: 24),
+          ],
+          if (hasRegions) ...[
+            _buildChipsList('Regions covered', controller.operatingRegions),
+            const SizedBox(height: 24),
+          ],
         ],
       );
     });

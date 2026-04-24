@@ -383,7 +383,7 @@ class FarrierApplicationView extends StatelessWidget {
 
                   _buildGroupedSection(
                     'Add Photos',
-                    description: 'Upload photos that showcase your work and skills.',
+                    description: 'Upload photos that showcase your work and result.',
                     children: [
                       const CommonText('Upload *', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
                       const SizedBox(height: 8),
@@ -398,6 +398,8 @@ class FarrierApplicationView extends StatelessWidget {
                   _buildGroupedSection(
                     'Experience Highlights (optional)',
                     children: [
+                      CommonText("Share key experience, programs, or specialties you’d like clients to know", fontSize: AppTextSizes.size14),
+                      const SizedBox(height: 8),
                        Obx(() => Column(
                         children: controller.highlightsControllers.asMap().entries.map((entry) {
                           final index = entry.key;
@@ -882,7 +884,7 @@ class FarrierApplicationView extends StatelessWidget {
     return Column(
       children: [
         Obx(() => _buildCheckboxTile(
-          'I confirm that I am at least 18 years of age.',
+          'I confirm that I am at least 18 years or older.',
           controller.is18OrOlder.value,
           (val) => controller.is18OrOlder.value = val!,
         )),
@@ -907,7 +909,7 @@ class FarrierApplicationView extends StatelessWidget {
       title: CommonText(title, fontSize: AppTextSizes.size12),
       controlAffinity: ListTileControlAffinity.leading,
       contentPadding: EdgeInsets.zero,
-      activeColor: AppColors.primary,
+      activeColor: AppColors.greenColor,
       dense: true,
     );
   }

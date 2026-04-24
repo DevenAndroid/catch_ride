@@ -36,6 +36,10 @@ class UserModel {
   final List<String> roles;
   final List<String> vendorServices;
   final String? notesForTrainer;
+  final String? businessName;
+  final List<String> paymentMethods;
+  final String? otherPaymentDetails;
+  final List<String> highlights;
   final VendorCompliance? compliance;
   final DateTime? createdAt;
 
@@ -75,6 +79,10 @@ class UserModel {
     this.linkedTrainer,
     this.yearsInIndustry,
     this.notesForTrainer,
+    this.businessName,
+    this.paymentMethods = const [],
+    this.otherPaymentDetails,
+    this.highlights = const [],
     this.compliance,
     this.createdAt,
   });
@@ -144,6 +152,20 @@ class UserModel {
       proData = vendorData;
     }
 
+    List<String> parsedPaymentMethods = [];
+    if (proData != null && proData['paymentMethods'] is List) {
+      for (var pm in proData['paymentMethods']) {
+        if (pm is String) parsedPaymentMethods.add(pm);
+      }
+    }
+
+    List<String> parsedHighlights = [];
+    if (proData != null && proData['highlights'] is List) {
+      for (var h in proData['highlights']) {
+        if (h is String) parsedHighlights.add(h);
+      }
+    }
+
     return UserModel(
       id: json['_id'] ?? json['id'],
       firstName: json['firstName'] ?? '',
@@ -193,6 +215,10 @@ class UserModel {
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
       notesForTrainer: json['notesForTrainer'] ?? (proData != null ? proData['notesForTrainer'] : null),
+      businessName: json['businessName'] ?? (proData != null ? proData['businessName'] : null),
+      paymentMethods: parsedPaymentMethods,
+      otherPaymentDetails: json['otherPaymentDetails'] ?? (proData != null ? proData['otherPaymentDetails'] : null),
+      highlights: parsedHighlights,
       compliance: (json['compliance'] != null || (proData != null && proData['compliance'] != null))
           ? VendorCompliance.fromJson(json['compliance'] ?? proData!['compliance'])
           : null,
@@ -236,6 +262,10 @@ class UserModel {
         'linkedBarnManager': linkedBarnManager!.toJson(),
       if (linkedTrainer != null) 'linkedTrainer': linkedTrainer!.toJson(),
       if (notesForTrainer != null) 'notesForTrainer': notesForTrainer,
+      if (businessName != null) 'businessName': businessName,
+      'paymentMethods': paymentMethods,
+      if (otherPaymentDetails != null) 'otherPaymentDetails': otherPaymentDetails,
+      'highlights': highlights,
       if (compliance != null) 'compliance': compliance!.toJson(),
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
@@ -276,6 +306,10 @@ class UserModel {
     TrainerLinkedModel? linkedTrainer,
     String? yearsInIndustry,
     String? notesForTrainer,
+    String? businessName,
+    List<String>? paymentMethods,
+    String? otherPaymentDetails,
+    List<String>? highlights,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -314,6 +348,10 @@ class UserModel {
       linkedTrainer: linkedTrainer ?? this.linkedTrainer,
       yearsInIndustry: yearsInIndustry ?? this.yearsInIndustry,
       notesForTrainer: notesForTrainer ?? this.notesForTrainer,
+      businessName: businessName ?? this.businessName,
+      paymentMethods: paymentMethods ?? this.paymentMethods,
+      otherPaymentDetails: otherPaymentDetails ?? this.otherPaymentDetails,
+      highlights: highlights ?? this.highlights,
       createdAt: createdAt ?? this.createdAt,
     );
   }

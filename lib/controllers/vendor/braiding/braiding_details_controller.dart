@@ -52,8 +52,8 @@ class BraidingDetailsController extends GetxController {
   }
 
   // Pre-filled / Read-only info from Application
-  final location = 'N/A'.obs;
-  final experience = 'N/A'.obs;
+  final location = ''.obs;
+  final experience = ''.obs;
   final disciplines = <String>[].obs;
   final horseLevels = <String>[].obs;
   final operatingRegions = <String>[].obs;
@@ -78,25 +78,26 @@ class BraidingDetailsController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
         
-        // Find Braiding service
-        final List assignedServices = vendor['assignedServices'] ?? [];
-        final braidingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Braiding');
-
-        if (braidingService != null && braidingService['application'] != null) {
-          final applicationData = braidingService['application']['applicationData'] ?? {};
-          
-          final city = applicationData['homeBase']?['city'] ?? '';
-          final state = applicationData['homeBase']?['state'] ?? '';
-          location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
-          
-          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} Years' : 'N/A';
-          disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
-          horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-          operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
-        } else {
-          // Fallback to vendor level fields
-          location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
-          experience.value = vendor['experience'] ?? 'N/A';
+        final servicesData = vendor['servicesData'] ?? {};
+        final applicationData = servicesData['Braiding'] ?? servicesData['braiding']?['applicationData'] ?? {};
+        
+        final city = applicationData['homeBase']?['city'] ?? vendor['city'] ?? '';
+        final state = applicationData['homeBase']?['state'] ?? vendor['state'] ?? '';
+        location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : '';
+        
+        final exp = applicationData['experience'] ?? vendor['experience'] ?? vendor['yearsExperience'];
+        experience.value = exp != null && exp.toString().isNotEmpty ? '$exp Years' : '';
+        
+        disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
+        horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
+        operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+        
+        final braidingData = servicesData['braiding'] ?? {};
+        final cancellationPolicyData = braidingData['cancellationPolicy'];
+        if (cancellationPolicyData != null) {
+          cancellationPolicy.value = cancellationPolicyData['policy'];
+          isCustomCancellation.value = cancellationPolicyData['isCustom'] ?? false;
+          customCancellationController.text = cancellationPolicyData['customText'] ?? '';
         }
       }
     } catch (e) {
@@ -114,7 +115,7 @@ class BraidingDetailsController extends GetxController {
         Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
         return;
       }
-      final vendorId = vendorResponse.body['data']['_id'];
+      final vendorId = vendorResponse.body['data']['id'];
 
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
