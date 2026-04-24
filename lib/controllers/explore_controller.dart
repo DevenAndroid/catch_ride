@@ -286,7 +286,9 @@ class ExploreController extends GetxController {
         queryParams['search'] = searchQuery.value;
       }
 
-      if (location.value.isNotEmpty) {
+      if (regionsCovered.isNotEmpty) {
+        queryParams['location'] = regionsCovered.first;
+      } else if (location.value.isNotEmpty) {
         queryParams['location'] = location.value;
       }
 

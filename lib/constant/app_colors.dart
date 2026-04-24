@@ -28,4 +28,5 @@ class AppColors {
   static const Color accentRedLight = Color(0xFFE11D48);
   static const Color lightGray = Color(0xFFF2F4F7);
   static const Color dividerColor = Color(0xFFE9EAEB);
+  static const Color greenColor = Color(0xFF079455);
 }

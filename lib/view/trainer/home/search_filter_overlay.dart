@@ -412,7 +412,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (_selectedCategory == 'Services' && isSearching) ...[
+                      if (isSearching) ...[
                         Obx(() {
                           final regionType = controller.serviceTagTypes.firstWhereOrNull(
                             (t) => t['name'] == 'Regions Covered'
