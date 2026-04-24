@@ -30,6 +30,10 @@ class BookingModel {
   final String? acceptedById;
   final String? acceptedByName;
   final String? acceptedByRole;
+  final String? barnManagerId;
+  final String? barnManagerName;
+  final String? senderBarnName;
+  final String? providerBarnName;
   final List<String> tags;
 
   BookingModel({
@@ -63,6 +67,10 @@ class BookingModel {
     this.acceptedByRole,
     this.clientImage,
     this.vendorImage,
+    this.barnManagerId,
+    this.barnManagerName,
+    this.senderBarnName,
+    this.providerBarnName,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
@@ -167,7 +175,29 @@ class BookingModel {
     String? trainerImg = vendorImg ?? clientImg ?? deepSearchPhoto(json);
     trainerImg ??= json['trainerProfilePhoto'] ?? json['clientProfilePhoto'];
 
-    print('Booking ID: ${json['_id']} - VendorImg: $vendorImg, ClientImg: $clientImg');
+    String? senderBN;
+    if (json['clientId'] is Map) {
+      if (json['clientId']['trainerId'] is Map) {
+        senderBN = json['clientId']['trainerId']['barnName'];
+      }
+      // If not in trainer profile, check user profile directly
+      senderBN ??= json['clientId']['barnName'];
+      
+      // If still null, check if it's in the top level if not populated
+      if (senderBN == null && json['clientBarnName'] != null) {
+        senderBN = json['clientBarnName'];
+      }
+    }
+
+    String? providerBN;
+    if (json['trainerId'] is Map) {
+       providerBN = json['trainerId']['barnName'];
+    }
+
+    String? bmName;
+    if (json['barnManagerId'] is Map) {
+      bmName = "${json['barnManagerId']['firstName'] ?? ''} ${json['barnManagerId']['lastName'] ?? ''}".trim();
+    }
 
     return BookingModel(
       id: json['_id'],
@@ -206,6 +236,10 @@ class BookingModel {
       acceptedByRole: json['acceptedByRole'],
       clientImage: clientImg,
       vendorImage: vendorImg,
+      barnManagerId: json['barnManagerId'] is Map ? json['barnManagerId']['_id'] : json['barnManagerId'],
+      barnManagerName: bmName,
+      senderBarnName: senderBN,
+      providerBarnName: providerBN,
     );
   }
 

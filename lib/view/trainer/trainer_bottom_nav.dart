@@ -9,6 +9,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/bookings/trainer_bookings_view.dart';
 import 'package:catch_ride/view/trainer/home/trainer_explore_view.dart';
 import 'package:catch_ride/view/trainer/chats/chats_view.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/view/trainer/settings/settings_view.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'list/horse_listing_view.dart';
@@ -123,11 +124,30 @@ class _TrainerBottomNavState extends State<TrainerBottomNav> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
-              size: 26,
-            ),
+            index == 3 
+              ? Obx(() {
+                  final chatController = Get.find<ChatController>();
+                  final unreadCount = chatController.totalUnreadCount;
+                  return Badge(
+                    label: CommonText(
+                      '$unreadCount',
+                      color: Colors.white,
+                      fontSize: 10,
+                    ),
+                    isLabelVisible: unreadCount > 0,
+                    backgroundColor: const Color(0xFFB42318),
+                    child: Icon(
+                      icon,
+                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                      size: 26,
+                    ),
+                  );
+                })
+              : Icon(
+                  icon,
+                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  size: 26,
+                ),
             const SizedBox(height: 4),
             CommonText(
               label,

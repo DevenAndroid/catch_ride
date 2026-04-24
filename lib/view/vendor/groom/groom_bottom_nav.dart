@@ -11,6 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
 import 'profile/groom_view_profile.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 
 class GroomBottomNav extends StatefulWidget {
@@ -90,7 +91,27 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (isAvatar && avatarUrl.isNotEmpty)
+            if (index == 3)
+              Obx(() {
+                final chatController = Get.find<ChatController>();
+                final unreadCount = chatController.totalUnreadCount;
+                return Badge(
+                  label: CommonText(
+                    '$unreadCount',
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                  isLabelVisible: unreadCount > 0,
+                  backgroundColor: const Color(0xFFB42318),
+                  child: SvgPicture.asset(
+                    icon as String,
+                    width: 24,
+                    height: 24,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                );
+              })
+            else if (isAvatar && avatarUrl.isNotEmpty)
               ClipOval(
                 child: CommonImageView(
                   url: avatarUrl,
