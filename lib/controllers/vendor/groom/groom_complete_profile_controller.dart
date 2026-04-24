@@ -30,6 +30,8 @@ class GroomCompleteProfileController extends GetxController {
   // Images
   final profileImage = Rxn<File>();
   final bannerImage = Rxn<File>();
+  final existingProfilePhoto = ''.obs;
+  final existingCoverImage = ''.obs;
   final ImagePicker _picker = ImagePicker();
   
   final isLoading = false.obs;
@@ -38,8 +40,29 @@ class GroomCompleteProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fullNameController.text = Get.find<AuthController>().currentUser.value?.fullName ?? '';
-    phoneNumberController.text = Get.find<AuthController>().currentUser.value?.phone ?? '';
+    final user = Get.find<AuthController>().currentUser.value;
+    fullNameController.text = user?.fullName ?? '';
+    phoneNumberController.text = user?.phone ?? '';
+    businessNameController.text = user?.businessName ?? '';
+    aboutController.text = user?.bio ?? '';
+    notesForTrainerController.text = user?.notesForTrainer ?? '';
+    existingProfilePhoto.value = user?.photo ?? user?.avatar ?? '';
+    existingCoverImage.value = user?.coverImage ?? '';
+    
+    if (user?.paymentMethods != null) {
+      selectedPaymentMethods.addAll(user!.paymentMethods);
+    }
+    otherPaymentController.text = user?.otherPaymentDetails ?? '';
+
+    if (user?.highlights != null && user!.highlights.isNotEmpty) {
+      highlightControllers.clear();
+      for (var highlight in user.highlights) {
+        highlightControllers.add(TextEditingController(text: highlight));
+      }
+    }
+
+    print("Name----:${fullNameController.text}");
+    print("Phone----:${phoneNumberController.text}");
     fetchPaymentMethods();
   }
 
@@ -146,12 +169,12 @@ class GroomCompleteProfileController extends GetxController {
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
-    if (profileImage.value == null) {
+    if (profileImage.value == null && existingProfilePhoto.value.isEmpty) {
       Get.snackbar('Missing Info', 'Please upload a profile photo', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
-    if (bannerImage.value == null) {
+    if (bannerImage.value == null && existingCoverImage.value.isEmpty) {
       Get.snackbar('Missing Info', 'Please upload a banner photo', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
