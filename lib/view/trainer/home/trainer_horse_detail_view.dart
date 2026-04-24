@@ -652,6 +652,45 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           // const SizedBox(width: 8),
           // if (!isHorseOwner)
           //   const Icon(Icons.more_vert, color: AppColors.textSecondary),
+          ElevatedButton(
+            onPressed: () {
+              final chatController = Get.find<ChatController>();
+              chatController.openBookingChat(
+                bookingId: widget.bookingId ?? '',
+                otherId: widget.otherId ?? horse?.trainerId ?? '',
+                otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
+                otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
+                myTeamId: widget.myTeamId,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.secondary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                SizedBox(
+                  width: 10,
+                ),
+                Icon(Icons.chat_bubble_outline, size: 18),
+                SizedBox(width: 8),
+                CommonText(
+                  'Message',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -1508,36 +1547,22 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         if (canCancel) const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton(
-            onPressed: () {
-              final chatController = Get.find<ChatController>();
-              chatController.openBookingChat(
-                bookingId: widget.bookingId ?? '',
-                otherId: widget.otherId ?? horse?.trainerId ?? '',
-                otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
-                otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
-                myTeamId: widget.myTeamId,
-              );
-            },
+            onPressed: () => _showCancelConfirmation(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.successPrimary,
+              elevation: 0,
+              side: const BorderSide(color: AppColors.successPrimary,),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.chat_bubble_outline, size: 18),
-                SizedBox(width: 8),
-                CommonText(
-                  'Message',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ],
+            child:  CommonText(
+              'Complete Booking',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.successPrimary,
             ),
           ),
         ),
