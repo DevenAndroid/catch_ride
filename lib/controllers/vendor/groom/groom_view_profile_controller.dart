@@ -179,7 +179,7 @@ class GroomViewProfileController extends GetxController {
         final List assignedServices = data['assignedServices'] ?? [];
         allAssignedServices.assignAll(assignedServices);
         _updateActiveServiceData();
-        fetchAvailability(data['_id']);
+        fetchAvailability(data['_id']??["id"]);
       }
     } catch (e) {
       debugPrint('Error fetching vendor profile: $e');

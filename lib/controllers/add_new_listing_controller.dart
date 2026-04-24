@@ -189,6 +189,7 @@ class AddNewListingController extends GetxController {
     usefNumberController.text = horse.usefNumber ?? '';
     videoLinkController.text = horse.videoLink ?? '';
     locationController.text = horse.location ?? '';
+    print("asdfasdfasdf4${locationController.text}");
     gender.value = horse.gender;
     selectedDisciplines.assignAll(horse.disciplines);
     disciplineController.text = horse.disciplines.join(', ');

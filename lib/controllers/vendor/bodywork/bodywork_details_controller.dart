@@ -295,7 +295,7 @@ class BodyworkDetailsController extends GetxController {
         Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
         return;
       }
-      final vendorId = vendorResponse.body['data']['_id'];
+      final vendorId = vendorResponse.body['data']['_id']?? vendorResponse.body['data']['id'];
 
       // 1. Upload Certifications
       final List<String> certKeys = [...certificationUrls];

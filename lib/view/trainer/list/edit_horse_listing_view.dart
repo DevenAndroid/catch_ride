@@ -43,9 +43,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     );
 
     // Pre-fill data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.setInitialData(widget.horse);
-    });
+    controller.setInitialData(widget.horse);
   }
 
   Future<void> _selectDateTime(
@@ -760,6 +758,9 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   final gSuggestions = googleApiController.googleSuggestions;
 
                   return Autocomplete<String>(
+                    initialValue: TextEditingValue(
+                      text: controller.locationController.text,
+                    ),
                     optionsBuilder: (TextEditingValue textEditingValue) {
                       final query = textEditingValue.text.trim();
                       
@@ -774,7 +775,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                       
                       final google = gSuggestions.map((e) => e['name']!).toList();
                       
-                      return [...local, ...google].toSet().toList();
+                      return [...google].toSet().toList();
                     },
                     onSelected: (String selection) {
                       controller.locationController.text = selection;
@@ -786,12 +787,6 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           FocusNode fieldFocusNode,
                           VoidCallback onFieldSubmitted,
                         ) {
-                          if (controller.locationController.text.isNotEmpty &&
-                              fieldTextEditingController.text.isEmpty) {
-                            fieldTextEditingController.text =
-                                controller.locationController.text;
-                          }
-
                           return TextFormField(
                             controller: fieldTextEditingController,
                             focusNode: fieldFocusNode,

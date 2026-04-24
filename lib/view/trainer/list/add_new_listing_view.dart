@@ -762,7 +762,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           final google = gSuggestions.map((e) => e['name']!).toList();
                           
                           // Combine and return unique results
-                          return [...local, ...google].toSet().toList();
+                          return [...google].toSet().toList();
                         },
                         onSelected: (String selection) {
                           controller.locationController.text = selection;

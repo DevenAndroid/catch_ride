@@ -17,7 +17,7 @@ class CommunityStandardsView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
         automaticallyImplyLeading: false,
         title: const CommonText(
           'Community Standards',

@@ -1116,6 +1116,10 @@ class _EditProfileViewState extends State<EditProfileView> {
     final TextEditingController searchController = TextEditingController();
     final List<Map<String, dynamic>> allShows = profileController.rawHorseShows;
 
+    // Local temporary selection list
+    final RxList<String> tempSelectedHorseShows =
+        RxList<String>.from(_selectedHorseShows);
+
     // Collect unique venue/circuit pairs
     final Set<String> uniqueLabelsSet = {};
     for (var show in allShows) {
@@ -1214,16 +1218,16 @@ class _EditProfileViewState extends State<EditProfileView> {
                           spacing: 12,
                           runSpacing: 12,
                           children: filteredLabels.map((label) {
-                            final isSelected = _selectedHorseShows.contains(
+                            final isSelected = tempSelectedHorseShows.contains(
                               label,
                             );
 
                             return GestureDetector(
                               onTap: () {
                                 if (isSelected) {
-                                  _selectedHorseShows.remove(label);
+                                  tempSelectedHorseShows.remove(label);
                                 } else {
-                                  _selectedHorseShows.add(label);
+                                  tempSelectedHorseShows.add(label);
                                 }
                               },
                               child: isSelected
@@ -1234,6 +1238,55 @@ class _EditProfileViewState extends State<EditProfileView> {
                         ),
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderMedium),
+                            ),
+                            child: const Center(
+                              child: CommonText(
+                                'Close',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            _selectedHorseShows.assignAll(tempSelectedHorseShows);
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF000B48),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: CommonText(
+                                'Save',
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
