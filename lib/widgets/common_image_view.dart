@@ -204,7 +204,7 @@ class CommonImageView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all((width != null && width! < 50) ? 8 : 12),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.05),
                 shape: BoxShape.circle,

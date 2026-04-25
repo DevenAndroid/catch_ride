@@ -415,7 +415,7 @@ class CompleteProfileView extends StatelessWidget {
   Widget _buildHighlightsSection(GroomCompleteProfileController controller) {
     return _buildContainer(
       title: 'Experience Highlights',
-      subtitle: 'Share key experience, programs, or specialties you\'d like clients to know:',
+      subtitle: 'Share key experience, programs, or specialties you\'d like clients to know',
       optional: true,
       children: [
         Obx(() => ListView.separated(
@@ -472,7 +472,7 @@ class CompleteProfileView extends StatelessWidget {
   Widget _buildNotesSection(GroomCompleteProfileController controller) {
     return _buildContainer(
       title: 'Notes For Trainer',
-      subtitle: 'Add any details that would help trainers understand how you work or what to expect',
+      subtitle: 'Add any details that would help trainers understand your preferences or availability',
       optional: true,
       children: [
         CommonTextField(

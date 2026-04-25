@@ -6,6 +6,8 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../controllers/chat_controller.dart';
+
 class UpcomingClientsView extends StatefulWidget {
   const UpcomingClientsView({super.key});
 
@@ -15,6 +17,7 @@ class UpcomingClientsView extends StatefulWidget {
 
 class _UpcomingClientsViewState extends State<UpcomingClientsView> {
   final controller = Get.put(BookingController());
+  final chatController = Get.put(ChatController());
 
   @override
   void initState() {
@@ -52,12 +55,28 @@ class _UpcomingClientsViewState extends State<UpcomingClientsView> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _buildClientCard(
-                name: booking.clientName ?? booking.trainerName ?? 'N/A',
+                name: booking.trainerName ?? booking.clientName ?? 'N/A',
                 service: booking.type.toUpperCase(),
                 location: booking.location ?? 'N/A',
                 date: booking.date,
                 note: booking.notes ?? 'No notes provided',
-                imageUrl: booking.horseImage ?? '', // Using horse image or could use client avatar if available
+                imageUrl: booking.horseImage ?? booking.clientImage ?? booking.trainerImage ?? '',
+                onMessage: () {
+                   if (booking.id != null && booking.clientId != null) {
+                      chatController.openBookingChat(
+                        bookingId: booking.id!,
+                        otherId: booking.clientId!,
+                        otherName: booking.trainerName ?? booking.clientName ?? 'Client',
+                        otherImage: booking.clientImage ?? booking.trainerImage ?? '',
+                      );
+                    } else {
+                      Get.snackbar(
+                        'Chat Unavailable',
+                        'Conversation details are not properly loaded for this booking.',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                    }
+                },
               ),
             );
           },
@@ -73,6 +92,7 @@ class _UpcomingClientsViewState extends State<UpcomingClientsView> {
     required String date,
     required String note,
     required String imageUrl,
+    required VoidCallback onMessage,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -137,9 +157,7 @@ class _UpcomingClientsViewState extends State<UpcomingClientsView> {
           CommonText('Note: $note', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           GestureDetector(
-            onTap: () {
-              // Navigation to chat or similar
-            },
+            onTap: onMessage,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),

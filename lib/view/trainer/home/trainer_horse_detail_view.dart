@@ -23,6 +23,7 @@ import '../../../models/availability_model.dart';
 import '../../../services/api_service.dart';
 import '../settings/trainer_profile_view.dart';
 import '../list/edit_horse_listing_view.dart';
+import '../../barn_manager/barn_manager_availability_view.dart';
 import '../../../controllers/horse_controller.dart';
 import '../../../controllers/chat_controller.dart';
 
@@ -58,6 +59,7 @@ class TrainerHorseDetailView extends StatefulWidget {
 
 class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   bool _isRequested = false;
+  bool _canMessage = false;
   HorseModel? horse;
   String? _currentBookingStatus;
 
@@ -114,16 +116,34 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Future<void> _checkIfRequested() async {
     final bookingController = Get.put(BookingController());
+    final chatController = Get.put(ChatController());
 
     // Fetch latest sent bookings from server to sync with DB
     await bookingController.fetchBookings(type: 'sent');
+    
+    if (chatController.conversations.isEmpty) {
+      await chatController.fetchConversations();
+    }
 
     final existingBooking = bookingController.sentBookings.firstWhereOrNull(
       (b) => b.horseId == horse?.id && b.status.toLowerCase() == 'pending',
     );
 
+    final hasAcceptedBooking = bookingController.sentBookings.any(
+      (b) => b.trainerId == horse?.trainerId && 
+             (b.status.toLowerCase() == 'accepted' || 
+              b.status.toLowerCase() == 'confirmed' || 
+              b.status.toLowerCase() == 'completed'),
+    );
+
+    final hasExistingChat = chatController.conversations.any(
+      (c) => c.otherUser?.id == horse?.trainerId || 
+             c.otherUser?.trainerId == horse?.trainerId,
+    );
+
     setState(() {
       _isRequested = existingBooking != null;
+      _canMessage = hasAcceptedBooking || hasExistingChat;
     });
   }
 
@@ -432,6 +452,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildActionMenu() {
+    final profile = Get.find<ProfileController>();
+    final userRole = profile.user.value?.role;
+    final bool isTrainerOwner = isHorseOwner && userRole == 'trainer';
+    final bool isBarnManagerTeam = isHorseOwner && userRole == 'barn_manager';
+
     return PopupMenuButton<String>(
       icon: Container(
         padding: const EdgeInsets.all(8),
@@ -444,6 +469,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       onSelected: (value) async {
         if (value == 'edit') {
           Get.to(() => EditHorseListingView(horse: horse!));
+        } else if (value == 'availability') {
+          await Get.to(
+            () => BarnManagerAvailabilityView(horse: horse!),
+          );
+          _fetchHorseDetails();
         } else if (value == 'active') {
           final horseController = Get.put(HorseController());
           final success = await horseController.toggleHorseActive(
@@ -465,19 +495,21 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         } else if (value == 'delete') {
           _confirmDelete();
         } else if (value == 'trainer') {
-          if(horse?.trainerId == null){
+          if (horse?.trainerId == null) {
             Get.snackbar(
-              'Error', 'This trainer has been deleted.',
+              'Error',
+              'This trainer has been deleted.',
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: Colors.red,
               colorText: Colors.white,
             );
-            return;}
+            return;
+          }
           Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
         }
       },
       itemBuilder: (context) => [
-        if (isHorseOwner) ...[
+        if (isTrainerOwner) ...[
           PopupMenuItem(
             value: 'edit',
             child: Row(
@@ -519,7 +551,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ],
             ),
           ),
-        ] else
+        ],
+        if (isBarnManagerTeam)
+          PopupMenuItem(
+            value: 'availability',
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_month_outlined, size: 20),
+                const SizedBox(width: 8),
+                const CommonText('Edit Availability', fontSize: 14),
+              ],
+            ),
+          ),
+        if (!isHorseOwner)
           PopupMenuItem(
             value: 'trainer',
             child: Row(
@@ -617,79 +661,52 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
             ),
           ),
-          // if (!isHorseOwner)
-          //   GestureDetector(
-          //     onTap: () {},
-          //     child: Container(
-          //       height: 40,
-          //       width: 110,
-          //       decoration: BoxDecoration(
-          //         color: const Color(0xFF8B4242),
-          //         borderRadius: BorderRadius.circular(10),
-          //       ),
-          //       child: const Row(
-          //         mainAxisAlignment: MainAxisAlignment.center,
-          //         children: [
-          //           Icon(
-          //             Icons.chat_bubble_outline,
-          //             size: 16,
-          //             color: Colors.white,
-          //           ),
-          //           SizedBox(width: 8),
-          //           CommonText(
-          //             'Message',
-          //             color: Colors.white,
-          //             fontSize: 13,
-          //             fontWeight: FontWeight.bold,
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // const SizedBox(width: 8),
-          // if (!isHorseOwner)
-          //   const Icon(Icons.more_vert, color: AppColors.textSecondary),
-
-          if(widget.fromBooking)
-          ElevatedButton(
-            onPressed: () {
-              final chatController = Get.find<ChatController>();
-              chatController.openBookingChat(
-                bookingId: widget.bookingId ?? '',
-                otherId: widget.otherId ?? horse?.trainerId ?? '',
-                otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
-                otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
-                myTeamId: widget.myTeamId,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          if (!isHorseOwner)
+            ElevatedButton(
+              onPressed: () {
+                if (_canMessage) {
+                  final chatController = Get.find<ChatController>();
+                  chatController.openBookingChat(
+                    bookingId: widget.bookingId ?? '',
+                    otherId: widget.otherId ?? horse?.trainerId ?? '',
+                    otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
+                    otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
+                    myTeamId: widget.myTeamId,
+                  );
+                } else {
+                  Get.snackbar(
+                    'Notice',
+                    'Messaging is enabled once your booking request is accepted.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: AppColors.errorPrimary,
+                    colorText: Colors.white,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                SizedBox(
-                  width: 10,
-                ),
-                Icon(Icons.chat_bubble_outline, size: 18),
-                SizedBox(width: 8),
-                CommonText(
-                  'Message',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-              ],
-            ),
-          )
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  SizedBox(width: 10),
+                  Icon(Icons.chat_bubble_outline, size: 18),
+                  SizedBox(width: 8),
+                  CommonText(
+                    'Message',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 10),
+                ],
+              ),
+            )
         ],
       ),
     );
@@ -1527,9 +1544,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               onPressed: () => _showCancelConfirmation(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: Colors.red,
+                foregroundColor: AppColors.textPrimary,
                 elevation: 0,
-                side: const BorderSide(color: Colors.red),
+                side: const BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1539,7 +1556,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 'Cancel Booking',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.red,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -1547,12 +1564,25 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         if (canCancel && isHorseOwner)
           Expanded(
             child: ElevatedButton(
-              onPressed: () => _showCompleteConfirmation(),
+              onPressed: () {
+                final status = (_currentBookingStatus ?? '').toLowerCase();
+                if (status == 'accepted' || status == 'confirmed') {
+                  _showCompleteConfirmation();
+                } else {
+                  Get.snackbar(
+                    'Attention',
+                    'You can only complete bookings that have been accepted.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: AppColors.errorPrimary,
+                    colorText: Colors.white,
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
-                foregroundColor: AppColors.successPrimary,
+                foregroundColor: AppColors.textPrimary,
                 elevation: 0,
-                side: const BorderSide(color: AppColors.successPrimary,),
+                side: const BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1562,7 +1592,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 'Complete Booking',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.successPrimary,
+                color: Colors.green,
               ),
             ),
           ),

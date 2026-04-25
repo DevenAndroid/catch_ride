@@ -37,12 +37,12 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
   final RxList<Map<String, dynamic>> additionalServices = <Map<String, dynamic>>[].obs;
   
   // Available Grooming Skills (can expand as needed)
-  final List<String> availableGroomingSkills = [
+  final RxList<String> availableGroomingSkills = [
     'Grooming & Turnout',
     'Wrapping & Bandaging',
     'Stall Upkeep & Daily Care',
     'Show Prep (non braiding)',
-  ];
+  ].obs;
   final RxList<String> selectedGroomingSkills = <String>[].obs;
 
   @override
@@ -76,6 +76,14 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
     
     // Sync grooming skills
     final currentSkills = controller.groomingServices.map((e) => e.toString()).toList();
+    
+    // Ensure any custom skills from profile are added to the available list
+    for (var skill in currentSkills) {
+      if (!availableGroomingSkills.contains(skill)) {
+        availableGroomingSkills.add(skill);
+      }
+    }
+    
     selectedGroomingSkills.assignAll(currentSkills);
   }
 
@@ -195,10 +203,118 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                   );
                 }).toList(),
               )),
-          const SizedBox(height: 20),
-          _buildAddServiceLink('Add Service', () => _showAddSkillBS()),
+          _buildAddServiceLink('Add Service', () => _showAddServicePopup()),
         ],
       ),
+    );
+  }
+
+  void _showAddServicePopup() {
+    final nameController = TextEditingController();
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const CommonText(
+              'Add Service',
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF101828),
+            ),
+            const SizedBox(height: 24),
+            const CommonText(
+              'Services',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF344054),
+            ),
+            const SizedBox(height: 8),
+            CommonTextField(
+              controller: nameController,
+              hintText: 'i.e. grooming, night check, stall prep', label: '',
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFD0D5DD)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const CommonText(
+                        'Cancel',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF344054),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: SizedBox(
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final newService = nameController.text.trim();
+                        if (newService.isNotEmpty) {
+                          if (!availableGroomingSkills.contains(newService)) {
+                            availableGroomingSkills.add(newService);
+                          }
+                          if (!selectedGroomingSkills.contains(newService)) {
+                            selectedGroomingSkills.add(newService);
+                          }
+                        }
+                        Get.back();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF030D3B),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const CommonText(
+                        'Save',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 

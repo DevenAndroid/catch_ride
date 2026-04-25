@@ -2109,7 +2109,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   } else if (_currentStep == 3) {
                     if (!controller.validateStep3()) return;
                   } else if (_currentStep == 4) {
-                    if (controller.localImages.isEmpty) {
+                    if (controller.localImages.isEmpty && controller.uploadedImages.isEmpty) {
                       Get.snackbar(
                         'Required',
                         'Please upload at least one image',
@@ -2119,6 +2119,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                       );
                       return;
                     }
+                    if (!controller.validateStep4()) return;
                   }
                   setState(() {
                     _currentStep++;

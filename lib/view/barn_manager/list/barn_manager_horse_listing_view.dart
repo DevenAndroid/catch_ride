@@ -34,11 +34,19 @@ class _BarnManagerHorseListingViewState
   void initState() {
     super.initState();
     _loadHorses();
+    // Re-load when user profile or linked trainer is fetched
+    ever(profileController.user, (_) => _loadHorses());
+    ever(profileController.linkedTrainerProfile, (_) => _loadHorses());
     _scrollController.addListener(_onScroll);
   }
 
   void _loadHorses({bool refresh = true}) {
-    final trainerId = profileController.trainerId;
+    // Try to get trainer ID from multiple sources
+    String trainerId = profileController.trainerId;
+    if (trainerId.isEmpty) {
+      trainerId = profileController.user.value?.linkedTrainer?.id ?? '';
+    }
+    
     final userId = profileController.id;
 
     if (trainerId.isNotEmpty) {
@@ -46,6 +54,9 @@ class _BarnManagerHorseListingViewState
     } else if (userId.isNotEmpty) {
       // Fallback to ownerId if trainer profile is not yet fully linked
       horseController.fetchHorses(refresh: refresh, ownerId: userId);
+    } else {
+      // Ensure loading spinner stops even if no IDs found
+      horseController.isLoading.value = false;
     }
   }
 
@@ -163,8 +174,21 @@ class _BarnManagerHorseListingViewState
   }
 
   Widget _buildVerticalHorseCard(HorseModel horse) {
-    final String trainerName = horse.trainerName ?? 'N/A';
-    final String? trainerAvatar = horse.trainerAvatar;
+    // Determine the "Owner" to display in the header
+    // Preference: 1. Booked User (buyer) 2. Specific Owner 3. Trainer info on horse 4. Linked Trainer profile 5. Trainer on User record
+    final String ownerName = horse.bookedByName ??
+        horse.ownerName ??
+        horse.trainerName ??
+        profileController.linkedTrainerProfile.value?.fullName ??
+        profileController.user.value?.linkedTrainer?.fullName ??
+        'N/A';
+
+    final String? ownerAvatar = horse.bookedByAvatar ??
+        horse.ownerAvatar ??
+        horse.trainerAvatar ??
+        profileController.linkedTrainerProfile.value?.displayAvatar ??
+        profileController.user.value?.linkedTrainer?.avatar;
+
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
     final String? mainImageUrl = horse.photo;
     final List<String> listingTypes = horse.listingTypes;
@@ -200,7 +224,7 @@ class _BarnManagerHorseListingViewState
             child: Row(
               children: [
                 CommonImageView(
-                  url: trainerAvatar,
+                  url: ownerAvatar,
                   height: 40,
                   width: 40,
                   shape: BoxShape.circle,
@@ -214,7 +238,7 @@ class _BarnManagerHorseListingViewState
                       Row(
                         children: [
                           CommonText(
-                            trainerName,
+                            ownerName,
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -277,20 +301,6 @@ class _BarnManagerHorseListingViewState
                           ),
                           const SizedBox(width: 8),
                           CommonText('Manage Availability', fontSize: 14),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 'share',
-                      child: Row(
-                        children: const [
-                          Icon(
-                            Icons.share,
-                            size: 20,
-                            color: AppColors.textPrimary,
-                          ),
-                          const SizedBox(width: 8),
-                          CommonText('Share', fontSize: 14),
                         ],
                       ),
                     ),
