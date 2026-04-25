@@ -231,17 +231,17 @@ class GroomCompleteProfileController extends GetxController {
           final nextRemaining = services.skip(1).toList();
 
           if (nextService == 'Grooming') {
-            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.to(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Braiding') {
-            Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.to(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Clipping') {
-            Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
+            Get.to(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Farrier') {
-            Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.to(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Bodywork') {
-            Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.to(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else if (nextService == 'Shipping') {
-            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.to(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
           } else {
             Get.offAll(() => const ProfileCompletedView(subtitle: 'Your profile has been updated successfully', destinationWidget: GroomBottomNav()));
           }

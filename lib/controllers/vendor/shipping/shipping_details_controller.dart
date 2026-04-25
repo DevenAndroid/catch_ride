@@ -58,7 +58,11 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> travelOptions = <String>[].obs;
   final RxList<String> rigOptions = <String>[].obs;
   final RxList<String> regionOptions = <String>[].obs;
-  final List<String> cancellationOptions = ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'];
+  final List<String> cancellationOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
 
   @override
   void onInit() {
@@ -84,23 +88,37 @@ class ShippingDetailsController extends GetxController {
 
   void _applyApplicationFilters() {
     // This logic relies on both dynamic tags and vendor data being loaded
-    final shippingService = _shippingService; // I'll need to store this or re-find it
+    final shippingService =
+        _shippingService; // I'll need to store this or re-find it
     if (shippingService == null) return;
-    
-    final applicationData = shippingService['application']?['applicationData'] ?? {};
-    
-    final List<String> appTravel = List<String>.from(applicationData['travelScope'] ?? []);
-    final List<String> appRigs = List<String>.from(applicationData['rigTypes'] ?? []);
-    final List<String> appRegions = List<String>.from(applicationData['regions'] ?? []);
+
+    final applicationData =
+        shippingService['application']?['applicationData'] ?? {};
+
+    final List<String> appTravel = List<String>.from(
+      applicationData['travelScope'] ?? [],
+    );
+    final List<String> appRigs = List<String>.from(
+      applicationData['rigTypes'] ?? [],
+    );
+    final List<String> appRegions = List<String>.from(
+      applicationData['regions'] ?? [],
+    );
 
     if (appTravel.isNotEmpty) {
-      travelOptions.assignAll(travelOptions.where((opt) => appTravel.contains(opt)).toList());
+      travelOptions.assignAll(
+        travelOptions.where((opt) => appTravel.contains(opt)).toList(),
+      );
     }
     if (appRigs.isNotEmpty) {
-      rigOptions.assignAll(rigOptions.where((opt) => appRigs.contains(opt)).toList());
+      rigOptions.assignAll(
+        rigOptions.where((opt) => appRigs.contains(opt)).toList(),
+      );
     }
     if (appRegions.isNotEmpty) {
-      regionOptions.assignAll(regionOptions.where((opt) => appRegions.contains(opt)).toList());
+      regionOptions.assignAll(
+        regionOptions.where((opt) => appRegions.contains(opt)).toList(),
+      );
     }
   }
 
@@ -108,14 +126,18 @@ class ShippingDetailsController extends GetxController {
 
   Future<void> fetchDynamicTags() async {
     try {
-      final response = await apiService.getRequest('/system-config/tag-types/with-values?category=Shipping');
+      final response = await apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Shipping',
+      );
       if (response.statusCode == 200 && response.body['success'] == true) {
         final List types = response.body['data'];
-        
+
         for (var type in types) {
           final name = type['name'];
-          final List<String> values = List<String>.from(type['values'].map((v) => v['name']));
-          
+          final List<String> values = List<String>.from(
+            type['values'].map((v) => v['name']),
+          );
+
           if (name == 'Services Offered') {
             serviceOptions.assignAll(values);
           } else if (name == 'Travel Scope') {
@@ -139,42 +161,65 @@ class ShippingDetailsController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
         final List assignedServices = vendor['assignedServices'] ?? [];
-        final shippingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Shipping');
+        final shippingService = assignedServices.firstWhereOrNull(
+          (s) => s['serviceType'] == 'Shipping',
+        );
 
         if (shippingService != null) {
           _shippingService = shippingService;
           final profileData = shippingService['profile']?['profileData'] ?? {};
-          final applicationData = shippingService['application']?['applicationData'] ?? {};
+          final applicationData =
+              shippingService['application']?['applicationData'] ?? {};
 
           // Populate Pricing
-          final pricing = profileData['pricing'] ?? 
-                          applicationData['pricing'] ?? {};
+          final pricing =
+              profileData['pricing'] ?? applicationData['pricing'] ?? {};
           inquiryPrice.value = pricing['inquiryPrice'] ?? false;
-          baseRateController.text = (pricing['baseRate'] ?? 
-                                    profileData['rates']?['baseRate'] ?? 
-                                    '').toString();
-          loadedRateController.text = (pricing['loadedRate'] ?? 
-                                      profileData['rates']?['fullyLoaded'] ?? 
-                                      '').toString();
+          baseRateController.text =
+              (pricing['baseRate'] ?? profileData['rates']?['baseRate'] ?? '')
+                  .toString();
+          loadedRateController.text =
+              (pricing['loadedRate'] ??
+                      profileData['rates']?['fullyLoaded'] ??
+                      '')
+                  .toString();
 
           // Populate Selections (Pre-fill from application if profile is empty)
-          selectedServices.assignAll(List<String>.from(profileData['services'] ?? []));
-          
-          final List<String> appTravel = List<String>.from(applicationData['travelScope'] ?? []);
-          travelScope.assignAll(List<String>.from(profileData['travelScope'] ?? appTravel));
+          selectedServices.assignAll(
+            List<String>.from(profileData['services'] ?? []),
+          );
 
-          final List<String> appRigs = List<String>.from(applicationData['rigTypes'] ?? []);
-          rigTypes.assignAll(List<String>.from(profileData['rigTypes'] ?? appRigs));
+          final List<String> appTravel = List<String>.from(
+            applicationData['travelScope'] ?? [],
+          );
+          travelScope.assignAll(
+            List<String>.from(profileData['travelScope'] ?? appTravel),
+          );
 
-          final List<String> appRegions = List<String>.from(applicationData['regions'] ?? []);
-          regionsCovered.assignAll(List<String>.from(profileData['regionsCovered'] ?? appRegions));
-          
-          operationType.value = profileData['operationType'] ?? applicationData['operationType'] ?? 'Independent Small Operation';
+          final List<String> appRigs = List<String>.from(
+            applicationData['rigTypes'] ?? [],
+          );
+          rigTypes.assignAll(
+            List<String>.from(profileData['rigTypes'] ?? appRigs),
+          );
+
+          final List<String> appRegions = List<String>.from(
+            applicationData['regions'] ?? [],
+          );
+          regionsCovered.assignAll(
+            List<String>.from(profileData['regionsCovered'] ?? appRegions),
+          );
+
+          operationType.value =
+              profileData['operationType'] ??
+              applicationData['operationType'] ??
+              'Independent Small Operation';
 
           // Note: Filtering is now handled in _applyApplicationFilters() called from _initializeData()
 
           // Populate Content
-          equipmentSummaryController.text = profileData['equipmentSummary'] ?? '';
+          equipmentSummaryController.text =
+              profileData['equipmentSummary'] ?? '';
           additionalNotesController.text = profileData['additionalNotes'] ?? '';
 
           // Populate Read-only (from application)
@@ -187,16 +232,24 @@ class ShippingDetailsController extends GetxController {
             experienceDisplay.value = '${applicationData['experience']} years';
           }
           if (applicationData['businessInfo']?['dotNumber'] != null) {
-            usdotDisplay.value = 'USDOT ${applicationData['businessInfo']['dotNumber']}';
+            usdotDisplay.value =
+                'USDOT ${applicationData['businessInfo']['dotNumber']}';
           }
 
           // Credentials
-          hasCDL.value = profileData['hasCDL'] ?? applicationData['confirmLicense'] ?? false;
-          
+          hasCDL.value =
+              profileData['hasCDL'] ??
+              applicationData['confirmLicense'] ??
+              false;
+
           // Documentation URLs from application media
           final appMedia = applicationData['media'] ?? {};
-          currentCdlUrl.value = profileData['cdlFile'] ?? appMedia['licensePhoto'];
-          currentInsuranceUrl.value = profileData['insuranceFile'] ?? appMedia['insurance'] ?? appMedia['dotCopy'];
+          currentCdlUrl.value =
+              profileData['cdlFile'] ?? appMedia['licensePhoto'];
+          currentInsuranceUrl.value =
+              profileData['insuranceFile'] ??
+              appMedia['insurance'] ??
+              appMedia['dotCopy'];
 
           insuranceExpiryController.text = profileData['insuranceExpiry'] ?? '';
           final savedPolicy = profileData['cancellationPolicy'];
@@ -237,12 +290,26 @@ class ShippingDetailsController extends GetxController {
       lastDate: DateTime(2101),
     );
     if (picked != null) {
-      insuranceExpiryController.text = "${picked.day} ${monthName(picked.month)} ${picked.year}";
+      insuranceExpiryController.text =
+          "${picked.day} ${monthName(picked.month)} ${picked.year}";
     }
   }
 
   String monthName(int month) {
-    const list = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const list = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     return list[month - 1];
   }
 
@@ -252,7 +319,10 @@ class ShippingDetailsController extends GetxController {
         'media': MultipartFile(file, filename: file.path.split('/').last),
         'type': type,
       });
-      final response = await apiService.postRequest('/upload?type=$type', formData);
+      final response = await apiService.postRequest(
+        '/upload?type=$type',
+        formData,
+      );
       if (response.statusCode == 200 && response.body['success'] == true) {
         return response.body['data']['filename'];
       }
@@ -266,26 +336,42 @@ class ShippingDetailsController extends GetxController {
     isSubmitting.value = true;
     try {
       final vendorResponse = await apiService.getRequest('/vendors/me');
-      if (vendorResponse.statusCode != 200 || vendorResponse.body['success'] != true) {
-        Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: Colors.red, colorText: Colors.white);
+      if (vendorResponse.statusCode != 200 ||
+          vendorResponse.body['success'] != true) {
+        Get.snackbar(
+          'Error',
+          'Failed to fetch vendor details',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
-      final vendorId = vendorResponse.body['data']['_id'];
+      final vendorId = vendorResponse.body['data']['_id']?? vendorResponse.body['data']['id'];
 
       // 1. Upload Files
       String? cdlUrl;
-      if (cdlFile.value != null) cdlUrl = await _uploadFile(cdlFile.value!, 'shipping_details');
-      
+      if (cdlFile.value != null)
+        cdlUrl = await _uploadFile(cdlFile.value!, 'shipping_details');
+
       String? insuranceUrl;
-      if (insuranceFile.value != null) insuranceUrl = await _uploadFile(insuranceFile.value!, 'shipping_details');
+      if (insuranceFile.value != null)
+        insuranceUrl = await _uploadFile(
+          insuranceFile.value!,
+          'shipping_details',
+        );
 
       // 2. Build Payload
       // Merge with existing servicesData safely
-      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
-      final Map<String, dynamic> currentShipping = existingServicesData['shipping'] is Map 
-          ? Map<String, dynamic>.from(existingServicesData['shipping']) 
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(
+            vendorResponse.body['data']['servicesData'] ?? {},
+          );
+      final Map<String, dynamic> currentShipping =
+          existingServicesData['shipping'] is Map
+          ? Map<String, dynamic>.from(existingServicesData['shipping'])
           : <String, dynamic>{};
-      final Map<String, dynamic> profileData = currentShipping['profileData'] is Map
+      final Map<String, dynamic> profileData =
+          currentShipping['profileData'] is Map
           ? Map<String, dynamic>.from(currentShipping['profileData'])
           : <String, dynamic>{};
 
@@ -294,7 +380,7 @@ class ShippingDetailsController extends GetxController {
         'baseRate': baseRateController.text,
         'loadedRate': loadedRateController.text,
       };
-      
+
       profileData['servicesOffered'] = selectedServices.toList();
       profileData['equipmentSummary'] = equipmentSummaryController.text;
       profileData['travelScope'] = travelScope.toList();
@@ -305,7 +391,9 @@ class ShippingDetailsController extends GetxController {
       if (cdlUrl != null) profileData['cdlFile'] = cdlUrl;
       if (insuranceUrl != null) profileData['insuranceFile'] = insuranceUrl;
       profileData['insuranceExpiry'] = insuranceExpiryController.text;
-      profileData['cancellationPolicy'] = isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value;
+      profileData['cancellationPolicy'] = isCustomCancellation.value
+          ? customCancellationController.text
+          : cancellationPolicy.value;
       profileData['additionalNotes'] = additionalNotesController.text;
 
       currentShipping['profileData'] = profileData;
@@ -325,41 +413,82 @@ class ShippingDetailsController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         // Sync local state
         await Get.find<AuthController>().updateUserMetadata();
-        
+
         if (editModeEnabled.value) {
           if (Get.isRegistered<GroomViewProfileController>()) {
             Get.find<GroomViewProfileController>().fetchProfile();
           }
           Get.back();
-          Get.snackbar('Success', 'Shipping rates updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+          Get.snackbar(
+            'Success',
+            'Shipping rates updated successfully!',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
         } else {
-          final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+          final List<String> remaining =
+              Get.arguments?['remainingServices'] as List<String>? ?? [];
           if (remaining.isNotEmpty) {
             final nextService = remaining.first;
             final nextRemaining = remaining.skip(1).toList();
 
             if (nextService == 'Grooming') {
-              Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
+              Get.off(
+                () => const GroomingDetailsView(),
+                arguments: {'remainingServices': nextRemaining},
+              );
             } else if (nextService == 'Braiding') {
-              Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
+              Get.off(
+                () => const BraidingDetailsView(),
+                arguments: {'remainingServices': nextRemaining},
+              );
             } else if (nextService == 'Clipping') {
-              Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
+              Get.off(
+                () => const ClippingDetailView(),
+                arguments: {'remainingServices': nextRemaining},
+              );
             } else if (nextService == 'Farrier') {
-              Get.off(() => const FarrierDetailsView(), arguments: {'remainingServices': nextRemaining});
+              Get.off(
+                () => const FarrierDetailsView(),
+                arguments: {'remainingServices': nextRemaining},
+              );
             } else if (nextService == 'Bodywork') {
-              Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+              Get.off(
+                () => const BodyworkDetailsView(),
+                arguments: {'remainingServices': nextRemaining},
+              );
             } else {
-              Get.offAll(() => const ProfileCompletedView(subtitle: 'Your shipping services are now live', destinationWidget: GroomBottomNav()));
+              Get.offAll(
+                () => const ProfileCompletedView(
+                  subtitle: 'Your shipping services are now live',
+                  destinationWidget: GroomBottomNav(),
+                ),
+              );
             }
           } else {
-            Get.offAll(() => const ProfileCompletedView(subtitle: 'Your shipping services are now live', destinationWidget: GroomBottomNav()));
+            Get.offAll(
+              () => const ProfileCompletedView(
+                subtitle: 'Your shipping services are now live',
+                destinationWidget: GroomBottomNav(),
+              ),
+            );
           }
         }
       } else {
-        Get.snackbar('Error', response.body['message'] ?? 'Failed to update details', backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          response.body['message'] ?? 'Failed to update details',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
-      Get.snackbar('Error', 'An unexpected error occurred: $e', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     } finally {
       isSubmitting.value = false;
     }

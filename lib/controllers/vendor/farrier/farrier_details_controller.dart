@@ -21,15 +21,56 @@ class FarrierDetailsController extends GetxController {
 
   // Farrier Services (Default to unselected and empty price)
   final farrierServices = <Map<String, dynamic>>[
-    {'name': 'Trimming', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Front Shoes', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Hind Shoes', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Full Set', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Corrective / Therapeutic Work ', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Glue-on Shoes', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Specialty Shoes (bar shoes, pads, wedges, etc.)', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Barefoot / Natural Trim Specialist', 'price': TextEditingController(), 'isSelected': false.obs},
-    {'name': 'Spaces for custom input services', 'price': TextEditingController(), 'isSelected': false.obs},
+    {
+      'name': 'Trimming',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Front Shoes',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Hind Shoes',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Full Set',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Corrective / Therapeutic Work ',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Glue-on Shoes',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Specialty Shoes (bar shoes, pads, wedges, etc.)',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Barefoot / Natural Trim Specialist',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Spaces for custom input services',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Drill & Tap',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
   ].obs;
 
   void addService(String name, {bool isAddOn = false}) {
@@ -50,19 +91,28 @@ class FarrierDetailsController extends GetxController {
 
   // Add-Ons (Default to unselected and empty price)
   final addOns = <Map<String, dynamic>>[
-    {'name': 'Aluminum', 'price': TextEditingController(), 'isSelected': false.obs},
+    {
+      'name': 'Aluminum',
+      'price': TextEditingController(),
+      'isSelected': false.obs,
+    },
   ].obs;
 
   // Travel Preferences
-  final travelCategories = ['Local Only', 'Regional', 'Nationwide', 'International'];
+  final travelCategories = [
+    'Local Only',
+    'Regional',
+    // 'Nationwide',
+    // 'International',
+  ];
   final selectedTravel = 'Local Only'.obs;
-  
+
   // Detailed fee config per category
   final travelConfigurations = <String, Map<String, dynamic>>{
     'Local Only': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
     'Regional': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
-    'Nationwide': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
-    'International': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
+    // 'Nationwide': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
+    // 'International': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
   }.obs;
 
   // Temp variables for UI
@@ -84,10 +134,10 @@ class FarrierDetailsController extends GetxController {
     'Accepting new clients',
     'Limited availability',
     'Referral only',
-    'Not accepting new clients'
+    'Not accepting new clients',
   ];
   final selectedPolicy = 'Accepting new clients'.obs;
-  
+
   final minHorsesPerStop = 6.obs;
   final emergencySupport = true.obs;
 
@@ -95,20 +145,17 @@ class FarrierDetailsController extends GetxController {
   final insuranceOptions = [
     'Carries Insurance',
     'Insurance details upon request',
-    'Not currently insured'
+    'Not currently insured',
   ];
   final selectedInsurance = 'Carries Insurance'.obs;
 
   // Summary Data (Read-only)
-  final location = 'Denver, Colorado, USA'.obs;
-  final experience = '4 years'.obs;
-  final disciplines = <String>['Hunters', 'Hunter/Jumper', 'Dressage'].obs;
-  final horseLevels = <String>['A/AA Circuit', 'Grand Prix', 'Young Horses', 'FEI'].obs;
-  final regionsCovered = <String>[
-    'Florida (Wellington / Ocala / Gulf coast)',
-    'Southwest (Thermal / AZ winter circuits)',
-    'Aiken / Tryon / Wills Park / Chatt Hills'
-  ].obs;
+  final location = 'N/A'.obs;
+  final experience = 'N/A'.obs;
+  final disciplines = <String>[].obs;
+  final horseLevels = <String>[].obs;
+  final regionsCovered = <String>[].obs;
+
 
   // Cancellation Policy
   final cancellationPolicy = RxnString();
@@ -128,30 +175,51 @@ class FarrierDetailsController extends GetxController {
     isLoading.value = true;
     try {
       // 1. Fetch tags from system config
-      final tagResponse = await apiService.getRequest('/system-config/tag-types/with-values?category=Farrier');
-      if (tagResponse.statusCode == 200 && tagResponse.body['success'] == true) {
+      final tagResponse = await apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Farrier',
+      );
+      if (tagResponse.statusCode == 200 &&
+          tagResponse.body['success'] == true) {
         final List types = tagResponse.body['data'];
-        
+
         // Populate Services from "Farrier Services" tag
-        final serviceType = types.firstWhereOrNull((t) => t['name'] == 'Farrier Services');
+        final serviceType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Farrier Services',
+        );
         if (serviceType != null) {
           final List values = serviceType['values'];
-          farrierServices.assignAll(values.map((v) => {
-            'name': v['name'] as String,
-            'price': TextEditingController(text: v['defaultPrice']?.toString() ?? ''),
-            'isSelected': false.obs,
-          }).toList());
+          farrierServices.assignAll(
+            values
+                .map(
+                  (v) => {
+                    'name': v['name'] as String,
+                    'price': TextEditingController(
+                      text: v['defaultPrice']?.toString() ?? '',
+                    ),
+                    'isSelected': false.obs,
+                  },
+                )
+                .toList(),
+          );
         }
 
         // Populate Add-Ons from "Add-Ons" tag
         final addOnType = types.firstWhereOrNull((t) => t['name'] == 'Add-Ons');
         if (addOnType != null) {
           final List values = addOnType['values'];
-          addOns.assignAll(values.map((v) => {
-            'name': v['name'] as String,
-            'price': TextEditingController(text: v['defaultPrice']?.toString() ?? ''),
-            'isSelected': false.obs,
-          }).toList());
+          addOns.assignAll(
+            values
+                .map(
+                  (v) => {
+                    'name': v['name'] as String,
+                    'price': TextEditingController(
+                      text: v['defaultPrice']?.toString() ?? '',
+                    ),
+                    'isSelected': false.obs,
+                  },
+                )
+                .toList(),
+          );
         }
       }
 
@@ -159,25 +227,31 @@ class FarrierDetailsController extends GetxController {
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
-        final List assignedServices = vendor['assignedServices'] ?? [];
-        final farrierService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Farrier');
+        final servicesData = vendor['servicesData'] ?? {};
+        final groomingData = servicesData['farrier'];
 
-        if (farrierService != null && farrierService['application'] != null) {
-          final applicationData = farrierService['application']['applicationData'] ?? {};
-          
+        if (groomingData != null) {
+          final applicationData = groomingData['applicationData'] ?? {};
+
           final city = applicationData['homeBase']?['city'] ?? '';
           final state = applicationData['homeBase']?['state'] ?? '';
           if (city.isNotEmpty && state.isNotEmpty) {
             location.value = '$city, $state, USA';
           }
-          
+
           if (applicationData['experience'] != null) {
             experience.value = '${applicationData['experience']} years';
           }
-          
-          disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
-          horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-          regionsCovered.assignAll(List<String>.from(applicationData['regions'] ?? []));
+
+          disciplines.assignAll(
+            List<String>.from(applicationData['disciplines'] ?? []),
+          );
+          horseLevels.assignAll(
+            List<String>.from(applicationData['horseLevels'] ?? []),
+          );
+          regionsCovered.assignAll(
+            List<String>.from(applicationData['regions'] ?? []),
+          );
         }
       }
     } catch (e) {
@@ -191,36 +265,58 @@ class FarrierDetailsController extends GetxController {
     isSubmitting.value = true;
     try {
       final vendorResponse = await apiService.getRequest('/vendors/me');
-      if (vendorResponse.statusCode != 200 || vendorResponse.body['success'] != true) {
-        Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+      if (vendorResponse.statusCode != 200 ||
+          vendorResponse.body['success'] != true) {
+        Get.snackbar(
+          'Error',
+          'Failed to fetch vendor details',
+          backgroundColor: AppColors.accentRed,
+          colorText: AppColors.cardColor,
+        );
         return;
       }
-      final vendorId = vendorResponse.body['data']['_id'];
+      final vendorId = vendorResponse.body['data']['_id']?? vendorResponse.body['data']['id'];
 
       // Merge with existing servicesData
-      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
-      
+      final Map<String, dynamic> existingServicesData =
+          Map<String, dynamic>.from(
+            vendorResponse.body['data']['servicesData'] ?? {},
+          );
+
       existingServicesData['farrier'] = {
         'services': farrierServices
             .where((s) => s['isSelected'].value == true)
-            .map((s) => {
-                  'name': s['name'],
-                  'price': (s['price'] as TextEditingController).text,
-                })
+            .map(
+              (s) => {
+                'name': s['name'],
+                'price': (s['price'] as TextEditingController).text,
+              },
+            )
             .toList(),
         'addOns': addOns
             .where((s) => s['isSelected'].value == true)
-            .map((s) => {
-                  'name': s['name'],
-                  'price': (s['price'] as TextEditingController).text,
-                })
+            .map(
+              (s) => {
+                'name': s['name'],
+                'price': (s['price'] as TextEditingController).text,
+              },
+            )
             .toList(),
-        'travelPreferences': travelConfigurations.entries.map((e) => {
-          'category': e.key,
-          'type': e.value['type'],
-          'price': e.value['price'],
-          'disclaimer': e.value['disclaimer'],
-        }).where((e) => e['type'] != 'No travel fee' || (selectedTravel.value == e['category'])).toList(),
+        'travelPreferences': travelConfigurations.entries
+            .map(
+              (e) => {
+                'category': e.key,
+                'type': e.value['type'],
+                'price': e.value['price'],
+                'disclaimer': e.value['disclaimer'],
+              },
+            )
+            .where(
+              (e) =>
+                  e['type'] != 'No travel fee' ||
+                  (selectedTravel.value == e['category']),
+            )
+            .toList(),
         'clientIntake': {
           'policy': selectedPolicy.value,
           'minHorses': minHorsesPerStop.value,
@@ -246,32 +342,68 @@ class FarrierDetailsController extends GetxController {
         final authController = Get.find<AuthController>();
         await authController.updateUserMetadata();
 
-        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+        final List<String> remaining =
+            Get.arguments?['remainingServices'] as List<String>? ?? [];
         if (remaining.isNotEmpty) {
           final nextService = remaining.first;
           final nextRemaining = remaining.skip(1).toList();
 
           if (nextService == 'Grooming') {
-            Get.off(() => const GroomingDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(
+              () => const GroomingDetailsView(),
+              arguments: {'remainingServices': nextRemaining},
+            );
           } else if (nextService == 'Braiding') {
-            Get.off(() => const BraidingDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(
+              () => const BraidingDetailsView(),
+              arguments: {'remainingServices': nextRemaining},
+            );
           } else if (nextService == 'Clipping') {
-            Get.off(() => const ClippingDetailView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(
+              () => const ClippingDetailView(),
+              arguments: {'remainingServices': nextRemaining},
+            );
           } else if (nextService == 'Bodywork') {
-            Get.off(() => const BodyworkDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(
+              () => const BodyworkDetailsView(),
+              arguments: {'remainingServices': nextRemaining},
+            );
           } else if (nextService == 'Shipping') {
-            Get.off(() => const ShippingDetailsView(), arguments: {'remainingServices': nextRemaining});
+            Get.off(
+              () => const ShippingDetailsView(),
+              arguments: {'remainingServices': nextRemaining},
+            );
           } else {
-            Get.offAll(() => const ProfileCompletedView(subtitle: 'Your farrier services are now live', destinationWidget: GroomBottomNav()));
+            Get.offAll(
+              () => const ProfileCompletedView(
+                subtitle: 'Your farrier services are now live',
+                destinationWidget: GroomBottomNav(),
+              ),
+            );
           }
         } else {
-          Get.offAll(() => const ProfileCompletedView(subtitle: 'Your farrier services are now live', destinationWidget: GroomBottomNav()));
+          Get.offAll(
+            () => const ProfileCompletedView(
+              subtitle: 'Your farrier services are now live',
+              destinationWidget: GroomBottomNav(),
+            ),
+          );
         }
       } else {
-        Get.snackbar('Error', response.body['message'] ?? 'Failed to update farrier profile', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+        Get.snackbar(
+          'Error',
+          response.body['message'] ?? 'Failed to update farrier profile',
+          backgroundColor: AppColors.accentRed,
+          colorText: AppColors.cardColor,
+        );
       }
     } catch (e) {
-      Get.snackbar('Error', 'Something went wrong. Please try again.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
+      Get.snackbar(
+        'Error',
+        'Something went wrong. Please try again.',
+        backgroundColor: AppColors.accentRed,
+        colorText: AppColors.cardColor,
+      );
     } finally {
       isSubmitting.value = false;
     }

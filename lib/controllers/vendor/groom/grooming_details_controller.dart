@@ -157,23 +157,21 @@ class GroomingDetailsController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
         
-        // Find Grooming service
-        final List assignedServices = vendor['assignedServices'] ?? [];
-        final groomingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Grooming');
+        final servicesData = vendor['servicesData'] ?? {};
+        final groomingData = servicesData['grooming'];
 
-        if (groomingService != null && groomingService['application'] != null) {
-          final applicationData = groomingService['application']['applicationData'] ?? {};
+        if (groomingData != null) {
+          final applicationData = groomingData['applicationData'] ?? {};
           
-          final city = applicationData['homeBase']?['city'] ?? '';
-          final state = applicationData['homeBase']?['state'] ?? '';
+          final city = applicationData['homeBase']?['city'] ?? vendor['city'] ?? '';
+          final state = applicationData['homeBase']?['state'] ?? vendor['state'] ?? '';
           location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
           
-          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} Years' : 'N/A';
+          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} Years' : (vendor['experience'] ?? 'N/A');
           disciplinesSelected.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
         } else {
-          // Fallback to vendor level fields if service level not found
           location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
           experience.value = vendor['experience'] ?? 'N/A';
         }
@@ -194,18 +192,18 @@ class GroomingDetailsController extends GetxController {
         return;
       }
       final vendor = vendorResponse.body['data'];
-      final vendorId = vendor['_id'];
+      final vendorId = vendorResponse.body['data']['_id']?? vendorResponse.body['data']['id'];
       
       // Merge with existing servicesData to prevent clearing other services (Braiding, Clipping, etc.)
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendor['servicesData'] ?? {});
       
-      final List assignedServices = vendor['assignedServices'] ?? [];
-      final groomingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Grooming');
-      final existingApplication = groomingService?['application'];
+      final existingGroomingData = existingServicesData['grooming'] ?? {};
+      final existingApplicationData = existingGroomingData['applicationData'] ?? {};
 
       // Update ONLY the grooming part of servicesData
       existingServicesData['grooming'] = {
-        'application': existingApplication, // CRITICAL: preserve location/experience
+        ...existingGroomingData,
+        'applicationData': existingApplicationData, // CRITICAL: preserve location/experience
         'rates': {
           'daily': dailyRateController.text,
           'weekly': {

@@ -322,14 +322,14 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F4F7),
+          color: const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(10),
       ),
       child: CommonText(
         label,
         fontSize: 13,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF1D2939),
+        color: const Color(0xFF1E40AF),
       ),
     );
   }
@@ -430,8 +430,8 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
   }) {
     return Row(
       children: [
-        Expanded(child: _buildGridItem(label1, val1)),
-        Expanded(child: _buildGridItem(label2, val2, isExternal: isExternal)),
+        _buildGridItem(label1, val1),
+        _buildGridItem(label2, val2, isExternal: isExternal),
       ],
     );
   }

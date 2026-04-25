@@ -94,14 +94,14 @@ class ClippingDetailsController extends GetxController {
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
-        
+
         // 1. Find Clipping application data for base info
         final List assignedServices = vendor['assignedServices'] ?? [];
         final clippingService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Clipping');
 
         if (clippingService != null && clippingService['application'] != null) {
           final applicationData = clippingService['application']['applicationData'] ?? {};
-          
+
           final city = applicationData['homeBase']?['city'] ?? '';
           final state = applicationData['homeBase']?['state'] ?? '';
           final country = applicationData['homeBase']?['country'] ?? 'USA';
@@ -116,6 +116,20 @@ class ClippingDetailsController extends GetxController {
         // 2. Restore saved Services & Rates from servicesData
         final servicesData = vendor['servicesData']?['clipping'];
         if (servicesData != null) {
+
+
+          final applicationData = servicesData['applicationData'] ?? {};
+
+          final city = applicationData['homeBase']?['city'] ?? '';
+          final state = applicationData['homeBase']?['state'] ?? '';
+          final country = applicationData['homeBase']?['country'] ?? 'USA';
+          location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, $country' : 'N/A';
+
+          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} years' : 'N/A';
+          disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
+          horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
+          operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+
           final List savedServices = servicesData['services'] ?? [];
           
           // Helper to update a service list

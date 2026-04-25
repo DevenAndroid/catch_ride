@@ -28,11 +28,11 @@ class CompleteProfileView extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          centerTitle: false,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-            onPressed: () => Get.back(),
-          ),
+          centerTitle: true,
+          // leading: IconButton(
+          //   icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+          //   onPressed: () => Get.back(),
+          // ),
           title: const CommonText(
             'Complete Your Profile',
             fontSize: AppTextSizes.size18,
@@ -472,7 +472,7 @@ class CompleteProfileView extends StatelessWidget {
   Widget _buildNotesSection(GroomCompleteProfileController controller) {
     return _buildContainer(
       title: 'Notes For Trainer',
-      subtitle: 'Add any details that would help trainers understand your preferences or availability',
+      subtitle: 'Add any details that would help trainers understand how you work or what to expect',
       optional: true,
       children: [
         CommonTextField(

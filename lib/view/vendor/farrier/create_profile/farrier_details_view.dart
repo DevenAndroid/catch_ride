@@ -56,7 +56,7 @@ class FarrierDetailsView extends StatelessWidget {
                     context,
                     title: 'Farrier Services',
                     description: 'Select the services you offer and set your pricing.',
-                    subtitle: 'Prices listed are for baseline labor/materials.',
+                   // subtitle: 'Prices listed are for baseline labor/materials.',
                     services: controller.farrierServices,
                     onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: false),
                   ),
@@ -64,7 +64,8 @@ class FarrierDetailsView extends StatelessWidget {
                   _buildServiceSection(
                     context,
                     title: 'Add - Ons',
-                    description: 'Optional services or materials at all time available to your standard work.',
+
+                    description: 'Optional services or materials offered in addition to your standard work',
                     services: controller.addOns,
                     onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: true),
                   ),
@@ -208,11 +209,11 @@ class FarrierDetailsView extends StatelessWidget {
           onTap: onAdd,
           child: const Row(
             children: [
-              Icon(Icons.add, color: AppColors.primary, size: 18),
+              Icon(Icons.add, color: AppColors.linkBlue, size: 18),
               SizedBox(width: 4),
               CommonText(
                 'Add service',
-                color: AppColors.primary,
+                color: AppColors.linkBlue,
                 fontWeight: FontWeight.bold,
                 fontSize: AppTextSizes.size14,
               ),

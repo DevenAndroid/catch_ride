@@ -8,7 +8,6 @@ import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_
 import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -115,7 +114,7 @@ class BraidingDetailsController extends GetxController {
         Get.snackbar('Error', 'Failed to fetch vendor details', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
         return;
       }
-      final vendorId = vendorResponse.body['data']['id'];
+      final vendorId = vendorResponse.body['data']['_id']?? vendorResponse.body['data']['id'];
 
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
