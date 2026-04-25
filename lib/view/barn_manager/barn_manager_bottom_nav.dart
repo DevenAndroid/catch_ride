@@ -11,6 +11,7 @@ import 'package:catch_ride/view/barn_manager/home/barn_manager_explore_view.dart
 import 'package:catch_ride/view/barn_manager/list/barn_manager_horse_listing_view.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../trainer/home/trainer_explore_view.dart';
+import 'package:catch_ride/controllers/chat_controller.dart';
 import 'chats/barn_manager_chat_list_view.dart';
 
 class BarnManagerBottomNav extends StatefulWidget {
@@ -152,11 +153,30 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : AppColors.textSecondary,
-              size: 26,
-            ),
+            index == 3 
+              ? Obx(() {
+                  final chatController = Get.find<ChatController>();
+                  final unreadCount = chatController.totalUnreadCount;
+                  return Badge(
+                    label: CommonText(
+                      '$unreadCount',
+                      color: Colors.white,
+                      fontSize: 10,
+                    ),
+                    isLabelVisible: unreadCount > 0,
+                    backgroundColor: const Color(0xFFB42318),
+                    child: Icon(
+                      icon,
+                      color: isSelected ? Colors.white : AppColors.textSecondary,
+                      size: 26,
+                    ),
+                  );
+                })
+              : Icon(
+                  icon,
+                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  size: 26,
+                ),
             const SizedBox(height: 4),
             CommonText(
               label,

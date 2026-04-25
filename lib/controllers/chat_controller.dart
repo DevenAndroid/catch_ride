@@ -25,6 +25,10 @@ class ChatController extends GetxController {
   final RxBool hasMoreMessages = true.obs;
   final RxString activeConversationId = ''.obs;
   final RxBool isUpdatingStatus = false.obs;
+  
+  int get totalUnreadCount {
+    return conversations.fold(0, (sum, convo) => sum + convo.unread);
+  }
 
   @override
   void onInit() {

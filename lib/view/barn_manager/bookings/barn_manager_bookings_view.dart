@@ -53,7 +53,9 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     super.initState();
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     _tabController.addListener(_onTabChanged);
-    _loadBookings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadBookings();
+    });
   }
 
   void _onTabChanged() {

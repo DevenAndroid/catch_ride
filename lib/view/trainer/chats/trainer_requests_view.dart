@@ -26,6 +26,7 @@ class _TrainerRequestsViewState extends State<TrainerRequestsView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchConversations();
+      Get.find<BookingController>().fetchBookings(type: 'received');
     });
   }
 

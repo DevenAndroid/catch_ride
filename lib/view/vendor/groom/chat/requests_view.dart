@@ -19,10 +19,12 @@ class _RequestsViewState extends State<RequestsView> {
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((c) async {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final chatController = Get.find<ChatController>();
+      await chatController.fetchConversations();
       await bookingController.fetchBookings(type: 'received');
     });
-    super.initState();
   }
 
   @override
