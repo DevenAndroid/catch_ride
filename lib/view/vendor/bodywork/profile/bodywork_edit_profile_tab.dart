@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/groom/edit_vendor_profile_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
@@ -451,8 +452,31 @@ class BodyworkEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _photoBox({required ImageProvider image, required VoidCallback onRemove}) {
-    return Stack(clipBehavior: Clip.none, children: [Container(width: 80, height: 80, decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), image: DecorationImage(image: image, fit: BoxFit.cover))), Positioned(top: -4, right: -4, child: GestureDetector(onTap: onRemove, child: Container(padding: const EdgeInsets.all(2), decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle), child: const Icon(Icons.close, size: 14, color: Colors.white))))]);
+  Widget _photoBox({String? url, File? file, required VoidCallback onRemove}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        CommonImageView(
+          url: url,
+          file: file,
+          width: 80,
+          height: 80,
+          radius: 12,
+        ),
+        Positioned(
+          top: -4,
+          right: -4,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              child: const Icon(Icons.close, size: 14, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _addPhotoBox() {
@@ -652,11 +676,11 @@ class BodyworkEditProfileTab extends StatelessWidget {
         runSpacing: 12,
         children: [
           ...controller.serviceExistingPhotos['Bodywork']!.asMap().entries.map((entry) => _photoBox(
-            image: NetworkImage(entry.value),
+            url: entry.value,
             onRemove: () => controller.removeServiceExistingPhoto('Bodywork', entry.key),
           )),
           ...controller.serviceNewPhotos['Bodywork']!.asMap().entries.map((entry) => _photoBox(
-            image: FileImage(entry.value),
+            file: entry.value,
             onRemove: () => controller.removeServiceNewPhoto('Bodywork', entry.key),
           )),
           _addPhotoBox(),

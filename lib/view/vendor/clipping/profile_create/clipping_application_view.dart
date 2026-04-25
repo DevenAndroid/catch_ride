@@ -800,7 +800,7 @@ class ClippingApplicationView extends StatelessWidget {
     return Column(
       children: [
         Obx(() => _buildCheckboxTile(
-          'I confirm that I am at least 18 years of age.',
+          'I confirm that I am at least 18 years or older.',
           controller.is18OrOlder.value,
           (val) => controller.is18OrOlder.value = val!,
         )),

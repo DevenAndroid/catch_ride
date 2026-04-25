@@ -68,7 +68,7 @@ class _SelectRoleViewState extends State<SelectRoleView> {
         title: const CommonText(
           AppStrings.selectYourRole,
           color: AppColors.textPrimary,
-          fontSize: AppTextSizes.size18,
+          fontSize: AppTextSizes.size20,
           fontWeight: FontWeight.bold,
         ),
         bottom: PreferredSize(

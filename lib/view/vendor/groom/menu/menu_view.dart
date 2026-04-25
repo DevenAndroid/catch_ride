@@ -31,9 +31,12 @@ import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
 import '../../farrier/profile/add_operations_and_compliance_view.dart';
+import '../../shipping/create_profile/shipping_application_view.dart';
+import '../../shipping/create_profile/shipping_details_view.dart';
 import '../../shipping/trip/shipping_trip_view.dart';
 import '../availability/availability_view.dart';
 import '../profile/groom_view_profile.dart';
+import '../profile_create/grooming_details_view.dart';
 
 class MenuView extends StatelessWidget {
   const MenuView({super.key});
@@ -210,7 +213,11 @@ class MenuView extends StatelessWidget {
 
   Widget _buildLogoutButton() {
     return GestureDetector(
-      onTap: () => _showLogoutDialog(Get.context!),
+      onTap: () {
+        Get.to(GroomingDetailsView());
+        return;
+        _showLogoutDialog(Get.context!);
+      },
       child: Container(
         width: double.infinity,
         height: 52,

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import 'package:catch_ride/widgets/common_image_view.dart';
 import '../../../controllers/profile_controller.dart';
 
 class BarnManagerConversationsListView extends StatefulWidget {
@@ -135,21 +136,14 @@ class _BarnManagerConversationsListViewState extends State<BarnManagerConversati
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
+            CommonImageView(
               width: 56,
               height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: NetworkImage(
-                    convo.otherUser?.avatar?.isNotEmpty == true
-                        ? convo.otherUser!.avatar!
-                        : 'https://via.placeholder.com/150',
-                  ),
-                  fit: BoxFit.cover,
-                ),
-                color: const Color(0xFFF2F4F7),
-              ),
+              shape: BoxShape.circle,
+              url: convo.otherUser?.avatar?.isNotEmpty == true
+                  ? convo.otherUser!.avatar!
+                  : null,
+              isUserImage: true,
             ),
             const SizedBox(width: 16),
             Expanded(

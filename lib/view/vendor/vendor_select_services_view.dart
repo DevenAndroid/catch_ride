@@ -32,9 +32,9 @@ class VendorSelectServicesView extends StatelessWidget {
         ),
         title: const CommonText(
           'Select your Services',
-          fontSize: AppTextSizes.size22,
-          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
+          fontSize: AppTextSizes.size20,
+          fontWeight: FontWeight.bold,
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),

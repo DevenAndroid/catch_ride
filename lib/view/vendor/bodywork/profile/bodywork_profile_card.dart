@@ -83,7 +83,7 @@ class BodyworkProfileCard extends StatelessWidget {
             const SizedBox(height: 20),
             _buildSingleColumnDetail('Regions Covered', regionsCovered.isEmpty ? 'N/A' : regionsCovered.join(', ')),
             const SizedBox(height: 24),
-            _buildDisclaimerBox(),
+          //  _buildDisclaimerBox(),
           ],
 
           const SizedBox(height: 20),

@@ -27,9 +27,10 @@ class HorseModel {
   final Map<String, dynamic>? prices;
   final String status;
   final bool isActive;
-  final String? trainerId;
+  final dynamic trainerId;
   final String? trainerName;
   final String? trainerAvatar;
+  final String? trainerBarnName;
   final String? ownerId;
   final String? location;
   final String? bookedById;
@@ -74,6 +75,7 @@ class HorseModel {
     this.trainerId,
     this.trainerName,
     this.trainerAvatar,
+    this.trainerBarnName,
     this.ownerId,
     this.location,
     this.bookedById,
@@ -89,6 +91,7 @@ class HorseModel {
     String? tId;
     String? tName;
     String? tAvatar;
+    String? tBarnName;
 
     final trainerObj = (json['trainerId'] is Map)
         ? json['trainerId']
@@ -115,6 +118,7 @@ class HorseModel {
           trainerObj['user_photo'] ??
           trainerObj['userAvatar'] ??
           trainerObj['userPhoto'];
+      tBarnName = trainerObj['barnName'] ?? trainerObj['barn_name'];
     } else {
       tId = json['trainerId'];
       tName = json['trainerName'] ?? json['trainer_name'];
@@ -132,6 +136,7 @@ class HorseModel {
           json['trainer_photo'] ??
           json['trainer_profile_picture'] ??
           json['trainerProfilePicture'];
+      tBarnName = json['trainerBarnName'] ?? json['trainer_barn_name'] ?? json['barnName'] ?? json['barn_name'];
     }
 
     // Handle nested bookedBy object if it exists
@@ -238,6 +243,7 @@ class HorseModel {
       trainerId: tId,
       trainerName: tName,
       trainerAvatar: tAvatar,
+      trainerBarnName: tBarnName,
       ownerId: json['ownerId'],
       location: json['location'],
       bookedByAvatar: bAvatar,
@@ -314,6 +320,7 @@ class HorseModel {
     String? trainerId,
     String? trainerName,
     String? trainerAvatar,
+    String? trainerBarnName,
     String? ownerId,
     String? location,
     String? bookedById,
@@ -352,6 +359,7 @@ class HorseModel {
       trainerId: trainerId ?? this.trainerId,
       trainerName: trainerName ?? this.trainerName,
       trainerAvatar: trainerAvatar ?? this.trainerAvatar,
+      trainerBarnName: trainerBarnName ?? this.trainerBarnName,
       ownerId: ownerId ?? this.ownerId,
       location: location ?? this.location,
       bookedById: bookedById ?? this.bookedById,

@@ -177,15 +177,15 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
             ],
             
             const SizedBox(height: 20),
-            const Divider(height: 1, color: AppColors.dividerColor),
-            const SizedBox(height: 12),
-            const CommonText(
-              'All services are provided within the scope of the provider\'s certifications and are not a substitute for veterinary care.',
-              fontSize: 11,
-              color: AppColors.textSecondary,
-              fontStyle: FontStyle.italic,
-              textAlign: TextAlign.center,
-            ),
+            // const Divider(height: 1, color: AppColors.dividerColor),
+            // const SizedBox(height: 12),
+            // const CommonText(
+            //   'All services are provided within the scope of the provider\'s certifications and are not a substitute for veterinary care.',
+            //   fontSize: 11,
+            //   color: AppColors.textSecondary,
+            //   fontStyle: FontStyle.italic,
+            //   textAlign: TextAlign.center,
+            // ),
           ],
         );
       }),
