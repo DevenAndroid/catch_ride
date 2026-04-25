@@ -12,7 +12,7 @@ import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:catch_ride/models/horse_model.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controllers/google_api_controller.dart';
@@ -49,6 +49,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     );
 
     // Pre-fill data
+   // controller.localImages.clear();
     controller.setInitialData(widget.horse);
 
     if (widget.onlyAvailability) {
@@ -337,14 +338,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(11),
-                          child: CachedNetworkImage(
-                            imageUrl: imageUrl,
+                          child: CommonImageView(
+                            url: imageUrl,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
+                            radius: 11,
                           ),
                         ),
                       ),

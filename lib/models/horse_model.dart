@@ -27,9 +27,10 @@ class HorseModel {
   final Map<String, dynamic>? prices;
   final String status;
   final bool isActive;
-  final String? trainerId;
+  final dynamic trainerId;
   final String? trainerName;
   final String? trainerAvatar;
+  final String? trainerBarnName;
   final String? ownerId;
   final String? ownerName;
   final String? ownerAvatar;
@@ -76,6 +77,7 @@ class HorseModel {
     this.trainerId,
     this.trainerName,
     this.trainerAvatar,
+    this.trainerBarnName,
     this.ownerId,
     this.ownerName,
     this.ownerAvatar,
@@ -93,6 +95,7 @@ class HorseModel {
     String? tId;
     String? tName;
     String? tAvatar;
+    String? tBarnName;
 
     final trainerObj = (json['trainerId'] is Map)
         ? json['trainerId']
@@ -112,7 +115,11 @@ class HorseModel {
           trainerObj['profile_pic'] ??
           trainerObj['image'] ??
           trainerObj['avatarUrl'] ??
-          trainerObj['profileImageUrl'];
+          trainerObj['profileImageUrl'] ?? trainerObj['user_avatar'] ??
+          trainerObj['user_photo'] ??
+          trainerObj['userAvatar'] ??
+          trainerObj['userPhoto'];
+           tBarnName = trainerObj['barnName'] ?? trainerObj['barn_name'];
     } else {
       tId = json['trainerId'];
       tName = json['trainerName'] ?? json['trainer_name'] ?? json['trainer_fullName'];
@@ -129,6 +136,7 @@ class HorseModel {
           json['trainer_image'] ??
           json['trainerAvatarUrl'] ??
           json['trainerProfileImageUrl'] ??
+
           json['profilePhoto'] ??
           json['profile_photo'] ??
           json['avatar'] ??
@@ -165,6 +173,7 @@ class HorseModel {
           json['owner_photo'] ??
           json['ownerProfilePhoto'] ??
           json['owner_profile_photo'];
+
     }
 
     // Handle nested bookedBy object if it exists
@@ -271,9 +280,11 @@ class HorseModel {
       trainerId: tId,
       trainerName: tName,
       trainerAvatar: tAvatar,
+
       ownerId: oId,
       ownerName: oName,
       ownerAvatar: oAvatar,
+
       location: json['location'],
       bookedByAvatar: bAvatar,
       bookedByName: bName?.isEmpty == true ? null : bName,
@@ -349,6 +360,7 @@ class HorseModel {
     String? trainerId,
     String? trainerName,
     String? trainerAvatar,
+    String? trainerBarnName,
     String? ownerId,
     String? location,
     String? bookedById,
@@ -387,6 +399,7 @@ class HorseModel {
       trainerId: trainerId ?? this.trainerId,
       trainerName: trainerName ?? this.trainerName,
       trainerAvatar: trainerAvatar ?? this.trainerAvatar,
+      trainerBarnName: trainerBarnName ?? this.trainerBarnName,
       ownerId: ownerId ?? this.ownerId,
       location: location ?? this.location,
       bookedById: bookedById ?? this.bookedById,

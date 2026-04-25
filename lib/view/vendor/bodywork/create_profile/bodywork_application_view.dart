@@ -74,7 +74,7 @@ class BodyworkApplicationView extends StatelessWidget {
                         controller: controller.joinCommunityController,
                         hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
                         maxLines: 4,
-                        validator: RequiredValidator(errorText: "Please tell us why you want to join"),
+                        // validator: RequiredValidator(errorText: "Please tell us why you want to join"),
                       ),
                     ],
                   ),
@@ -517,12 +517,12 @@ class BodyworkApplicationView extends StatelessWidget {
                         label: 'Facebook',
                         controller: controller.facebookController,
                         hintText: 'facebook.com/yourpage',
-                        validator: (value) {
-                           if (controller.facebookController.text.isEmpty && controller.instagramController.text.isEmpty) {
-                             return 'Please provide at least one profile';
-                           }
-                           return null;
-                        },
+                        // validator: (value) {
+                        //    if (controller.facebookController.text.isEmpty && controller.instagramController.text.isEmpty) {
+                        //      return 'Please provide at least one profile';
+                        //    }
+                        //    return null;
+                        // },
                       ),
                       const SizedBox(height: 16),
                       CommonTextField(
@@ -1119,7 +1119,7 @@ class BodyworkApplicationView extends StatelessWidget {
     return Column(
       children: [
         Obx(() => _buildCheckRow(
-          'I confirm that I am at least 18 years of age or older.',
+          'I confirm that I am at least 18 years or older.',
           controller.is18OrOlder.value,
           () => controller.is18OrOlder.value = !controller.is18OrOlder.value,
         )),

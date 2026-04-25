@@ -91,7 +91,7 @@ class AppStrings {
       'Ocklawaha, USA, United States';
   static const String
   onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount =
-      'If approved, you’ll receive a notification to activate your account.';
+      'You’ll receive access details once your account has been approved.';
   static const String orLogInWith = 'Or Log In with';
   static const String orSignUpWith = 'Or sign up with';
   static const String password = 'Password';

@@ -109,6 +109,10 @@ class EditVendorProfileController extends GetxController {
     'Bodywork': <File>[].obs,
   };
 
+  // Separate lists for Braiding and Clipping to prevent overwriting
+  final RxList clippingServices = [].obs;
+  final clippingServiceInputController = TextEditingController();
+
   // Farrier Tab Specifics
   final RxList farrierServices = [].obs;
   final RxList farrierAddOns = [].obs;
@@ -288,6 +292,7 @@ class EditVendorProfileController extends GetxController {
         notesForTrainerController.text = data['notesForTrainer'] ?? '';
         profilePhotoUrl.value = data['profilePhoto'] ?? '';
         coverImageUrl.value = data['coverImage'] ?? '';
+        otherPaymentController.text=data["otherPaymentDetails"]??"";
         
         selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
         
@@ -331,7 +336,7 @@ class EditVendorProfileController extends GetxController {
         selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
       } else if (type == 'Braiding' || type == 'Clipping') {
         final List bServices = profileData['services'] ?? [];
-        final targetList = braidingServices;
+        final targetList = type == 'Braiding' ? braidingServices : clippingServices;
         targetList.assignAll(bServices.map((s) {
           if (s is Map) {
             return {
@@ -476,8 +481,10 @@ class EditVendorProfileController extends GetxController {
         selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
         selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
       } else if (activeService['serviceType'] == 'Braiding' || activeService['serviceType'] == 'Clipping') {
+        final serviceType = activeService['serviceType'];
         final List bServices = profileData['services'] ?? [];
-        braidingServices.assignAll(bServices.map((s) {
+        final targetList = serviceType == 'Braiding' ? braidingServices : clippingServices;
+        targetList.assignAll(bServices.map((s) {
           if (s is Map) {
             return {
               'name': s['name'] ?? '',
@@ -844,6 +851,17 @@ class EditVendorProfileController extends GetxController {
     }
   }
 
+  void addClippingService(String name) {
+    if (name.isNotEmpty) {
+      clippingServices.add({
+        'name': name,
+        'price': TextEditingController(text: '0'),
+        'isSelected': true.obs,
+      });
+      clippingServiceInputController.clear();
+    }
+  }
+
   Future<void> pickBodyworkCertification() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -861,6 +879,11 @@ class EditVendorProfileController extends GetxController {
 
   void toggleBraidingService(int index) {
     final service = braidingServices[index];
+    service['isSelected'].value = !service['isSelected'].value;
+  }
+
+  void toggleClippingService(int index) {
+    final service = clippingServices[index];
     service['isSelected'].value = !service['isSelected'].value;
   }
 
@@ -926,18 +949,30 @@ class EditVendorProfileController extends GetxController {
         'notesForTrainer': notesForTrainerController.text,
         'profilePhoto': profilePhoto,
         'coverImage': coverImage,
+        'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'isProfileCompleted': true,
         'isProfileSetup': true,
       };
 
-      // 1.5 Helper for Braiding Services payload
-      final braidingServicesPayload = braidingServices.map((s) =>
-      {
-        'name': s['name'],
-        'price': (s['price'] as TextEditingController).text,
-        'isSelected': s['isSelected'].value,
+      // 1.5 Helpers for Service payloads
+      final braidingServicesPayload = braidingServices.map((s) {
+        final ctrl = s['price'];
+        return {
+          'name': s['name'],
+          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+          'isSelected': s['isSelected'].value,
+        };
+      }).toList();
+
+      final clippingServicesPayload = clippingServices.map((s) {
+        final ctrl = s['price'];
+        return {
+          'name': s['name'],
+          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+          'isSelected': s['isSelected'].value,
+        };
       }).toList();
 
       // Start with cached data to preserve fields we don't manage (like rates)
@@ -1064,7 +1099,7 @@ class EditVendorProfileController extends GetxController {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
             },
-            'services': braidingServicesPayload, // Reuse services logic as they share same structure
+            'services': clippingServicesPayload, 
             'additionalSkills': selectedAdditionalSkills.toList(),
             'travelPreferences': selectedTravel.toList(),
             'cancellationPolicy': {
@@ -1122,15 +1157,21 @@ class EditVendorProfileController extends GetxController {
               'facebook': facebookController.text,
               'instagram': instagramController.text,
             },
-            'services': farrierServices.map((s) => {
-              'name': s['name'],
-              'price': (s['price'] as TextEditingController).text,
-              'isSelected': s['isSelected'].value,
+            'services': farrierServices.map((s) {
+              final ctrl = s['price'];
+              return {
+                'name': s['name'],
+                'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+                'isSelected': s['isSelected'].value,
+              };
             }).toList(),
-            'addOns': farrierAddOns.map((s) => {
-              'name': s['name'],
-              'price': (s['price'] as TextEditingController).text,
-              'isSelected': s['isSelected'].value,
+            'addOns': farrierAddOns.map((s) {
+              final ctrl = s['price'];
+              return {
+                'name': s['name'],
+                'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+                'isSelected': s['isSelected'].value,
+              };
             }).toList(),
             'travelPreferences': farrierTravelFees,
             'cancellationPolicy': {
@@ -1182,8 +1223,11 @@ class EditVendorProfileController extends GetxController {
             },
             'services': bodyworkServices.map((s) => {
               'name': s['name'],
-              'price': (s['price'] as TextEditingController).text,
+              'rates': s['rates'],
               'isSelected': s['isSelected'].value,
+              'note': s['note'],
+              'trainerPresence': s['trainerPresence'],
+              'vetApproval': s['vetApproval'],
             }).toList(),
             'professionalStandards': selectedBodyworkStandards.toList(),
             'travelPreferences': selectedTravelData.values.toList(),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/groom/edit_vendor_profile_controller.dart';
@@ -7,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_button.dart';
+import '../../../../widgets/common_image_view.dart';
 
 class ClippingEditProfileTab extends StatelessWidget {
   final EditVendorProfileController controller;
@@ -168,7 +171,7 @@ class ClippingEditProfileTab extends StatelessWidget {
           const CommonText('Select your clipping skills and set prices', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           Obx(() => Column(
-            children: controller.braidingServices.asMap().entries.map((entry) {
+            children: controller.clippingServices.asMap().entries.map((entry) {
               final index = entry.key;
               final service = entry.value;
               final isSelected = service['isSelected'].value;
@@ -189,7 +192,7 @@ class ClippingEditProfileTab extends StatelessWidget {
                     children: [
                       Checkbox(
                         value: isSelected,
-                        onChanged: (val) => controller.toggleBraidingService(index),
+                        onChanged: (val) => controller.toggleClippingService(index),
                         activeColor: const Color(0xFF001149),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       ),
@@ -306,11 +309,11 @@ class ClippingEditProfileTab extends StatelessWidget {
             runSpacing: 12,
             children: [
               ...controller.serviceExistingPhotos['Clipping']!.asMap().entries.map((entry) => _photoBox(
-                image: NetworkImage(entry.value),
+                url: entry.value,
                 onRemove: () => controller.removeServiceExistingPhoto('Clipping', entry.key),
               )),
               ...controller.serviceNewPhotos['Clipping']!.asMap().entries.map((entry) => _photoBox(
-                image: FileImage(entry.value),
+                file: entry.value,
                 onRemove: () => controller.removeServiceNewPhoto('Clipping', entry.key),
               )),
               _addPhotoBox(),
@@ -461,16 +464,15 @@ class ClippingEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _photoBox({required ImageProvider image, required VoidCallback onRemove}) {
+  Widget _photoBox({String? url, File? file, required VoidCallback onRemove}) {
     return Stack(
       children: [
-        Container(
+        CommonImageView(
+          url: url,
+          file: file,
           width: 80,
           height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(image: image, fit: BoxFit.cover),
-          ),
+          radius: 12,
         ),
         Positioned(
           top: -4,
@@ -620,7 +622,7 @@ class ClippingEditProfileTab extends StatelessWidget {
             CommonTextField(
               label: '',
               hintText: 'Enter your skill',
-              controller: controller.braidingServiceInputController,
+              controller: controller.clippingServiceInputController,
             ),
             const SizedBox(height: 32),
             Row(
@@ -640,7 +642,7 @@ class ClippingEditProfileTab extends StatelessWidget {
                   child: CommonButton(
                     text: 'Save',
                     onPressed: () {
-                      controller.addBraidingService(controller.braidingServiceInputController.text);
+                      controller.addClippingService(controller.clippingServiceInputController.text);
                       Get.back();
                     },
                   ),

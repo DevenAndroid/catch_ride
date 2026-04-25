@@ -176,7 +176,7 @@ class SetupGroomApplicationView extends StatelessWidget {
 
                 _buildGroupedSection(
                   'Typical Level of Horses',
-                  description: "Select the typical level of horses you have experience working with",
+                  description: "Select the types of horses you most frequently work with",
                   children: [
                     Obx(() => _buildChipsList(
                       options: controller.horseLevelOptions,
@@ -251,7 +251,7 @@ class SetupGroomApplicationView extends StatelessWidget {
                       controller: controller.facebookController,
                       hintText: 'facebook.com/yourpage',
                       prefixIcon: const Icon(Icons.facebook, size: 20),
-                      validator: (value) => (value != null && value.isNotEmpty) ? Validations.facebookValidator(value) : null,
+                      // validator: (value) => (value != null && value.isNotEmpty) ? Validations.facebookValidator(value) : null,
                     ),
                     const SizedBox(height: 16),
                     CommonTextField(
@@ -856,7 +856,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     return Column(
       children: [
         Obx(() => _buildCheckboxTile(
-          'I confirm that I am at least 18 years of age or older',
+          'I confirm that I am at least 18 years or older',
           controller.is18OrOlder.value,
           (val) => controller.is18OrOlder.value = val!,
         )),
@@ -882,7 +882,7 @@ class SetupGroomApplicationView extends StatelessWidget {
       controlAffinity: ListTileControlAffinity.leading,
       contentPadding: EdgeInsets.zero,
       dense: true,
-      activeColor: AppColors.primary,
+      activeColor: AppColors.greenColor,
     );
   }
 }

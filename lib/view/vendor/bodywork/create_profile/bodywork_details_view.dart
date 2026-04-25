@@ -6,7 +6,6 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
-import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/vendor/bodywork/bodywork_details_controller.dart';
 import 'package:intl/intl.dart';
 

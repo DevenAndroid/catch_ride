@@ -246,9 +246,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  void _showMoreOptions() {
-    // This method is now replaced by _buildActionMenu
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -615,10 +613,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         ? profileController.fullName
         : (horse!.trainerName ?? 'N/A');
 
-    final String? trainerLocation =
-        (isOwnHorse && (horse!.location == null || horse!.location!.isEmpty))
-        ? profileController.location
-        : horse!.location;
+    final String barnName =
+        (isOwnHorse &&
+            (horse!.trainerBarnName == null || horse!.trainerBarnName!.isEmpty))
+        ? profileController.barnName
+        : (horse!.trainerBarnName ?? "");
 
     return Padding(
       padding: const EdgeInsets.all(14.0),
@@ -654,9 +653,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     fontWeight: FontWeight.bold,
                   ),
                   CommonText(
-                    trainerLocation != null && trainerLocation!.isNotEmpty
-                        ? trainerLocation
-                        : 'N/A',
+                    barnName,
                     fontSize: 13,
                     color: AppColors.textSecondary,
                   ),

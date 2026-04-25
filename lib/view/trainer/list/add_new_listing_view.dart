@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:intl/intl.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../controllers/google_api_controller.dart';
@@ -309,16 +309,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(11),
-                          child: CachedNetworkImage(
-                            imageUrl: url,
+                          child: CommonImageView(
+                            url: url,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            errorWidget: (context, url, error) => const Icon(
-                              Icons.error_outline,
-                              color: Colors.red,
-                            ),
+                            radius: 11,
                           ),
                         ),
                       ),

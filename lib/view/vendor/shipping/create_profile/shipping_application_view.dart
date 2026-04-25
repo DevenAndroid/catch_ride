@@ -85,14 +85,14 @@ class ShippingApplicationView extends StatelessWidget {
                   _buildGroupedSection(
                     'Home Base Location',
                     children: [
-                      _buildSectionHeader('Country', isRequired: true),
+                      _buildFieldLabel('Country', isRequired: true),
                       _buildBottomTrigger(
                         value: 'USA',
                         hint: 'USA',
                         onTap: null, // Disabled as per requirement
                       ),
                       const SizedBox(height: 16),
-                      _buildSectionHeader('State', isRequired: true),
+                      _buildFieldLabel('State', isRequired: true),
                       Obx(() => _buildBottomTrigger(
                         value: controller.selectedState.value?['name'],
                         hint: 'Select State',
@@ -105,7 +105,7 @@ class ShippingApplicationView extends StatelessWidget {
                         ),
                       )),
                       const SizedBox(height: 16),
-                      _buildSectionHeader('City', isRequired: true),
+                      _buildFieldLabel('City', isRequired: true),
                       Obx(() => _buildBottomTrigger(
                         value: controller.selectedCity.value?['name'],
                         hint: controller.selectedState.value == null ? 'Select State first' : 'Select City',
@@ -309,11 +309,7 @@ class ShippingApplicationView extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const CommonText(
-                        'Upload CDL (optional)',
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                      _buildFieldLabel('Upload CDL (optional)'),
                       const SizedBox(height: 8),
                       _buildFileUploadBox(
                         title: 'Click to upload',
@@ -327,8 +323,8 @@ class ShippingApplicationView extends StatelessWidget {
                   // 12. Rig Capacity
                   _buildGroupedSection(
                     'Horse Capacity',
-                    description: 'Max Horses',
                     children: [
+                      _buildFieldLabel('Max Horses'),
                       _buildStepperField(
                         value: controller.rigCapacity,
                       ),
@@ -469,7 +465,7 @@ class ShippingApplicationView extends StatelessWidget {
 
   Widget _buildSectionHeader(String title, {bool isRequired = false}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         children: [
           CommonText(
@@ -481,7 +477,29 @@ class ShippingApplicationView extends StatelessWidget {
           if (isRequired)
             const CommonText(
               ' *',
-              fontSize: AppTextSizes.size16,
+              fontSize: AppTextSizes.size18,
+              color: AppColors.accentRed,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String title, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          CommonText(
+            title,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+          if (isRequired)
+            const CommonText(
+              ' *',
+              fontSize: AppTextSizes.size14,
               color: AppColors.accentRed,
             ),
         ],
@@ -736,7 +754,7 @@ class ShippingApplicationView extends StatelessWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CommonText('Reference ${idx + 1}', fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.secondary),
+                _buildFieldLabel('Reference ${idx + 1}'),
                 const SizedBox(height: 12),
                 CommonTextField(label: 'Full Name', controller: ref.fullName, hintText: 'Enter Full Name'),
                 const SizedBox(height: 12),
@@ -774,7 +792,7 @@ class ShippingApplicationView extends StatelessWidget {
           Expanded(
             child: CommonText(
               label,
-              fontSize: 16,
+              fontSize: 14,
               color: AppColors.textPrimary,
               height: 1.4,
             ),

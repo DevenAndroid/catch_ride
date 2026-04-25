@@ -64,9 +64,9 @@ class CommonTextField extends StatelessWidget {
             text: TextSpan(
               text: label,
               style: const TextStyle(
-                fontSize: AppTextSizes.size14,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
                 fontFamily: 'Inter',
               ),
               children: [

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_button.dart';
+import '../../../../widgets/common_image_view.dart';
 
 class BraidingEditProfileTab extends StatelessWidget {
   final EditVendorProfileController controller;
@@ -307,11 +308,11 @@ class BraidingEditProfileTab extends StatelessWidget {
             runSpacing: 12,
             children: [
               ...controller.serviceExistingPhotos['Braiding']!.asMap().entries.map((entry) => _photoBox(
-                image: NetworkImage(entry.value),
+                url: entry.value,
                 onRemove: () => controller.removeServiceExistingPhoto('Braiding', entry.key),
               )),
               ...controller.serviceNewPhotos['Braiding']!.asMap().entries.map((entry) => _photoBox(
-                image: FileImage(entry.value),
+                file: entry.value,
                 onRemove: () => controller.removeServiceNewPhoto('Braiding', entry.key),
               )),
               _addPhotoBox(),
@@ -462,16 +463,15 @@ class BraidingEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _photoBox({required ImageProvider image, required VoidCallback onRemove}) {
+  Widget _photoBox({String? url, File? file, required VoidCallback onRemove}) {
     return Stack(
       children: [
-        Container(
+        CommonImageView(
+          url: url,
+          file: file,
           width: 80,
           height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(image: image, fit: BoxFit.cover),
-          ),
+          radius: 12,
         ),
         Positioned(
           top: -4,

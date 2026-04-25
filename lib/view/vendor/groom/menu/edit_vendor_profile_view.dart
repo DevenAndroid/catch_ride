@@ -12,6 +12,7 @@ import 'package:catch_ride/view/vendor/clipping/profile/clipping_edit_profile_ta
 import 'package:catch_ride/view/vendor/farrier/profile/farrier_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/shipping/profile/shipping_edit_profile_tab.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
 import '../../../../widgets/common_textfield.dart';
 
 class EditVendorProfileView extends StatefulWidget {
@@ -181,7 +182,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                 if (index == 0) {
                   return const Tab(
                     child: CommonText(
-                      'Basic Info',
+                      'Details',
                       fontSize: AppTextSizes.size14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -210,6 +211,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   Widget _buildBasicDetails() {
     return _buildCard(
       title: 'Basic Details',
+      subText: "Add your information as it will appear to clients",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -259,35 +261,13 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           child: Stack(
             children: [
               Obx(
-                () => Container(
+                () => CommonImageView(
                   width: 100,
                   height: 100,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3F4F6),
-                    shape: BoxShape.circle,
-                    image: controller.newProfileImage.value != null
-                        ? DecorationImage(
-                            image: FileImage(controller.newProfileImage.value!),
-                            fit: BoxFit.cover,
-                          )
-                        : (controller.profilePhotoUrl.isNotEmpty
-                              ? DecorationImage(
-                                  image: NetworkImage(
-                                    controller.profilePhotoUrl.value,
-                                  ),
-                                  fit: BoxFit.cover,
-                                )
-                              : null),
-                  ),
-                  child:
-                      (controller.newProfileImage.value == null &&
-                          controller.profilePhotoUrl.isEmpty)
-                      ? const Icon(
-                          Icons.person_outline,
-                          size: 50,
-                          color: Colors.grey,
-                        )
-                      : null,
+                  shape: BoxShape.circle,
+                  file: controller.newProfileImage.value,
+                  url: controller.profilePhotoUrl.value,
+                  isUserImage: true,
                 ),
               ),
               Positioned(
@@ -341,35 +321,13 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         ),
         const SizedBox(height: 12),
         Obx(
-          () => Container(
+          () => CommonImageView(
             height: 120,
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.borderLight,
-                style: BorderStyle.solid,
-              ),
-              image: controller.newCoverImage.value != null
-                  ? DecorationImage(
-                      image: FileImage(controller.newCoverImage.value!),
-                      fit: BoxFit.cover,
-                    )
-                  : (controller.coverImageUrl.isNotEmpty
-                        ? DecorationImage(
-                            image: NetworkImage(controller.coverImageUrl.value),
-                            fit: BoxFit.cover,
-                          )
-                        : null),
-            ),
-            child:
-                (controller.newCoverImage.value == null &&
-                    controller.coverImageUrl.isEmpty)
-                ? const Center(
-                    child: Icon(Icons.add, color: AppColors.textSecondary),
-                  )
-                : null,
+            radius: 12,
+            file: controller.newCoverImage.value,
+            url: controller.coverImageUrl.value,
+            isUserImage: false,
           ),
         ),
       ],
@@ -411,15 +369,11 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   Widget _buildPaymentMethods() {
     return _buildCard(
       title: 'Payment Methods',
+      subText: "Select the payment methods you accept.",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CommonText(
-            'Select the payment methods you accept.',
-            fontSize: AppTextSizes.size14,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 20),
+
           Obx(
             () => GridView.builder(
               shrinkWrap: true,
@@ -537,6 +491,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   Widget _buildExperienceHighlights() {
     return _buildCard(
       title: 'Experience Highlights',
+      subText:"Share key experience, programs, or specialties you’d like clients to know",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1127,28 +1082,13 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
       children: [
         GestureDetector(
           onTap: onTap,
-          child: Container(
+          child: CommonImageView(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.lightGray,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
-              image: imageFile != null
-                  ? DecorationImage(
-                      image: FileImage(imageFile),
-                      fit: BoxFit.cover,
-                    )
-                  : (imageUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(imageUrl),
-                            fit: BoxFit.cover,
-                          )
-                        : null),
-            ),
-            child: (imageUrl == null && imageFile == null)
-                ? const Icon(Icons.add, color: AppColors.textSecondary)
-                : null,
+            radius: 12,
+            file: imageFile,
+            url: imageUrl,
+            isUserImage: false,
           ),
         ),
         if (imageUrl != null || imageFile != null)
@@ -1254,7 +1194,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
     );
   }
 
-  Widget _buildCard({required String title, required Widget child}) {
+  Widget _buildCard({required String title,String? subText, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1278,6 +1218,16 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
             fontSize: AppTextSizes.size16,
             fontWeight: FontWeight.bold,
           ),
+          if(subText != null)
+          Padding(
+            padding: const EdgeInsets.only(top:4),
+            child: CommonText(
+              subText,
+              fontSize: AppTextSizes.size12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+
           const SizedBox(height: 20),
           child,
         ],

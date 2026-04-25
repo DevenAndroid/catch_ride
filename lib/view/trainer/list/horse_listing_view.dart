@@ -509,7 +509,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 CommonText(
                   postDescription,
                   fontSize: 14,
@@ -517,8 +517,9 @@ class _HorseListingViewState extends State<HorseListingView> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
                       Icons.location_on_outlined,
