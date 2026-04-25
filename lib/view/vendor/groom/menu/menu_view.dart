@@ -237,14 +237,7 @@ class MenuView extends StatelessWidget {
 
     final targetLower = targetRoles.map((e) => e.toLowerCase()).toList();
 
-    // 1. Check primary role
-    if (targetLower.contains(user.role.toLowerCase())) return true;
-
-    // 2. Check roles list
-    if (user.roles.any((r) => targetLower.contains(r.toLowerCase()))) return true;
-
-    // 3. Check assigned services (vendorServices in model)
-    // Using partial match to handle naming variations (e.g. "Grooming Service" matches "grooming")
+    // Return true if any of the assigned services match any of the target roles
     return user.vendorServices.any((s) {
       final sLower = s.toLowerCase();
       return targetLower.any((target) => sLower.contains(target));

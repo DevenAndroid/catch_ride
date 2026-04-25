@@ -109,7 +109,7 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildRateSection(GroomingDetailsController controller) {
     return _buildSectionContainer(
       title: 'Rates',
-      description: 'Set your standard rates below, so how you quickly work',
+      description: 'Set your standard rates based on how you typically work',
       children: [
         _buildPriceField('Daily Rate', controller.dailyRateController),
         const SizedBox(height: 20),

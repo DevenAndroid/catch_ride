@@ -149,7 +149,7 @@ class ShippingApplicationView extends StatelessWidget {
                   // 5. Experience
                   _buildGroupedSection(
                     'Experience',
-                    isRequired: true,
+                    isRequired: false,
                     children: [
                       Obx(() => _buildBottomTrigger(
                         value: controller.experience.value,
@@ -169,7 +169,7 @@ class ShippingApplicationView extends StatelessWidget {
                   // 6. Operation Type
                   _buildGroupedSection(
                     'Operation Type',
-                    isRequired: true,
+                    isRequired: false,
                     children: [
                       Obx(() => Column(
                         children: [
@@ -206,7 +206,7 @@ class ShippingApplicationView extends StatelessWidget {
                           Obx(() => Checkbox(
                             value: controller.confirmUSDOT.value,
                             onChanged: (val) => controller.confirmUSDOT.value = val ?? false,
-                            activeColor: AppColors.primary,
+                            activeColor: AppColors.greenColor,
                           )),
                           const Expanded(
                             child: CommonText(
@@ -237,7 +237,7 @@ class ShippingApplicationView extends StatelessWidget {
                   // 9. Regions Covered
                   _buildGroupedSection(
                     'Regions Covered',
-                    description: 'Select the regions you most commonly haul in.',
+                    description: 'Select the regions you regularly service',
                     children: [
                       _buildBottomTrigger(
                         hint: 'Search regions...',
@@ -269,6 +269,18 @@ class ShippingApplicationView extends StatelessWidget {
                       Obx(() => _buildChipSelection(
                         options: controller.rigTypeOptions.toList(),
                         selectedItems: controller.selectedRigTypes,
+                      )),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 10b. Stall Type
+                  _buildGroupedSection(
+                    'Stall Type',
+                    children: [
+                      Obx(() => _buildChipSelection(
+                        options: controller.stallTypeOptions.toList(),
+                        selectedItems: controller.selectedStallTypes,
                       )),
                     ],
                   ),
@@ -579,12 +591,17 @@ class ShippingApplicationView extends StatelessWidget {
 
   Widget _buildChipSelection({required List<String> options, required RxList<String> selectedItems}) {
     return Wrap(
-      spacing: 8, // Matching closer gap in screenshot
-      runSpacing: 8,
+      spacing: 10,
+      runSpacing: 10,
       children: options.map((opt) {
         final isSelected = selectedItems.contains(opt);
         return FilterChip(
-          label: CommonText(opt, color: isSelected ? Colors.white : AppColors.textPrimary, fontSize: 12),
+          label: CommonText(
+            opt,
+            color: isSelected ? const Color(0xFF001144) : const Color(0xFF444444),
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
           selected: isSelected,
           onSelected: (val) {
             if (val) {
@@ -593,11 +610,17 @@ class ShippingApplicationView extends StatelessWidget {
               selectedItems.remove(opt);
             }
           },
-          selectedColor: AppColors.primary,
-          backgroundColor: AppColors.tabBackground,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), // Pill shaped
+          selectedColor: const Color(0xFFE8F0FF),
+          backgroundColor: const Color(0xFFF9F9F9),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(100),
+            side: BorderSide(
+              color: isSelected ? const Color(0xFF001144) : const Color(0xFFE5E5E5),
+              width: isSelected ? 1.5 : 1,
+            ),
+          ),
           showCheckmark: false,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         );
       }).toList(),
     );

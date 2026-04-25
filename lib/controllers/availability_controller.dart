@@ -3,6 +3,7 @@ import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class AvailabilityController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -12,6 +13,7 @@ class AvailabilityController extends GetxController {
 
   var entries = <AvailabilityEntry>[].obs;
   var isLoading = false.obs;
+  var activeStatus = true.obs;
 
   @override
   void onInit() {
@@ -20,7 +22,9 @@ class AvailabilityController extends GetxController {
   }
 
   void _loadInitialAvailability() {
+    activeStatus.value = horse.isActive;
     if (horse.showAvailability.isNotEmpty) {
+      final DateFormat formatter = DateFormat('dd MMM yyyy');
       entries.assignAll(
         horse.showAvailability.map((a) {
           final entry = AvailabilityEntry(
@@ -28,8 +32,26 @@ class AvailabilityController extends GetxController {
           );
           entry.cityStateController.text = a.cityState;
           entry.showVenueController.text = a.showVenue;
-          entry.startDateController.text = a.startDate;
-          entry.endDateController.text = a.endDate;
+          entry.showIdController.text = a.showId ?? '';
+          
+          if (a.startDate.isNotEmpty) {
+            try {
+              final start = DateTime.parse(a.startDate);
+              entry.startDateController.text = formatter.format(start);
+            } catch (_) {
+              entry.startDateController.text = a.startDate;
+            }
+          }
+          
+          if (a.endDate.isNotEmpty) {
+            try {
+              final end = DateTime.parse(a.endDate);
+              entry.endDateController.text = formatter.format(end);
+            } catch (_) {
+              entry.endDateController.text = a.endDate;
+            }
+          }
+
           entry.isActive.value = a.isActive;
           return entry;
         }).toList(),
@@ -53,18 +75,15 @@ class AvailabilityController extends GetxController {
   Future<bool> saveAvailability() async {
     try {
       isLoading.value = true;
-      Get.dialog(
-        const Center(child: CircularProgressIndicator()),
-        barrierDismissible: false,
-      );
 
       final availabilityData = entries
           .map(
             (e) => {
               'cityState': e.cityStateController.text,
               'showVenue': e.showVenueController.text,
-              'startDate': e.startDateController.text,
-              'endDate': e.endDateController.text,
+              'showId': e.showIdController.text.isEmpty ? null : e.showIdController.text,
+              'startDate': _formatDateForBackend(e.startDateController.text),
+              'endDate': _formatDateForBackend(e.endDateController.text),
               'isActive': e.isActive.value,
             },
           )
@@ -72,19 +91,13 @@ class AvailabilityController extends GetxController {
 
       final response = await _apiService.putRequest(
         '${AppUrls.horses}/${horse.id}',
-        {'showAvailability': availabilityData},
+        {
+          'showAvailability': availabilityData,
+          'isActive': activeStatus.value,
+        },
       );
 
-      Get.back(); // Remove loading dialog
-
-      if (response.statusCode == 200) {
-        Get.snackbar(
-          'Success',
-          'Availability updated successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-        );
+      if (response.isOk) {
         return true;
       } else {
         Get.snackbar(
@@ -97,7 +110,6 @@ class AvailabilityController extends GetxController {
         return false;
       }
     } catch (e) {
-      Get.back();
       Get.snackbar(
         'Error',
         'An error occurred: $e',
@@ -108,6 +120,23 @@ class AvailabilityController extends GetxController {
       return false;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  String _formatDateForBackend(String dateStr) {
+    if (dateStr.isEmpty) return '';
+    try {
+      // 1. Check if already ISO
+      DateTime.parse(dateStr);
+      return dateStr;
+    } catch (_) {
+      try {
+        // 2. Parse human readable format
+        final date = DateFormat('dd MMM yyyy').parse(dateStr);
+        return date.toIso8601String();
+      } catch (_) {
+        return dateStr;
+      }
     }
   }
 
@@ -124,6 +153,7 @@ class AvailabilityEntry {
   final int id;
   final cityStateController = TextEditingController();
   final showVenueController = TextEditingController();
+  final showIdController = TextEditingController();
   final startDateController = TextEditingController();
   final endDateController = TextEditingController();
   var isActive = true.obs;
@@ -133,6 +163,7 @@ class AvailabilityEntry {
   void dispose() {
     cityStateController.dispose();
     showVenueController.dispose();
+    showIdController.dispose();
     startDateController.dispose();
     endDateController.dispose();
   }

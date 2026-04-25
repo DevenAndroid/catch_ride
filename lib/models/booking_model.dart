@@ -210,7 +210,11 @@ class BookingModel {
       trainerUserId: json['trainerId'] is Map ? json['trainerId']['userId']?.toString() : null,
       trainerName: (json['trainerName'] != null && json['trainerName'].toString().isNotEmpty)
           ? json['trainerName']
-          : (json['trainerId'] is Map ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() : null),
+          : (json['trainerId'] is Map 
+              ? "${json['trainerId']['firstName'] ?? ''} ${json['trainerId']['lastName'] ?? ''}".trim() 
+              : (json['clientId'] is Map 
+                  ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}".trim() 
+                  : json['clientName'])),
       vendorId: json['vendorId'] is Map 
           ? (json['vendorId']['vendorProfileId'] ?? json['vendorId']['_id'] ?? json['vendorId']['id']) 
           : (json['vendorProfileId'] ?? json['vendorId']),

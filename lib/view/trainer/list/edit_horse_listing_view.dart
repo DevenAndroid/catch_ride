@@ -19,7 +19,13 @@ import '../../../controllers/google_api_controller.dart';
 
 class EditHorseListingView extends StatefulWidget {
   final HorseModel horse;
-  const EditHorseListingView({super.key, required this.horse});
+  final bool onlyAvailability;
+
+  const EditHorseListingView({
+    super.key,
+    required this.horse,
+    this.onlyAvailability = false,
+  });
 
   @override
   State<EditHorseListingView> createState() => _EditHorseListingViewState();
@@ -44,6 +50,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
 
     // Pre-fill data
     controller.setInitialData(widget.horse);
+
+    if (widget.onlyAvailability) {
+      _currentStep = 5;
+    }
   }
 
   Future<void> _selectDateTime(
@@ -117,8 +127,8 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
             }
           },
         ),
-        title: const CommonText(
-          'Edit listing',
+        title: CommonText(
+          widget.onlyAvailability ? 'Update Availability' : 'Edit listing',
           fontSize: AppTextSizes.size18,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
@@ -235,6 +245,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
   }
 
   Widget _buildStepIndicator() {
+    if (widget.onlyAvailability) return const SizedBox.shrink();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(5, (index) {
@@ -2073,7 +2084,6 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   } else if (_currentStep == 3) {
                     if (!controller.validateStep3()) return;
                   } else if (_currentStep == 4) {
-                    // Images - in edit mode, they can be pre-filled so check both
                     if (controller.localImages.isEmpty &&
                         controller.uploadedImages.isEmpty) {
                       Get.snackbar(
@@ -2085,6 +2095,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                       );
                       return;
                     }
+                    if (!controller.validateStep4()) return;
                   }
                   setState(() {
                     _currentStep++;

@@ -23,6 +23,7 @@ import '../../trainer/settings/account_settings_view.dart';
 import '../../trainer/settings/feedback_view.dart';
 import '../../trainer/settings/get_help_view.dart';
 import '../../trainer/settings/notification_settings_view.dart';
+import '../../trainer/settings/notifications_view.dart';
 import '../../trainer/settings/privacy_policy_view.dart';
 import '../../trainer/settings/profile_information_view.dart';
 import '../../trainer/settings/terms_and_conditions_view.dart';
@@ -64,7 +65,7 @@ class BarnManagerSettingsView extends StatelessWidget {
                   color: Color(0xFF344054),
                   size: 24,
                 ),
-                onPressed: () {},
+                onPressed: ()=> Get.to(()=> NotificationsView()),
               ),
             ),
           ),
@@ -83,7 +84,7 @@ class BarnManagerSettingsView extends StatelessWidget {
             _buildManageHorsesBanner(),
             const SizedBox(height: 24),
 
-            const SizedBox(height: 32),
+          //  const SizedBox(height: 32),
 
             _buildSectionHeader('Account Settings'),
             _buildSettingsGroup([
@@ -233,61 +234,64 @@ class BarnManagerSettingsView extends StatelessWidget {
   }
 
   Widget _buildManageHorsesBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAECF0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: Color(0xFF00083B),
-              shape: BoxShape.circle,
+    return InkWell(
+      onTap: ()=>Get.to(()=> const BarnManagerHorseListingView(),),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEAECF0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: SvgPicture.asset(
-              "assets/images/logo.svg",
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFF00083B),
+                shape: BoxShape.circle,
+              ),
+              child: SvgPicture.asset(
+                "assets/images/logo.svg",
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                CommonText(
-                  'Manage Your horses',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF101828),
-                ),
-                SizedBox(height: 2),
-                CommonText(
-                  'Edit availability for yours trainer\'s current string.',
-                  fontSize: 13,
-                  color: Color(0xFF667085),
-                  fontWeight: FontWeight.w400,
-                ),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  CommonText(
+                    'Manage Your horses',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF101828),
+                  ),
+                  SizedBox(height: 2),
+                  CommonText(
+                    'Edit availability for yours trainer\'s current string.',
+                    fontSize: 13,
+                    color: Color(0xFF667085),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

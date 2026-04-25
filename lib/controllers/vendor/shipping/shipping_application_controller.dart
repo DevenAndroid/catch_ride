@@ -40,6 +40,7 @@ class ShippingApplicationController extends GetxController {
   final RxList<String> selectedTravelScope = <String>[].obs;
   final RxList<String> selectedRegions = <String>[].obs;
   final RxList<String> selectedRigTypes = <String>[].obs;
+  final RxList<String> selectedStallTypes = <String>[].obs;
   final RxInt rigCapacity = 2.obs;
   
   // Experience Highlights
@@ -68,6 +69,7 @@ class ShippingApplicationController extends GetxController {
   final RxList<String> operationTypeOptions = <String>[].obs;
   final RxList<String> travelScopeOptions = <String>[].obs;
   final RxList<String> rigTypeOptions = <String>[].obs;
+  final RxList<String> stallTypeOptions = <String>[].obs;
   final RxList<String> regionOptions = <String>[].obs;
 
   // ── References ─────────────────────────────────────────────────────────────
@@ -107,6 +109,8 @@ class ShippingApplicationController extends GetxController {
             travelScopeOptions.assignAll(values);
           } else if (name == 'Rig Types') {
             rigTypeOptions.assignAll(values);
+          } else if (name == 'Stall Type' || name == 'Stall Types') {
+            stallTypeOptions.assignAll(values);
           } else if (name == 'Regions Covered') {
             regionOptions.assignAll(values);
           }
@@ -250,6 +254,7 @@ class ShippingApplicationController extends GetxController {
         'travelScope': selectedTravelScope.toList(),
         'regions': selectedRegions.toList(),
         'rigTypes': selectedRigTypes.toList(),
+        'stallTypes': selectedStallTypes.toList(),
         'rigCapacity': rigCapacity.value,
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'references': referenceControllers.map((r) => {

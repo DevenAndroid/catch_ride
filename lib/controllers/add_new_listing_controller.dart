@@ -952,6 +952,25 @@ class AddNewListingController extends GetxController {
     return true;
   }
 
+  bool validateStep4() {
+    final url = videoLinkController.text.trim();
+    if (url.isNotEmpty) {
+      if (!isValidVideoUrl(url)) {
+        _showError('Please enter a valid youtube link');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool isValidVideoUrl(String url) {
+    final youtubeRegex = RegExp(
+        r"^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$");
+    final vimeoRegex = RegExp(
+        r"^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+$");
+    return youtubeRegex.hasMatch(url) || vimeoRegex.hasMatch(url);
+  }
+
   bool validateStep5() {
     // Horse show availability is now optional
     return true;

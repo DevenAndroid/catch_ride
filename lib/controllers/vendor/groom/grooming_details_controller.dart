@@ -35,9 +35,10 @@ class GroomingDetailsController extends GetxController {
   }
 
   void addGroomingService(String name) {
-    if (name.isNotEmpty && !groomingServicesList.contains(name)) {
-      groomingServicesList.add(name);
-      selectedGroomingServices.add(name);
+    final trimmedName = name.trim();
+    if (trimmedName.isNotEmpty && !groomingServicesList.contains(trimmedName)) {
+      groomingServicesList.add(trimmedName);
+      selectedGroomingServices.add(trimmedName);
       addServiceInputController.clear();
     }
   }
@@ -106,9 +107,10 @@ class GroomingDetailsController extends GetxController {
   ].obs;
 
   void addAdditionalService(String name, String price) {
-    if (name.isNotEmpty && !additionalServices.any((s) => s['name'] == name)) {
+    final trimmedName = name.trim();
+    if (trimmedName.isNotEmpty && !additionalServices.any((s) => s['name'] == trimmedName)) {
       additionalServices.add({
-        'name': name,
+        'name': trimmedName,
         'price': TextEditingController(text: price),
         'isSelected': true.obs,
       });

@@ -90,7 +90,7 @@ class SetupGroomApplicationView extends StatelessWidget {
                     _buildSectionHeader('State/Province', isRequired: true),
                     Obx(() => _buildBottomTrigger(
                       value: controller.selectedState.value?['name'],
-                      hint: 'Select state',
+                      hint: 'Select State/Province',
                       isLoading: controller.isLoadingStates.value,
                       onTap: () => _showLocationBottomSheet(
                         context: context,

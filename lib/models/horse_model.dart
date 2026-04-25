@@ -31,6 +31,8 @@ class HorseModel {
   final String? trainerName;
   final String? trainerAvatar;
   final String? ownerId;
+  final String? ownerName;
+  final String? ownerAvatar;
   final String? location;
   final String? bookedById;
   final String? bookedByName;
@@ -75,6 +77,8 @@ class HorseModel {
     this.trainerName,
     this.trainerAvatar,
     this.ownerId,
+    this.ownerName,
+    this.ownerAvatar,
     this.location,
     this.bookedById,
     this.bookedByName,
@@ -97,7 +101,7 @@ class HorseModel {
     if (trainerObj != null) {
       tId = trainerObj['_id'] ?? trainerObj['id'];
       tName =
-          "${trainerObj['firstName'] ?? trainerObj['first_name'] ?? ''} ${trainerObj['lastName'] ?? trainerObj['last_name'] ?? ''}"
+          "${trainerObj['firstName'] ?? trainerObj['first_name'] ?? trainerObj['name'] ?? ''} ${trainerObj['lastName'] ?? trainerObj['last_name'] ?? ''}"
               .trim();
       tAvatar =
           trainerObj['profilePhoto'] ??
@@ -106,32 +110,61 @@ class HorseModel {
           trainerObj['photo'] ??
           trainerObj['profilePic'] ??
           trainerObj['profile_pic'] ??
-          trainerObj['profilePicture'] ??
-          trainerObj['profile_picture'] ??
           trainerObj['image'] ??
           trainerObj['avatarUrl'] ??
-          trainerObj['profileImageUrl'] ??
-          trainerObj['user_avatar'] ??
-          trainerObj['user_photo'] ??
-          trainerObj['userAvatar'] ??
-          trainerObj['userPhoto'];
+          trainerObj['profileImageUrl'];
     } else {
       tId = json['trainerId'];
-      tName = json['trainerName'] ?? json['trainer_name'];
+      tName = json['trainerName'] ?? json['trainer_name'] ?? json['trainer_fullName'];
       tAvatar =
           json['trainerAvatar'] ??
+          json['trainer_avatar'] ??
+          json['trainerPhoto'] ??
+          json['trainer_photo'] ??
           json['trainerProfilePhoto'] ??
           json['trainer_profile_photo'] ??
-          json['trainerPhoto'] ??
           json['trainerProfilePic'] ??
           json['trainer_profile_pic'] ??
           json['trainerImage'] ??
+          json['trainer_image'] ??
           json['trainerAvatarUrl'] ??
           json['trainerProfileImageUrl'] ??
-          json['trainer_avatar'] ??
-          json['trainer_photo'] ??
-          json['trainer_profile_picture'] ??
-          json['trainerProfilePicture'];
+          json['profilePhoto'] ??
+          json['profile_photo'] ??
+          json['avatar'] ??
+          json['photo'];
+    }
+
+    // Handle nested owner object if it exists
+    String? oId;
+    String? oName;
+    String? oAvatar;
+    final ownerObj = (json['ownerId'] is Map)
+        ? json['ownerId']
+        : (json['owner'] is Map ? json['owner'] : null);
+    if (ownerObj != null) {
+      oId = ownerObj['_id'] ?? ownerObj['id'];
+      oName =
+          "${ownerObj['firstName'] ?? ownerObj['first_name'] ?? ownerObj['name'] ?? ''} ${ownerObj['lastName'] ?? ownerObj['last_name'] ?? ''}"
+              .trim();
+      oAvatar =
+          ownerObj['profilePhoto'] ??
+          ownerObj['profile_photo'] ??
+          ownerObj['avatar'] ??
+          ownerObj['photo'] ??
+          ownerObj['profilePic'] ??
+          ownerObj['profile_pic'] ??
+          ownerObj['image'];
+    } else {
+      oId = json['ownerId'];
+      oName = json['ownerName'] ?? json['owner_name'] ?? json['owner_fullName'];
+      oAvatar = 
+          json['ownerAvatar'] ?? 
+          json['owner_avatar'] ?? 
+          json['ownerPhoto'] ?? 
+          json['owner_photo'] ??
+          json['ownerProfilePhoto'] ??
+          json['owner_profile_photo'];
     }
 
     // Handle nested bookedBy object if it exists
@@ -238,7 +271,9 @@ class HorseModel {
       trainerId: tId,
       trainerName: tName,
       trainerAvatar: tAvatar,
-      ownerId: json['ownerId'],
+      ownerId: oId,
+      ownerName: oName,
+      ownerAvatar: oAvatar,
       location: json['location'],
       bookedByAvatar: bAvatar,
       bookedByName: bName?.isEmpty == true ? null : bName,
