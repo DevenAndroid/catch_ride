@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
-
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -39,8 +37,7 @@ class _TrainerCompleteProfileViewState
   final TextEditingController _location1Controller = TextEditingController();
   final TextEditingController _location2Controller = TextEditingController();
   final TextEditingController _yearsController = TextEditingController();
-  final TextEditingController _searchCircuitsController =
-      TextEditingController();
+  final TextEditingController _searchCircuitsController = TextEditingController();
   
   final FocusNode _fullNameFocus = FocusNode();
   final FocusNode _phoneFocus = FocusNode();
@@ -88,9 +85,7 @@ class _TrainerCompleteProfileViewState
     _bioController.text = profileController.bio;
     _location1Controller.text = profileController.location;
     final expItems = ['0-1', '2-4', '5-9', '10+'];
-    _yearsController.text = expItems.contains(profileController.yearsExperience)
-        ? profileController.yearsExperience
-        : '';
+    _yearsController.text = expItems.contains(profileController.yearsExperience) ? profileController.yearsExperience : '';
 
     _selectedProgramTags.assignAll(profileController.selectedProgramTags);
     _selectedHorseShows.assignAll(profileController.selectedHorseShows.map((e) => _normalizeHorseShow(e)));
@@ -236,9 +231,9 @@ class _TrainerCompleteProfileViewState
         children: [
           CommonText(
             title,
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: AppColors.primary,
           ),
           const SizedBox(height: 20),
           ...children,
@@ -253,8 +248,9 @@ class _TrainerCompleteProfileViewState
       children: [
         const CommonText(
           'Profile Photo',
-          fontSize: 13,
-          color: AppColors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
         ),
         const SizedBox(height: 12),
         Center(
@@ -315,8 +311,9 @@ class _TrainerCompleteProfileViewState
         const SizedBox(height: 24),
         const CommonText(
           'Banner Image  (optional)',
-          fontSize: 13,
-          color: AppColors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
         ),
         const SizedBox(height: 12),
         GestureDetector(
@@ -369,7 +366,7 @@ class _TrainerCompleteProfileViewState
           isRequired: true,
           validator: RequiredValidator(
             errorText: 'Please enter your full name',
-          ),
+          ).call,
         ),
         const SizedBox(height: 20),
         _buildPhoneField(),
@@ -437,9 +434,9 @@ class _TrainerCompleteProfileViewState
       children: [
         const CommonText(
           AppStrings.yearsInIndustry,
-
-          fontSize: 13,
-          color: AppColors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
@@ -1065,9 +1062,9 @@ class _TrainerCompleteProfileViewState
           'Phone Number',
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          color: AppColors.textSecondary,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Container(
           decoration: BoxDecoration(
             color: Colors.white,

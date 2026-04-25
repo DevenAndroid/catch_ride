@@ -320,7 +320,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildNameCard() {
     return _buildCard(
-      title: "Basic Information",
+
       child: Column(
         children: [
           CommonTextField(
@@ -337,7 +337,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   }
 
 
-  Widget _buildCard({required String title, required Widget child}) {
+  Widget _buildCard({ String? title,String? subTitle, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -349,13 +349,25 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(
-            title,
-            fontSize: AppTextSizes.size16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-          const SizedBox(height: 20),
+          if(title != null)
+         ...[
+           CommonText(
+             title,
+             fontSize: AppTextSizes.size16,
+             fontWeight: FontWeight.bold,
+             color: AppColors.textPrimary,
+           ),
+           if(subTitle != null)
+           Padding(
+             padding: const EdgeInsets.only(top:4),
+             child: CommonText(
+               subTitle,
+               fontSize: AppTextSizes.size12,
+               color: AppColors.textPrimary,
+             ),
+           ),
+           const SizedBox(height: 16),
+         ],
           child,
         ],
       ),
@@ -430,8 +442,14 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   Widget _buildSocialMediaCard() {
     return _buildCard(
       title: AppStrings.socialMediaWebsite,
+      subTitle:"Include at least one profile for verification",
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
+
+
+
           CommonTextField(
             controller: _facebookController,
             label: "Facebook",

@@ -200,6 +200,7 @@ class AddNewListingController extends GetxController {
     // Remote images and videos (separate them)
     uploadedImages.clear();
     uploadedVideos.clear();
+    localImages.clear();
 
     bool isVideo(String url) {
       final String lower = url.toLowerCase();
@@ -215,14 +216,14 @@ class AddNewListingController extends GetxController {
     final Set<String> processedUrls = {};
 
     // 1. Handle primary photo
-    if (horse.photo != null && horse.photo!.isNotEmpty) {
-      if (isVideo(horse.photo!)) {
-        uploadedVideos.add(horse.photo!);
-      } else {
-        uploadedImages.add(horse.photo!);
-      }
-      processedUrls.add(horse.photo!);
-    }
+    // if (horse.photo != null && horse.photo!.isNotEmpty) {
+    //   if (isVideo(horse.photo!)) {
+    //     uploadedVideos.add(horse.photo!);
+    //   } else {
+    //     uploadedImages.add(horse.photo!);
+    //   }
+    //   processedUrls.add(horse.photo!);
+    // }
 
     // 2. Handle videoLink if it's a direct video URL
     if (horse.videoLink != null && horse.videoLink!.isNotEmpty && horse.videoLink != 'N/A') {
@@ -587,13 +588,15 @@ class AddNewListingController extends GetxController {
       }
     } catch (e) {
       Get.back(); // Remove loading dialog
-      Get.snackbar(
-        'Error',
-        'An unexpected error occurred: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      if (!isUploadCancelled.value) {
+        Get.snackbar(
+          'Error',
+          'An unexpected error occurred: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
     } finally {
       isPublishing.value = false;
     }
@@ -717,14 +720,14 @@ class AddNewListingController extends GetxController {
       } else {
         debugPrint('❌ Upload failed [${response.statusCode}]: ${response.body}');
         return null;
+    }} catch (e) {
+      if (e is dio_lib.DioException &&
+          e.type == dio_lib.DioExceptionType.cancel) {
+        debugPrint('⏹️ Upload cancelled by user');
+        return null;
       }
-      // if (e is dio_lib.DioException && e.type == dio_lib.DioExceptionType.cancel) {
-      //   debugPrint('⏹️ Upload cancelled by user');
-      //   return null;
-      // }
-      // isUploadingVideo.value = false;
-      // debugPrint('❌ Error uploading file: $e');
-      // return null;
+      debugPrint('❌ Error uploading file: $e');
+      return null;
     } finally {
       client.close();
     }
@@ -738,13 +741,13 @@ class AddNewListingController extends GetxController {
     }
     isPublishing.value = false;
     isUploadingVideo.value = false;
-    Get.snackbar(
-      'Cancelled',
-      'Media upload was terminated.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.orange,
-      colorText: Colors.white,
-    );
+    // Get.snackbar(
+    //   'Cancelled',
+    //   'Media upload was terminated.',
+    //   snackPosition: SnackPosition.BOTTOM,
+    //   backgroundColor: Colors.orange,
+    //   colorText: Colors.white,
+    // );
   }
 
   Future<void> pickImage() async {

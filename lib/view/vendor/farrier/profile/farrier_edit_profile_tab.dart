@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/groom/edit_vendor_profile_controller.dart';
@@ -7,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_button.dart';
+import '../../../../widgets/common_image_view.dart';
 
 class FarrierEditProfileTab extends StatefulWidget {
   final EditVendorProfileController controller;
@@ -386,11 +389,11 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
             runSpacing: 12,
             children: [
               ...widget.controller.serviceExistingPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
-                image: NetworkImage(entry.value),
+                url: entry.value,
                 onRemove: () => widget.controller.removeServiceExistingPhoto('Farrier', entry.key),
               )),
               ...widget.controller.serviceNewPhotos['Farrier']!.asMap().entries.map((entry) => _photoBox(
-                image: FileImage(entry.value),
+                file: entry.value,
                 onRemove: () => widget.controller.removeServiceNewPhoto('Farrier', entry.key),
               )),
               _addPhotoBox(),
@@ -783,16 +786,15 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
     );
   }
 
-  Widget _photoBox({required ImageProvider image, required VoidCallback onRemove}) {
+  Widget _photoBox({String? url, File? file, required VoidCallback onRemove}) {
     return Stack(
       children: [
-        Container(
+        CommonImageView(
+          url: url,
+          file: file,
           width: 80,
           height: 80,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            image: DecorationImage(image: image, fit: BoxFit.cover),
-          ),
+          radius: 12,
         ),
         Positioned(
           top: -4,

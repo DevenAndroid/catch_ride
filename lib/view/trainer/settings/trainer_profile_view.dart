@@ -11,6 +11,7 @@ import '../../../controllers/profile_controller.dart';
 import '../../../models/user_model.dart';
 import '../../../utils/url_helper.dart';
 import '../trainer_complete_profile_view.dart';
+import '../trainer_profile_setup_view.dart';
 import 'edit_profile.dart';
 
 class TrainerProfileView extends StatefulWidget {
@@ -74,6 +75,10 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
   /// BarnManagerProfileView never sees stale trainer data during the
   /// back-slide animation (dispose() fires too late — after the animation).
   void _clearAndBack() {
+
+   // Get.to( TrainerProfileSetupView());
+   // return;
+
     final bool isViewingOther =
         widget.trainerId != null &&
         !(_controller.user.value?.role == 'trainer' &&

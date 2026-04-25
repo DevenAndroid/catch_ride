@@ -314,11 +314,11 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                       _buildChipSection('Farrier Services', [
                         'Trimming', 'Front Shoes', 'Hind Shoes', 'Full Set', 'Corrective / Therapeutic Work',
                         'Glue-on Shoes', 'Drill & Tap', 'Specialty Shoes (bar shoes, pads, wedges, etc.)',
-                        'Barefoot / Natural Trim Specialist', 'Spaces for custom input services'
+                        'Barefoot / Natural Trim Specialist',
                       ], _localFarrierServices),
                       const SizedBox(height: 24),
                       _buildChipSection('Add - Ons', [
-                        'Aluminum', 'Spaces for custom input ad ons'
+                        'Aluminum'
                       ], _localAdditional),
                       const SizedBox(height: 24),
                       _buildChipSection('Client Intake & Scheduling', [
@@ -348,9 +348,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
 
                     if (_selectedTab != 'Shipping') ...[
                       const SizedBox(height: 24),
-                      _buildChipSection('Travel Preferences', [
-                        'Local Only', 'Regional'
-                      ], _localTravel),
+                      _buildChipSection('Travel Preferences',['Local Only', 'Regional'], _localTravel),
                     ],
 
                     if (_selectedTab == 'Groom' || _selectedTab == 'Braider' || _selectedTab == 'Farrier' || _selectedTab == 'Bodywork' || _selectedTab=="Clipping") ...[
