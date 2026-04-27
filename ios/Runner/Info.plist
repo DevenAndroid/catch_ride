@@ -2,20 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.804782276759-o5rar3l72b4sutke8n9qq9v84u21hvds</string>
-			</array>
-		</dict>
-	</array>
-	<key>GIDClientID</key>
-	<string>804782276759-o5rar3l72b4sutke8n9qq9v84u21hvds.apps.googleusercontent.com</string>
- 	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -35,8 +22,21 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.804782276759-o5rar3l72b4sutke8n9qq9v84u21hvds</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>GIDClientID</key>
+	<string>804782276759-o5rar3l72b4sutke8n9qq9v84u21hvds.apps.googleusercontent.com</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>https</string>
@@ -45,16 +45,37 @@
 		<string>mailto</string>
 		<string>sms</string>
 	</array>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>CatchRide needs access to your camera to let you take photos for your profile and listings.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>CatchRide needs access to your microphone to let you record videos for your listings.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>CatchRide needs access to your photo library to let you upload profile pictures and listing images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>CatchRide needs permission to save images to your photo library.</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CatchRide needs access to your photo library to let you upload profile pictures and listing images.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

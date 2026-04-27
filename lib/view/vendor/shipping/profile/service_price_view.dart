@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 class ServicePriceView extends StatelessWidget {
   const ServicePriceView({super.key});
@@ -157,7 +158,8 @@ class ServicePriceView extends StatelessWidget {
           Expanded(
             child: TextField(
               controller: controller,
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [PriceInputFormatter()],
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),

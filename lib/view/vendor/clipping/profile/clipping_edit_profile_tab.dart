@@ -7,6 +7,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 import 'package:catch_ride/widgets/common_dropdown.dart';
 import 'package:catch_ride/widgets/common_suggestion_field.dart';
@@ -248,7 +249,8 @@ class ClippingEditProfileTab extends StatelessWidget {
                                 controller: service['price'],
                                 decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero, hintText: '0'),
                                 style: const TextStyle(fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-                                keyboardType: TextInputType.number,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [PriceInputFormatter()],
                                 textAlign: TextAlign.center,
                               ),
                             ),

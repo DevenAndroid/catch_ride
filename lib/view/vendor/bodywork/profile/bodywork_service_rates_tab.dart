@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
   const BodyworkServiceRatesTab({super.key});
@@ -249,7 +250,8 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
                                       Expanded(
                                         child: TextField(
                                           controller: textController,
-                                          keyboardType: TextInputType.number,
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          inputFormatters: [PriceInputFormatter()],
                                           onChanged: (val) => editingRates[mins] = val,
                                           decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)),
                                         ),

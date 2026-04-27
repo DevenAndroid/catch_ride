@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 import '../../../../widgets/common_textfield.dart';
 import '../../braiding/profile/braiding_service_rates_tab.dart';
@@ -376,7 +377,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                         border: InputBorder.none, 
                         hintStyle: TextStyle(color: Color(0xFF98A2B3), fontSize: 14)
                       ),
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [PriceInputFormatter()],
                     ),
                   ),
                 ),
@@ -600,7 +602,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                             child: TextField(
                               controller: priceController,
                               decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(color: Colors.grey, fontSize: 14)),
-                              keyboardType: TextInputType.number,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [PriceInputFormatter()],
                             ),
                           ),
                         ),

@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 import '../../../../widgets/common_textfield.dart';
 
@@ -211,7 +212,8 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
                   width: 100,
                   child: TextField(
                     controller: priceCtrl,
-                    keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [PriceInputFormatter()],
                     textAlign: TextAlign.left,
                     style: const TextStyle(
                       fontSize: 14,
@@ -292,7 +294,8 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
                 padding: EdgeInsets.all(14),
                 child: CommonText('\$ ', fontSize: AppTextSizes.size14),
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [PriceInputFormatter()],
             ),
             const SizedBox(height: 32),
             Row(

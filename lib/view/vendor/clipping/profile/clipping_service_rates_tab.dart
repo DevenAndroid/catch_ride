@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 import '../../../../services/api_service.dart';
 
@@ -241,7 +242,8 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
                     Expanded(
                       child: TextField(
                         controller: priceCtrl,
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [PriceInputFormatter()],
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: '0',
@@ -303,7 +305,8 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TextField(
                         controller: priceController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [PriceInputFormatter()],
                         decoration: const InputDecoration(hintText: '0', border: InputBorder.none),
                       ),
                     ),

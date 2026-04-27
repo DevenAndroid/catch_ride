@@ -11,6 +11,7 @@ import 'package:catch_ride/widgets/common_dropdown.dart';
 import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 import 'package:intl/intl.dart';
 
 class BodyworkEditProfileTab extends StatelessWidget {
@@ -277,7 +278,7 @@ class BodyworkEditProfileTab extends StatelessWidget {
                             children: [
                               const CommonText('\$', fontSize: 14, color: AppColors.textSecondary),
                               const SizedBox(width: 8),
-                              Expanded(child: TextField(controller: textController, keyboardType: TextInputType.number, onChanged: (val) => rates[mins] = val, decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)))),
+                              Expanded(child: TextField(controller: textController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [PriceInputFormatter()], onChanged: (val) => rates[mins] = val, decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)))),
                             ],
                           ),
                         ),
@@ -408,7 +409,7 @@ class BodyworkEditProfileTab extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
-                                  child: Row(children: [const CommonText('\$', fontSize: 14, color: AppColors.textSecondary), const SizedBox(width: 8), Expanded(child: TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14))))]),
+                                  child: Row(children: [const CommonText('\$', fontSize: 14, color: AppColors.textSecondary), const SizedBox(width: 8), Expanded(child: TextField(controller: priceController, keyboardType: const TextInputType.numberWithOptions(decimal: true), inputFormatters: [PriceInputFormatter()], decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14))))]),
                                 ),
                                 if (type == 'Varies by location') ...[const SizedBox(height: 12), CommonTextField(label: '', hintText: 'Disclaimer', controller: disclaimerController, maxLines: 3)],
                               ],

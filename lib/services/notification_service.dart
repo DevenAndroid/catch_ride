@@ -81,6 +81,9 @@ class NotificationService extends GetxService {
     // 4. Get FCM Token and Update Backend
     await updateToken();
 
+    // 5. Clear Badge
+    await clearBadge();
+
     _logger.i('Notification Service Initialized Successfully');
     return this;
   }
@@ -187,6 +190,34 @@ class NotificationService extends GetxService {
           otherId: senderId,
         ));
       }
+    }
+  }
+
+  Future<void> clearBadge() async {
+    try {
+      if (Platform.isIOS) {
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+            ?.getNotificationAppLaunchDetails(); // Just ensuring plugin is ready
+        
+        // This is the standard way to clear the badge in flutter_local_notifications
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+            ?.show(
+              -1,
+              '',
+              '',
+              notificationDetails: const DarwinNotificationDetails(
+                badgeNumber: 0,
+                presentAlert: false,
+                presentSound: false,
+                presentBadge: true,
+              ),
+            );
+        _logger.i('iOS Notification badge cleared');
+      }
+    } catch (e) {
+      _logger.e('Error clearing notification badge: $e');
     }
   }
 }

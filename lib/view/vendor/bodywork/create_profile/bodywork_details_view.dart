@@ -8,6 +8,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/controllers/vendor/bodywork/bodywork_details_controller.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 class BodyworkDetailsView extends StatelessWidget {
   const BodyworkDetailsView({super.key});
@@ -433,7 +434,8 @@ class BodyworkDetailsView extends StatelessWidget {
                                   Expanded(
                                     child: TextField(
                                       controller: textController,
-                                      keyboardType: TextInputType.number,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      inputFormatters: [PriceInputFormatter()],
                                       onChanged: (val) => editingRates[mins] = val,
                                       decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)),
                                     ),
@@ -840,7 +842,8 @@ class BodyworkDetailsView extends StatelessWidget {
                                       Expanded(
                                         child: TextField(
                                           controller: priceController,
-                                          keyboardType: TextInputType.number,
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          inputFormatters: [PriceInputFormatter()],
                                           decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)),
                                         ),
                                       ),

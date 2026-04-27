@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 class FarrierServiceAndRates extends GetView<FarrierDetailsController> {
   const FarrierServiceAndRates({super.key});
@@ -179,7 +180,8 @@ class FarrierServiceAndRates extends GetView<FarrierDetailsController> {
                       Expanded(
                         child: TextField(
                           controller: priceCtrl,
-                          keyboardType: TextInputType.number,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [PriceInputFormatter()],
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: '0',
@@ -269,7 +271,8 @@ class FarrierServiceAndRates extends GetView<FarrierDetailsController> {
                 padding: EdgeInsets.all(14),
                 child: CommonText('\$ ', fontSize: AppTextSizes.size14),
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [PriceInputFormatter()],
             ),
             const SizedBox(height: 32),
             Row(
