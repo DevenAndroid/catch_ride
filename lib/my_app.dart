@@ -13,6 +13,17 @@ class MyApp extends StatelessWidget {
       title: "CatchRide",
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: MediaQuery.of(context).textScaler.clamp(
+                  minScaleFactor: 1.0,
+                  maxScaleFactor: 1.15,
+                ),
+          ),
+          child: child!,
+        );
+      },
       home: const SplashScreen(),
     );
   }

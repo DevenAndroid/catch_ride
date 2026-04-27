@@ -215,15 +215,17 @@ class AddNewListingController extends GetxController {
 
     final Set<String> processedUrls = {};
 
-    // 1. Handle primary photo
-    // if (horse.photo != null && horse.photo!.isNotEmpty) {
-    //   if (isVideo(horse.photo!)) {
-    //     uploadedVideos.add(horse.photo!);
-    //   } else {
-    //     uploadedImages.add(horse.photo!);
-    //   }
-    //   processedUrls.add(horse.photo!);
-    // }
+   // 1. Handle primary photo
+    if(horse.images.isEmpty){
+      if (horse.photo != null && horse.photo!.isNotEmpty) {
+        if (isVideo(horse.photo!)) {
+          uploadedVideos.add(horse.photo!);
+        } else {
+          uploadedImages.add(horse.photo!);
+        }
+        processedUrls.add(horse.photo!);
+      }
+    }
 
     // 2. Handle videoLink if it's a direct video URL
     if (horse.videoLink != null && horse.videoLink!.isNotEmpty && horse.videoLink != 'N/A') {

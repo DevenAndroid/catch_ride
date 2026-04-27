@@ -9,6 +9,8 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/common_button.dart';
 import '../../../../widgets/common_image_view.dart';
+import '../../../../widgets/common_dropdown.dart';
+import '../../../../widgets/common_suggestion_field.dart';
 
 class ShippingEditProfileTab extends StatelessWidget {
   final EditVendorProfileController controller;
@@ -75,7 +77,7 @@ class ShippingEditProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(title, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+          CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
           child,
         ],
@@ -89,38 +91,30 @@ class ShippingEditProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonTextField(
-            label: 'Country',
-            hintText: 'Select Country',
-            isRequired: true,
-            readOnly: true,
-            controller: controller.countryController,
-          ),
+          _buildFieldLabel('Country', isRequired: true),
+          Obx(() => CommonDropdown(
+            value: controller.countryController.text,
+            hint: 'Select Country',
+            options: controller.countries,
+            onSelected: (val) => controller.onCountrySelected(val),
+          )),
           const SizedBox(height: 16),
           _buildFieldLabel('State/Province', isRequired: true),
-          Obx(() => _buildDropdownTrigger(
-            value: controller.selectedStateNode.value?['name'],
+          Obx(() => CommonSuggestionField(
+            controller: controller.stateController,
             isLoading: controller.isLoadingStates.value,
             hint: 'Select state/province',
-            onTap: () => _showLocationBottomSheet(
-              title: 'Select State',
-              options: controller.states,
-              onSelected: (node) => controller.onStateSelected(node),
-            ),
+            suggestions: controller.states,
+            onSelected: (node) => controller.onStateSelected(node),
           )),
           const SizedBox(height: 16),
           _buildFieldLabel('City', isRequired: true),
-          Obx(() => _buildDropdownTrigger(
-            value: controller.selectedCityNode.value?['name'],
+          Obx(() => CommonSuggestionField(
+            controller: controller.cityController,
             isLoading: controller.isLoadingCities.value,
-            hint: controller.selectedStateNode.value == null ? 'Select state first' : 'Select city',
-            onTap: controller.selectedStateNode.value == null 
-                ? null 
-                : () => _showLocationBottomSheet(
-              title: 'Select City',
-              options: controller.cities,
-              onSelected: (node) => controller.onCitySelected(node),
-            ),
+            hint: controller.stateController.text.isEmpty ? 'Select state first' : 'Select city',
+            suggestions: controller.cities,
+            onSelected: (node) => controller.onCitySelected(node),
           )),
         ],
       ),
@@ -634,9 +628,10 @@ class ShippingEditProfileTab extends StatelessWidget {
           children: [
             Expanded(
               child: CommonText(
-                value ?? hint,
+                value != null && value.isNotEmpty ? value : hint,
                 fontSize: AppTextSizes.size14,
-                color: value != null ? AppColors.textPrimary : AppColors.textSecondary,
+                color: value != null && value.isNotEmpty ? AppColors.textPrimary : AppColors.textSecondary,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (isLoading)

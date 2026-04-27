@@ -6,9 +6,12 @@ import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/widgets/common_dropdown.dart';
+import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
 class FarrierApplicationView extends StatelessWidget {
   const FarrierApplicationView({super.key});
@@ -79,46 +82,40 @@ class FarrierApplicationView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  _buildGroupedSection(
+                   _buildGroupedSection(
                     'Home Base Location',
                     children: [
                       _buildSectionHeader('Country', isRequired: true),
-                      _buildBottomTrigger(
+                      Obx(() => CommonDropdown(
                         value: controller.countryController.text,
                         hint: 'Select Country',
-                        onTap: null,
-                      ),
+                        options: controller.countries,
+                        onSelected: (val) => controller.onCountrySelected(val),
+                        validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
+                      )),
                       const SizedBox(height: 16),
 
                       _buildSectionHeader('State / Province', isRequired: true),
-                      Obx(() => _buildBottomTrigger(
-                        value: controller.selectedState.value?['name'],
+                      Obx(() => CommonSuggestionField(
+                        controller: controller.stateController,
                         hint: 'Select State / Province',
+                        suggestions: controller.states,
                         isLoading: controller.isLoadingStates.value,
-                        onTap: () => _showLocationBottomSheet(
-                          context: context,
-                          title: 'Select State',
-                          options: controller.states,
-                          onSelected: (val) => controller.onStateSelected(val),
-                        ),
+                        onSelected: (val) => controller.onStateSelected(val),
+                        validator: (value) => controller.selectedState.value == null ? 'Please select state' : null,
                       )),
                       const SizedBox(height: 16),
 
                       _buildSectionHeader('City', isRequired: true),
-                      Obx(() => _buildBottomTrigger(
-                        value: controller.selectedCity.value?['name'],
+                      Obx(() => CommonSuggestionField(
+                        controller: controller.cityController,
                         hint: controller.selectedState.value == null
                             ? 'Select State first'
                             : 'Select City',
+                        suggestions: controller.cities,
                         isLoading: controller.isLoadingCities.value,
-                        onTap: controller.selectedState.value == null
-                            ? null
-                            : () => _showLocationBottomSheet(
-                          context: context,
-                          title: 'Select City',
-                          options: controller.cities,
-                          onSelected: (val) => controller.onCitySelected(val),
-                        ),
+                        onSelected: (val) => controller.onCitySelected(val),
+                        validator: (value) => controller.selectedCity.value == null ? 'Please select city' : null,
                       )),
                     ],
                   ),
@@ -476,14 +473,14 @@ class FarrierApplicationView extends StatelessWidget {
         children: [
           CommonText(
             title,
-            fontSize: AppTextSizes.size16,
-            fontWeight: FontWeight.w600,
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           if (isRequired)
             const CommonText(
               ' *',
-              fontSize: AppTextSizes.size16,
+              fontSize: AppTextSizes.size18,
               color: AppColors.accentRed,
             ),
         ],

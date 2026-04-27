@@ -27,12 +27,19 @@ class ShippingApplicationController extends GetxController {
   
   // Locations
   final countryController = TextEditingController(text: 'USA');
+  final stateController = TextEditingController();
+  final cityController = TextEditingController();
   final Rxn<Map<String, dynamic>> selectedState = Rxn<Map<String, dynamic>>();
   final Rxn<Map<String, dynamic>> selectedCity = Rxn<Map<String, dynamic>>();
   final RxList<Map<String, dynamic>> states = <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> cities = <Map<String, dynamic>>[].obs;
   final RxBool isLoadingStates = false.obs;
   final RxBool isLoadingCities = false.obs;
+  final selectedCountryCode = 'US'.obs;
+  final countries = [
+    {'name': 'USA', 'code': 'US'},
+    {'name': 'Canada', 'code': 'CA'},
+  ];
 
   // ── Selections ──────────────────────────────────────────────────────────────
   final RxnString experience = RxnString();
@@ -128,7 +135,8 @@ class ShippingApplicationController extends GetxController {
   void _fetchStates() async {
     isLoadingStates.value = true;
     try {
-      final res = await apiService.getRequest('/locations/states?country=US');
+      final countryCode = selectedCountryCode.value;
+      final res = await apiService.getRequest('/locations/states?countryCode=$countryCode');
       if (res.statusCode == 200 && res.body['success'] == true) {
         states.assignAll(List<Map<String, dynamic>>.from(res.body['data']));
       }
@@ -137,17 +145,11 @@ class ShippingApplicationController extends GetxController {
     }
   }
 
-  void onStateSelected(Map<String, dynamic> state) {
-    selectedState.value = state;
-    selectedCity.value = null;
-    cities.clear();
-    _fetchCities(state['isoCode']);
-  }
-
   void _fetchCities(String stateCode) async {
     isLoadingCities.value = true;
     try {
-      final res = await apiService.getRequest('/locations/states/$stateCode/cities');
+      final countryCode = selectedCountryCode.value;
+      final res = await apiService.getRequest('/locations/states/$stateCode/cities?countryCode=$countryCode');
       if (res.statusCode == 200 && res.body['success'] == true) {
         cities.assignAll(List<Map<String, dynamic>>.from(res.body['data']));
       }
@@ -156,8 +158,35 @@ class ShippingApplicationController extends GetxController {
     }
   }
 
+  void onStateSelected(Map<String, dynamic> state) {
+    selectedState.value = state;
+    stateController.text = state['name'] ?? '';
+    selectedCity.value = null;
+    cityController.clear();
+    cities.clear();
+    _fetchCities(state['isoCode']);
+  }
+
+  void onCountrySelected(Map<String, dynamic> country) {
+    if (selectedCountryCode.value != country['code']) {
+      selectedCountryCode.value = country['code'] ?? 'US';
+      countryController.text = country['name'] ?? 'USA';
+      
+      // Reset state and city when country changes
+      selectedState.value = null;
+      selectedCity.value = null;
+      stateController.clear();
+      cityController.clear();
+      states.clear();
+      cities.clear();
+      
+      _fetchStates();
+    }
+  }
+
   void onCitySelected(Map<String, dynamic> city) {
     selectedCity.value = city;
+    cityController.text = city['name'] ?? '';
   }
 
   Future<void> pickFile(Rxn<File> target) async {
@@ -329,6 +358,8 @@ class ShippingApplicationController extends GetxController {
     legalNameController.dispose();
     dotNumberController.dispose();
     countryController.dispose();
+    stateController.dispose();
+    cityController.dispose();
     facebookController.dispose();
     instagramController.dispose();
     for (var ctrl in highlightsControllers) {

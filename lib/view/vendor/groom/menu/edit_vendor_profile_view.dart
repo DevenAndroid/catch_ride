@@ -12,6 +12,8 @@ import 'package:catch_ride/view/vendor/clipping/profile/clipping_edit_profile_ta
 import 'package:catch_ride/view/vendor/farrier/profile/farrier_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/shipping/profile/shipping_edit_profile_tab.dart';
+import 'package:catch_ride/widgets/common_dropdown.dart';
+import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import '../../../../widgets/common_textfield.dart';
 
@@ -583,38 +585,30 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonTextField(
-            label: 'Country',
-            hintText: 'Select Country',
-            isRequired: true,
-            readOnly: true,
-            controller: controller.countryController,
-          ),
+          _buildFieldLabel('Country', isRequired: true),
+          Obx(() => CommonDropdown(
+            value: controller.countryController.text,
+            hint: 'Select Country',
+            options: controller.countries,
+            onSelected: (node) => controller.onCountrySelected(node),
+          )),
           const SizedBox(height: 16),
           _buildFieldLabel('State/Province', isRequired: true),
-          Obx(() => _buildDropdownTrigger(
-            value: controller.selectedStateNode.value?['name'],
+          Obx(() => CommonSuggestionField(
+            controller: controller.stateController,
             isLoading: controller.isLoadingStates.value,
             hint: 'Select state/province',
-            onTap: () => _showLocationBottomSheet(
-              title: 'Select State',
-              options: controller.states,
-              onSelected: (node) => controller.onStateSelected(node),
-            ),
+            suggestions: controller.states,
+            onSelected: (node) => controller.onStateSelected(node),
           )),
           const SizedBox(height: 16),
           _buildFieldLabel('City', isRequired: true),
-          Obx(() => _buildDropdownTrigger(
-            value: controller.selectedCityNode.value?['name'],
+          Obx(() => CommonSuggestionField(
+            controller: controller.cityController,
             isLoading: controller.isLoadingCities.value,
-            hint: controller.selectedStateNode.value == null ? 'Select state first' : 'Select city',
-            onTap: controller.selectedStateNode.value == null 
-                ? null 
-                : () => _showLocationBottomSheet(
-              title: 'Select City',
-              options: controller.cities,
-              onSelected: (node) => controller.onCitySelected(node),
-            ),
+            hint: controller.stateController.text.isEmpty ? 'Select state first' : 'Select city',
+            suggestions: controller.cities,
+            onSelected: (node) => controller.onCitySelected(node),
           )),
         ],
       ),
@@ -1003,9 +997,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           children: [
             Expanded(
               child: CommonText(
-                value ?? hint,
-                color: value == null ? Colors.grey : AppColors.textPrimary,
+                value != null && value.isNotEmpty ? value : hint,
+                color: (value == null || value.isEmpty) ? Colors.grey : AppColors.textPrimary,
                 fontSize: AppTextSizes.size14,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             if (isLoading)
@@ -1215,7 +1210,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         children: [
           CommonText(
             title,
-            fontSize: AppTextSizes.size16,
+            fontSize: AppTextSizes.size18,
             fontWeight: FontWeight.bold,
           ),
           if(subText != null)

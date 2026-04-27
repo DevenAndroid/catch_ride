@@ -42,6 +42,11 @@ class EditVendorProfileController extends GetxController {
   final countryController = TextEditingController(text: 'USA');
 
   // Location Details
+  final selectedCountryCode = 'US'.obs;
+  final countries = [
+    {'name': 'USA', 'code': 'US'},
+    {'name': 'Canada', 'code': 'CA'},
+  ];
   final states = <Map<String, dynamic>>[].obs;
   final cities = <Map<String, dynamic>>[].obs;
   final isLoadingStates = false.obs;
@@ -211,7 +216,8 @@ class EditVendorProfileController extends GetxController {
   Future<void> fetchStates() async {
     isLoadingStates.value = true;
     try {
-      final response = await _apiService.getRequest('/locations/states');
+      final countryCode = selectedCountryCode.value;
+      final response = await _apiService.getRequest('/locations/states?countryCode=$countryCode');
       if (response.statusCode == 200 && response.body['success'] == true) {
         states.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
         _syncLocationNodes();
@@ -227,7 +233,8 @@ class EditVendorProfileController extends GetxController {
     isLoadingCities.value = true;
     cities.clear();
     try {
-      final response = await _apiService.getRequest('/locations/states/$stateCode/cities');
+      final countryCode = selectedCountryCode.value;
+      final response = await _apiService.getRequest('/locations/states/$stateCode/cities?countryCode=$countryCode');
       if (response.statusCode == 200 && response.body['success'] == true) {
         cities.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
         
@@ -242,6 +249,23 @@ class EditVendorProfileController extends GetxController {
       debugPrint('Error fetching cities: $e');
     } finally {
       isLoadingCities.value = false;
+    }
+  }
+
+  void onCountrySelected(Map<String, dynamic> country) {
+    if (selectedCountryCode.value != country['code']) {
+      selectedCountryCode.value = country['code'] ?? 'US';
+      countryController.text = country['name'] ?? 'USA';
+      
+      // Reset state and city when country changes
+      stateController.text = '';
+      selectedStateNode.value = null;
+      cityController.text = '';
+      selectedCityNode.value = null;
+      states.clear();
+      cities.clear();
+      
+      fetchStates();
     }
   }
 
@@ -461,6 +485,14 @@ class EditVendorProfileController extends GetxController {
       cityController.text = city ?? '';
       stateController.text = state ?? '';
       countryController.text = country ?? 'USA';
+      
+      if (countryController.text == 'Canada' || countryController.text == 'CA') {
+        selectedCountryCode.value = 'CA';
+        countryController.text = 'Canada';
+      } else {
+        selectedCountryCode.value = 'US';
+        countryController.text = 'USA';
+      }
 
       // Experience Fallback
       dynamic exp = appData['experience'] ?? appData['yearsExperience'] ?? vendorData['yearsExperience'] ?? vendorData['experience'];

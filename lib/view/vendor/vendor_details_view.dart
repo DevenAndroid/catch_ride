@@ -167,7 +167,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(controller.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
+              CommonText(controller.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold, maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 1),
               CommonText(controller.businessName, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
               const SizedBox(height: 4),

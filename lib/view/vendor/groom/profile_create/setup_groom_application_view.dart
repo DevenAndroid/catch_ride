@@ -6,8 +6,12 @@ import 'package:catch_ride/utils/validators.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/widgets/common_dropdown.dart';
+import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 class SetupGroomApplicationView extends StatelessWidget {
   const SetupGroomApplicationView({super.key});
@@ -78,44 +82,37 @@ class SetupGroomApplicationView extends StatelessWidget {
                 _buildGroupedSection(
                   'Home Base Location',
                   children: [
-                    CommonTextField(
-                      label: 'Country',
-                      isRequired: true,
-                      readOnly: true,
-                      controller: controller.countryController,
-                      hintText: 'Select country',
-                    ),
+                    _buildSectionHeader('Country', isRequired: true),
+                    Obx(() => CommonDropdown(
+                      value: controller.countryController.text,
+                      hint: 'Select Country',
+                      options: controller.countries,
+                      onSelected: (val) => controller.onCountrySelected(val),
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
+                    )),
                     const SizedBox(height: 16),
 
                     _buildSectionHeader('State/Province', isRequired: true),
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.selectedState.value?['name'],
+                    Obx(() => CommonSuggestionField(
+                      controller: controller.stateController,
                       hint: 'Select State/Province',
+                      suggestions: controller.states,
                       isLoading: controller.isLoadingStates.value,
-                      onTap: () => _showLocationBottomSheet(
-                        context: context,
-                        title: 'Select State/Province',
-                        options: controller.states,
-                        onSelected: (val) => controller.onStateSelected(val),
-                      ),
+                      onSelected: (val) => controller.onStateSelected(val),
+                      validator: (value) => controller.selectedState.value == null ? 'Please select state' : null,
                     )),
                     const SizedBox(height: 16),
 
                     _buildSectionHeader('City', isRequired: true),
-                    Obx(() => _buildBottomTrigger(
-                      value: controller.selectedCity.value?['name'],
+                    Obx(() => CommonSuggestionField(
+                      controller: controller.cityController,
                       hint: controller.selectedState.value == null
                           ? 'Select state first'
                           : 'Select city',
+                      suggestions: controller.cities,
                       isLoading: controller.isLoadingCities.value,
-                      onTap: controller.selectedState.value == null
-                          ? null
-                          : () => _showLocationBottomSheet(
-                        context: context,
-                        title: 'Select City',
-                        options: controller.cities,
-                        onSelected: (val) => controller.onCitySelected(val),
-                      ),
+                      onSelected: (val) => controller.onCitySelected(val),
+                      validator: (value) => controller.selectedCity.value == null ? 'Please select city' : null,
                     )),
                   ],
                 ),
@@ -358,14 +355,14 @@ class SetupGroomApplicationView extends StatelessWidget {
         children: [
           CommonText(
             title,
-            fontSize: AppTextSizes.size16,
-            fontWeight: FontWeight.w600,
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           if (isRequired)
             const CommonText(
               ' *',
-              fontSize: AppTextSizes.size16,
+              fontSize: AppTextSizes.size18,
               color: Colors.red,
             ),
         ],
