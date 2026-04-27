@@ -53,6 +53,7 @@ class ShippingApplicationView extends StatelessWidget {
                   // 1. Full Name
                   _buildGroupedSection(
                     'Full Name',
+                    isRequired: true,
                     children: [
                       CommonTextField(
                         label: '',
@@ -75,7 +76,7 @@ class ShippingApplicationView extends StatelessWidget {
                         controller: controller.bioController,
                         hintText: 'Briefly describe your operation, services, and the type of routes or clients you typically work with.',
                         maxLines: 4,
-                        validator: RequiredValidator(errorText: "Please tell us about your services").call,
+                     //   validator: RequiredValidator(errorText: "Please tell us about your services").call,
                       ),
                     ],
                   ),

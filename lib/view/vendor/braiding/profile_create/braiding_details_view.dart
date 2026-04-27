@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/vendor/braiding/braiding_details_controll
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 import 'package:get/get.dart';
 
 class BraidingDetailsView extends StatefulWidget {
@@ -139,7 +140,8 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                                     controller: service['price'] as TextEditingController,
                                     decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero, hintText: '0', hintStyle: TextStyle(color: Colors.grey)),
                                     style: const TextStyle(fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                                    keyboardType: TextInputType.number,
+                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    inputFormatters: [PriceInputFormatter()],
                                     textAlign: TextAlign.center,
                                   ),
                                 ),

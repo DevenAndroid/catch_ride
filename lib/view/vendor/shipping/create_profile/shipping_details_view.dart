@@ -7,6 +7,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 class ShippingDetailsView extends StatelessWidget {
   const ShippingDetailsView({super.key});
@@ -321,7 +322,8 @@ class ShippingDetailsView extends StatelessWidget {
       label: label,
       controller: ctrl,
       hintText: 'Enter Price',
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [PriceInputFormatter()],
       suffixIcon: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

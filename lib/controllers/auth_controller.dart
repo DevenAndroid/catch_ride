@@ -997,6 +997,11 @@ class AuthController extends GetxController {
       // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());
 
+      // Clear Notification Badge (iOS)
+      if (Get.isRegistered<NotificationService>()) {
+        Get.find<NotificationService>().clearBadge();
+      }
+
       if (sessionExpired) {
         Get.snackbar(
           'Session Expired',

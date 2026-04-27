@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 
 class BraidingServiceRatesTab extends StatefulWidget {
   const BraidingServiceRatesTab({super.key});
@@ -167,7 +168,8 @@ class _BraidingServiceRatesTabState extends State<BraidingServiceRatesTab> {
                   Expanded(
                     child: TextField(
                       controller: service['price'],
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [PriceInputFormatter()],
                       decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isSelected ? AppColors.textPrimary : const Color(0xFF98A2B3)),
                     ),
@@ -231,7 +233,8 @@ class _BraidingServiceRatesTabState extends State<BraidingServiceRatesTab> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: TextField(
                         controller: priceController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                       inputFormatters: [PriceInputFormatter()],
                         decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none),
                       ),
                     ),

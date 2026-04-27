@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/vendor/groom/grooming_details_controller.
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -262,7 +263,8 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                             child: TextField(
                               controller:
                                   service['price'] as TextEditingController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [PriceInputFormatter()],
                               decoration: const InputDecoration(
                                 hintText: '0',
                                 border: InputBorder.none,
@@ -620,9 +622,10 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  keyboardType: TextInputType.number,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [PriceInputFormatter()],
+                  ),
                 ),
-              ),
             ],
             const SizedBox(height: 40),
             Row(
@@ -784,6 +787,8 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                     label: '',
                     controller: controller,
                     hintText: 'Enter Price',
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [PriceInputFormatter()],
                     prefixIcon: const Padding(
                       padding: EdgeInsets.only(
                         left: 16,
@@ -798,7 +803,6 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                         color: Color(0xFF1A1A1A),
                       ),
                     ),
-                    keyboardType: TextInputType.number,
                     // border: InputBorder.none,
                     // enabledBorder: InputBorder.none,
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
 import 'package:catch_ride/constant/app_colors.dart';
@@ -26,6 +27,9 @@ class CommonTextField extends StatelessWidget {
  // final TextCapitalization? textCapitalization;
 
 
+  final FocusNode? focusNode;
+  final List<TextInputFormatter>? inputFormatters;
+
   const CommonTextField({
     super.key,
     required this.label,
@@ -48,10 +52,10 @@ class CommonTextField extends StatelessWidget {
     this.contentPadding,
     this.onChanged,
     this.focusNode,
+    this.inputFormatters,
   });
 
   final Function(String)? onChanged;
-  final FocusNode? focusNode;
 
 
   @override
@@ -116,6 +120,7 @@ class CommonTextField extends StatelessWidget {
             contentPadding: contentPadding,
           ),
           onChanged: onChanged,
+          inputFormatters: inputFormatters,
         ),
       ],
     );

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../widgets/common_textfield.dart';
+import '../../../../utils/price_formatter.dart';
 
 class FarrierDetailsView extends StatelessWidget {
   const FarrierDetailsView({super.key});
@@ -157,7 +158,8 @@ class FarrierDetailsView extends StatelessWidget {
                       width: 100,
                       child: TextField(
                         controller: service['price'] as TextEditingController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [PriceInputFormatter()],
                         textAlign: TextAlign.left,
                         style: const TextStyle(
                           fontSize: 14,
@@ -677,7 +679,8 @@ class FarrierDetailsView extends StatelessWidget {
                                           Expanded(
                                             child: TextField(
                                               controller: controller.travelFeePriceController,
-                                              keyboardType: TextInputType.number,
+                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                              inputFormatters: [PriceInputFormatter()],
                                               decoration: const InputDecoration(
                                                 hintText: 'Enter price',
                                                 hintStyle: TextStyle(

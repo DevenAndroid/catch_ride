@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/vendor/clipping/clipping_details_controll
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:catch_ride/utils/price_formatter.dart';
 import 'package:get/get.dart';
 
 class ClippingDetailView extends StatefulWidget {
@@ -165,7 +166,8 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
                                 ),
-                                keyboardType: TextInputType.number,
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [PriceInputFormatter()],
                                 textAlign: TextAlign.center,
                                 onTap: () {
                                   // Auto-select if price is being typed
@@ -492,7 +494,8 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
                                     Expanded(
                                       child: TextField(
                                         controller: controller.travelFeePriceController,
-                                        keyboardType: TextInputType.number,
+                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                        inputFormatters: [PriceInputFormatter()],
                                         decoration: const InputDecoration(
                                           hintText: 'Enter price',
                                           hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
@@ -679,7 +682,8 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
                           Expanded(
                             child: TextField(
                               controller: controller.addServicePriceController,
-                              keyboardType: TextInputType.number,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [PriceInputFormatter()],
                               decoration: const InputDecoration(
                                 hintText: 'Enter price',
                                 hintStyle: TextStyle(
