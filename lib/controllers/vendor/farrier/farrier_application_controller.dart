@@ -23,11 +23,18 @@ class FarrierApplicationController extends GetxController {
   
   // Location
   final countryController = TextEditingController(text: 'USA');
+  final stateController = TextEditingController();
+  final cityController = TextEditingController();
   final states = <Map<String, dynamic>>[].obs;
   final cities = <Map<String, dynamic>>[].obs;
   
   final selectedState = Rxn<Map<String, dynamic>>();
   final selectedCity = Rxn<Map<String, dynamic>>();
+  final selectedCountryCode = 'US'.obs;
+  final countries = [
+    {'name': 'USA', 'code': 'US'},
+    {'name': 'Canada', 'code': 'CA'},
+  ];
 
   final isLoadingStates = false.obs;
   final isLoadingCities = false.obs;
@@ -61,7 +68,8 @@ class FarrierApplicationController extends GetxController {
   Future<void> fetchStates() async {
     isLoadingStates.value = true;
     try {
-      final Response response = await apiService.getRequest('/locations/states');
+      final countryCode = selectedCountryCode.value;
+      final Response response = await apiService.getRequest('/locations/states?countryCode=$countryCode');
       if (response.statusCode == 200 && response.body['success'] == true) {
         states.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
       }
@@ -77,7 +85,8 @@ class FarrierApplicationController extends GetxController {
     selectedCity.value = null;
     cities.clear();
     try {
-      final Response response = await apiService.getRequest('/locations/states/$stateCode/cities');
+      final countryCode = selectedCountryCode.value;
+      final Response response = await apiService.getRequest('/locations/states/$stateCode/cities?countryCode=$countryCode');
       if (response.statusCode == 200 && response.body['success'] == true) {
         cities.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
       }
@@ -88,13 +97,34 @@ class FarrierApplicationController extends GetxController {
     }
   }
 
+  void onCountrySelected(Map<String, dynamic> country) {
+    if (selectedCountryCode.value != country['code']) {
+      selectedCountryCode.value = country['code'] ?? 'US';
+      countryController.text = country['name'] ?? 'USA';
+      
+      // Reset state and city when country changes
+      selectedState.value = null;
+      selectedCity.value = null;
+      stateController.clear();
+      cityController.clear();
+      states.clear();
+      cities.clear();
+      
+      fetchStates();
+    }
+  }
+
   void onStateSelected(Map<String, dynamic> state) {
     selectedState.value = state;
+    stateController.text = state['name'] ?? '';
+    cityController.clear();
+    selectedCity.value = null;
     fetchCities(state['isoCode']);
   }
 
   void onCitySelected(Map<String, dynamic> city) {
     selectedCity.value = city;
+    cityController.text = city['name'] ?? '';
   }
 
   Future<void> fetchDynamicTags() async {
@@ -259,6 +289,8 @@ class FarrierApplicationController extends GetxController {
       ctrl.dispose();
     }
     countryController.dispose();
+    stateController.dispose();
+    cityController.dispose();
     super.onClose();
   }
 

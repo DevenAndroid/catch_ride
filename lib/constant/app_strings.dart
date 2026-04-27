@@ -58,7 +58,7 @@ class AppStrings {
   static const String federationVerification = 'Federation Verification';
   static const String fillOutTheInformationBelowInOrderToAccessYourAccount =
       'Fill out the information below in order to access your account.';
-  static const String forgetPassword = 'Forget Password?';
+  static const String forgetPassword = 'Forgot Password?';
   static const String fullName = 'Full Name';
   static const String getStarted = 'Get Started';
   static const String error = 'Error';

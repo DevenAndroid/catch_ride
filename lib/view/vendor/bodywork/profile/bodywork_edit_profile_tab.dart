@@ -7,6 +7,8 @@ import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/widgets/common_dropdown.dart';
+import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -70,7 +72,7 @@ class BodyworkEditProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(title, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+          CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
           if (description != null) ...[
             const SizedBox(height: 4),
             CommonText(description, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
@@ -88,11 +90,33 @@ class BodyworkEditProfileTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonTextField(label: 'Country', hintText: 'Select Country', isRequired: true, controller: controller.countryController),
+          _buildFieldLabel('Country', isRequired: true),
+          Obx(() => CommonDropdown(
+            value: controller.countryController.text,
+            hint: 'Select Country',
+            options: controller.countries,
+            onSelected: (val) => controller.onCountrySelected(val),
+          )),
           const SizedBox(height: 16),
-          CommonTextField(label: 'State / Province', hintText: 'Select state / province', isRequired: true, controller: controller.stateController),
+          
+          _buildFieldLabel('State / Province', isRequired: true),
+          Obx(() => CommonSuggestionField(
+            controller: controller.stateController,
+            hint: 'Select State/Province',
+            suggestions: controller.states,
+            isLoading: controller.isLoadingStates.value,
+            onSelected: (val) => controller.onStateSelected(val),
+          )),
           const SizedBox(height: 16),
-          CommonTextField(label: 'City', hintText: 'Select city', controller: controller.cityController),
+          
+          _buildFieldLabel('City', isRequired: true),
+          Obx(() => CommonSuggestionField(
+            controller: controller.cityController,
+            hint: controller.stateController.text.isEmpty ? 'Select state first' : 'Select City',
+            suggestions: controller.cities,
+            isLoading: controller.isLoadingCities.value,
+            onSelected: (val) => controller.onCitySelected(val),
+          )),
         ],
       ),
     );
@@ -420,14 +444,23 @@ class BodyworkEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdownTrigger({String? value, required String hint, required VoidCallback onTap}) {
+  Widget _buildDropdownTrigger({String? value, required String hint, required VoidCallback? onTap, bool isLoading = false}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
-        child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [CommonText(value ?? hint, fontSize: AppTextSizes.size14, color: value != null ? AppColors.textPrimary : AppColors.textSecondary), const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary)]),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+          children: [
+            Expanded(child: CommonText(value != null && value.isNotEmpty ? value : hint, fontSize: AppTextSizes.size14, color: value != null && value.isNotEmpty ? AppColors.textPrimary : AppColors.textSecondary, overflow: TextOverflow.ellipsis)),
+            if (isLoading)
+              const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+            else
+              const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary)
+          ]
+        ),
       ),
     );
   }
@@ -833,6 +866,66 @@ class BodyworkEditProfileTab extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLocationBottomSheet({
+    required String title,
+    required List<Map<String, dynamic>> options,
+    required Function(Map<String, dynamic>) onSelected,
+  }) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 20),
+            const Divider(),
+            Expanded(
+              child: ListView.builder(
+                itemCount: options.length,
+                itemBuilder: (context, index) {
+                  final item = options[index];
+                  return ListTile(
+                    title: CommonText(item['name'] ?? ''),
+                    onTap: () {
+                      onSelected(item);
+                      Get.back();
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          CommonText(
+            label,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+          if (isRequired)
+            const CommonText(
+              ' *',
+              color: Colors.red,
+              fontSize: AppTextSizes.size14,
+            ),
+        ],
       ),
     );
   }

@@ -190,6 +190,8 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.textPrimary,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 4),
                                 CommonText(
@@ -352,6 +354,8 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold,
                                               color: const Color(0xFF101828),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 4),
                                             CommonText(

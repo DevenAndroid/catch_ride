@@ -5,9 +5,14 @@ import 'package:catch_ride/controllers/vendor/shipping/shipping_application_cont
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
+import 'package:catch_ride/widgets/common_dropdown.dart';
+import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 class ShippingApplicationView extends StatelessWidget {
   const ShippingApplicationView({super.key});
@@ -86,38 +91,29 @@ class ShippingApplicationView extends StatelessWidget {
                     'Home Base Location',
                     children: [
                       _buildFieldLabel('Country', isRequired: true),
-                      _buildBottomTrigger(
-                        value: 'USA',
-                        hint: 'USA',
-                        onTap: null, // Disabled as per requirement
-                      ),
+                      Obx(() => CommonDropdown(
+                        value: controller.countryController.text,
+                        hint: 'Select Country',
+                        options: controller.countries,
+                        onSelected: (val) => controller.onCountrySelected(val),
+                      )),
                       const SizedBox(height: 16),
                       _buildFieldLabel('State', isRequired: true),
-                      Obx(() => _buildBottomTrigger(
-                        value: controller.selectedState.value?['name'],
+                      Obx(() => CommonSuggestionField(
+                        controller: controller.stateController,
                         hint: 'Select State',
+                        suggestions: controller.states,
                         isLoading: controller.isLoadingStates.value,
-                        onTap: () => _showLocationBottomSheet(
-                          context: context,
-                          title: 'Select State',
-                          options: controller.states,
-                          onSelected: (val) => controller.onStateSelected(val),
-                        ),
+                        onSelected: (val) => controller.onStateSelected(val),
                       )),
                       const SizedBox(height: 16),
                       _buildFieldLabel('City', isRequired: true),
-                      Obx(() => _buildBottomTrigger(
-                        value: controller.selectedCity.value?['name'],
-                        hint: controller.selectedState.value == null ? 'Select State first' : 'Select City',
+                      Obx(() => CommonSuggestionField(
+                        controller: controller.cityController,
+                        hint: controller.stateController.text.isEmpty ? 'Select State first' : 'Select City',
+                        suggestions: controller.cities,
                         isLoading: controller.isLoadingCities.value,
-                        onTap: controller.selectedState.value == null
-                          ? null
-                          : () => _showLocationBottomSheet(
-                              context: context,
-                              title: 'Select City',
-                              options: controller.cities,
-                              onSelected: (val) => controller.onCitySelected(val),
-                            ),
+                        onSelected: (val) => controller.onCitySelected(val),
                       )),
                     ],
                   ),
@@ -470,8 +466,8 @@ class ShippingApplicationView extends StatelessWidget {
         children: [
           CommonText(
             title,
-            fontSize: AppTextSizes.size16,
-            fontWeight: FontWeight.w600,
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           if (isRequired)

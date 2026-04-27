@@ -188,7 +188,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    color: Colors.grey.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
@@ -213,7 +213,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                   child: Container(
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color: Colors.grey.withValues(alpha: 0.1),
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -289,6 +289,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                 fontSize: 28,
                                 fontWeight: FontWeight.w800,
                                 color: const Color(0xFF101828),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 2),
                               CommonText(
