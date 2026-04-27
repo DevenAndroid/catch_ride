@@ -158,7 +158,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CommonText(groomController.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
+              CommonText(groomController.fullName, fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold, maxLines: 2, overflow: TextOverflow.ellipsis),
               const SizedBox(height: 1),
               CommonText(groomController.businessNameDisplay, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
               const SizedBox(height: 4),

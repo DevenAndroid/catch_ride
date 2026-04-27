@@ -26,9 +26,9 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.background,
           elevation: 0,
           centerTitle: false,
           leading: IconButton(
@@ -687,8 +687,15 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF0F0F0)),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -713,9 +720,9 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildSectionHeader(String title) {
     return CommonText(
       title,
-      fontSize: 17,
+      fontSize: AppTextSizes.size18,
       fontWeight: FontWeight.bold,
-      color: const Color(0xFF1A1A1A),
+      color: AppColors.textPrimary,
     );
   }
 
@@ -766,9 +773,9 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
         children: [
           CommonText(
             label,
-            fontSize: 13,
+            fontSize: AppTextSizes.size14,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF444444),
+            color: AppColors.textPrimary,
           ),
           const SizedBox(height: 8),
           Row(
@@ -881,9 +888,9 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
       children: [
         CommonText(
           label,
-          fontSize: 13,
+          fontSize: AppTextSizes.size14,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF444444),
+          color: AppColors.textPrimary,
         ),
         const SizedBox(height: 8),
         Container(
