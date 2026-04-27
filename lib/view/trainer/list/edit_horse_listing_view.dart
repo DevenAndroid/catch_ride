@@ -1564,10 +1564,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
 
   Widget _buildTagChip(String label, bool isSelected) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected ? const Color(0xFF00084D) : const Color(0xFFE5E7EB),
           width: isSelected ? 1.5 : 1,
@@ -1575,7 +1575,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
       ),
       child: CommonText(
         label,
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
         color: isSelected ? const Color(0xFF00084D) : AppColors.textPrimary,
       ),

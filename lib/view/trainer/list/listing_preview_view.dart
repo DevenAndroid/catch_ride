@@ -130,25 +130,13 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.45,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: controller.selectedListingTypes
-                        .toList()
-                        .asMap()
-                        .entries
-                        .map(
-                          (entry) => Padding(
-                            padding: EdgeInsets.only(
-                              right:
-                                  entry.key ==
-                                      controller.selectedListingTypes.length - 1
-                                  ? 0
-                                  : 8,
-                            ),
-                            child: _buildOverlayBadge(entry.value),
-                          ),
-                        )
+                        .map((type) => _buildOverlayBadge(type))
                         .toList(),
                   ),
                 ),
@@ -202,14 +190,14 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   Widget _buildOverlayBadge(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: const Color(0xFF8B4242).withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: CommonText(
         text,
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
@@ -320,14 +308,14 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   Widget _buildDetailChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
           color: const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(10),
       ),
       child: CommonText(
         label,
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: FontWeight.bold,
         color: const Color(0xFF1E40AF),
       ),
@@ -446,21 +434,21 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
             children: [
               CommonText(
                 label,
-                fontSize: 13,
+                fontSize: 11,
                 color: AppColors.textSecondary,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               if (isExternal && value.isNotEmpty) ...[
                 const SizedBox(width: 6),
-                const Icon(Icons.open_in_new, size: 16, color: Color(0xFF3B82F6)),
+                const Icon(Icons.open_in_new, size: 14, color: Color(0xFF3B82F6)),
               ],
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 2),
           CommonText(
             value,
-            fontSize: 15,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
             maxLines: 1,
