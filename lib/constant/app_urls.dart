@@ -5,12 +5,12 @@ import 'package:flutter/foundation.dart';
 class AppUrls {
   static String get host {
     if (kIsWeb) return 'localhost';
-   // if (Platform.isAndroid) return '192.168.1.17';
-    if (Platform.isAndroid) return '10.0.2.2';
+    if (Platform.isAndroid) return '192.168.1.14';
+    // if (Platform.isAndroid) return '10.0.2.2';
     return 'localhost';
   }
 
-  static bool isLive = false;
+  static bool isLive = true;
 
   static String get baseUrl {
     try {

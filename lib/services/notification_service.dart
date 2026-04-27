@@ -20,7 +20,7 @@ class NotificationService extends GetxService {
     // 1. Request Permission
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
-      badge: true,
+      badge: false,
       sound: true,
     );
 
@@ -36,7 +36,7 @@ class NotificationService extends GetxService {
     
     final DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: true,
-      requestBadgePermission: true,
+      requestBadgePermission: false,
       requestSoundPermission: true,
     );
 
@@ -151,7 +151,7 @@ class NotificationService extends GetxService {
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
-            presentBadge: true,
+            presentBadge: false,
             presentSound: true,
           ),
         ),
@@ -211,7 +211,7 @@ class NotificationService extends GetxService {
                 badgeNumber: 0,
                 presentAlert: false,
                 presentSound: false,
-                presentBadge: true,
+                presentBadge: false,
               ),
             );
         _logger.i('iOS Notification badge cleared');

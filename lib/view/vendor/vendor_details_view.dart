@@ -358,26 +358,22 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     
     if (activeServiceKey == 'shipping' || activeServiceKey == 'transportation') {
       final Map shippingData = servicesData['shipping'] ?? servicesData['transportation'] ?? platformProfile;
-      // Note: VendorDetailsController might lack some specific shipping getters, 
-      // but we can extract them from the profile data directly or refine the controller later.
-      final pData = platformProfile['profileData'] ?? {};
-      final aData = assignedService?['application']?['applicationData'] ?? {};
       
       return ShippingServiceAndRatesView(
         shippingData: shippingData,
         location: controller.location,
-        experience: '${controller.experienceStr} Years',
-        baseRate: pData['rates']?['baseRate']?.toString() ?? 'N/A',
-        fullyLoadedRate: pData['rates']?['loadedRate']?.toString() ?? 'N/A',
-        travelScope: List<String>.from(aData['travelScope'] ?? []),
-        regionsCovered: controller.operatingRegions,
-        servicesOffered: List<String>.from(pData['services'] ?? []),
-        rigTypes: List<String>.from(aData['rigTypes'] ?? []),
-        operationType: aData['operationType'] ?? 'N/A',
-        rigCapacity: aData['rigCapacity']?.toString() ?? 'N/A',
-        equipmentSummary: pData['equipmentSummary'] ?? 'N/A',
-        dotNumber: aData['businessInfo']?['dotNumber']?.toString() ?? 'N/A',
-        hasCDL: aData['confirmLicense'] ?? false,
+        experience: controller.experienceStr,
+        baseRate: controller.shippingBaseRate,
+        fullyLoadedRate: controller.shippingLoadedRate,
+        travelScope: controller.shippingTravelScope,
+        regionsCovered: controller.shippingRegionsCovered,
+        servicesOffered: controller.shippingServicesOffered,
+        rigTypes: controller.shippingRigTypes,
+        operationType: controller.shippingOperationType,
+        rigCapacity: controller.shippingRigCapacity,
+        equipmentSummary: controller.shippingEquipmentSummary,
+        dotNumber: controller.shippingDotNumber,
+        hasCDL: controller.shippingHasCDL,
         businessName: controller.businessName,
         highlights: List<String>.from(controller.vendorData['highlights'] ?? []),
       );
@@ -511,22 +507,26 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
           }
           return Column(
             children: controller.availabilityList.take(3).map((avail) {
-              // Note: Availability list in VendorDetailsController is VendorAvailabilityModel
-              final serviceTypes = avail.serviceTypes;
+              if (avail is Map && avail['isTrip'] == true) {
+                return ShippingTripCard(trip: TripModel.fromJson(Map<String, dynamic>.from(avail)));
+              }
+
+              final b = avail is VendorAvailabilityModel ? avail : VendorAvailabilityModel.fromJson(Map<String, dynamic>.from(avail));
+              final serviceTypes = b.serviceTypes;
 
               if (serviceTypes.contains('Braiding')) {
-                return BraidingAvailabilityCard(availability: avail);
+                return BraidingAvailabilityCard(availability: b);
               }
               if (serviceTypes.contains('Clipping')) {
-                return ClippingAvailabilityBlockCard(block: avail);
+                return ClippingAvailabilityBlockCard(block: b);
               }
               if (serviceTypes.contains('Farrier')) {
-                return FarrierAvailabilityBlockCard(block: avail);
+                return FarrierAvailabilityBlockCard(block: b);
               }
               if (serviceTypes.contains('Bodywork')) {
-                return BodyworkAvailabilityBlockCard(block: avail);
+                return BodyworkAvailabilityBlockCard(block: b);
               }
-              return GroomingAvailabilityCard(availability: avail);
+              return GroomingAvailabilityCard(availability: b);
             }).toList(),
           );
         }),
@@ -621,7 +621,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () => controller.navigateToChat(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondary,
                       foregroundColor: Colors.white,

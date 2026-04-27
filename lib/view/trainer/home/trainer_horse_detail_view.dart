@@ -664,7 +664,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           if (!isHorseOwner)
             ElevatedButton(
               onPressed: () {
-                if (_canMessage) {
                   final chatController = Get.find<ChatController>();
                   chatController.openBookingChat(
                     bookingId: widget.bookingId ?? '',
@@ -673,15 +672,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
                     myTeamId: widget.myTeamId,
                   );
-                } else {
-                  Get.snackbar(
-                    'Notice',
-                    'Messaging is enabled once your booking request is accepted.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: AppColors.errorPrimary,
-                    colorText: Colors.white,
-                  );
-                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.secondary,

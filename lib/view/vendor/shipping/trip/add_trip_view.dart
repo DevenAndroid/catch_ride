@@ -1,3 +1,4 @@
+import 'package:catch_ride/controllers/google_api_controller.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/shipping/add_trip_controller.dart';
@@ -40,23 +41,19 @@ class AddTripView extends StatelessWidget {
               _buildSectionCard(
                 title: 'Route Details',
                 children: [
-                  CommonTextField(
-                    label: 'Origin Location',
-                    hintText: 'Select Show Venue or City',
-                    controller: controller.originController,
-                    readOnly: true,
-                    onTap: () => _showVenueSelectionSheet(context, controller, controller.originController),
+                  _buildGoogleLocationField(
+                    'Origin Location',
+                    'Select Show Venue or City',
+                    controller.originController,
+                    controller.originFocusNode,
                     isRequired: true,
-                    suffixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 16),
-                  CommonTextField(
-                    label: 'Destination location',
-                    hintText: 'Select Show Venue or City',
-                    controller: controller.destinationController,
-                    readOnly: true,
-                    onTap: () => _showVenueSelectionSheet(context, controller, controller.destinationController),
-                    suffixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                  _buildGoogleLocationField(
+                    'Destination location',
+                    'Select Show Venue or City',
+                    controller.destinationController,
+                    controller.destinationFocusNode,
                   ),
                   const SizedBox(height: 12),
                   Obx(() => Wrap(
@@ -225,12 +222,11 @@ class AddTripView extends StatelessWidget {
                       title: 'Intermediate Stops',
                       subtitle: 'Add stops between pickup and destination locations',
                       children: [
-                        CommonTextField(
-                          label: 'Location',
-                          hintText: 'Select Show Venue or City',
-                          controller: controller.intermediateStopController,
-                          readOnly: true,
-                          onTap: () => _showVenueSelectionSheet(context, controller, controller.intermediateStopController),
+                        _buildGoogleLocationField(
+                          'Location',
+                          'Select Show Venue or City',
+                          controller.intermediateStopController,
+                          controller.intermediateStopFocusNode,
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.add_circle_outline),
                             onPressed: () {
@@ -283,85 +279,79 @@ class AddTripView extends StatelessWidget {
     );
   }
 
-  void _showVenueSelectionSheet(BuildContext context, AddTripController controller, TextEditingController targetController) {
-    final searchController = TextEditingController();
-    
-    // Deduplicate venues by display name
-    final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = controller.rxHorseShows.where((v) {
-      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-      if (seenNames.contains(name)) return false;
-      seenNames.add(name);
-      return true;
-    }).toList();
 
-    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
-    
-    Get.bottomSheet(
-      Container(
-        height: Get.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  Widget _buildGoogleLocationField(
+    String label,
+    String hint,
+    TextEditingController fieldController,
+    FocusNode focusNode, {
+    bool isRequired = false,
+    Widget? suffixIcon,
+  }) {
+    final googleApiController = Get.put(GoogleApiController());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonTextField(
+          label: label,
+          controller: fieldController,
+          focusNode: focusNode,
+          hintText: hint,
+          isRequired: isRequired,
+          suffixIcon: suffixIcon ?? const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+          onChanged: (val) {
+            googleApiController.searchGooglePlaces(val);
+          },
         ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const CommonText('Select Venue or City', fontSize: 18, fontWeight: FontWeight.bold),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
+        Obx(() {
+          if (googleApiController.googleSuggestions.isEmpty || !fieldController.text.isNotEmpty || !focusNode.hasFocus) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(top: 4),
+            constraints: const BoxConstraints(maxHeight: 200),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search venues or city...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onChanged: (val) {
-                final search = val.toLowerCase();
-                filteredVenues.assignAll(allVenues.where((v) {
-                  final name = v['name']?.toString().toLowerCase() ?? '';
-                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
-                  final city = v['city']?.toString().toLowerCase() ?? '';
-                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
-                }).toList());
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: googleApiController.googleSuggestions.length,
+              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.borderLight),
+              itemBuilder: (context, index) {
+                final suggestion = googleApiController.googleSuggestions[index];
+                return ListTile(
+                  dense: true,
+                  title: CommonText(
+                    suggestion['name'] ?? '',
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  onTap: () {
+                    fieldController.text = suggestion['name'] ?? '';
+                    googleApiController.googleSuggestions.clear();
+                    // FocusScope.of(context).unfocus();
+                    if (label == 'Location') {
+                       // Auto-trigger for intermediate stops if used via suffix add button or similar
+                    }
+                  },
+                );
               },
             ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Obx(() => ListView.builder(
-                itemCount: filteredVenues.length,
-                itemBuilder: (context, index) {
-                  final venueItem = filteredVenues[index];
-                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
-                  final city = venueItem['city']?.toString() ?? '';
-                  
-                  return ListTile(
-                    onTap: () {
-                      targetController.text = venueName;
-                      // If it's the intermediate stop field, we might want to auto-add it too
-                      if (targetController == controller.intermediateStopController) {
-                         controller.addIntermediateStop(venueName);
-                      }
-                      Get.back();
-                    },
-                    title: CommonText(venueName),
-                    subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
-                    trailing: const Icon(Icons.chevron_right, size: 20),
-                  );
-                },
-              )),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
+          );
+        }),
+      ],
     );
   }
 

@@ -19,7 +19,11 @@ class SendBookingRequestController extends GetxController {
   final Rxn<DateTime> endDate = Rxn<DateTime>();
   final RxnString selectedNumHorses = RxnString();
   final RxnString selectedLocation = RxnString();
+  final RxnString selectedOrigin = RxnString();
+  final RxnString selectedDestination = RxnString();
   final notesController = TextEditingController();
+  final originController = TextEditingController();
+  final destinationController = TextEditingController();
 
   final RxList<Map<String, dynamic>> additionalServicesList = <Map<String, dynamic>>[].obs;
   final RxList<String> selectedAdditionalIds = <String>[].obs;
@@ -33,6 +37,12 @@ class SendBookingRequestController extends GetxController {
   final RxDouble additionalTotal = 0.0.obs;
   final RxList<Map<String, dynamic>> bookedServices = <Map<String, dynamic>>[].obs;
 
+  double _parsePrice(dynamic v) {
+    if (v == null) return 0.0;
+    String s = v.toString().replaceAll(RegExp(r'[^0-9.]'), '');
+    return double.tryParse(s) ?? 0.0;
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -45,19 +55,54 @@ class SendBookingRequestController extends GetxController {
       final List services = vendorData['assignedServices'] ?? [];
       final activeService = services.firstWhere((s) => s['serviceType'] == selectedService.value, orElse: () => null);
       if (activeService != null) {
-        final List additional = activeService['profile']?['profileData']?['additionalServices'] ?? [];
-        additionalServicesList.assignAll(additional.map((s) => {
-          'id': s['id'] ?? s['name'],
-          'name': s['name'],
-          'price': double.tryParse(s['price']?.toString() ?? '0') ?? 0.0,
+        final profileData = activeService['profile']?['profileData'] ?? {};
+        final appData = activeService['application']?['applicationData'] ?? {};
+        final servicesData = vendorData['servicesData'] ?? {};
+        final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+
+        final List additional = profileData['additionalServices'] ?? [];
+        additionalServicesList.assignAll(additional.map((s) {
+          final id = s['id'] ?? s['name'];
+          return {
+            'id': id,
+            'name': s['name'],
+            'price': _parsePrice(s['price']),
+          };
         }).toList());
 
-        final List core = activeService['profile']?['profileData']?['services'] ?? [];
-        coreServicesList.assignAll(core.whereType<Map<dynamic, dynamic>>().map((s) => {
+        final List core = profileData['services'] ?? [];
+        final List<Map<String, dynamic>> mappedCore = core.whereType<Map<dynamic, dynamic>>().map((s) => {
           'id': s['id'] ?? s['name'],
           'name': s['name'],
-          'price': double.tryParse(s['price']?.toString() ?? '0') ?? 0.0,
-        }).toList());
+          'price': _parsePrice(s['price']),
+        }).toList();
+
+        // For Shipping, if core services list is empty, try to pull from pricing/rates
+        if (isShipping && mappedCore.isEmpty) {
+          // Robust pricing resolution (mirrors VendorDetailsController)
+          final pricing = profileData['pricing'] ?? flatData['pricing'] ?? appData['pricing'] ?? {};
+          final rates = profileData['rates'] ?? flatData['rates'] ?? appData['rates'] ?? {};
+          
+          final basePrice = pricing['baseRate'] ?? rates['baseRate'] ?? rates['base'] ?? pricing['base'] ?? flatData['baseRate'] ?? appData['baseRate'];
+          final loadedPrice = pricing['loadedRate'] ?? rates['loadedRate'] ?? rates['loaded'] ?? pricing['loaded'] ?? flatData['loadedRate'] ?? appData['loadedRate'];
+          
+          if (basePrice != null && basePrice.toString().toLowerCase() != 'n/a' && basePrice.toString() != '0') {
+            mappedCore.add({
+              'id': 'base_rate',
+              'name': 'Base Rate',
+              'price': _parsePrice(basePrice),
+            });
+          }
+          if (loadedPrice != null && loadedPrice.toString().toLowerCase() != 'n/a' && loadedPrice.toString() != '0') {
+            mappedCore.add({
+              'id': 'loaded_rate',
+              'name': 'Fully Loaded Rate',
+              'price': _parsePrice(loadedPrice),
+            });
+          }
+        }
+        
+        coreServicesList.assignAll(mappedCore);
       }
       
       // Auto-recalculate price when fields change
@@ -79,10 +124,16 @@ class SendBookingRequestController extends GetxController {
         final List data = response.body['data'] ?? [];
         availabilityList.assignAll(data);
         
-        // Initialize location with first available after fetch
+        // Initialize selection with first available after fetch
         final locations = availableLocations;
-        if (locations.isNotEmpty && locations.first != 'Other') {
-          selectedLocation.value = locations.first;
+        if (locations.isNotEmpty) {
+          if (selectedLocation.value == null) selectedLocation.value = locations.first;
+          if (selectedOrigin.value == null) selectedOrigin.value = locations.first;
+          if (selectedDestination.value == null && locations.length > 1) {
+            selectedDestination.value = locations[1];
+          } else if (selectedDestination.value == null) {
+            selectedDestination.value = locations.first;
+          }
         }
       }
     } catch (e) {
@@ -92,50 +143,34 @@ class SendBookingRequestController extends GetxController {
     }
   }
 
+  String get homeLocation {
+    final homeBase = vendorData['homeBase'] ?? _activeServiceData?['application']?['applicationData']?['homeBase'];
+    if (homeBase == null) return '';
+    
+    final city = homeBase['city']?.toString() ?? '';
+    final state = homeBase['state']?.toString() ?? '';
+    
+    if (city.isEmpty || state.isEmpty) return '';
+    return '$city, $state';
+  }
+
   List<String> get availableLocations {
-    final today = DateTime.now();
-    final todayOnlyDate = DateTime(today.year, today.month, today.day);
-
-    // Initial filter: Only show availability that ends today or in the future
-    Iterable filtered = availabilityList.where((avail) {
-      final endStr = avail['endDate'] ?? avail['specificDate'];
-      if (endStr == null) return false;
-      final endDate = DateTime.parse(endStr);
-      final endDateOnly = DateTime(endDate.year, endDate.month, endDate.day);
-      return endDateOnly.isAtSameMomentAs(todayOnlyDate) || endDateOnly.isAfter(todayOnlyDate);
-    });
-
-    // Second filter: If booking dates are selected, the range must fit within the availability
-    if (startDate.value != null && endDate.value != null) {
-      filtered = filtered.where((avail) {
-        final startStr = avail['startDate'] ?? avail['specificDate'];
-        final endStr = avail['endDate'] ?? avail['specificDate'];
-        if (startStr == null || endStr == null) return false;
-        
-        final availStart = DateTime.parse(startStr);
-        final availEnd = DateTime.parse(endStr);
-        
-        // Remove time component for comparison
-        final bStart = DateTime(startDate.value!.year, startDate.value!.month, startDate.value!.day);
-        final bEnd = DateTime(endDate.value!.year, endDate.value!.month, endDate.value!.day);
-        final aStart = DateTime(availStart.year, availStart.month, availStart.day);
-        final aEnd = DateTime(availEnd.year, availEnd.month, availEnd.day);
-
-        return (aStart.isAtSameMomentAs(bStart) || aStart.isBefore(bStart)) &&
-               (aEnd.isAtSameMomentAs(bEnd) || aEnd.isAfter(bEnd));
-      });
+    final List<String> locations = [];
+    
+    // 1. Add home location first
+    final home = homeLocation;
+    if (home.isNotEmpty) {
+      locations.add('$home (Home)');
     }
 
-    final List<String> locations = [];
-    for (var avail in filtered) {
-      // Check showVenues (List of Strings)
+    // 2. Add locations from availability
+    for (var avail in availabilityList) {
       if (avail['showVenues'] != null && avail['showVenues'] is List) {
         locations.addAll(List<String>.from(avail['showVenues']));
       } else if (avail['showVenues'] != null && avail['showVenues'] is String && avail['showVenues'].toString().isNotEmpty) {
         locations.add(avail['showVenues'].toString());
       }
       
-      // Check location object (city, state)
       if (avail['location'] != null && avail['location'] is Map) {
         final loc = avail['location'];
         final city = loc['city']?.toString() ?? '';
@@ -148,16 +183,41 @@ class SendBookingRequestController extends GetxController {
 
     final uniqueLocations = locations.where((l) => l.isNotEmpty).toSet().toList();
     
-    // Safety check: if current value is not in uniqueLocations, and we aren't empty, 
-    // we should technically add it to items to avoid the Dropdown crash, 
-    // but a better way is to reset it in fetchAvailability or via a separate listener.
-    if (selectedLocation.value != null && !uniqueLocations.contains(selectedLocation.value)) {
-       // We'll temporarily add it to the list to prevent the crash during the build cycle
-       // before the next update triggers.
-       return [selectedLocation.value!, ...uniqueLocations];
+    return uniqueLocations.isEmpty ? ['Other'] : uniqueLocations;
+  }
+
+  // Find availability dates for a specific location
+  Map<String, DateTime?> getAllowedDatesForLocation(String? locationName) {
+    if (locationName == null || locationName.contains('(Home)') || locationName == 'Other') {
+      return {'start': null, 'end': null};
     }
 
-    return uniqueLocations.isEmpty ? ['Other'] : uniqueLocations;
+    for (var avail in availabilityList) {
+      bool match = false;
+      if (avail['showVenues'] != null) {
+        if (avail['showVenues'] is List && avail['showVenues'].contains(locationName)) match = true;
+        else if (avail['showVenues'] == locationName) match = true;
+      }
+      
+      if (!match && avail['location'] != null && avail['location'] is Map) {
+        final loc = avail['location'];
+        final city = loc['city']?.toString() ?? '';
+        final state = loc['state']?.toString() ?? '';
+        if ('$city, $state' == locationName) match = true;
+      }
+
+      if (match) {
+        final sStr = avail['startDate'] ?? avail['specificDate'];
+        final eStr = avail['endDate'] ?? avail['specificDate'];
+        if (sStr != null && eStr != null) {
+          return {
+            'start': DateTime.tryParse(sStr),
+            'end': DateTime.tryParse(eStr),
+          };
+        }
+      }
+    }
+    return {'start': null, 'end': null};
   }
 
   bool get isBraiding => selectedService.value.toLowerCase().contains('braid');
@@ -175,8 +235,8 @@ class SendBookingRequestController extends GetxController {
   }
 
   void calculatePrice() {
-    if ((!isBraiding && selectedRateType.value == null) || 
-        (isBraiding && selectedCoreServiceIds.isEmpty) || 
+    if ((!isBraiding && !isShipping && selectedRateType.value == null) || 
+        ((isBraiding || isShipping) && selectedCoreServiceIds.isEmpty) || 
         startDate.value == null || endDate.value == null || selectedNumHorses.value == null) {
       totalPrice.value = 0.0;
       return;
@@ -190,12 +250,16 @@ class SendBookingRequestController extends GetxController {
     final activeService = services.firstWhere((s) => s['serviceType'] == selectedService.value, orElse: () => null);
     final rates = activeService?['profile']?['profileData']?['rates'] ?? {};
 
-    if (isBraiding) {
+    if (isBraiding || isShipping) {
       double coreTotal = 0.0;
       for (var id in selectedCoreServiceIds) {
-        final service = coreServicesList.firstWhere((s) => s['id'] == id);
-        coreTotal += (service['price'] as double) * numHorses;
+        final service = coreServicesList.firstWhereOrNull((s) => s['id'] == id);
+        if (service != null) {
+          coreTotal += (service['price'] as double) * numHorses;
+        }
       }
+      // Note: For shipping, this is technically a per-mile rate. 
+      // Without a distance field, we treat this as the base cost or a simplified calculation.
       basePrice.value = coreTotal;
     } else {
       double rate = 0.0;
@@ -253,13 +317,58 @@ class SendBookingRequestController extends GetxController {
     }
   }
 
+  bool validateForm() {
+    if (startDate.value == null || endDate.value == null) {
+      Get.snackbar('Validation Error', 'Please select start and end dates', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return false;
+    }
+    if (selectedNumHorses.value == null) {
+      Get.snackbar('Validation Error', 'Please select number of horses', backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return false;
+    }
+
+    if (isBraiding || isClipping || isFarrier || isBodywork || isShipping) {
+      if (selectedCoreServiceIds.isEmpty) {
+        Get.snackbar('Validation Error', 'Please select at least one service/rate', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        return false;
+      }
+      
+      if (isShipping) {
+        if (selectedOrigin.value == null || selectedDestination.value == null) {
+          Get.snackbar('Validation Error', 'Please select origin and destination locations', backgroundColor: Colors.redAccent, colorText: Colors.white);
+          return false;
+        }
+      } else {
+        if (selectedLocation.value == null) {
+          Get.snackbar('Validation Error', 'Please select a location', backgroundColor: Colors.redAccent, colorText: Colors.white);
+          return false;
+        }
+      }
+    } else {
+      // General form (Grooming, etc)
+      if (selectedRateType.value == null) {
+        Get.snackbar('Validation Error', 'Please select a rate type', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        return false;
+      }
+      if (selectedLocation.value == null) {
+        Get.snackbar('Validation Error', 'Please select a location', backgroundColor: Colors.redAccent, colorText: Colors.white);
+        return false;
+      }
+    }
+    return true;
+  }
+
   void clearFormFields() {
     selectedRateType.value = null;
     startDate.value = null;
     endDate.value = null;
     selectedNumHorses.value = null;
     selectedLocation.value = null;
+    selectedOrigin.value = null;
+    selectedDestination.value = null;
     notesController.clear();
+    originController.clear();
+    destinationController.clear();
     selectedAdditionalIds.clear();
     selectedCoreServiceIds.clear();
     totalPrice.value = 0.0;
@@ -269,20 +378,15 @@ class SendBookingRequestController extends GetxController {
   }
 
   void addServiceToSummary() {
-    if ((!isBraiding && selectedRateType.value == null) || 
-        (isBraiding && selectedCoreServiceIds.isEmpty) || 
-        startDate.value == null || endDate.value == null || selectedNumHorses.value == null) {
-      Get.snackbar('Alert', 'Please complete the current service fields first', backgroundColor: Colors.orangeAccent);
-      return;
-    }
+    if (!validateForm()) return;
 
     bookedServices.add({
       'serviceType': selectedService.value,
-      'rateType': selectedRateType.value ?? (isBraiding ? 'Braiding Service' : ''),
+      'rateType': selectedRateType.value ?? (isBraiding ? 'Braiding Service' : isShipping ? 'Shipping Service' : 'Service'),
       'startDate': startDate.value,
       'endDate': endDate.value,
       'horses': selectedNumHorses.value,
-      'location': selectedLocation.value,
+      'location': isShipping ? '${selectedOrigin.value} to ${selectedDestination.value}' : selectedLocation.value,
       'notes': notesController.text,
       'additionalIds': List<String>.from(selectedAdditionalIds),
       'coreIds': List<String>.from(selectedCoreServiceIds),
@@ -293,24 +397,27 @@ class SendBookingRequestController extends GetxController {
     clearFormFields();
   }
 
-
   Future<void> sendRequest() async {
-    // If there's something in the form but not yet 'added', we might want to include it or alert
-    if (bookedServices.isEmpty && (!isBraiding ? selectedRateType.value == null : selectedCoreServiceIds.isEmpty)) {
-      Get.snackbar('Error', 'Please select at least one service', backgroundColor: Colors.redAccent, colorText: Colors.white);
+    // If there's something in the form but not yet 'added', we validate and include it
+    final currentFormValid = (startDate.value != null || selectedNumHorses.value != null || selectedCoreServiceIds.isNotEmpty || selectedRateType.value != null);
+    
+    if (bookedServices.isEmpty && !currentFormValid) {
+      Get.snackbar('Error', 'Please fill out the form or select a service', backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
-    // Combine bookedServices + current form (if not empty)
+    // Combine bookedServices + current form (if valid)
     final allBookings = List<Map<String, dynamic>>.from(bookedServices);
-    if ((!isBraiding && selectedRateType.value != null) || (isBraiding && selectedCoreServiceIds.isNotEmpty)) {
+    if (currentFormValid) {
+      if (!validateForm()) return;
+      
       allBookings.add({
         'serviceType': selectedService.value,
-        'rateType': selectedRateType.value ?? (isBraiding ? 'Braiding Service' : ''),
+        'rateType': selectedRateType.value ?? (isBraiding ? 'Braiding Service' : isShipping ? 'Shipping Service' : 'Service'),
         'startDate': startDate.value,
         'endDate': endDate.value,
         'horses': selectedNumHorses.value,
-        'location': selectedLocation.value,
+        'location': isShipping ? '${selectedOrigin.value} to ${selectedDestination.value}' : selectedLocation.value,
         'notes': notesController.text,
         'additionalIds': List<String>.from(selectedAdditionalIds),
         'coreIds': List<String>.from(selectedCoreServiceIds),
