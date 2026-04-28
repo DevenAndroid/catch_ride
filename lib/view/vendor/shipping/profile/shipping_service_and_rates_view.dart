@@ -229,12 +229,17 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
     String label2,
     String value2,
   ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
+            const SizedBox(width: 20),
+            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+          ],
+        ),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }

@@ -97,12 +97,15 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFieldLabel('Country', isRequired: true),
-          Obx(() => CommonDropdown(
-            value: widget.controller.countryController.text,
-            hint: 'Select Country',
-            options: widget.controller.countries,
-            onSelected: (val) => widget.controller.onCountrySelected(val),
-          )),
+          Obx(() {
+            final _ = widget.controller.selectedCountryCode.value;
+            return CommonDropdown(
+              value: widget.controller.countryController.text,
+              hint: 'Select Country',
+              options: widget.controller.countries,
+              onSelected: (val) => widget.controller.onCountrySelected(val),
+            );
+          }),
           const SizedBox(height: 16),
           
           _buildFieldLabel('State / Province', isRequired: true),

@@ -290,17 +290,22 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
   }
 
   Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Expanded(child: _buildDetailItem(label1, value1)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildDetailItem(label2, value2)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+          ],
+        ),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
 
-  Widget _buildDetailItem(String label, String value) {
+  Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -317,8 +322,10 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,
         ),
-        const SizedBox(height: 12),
-        const Divider(height: 1, color: AppColors.dividerColor),
+        if (showDivider) ...[
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: AppColors.dividerColor),
+        ],
       ],
     );
   }

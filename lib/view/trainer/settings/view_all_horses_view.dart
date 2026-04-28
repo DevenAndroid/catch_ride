@@ -233,8 +233,9 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12).copyWith(right: 0),
               child: Row(
+             //   crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonImageView(
                     url: userAvatar,
@@ -250,12 +251,15 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CommonText(
-                              userName,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                            Expanded(
+                              child: CommonText(
+                                userName,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Container(
@@ -290,6 +294,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     ),
                   ),
                   PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
                     icon: const Icon(
                       Icons.more_vert,
                       color: AppColors.textPrimary,
@@ -395,7 +400,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       imageCount,
                       color: Colors.white,
                       fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),*/
@@ -423,7 +428,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                           child: CommonText(
                             tag,
                             fontSize: 11,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w500,
                             color: Colors.white,
                           ),
                         ),
@@ -441,7 +446,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   CommonText(
                     postTitle,
                     fontSize: 17,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                     height: 1.3,
                   ),

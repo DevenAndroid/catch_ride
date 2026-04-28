@@ -11,6 +11,7 @@ import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:catch_ride/utils/form_utils.dart';
 
 class BodyworkApplicationView extends StatelessWidget {
   const BodyworkApplicationView({super.key});
@@ -86,13 +87,15 @@ class BodyworkApplicationView extends StatelessWidget {
                     'Home Base Location',
                     children: [
                       _buildSectionHeader('Country', isRequired: true),
-                      Obx(() => CommonDropdown(
+                      Obx(() {
+                        final _ = controller.selectedCountryCode.value;
+                        return CommonDropdown(
                         value: controller.countryController.text,
                         hint: 'Select Country',
                         options: controller.countries,
                         onSelected: (val) => controller.onCountrySelected(val),
                         validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
-                      )),
+                      );}),
                       const SizedBox(height: 16),
                       _buildSectionHeader('State / Province', isRequired: true),
                       Obx(() => CommonSuggestionField(
@@ -600,7 +603,13 @@ class BodyworkApplicationView extends StatelessWidget {
                   Obx(() => CommonButton(
                     text: 'Submit Application',
                     isLoading: controller.isSubmitting.value,
-                    onPressed: controller.submitApplication,
+                    onPressed: () {
+                      if (controller.formKey.currentState?.validate() ?? false) {
+                        controller.submitApplication();
+                      } else {
+                        FormUtility.scrollToFirstError(context);
+                      }
+                    },
                     height: 56,
                     backgroundColor: const Color(0xFF001149),
                   )),
@@ -1005,21 +1014,29 @@ class BodyworkApplicationView extends StatelessWidget {
           label: 'Full name',
           controller: controller.ref1FullNameController,
           hintText: 'Enter Full Name',
-          validator: RequiredValidator(errorText: "Please enter reference full name"),
+          validator: RequiredValidator(errorText: "Please enter reference full name").call,
         ),
         const SizedBox(height: 12),
         CommonTextField(
           label: 'Business name',
           controller: controller.ref1BusinessNameController,
           hintText: 'Enter Business Name',
-          validator: RequiredValidator(errorText: "Please enter business name"),
+          validator: RequiredValidator(errorText: "Please enter business name").call,
         ),
         const SizedBox(height: 12),
         CommonTextField(
           label: 'Relationship',
           controller: controller.ref1RelationshipController,
           hintText: 'Enter Relationship',
-          validator: RequiredValidator(errorText: "Please enter relationship"),
+          validator: RequiredValidator(errorText: "Please enter relationship").call,
+        ),
+        const SizedBox(height: 12),
+        CommonTextField(
+          label: 'Phone number',
+          controller: controller.ref1PhoneController,
+          hintText: 'Enter phone number',
+          keyboardType: TextInputType.phone,
+          validator: RequiredValidator(errorText: "Please enter phone no").call,
         ),
         const SizedBox(height: 24),
         CommonText('Trainer Reference 2', color: AppColors.secondary, fontSize: AppTextSizes.size14, fontWeight: FontWeight.normal),
@@ -1040,6 +1057,13 @@ class BodyworkApplicationView extends StatelessWidget {
           label: 'Relationship',
           controller: controller.ref2RelationshipController,
           hintText: 'Enter Relationship',
+        ),
+        const SizedBox(height: 12),
+        CommonTextField(
+          label: 'Phone number',
+          controller: controller.ref2PhoneController,
+          hintText: 'Enter phone number',
+          keyboardType: TextInputType.phone,
         ),
       ],
     );

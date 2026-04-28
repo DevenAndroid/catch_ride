@@ -60,10 +60,12 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     _bufferTime.value = _editingBlock!.bufferTime ?? '15 min';
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: isStart ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now()),
+      initialDateRange: (_startDate != null && _endDate != null)
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
@@ -81,8 +83,8 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startDate = picked;
-        else _endDate = picked;
+        _startDate = picked.start;
+        _endDate = picked.end;
       });
     }
   }
@@ -181,7 +183,7 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                   CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+               CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
                   GestureDetector(
                     onTap: () => Get.back(),
                     child: const Icon(Icons.close, color: Color(0xFF344054), size: 24),
@@ -189,7 +191,7 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
                 ],
               ),
               const SizedBox(height: 24),
-              _buildDateRow(),
+              _buildDateSection(),
               const SizedBox(height: 24),
               _buildDropdownField('Time window', _timeWindow, _timeWindowOptions),
               const SizedBox(height: 24),
@@ -210,15 +212,35 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     );
   }
 
-  Widget _buildDateRow() {
-    return Row(
+  Widget _buildDateSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _buildDatePickerField('Start Date', _startDate, () => _selectDate(context, true)),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildDatePickerField('End Date', _endDate, () => _selectDate(context, false)),
+        const CommonText('Date Range', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF344054)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(context),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(
+                  (_startDate != null && _endDate != null)
+                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      : 'Select Date Range',
+                  fontSize: 14,
+                  color: _startDate != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
+                ),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+              ],
+            ),
+          ),
         ),
       ],
     );

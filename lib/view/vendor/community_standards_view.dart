@@ -30,29 +30,29 @@ class CommunityStandardsView extends StatelessWidget {
           child: Container(color: AppColors.border, height: 1.0),
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 40.0),
-              child: Column(
-                children: [
-                  _buildCenteredSection('Show Up Reliably', 'Be on time, prepared, and consistent'),
-                  const SizedBox(height: 32),
-                  _buildCenteredSection('Communicate Professionally', 'Clear, respectful, and easy to work with'),
-                  const SizedBox(height: 32),
-                  _buildCenteredSection('Represent Your Work Honestly', 'Skills, experience, and services should be accurate and current'),
-                  const SizedBox(height: 32),
-                  _buildCenteredSection('Deliver Professional-Level Quality', 'Work should meet the standard expected at rated shows'),
-                  const SizedBox(height: 32),
-                  _buildCenteredSection('Confirm Details Upfront', 'Pricing, scope, and expectations should be agreed upon in advance'),
+      body:SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+        child: Column(
+          children: [
+            _buildCenteredSection('Show Up Reliably', 'Be on time, prepared, and consistent'),
+            const SizedBox(height: 32),
+            _buildCenteredSection('Communicate Professionally', 'Clear, respectful, and easy to work with'),
+            const SizedBox(height: 32),
+            _buildCenteredSection('Represent Your Work Honestly', 'Skills, experience, and services should be accurate and current'),
+            const SizedBox(height: 32),
+            _buildCenteredSection('Deliver Professional-Level Quality', 'Work should meet the standard expected at rated shows'),
+            const SizedBox(height: 32),
+            _buildCenteredSection('Confirm Details Upfront', 'Pricing, scope, and expectations should be agreed upon in advance'),
 
 
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 60),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SizedBox(
+        height: 140,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6.0),
             child: CommonText(
@@ -63,7 +63,7 @@ class CommunityStandardsView extends StatelessWidget {
               fontStyle: FontStyle.italic,
             ),
           ),
-          const SizedBox(height: 60),
+          const SizedBox(height: 20),
           // Bottom Button
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
@@ -75,7 +75,7 @@ class CommunityStandardsView extends StatelessWidget {
               },
             ),
           ),
-        ],
+        ],),
       ),
     );
   }

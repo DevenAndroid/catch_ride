@@ -73,55 +73,37 @@ class AddTripView extends StatelessWidget {
               _buildSectionCard(
                 title: 'Schedule',
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Obx(() => CommonTextField(
-                              label: 'Start Date',
-                              hintText: 'Select date',
-                              readOnly: true,
-                              controller: TextEditingController(
-                                text: controller.rxStartDate.value != null
-                                    ? DateFormat('MMM dd, yyyy').format(controller.rxStartDate.value!)
-                                    : '',
+                  Obx(() => CommonTextField(
+                        label: 'Date Range',
+                        hintText: 'Select date range',
+                        readOnly: true,
+                        controller: TextEditingController(
+                          text: (controller.rxStartDate.value != null && controller.rxEndDate.value != null)
+                              ? '${DateFormat('MMM dd').format(controller.rxStartDate.value!)} - ${DateFormat('MMM dd, yyyy').format(controller.rxEndDate.value!)}'
+                              : '',
+                        ),
+                        suffixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
+                        onTap: () async {
+                          final picked = await showDateRangePicker(
+                            context: context,
+                            initialDateRange: (controller.rxStartDate.value != null && controller.rxEndDate.value != null)
+                                ? DateTimeRange(start: controller.rxStartDate.value!, end: controller.rxEndDate.value!)
+                                : null,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2030),
+                            builder: (context, child) => Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(primary: AppColors.primary),
                               ),
-                              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
-                              onTap: () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: DateTime.now(),
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime(2030),
-                                );
-                                if (date != null) controller.rxStartDate.value = date;
-                              },
-                            )),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Obx(() => CommonTextField(
-                              label: 'End Date',
-                              hintText: 'Select date',
-                              readOnly: true,
-                              controller: TextEditingController(
-                                text: controller.rxEndDate.value != null
-                                    ? DateFormat('MMM dd, yyyy').format(controller.rxEndDate.value!)
-                                    : '',
-                              ),
-                              suffixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
-                              onTap: () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: controller.rxStartDate.value ?? DateTime.now(),
-                                  firstDate: controller.rxStartDate.value ?? DateTime.now(),
-                                  lastDate: DateTime(2030),
-                                );
-                                if (date != null) controller.rxEndDate.value = date;
-                              },
-                            )),
-                      ),
-                    ],
-                  ),
+                              child: child!,
+                            ),
+                          );
+                          if (picked != null) {
+                            controller.rxStartDate.value = picked.start;
+                            controller.rxEndDate.value = picked.end;
+                          }
+                        },
+                      )),
                 ],
               ),
               const SizedBox(height: 16),

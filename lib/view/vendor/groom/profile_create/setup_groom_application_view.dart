@@ -9,8 +9,10 @@ import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:catch_ride/widgets/common_dropdown.dart';
 import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:catch_ride/utils/form_utils.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 class SetupGroomApplicationView extends StatelessWidget {
@@ -83,13 +85,17 @@ class SetupGroomApplicationView extends StatelessWidget {
                   'Home Base Location',
                   children: [
                     _buildSectionHeader('Country', isRequired: true),
-                    Obx(() => CommonDropdown(
-                      value: controller.countryController.text,
-                      hint: 'Select Country',
-                      options: controller.countries,
-                      onSelected: (val) => controller.onCountrySelected(val),
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
-                    )),
+                    Obx(() {
+                      // Trigger rebuild when country code changes
+                      final _ = controller.selectedCountryCode.value;
+                      return CommonDropdown(
+                        value: controller.countryController.text,
+                        hint: 'Select Country',
+                        options: controller.countries,
+                        onSelected: (val) => controller.onCountrySelected(val),
+                        validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
+                      );
+                    }),
                     const SizedBox(height: 16),
 
                     _buildSectionHeader('State/Province', isRequired: true),
@@ -335,7 +341,13 @@ class SetupGroomApplicationView extends StatelessWidget {
                   child: CommonButton(
                     text: 'Submit Application',
                     isLoading: controller.isSubmitting.value,
-                    onPressed: controller.submitApplication,
+                    onPressed: () {
+                      if (controller.formKey.currentState?.validate() ?? false) {
+                        controller.submitApplication();
+                      } else {
+                        FormUtility.scrollToFirstError(context);
+                      }
+                    },
                     height: 56,
                     backgroundColor: AppColors.primaryDark,
                   ),
@@ -401,25 +413,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdown({String? value, required List<String> options, required Function(String?) onChanged, required String hint}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          hint: CommonText(hint, color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-          isExpanded: true,
-          items: options.map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildBottomTrigger({String? value, required String hint, required VoidCallback? onTap, bool isLoading = false}) {
     return GestureDetector(
@@ -459,81 +453,6 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  void _showLocationBottomSheet({
-    required BuildContext context,
-    required String title,
-    required List<Map<String, dynamic>> options,
-    required Function(Map<String, dynamic>) onSelected,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(
-                    title,
-                    fontSize: AppTextSizes.size18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final item = options[index];
-                      return InkWell(
-                        onTap: () {
-                          onSelected(item);
-                          Navigator.pop(ctx);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
-                          ),
-                          child: CommonText(
-                            item['name'] ?? '',
-                            fontSize: AppTextSizes.size16,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _showExperienceBottomSheet({
     required BuildContext context,
@@ -722,41 +641,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildMultiSelectDropdown({required List<String> options, required List<String> selectedItems, required String hint, required Function(String) onToggle}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (selectedItems.isEmpty)
-            CommonText(hint, color: AppColors.textSecondary, fontSize: AppTextSizes.size14)
-          else
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: selectedItems.map((item) => Chip(
-                label: CommonText(item, fontSize: AppTextSizes.size12),
-                onDeleted: () => onToggle(item),
-                visualDensity: VisualDensity.compact,
-              )).toList(),
-            ),
-          const Divider(),
-          ...options.map((opt) => CheckboxListTile(
-            title: CommonText(opt, fontSize: AppTextSizes.size14),
-            value: selectedItems.contains(opt),
-            onChanged: (val) => onToggle(opt),
-            controlAffinity: ListTileControlAffinity.trailing,
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-          )),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildPhotoGrid(SetupGroomApplicationController controller) {
     return SingleChildScrollView(
@@ -822,6 +707,7 @@ class SetupGroomApplicationView extends StatelessWidget {
     final nameCtrl = number == 1 ? controller.ref1FullNameController : controller.ref2FullNameController;
     final busCtrl = number == 1 ? controller.ref1BusinessNameController : controller.ref2BusinessNameController;
     final relCtrl = number == 1 ? controller.ref1RelationshipController : controller.ref2RelationshipController;
+    final phoneCtrl = number == 1 ? controller.ref1PhoneController : controller.ref2PhoneController;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -829,21 +715,36 @@ class SetupGroomApplicationView extends StatelessWidget {
         CommonText('Trainer Reference $number', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
         const SizedBox(height: 12),
         CommonTextField(
-           label: 'Full Name',
-           controller: nameCtrl, 
-           hintText: 'Enter full name'
+          label: 'Full Name',
+          controller: nameCtrl,
+          hintText: 'Enter Full Name',
+          isRequired: number == 1 ,
+          validator:  number == 1 ? RequiredValidator(errorText: "Please enter reference full name").call:null,
         ),
         const SizedBox(height: 16),
         CommonTextField(
-           label: 'Business Name',
-           controller: busCtrl, 
-           hintText: 'Enter business name'
+          label: 'Business Name',
+          controller: busCtrl,
+          hintText: 'Enter Business Name',
+          isRequired: number == 1 ,
+          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter business name").call:null,
         ),
         const SizedBox(height: 16),
         CommonTextField(
-           label: 'Relationship',
-           controller: relCtrl, 
-           hintText: 'Enter relationship name' // Placeholder matching screenshot precisely
+          label: 'Relationship',
+          controller: relCtrl,
+          hintText: 'Enter Relationship Name' ,
+          isRequired: number == 1 ,
+          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter relationship").call:null,
+        ),
+        const SizedBox(height: 16),
+        CommonTextField(
+            label: 'Phone Number',
+            controller: phoneCtrl,
+            hintText: 'Enter phone number',
+            keyboardType: TextInputType.phone,
+            isRequired: number == 1 ,
+            validator:  number == 1 ? RequiredValidator(errorText: "Please enter phone no").call:null
         ),
       ],
     );

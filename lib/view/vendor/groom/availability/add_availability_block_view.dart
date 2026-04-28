@@ -7,6 +7,8 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../controllers/profile_controller.dart';
+import '../../../../controllers/google_api_controller.dart';
+import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
 import '../../../../models/vendor_availability_model.dart';
 
 class AddAvailabilityBlockView extends StatefulWidget {
@@ -19,6 +21,8 @@ class AddAvailabilityBlockView extends StatefulWidget {
 class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   final controller = Get.put(VendorAvailabilityController());
   final profileController = Get.put(ProfileController());
+  final googleApiController = Get.put(GoogleApiController());
+  final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
 
   late int _categoryIndex;
   late String _categoryName;
@@ -141,17 +145,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   }
 
   List<String> get _availableServiceTypes {
-    return ['Hunter Braiding Mane', 'Jumper Braiding'];
+    return ['Hunter Mane + Tail', 'Hunter Tail Only',"Fullbody Clip","Hunter Clip","Trace Clip","Custom Clip"];
   }
 
   final RxList<String> _selectedWorkTypes = <String>[].obs;
   final RxList<String> _selectedServiceTypes = <String>[].obs;
 
-  Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: isStart ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now()),
-      firstDate: DateTime.now().subtract(const Duration(days: 365)), // Allow past for edit
+      initialDateRange: (_startDate != null && _endDate != null)
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
@@ -168,8 +174,8 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startDate = picked;
-        else _endDate = picked;
+        _startDate = picked.start;
+        _endDate = picked.end;
       });
     }
   }
@@ -235,7 +241,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       } else {
         await controller.createAvailabilityBlock(payload);
       }
-      
+      groomController.fetchProfile();
       Get.back();
       Get.snackbar('Success', _editingBlock != null ? 'Availability block updated' : 'Availability block created', backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
@@ -395,14 +401,34 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   }
 
   Widget _buildDateSection() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: _buildDateField('Start Date', _startDate, () => _selectDate(context, true)),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildDateField('End Date', _endDate, () => _selectDate(context, false)),
+        _buildSectionHeader('Date Range'),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(context),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(
+                  (_startDate != null && _endDate != null)
+                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      : 'Select Date Range',
+                  fontSize: 14,
+                  color: _startDate != null ? AppColors.textPrimary : const Color(0xFF667085),
+                ),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -508,8 +534,6 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
   void _showVenueSelectionSheet() {
     final searchController = TextEditingController();
-    
-    // Deduplicate venues by display name before showing the list
     final seenNames = <String>{};
     final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
       final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
@@ -519,6 +543,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     }).toList();
 
     final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
+    final RxList<dynamic> googleSuggestions = googleApiController.googleSuggestions;
     
     Get.bottomSheet(
       Container(
@@ -530,7 +555,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
+                const CommonText('Select Venue or City', fontSize: 18, fontWeight: FontWeight.bold),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
               ],
             ),
@@ -544,42 +569,103 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               ),
               onChanged: (val) {
                 final search = val.toLowerCase();
+                
+                // Search in local venues
                 filteredVenues.assignAll(allVenues.where((v) {
                   final name = v['name']?.toString().toLowerCase() ?? '';
                   final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
                   final city = v['city']?.toString().toLowerCase() ?? '';
                   return name.contains(search) || showVenue.contains(search) || city.contains(search);
                 }).toList());
+
+                // Search in Google Places for cities
+                if (val.length > 2) {
+                  googleApiController.searchGooglePlaces(val);
+                } else {
+                  googleApiController.googleSuggestions.clear();
+                }
               },
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: Obx(() => ListView.builder(
-                itemCount: filteredVenues.length,
-                itemBuilder: (context, index) {
-                  final venueItem = filteredVenues[index];
-                  // Prioritize 'showVenue' key as requested, then 'name'
-                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
-                  final city = venueItem['city']?.toString() ?? '';
-                  
-                  return Obx(() {
-                    final isSelected = _addedVenues.contains(venueName);
-                    return CheckboxListTile(
-                      value: isSelected,
-                      onChanged: (selected) {
-                        if (selected == true) {
-                          if (!_addedVenues.contains(venueName)) _addedVenues.add(venueName);
-                        } else {
-                          _addedVenues.remove(venueName);
-                        }
-                      },
-                      title: CommonText(venueName),
-                      subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
-                      activeColor: const Color(0xFF030D3B),
-                    );
-                  });
-                },
-              )),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Google Suggestions (Cities)
+                    Obx(() {
+                      if (googleSuggestions.isEmpty) return const SizedBox.shrink();
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 16, bottom: 8),
+                            child: CommonText('Cities', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                          ),
+                          ...googleSuggestions.map((g) {
+                            final name = g['name'] ?? '';
+                            return Obx(() {
+                              final isSelected = _addedVenues.contains(name);
+                              return CheckboxListTile(
+                                value: isSelected,
+                                onChanged: (selected) {
+                                  if (selected == true) {
+                                    if (!_addedVenues.contains(name)) _addedVenues.add(name);
+                                  } else {
+                                    _addedVenues.remove(name);
+                                  }
+                                },
+                                title: CommonText(name),
+                                activeColor: const Color(0xFF030D3B),
+                              );
+                            });
+                          }).toList(),
+                          const Divider(),
+                        ],
+                      );
+                    }),
+
+                    // Local Venues
+                    Obx(() {
+                      if (filteredVenues.isEmpty) {
+                        return const Center(child: Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: CommonText('No venues found'),
+                        ));
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 16, bottom: 8),
+                            child: CommonText('Venues', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                          ),
+                          ...filteredVenues.map((venueItem) {
+                            final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
+                            final city = venueItem['city']?.toString() ?? '';
+                            return Obx(() {
+                              final isSelected = _addedVenues.contains(venueName);
+                              return CheckboxListTile(
+                                value: isSelected,
+                                onChanged: (selected) {
+                                  if (selected == true) {
+                                    if (!_addedVenues.contains(venueName)) _addedVenues.add(venueName);
+                                  } else {
+                                    _addedVenues.remove(venueName);
+                                  }
+                                },
+                                title: CommonText(venueName),
+                                subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
+                                activeColor: const Color(0xFF030D3B),
+                              );
+                            });
+                          }).toList(),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             SizedBox(

@@ -114,8 +114,8 @@ class _BarnManagerHorseListingViewState
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('🐴', style: TextStyle(fontSize: 72)),
-                          const SizedBox(height: 20),
+                          // const Text('🐴', style: TextStyle(fontSize: 72)),
+                          // const SizedBox(height: 20),
                           const CommonText(
                             'No horses found',
                             fontSize: 22,

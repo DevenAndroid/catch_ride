@@ -319,14 +319,16 @@ class _HorseListingViewState extends State<HorseListingView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
+
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12).copyWith(right: 0),
             child: Row(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CommonImageView(
                   url: userAvatar,
-                  height: 40,
-                  width: 40,
+                  height: 48,
+                  width: 48,
                   shape: BoxShape.circle,
                   isUserImage: true,
                 ),
@@ -337,12 +339,15 @@ class _HorseListingViewState extends State<HorseListingView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CommonText(
-                            userName,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                          Expanded(
+                            child: CommonText(
+                              userName,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Container(
@@ -367,6 +372,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 1),
                       CommonText(
                         timePosted,
                         fontSize: 12,
@@ -376,9 +382,11 @@ class _HorseListingViewState extends State<HorseListingView> {
                   ),
                 ),
                 PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
                   icon: const Icon(
                     Icons.more_vert,
                     color: AppColors.textPrimary,
+                    size: 22,
                   ),
                   onSelected: (value) async {
                     if (value == 'edit') {

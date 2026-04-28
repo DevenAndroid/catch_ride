@@ -288,6 +288,7 @@ class ShippingApplicationController extends GetxController {
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'references': referenceControllers.map((r) => {
           'fullName': r.fullName.text,
+          'businessName': r.businessName.text,
           'relationship': r.relationship.text,
           'phone': r.phone.text,
         }).toList(),
@@ -374,11 +375,13 @@ class ShippingApplicationController extends GetxController {
 
 class ReferenceController {
   final fullName = TextEditingController();
+  final businessName = TextEditingController();
   final relationship = TextEditingController();
   final phone = TextEditingController();
 
   void dispose() {
     fullName.dispose();
+    businessName.dispose();
     relationship.dispose();
     phone.dispose();
   }

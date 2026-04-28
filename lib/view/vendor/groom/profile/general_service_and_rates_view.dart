@@ -213,12 +213,17 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
   }
 
   Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
       children: [
-        Expanded(child: _buildDetailItem(label1, value1)),
-        const SizedBox(width: 20),
-        Expanded(child: _buildDetailItem(label2, value2)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
+            const SizedBox(width: 20),
+            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+          ],
+        ),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
@@ -227,14 +232,15 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
     return _buildDetailItem(label, value);
   }
 
-  Widget _buildDetailItem(String label, String value) {
+  Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
         const SizedBox(height: 6),
         CommonText(value, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        const Divider(height: 24, color: AppColors.dividerColor),
+        if (showDivider)
+          const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
