@@ -830,13 +830,7 @@ class AuthController extends GetxController {
           Get.offAll(() => const SelectRoleView());
         }
       } else if (role == 'barn_manager') {
-        if (isProfileApprove) {
-          Get.offAll(() => const BarnManagerBottomNav());
-        } else if (isProfileSetup) {
-          Get.offAll(() => const BarnManagerApplicationSubmittedView());
-        } else {
-          Get.offAll(() => const BarnManagerCreateProfileView());
-        }
+        Get.offAll(() => const BarnManagerCreateProfileView());
       } else if (role == 'service_provider') {
         if (isProfileCompleted) {
           // Final stage: Dashboard
@@ -914,6 +908,8 @@ class AuthController extends GetxController {
 
       if (response.statusCode == 200) {
         debugPrint('Barn Manager application submitted.');
+        final data = response.body['data'];
+        currentUser.value = UserModel.fromJson(data);
         Get.offAll(() => const BarnManagerApplicationSubmittedView());
       } else {
         String message =
