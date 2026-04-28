@@ -324,11 +324,10 @@ class ChatController extends GetxController {
 
   void _handleIncomingMessage(ChatMessage message) {
     if (message.conversationId == activeConversationId.value) {
-      // 1. Check if ID already exists (common if we get double-emitted or if _handleSentConfirmation already replaced it)
+      // 1. Check if ID already exists
       bool exists = currentMessages.any((m) => m.id == message.id);
 
-      // 2. For the SENDER: check if we have a matching optimistic message (same content)
-      // that is still in "temp" status. Replace it to avoid flickering.
+      // 2. For the SENDER: check for matching optimistic message
       final String currentUserId = _authController.currentUser.value?.id ?? '';
       if (!exists && message.senderId == currentUserId) {
         final optimisticIndex = currentMessages.indexWhere(
@@ -349,16 +348,37 @@ class ChatController extends GetxController {
       });
     }
 
-    // Update conversation list item
+    // --- REAL-TIME INBOX UPDATE (In-place) ---
     final index = conversations.indexWhere(
       (c) => c.conversationId == message.conversationId,
     );
+    
+    final bool isMe = message.senderId == (_authController.currentUser.value?.id ?? '');
+
     if (index != -1) {
-      // Move to top and update last message
-      // Note: In a real app, you'd likely want to refresh the conversation list or update the object
-      fetchConversations(); // Simplest way to keep sync for now
+      // Update existing conversation item
+      final old = conversations.removeAt(index);
+      final updated = ChatConversation(
+        id: old.id,
+        conversationId: old.conversationId,
+        otherUser: old.otherUser,
+        lastMessage: message.content,
+        date: message.timestamp,
+        unread: isMe ? old.unread : (old.unread + 1),
+        status: message.status ?? old.status,
+        senderId: message.senderId,
+        booking: old.booking,
+        pinned: old.pinned,
+        label: old.label,
+      );
+      
+      // Insert at the top
+      conversations.insert(0, updated);
+      conversations.refresh();
     } else {
-      fetchConversations(); // New conversation appeared
+      // New conversation appeared - if it's the first message, we might need 
+      // one refresh to get the full "otherUser" object details from server
+      fetchConversations();
     }
   }
 
