@@ -52,13 +52,7 @@ class SendBookingRequestView extends StatelessWidget {
                 return _buildForm(controller);
               }),
 
-              Obx(() => (controller.isBraiding || controller.isClipping || controller.isFarrier || controller.isBodywork || controller.isShipping) ? const SizedBox.shrink() : const SizedBox(height: 24)),
-              Obx(() => (controller.isBraiding || controller.isClipping || controller.isFarrier || controller.isBodywork || controller.isShipping) ? const SizedBox.shrink() : _buildAdditionalServices(controller)),
-              const SizedBox(height: 12),
-              _buildAddServiceButton(controller),
-              const SizedBox(height: 24),
-              _buildSendButton(controller),
-              const SizedBox(height: 40),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -329,13 +323,17 @@ class SendBookingRequestView extends StatelessWidget {
         // Start Date and End Date
         Row(
           children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
             const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
           ],
         ),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Braider', 'Add a note for the service provider...', controller.notesController),
+        const SizedBox(height: 24),
+        _buildAddServiceButton(controller),
+        const SizedBox(height: 24),
+        _buildSendButton(controller),
       ],
     );
   }
@@ -398,13 +396,17 @@ class SendBookingRequestView extends StatelessWidget {
         // Start Date and End Date
         Row(
           children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
             const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
           ],
         ),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Clipping Service', 'Add a note for the service provider...', controller.notesController),
+        const SizedBox(height: 24),
+        _buildAddServiceButton(controller),
+        const SizedBox(height: 24),
+        _buildSendButton(controller),
       ],
     );
   }
@@ -467,13 +469,17 @@ class SendBookingRequestView extends StatelessWidget {
         // Start Date and End Date
         Row(
           children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
             const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
           ],
         ),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Farrier', 'Add a note for the service provider...', controller.notesController),
+        const SizedBox(height: 24),
+        _buildAddServiceButton(controller),
+        const SizedBox(height: 24),
+        _buildSendButton(controller),
       ],
     );
   }
@@ -545,13 +551,17 @@ class SendBookingRequestView extends StatelessWidget {
         // Start Date and End Date
         Row(
           children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
             const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
           ],
         ),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Bodywork Specialist', 'Add a note for the service provider...', controller.notesController),
+        const SizedBox(height: 24),
+        _buildAddServiceButton(controller),
+        const SizedBox(height: 24),
+        _buildSendButton(controller),
       ],
     );
   }
@@ -670,21 +680,20 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
         const SizedBox(height: 20),
         // Origin Location
-        _buildTextFieldWithLabel('Origin Location', 'Enter Location', controller.notesController),
-        const SizedBox(height: 20),
+        Obx(() => _buildDropdownField('Origin Location', 'Select Origin', controller.availableLocations, controller.selectedOrigin, isLoading: controller.isLoadingAvailability.value)),
+        const SizedBox(height: 16),
         // Destination Location
-        _buildTextFieldWithLabel('Destination location', 'Enter Location', controller.notesController),
-        const SizedBox(height: 20),
-        // Start Date and End Date
-        Row(
-          children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
-          ],
-        ),
-        const SizedBox(height: 20),
+        Obx(() => _buildDropdownField('Destination Location', 'Select Destination', controller.availableLocations, controller.selectedDestination, isLoading: controller.isLoadingAvailability.value)),
+        const SizedBox(height: 16),
+        _buildDateField('Start Date', 'Select Date', controller.startDate, controller, locationObs: controller.selectedOrigin),
+        const SizedBox(height: 16),
+        _buildDateField('End Date', 'Select Date', controller.endDate, controller, locationObs: controller.selectedOrigin),
+        const SizedBox(height: 16),
         _buildTextField('Notes To Your Shipper', 'Add a note for the service provider...', controller.notesController),
+        const SizedBox(height: 24),
+        _buildAddServiceButton(controller),
+        const SizedBox(height: 24),
+        _buildSendButton(controller),
       ],
     );
   }
@@ -697,9 +706,9 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 20),
         Row(
           children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate)),
+            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
             const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate)),
+            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
           ],
         ),
         const SizedBox(height: 20),
@@ -719,6 +728,12 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 20),
         _buildTextField('Notes to your Groom', 'Add a note for the service provider...', controller.notesController),
+        const SizedBox(height: 24),
+        _buildAdditionalServices(controller),
+        const SizedBox(height: 24),
+        _buildAddServiceButton(controller),
+        const SizedBox(height: 24),
+        _buildSendButton(controller),
       ],
     );
   }
@@ -791,7 +806,7 @@ class SendBookingRequestView extends StatelessWidget {
     );
   }
 
-  Widget _buildDateField(String label, String hint, Rxn<DateTime> dateObs) {
+  Widget _buildDateField(String label, String hint, Rxn<DateTime> dateObs, SendBookingRequestController controller, {RxnString? locationObs}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -799,11 +814,41 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 8),
         Obx(() => GestureDetector(
           onTap: () async {
+            final allowedDates = controller.getAllowedDatesForLocation(locationObs?.value ?? controller.selectedLocation.value);
+            final DateTime now = DateTime.now();
+            final DateTime today = DateTime(now.year, now.month, now.day);
+            
+            DateTime first = allowedDates['start'] ?? today;
+            DateTime last = allowedDates['end'] ?? today.add(const Duration(days: 365));
+
+            // Adjust firstDate if it's in the past
+            if (first.isBefore(today)) {
+              first = today;
+            }
+
+            // Adjust initialDate to be valid
+            DateTime initial = dateObs.value ?? first;
+            if (initial.isBefore(first)) initial = first;
+            if (initial.isAfter(last)) initial = first;
+
             final date = await showDatePicker(
               context: Get.context!,
-              initialDate: dateObs.value ?? DateTime.now(),
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
+              initialDate: initial,
+              firstDate: first,
+              lastDate: last.isBefore(first) ? first.add(const Duration(days: 1)) : last,
+              selectableDayPredicate: (DateTime day) {
+                if (allowedDates['start'] == null) {
+                  // Home or Other: only prevent past dates
+                  return !day.isBefore(today);
+                }
+                
+                final dateOnly = DateTime(day.year, day.month, day.day);
+                final sOnly = DateTime(first.year, first.month, first.day);
+                final eOnly = DateTime(last.year, last.month, last.day);
+                
+                return (dateOnly.isAtSameMomentAs(sOnly) || dateOnly.isAfter(sOnly)) &&
+                       (dateOnly.isAtSameMomentAs(eOnly) || dateOnly.isBefore(eOnly));
+              },
             );
             if (date != null) dateObs.value = date;
           },
@@ -837,20 +882,27 @@ class SendBookingRequestView extends StatelessWidget {
       children: [
         CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE4E7EC)),
-          ),
-          child: TextField(
-            controller: controller,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
-              border: InputBorder.none,
+        TextFormField(
+          controller: controller,
+          maxLines: 3,
+          style: const TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
+            contentPadding: const EdgeInsets.all(16),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
           ),
         ),
@@ -864,18 +916,26 @@ class SendBookingRequestView extends StatelessWidget {
       children: [
         CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE4E7EC)),
-          ),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
-              border: InputBorder.none,
+        TextFormField(
+          controller: fieldController,
+          style: const TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
           ),
         ),

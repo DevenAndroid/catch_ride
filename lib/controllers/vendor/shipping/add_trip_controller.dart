@@ -11,6 +11,9 @@ class AddTripController extends GetxController {
   // Route Details
   final originController = TextEditingController();
   final destinationController = TextEditingController();
+  final originFocusNode = FocusNode();
+  final destinationFocusNode = FocusNode();
+  final intermediateStopFocusNode = FocusNode();
   final rxDestinationTags = <String>[].obs;
   TripModel? editingTrip;
 
