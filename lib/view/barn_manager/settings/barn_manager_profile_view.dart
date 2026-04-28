@@ -224,7 +224,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                               l1.isNotEmpty &&
                                               l2 != null &&
                                               l2.isNotEmpty) {
-                                            return "$l1 | $l2";
+                                            return "$l1\u00A0|\u00A0$l2";
                                           }
                                           if (l1?.isNotEmpty ?? false)
                                             return l1!;
@@ -253,32 +253,33 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                 Wrap(
                                   crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    CommonText(
-                                      'Barn Manager',
-                                      fontSize: 15,
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    if (_controller
-                                        .yearsInIndustry
-                                        .isNotEmpty) ...[
-                                      const Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6.0,
-                                        ),
-                                        child: CommonText(
-                                          "·",
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CommonText(
+                                          'Barn Manager',
+                                          fontSize: 15,
                                           color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.bold,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                      ),
+                                        if (_controller.yearsInIndustry.isNotEmpty)
+                                          const Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 6.0),
+                                            child: CommonText(
+                                              "·",
+                                              color: AppColors.textSecondary,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    if (_controller.yearsInIndustry.isNotEmpty)
                                       CommonText(
                                         '${_controller.yearsInIndustry}+ Years',
                                         fontSize: 15,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                    ],
                                   ],
                                 ),
                               ],
@@ -387,7 +388,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                                             l1.isNotEmpty &&
                                                             l2 != null &&
                                                             l2.isNotEmpty) {
-                                                          return "$l1 | $l2";
+                                                          return "$l1\u00A0|\u00A0$l2";
                                                         }
                                                         final String finalLoc =
                                                             (l1?.isNotEmpty ??
@@ -506,12 +507,12 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
           ...filteredTags.entries.map((entry) {
             final isLast =
                 filteredTags.keys.last == entry.key && horseShows.isEmpty;
-            return _buildInfoRow(entry.key, entry.value.join(" · "), !isLast);
+            return _buildInfoRow(entry.key, entry.value.join("\u00A0· "), !isLast);
           }).toList(),
           if (horseShows.isNotEmpty)
             _buildInfoRow(
               'Horse Shows & Circuits Frequented',
-              horseShows.join(" · "),
+              horseShows.join("\u00A0· "),
               false,
             ),
         ],

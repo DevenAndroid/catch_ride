@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../controllers/explore_controller.dart';
 import '../../../controllers/google_api_controller.dart';
+import '../../../controllers/profile_controller.dart';
 
 class SearchFilterOverlay extends StatefulWidget {
   const SearchFilterOverlay({super.key});
@@ -18,6 +19,7 @@ class SearchFilterOverlay extends StatefulWidget {
 
 class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   final ExploreController controller = Get.put(ExploreController());
+  final ProfileController profileController = Get.find<ProfileController>();
   final TextEditingController _searchController = TextEditingController();
   final  googleApiController = Get.put(GoogleApiController());
 
@@ -336,10 +338,15 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 final isSearching = _searchController.text.isNotEmpty;
 
                 if (isShowVenue) {
-                  var list = (isSearching
-                          ? controller.venuesSuggestions
-                          : controller.defaultVenues)
-                      .toList();
+                  final query = _searchController.text.toLowerCase();
+                  final list = isSearching
+                      ? profileController.rawHorseShows.where((show) {
+                          final name = (show['name'] ?? '').toString().toLowerCase();
+                          final venue = (show['showVenue'] ?? '').toString().toLowerCase();
+                          final circuit = (show['circuit'] ?? '').toString().toLowerCase();
+                          return name.contains(query) || venue.contains(query) || circuit.contains(query);
+                        }).toList()
+                      : profileController.rawHorseShows.take(10).toList();
 
                   final bool hasMore = list.length > 3;
                   final displayList =
@@ -349,7 +356,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       child: CommonText(
-                        isSearching ? 'No venues found' : 'Loading venues...',
+                        isSearching ? 'No venues found' : 'No venues available',
                         fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
@@ -359,11 +366,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ...displayList.map(
-                        (v) => _buildLocationItem(
-                          v['name'] ?? '',
-                          isVenue: true,
-                          subtitle: v['subtitle'],
-                        ),
+                        (v) => _buildShowVenueItem(v),
                       ),
                       if (hasMore && !_showAllVenues)
                         GestureDetector(
@@ -434,6 +437,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                           );
                         }),
                       ],
+                      if(!isSearching)
                       ...displayList.map(
                           (l) => _buildLocationItem(l['name'] ?? '')),
                       if (hasMore && !_showAllLocations)
@@ -716,6 +720,73 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 ? AppColors.textPrimary
                 : AppColors.textSecondary.withOpacity(0.6),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShowVenueItem(Map<String, dynamic> show) {
+    final name = show['name'] ?? '';
+    final venueName = show['showVenue'] ?? 'Unknown Venue';
+    final city = show['city'] ?? '';
+    final state = show['state'] ?? '';
+    final country = show['country'] ?? '';
+
+    String dateRange = '';
+    try {
+      if (show['startDate'] != null && show['endDate'] != null) {
+        final start = DateTime.parse(show['startDate']);
+        final end = DateTime.parse(show['endDate']);
+        final df = DateFormat('MMM d');
+        final dfYear = DateFormat('yyyy');
+        dateRange = '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
+      }
+    } catch (_) {}
+
+    return GestureDetector(
+      onTap: () {
+        controller.showVenue.value = name;
+        controller.location.value = '';
+        controller.regionsCovered.clear();
+        _searchController.clear();
+        _onSearchPressed();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.lightGray.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.near_me_rounded,
+                size: 16,
+                color: AppColors.textSecondary.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonText(
+                    name,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 4),
+                  CommonText(
+                    '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country • $dateRange',
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

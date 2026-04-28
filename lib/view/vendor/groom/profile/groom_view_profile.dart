@@ -174,7 +174,28 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                 ],
               ),
               const SizedBox(height: 4),
-              Obx(() => CommonText('${groomController.activeServiceType}  •  ${groomController.experienceStr.value}', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+              Obx(() {
+                final serviceType = groomController.activeServiceType;
+                final experience = groomController.experienceStr.value;
+                return Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CommonText(serviceType, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                        if (experience.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          const CommonText('•', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                    if (experience.isNotEmpty)
+                      CommonText(experience, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  ],
+                );
+              }),
             ],
           ),
         ),

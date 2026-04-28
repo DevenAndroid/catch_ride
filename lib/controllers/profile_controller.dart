@@ -81,9 +81,36 @@ class ProfileController extends GetxController {
       }
       if (results[1].statusCode == 200) {
         final List data = results[1].body['data'] ?? [];
-        allHorseShows.assignAll(data.map((e) => e['name'] as String).toList());
-        rawHorseShows.assignAll(
-          data.map((e) => e as Map<String, dynamic>).toList(),
+        final now = DateTime.now();
+        
+        // Filter out past shows and sort by start date
+        final filteredAndSorted = data.map((e) => e as Map<String, dynamic>).where((show) {
+          if (show['endDate'] == null) return true;
+          try {
+            final endDate = DateTime.parse(show['endDate'].toString());
+            // Keep shows that end today or in the future
+            return endDate.isAfter(now) || 
+                   (endDate.year == now.year && endDate.month == now.month && endDate.day == now.day);
+          } catch (e) {
+            return true; // Keep if date is unparseable to avoid losing data
+          }
+        }).toList();
+
+        filteredAndSorted.sort((a, b) {
+          if (a['startDate'] == null) return 1;
+          if (b['startDate'] == null) return -1;
+          try {
+            final dateA = DateTime.parse(a['startDate'].toString());
+            final dateB = DateTime.parse(b['startDate'].toString());
+            return dateA.compareTo(dateB);
+          } catch (e) {
+            return 0;
+          }
+        });
+
+        rawHorseShows.assignAll(filteredAndSorted);
+        allHorseShows.assignAll(
+          filteredAndSorted.map((e) => e['name'] as String).toList(),
         );
       }
       if (results[2].statusCode == 200) {

@@ -140,9 +140,22 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
             Positioned(
               top: 40,
               left: 10,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
-                onPressed: () => Get.back(),
+              child:   GestureDetector(
+                onTap: (){
+                  Get.back();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    size: 24,
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ),
             Positioned(
@@ -183,12 +196,28 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                 ],
               ),
               const SizedBox(height: 4),
-              Obx(() => CommonText(
-                '${controller.availableServices.isNotEmpty ? controller.availableServices[controller.selectedTabIndex.value] : ''}  •  ${controller.experienceStr} Years', 
-                fontSize: AppTextSizes.size14, 
-                color: AppColors.textSecondary, 
-                fontWeight: FontWeight.w600
-              )),
+              Obx(() {
+                final serviceType = controller.availableServices.isNotEmpty ? controller.availableServices[controller.selectedTabIndex.value] : '';
+                final experience = controller.experienceStr;
+                return Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CommonText(serviceType, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                        if (experience.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          const CommonText('•', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                          const SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                    if (experience.isNotEmpty)
+                      CommonText('$experience Years', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                  ],
+                );
+              }),
             ],
           ),
         ),

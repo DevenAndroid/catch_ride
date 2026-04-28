@@ -588,33 +588,33 @@ class ExploreController extends GetxController {
     googleApiController.searchGooglePlaces(query);
 
     //isSuggestionsLoading.value = true;
-    try {
-      final response = await _apiService.getRequest(
-        AppUrls.horseShows,
-        query: {'search': query, 'limit': '10'},
-      );
-
-      if (response.statusCode == 200) {
-        final List data = response.body['data'] ?? [];
-        final List<Map<String, String>> suggestions = [];
-
-        for (var item in data) {
-          final city = item['city'] ?? '';
-          final state = item['state'] ?? '';
-          if (city.isNotEmpty && state.isNotEmpty) {
-            final name = "$city, $state";
-            if (!suggestions.any((s) => s['name'] == name)) {
-              suggestions.add({'name': name});
-            }
-          }
-        }
-        locationsSuggestions.assignAll(suggestions);
-      }
-    } catch (e) {
-      _logger.e('Error searching locations: $e');
-    } finally {
-      isSuggestionsLoading.value = false;
-    }
+    // try {
+    //   final response = await _apiService.getRequest(
+    //     AppUrls.horseShows,
+    //     query: {'search': query, 'limit': '10'},
+    //   );
+    //
+    //   if (response.statusCode == 200) {
+    //     final List data = response.body['data'] ?? [];
+    //     final List<Map<String, String>> suggestions = [];
+    //
+    //     for (var item in data) {
+    //       final city = item['city'] ?? '';
+    //       final state = item['state'] ?? '';
+    //       if (city.isNotEmpty && state.isNotEmpty) {
+    //         final name = "$city, $state";
+    //         if (!suggestions.any((s) => s['name'] == name)) {
+    //           suggestions.add({'name': name});
+    //         }
+    //       }
+    //     }
+    //     locationsSuggestions.assignAll(suggestions);
+    //   }
+    // } catch (e) {
+    //   _logger.e('Error searching locations: $e');
+    // } finally {
+    //   isSuggestionsLoading.value = false;
+    // }
   }
 
   Future<void> searchVenues(String query) async {
@@ -635,7 +635,7 @@ class ExploreController extends GetxController {
         final List<Map<String, String>> suggestions = [];
 
         for (var item in data) {
-          final venue = item['showVenue'] ?? '';
+          final venue = item['name'] ?? '';
           final city = item['city'] ?? '';
           final state = item['state'] ?? '';
           if (venue.isNotEmpty) {

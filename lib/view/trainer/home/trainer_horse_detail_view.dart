@@ -312,7 +312,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 110,
+          height: 120,
           child: IgnorePointer(
             child: Container(
               decoration: BoxDecoration(
@@ -343,7 +343,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         ),
         // Title & Badges Overlay
         Positioned(
-          bottom: 16,
+          bottom: 12,
           left: 16,
           right: 16,
           child: IgnorePointer(
@@ -385,24 +385,17 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Wrap(
+                    spacing: 5,
+                    runSpacing: 5,
                     children: horse!.listingTypes
-                        .asMap()
-                        .entries
                         .map(
-                          (entry) => Padding(
-                            padding: EdgeInsets.only(
-                              right: entry.key == horse!.listingTypes.length - 1
-                                  ? 0
-                                  : 6,
-                            ),
-                            child: _buildOverlayBadge(
-                              entry.value,
-                              const Color(0xFFFDE4E1),
-                              const Color(0xFFE11D48),
-                            ),
+                          (type) => _buildOverlayBadge(
+                            type,
+                            const Color(0xFFFDE4E1),
+                            const Color(0xFFE11D48),
                           ),
                         )
                         .toList(),
@@ -580,16 +573,16 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildOverlayBadge(String text, Color bg, Color textC) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: const Color(
           0xFF8B4444,
         ), // Matched to mockup dark trans-red
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: CommonText(
         text,
-        fontSize: 12,
+        fontSize: 10,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
@@ -719,7 +712,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         : horse!.description!;
 
     final allTags = [
-      if (horse!.height != null && horse!.height!.isNotEmpty) horse!.height!,
       ...horse!.disciplines,
       if (horse!.experienceLevel != null) horse!.experienceLevel!.name,
       ...horse!.programTags.map((t) => t.name),
@@ -758,14 +750,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildBubbleTag(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFFEFF6FF), // Light blue background
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: CommonText(
         label,
-        fontSize: 12,
+        fontSize: 11,
         fontWeight: FontWeight.bold,
         color: const Color(0xFF1E40AF), // Dark blue text
       ),
@@ -1906,10 +1898,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildTagCard(String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
       ),
       child: Column(
@@ -1917,13 +1909,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         children: [
           CommonText(
             label,
-            fontSize: AppTextSizes.size12,
+            fontSize: 11,
             color: AppColors.textSecondary,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           CommonText(
             value,
-            fontSize: AppTextSizes.size14,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),

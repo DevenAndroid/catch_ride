@@ -544,15 +544,15 @@ class _HorseListingViewState extends State<HorseListingView> {
 
   Widget _buildTypeTag(String label) {
     return Container(
-      margin: EdgeInsets.only(bottom: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      margin: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0xFF713B34).withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: CommonText(
         label,
-        fontSize: 11,
+        fontSize: 10,
         color: Colors.white,
         fontWeight: FontWeight.bold,
       ),
