@@ -200,37 +200,44 @@ class CommonImageView extends StatelessWidget {
             : BorderRadius.circular(radius),
       ),
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.all((width != null && width! < 50) ? 8 : 12),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
+        child: (width != null && width! < 40)
+            ? Icon(
                 isUserImage ? Icons.person_rounded : Icons.pets_rounded,
-                size: (width != null && width! < 100) ? 20 : 28,
+                size: width! * 0.6, // Scale icon to 60% of width
                 color: AppColors.primary.withOpacity(0.4),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding:
+                        EdgeInsets.all((width != null && width! < 50) ? 8 : 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.05),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isUserImage ? Icons.person_rounded : Icons.pets_rounded,
+                      size: (width != null && width! < 100) ? 20 : 28,
+                      color: AppColors.primary.withOpacity(0.4),
+                    ),
+                  ),
+                  if (width == null || width! >= 120) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      isUserImage ? 'Profile Not Set' : 'No Photo Available',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                        color: AppColors.primary.withOpacity(0.4),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ),
-            if (width == null || width! >= 120) ...[
-              const SizedBox(height: 8),
-              Text(
-                isUserImage ? 'Profile Not Set' : 'No Photo Available',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                  color: AppColors.primary.withOpacity(0.4),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }
