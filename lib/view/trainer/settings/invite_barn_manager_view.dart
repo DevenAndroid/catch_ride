@@ -26,7 +26,11 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _profileController.fetchProfile();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _profileController.fetchProfile();
+    });
+
   }
 
   @override

@@ -14,7 +14,7 @@ import 'package:form_field_validator/form_field_validator.dart';
 import '../../utils/validators.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/profile_controller.dart';
-import 'barn_manager_application_submitted_view.dart';
+
 
 class BarnManagerCreateProfileView extends StatefulWidget {
   const BarnManagerCreateProfileView({super.key});
