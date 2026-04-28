@@ -108,8 +108,8 @@ class _BarnManagerApplicationSubmittedViewState
               const Spacer(flex: 4),
 
               CommonButton(
-                text: 'Back to Login',
-                onPressed: () => _authController.logout(),
+                text: 'Go to Home',
+                onPressed: () => _authController.checkAuthStatus(),
               ),
               const SizedBox(height: 20),
             ],
