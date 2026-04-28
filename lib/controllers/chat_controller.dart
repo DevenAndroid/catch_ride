@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
@@ -25,7 +26,9 @@ class ChatController extends GetxController {
   final RxBool hasMoreMessages = true.obs;
   final RxString activeConversationId = ''.obs;
   final RxBool isUpdatingStatus = false.obs;
-  
+
+  Timer? _refreshTimer;
+
   int get totalUnreadCount {
     return conversations.fold(0, (sum, convo) => sum + convo.unread);
   }
@@ -36,11 +39,22 @@ class ChatController extends GetxController {
     // Use microtask to ensure this doesn't run during a build phase
     Future.microtask(() => fetchConversations());
     _setupSocketListeners();
+    // Periodic background refresh as a safety net for missed socket events
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      fetchConversations(quiet: true);
+    });
+  }
+
+  @override
+  void onClose() {
+    _refreshTimer?.cancel();
+    super.onClose();
   }
 
   void _setupSocketListeners() {
     // 1. Message Received
     _socketService.socket.on('message:received', (data) {
+      _logger.d('📩 ChatController: Received message:received event');
       final message = ChatMessage.fromJson(data);
       _handleIncomingMessage(message);
     });
@@ -60,9 +74,9 @@ class ChatController extends GetxController {
 
   // ─── API ACTIONS ─────────────────────────────────────────────────────────────
 
-  Future<void> fetchConversations() async {
+  Future<void> fetchConversations({bool quiet = false}) async {
     try {
-      isLoadingConversations.value = true;
+      if (!quiet) isLoadingConversations.value = true;
       final response = await _apiService.getRequest(AppUrls.conversations);
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
@@ -209,6 +223,34 @@ class ChatController extends GetxController {
       return;
     }
 
+    // Resolve receiverId if caller didn't provide it.
+    // If receiverId is wrong/missing, backend can't persist the message and it will "disappear" on refresh.
+    String? resolvedReceiverId = receiverId;
+    if (resolvedReceiverId == null || resolvedReceiverId.isEmpty) {
+      final convo = conversations.firstWhereOrNull(
+        (c) => c.conversationId == activeConversationId.value,
+      );
+      resolvedReceiverId = convo?.otherUser?.id;
+    }
+    if ((resolvedReceiverId == null || resolvedReceiverId.isEmpty) &&
+        activeConversationId.value.contains('-')) {
+      final parts = activeConversationId.value.split('-');
+      final me = _authController.currentUser.value?.id ?? '';
+      if (parts.length >= 2 && me.isNotEmpty) {
+        resolvedReceiverId = parts[0] == me ? parts[1] : parts[0];
+      }
+    }
+    if (resolvedReceiverId == null || resolvedReceiverId.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Unable to send message right now. Please reopen the chat and try again.',
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     final tempId = 'temp-${DateTime.now().millisecondsSinceEpoch}';
 
     // Create optimistic message
@@ -229,7 +271,7 @@ class ChatController extends GetxController {
       'conversationId': activeConversationId.value,
       'content': content,
       'tempId': tempId,
-      'receiverId': receiverId,
+      'receiverId': resolvedReceiverId,
     });
   }
 
@@ -323,7 +365,11 @@ class ChatController extends GetxController {
   // ─── INTERNAL HANDLERS ───────────────────────────────────────────────────────
 
   void _handleIncomingMessage(ChatMessage message) {
+    _logger.d('📥 Handling incoming message for convo: ${message.conversationId}');
+    _logger.d('📱 Active conversation: ${activeConversationId.value}');
+
     if (message.conversationId == activeConversationId.value) {
+      _logger.d('✅ Message matches active conversation. Inserting into list.');
       // 1. Check if ID already exists
       bool exists = currentMessages.any((m) => m.id == message.id);
 
@@ -346,6 +392,34 @@ class ChatController extends GetxController {
       _socketService.emit('message:read', {
         'conversationId': message.conversationId,
       });
+    } else if (activeConversationId.isNotEmpty) {
+      // HANDLE ID TRANSITION (e.g. from Temp/Vendor ID to Normalized User ID)
+      // We check if the incoming message's participants overlap with our current active chat.
+      final activeParts = activeConversationId.value.split('-');
+      final msgParts = message.conversationId.split('-');
+      
+      bool isSameConversation = false;
+      if (activeParts.length >= 2 && msgParts.length >= 2) {
+        // If both IDs involve the same two people (even if one ID is a profile ID and other is User ID)
+        // We check if the sender of this message is one of the people we are talking to.
+        final String me = _authController.currentUser.value?.id ?? '';
+        final String otherInActive = activeParts[0] == me ? activeParts[1] : activeParts[0];
+        
+        if (msgParts.contains(me) && msgParts.contains(message.senderId)) {
+          // If the message is from the person we are currently talking to (or ourselves)
+          isSameConversation = true;
+        }
+      }
+
+      if (isSameConversation) {
+        _logger.i('🔄 Real-time ID transition: ${activeConversationId.value} -> ${message.conversationId}');
+        activeConversationId.value = message.conversationId;
+        currentMessages.insert(0, message);
+        
+        _socketService.emit('message:read', {
+          'conversationId': message.conversationId,
+        });
+      }
     }
 
     // --- REAL-TIME INBOX UPDATE (In-place) ---
@@ -373,12 +447,14 @@ class ChatController extends GetxController {
       );
       
       // Insert at the top
+      _logger.d('🆕 Updating conversation list item for ${message.conversationId}');
       conversations.insert(0, updated);
       conversations.refresh();
     } else {
+      _logger.d('❓ Conversation not found in list. Fetching all.');
       // New conversation appeared - if it's the first message, we might need 
       // one refresh to get the full "otherUser" object details from server
-      fetchConversations();
+      fetchConversations(quiet: true);
     }
   }
 
@@ -456,10 +532,20 @@ class ChatController extends GetxController {
   }
 
   void _handleSentConfirmation(String tempId, ChatMessage message) {
-    // 1. Remove any other instances of this real ID that might have arrived before the confirmation
+    // 1. Update activeConversationId if the backend returned a normalized one
+    if (activeConversationId.value == message.conversationId || 
+        activeConversationId.value.contains(message.conversationId.split('-')[0]) ||
+        activeConversationId.value.contains(message.conversationId.split('-')[1])) {
+      if (activeConversationId.value != message.conversationId) {
+        _logger.i('🔄 Syncing activeConversationId to normalized ID: ${message.conversationId}');
+        activeConversationId.value = message.conversationId;
+      }
+    }
+
+    // 2. Remove any other instances of this real ID that might have arrived before the confirmation
     currentMessages.removeWhere((m) => m.id == message.id && m.id != tempId);
 
-    // 2. Find and replace the optimistic message
+    // 3. Find and replace the optimistic message
     final index = currentMessages.indexWhere((m) => m.id == tempId);
     if (index != -1) {
       currentMessages[index] = message;
@@ -469,32 +555,36 @@ class ChatController extends GetxController {
         currentMessages.insert(0, message);
       }
     }
-    fetchConversations(); // Sync last message in sidebar
+    fetchConversations(quiet: true); // Sync last message in sidebar (quiet to avoid flicker)
   }
 
   void _handleStatusUpdate(Map<String, dynamic> data) {
     final String conversationId = data['conversationId'];
     final String status = data['status'];
-    final String? generalId = data['generalConversationId'];
+    final String? generalId = data['generalConversationId'] ?? data['normalizedId'];
 
     // Update conversation list item in-place
     final convoIndex = conversations.indexWhere((c) => c.conversationId == conversationId);
     if (convoIndex != -1) {
-      final old = conversations[convoIndex];
-      conversations[convoIndex] = ChatConversation(
-        id: old.id,
-        conversationId: generalId ?? old.conversationId,
-        otherUser: old.otherUser,
-        lastMessage: old.lastMessage,
-        date: old.date,
-        unread: old.unread,
+      final updated = ChatConversation(
+        id: conversations[convoIndex].id,
+        conversationId: generalId ?? conversations[convoIndex].conversationId,
+        lastMessage: conversations[convoIndex].lastMessage,
+        date: conversations[convoIndex].date,
+        unread: conversations[convoIndex].unread,
         status: status,
-        senderId: old.senderId,
-        booking: old.booking,
-        pinned: old.pinned,
-        label: old.label,
+        otherUser: conversations[convoIndex].otherUser,
+        senderId: conversations[convoIndex].senderId,
+        booking: conversations[convoIndex].booking,
+        pinned: conversations[convoIndex].pinned,
+        label: conversations[convoIndex].label,
       );
+      conversations[convoIndex] = updated;
       conversations.refresh();
+    } else {
+      // If we receive a status update for a conversation we don't know about yet,
+      // it's likely a new request or a first-time message. Fetch the list.
+      fetchConversations(quiet: true);
     }
 
     if (conversationId == activeConversationId.value) {

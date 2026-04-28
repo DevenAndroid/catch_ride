@@ -1,4 +1,5 @@
 import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/view/trainer/settings/trainer_profile_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
@@ -16,19 +17,20 @@ import 'package:chewie/chewie.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:catch_ride/models/horse_model.dart';
+import 'package:catch_ride/models/booking_model.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../controllers/booking_controller.dart';
 import '../../../models/availability_model.dart';
 import '../../../services/api_service.dart';
-import '../settings/trainer_profile_view.dart';
-import '../list/edit_horse_listing_view.dart';
-import '../../barn_manager/barn_manager_availability_view.dart';
 import '../../../controllers/horse_controller.dart';
 import '../../../controllers/chat_controller.dart';
 import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
-class TrainerHorseDetailView extends StatefulWidget {
+import '../barn_manager/barn_manager_availability_view.dart';
+import 'list/edit_horse_listing_view.dart';
+
+class BookingRequestView extends StatefulWidget {
   final HorseModel? horse;
   final String? horseId;
   final bool fromBooking;
@@ -40,7 +42,7 @@ class TrainerHorseDetailView extends StatefulWidget {
   final String? otherImage;
   final String? myTeamId;
 
-  const TrainerHorseDetailView({
+  const BookingRequestView({
     super.key,
     this.horse,
     this.horseId,
@@ -55,13 +57,14 @@ class TrainerHorseDetailView extends StatefulWidget {
   });
 
   @override
-  State<TrainerHorseDetailView> createState() => _TrainerHorseDetailViewState();
+  State<BookingRequestView> createState() => _BookingRequestViewState();
 }
 
-class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
+class _BookingRequestViewState extends State<BookingRequestView> {
   bool _isRequested = false;
   bool _canMessage = false;
   HorseModel? horse;
+  BookingModel? booking;
   String? _currentBookingStatus;
 
   // Image carousel state
@@ -86,6 +89,28 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     } else if (widget.horseId != null) {
       _currentBookingStatus = widget.bookingStatus;
       WidgetsBinding.instance.addPostFrameCallback((_) => _fetchHorseDetails());
+    }
+
+    if (widget.bookingId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchBookingDetails());
+    }
+  }
+
+  Future<void> _fetchBookingDetails() async {
+    try {
+      final ApiService api = Get.find<ApiService>();
+      final response = await api.getRequest('/bookings/${widget.bookingId}');
+      if (response.statusCode == 200) {
+        final data = response.body['data'];
+        if (data != null) {
+          setState(() {
+            booking = BookingModel.fromJson(data);
+            _currentBookingStatus = booking?.status;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching booking details: $e');
     }
   }
 
@@ -264,9 +289,25 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0), // Hide default app bar
-        child: AppBar(elevation: 0, backgroundColor: Colors.white),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF101828),
+            size: 20,
+          ),
+          onPressed: () => Get.back(),
+        ),
+        title: const CommonText(
+          'Horse Detail',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF101828),
+        ),
+        centerTitle: false,
       ),
       body: SafeArea(
         child: horse == null
@@ -281,21 +322,22 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              _buildRequesterInfoCard(),
                               _buildPremiumHeader(),
+                              if (widget.fromBooking && widget.otherName != null)
+
                               _buildTrainerSection(),
                               _buildDescriptionAndTags(),
                               _buildDetailsSection(),
                               _buildPricingSection(),
                               _buildAvailabilitySection(),
-                              if (isHorseOwner && horse!.bookedByName != null)
-                                _buildBookedByHeader(),
                             //  if (!isHorseOwner) _buildCancelationPolicy(),
                               const SizedBox(height: 20),
                             ],
                           ),
                         ),
                       ),
-                      if (!isHorseOwner || widget.fromBooking) _buildBottomAction(),
+                      if (widget.fromBooking) _buildBottomAction(),
                     ],
                   );
                 },
@@ -329,20 +371,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ),
           ),
         ),
-        // Header Controls
-        Positioned(
-          top: 16,
-          left: 16,
-          right: 16,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildCircleButton(Icons.arrow_back_ios_new, () => Get.back()),
-              _buildActionMenu(),
-            ],
-          ),
-        ),
-        // Title & Badges Overlay
         Positioned(
           bottom: 12,
           left: 16,
@@ -655,42 +683,42 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ),
             ),
           ),
-          if (!isHorseOwner)
-            ElevatedButton(
-              onPressed: () {
-                  final chatController = Get.find<ChatController>();
-                  chatController.openBookingChat(
-                    bookingId: widget.bookingId ?? '',
-                    otherId: widget.otherId ?? horse?.trainerId ?? '',
-                    otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
-                    otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
-                    myTeamId: widget.myTeamId,
-                  );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.secondary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(width: 10),
-                  Icon(Icons.chat_bubble_outline, size: 18),
-                  SizedBox(width: 8),
-                  CommonText(
-                    'Message',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 10),
-                ],
-              ),
-            )
+          // if (!isHorseOwner)
+          //   ElevatedButton(
+          //     onPressed: () {
+          //         final chatController = Get.find<ChatController>();
+          //         chatController.openBookingChat(
+          //           bookingId: widget.bookingId ?? '',
+          //           otherId: widget.otherId ?? horse?.trainerId ?? '',
+          //           otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
+          //           otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
+          //           myTeamId: widget.myTeamId,
+          //         );
+          //     },
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor: AppColors.secondary,
+          //       foregroundColor: Colors.white,
+          //       padding: const EdgeInsets.symmetric(vertical: 16),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //     ),
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: const [
+          //         SizedBox(width: 10),
+          //         Icon(Icons.chat_bubble_outline, size: 18),
+          //         SizedBox(width: 8),
+          //         CommonText(
+          //           'Message',
+          //           fontSize: 16,
+          //           fontWeight: FontWeight.bold,
+          //           color: Colors.white,
+          //         ),
+          //         SizedBox(width: 10),
+          //       ],
+          //     ),
+          //   )
         ],
       ),
     );
@@ -755,183 +783,189 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  Widget _buildBookedByHeader() {
-    final profileController = Get.find<ProfileController>();
-    final currentUserId = profileController.id;
-    final isBookedByMe = horse!.bookedById == currentUserId;
-
-    final String? bAvatar =
-        (isBookedByMe &&
-            (horse!.bookedByAvatar == null || horse!.bookedByAvatar!.isEmpty))
-        ? profileController.user.value?.displayAvatar
-        : horse!.bookedByAvatar;
-
-    final String bName =
-        (isBookedByMe &&
-            (horse!.bookedByName == null || horse!.bookedByName == 'N/A'))
-        ? profileController.fullName
-        : (horse!.bookedByName ?? '');
+  Widget _buildRequesterInfoCard() {
+    final String bName = booking?.clientName ?? widget.otherName ?? 'Client';
+    final String? bAvatar = booking?.clientImage ?? widget.otherImage;
+    final String bLocation = booking?.location ?? 'N/A';
+    final String bDate = booking?.date ?? 'N/A';
+    final String? bNotes = booking?.notes;
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(
-                0xFFFFF7F5,
-              ), // Light reddish background from design
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFDE4E1)),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+      child: Container(
+      //  padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAECF0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CommonText(
-                  'Booked by',
-                  fontSize: AppTextSizes.size12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CommonImageView(
-                      url: bAvatar,
-                      height: 50,
-                      width: 50,
-                      shape: BoxShape.circle,
-                      isUserImage: true,
-                    ),
-
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CommonText(
-                            bName,
-                            fontSize: AppTextSizes.size16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                          const SizedBox(height: 4),
-                          if (horse!.bookedByLocation != null ||
-                              (isBookedByMe &&
-                                  profileController.location.isNotEmpty))
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: const CommonText(
+                'Trial With',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF475467),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F2EB), // Beige background from design
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CommonImageView(
+                        url: bAvatar,
+                        height: 64,
+                        width: 64,
+                        shape: BoxShape.circle,
+                        isUserImage: true,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CommonText(
+                              bName,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF101828),
+                            ),
+                            const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(
-                                  Icons.location_on_outlined,
-                                  color: AppColors.textSecondary,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
+                                const Icon(Icons.location_on_outlined,
+                                    size: 16, color: Color(0xFF667085)),
+                                const SizedBox(width: 6),
                                 Expanded(
                                   child: CommonText(
-                                    isBookedByMe
-                                        ? profileController.location
-                                        : (horse!.bookedByLocation ?? 'N/A'),
-                                    fontSize: AppTextSizes.size12,
-                                    color: AppColors.textSecondary,
+                                    bLocation,
+                                    fontSize: 14,
+                                    color: const Color(0xFF475467),
+                                    maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
                             ),
-                          const SizedBox(height: 4),
-                          if (horse!.bookingDates != null)
+                            const SizedBox(height: 6),
                             Row(
                               children: [
-                                const Icon(
-                                  Icons.calendar_today_outlined,
-                                  color: AppColors.textSecondary,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
-                                CommonText(
-                                  DateUtil.formatRangeString(horse!.bookingDates),
-                                  fontSize: AppTextSizes.size12,
-                                  color: AppColors.textSecondary,
+                                const Icon(Icons.calendar_today_outlined,
+                                    size: 16, color: Color(0xFF667085)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: CommonText(
+                                    bDate,
+                                    fontSize: 14,
+                                    color: const Color(0xFF475467),
+                                  ),
                                 ),
                               ],
                             ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const CommonText(
-                        'For Sale',
-                        fontSize: AppTextSizes.size12,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              CommonImageView(
-                url: horse!.trainerAvatar,
-                height: 44,
-                width: 44,
-                shape: BoxShape.circle,
-                isUserImage: true,
-              ),
-
-              const SizedBox(width: 12),
-              Expanded(
-                child: GestureDetector(
-                  onTap: (){
-
-                    if(horse?.trainerId == null){
-                      Get.snackbar(
-                        'Error', 'This trainer has been deleted.',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                      return;}
-    Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
-    }
-            ,      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(
-                        horse!.trainerName ?? 'N/A',
-                        fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const CommonText(
-                        AppStrings.professionalHorseTrainer,
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const CommonText(
+                          'Trial',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF344054),
+                        ),
                       ),
                     ],
                   ),
-                ),
+                  if (bNotes != null && bNotes.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    CommonText(
+                      'Note - $bNotes',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF475467),
+                    ),
+                  ],
+                ],
               ),
-              const Icon(Icons.more_vert, color: AppColors.textPrimary),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge() {
+    final status = (_currentBookingStatus ?? '').toLowerCase();
+    Color bgColor;
+    Color textColor;
+    String label = status.capitalizeFirst ?? 'Pending';
+
+    switch (status) {
+      case 'confirmed':
+      case 'accepted':
+        bgColor = const Color(0xFFECFDF3);
+        textColor = const Color(0xFF067647);
+        label = 'Accepted';
+        break;
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        bgColor = const Color(0xFFFEF3F2);
+        textColor = const Color(0xFFB42318);
+        label = status == 'cancelled' ? 'Cancelled' : 'Declined';
+        break;
+      case 'pending':
+        bgColor = const Color(0xFFFFFAEB);
+        textColor = const Color(0xFFB54708);
+        label = 'Pending';
+        break;
+      default:
+        bgColor = const Color(0xFFF2F4F7);
+        textColor = const Color(0xFF344054);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: CommonText(
+        label,
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: textColor,
       ),
     );
   }
@@ -1488,6 +1522,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildBottomAction() {
+    if (!widget.fromBooking) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -1500,87 +1536,162 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
         ],
       ),
-      child: widget.fromBooking
-          ? _buildBookingSpecificActions()
-          : CommonButton(
-              text:
-                  _isRequested ? 'Your request is submitted' : 'Request a Trial',
-              backgroundColor: _isRequested
-                  ? Colors.grey
-                  : const Color(0xFF00083B), // Navy blue
-              textColor: Colors.white,
-              onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
-            ),
+      child: _buildBookingSpecificActions(),
     );
   }
 
   Widget _buildBookingSpecificActions() {
     final status = (_currentBookingStatus ?? '').toLowerCase();
-    final bool canCancel =
-        status == 'pending' || status == 'confirmed' || status == 'accepted';
+    
+    // Professionals (Trainer/Barn Manager) actions for Received bookings
+    if (isHorseOwner) {
+      if (status == 'pending') {
+        return Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _handleRejectBooking(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.red,
+                  elevation: 0,
+                  side: const BorderSide(color: Colors.red),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const CommonText(
+                  'Decline',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _handleAcceptBooking(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const CommonText(
+                  'Accept',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+      
+      if (status == 'accepted' || status == 'confirmed') {
+        return Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _showCancelConfirmation(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.textPrimary,
+                  elevation: 0,
+                  side: const BorderSide(color: AppColors.border),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const CommonText(
+                  'Cancel',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _showCompleteConfirmation(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.successPrimary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const CommonText(
+                  'Complete',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+    }
 
-    return Row(
-      children: [
-        if (canCancel)
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _showCancelConfirmation(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.textPrimary,
-                elevation: 0,
-                side: const BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const CommonText(
-                'Cancel Booking',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+    // Default Cancel action (for clients or already confirmed bookings)
+    final bool canCancel = status == 'pending' || status == 'confirmed' || status == 'accepted';
+    if (canCancel) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () => _showCancelConfirmation(),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: AppColors.textPrimary,
+            elevation: 0,
+            side: const BorderSide(color: AppColors.border),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
-        if (canCancel) const SizedBox(width: 12),
-        if (canCancel && isHorseOwner)
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                final status = (_currentBookingStatus ?? '').toLowerCase();
-                if (status == 'accepted' || status == 'confirmed') {
-                  _showCompleteConfirmation();
-                } else {
-                  Get.snackbar(
-                    'Attention',
-                    'You can only complete bookings that have been accepted.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: AppColors.errorPrimary,
-                    colorText: Colors.white,
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.textPrimary,
-                elevation: 0,
-                side: const BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const CommonText(
-                'Complete Booking',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
+          child: const CommonText(
+            'Cancel Booking',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
           ),
-      ],
-    );
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  void _handleAcceptBooking() async {
+    if (widget.bookingId == null) return;
+    final bookingController = Get.find<BookingController>();
+    final result = await bookingController.updateBookingStatus(widget.bookingId!, 'confirmed');
+    if (result != null) {
+      setState(() {
+        _currentBookingStatus = 'confirmed';
+      });
+    }
+  }
+
+  void _handleRejectBooking() async {
+    if (widget.bookingId == null) return;
+    final bookingController = Get.find<BookingController>();
+    final result = await bookingController.updateBookingStatus(widget.bookingId!, 'rejected');
+    if (result != null) {
+      setState(() {
+        _currentBookingStatus = 'rejected';
+      });
+    }
   }
 
   void _showCompleteConfirmation() {
@@ -2536,8 +2647,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               ],
             ),
           ),
-        ],
-      )),
+          ],
+        )),
     );
   }
 
