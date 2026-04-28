@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
+import 'barn_manager_bottom_nav.dart';
 
 class BarnManagerApplicationSubmittedView extends StatefulWidget {
   const BarnManagerApplicationSubmittedView({super.key});
@@ -109,7 +110,9 @@ class _BarnManagerApplicationSubmittedViewState
 
               CommonButton(
                 text: 'Go to Home',
-                onPressed: () => _authController.checkAuthStatus(),
+                onPressed: () {
+                  Get.offAll(() => const BarnManagerBottomNav());
+                },
               ),
               const SizedBox(height: 20),
             ],

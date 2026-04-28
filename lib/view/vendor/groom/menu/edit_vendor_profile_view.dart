@@ -154,10 +154,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                 ),
               ),
             ),
+            _buildBottomButtons(),
           ],
         );
       }),
-      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -586,12 +586,16 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFieldLabel('Country', isRequired: true),
-          Obx(() => CommonDropdown(
-            value: controller.countryController.text,
-            hint: 'Select Country',
-            options: controller.countries,
-            onSelected: (node) => controller.onCountrySelected(node),
-          )),
+          Obx(() {
+            final _ = controller.selectedCountryCode.value;
+            return
+            CommonDropdown(
+              value: controller.countryController.text,
+              hint: 'Select Country',
+              options: controller.countries,
+              onSelected: (node) => controller.onCountrySelected(node),
+            );
+          }),
           const SizedBox(height: 16),
           _buildFieldLabel('State/Province', isRequired: true),
           Obx(() => CommonSuggestionField(

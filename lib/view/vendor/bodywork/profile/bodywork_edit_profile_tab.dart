@@ -92,12 +92,16 @@ class BodyworkEditProfileTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildFieldLabel('Country', isRequired: true),
-          Obx(() => CommonDropdown(
-            value: controller.countryController.text,
-            hint: 'Select Country',
-            options: controller.countries,
-            onSelected: (val) => controller.onCountrySelected(val),
-          )),
+          Obx(() {
+            final _ = controller.selectedCountryCode.value;
+            return
+            CommonDropdown(
+              value: controller.countryController.text,
+              hint: 'Select Country',
+              options: controller.countries,
+              onSelected: (val) => controller.onCountrySelected(val),
+            );
+          }),
           const SizedBox(height: 16),
           
           _buildFieldLabel('State / Province', isRequired: true),

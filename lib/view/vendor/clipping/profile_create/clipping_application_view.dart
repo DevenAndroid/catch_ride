@@ -11,6 +11,7 @@ import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/utils/form_utils.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
@@ -83,13 +84,16 @@ class ClippingApplicationView extends StatelessWidget {
                   'Home Base Location',
                   children: [
                     _buildSectionHeader('Country', isRequired: true),
-                    Obx(() => CommonDropdown(
-                      value: controller.countryController.text,
-                      hint: 'Select Country',
-                      options: controller.countries,
-                      onSelected: (val) => controller.onCountrySelected(val),
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
-                    )),
+                    Obx(() {
+                      final _ = controller.selectedCountryCode.value;
+                      return CommonDropdown(
+                        value: controller.countryController.text,
+                        hint: 'Select Country',
+                        options: controller.countries,
+                        onSelected: (val) => controller.onCountrySelected(val),
+                        validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
+                      );
+                    }),
                     const SizedBox(height: 16),
 
                     _buildSectionHeader('State / Province', isRequired: true),
@@ -335,7 +339,13 @@ class ClippingApplicationView extends StatelessWidget {
                   child: CommonButton(
                     text: 'Submit Application',
                     isLoading: controller.isSubmitting.value,
-                    onPressed: controller.submitApplication,
+                    onPressed: () {
+                      if (controller.formKey.currentState?.validate() ?? false) {
+                        controller.submitApplication();
+                      } else {
+                        FormUtility.scrollToFirstError(context);
+                      }
+                    },
                     height: 56,
                     backgroundColor: AppColors.primary,
                   ),
@@ -767,6 +777,7 @@ class ClippingApplicationView extends StatelessWidget {
     final nameCtrl = number == 1 ? controller.ref1FullNameController : controller.ref2FullNameController;
     final busCtrl = number == 1 ? controller.ref1BusinessNameController : controller.ref2BusinessNameController;
     final relCtrl = number == 1 ? controller.ref1RelationshipController : controller.ref2RelationshipController;
+    final phoneCtrl = number == 1 ? controller.ref1PhoneController : controller.ref2PhoneController;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -774,21 +785,36 @@ class ClippingApplicationView extends StatelessWidget {
         CommonText('Trainer Reference $number', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
         const SizedBox(height: 12),
         CommonTextField(
-           label: 'Full Name',
-           controller: nameCtrl, 
-           hintText: 'Enter Full Name'
+          label: 'Full Name',
+          controller: nameCtrl,
+          hintText: 'Enter Full Name',
+          isRequired: number == 1 ,
+          validator:  number == 1 ? RequiredValidator(errorText: "Please enter reference full name").call:null,
         ),
         const SizedBox(height: 16),
         CommonTextField(
-           label: 'Business Name',
-           controller: busCtrl, 
-           hintText: 'Enter Business Name'
+          label: 'Business Name',
+          controller: busCtrl,
+          hintText: 'Enter Business Name',
+          isRequired: number == 1 ,
+          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter business name").call:null,
         ),
         const SizedBox(height: 16),
         CommonTextField(
-           label: 'Relationship',
-           controller: relCtrl, 
-           hintText: 'Enter Relationship' 
+          label: 'Relationship',
+          controller: relCtrl,
+          hintText: 'Enter Relationship Name' ,
+          isRequired: number == 1 ,
+          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter relationship").call:null,
+        ),
+        const SizedBox(height: 16),
+        CommonTextField(
+            label: 'Phone Number',
+            controller: phoneCtrl,
+            hintText: 'Enter phone number',
+            keyboardType: TextInputType.phone,
+            isRequired: number == 1 ,
+            validator:  number == 1 ? RequiredValidator(errorText: "Please enter phone no").call:null
         ),
       ],
     );

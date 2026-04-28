@@ -8,6 +8,7 @@ import 'package:catch_ride/view/vendor/send_booking_request_view.dart';
 import 'package:catch_ride/view/vendor/upcoming_availability.dart';
 import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
+import 'package:catch_ride/widgets/common_media_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -129,12 +130,22 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         Stack(
           clipBehavior: Clip.none,
           children: [
-            SizedBox(
-              height: 220,
-              width: double.infinity,
-              child: CommonImageView(
-                url: controller.coverImage,
-                fit: BoxFit.cover,
+            GestureDetector(
+              onTap: () {
+                if (controller.coverImage.isNotEmpty) {
+                  Get.to(() => CommonMediaViewer(
+                    mediaSources: [controller.coverImage],
+                    initialIndex: 0,
+                  ));
+                }
+              },
+              child: SizedBox(
+                height: 220,
+                width: double.infinity,
+                child: CommonImageView(
+                  url: controller.coverImage,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             Positioned(
@@ -161,15 +172,25 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
             Positioned(
               bottom: -45,
               left: 20,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: CommonImageView(
-                  url: controller.profilePhoto,
-                  height: 100,
-                  width: 100,
-                  shape: BoxShape.circle,
-                  isUserImage: true,
+              child: GestureDetector(
+                onTap: () {
+                  if (controller.profilePhoto.isNotEmpty) {
+                    Get.to(() => CommonMediaViewer(
+                      mediaSources: [controller.profilePhoto],
+                      initialIndex: 0,
+                    ));
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: CommonImageView(
+                    url: controller.profilePhoto,
+                    height: 100,
+                    width: 100,
+                    shape: BoxShape.circle,
+                    isUserImage: true,
+                  ),
                 ),
               ),
             ),
@@ -497,14 +518,26 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: media.map((url) => Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Container(
-                width: Get.width * 0.28, height: 100, 
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), 
-                clipBehavior: Clip.antiAlias, child: CommonImageView(url: url, fit: BoxFit.cover),
-              ),
-            )).toList(),
+            children: media.asMap().entries.map((entry) {
+              final index = entry.key;
+              final url = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: GestureDetector(
+                  onTap: () {
+                    Get.to(() => CommonMediaViewer(
+                      mediaSources: media,
+                      initialIndex: index,
+                    ));
+                  },
+                  child: Container(
+                    width: Get.width * 0.28, height: 100, 
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)), 
+                    clipBehavior: Clip.antiAlias, child: CommonImageView(url: url, fit: BoxFit.cover),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ),
       ],

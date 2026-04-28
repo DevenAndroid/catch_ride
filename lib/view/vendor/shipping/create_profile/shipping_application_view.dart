@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:catch_ride/utils/form_utils.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
@@ -92,12 +93,15 @@ class ShippingApplicationView extends StatelessWidget {
                     'Home Base Location',
                     children: [
                       _buildFieldLabel('Country', isRequired: true),
-                      Obx(() => CommonDropdown(
-                        value: controller.countryController.text,
-                        hint: 'Select Country',
-                        options: controller.countries,
-                        onSelected: (val) => controller.onCountrySelected(val),
-                      )),
+                      Obx(() {
+                        final _ = controller.selectedCountryCode.value;
+                        return CommonDropdown(
+                          value: controller.countryController.text,
+                          hint: 'Select Country',
+                          options: controller.countries,
+                          onSelected: (val) => controller.onCountrySelected(val),
+                        );
+                      }),
                       const SizedBox(height: 16),
                       _buildFieldLabel('State', isRequired: true),
                       Obx(() => CommonSuggestionField(
@@ -444,7 +448,13 @@ class ShippingApplicationView extends StatelessWidget {
                   Obx(() => CommonButton(
                     text: 'Submit Application',
                     isLoading: controller.isSubmitting.value,
-                    onPressed: controller.submitApplication,
+                    onPressed: () {
+                      if (controller.formKey.currentState?.validate() ?? false) {
+                        controller.submitApplication();
+                      } else {
+                        FormUtility.scrollToFirstError(context);
+                      }
+                    },
                     height: 56,
                     backgroundColor: const Color(0xFF001149),
                   )),
@@ -753,11 +763,39 @@ class ShippingApplicationView extends StatelessWidget {
               children: [
                 _buildFieldLabel('Reference ${idx + 1}'),
                 const SizedBox(height: 12),
-                CommonTextField(label: 'Full Name', controller: ref.fullName, hintText: 'Enter Full Name'),
-                const SizedBox(height: 12),
-                CommonTextField(label: 'Business Name', controller: ref.relationship, hintText: 'Enter Business Name'),
-                const SizedBox(height: 12),
-                CommonTextField(label: 'Relationship', controller: ref.phone, hintText: 'Enter Relationship'),
+
+                CommonTextField(
+                  label: 'Full Name',
+                  controller:  ref.fullName,
+                  hintText: 'Enter Full Name',
+                  isRequired: idx == 0,
+                  validator: idx == 0 ? RequiredValidator(errorText: "Please enter reference full name").call:null,
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  label: 'Business Name',
+                  controller:  ref.businessName,
+                  hintText: 'Enter Business Name',
+                  isRequired: idx == 0 ,
+                  validator:  idx == 0 ?  RequiredValidator(errorText: "Please enter business name").call:null,
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  label: 'Relationship',
+                  controller: ref.relationship,
+                  hintText: 'Enter Relationship Name' ,
+                  isRequired: idx == 0 ,
+                  validator:  idx == 0 ?  RequiredValidator(errorText: "Please enter relationship").call:null,
+                ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                    label: 'Phone Number',
+                    controller: ref.phone,
+                    hintText: 'Enter phone number',
+                    keyboardType: TextInputType.phone,
+                    isRequired: idx == 0 ,
+                    validator:  idx == 0 ? RequiredValidator(errorText: "Please enter phone no").call:null
+                ),
                 const SizedBox(height: 24),
               ],
             );

@@ -18,6 +18,7 @@ import 'package:get/get.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/google_api_controller.dart';
 import '../../utils/validators.dart';
+import '../../utils/form_utils.dart';
 
 class TrainerProfileSetupView extends StatefulWidget {
   const TrainerProfileSetupView({super.key});
@@ -43,6 +44,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     (_) => TextEditingController(),
   );
   final List<TextEditingController> _refRelationControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
+  final List<TextEditingController> _refPhoneControllers = List.generate(
     4,
     (_) => TextEditingController(),
   );
@@ -85,6 +90,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       c.dispose();
     }
     for (var c in _refRelationControllers) {
+      c.dispose();
+    }
+    for (var c in _refPhoneControllers) {
       c.dispose();
     }
     _federationIdController.dispose();
@@ -182,27 +190,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
                       // 1. Trigger Form Validation
                       if (!_formKey.currentState!.validate()) {
-                        // Scroll to first error
-                        FocusNode? firstErrorFocus;
-                        if (_nameController.text.trim().isEmpty) {
-                          firstErrorFocus = _nameFocus;
-                        } else if (_instagramController.text.trim().isEmpty) {
-                          firstErrorFocus = _instagramFocus;
-                        } else if (_federationIdController.text.trim().isEmpty) {
-                          firstErrorFocus = _federationIdFocus;
-                        }
-
-                        if (firstErrorFocus != null) {
-                          firstErrorFocus.requestFocus();
-                          if (firstErrorFocus.context != null) {
-                            Scrollable.ensureVisible(
-                              firstErrorFocus.context!,
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                              alignment: 0.1,
-                            );
-                          }
-                        }
+                        FormUtility.scrollToFirstError(context);
                         return;
                       }
 
@@ -213,8 +201,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                         references.add({
                           'name': _refNameControllers[i].text.trim(),
                           'business': _refBusinessControllers[i].text.trim(),
-                          'relationship': _refRelationControllers[i].text
-                              .trim(),
+                          'relationship': _refRelationControllers[i].text.trim(),
+                          'phone': _refPhoneControllers[i].text.trim(),
                         });
                       }
 
@@ -430,6 +418,13 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   label: AppStrings.relationship,
                   hintText: AppStrings.enterRelationshipName, // As per image hint
                 ),
+                const SizedBox(height: 16),
+                CommonTextField(
+                  controller: _refPhoneControllers[index],
+                  label: AppStrings.phoneNumber,
+                  hintText: AppStrings.enterPhoneNumber,
+                  keyboardType: TextInputType.phone,
+                ),
                 if (index < 1) const SizedBox(height: 24),
               ],
             );
@@ -516,7 +511,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   Icons.keyboard_arrow_down,
                   color: AppColors.textSecondary,
                 ),
-                items: ['USEF (United States)', 'Other Federation']
+                items: ['USEF (United States)', 'EC',"FEI"]
                     .map(
                       (e) => DropdownMenuItem(
                         value: e,

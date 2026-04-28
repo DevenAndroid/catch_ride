@@ -61,10 +61,12 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
     _addedVenues.assignAll(_editingBlock!.showVenues);
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStart) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
       context: context,
-      initialDate: isStart ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now()),
+      initialDateRange: (_startDate != null && _endDate != null)
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
@@ -82,8 +84,8 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startDate = picked;
-        else _endDate = picked;
+        _startDate = picked.start;
+        _endDate = picked.end;
       });
     }
   }
@@ -205,11 +207,35 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
   }
 
   Widget _buildDateSection() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _buildDateField('Start Date', _startDate, () => _selectDate(context, true))),
-        const SizedBox(width: 16),
-        Expanded(child: _buildDateField('End Date', _endDate, () => _selectDate(context, false))),
+        const CommonText('Date Range', fontSize: 14, fontWeight: FontWeight.bold),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(context),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(
+                  (_startDate != null && _endDate != null)
+                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      : 'Select Date Range',
+                  fontSize: 14,
+                  color: _startDate != null ? AppColors.textPrimary : Colors.grey,
+                ),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

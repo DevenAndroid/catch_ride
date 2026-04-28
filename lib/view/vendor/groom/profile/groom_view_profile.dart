@@ -14,6 +14,7 @@ import 'package:catch_ride/view/vendor/clipping/profile/clipping_service_and_rat
 import 'package:catch_ride/view/vendor/braiding/profile/braiding_service_and_rates_view.dart';
 import 'package:catch_ride/view/vendor/farrier/profile/farrier_service_and_rates_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile/general_service_and_rates_view.dart';
+import 'package:catch_ride/widgets/common_media_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -36,12 +37,13 @@ class GroomViewProfile extends StatefulWidget {
 
 class _GroomViewProfileState extends State<GroomViewProfile> with TickerProviderStateMixin {
   late TabController _tabController;
-  final _showMoreDetails = false.obs;
-
+  final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 1, vsync: this);
+
+
   }
 
   void _setupTabController(int length) {
@@ -64,7 +66,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
-    final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
+
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -107,6 +109,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                       const SizedBox(height: 24),
                       _buildAvailabilitySection(groomController),
                       const SizedBox(height: 24),
+                      if(groomController.cancellationPolicy != "")
                       Obx(() => _buildCancellationPolicy(groomController)),
                       const SizedBox(height: 40),
                     ],
@@ -127,27 +130,47 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         Stack(
           clipBehavior: Clip.none,
           children: [
-            SizedBox(
-              height: 220,
-              width: double.infinity,
-              child: CommonImageView(
-                url: groomController.coverImage,
-                fit: BoxFit.cover,
+            GestureDetector(
+              onTap: () {
+                if (groomController.coverImage.isNotEmpty) {
+                  Get.to(() => CommonMediaViewer(
+                    mediaSources: [groomController.coverImage],
+                    initialIndex: 0,
+                  ));
+                }
+              },
+              child: SizedBox(
+                height: 220,
+                width: double.infinity,
+                child: CommonImageView(
+                  url: groomController.coverImage,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
 
             Positioned(
               bottom: -45,
               left: 20,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: CommonImageView(
-                  url: groomController.profilePhoto,
-                  height: 100,
-                  width: 100,
-                  shape: BoxShape.circle,
-                  isUserImage: true,
+              child: GestureDetector(
+                onTap: () {
+                  if (groomController.profilePhoto.isNotEmpty) {
+                    Get.to(() => CommonMediaViewer(
+                      mediaSources: [groomController.profilePhoto],
+                      initialIndex: 0,
+                    ));
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                  child: CommonImageView(
+                    url: groomController.profilePhoto,
+                    height: 100,
+                    width: 100,
+                    shape: BoxShape.circle,
+                    isUserImage: true,
+                  ),
                 ),
               ),
             ),
@@ -499,23 +522,35 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: media.map((url) => Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: _buildPhotoItem(url),
-            )).toList(),
+            children: media.asMap().entries.map((entry) {
+              final index = entry.key;
+              final url = entry.value;
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _buildPhotoItem(url, media, index),
+              );
+            }).toList(),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPhotoItem(String url) {
-    return Container(
-      width: Get.width * 0.28,
-      height: 100,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-      clipBehavior: Clip.antiAlias,
-      child: CommonImageView(url: url, fit: BoxFit.cover),
+  Widget _buildPhotoItem(String url, List<String> allMedia, int index) {
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => CommonMediaViewer(
+          mediaSources: allMedia,
+          initialIndex: index,
+        ));
+      },
+      child: Container(
+        width: Get.width * 0.28,
+        height: 100,
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+        clipBehavior: Clip.antiAlias,
+        child: CommonImageView(url: url, fit: BoxFit.cover),
+      ),
     );
   }
 

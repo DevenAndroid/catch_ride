@@ -33,7 +33,7 @@ class SetupGroomApplicationController extends GetxController {
   final countries = [
     {'name': 'USA', 'code': 'US'},
     {'name': 'Canada', 'code': 'CA'},
-  ];
+  ].obs;
 
   final isLoadingStates = false.obs;
   final isLoadingCities = false.obs;
@@ -182,10 +182,12 @@ class SetupGroomApplicationController extends GetxController {
   final ref1FullNameController = TextEditingController();
   final ref1BusinessNameController = TextEditingController();
   final ref1RelationshipController = TextEditingController();
+  final ref1PhoneController = TextEditingController();
 
   final ref2FullNameController = TextEditingController();
   final ref2BusinessNameController = TextEditingController();
   final ref2RelationshipController = TextEditingController();
+  final ref2PhoneController = TextEditingController();
 
   // Experience Highlights
   final highlightsControllers = <TextEditingController>[TextEditingController()].obs;
@@ -219,9 +221,11 @@ class SetupGroomApplicationController extends GetxController {
     ref1FullNameController.dispose();
     ref1BusinessNameController.dispose();
     ref1RelationshipController.dispose();
+    ref1PhoneController.dispose();
     ref2FullNameController.dispose();
     ref2BusinessNameController.dispose();
     ref2RelationshipController.dispose();
+    ref2PhoneController.dispose();
     for (var ctrl in highlightsControllers) {
       ctrl.dispose();
     }
@@ -316,11 +320,13 @@ class SetupGroomApplicationController extends GetxController {
             'fullName': ref1FullNameController.text,
             'businessName': ref1BusinessNameController.text,
             'relationship': ref1RelationshipController.text,
+            'phone': ref1PhoneController.text,
           },
           {
             'fullName': ref2FullNameController.text,
             'businessName': ref2BusinessNameController.text,
             'relationship': ref2RelationshipController.text,
+            'phone': ref2PhoneController.text,
           }
         ],
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),

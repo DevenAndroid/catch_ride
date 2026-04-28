@@ -14,10 +14,12 @@ class AddClippingAvailabilityView extends StatefulWidget {
   const AddClippingAvailabilityView({super.key});
 
   @override
-  State<AddClippingAvailabilityView> createState() => _AddClippingAvailabilityViewState();
+  State<AddClippingAvailabilityView> createState() =>
+      _AddClippingAvailabilityViewState();
 }
 
-class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityView> {
+class _AddClippingAvailabilityViewState
+    extends State<AddClippingAvailabilityView> {
   final controller = Get.put(VendorAvailabilityController());
   final profileController = Get.put(ProfileController());
 
@@ -34,7 +36,7 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
   final RxString _availabilityType = 'Full Day'.obs;
   final RxString _capacityType = 'Max horses per day'.obs;
   final RxInt _maxHorses = 6.obs;
-  
+
   final _notesController = TextEditingController();
   final _venueSearchController = TextEditingController();
   final RxList<String> _addedVenues = <String>[].obs;
@@ -55,18 +57,25 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
     _endDate = _editingBlock!.endDate;
     _unStart = _editingBlock!.unavailableStart;
     _unEnd = _editingBlock!.unavailableEnd;
-    
+
     _notesController.text = _editingBlock!.notes ?? '';
     _maxHorses.value = _editingBlock!.maxBookings;
-    
-    if (_editingBlock!.locationType != null) _locationType.value = _editingBlock!.locationType!;
-    if (_editingBlock!.timeBlockType != null) _availabilityType.value = _editingBlock!.timeBlockType!;
-    if (_editingBlock!.capacityType != null) _capacityType.value = _editingBlock!.capacityType!;
-    
+
+    if (_editingBlock!.locationType != null)
+      _locationType.value = _editingBlock!.locationType!;
+    if (_editingBlock!.timeBlockType != null)
+      _availabilityType.value = _editingBlock!.timeBlockType!;
+    if (_editingBlock!.capacityType != null)
+      _capacityType.value = _editingBlock!.capacityType!;
+
     _addedVenues.assignAll(_editingBlock!.showVenues);
   }
 
-  Future<void> _selectDate(BuildContext context, {required bool isStart, bool isUnavailability = false}) async {
+  Future<void> _selectDate(
+    BuildContext context, {
+    required bool isStart,
+    bool isUnavailability = false,
+  }) async {
     DateTime initial = DateTime.now();
     if (isUnavailability) {
       initial = isStart ? (_unStart ?? initial) : (_unEnd ?? initial);
@@ -90,9 +99,15 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
     if (picked != null) {
       setState(() {
         if (isUnavailability) {
-          if (isStart) _unStart = picked; else _unEnd = picked;
+          if (isStart)
+            _unStart = picked;
+          else
+            _unEnd = picked;
         } else {
-          if (isStart) _startDate = picked; else _endDate = picked;
+          if (isStart)
+            _startDate = picked;
+          else
+            _endDate = picked;
         }
       });
     }
@@ -100,11 +115,21 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
 
   void _submit() async {
     if (_startDate == null || _endDate == null) {
-      Get.snackbar('Error', 'Please select availability dates', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please select availability dates',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
     if (_addedVenues.isEmpty) {
-      Get.snackbar('Error', 'Please add at least one venue or city', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please add at least one venue or city',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -141,9 +166,14 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
       } else {
         await controller.createAvailabilityBlock(payload);
       }
-      
+
       Get.back();
-      Get.snackbar('Success', 'Availability saved successfully', backgroundColor: Colors.green, colorText: Colors.white);
+      Get.snackbar(
+        'Success',
+        'Availability saved successfully',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
     } catch (e) {
       debugPrint('Error: $e');
     } finally {
@@ -162,7 +192,11 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Get.back(),
         ),
-        title: CommonText(_editingBlock != null ? 'Edit Availability' : 'Add Availability', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
+        title: CommonText(
+          _editingBlock != null ? 'Edit Availability' : 'Add Availability',
+          fontSize: AppTextSizes.size18,
+          fontWeight: FontWeight.bold,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -185,7 +219,13 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: AppColors.borderLight),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +233,11 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CommonText('Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+              const CommonText(
+                'Block 1',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
               const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
             ],
           ),
@@ -201,18 +245,50 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           _buildSectionHeader('Availability'),
           Row(
             children: [
-              Expanded(child: _buildDatePickerField('Start Date', _startDate, () => _selectDate(context, isStart: true))),
+              Expanded(
+                child: _buildDatePickerField(
+                  'Start Date',
+                  _startDate,
+                  () => _selectDate(context, isStart: true),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildDatePickerField('End Date', _endDate, () => _selectDate(context, isStart: false))),
+              Expanded(
+                child: _buildDatePickerField(
+                  'End Date',
+                  _endDate,
+                  () => _selectDate(context, isStart: false),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
           _buildSectionHeader('Mark Unavailability'),
           Row(
             children: [
-              Expanded(child: _buildDatePickerField('Start Date', _unStart, () => _selectDate(context, isStart: true, isUnavailability: true))),
+              Expanded(
+                child: _buildDatePickerField(
+                  'Start Date',
+                  _unStart,
+                  () => _selectDate(
+                    context,
+                    isStart: true,
+                    isUnavailability: true,
+                  ),
+                ),
+              ),
               const SizedBox(width: 16),
-              Expanded(child: _buildDatePickerField('End Date', _unEnd, () => _selectDate(context, isStart: false, isUnavailability: true))),
+              Expanded(
+                child: _buildDatePickerField(
+                  'End Date',
+                  _unEnd,
+                  () => _selectDate(
+                    context,
+                    isStart: false,
+                    isUnavailability: true,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -222,19 +298,39 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           _buildVenueSection(),
           const SizedBox(height: 24),
           _buildSectionHeader('Time Block & Capacity'),
-          const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Availability Type',
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
           const SizedBox(height: 8),
           _buildDropdownField(_availabilityType, ['Full Day', 'AM', 'PM']),
           const SizedBox(height: 16),
-          const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Capacity',
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
           const SizedBox(height: 8),
-          _buildDropdownField(_capacityType, ['No capacity limit', 'Max horses per time block', 'Max horses per day']),
+          _buildDropdownField(_capacityType, [
+            'No capacity limit',
+            'Max horses per time block',
+            'Max horses per day',
+          ]),
           const SizedBox(height: 16),
-          const CommonText('Max Horses', fontSize: 13, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Max Horses',
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
           const SizedBox(height: 8),
           _buildStepperField(),
           const SizedBox(height: 24),
-          const CommonText('Notes For Trainers (optional)', fontSize: 14, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Notes For Trainers (optional)',
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
           const SizedBox(height: 8),
           _buildNotesField(),
         ],
@@ -249,7 +345,11 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
     );
   }
 
-  Widget _buildDatePickerField(String label, DateTime? date, VoidCallback onTap) {
+  Widget _buildDatePickerField(
+    String label,
+    DateTime? date,
+    VoidCallback onTap,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -268,11 +368,19 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CommonText(
-                  date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select Date',
-                  fontSize: 14, 
-                  color: date != null ? AppColors.textPrimary : AppColors.textSecondary
+                  date != null
+                      ? DateFormat('MM/dd/yyyy').format(date)
+                      : 'Select Date',
+                  fontSize: 14,
+                  color: date != null
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 16, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
               ],
             ),
           ),
@@ -290,13 +398,24 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
         border: Border.all(color: AppColors.borderLight),
       ),
       child: DropdownButtonHideUnderline(
-        child: Obx(() => DropdownButton<String>(
-          value: selectedValue.value,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-          items: options.map((opt) => DropdownMenuItem(value: opt, child: CommonText(opt, fontSize: 14))).toList(),
-          onChanged: (val) { if (val != null) selectedValue.value = val; },
-        )),
+        child: Obx(
+          () => DropdownButton<String>(
+            value: selectedValue.value,
+            isExpanded: true,
+            icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+            items: options
+                .map(
+                  (opt) => DropdownMenuItem(
+                    value: opt,
+                    child: CommonText(opt, fontSize: 14),
+                  ),
+                )
+                .toList(),
+            onChanged: (val) {
+              if (val != null) selectedValue.value = val;
+            },
+          ),
+        ),
       ),
     );
   }
@@ -312,9 +431,31 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(onPressed: () { if (_maxHorses.value > 1) _maxHorses.value--; }, icon: const Icon(Icons.remove, size: 18, color: AppColors.textSecondary)),
-          Obx(() => CommonText('${_maxHorses.value}', fontSize: 18, fontWeight: FontWeight.bold)),
-          IconButton(onPressed: () => _maxHorses.value++, icon: const Icon(Icons.add, size: 18, color: AppColors.textSecondary)),
+          IconButton(
+            onPressed: () {
+              if (_maxHorses.value > 1) _maxHorses.value--;
+            },
+            icon: const Icon(
+              Icons.remove,
+              size: 18,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          Obx(
+            () => CommonText(
+              '${_maxHorses.value}',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _maxHorses.value++,
+            icon: const Icon(
+              Icons.add,
+              size: 18,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -333,8 +474,15 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
           decoration: InputDecoration(
             hintText: 'Select Show Venue or City',
             hintStyle: const TextStyle(color: Color(0xFF667085), fontSize: 14),
-            suffixIcon: const Icon(Icons.search, size: 20, color: Color(0xFF667085)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            suffixIcon: const Icon(
+              Icons.search,
+              size: 20,
+              color: Color(0xFF667085),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
@@ -356,25 +504,43 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _addedVenues.map((v) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF2F4F7), 
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFEAECF0)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(child: CommonText(v, fontSize: 13, color: AppColors.textPrimary, overflow: TextOverflow.ellipsis)),
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () => _addedVenues.remove(v),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF98A2B3)),
+              children: _addedVenues
+                  .map(
+                    (v) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F4F7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFEAECF0)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: CommonText(
+                              v,
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () => _addedVenues.remove(v),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Color(0xFF98A2B3),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              )).toList(),
+                  )
+                  .toList(),
             ),
           );
         }),
@@ -384,30 +550,44 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
 
   void _showVenueSelectionSheet() {
     final searchController = TextEditingController();
-    
+
     // Deduplicate venues by display name before showing the list
     final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
-      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-      if (seenNames.contains(name)) return false;
-      seenNames.add(name);
-      return true;
-    }).toList();
+    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows
+        .where((v) {
+          final name =
+              v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+          if (seenNames.contains(name)) return false;
+          seenNames.add(name);
+          return true;
+        })
+        .toList();
 
-    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
-    
+    final RxList<Map<String, dynamic>> filteredVenues =
+        RxList<Map<String, dynamic>>(allVenues);
+
     Get.bottomSheet(
       Container(
         height: Get.height * 0.85,
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
+                const CommonText(
+                  'Select Venues',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Get.back(),
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -416,46 +596,61 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
               decoration: InputDecoration(
                 hintText: 'Search venues or city...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onChanged: (val) {
                 final search = val.toLowerCase();
-                filteredVenues.assignAll(allVenues.where((v) {
-                  final name = v['name']?.toString().toLowerCase() ?? '';
-                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
-                  final city = v['city']?.toString().toLowerCase() ?? '';
-                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
-                }).toList());
+                filteredVenues.assignAll(
+                  allVenues.where((v) {
+                    final name = v['name']?.toString().toLowerCase() ?? '';
+                    final showVenue =
+                        v['showVenue']?.toString().toLowerCase() ?? '';
+                    final city = v['city']?.toString().toLowerCase() ?? '';
+                    return name.contains(search) ||
+                        showVenue.contains(search) ||
+                        city.contains(search);
+                  }).toList(),
+                );
               },
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: Obx(() => ListView.builder(
-                itemCount: filteredVenues.length,
-                itemBuilder: (context, index) {
-                  final venueItem = filteredVenues[index];
-                  // Prioritize 'showVenue' key as requested, then 'name'
-                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
-                  final city = venueItem['city']?.toString() ?? '';
-                  
-                  return Obx(() {
-                    final isSelected = _addedVenues.contains(venueName);
-                    return CheckboxListTile(
-                      value: isSelected,
-                      onChanged: (selected) {
-                        if (selected == true) {
-                          if (!_addedVenues.contains(venueName)) _addedVenues.add(venueName);
-                        } else {
-                          _addedVenues.remove(venueName);
-                        }
-                      },
-                      title: CommonText(venueName),
-                      subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
-                      activeColor: AppColors.primary,
-                    );
-                  });
-                },
-              )),
+              child: Obx(
+                () => ListView.builder(
+                  itemCount: filteredVenues.length,
+                  itemBuilder: (context, index) {
+                    final venueItem = filteredVenues[index];
+                    // Prioritize 'showVenue' key as requested, then 'name'
+                    final venueName =
+                        venueItem['showVenue']?.toString() ??
+                        venueItem['name']?.toString() ??
+                        'Unknown';
+                    final city = venueItem['city']?.toString() ?? '';
+
+                    return Obx(() {
+                      final isSelected = _addedVenues.contains(venueName);
+                      return CheckboxListTile(
+                        value: isSelected,
+                        onChanged: (selected) {
+                          if (selected == true) {
+                            if (!_addedVenues.contains(venueName))
+                              _addedVenues.add(venueName);
+                          } else {
+                            _addedVenues.remove(venueName);
+                          }
+                        },
+                        title: CommonText(venueName),
+                        subtitle: city.isNotEmpty
+                            ? CommonText(city, fontSize: 12, color: Colors.grey)
+                            : null,
+                        activeColor: AppColors.primary,
+                      );
+                    });
+                  },
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -465,9 +660,16 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
                 onPressed: () => Get.back(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: const CommonText('Done', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                child: const CommonText(
+                  'Done',
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -484,12 +686,22 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
       keyboardType: TextInputType.multiline,
       textCapitalization: TextCapitalization.sentences,
       decoration: InputDecoration(
-        hintText: 'Any specific preference, requirements, or information trainers should know...',
-        hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+        hintText:
+            'Any specific preference, requirements, or information trainers should know...',
+        hintStyle: const TextStyle(
+          fontSize: 13,
+          color: AppColors.textSecondary,
+        ),
         fillColor: const Color(0xFFF9FAFB),
         filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFEAECF0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFEAECF0)),
+        ),
         contentPadding: const EdgeInsets.all(16),
       ),
     );
@@ -509,12 +721,14 @@ class _AddClippingAvailabilityViewState extends State<AddClippingAvailabilityVie
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: Obx(() => CommonButton(
-            text: _editingBlock != null ? 'Save Changes' : 'Add Block',
-            backgroundColor: AppColors.primary,
-            isLoading: _isSubmitting.value,
-            onPressed: _submit,
-          )),
+          child: Obx(
+            () => CommonButton(
+              text: _editingBlock != null ? 'Save Changes' : 'Add Block',
+              backgroundColor: AppColors.primary,
+              isLoading: _isSubmitting.value,
+              onPressed: _submit,
+            ),
+          ),
         ),
       ],
     );

@@ -56,9 +56,13 @@ class _CommonSuggestionFieldState extends State<CommonSuggestionField> {
     
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
-    setState(() {
+    if (mounted) {
+      setState(() {
+        _isOverlayVisible = true;
+      });
+    } else {
       _isOverlayVisible = true;
-    });
+    }
   }
 
   void _hideOverlay() {
@@ -66,9 +70,13 @@ class _CommonSuggestionFieldState extends State<CommonSuggestionField> {
     
     _overlayEntry?.remove();
     _overlayEntry = null;
-    setState(() {
+    if (mounted) {
+      setState(() {
+        _isOverlayVisible = false;
+      });
+    } else {
       _isOverlayVisible = false;
-    });
+    }
   }
 
   OverlayEntry _createOverlayEntry() {

@@ -52,15 +52,34 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
   String get _otp => _controllers.map((c) => c.text).join();
 
   void _onOtpChanged(String value, int index) {
-    if (value.length == 1 && index < 5) {
+    if (value.trim().length > 1) {
+      // Handle paste
+      String pasteValue = value.trim().replaceAll(RegExp(r'[^0-9]'), '');
+      
+      // Limit to 6 digits from the current index
+      int length = pasteValue.length;
+      if (index + length > 6) length = 6 - index;
+      
+      for (int i = 0; i < length; i++) {
+        _controllers[index + i].text = pasteValue[i];
+      }
+      
+      // Set focus to the last filled box or the one after
+      int nextFocusIndex = index + length;
+      if (nextFocusIndex > 5) nextFocusIndex = 5;
+      _focusNodes[nextFocusIndex].requestFocus();
+      
+    } else if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
     } else if (value.isEmpty && index > 0) {
       _focusNodes[index - 1].requestFocus();
     }
+
     // Auto-submit when all 6 digits are filled
     if (_otp.length == 6) {
       _authController.verifyEmail(widget.email, _otp);
     }
+    setState(() {});
   }
 
   @override
@@ -169,8 +188,11 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                           textAlign: TextAlign.center,
                           keyboardType: TextInputType.number,
                           showCursor: false, // Keeps UI cleaner
-                          maxLength: 1,
                           onTap: () {
+                            _controllers[index].selection = TextSelection(
+                              baseOffset: 0,
+                              extentOffset: _controllers[index].text.length,
+                            );
                             setState(() {});
                           },
                           style: const TextStyle(
