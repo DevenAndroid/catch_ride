@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../controllers/booking_controller.dart';
 import '../../../trainer/chats/single_chat_view.dart';
 
 class StandaloneBookingCard extends StatefulWidget {
@@ -74,14 +75,14 @@ class _StandaloneBookingCardState extends State<StandaloneBookingCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonText(
-                        "Requester : $name",
+                        "Trainer : $name",
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
                       const SizedBox(height: 2),
-                      const CommonText(
-                        "Direct Booking",
+                      CommonText(
+                        widget.booking.senderBarnName ?? "Direct Booking",
                         fontSize: 12,
                         color: AppColors.textSecondary,
                         maxLines: 1,
@@ -298,7 +299,7 @@ class _StandaloneBookingCardState extends State<StandaloneBookingCard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: _isAccepting ? const Color(0xFF0e7a68) : const Color(0xff12937E),
+                        color: AppColors.secondary,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(

@@ -35,17 +35,12 @@ class ApiService extends GetConnect implements GetxService {
 
       bool isSessionError = (statusCode == 401);
 
-      // EXCEPTION: Don't trigger "Session Expired" on authentication paths
-      // These endpoints return 401 for wrong credentials/invalid OTPs, not session expiry.
       if (url.toLowerCase().contains('/auth/')) {
         isSessionError = false;
       }
 
-      // Also check body content if statusCode wasn't 401 but message confirms session error
       if (!isSessionError && message != null) {
-        if (message.toLowerCase().contains(
-              'invalid or expired session token',
-            ) ||
+        if (message.toLowerCase().contains('invalid or expired session token') ||
             message.toLowerCase().contains('authentication required')) {
           isSessionError = true;
         }
@@ -53,22 +48,15 @@ class ApiService extends GetConnect implements GetxService {
 
       if (response.hasError || isSessionError) {
         debugPrint('❌ API ERROR [$statusCode] $method $url');
-        if (body != null) {
-          try {
-            debugPrint('📦 RESPONSE BODY: ${jsonEncode(body)}');
-          } catch (_) {
-            debugPrint('📦 RESPONSE BODY: $body');
-          }
-        }
+        log('📦 ERROR RESPONSE BODY: ${jsonEncode(body)}');
 
-        // Auto-logout on session error
         if (isSessionError) {
           debugPrint('⚠️ Session error detected. Triggering auto-logout.');
           _triggerAutoLogout();
         }
       } else {
         debugPrint('✅ API SUCCESS [$statusCode] $method $url');
-        log('✅ API SUCCESS [$statusCode] ${jsonEncode(body)}');
+        log('📦 SUCCESS RESPONSE BODY: ${jsonEncode(body)}');
       }
       return response;
     });
@@ -143,7 +131,7 @@ class ApiService extends GetConnect implements GetxService {
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
     debugPrint('📤 POST REQUEST: $fullUrl');
-    debugPrint('📦 REQUEST BODY: $body');
+    log('📦 REQUEST BODY: ${jsonEncode(body)}');
     return post(path, body);
   }
 
@@ -153,7 +141,7 @@ class ApiService extends GetConnect implements GetxService {
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
     debugPrint('📤 PUT REQUEST: $fullUrl');
-    debugPrint('📦 REQUEST BODY: ${jsonEncode(body)}');
+    log('📦 REQUEST BODY: ${jsonEncode(body)}');
     return put(path, body);
   }
 

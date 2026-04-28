@@ -107,8 +107,6 @@ class _RequestsViewState extends State<RequestsView> {
                       const SizedBox(height: 24),
                     ],
                     if (standaloneBookings.isNotEmpty) ...[
-                      const CommonText('Direct Bookings', fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF667085)),
-                      const SizedBox(height: 16),
                       ...standaloneBookings
                           .map(
                             (booking) => StandaloneBookingCard(

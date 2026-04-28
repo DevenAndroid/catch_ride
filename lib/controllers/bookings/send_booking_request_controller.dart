@@ -4,6 +4,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
 class SendBookingRequestController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -430,6 +431,8 @@ class SendBookingRequestController extends GetxController {
     
     // We send them as an array or multiple requests
     bool allSuccess = true;
+    String? lastConversationId;
+
     for (var booking in allBookings) {
       final Map<String, dynamic> payload = {
         'vendorId': vendorData['_id'] ?? vendorData['id'],
@@ -447,8 +450,14 @@ class SendBookingRequestController extends GetxController {
         'price': booking['totalPrice'],
       };
       
-      final success = await bookingController.createBooking(payload);
-      if (!success) allSuccess = false;
+      final result = await bookingController.createBooking(payload);
+      if (result == null) {
+        allSuccess = false;
+      } else {
+        if (result is Map && result['conversationId'] != null) {
+          lastConversationId = result['conversationId'];
+        }
+      }
     }
 
     if (allSuccess) {
@@ -459,6 +468,16 @@ class SendBookingRequestController extends GetxController {
       
       Get.back();
       Get.snackbar('Success', 'Booking requests sent successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+
+      // Redirect to chat
+      if (lastConversationId != null) {
+        Get.to(() => SingleChatView(
+          name: vendorFullName,
+          image: profilePhoto,
+          conversationId: lastConversationId!,
+          otherId: vendorData['_id'] ?? vendorData['id'],
+        ));
+      }
     }
   }
 

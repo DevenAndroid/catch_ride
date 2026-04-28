@@ -76,7 +76,7 @@ class _ChatRequestCardState extends State<ChatRequestCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonText(
-                        "Requester : $name",
+                        "Trainer : $name",
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,

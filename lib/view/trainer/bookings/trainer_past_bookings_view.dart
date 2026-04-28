@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 import '../../../constant/app_constants.dart';
 import '../../../widgets/common_image_view.dart';
 import '../../../widgets/common_text.dart';
+import '../booking_request_view.dart';
+import '../../vendor/vendor_details_view.dart';
 
 class TrainerPastBookingsView extends StatefulWidget {
   const TrainerPastBookingsView({super.key});
@@ -166,8 +169,50 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
       subtitle = "$subtitle • ${booking.providerBarnName}";
     }
 
-    return Container(
-      decoration: BoxDecoration(
+    final vendorTypes = ['grooming', 'braiding', 'clipping', 'farrier', 'bodywork', 'shipping', 'transportation'];
+    final bool isVendorBooking = vendorTypes.contains(booking.type.toLowerCase());
+
+    return GestureDetector(
+      onTap: () {
+        if (isVendorBooking) {
+          final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
+          Get.to(
+            () => const VendorDetailsView(),
+            arguments: {
+              'id': targetId,
+              'fromBooking': true,
+              'bookingId': booking.id,
+              'bookingStatus': booking.status,
+            },
+          );
+        } else {
+          // Determine "other" participant info based on who is viewing (we don't have tab index here, but we can infer)
+          // For simplicity, we use the same logic as the main bookings view
+          // If the trainerId matches current user, they are the receiver
+          final profileController = Get.find<ProfileController>();
+          final bool isReceived = booking.trainerUserId == profileController.id || booking.trainerId == profileController.id;
+          
+          final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
+          final String otherName = isReceived ? (booking.clientName ?? '') : (booking.trainerName ?? '');
+          final String otherImage = isReceived ? (booking.clientImage ?? '') : (booking.trainerImage ?? '');
+          final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
+
+          Get.to(
+            () => BookingRequestView(
+              horseId: booking.horseId,
+              fromBooking: true,
+              bookingId: booking.id,
+              bookingStatus: booking.status,
+              otherId: otherId,
+              otherName: otherName,
+              otherImage: otherImage,
+              myTeamId: myTeamId,
+            ),
+          );
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFEAECF0)),
@@ -279,7 +324,7 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildDetailRow(IconData icon, String text) {

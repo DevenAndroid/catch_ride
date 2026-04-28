@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_urls.dart';
 import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:logger/logger.dart';
+import 'dart:convert';
 
 class SocketService extends GetxService {
   late io.Socket socket;
@@ -48,10 +49,13 @@ class SocketService extends GetxService {
       _logger.e('Socket Error: $err');
     });
 
-    // Example listener for system-wide notifications
-    socket.on('notification', (data) {
-      _logger.i('New Notification: $data');
-      // You can trigger Get.snackbar or a local notification here
+    // Global listener for all incoming events
+    socket.onAny((event, data) {
+      try {
+        _logger.d('📥 SOCKET RECV [$event]: ${jsonEncode(data)}');
+      } catch (e) {
+        _logger.d('📥 SOCKET RECV [$event]: $data');
+      }
     });
 
     connect();
@@ -88,6 +92,11 @@ class SocketService extends GetxService {
 
   void emit(String event, dynamic data) {
     if (socket.connected) {
+      try {
+        _logger.d('📤 SOCKET EMIT [$event]: ${jsonEncode(data)}');
+      } catch (e) {
+        _logger.d('📤 SOCKET EMIT [$event]: $data');
+      }
       socket.emit(event, data);
     } else {
       _logger.w('Cannot emit $event: Socket not connected');

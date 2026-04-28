@@ -12,6 +12,7 @@ import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/view/vendor/vendor_details_view.dart';
+import 'package:catch_ride/view/trainer/booking_request_view.dart';
 
 
 
@@ -325,7 +326,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
 
           Get.to(
-            () => TrainerHorseDetailView(
+            () => BookingRequestView(
               horseId: booking.horseId,
               fromBooking: true,
               bookingId: booking.id,
