@@ -8,6 +8,7 @@ import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_control
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart';
+import 'package:catch_ride/view/trainer/booking_request_view.dart';
 import 'package:get/get.dart';
 
 import '../../../constant/app_constants.dart';
@@ -312,7 +313,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
           final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
 
           Get.to(
-            () => BarnManagerHorseDetailView(
+            () => BookingRequestView(
               horseId: booking.horseId,
               fromBooking: true,
               bookingId: booking.id,

@@ -60,7 +60,7 @@ class BookingController extends GetxController {
     }
   }
 
-  Future<bool> createBooking(Map<String, dynamic> data) async {
+  Future<dynamic> createBooking(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
       final response = await _apiService.postRequest(AppUrls.bookings, data);
@@ -69,7 +69,7 @@ class BookingController extends GetxController {
         _logger.i('Booking created successfully');
         // Refresh the 'Sent' bookings list in global state
         fetchBookings(type: 'sent');
-        return true;
+        return response.body['data'];
       } else {
         _logger.e('Failed to create booking: ${response.statusText}');
         String msg =
@@ -83,7 +83,7 @@ class BookingController extends GetxController {
           barBlur: 0,
           margin: const EdgeInsets.all(16),
         );
-        return false;
+        return null;
       }
     } catch (e) {
       _logger.e('Error creating booking: $e');
@@ -96,7 +96,7 @@ class BookingController extends GetxController {
         barBlur: 0,
         margin: const EdgeInsets.all(16),
       );
-      return false;
+      return null;
       } finally {
         isLoading.value = false;
       }

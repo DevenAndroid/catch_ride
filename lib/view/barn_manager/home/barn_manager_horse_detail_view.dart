@@ -21,6 +21,7 @@ import '../../../services/api_service.dart';
 import '../../trainer/settings/trainer_profile_view.dart';
 import '../../trainer/list/edit_horse_listing_view.dart';
 import '../../../controllers/chat_controller.dart';
+import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
 class BarnManagerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
@@ -1028,7 +1029,7 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
       'cancelled',
     );
 
-    if (success) {
+    if (success != null) {
       Get.snackbar(
         'Booking Cancelled',
         'Your booking has been successfully cancelled.',
@@ -1375,7 +1376,7 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
                                   return;
                                 }
 
-                                final success = await bookingController
+                                final result = await bookingController
                                     .createBooking({
                                       'horseId': horse!.id,
                                       'horseName': horse!.name,
@@ -1394,7 +1395,7 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
                                           ?.id,
                                     });
 
-                                if (success) {
+                                if (result != null) {
                                   Get.back(); // Close bottom sheet
                                   Get.snackbar(
                                     'Success',
@@ -1407,6 +1408,17 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
                                   );
                                   setState(() => _isRequested = true);
                                   _fetchHorseDetails(); // re-fetch to auto update based on requested state
+                                  
+                                  // Redirect to chat
+                                  final String? conversationId = (result is Map) ? result['conversationId'] : null;
+                                  if (conversationId != null) {
+                                    Get.to(() => SingleChatView(
+                                      name: horse!.trainerName ?? 'Trainer',
+                                      image: horse!.trainerAvatar ?? '',
+                                      conversationId: conversationId,
+                                      otherId: horse!.trainerId?.toString(),
+                                    ));
+                                  }
                                 }
                               },
                         child: Container(
