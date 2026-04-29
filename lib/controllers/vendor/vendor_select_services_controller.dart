@@ -9,6 +9,7 @@ import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_applicatio
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class VendorSelectServicesController extends GetxController {
   final ApiService _apiService = Get.put(ApiService());
@@ -62,24 +63,27 @@ class VendorSelectServicesController extends GetxController {
     isLoading.value = true;
     try {
       // 1. Get vendor ID
-      final Response myVendorResponse = await _apiService.getRequest(AppUrls.myVendorProfile);
-      if (myVendorResponse.statusCode != 200 || myVendorResponse.body['success'] != true) {
-        // Fallback or retry?
-        throw Exception('Failed to fetch your vendor profile');
-      }
-      final vendorData = myVendorResponse.body['data'];
-      final vendorId = vendorData['id'] ?? vendorData['_id'];
+      // final Response myVendorResponse = await _apiService.getRequest(AppUrls.myVendorProfile);
+      // if (myVendorResponse.statusCode != 200 || myVendorResponse.body['success'] != true) {
+      //   // Fallback or retry?
+      //   throw Exception('Failed to fetch your vendor profile');
+      // }
+      // final vendorData = myVendorResponse.body['data'];
+
+      final prefs = await SharedPreferences.getInstance();
+      var vendorId=  prefs.getString('vendorId');
+    //  final vendorId = vendorData['id'] ?? vendorData['_id'];
 
       // 2. Update services selection
-      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
+    //  final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
       
       final Response updateResponse = await _apiService.putRequest(
         '${AppUrls.vendors}/$vendorId',
         {
           'services': selectedServices.toList(),
-          'servicesData': existingServicesData,
-          'isProfileCompleted': vendorData['isProfileCompleted'] ?? false, // Maintain existing status
-          'isProfileSetup': vendorData['isProfileSetup'] ?? false,
+          //'servicesData': existingServicesData,
+        //  'isProfileCompleted': vendorData['isProfileCompleted'] ?? false, // Maintain existing status
+         // 'isProfileSetup': vendorData['isProfileSetup'] ?? false,
         },
       );
 

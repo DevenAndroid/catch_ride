@@ -332,15 +332,9 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   const SizedBox(height: 8),
                   _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
                   const SizedBox(height: 24),
-                  _buildSectionHeader('Mark Unavailability'),
+                  _buildSectionHeader('Black out days'),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(child: _buildDateField('Start Date', _unStart, () => _selectUnavailabilityDate(true))),
-                      const SizedBox(width: 16),
-                      Expanded(child: _buildDateField('End Date', _unEnd, () => _selectUnavailabilityDate(false))),
-                    ],
-                  ),
+                  _buildDateField('Date', _unStart, _selectBlackoutDate),
                   const SizedBox(height: 24),
                   _buildVenueSection(),
                   const SizedBox(height: 24),
@@ -404,7 +398,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader('Date Range'),
+        _buildSectionHeader('Availability'),
         const SizedBox(height: 8),
         InkWell(
           onTap: () => _selectDate(context),
@@ -826,16 +820,24 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     );
   }
 
-  Future<void> _selectUnavailabilityDate(bool isStart) async {
+  Future<void> _selectBlackoutDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: _unStart ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(primary: AppColors.secondary),
+        ),
+        child: child!,
+      ),
     );
     if (picked != null) {
-      if (isStart) setState(() => _unStart = picked);
-      else setState(() => _unEnd = picked);
+      setState(() {
+        _unStart = picked;
+        _unEnd = picked; // Set both to the same date for single day blackout
+      });
     }
   }
 

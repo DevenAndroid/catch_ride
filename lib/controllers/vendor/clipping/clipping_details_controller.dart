@@ -57,11 +57,16 @@ class ClippingDetailsController extends GetxController {
   final selectedTravelFeeType = 'No travel fee'.obs;
 
   void updateTravelFee(String option, String type, String price, String notes) {
-    travelFees[option] = {
-      'type': type,
-      'price': price,
-      'notes': notes,
-    };
+    if (type == 'No travel fee') {
+      travelFees.remove(option);
+    } else {
+      travelFees[option] = {
+        'type': type,
+        'price': price,
+        'notes': notes,
+      };
+    }
+    travelFees.refresh();
   }
 
   void removeTravelPreference(String option) {
@@ -233,18 +238,21 @@ class ClippingDetailsController extends GetxController {
             .where((s) => s['isSelected'].value == true)
             .map((s) => {
                   'name': s['name'],
-                  'price': (s['price'] as TextEditingController).text,
+                  'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 }),
           ...addOnServices
             .where((s) => s['isSelected'].value == true)
             .map((s) => {
                   'name': s['name'],
-                  'price': (s['price'] as TextEditingController).text,
+                  'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 })
         ],
         'travelPreferences': travelFees.entries.map((e) => {
           'region': e.key,
-          'feeStructure': e.value,
+          'feeStructure': {
+            ...e.value,
+            'price': e.value['price']?.toString().replaceAll(',', ''),
+          },
         }).toList(),
         'cancellationPolicy': {
           'policy': cancellationPolicy.value,

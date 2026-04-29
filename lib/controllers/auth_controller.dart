@@ -805,17 +805,17 @@ class AuthController extends GetxController {
           }
         } else {
           // Profile exists but not active/approved
-          logout(sessionExpired: false);
-          Get.snackbar(
-            'Access Denied',
-            'Your account is ${status.toLowerCase()} or awaiting secondary approval. Please contact support.',
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.orange,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 5),
-          );
+         // logout(sessionExpired: false);
+       //    Get.snackbar(
+       //      'Access Denied',
+       //      'Your account is ${status.toLowerCase()} or awaiting secondary approval. Please contact support.',
+       //      snackPosition: SnackPosition.TOP,
+       //      backgroundColor: Colors.orange,
+       //      colorText: Colors.white,
+       //      duration: const Duration(seconds: 5),
+       //    );
         }
-        return;
+       // return;
       }
 
       // If not completed, handle application flow
@@ -947,6 +947,7 @@ class AuthController extends GetxController {
 
   // ─── LOGOUT ──────────────────────────────────────────────────────────────────
   Future<void> logout({bool sessionExpired = false}) async {
+
     try {
       debugPrint('Logging out user...');
 

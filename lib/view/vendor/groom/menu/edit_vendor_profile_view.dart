@@ -154,9 +154,12 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                 ),
               ),
             ),
-            _buildBottomButtons(),
           ],
         );
+      }),
+      bottomNavigationBar: Obx(() {
+        if (controller.isLoading.value) return const SizedBox.shrink();
+        return _buildBottomButtons();
       }),
     );
   }

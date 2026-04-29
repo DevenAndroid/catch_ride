@@ -222,13 +222,13 @@ class GroomingDetailsController extends GetxController {
         ...existingGroomingData,
         'applicationData': existingApplicationData, // CRITICAL: preserve location/experience
         'rates': {
-          'daily': dailyRateController.text,
+          'daily': dailyRateController.text.replaceAll(',', ''),
           'weekly': {
-            'price': weeklyRateController.text,
+            'price': weeklyRateController.text.replaceAll(',', ''),
             'days': weeklyRateDays.value,
           },
           'monthly': {
-            'price': monthlyRateController.text,
+            'price': monthlyRateController.text.replaceAll(',', ''),
             'days': monthlyRateDays.value,
           },
         },
@@ -241,7 +241,7 @@ class GroomingDetailsController extends GetxController {
             .where((s) => s['isSelected'].value == true)
             .map((s) => {
                   'name': s['name'],
-                  'price': (s['price'] as TextEditingController).text,
+                  'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 })
             .toList(),
         'cancellationPolicy': {

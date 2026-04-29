@@ -377,8 +377,8 @@ class ShippingDetailsController extends GetxController {
 
       profileData['pricing'] = {
         'inquiryPrice': inquiryPrice.value,
-        'baseRate': baseRateController.text,
-        'loadedRate': loadedRateController.text,
+        'baseRate': baseRateController.text.replaceAll(',', ''),
+        'loadedRate': loadedRateController.text.replaceAll(',', ''),
       };
 
       profileData['servicesOffered'] = selectedServices.toList();

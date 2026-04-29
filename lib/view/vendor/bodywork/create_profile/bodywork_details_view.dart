@@ -828,6 +828,7 @@ class BodyworkDetailsView extends StatelessWidget {
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: Column(
                               children: [
+                                if (type != 'Varies by location')
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12),
                                   decoration: BoxDecoration(

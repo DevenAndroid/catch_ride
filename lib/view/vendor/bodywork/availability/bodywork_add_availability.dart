@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
+
 class BodyworkAddAvailabilityView extends StatefulWidget {
   const BodyworkAddAvailabilityView({super.key});
 
@@ -18,6 +20,7 @@ class BodyworkAddAvailabilityView extends StatefulWidget {
 class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityView> {
   final controller = Get.put(VendorAvailabilityController());
   final profileController = Get.put(ProfileController());
+  final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
 
   final RxBool _isSubmitting = false.obs;
   VendorAvailabilityModel? _editingBlock;
@@ -137,7 +140,7 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
       } else {
         await controller.createAvailabilityBlock(payload);
       }
-      
+      groomController.fetchProfile();
       Get.back();
       Get.snackbar('Success', _editingBlock != null ? 'Availability block updated' : 'Availability block created', backgroundColor: Colors.green, colorText: Colors.white);
     } catch (e) {
@@ -216,7 +219,7 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Date Range', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF344054)),
+        const CommonText('Availability', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF344054)),
         const SizedBox(height: 8),
         InkWell(
           onTap: () => _selectDate(context),

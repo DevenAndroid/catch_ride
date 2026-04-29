@@ -74,7 +74,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   bool _useBuying = false;
   bool _useBooking = false;
 
-  String _selectedFederation = 'USEF (United States)';
+  String _selectedFederation = 'USEF';
   @override
   void initState() {
     super.initState();
@@ -511,18 +511,14 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   Icons.keyboard_arrow_down,
                   color: AppColors.textSecondary,
                 ),
-                items: ['USEF (United States)', 'EC',"FEI"]
-                    .map(
-                      (e) => DropdownMenuItem(
+                items: ['USEF', 'EC',"FEI"].map((e) => DropdownMenuItem(
                         value: e,
                         child: CommonText(
                           e,
                           fontSize: AppTextSizes.size14,
                           color: AppColors.textPrimary,
                         ),
-                      ),
-                    )
-                    .toList(),
+                      )).toList(),
                 onChanged: (val) {
                   setState(() => _selectedFederation = val!);
                 },

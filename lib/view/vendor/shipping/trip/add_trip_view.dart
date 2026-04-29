@@ -74,7 +74,7 @@ class AddTripView extends StatelessWidget {
                 title: 'Schedule',
                 children: [
                   Obx(() => CommonTextField(
-                        label: 'Date Range',
+                        label: 'Availability',
                         hintText: 'Select date range',
                         readOnly: true,
                         controller: TextEditingController(
