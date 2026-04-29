@@ -35,6 +35,12 @@ class BookingModel {
   final String? senderBarnName;
   final String? providerBarnName;
   final List<String> tags;
+  final int? numberOfHorses;
+  final String? origin;
+  final String? destination;
+  final List<dynamic> coreServices;
+  final List<dynamic> additionalServices;
+  final String? rateType;
 
   BookingModel({
     this.id,
@@ -71,9 +77,16 @@ class BookingModel {
     this.barnManagerName,
     this.senderBarnName,
     this.providerBarnName,
+    this.numberOfHorses,
+    this.origin,
+    this.destination,
+    this.coreServices = const [],
+    this.additionalServices = const [],
+    this.rateType,
   });
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
+    // ... rest of the code ...
     // Direct date extraction
     Object? dateVal = json['date'];
     String displayDate = 'N/A';
@@ -244,6 +257,12 @@ class BookingModel {
       barnManagerName: bmName,
       senderBarnName: senderBN,
       providerBarnName: providerBN,
+      numberOfHorses: json['numberOfHorses'] is num ? (json['numberOfHorses'] as num).toInt() : null,
+      origin: json['origin'],
+      destination: json['destination'],
+      coreServices: json['coreServices'] is List ? json['coreServices'] : [],
+      additionalServices: json['additionalServices'] is List ? json['additionalServices'] : [],
+      rateType: json['rateType'],
     );
   }
 
@@ -287,6 +306,12 @@ class BookingModel {
       'location': location,
       'notes': notes,
       'tags': tags,
+      'numberOfHorses': numberOfHorses,
+      'origin': origin,
+      'destination': destination,
+      'coreServices': coreServices,
+      'additionalServices': additionalServices,
+      'rateType': rateType,
     };
   }
 }

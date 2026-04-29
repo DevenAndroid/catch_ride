@@ -72,10 +72,19 @@ class SendBookingRequestController extends GetxController {
         }).toList());
 
         final List core = profileData['services'] ?? [];
-        final List<Map<String, dynamic>> mappedCore = core.whereType<Map<dynamic, dynamic>>().map((s) => {
-          'id': s['id'] ?? s['name'],
-          'name': s['name'],
-          'price': _parsePrice(s['price']),
+        final List<Map<String, dynamic>> mappedCore = core.whereType<Map<dynamic, dynamic>>().map((s) {
+          final Map rates = s['rates'] ?? {};
+          final activeRates = rates.entries
+              .where((e) => e.value != null && e.value.toString().isNotEmpty)
+              .toList();
+          
+          return {
+            'id': s['id'] ?? s['name'],
+            'name': s['name'],
+            'price': activeRates.length == 1 ? _parsePrice(activeRates.first.value) : _parsePrice(s['price']),
+            'rates': rates,
+            'session': activeRates.length == 1 ? activeRates.first.key : null,
+          };
         }).toList();
 
         // For Shipping, if core services list is empty, try to pull from pricing/rates
@@ -120,21 +129,41 @@ class SendBookingRequestController extends GetxController {
 
     isLoadingAvailability.value = true;
     try {
-      final response = await _apiService.getRequest('/availability/vendors/$id');
-      if (response.statusCode == 200 && response.body['success'] == true) {
-        final List data = response.body['data'] ?? [];
-        availabilityList.assignAll(data);
-        
-        // Initialize selection with first available after fetch
-        final locations = availableLocations;
-        if (locations.isNotEmpty) {
-          if (selectedLocation.value == null) selectedLocation.value = locations.first;
-          if (selectedOrigin.value == null) selectedOrigin.value = locations.first;
-          if (selectedDestination.value == null && locations.length > 1) {
-            selectedDestination.value = locations[1];
-          } else if (selectedDestination.value == null) {
-            selectedDestination.value = locations.first;
+      final responses = await Future.wait([
+        _apiService.getRequest('/availability/vendors/$id'),
+        _apiService.getRequest('/trips/vendor/$id'),
+      ]);
+
+      final List combinedData = [];
+
+      // 1. Regular availability
+      if (responses[0].statusCode == 200 && responses[0].body['success'] == true) {
+        combinedData.addAll(responses[0].body['data'] ?? []);
+      }
+
+      // 2. Trips
+      if (responses[1].statusCode == 200 && responses[1].body['success'] == true) {
+        final List tripsData = responses[1].body['data'] ?? [];
+        for (var t in tripsData) {
+          if (t is Map) {
+            final Map tripMap = Map.from(t);
+            tripMap['isTrip'] = true;
+            combinedData.add(tripMap);
           }
+        }
+      }
+
+      availabilityList.assignAll(combinedData);
+        
+      // Initialize selection with first available after fetch
+      final locations = availableLocations;
+      if (locations.isNotEmpty) {
+        if (selectedLocation.value == null) selectedLocation.value = locations.first;
+        if (selectedOrigin.value == null) selectedOrigin.value = locations.first;
+        if (selectedDestination.value == null && locations.length > 1) {
+          selectedDestination.value = locations[1];
+        } else if (selectedDestination.value == null) {
+          selectedDestination.value = locations.first;
         }
       }
     } catch (e) {
@@ -164,14 +193,27 @@ class SendBookingRequestController extends GetxController {
       locations.add('$home (Home)');
     }
 
-    // 2. Add locations from availability
+    // 2. Add locations from availability and trips
     for (var avail in availabilityList) {
+      // Trips / Shipping specific fields
+      if (avail['origin'] != null && avail['origin'].toString().isNotEmpty) {
+        locations.add(avail['origin'].toString());
+      }
+      if (avail['destination'] != null && avail['destination'].toString().isNotEmpty) {
+        locations.add(avail['destination'].toString());
+      }
+      if (avail['intermediateStops'] != null && avail['intermediateStops'] is List) {
+        locations.addAll(List<String>.from(avail['intermediateStops']));
+      }
+
+      // General availability venues
       if (avail['showVenues'] != null && avail['showVenues'] is List) {
         locations.addAll(List<String>.from(avail['showVenues']));
       } else if (avail['showVenues'] != null && avail['showVenues'] is String && avail['showVenues'].toString().isNotEmpty) {
         locations.add(avail['showVenues'].toString());
       }
       
+      // General location object
       if (avail['location'] != null && avail['location'] is Map) {
         final loc = avail['location'];
         final city = loc['city']?.toString() ?? '';
@@ -187,6 +229,30 @@ class SendBookingRequestController extends GetxController {
     return uniqueLocations.isEmpty ? ['Other'] : uniqueLocations;
   }
 
+  bool _isLocationMatch(dynamic avail, String locationName) {
+    // Check origin/destination
+    if (avail['origin'] == locationName || avail['destination'] == locationName) return true;
+    
+    // Check intermediate stops
+    if (avail['intermediateStops'] is List && avail['intermediateStops'].contains(locationName)) return true;
+
+    // Check showVenues
+    if (avail['showVenues'] != null) {
+      if (avail['showVenues'] is List && avail['showVenues'].contains(locationName)) return true;
+      if (avail['showVenues'].toString() == locationName) return true;
+    }
+    
+    // Check location object
+    if (avail['location'] != null && avail['location'] is Map) {
+      final loc = avail['location'];
+      final city = loc['city']?.toString() ?? '';
+      final state = loc['state']?.toString() ?? '';
+      if ('$city, $state' == locationName) return true;
+    }
+
+    return false;
+  }
+
   // Find availability dates for a specific location
   Map<String, DateTime?> getAllowedDatesForLocation(String? locationName) {
     if (locationName == null || locationName.contains('(Home)') || locationName == 'Other') {
@@ -194,20 +260,7 @@ class SendBookingRequestController extends GetxController {
     }
 
     for (var avail in availabilityList) {
-      bool match = false;
-      if (avail['showVenues'] != null) {
-        if (avail['showVenues'] is List && avail['showVenues'].contains(locationName)) match = true;
-        else if (avail['showVenues'] == locationName) match = true;
-      }
-      
-      if (!match && avail['location'] != null && avail['location'] is Map) {
-        final loc = avail['location'];
-        final city = loc['city']?.toString() ?? '';
-        final state = loc['state']?.toString() ?? '';
-        if ('$city, $state' == locationName) match = true;
-      }
-
-      if (match) {
+      if (_isLocationMatch(avail, locationName)) {
         final sStr = avail['startDate'] ?? avail['specificDate'];
         final eStr = avail['endDate'] ?? avail['specificDate'];
         if (sStr != null && eStr != null) {
@@ -221,6 +274,22 @@ class SendBookingRequestController extends GetxController {
     return {'start': null, 'end': null};
   }
 
+  List<String> getHorseOptionsForLocation(String? locationName) {
+    if (locationName == null || locationName.contains('(Home)') || locationName == 'Other') {
+      return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+    }
+
+    for (var avail in availabilityList) {
+      if (_isLocationMatch(avail, locationName)) {
+        final max = int.tryParse(avail['maxBookings']?.toString() ?? avail['maxHorses']?.toString() ?? '1') ?? 1;
+        // Ensure at least 1 is shown
+        final count = max < 1 ? 1 : (max > 20 ? 20 : max); 
+        return List.generate(count, (i) => (i + 1).toString());
+      }
+    }
+    return ['1', '2', '3', '4', '5'];
+  }
+
   bool get isBraiding => selectedService.value.toLowerCase().contains('braid');
   bool get isClipping => selectedService.value.toLowerCase().contains('clip');
   bool get isFarrier => selectedService.value.toLowerCase().contains('farrier');
@@ -228,6 +297,16 @@ class SendBookingRequestController extends GetxController {
   bool get isShipping => selectedService.value.toLowerCase().contains('ship') || selectedService.value.toLowerCase().contains('transport');
 
   void toggleCoreService(String id) {
+    if (id.contains('_')) {
+      final baseId = id.split('_')[0];
+      // If a session for this service is already selected, remove it first (exclusivity)
+      final existing = selectedCoreServiceIds.firstWhereOrNull((sid) => sid.startsWith('${baseId}_'));
+      if (existing != null) {
+        selectedCoreServiceIds.remove(existing);
+        if (existing == id) return; // Toggle off if it's the same session
+      }
+    }
+
     if (selectedCoreServiceIds.contains(id)) {
       selectedCoreServiceIds.remove(id);
     } else {
@@ -236,8 +315,10 @@ class SendBookingRequestController extends GetxController {
   }
 
   void calculatePrice() {
-    if ((!isBraiding && !isShipping && selectedRateType.value == null) || 
-        ((isBraiding || isShipping) && selectedCoreServiceIds.isEmpty) || 
+    final bool isMultiService = isBraiding || isShipping || isClipping || isFarrier || isBodywork;
+
+    if ((!isMultiService && selectedRateType.value == null) || 
+        (isMultiService && selectedCoreServiceIds.isEmpty) || 
         startDate.value == null || endDate.value == null || selectedNumHorses.value == null) {
       totalPrice.value = 0.0;
       return;
@@ -251,12 +332,22 @@ class SendBookingRequestController extends GetxController {
     final activeService = services.firstWhere((s) => s['serviceType'] == selectedService.value, orElse: () => null);
     final rates = activeService?['profile']?['profileData']?['rates'] ?? {};
 
-    if (isBraiding || isShipping) {
+    if (isMultiService) {
       double coreTotal = 0.0;
       for (var id in selectedCoreServiceIds) {
         final service = coreServicesList.firstWhereOrNull((s) => s['id'] == id);
         if (service != null) {
           coreTotal += (service['price'] as double) * numHorses;
+        } else if (id.contains('_')) {
+          // Handle composite ID: serviceId_duration
+          final parts = id.split('_');
+          final baseId = parts[0];
+          final duration = parts[1];
+          final baseService = coreServicesList.firstWhereOrNull((s) => s['id'] == baseId);
+          if (baseService != null && baseService['rates'] != null) {
+            final price = _parsePrice(baseService['rates'][duration]);
+            coreTotal += price * numHorses;
+          }
         }
       }
       // Note: For shipping, this is technically a per-mile rate. 
@@ -302,6 +393,8 @@ class SendBookingRequestController extends GetxController {
     endDate.value = booking['endDate'];
     selectedNumHorses.value = booking['horses'];
     selectedLocation.value = booking['location'];
+    selectedOrigin.value = booking['origin'];
+    selectedDestination.value = booking['destination'];
     notesController.text = booking['notes'] ?? '';
     selectedAdditionalIds.assignAll(List<String>.from(booking['additionalIds'] ?? []));
     selectedCoreServiceIds.assignAll(List<String>.from(booking['coreIds'] ?? []));
@@ -388,6 +481,8 @@ class SendBookingRequestController extends GetxController {
       'endDate': endDate.value,
       'horses': selectedNumHorses.value,
       'location': isShipping ? '${selectedOrigin.value} to ${selectedDestination.value}' : selectedLocation.value,
+      'origin': selectedOrigin.value,
+      'destination': selectedDestination.value,
       'notes': notesController.text,
       'additionalIds': List<String>.from(selectedAdditionalIds),
       'coreIds': List<String>.from(selectedCoreServiceIds),
@@ -419,6 +514,8 @@ class SendBookingRequestController extends GetxController {
         'endDate': endDate.value,
         'horses': selectedNumHorses.value,
         'location': isShipping ? '${selectedOrigin.value} to ${selectedDestination.value}' : selectedLocation.value,
+        'origin': selectedOrigin.value,
+        'destination': selectedDestination.value,
         'notes': notesController.text,
         'additionalIds': List<String>.from(selectedAdditionalIds),
         'coreIds': List<String>.from(selectedCoreServiceIds),
@@ -444,6 +541,8 @@ class SendBookingRequestController extends GetxController {
         'rateType': booking['rateType'],
         'numberOfHorses': booking['horses'],
         'location': booking['location'],
+        'origin': booking['origin'],
+        'destination': booking['destination'],
         'notes': booking['notes'],
         'additionalServices': booking['additionalIds'],
         'coreServices': booking['coreIds'],

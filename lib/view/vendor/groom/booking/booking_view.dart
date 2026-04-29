@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../vendor_details_view.dart';
+import '../../booking_details_view.dart';
 
 class BookingView extends StatefulWidget {
   const BookingView({super.key});
@@ -127,7 +128,9 @@ class _BookingViewState extends State<BookingView> {
   }
 
   Widget _buildBookingCard(BookingModel booking) {
-    return Container(
+    return GestureDetector(
+      onTap: () => Get.to(() => BookingDetailsView(booking: booking)),
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -263,6 +266,7 @@ class _BookingViewState extends State<BookingView> {
           ],
         ],
       ),
+    ),
     );
   }
 }
