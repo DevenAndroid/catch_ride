@@ -803,6 +803,7 @@ class AuthController extends GetxController {
           } else {
             Get.offAll(() => const GroomBottomNav());
           }
+          return;
         } else {
           // Profile exists but not active/approved
          // logout(sessionExpired: false);
@@ -815,7 +816,7 @@ class AuthController extends GetxController {
        //      duration: const Duration(seconds: 5),
        //    );
         }
-       // return;
+
       }
 
       // If not completed, handle application flow

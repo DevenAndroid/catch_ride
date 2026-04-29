@@ -10,12 +10,12 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = false;
+  static bool isLive = true;
 
   static String get baseUrl {
     try {
-     // if (isLive) return 'https://api.catchrideapp.com/api';
-      if (isLive) return 'https://fremdly-monogenistic-collette.ngrok-free.dev/api';
+      if (isLive) return 'https://api.catchrideapp.com/api';
+      //if (isLive) return 'https://fremdly-monogenistic-collette.ngrok-free.dev/api';
     } catch (_) {}
     return 'http://$host:5000/api';
   }

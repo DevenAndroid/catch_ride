@@ -640,7 +640,7 @@ class ClippingEditProfileTab extends StatelessWidget {
   void _showAddClippingServiceBottomSheet() {
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + Get.mediaQuery.viewInsets.bottom),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
