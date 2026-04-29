@@ -314,7 +314,7 @@ class BodyworkDetailsController extends GetxController {
       final bodyworkData = {
         'services': services.where((s) => s['isSelected'] == true).map((s) => {
           'name': s['name'],
-          'rates': s['rates'],
+          'rates': (s['rates'] as Map).map((key, value) => MapEntry(key, value.toString().replaceAll(',', ''))),
           'note': s['note'],
           'trainerPresence': s['trainerPresence'],
           'vetApproval': s['vetApproval'],
@@ -328,7 +328,7 @@ class BodyworkDetailsController extends GetxController {
         'travelPreferences': selectedTravel.entries.map((e) => {
           'type': e.key,
           'feeType': e.value['feeType'],
-          'price': e.value['price'],
+          'price': e.value['price']?.toString().replaceAll(',', ''),
           'disclaimer': e.value['disclaimer'],
         }).toList(),
         'cancellationPolicy': {

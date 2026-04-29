@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
+
 class AddClippingAvailabilityView extends StatefulWidget {
   const AddClippingAvailabilityView({super.key});
 
@@ -22,7 +24,7 @@ class _AddClippingAvailabilityViewState
     extends State<AddClippingAvailabilityView> {
   final controller = Get.put(VendorAvailabilityController());
   final profileController = Get.put(ProfileController());
-
+  final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
   final RxBool _isSubmitting = false.obs;
   VendorAvailabilityModel? _editingBlock;
 
@@ -71,21 +73,39 @@ class _AddClippingAvailabilityViewState
     _addedVenues.assignAll(_editingBlock!.showVenues);
   }
 
-  Future<void> _selectDate(
-    BuildContext context, {
-    required bool isStart,
-    bool isUnavailability = false,
-  }) async {
-    DateTime initial = DateTime.now();
-    if (isUnavailability) {
-      initial = isStart ? (_unStart ?? initial) : (_unEnd ?? initial);
-    } else {
-      initial = isStart ? (_startDate ?? initial) : (_endDate ?? initial);
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      initialDateRange: (_startDate != null && _endDate != null)
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
+          : null,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _startDate = picked.start;
+        _endDate = picked.end;
+      });
     }
+  }
 
+  Future<void> _selectBlackoutDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initial,
+      initialDate: _unStart ?? DateTime.now(),
       firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) => Theme(
@@ -98,17 +118,8 @@ class _AddClippingAvailabilityViewState
 
     if (picked != null) {
       setState(() {
-        if (isUnavailability) {
-          if (isStart)
-            _unStart = picked;
-          else
-            _unEnd = picked;
-        } else {
-          if (isStart)
-            _startDate = picked;
-          else
-            _endDate = picked;
-        }
+        _unStart = picked;
+        _unEnd = picked; // Set both to the same date for single day blackout
       });
     }
   }
@@ -166,7 +177,7 @@ class _AddClippingAvailabilityViewState
       } else {
         await controller.createAvailabilityBlock(payload);
       }
-
+groomController.fetchProfile();
       Get.back();
       Get.snackbar(
         'Success',
@@ -199,16 +210,15 @@ class _AddClippingAvailabilityViewState
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: [
             _buildBlockCard(),
             const SizedBox(height: 32),
-            _buildFooterButtons(),
-            const SizedBox(height: 40),
           ],
         ),
       ),
+      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -233,64 +243,19 @@ class _AddClippingAvailabilityViewState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CommonText(
-                'Block 1',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              const Icon(Icons.close, color: AppColors.textSecondary, size: 20),
-            ],
-          ),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Availability'),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDatePickerField(
-                  'Start Date',
-                  _startDate,
-                  () => _selectDate(context, isStart: true),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildDatePickerField(
-                  'End Date',
-                  _endDate,
-                  () => _selectDate(context, isStart: false),
-                ),
+              CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () => Get.back(),
+                child: const Icon(Icons.close, color: Color(0xFF344054), size: 24),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Mark Unavailability'),
-          Row(
-            children: [
-              Expanded(
-                child: _buildDatePickerField(
-                  'Start Date',
-                  _unStart,
-                  () => _selectDate(
-                    context,
-                    isStart: true,
-                    isUnavailability: true,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildDatePickerField(
-                  'End Date',
-                  _unEnd,
-                  () => _selectDate(
-                    context,
-                    isStart: false,
-                    isUnavailability: true,
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _buildDateSection(),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Black out days'),
+          const SizedBox(height: 12),
+          _buildDateField('Date', _unStart, _selectBlackoutDate),
           const SizedBox(height: 24),
           _buildSectionHeader('Location Type'),
           _buildDropdownField(_locationType, ['Both', 'Barn', 'Show Venue']),
@@ -345,49 +310,7 @@ class _AddClippingAvailabilityViewState
     );
   }
 
-  Widget _buildDatePickerField(
-    String label,
-    DateTime? date,
-    VoidCallback onTap,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText(label, fontSize: 12, color: AppColors.textSecondary),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderLight),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CommonText(
-                  date != null
-                      ? DateFormat('MM/dd/yyyy').format(date)
-                      : 'Select Date',
-                  fontSize: 14,
-                  color: date != null
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
-                ),
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 16,
-                  color: AppColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildDropdownField(RxString selectedValue, List<String> options) {
     return Container(
@@ -707,30 +630,109 @@ class _AddClippingAvailabilityViewState
     );
   }
 
-  Widget _buildFooterButtons() {
-    return Row(
+  Widget _buildDateSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: CommonButton(
-            text: 'Cancel',
-            backgroundColor: Colors.white,
-            textColor: AppColors.textPrimary,
-            borderColor: AppColors.borderLight,
-            onPressed: () => Get.back(),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Obx(
-            () => CommonButton(
-              text: _editingBlock != null ? 'Save Changes' : 'Add Block',
-              backgroundColor: AppColors.primary,
-              isLoading: _isSubmitting.value,
-              onPressed: _submit,
+        _buildSectionHeader('Availability'),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(context),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(
+                  (_startDate != null && _endDate != null)
+                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      : 'Select Date Range',
+                  fontSize: 14,
+                  color: _startDate != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
+                ),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+              ],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDateField(String label, DateTime? date, VoidCallback onTap) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(label, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText(
+                  date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select date',
+                  fontSize: 14,
+                  color: date != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
+                ),
+                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFF2F4F7))),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => Get.back(),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFFEAECF0)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: Colors.white,
+              ),
+              child: const CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Obx(() => ElevatedButton(
+              onPressed: _isSubmitting.value ? null : _submit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF000B3D),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: _isSubmitting.value
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : CommonText(_editingBlock != null ? 'Save Changes' : 'Add Block', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+            )),
+          ),
+        ],
+      ),
     );
   }
 }

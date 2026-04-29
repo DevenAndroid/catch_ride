@@ -14,7 +14,8 @@ class AppUrls {
 
   static String get baseUrl {
     try {
-      if (isLive) return 'https://api.catchrideapp.com/api';
+     // if (isLive) return 'https://api.catchrideapp.com/api';
+      if (isLive) return 'https://fremdly-monogenistic-collette.ngrok-free.dev/api';
     } catch (_) {}
     return 'http://$host:5000/api';
   }

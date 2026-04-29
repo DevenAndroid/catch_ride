@@ -289,7 +289,7 @@ class FarrierDetailsController extends GetxController {
             .map(
               (s) => {
                 'name': s['name'],
-                'price': (s['price'] as TextEditingController).text,
+                'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
               },
             )
             .toList(),
@@ -298,7 +298,7 @@ class FarrierDetailsController extends GetxController {
             .map(
               (s) => {
                 'name': s['name'],
-                'price': (s['price'] as TextEditingController).text,
+                'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
               },
             )
             .toList(),
@@ -307,7 +307,7 @@ class FarrierDetailsController extends GetxController {
               (e) => {
                 'category': e.key,
                 'type': e.value['type'],
-                'price': e.value['price'],
+                'price': e.value['price']?.toString().replaceAll(',', ''),
                 'disclaimer': e.value['disclaimer'],
               },
             )

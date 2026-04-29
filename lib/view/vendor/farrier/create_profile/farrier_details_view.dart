@@ -647,7 +647,7 @@ class FarrierDetailsView extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            if (isTypeSelected && type != 'No travel fee')
+                            if (isTypeSelected && type != 'No travel fee' && type != 'Varies by location')
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
@@ -883,7 +883,8 @@ class FarrierDetailsView extends StatelessWidget {
                         Expanded(
                           child: TextField(
                             controller: priceController,
-                            keyboardType: TextInputType.number,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [PriceInputFormatter()],
                             decoration: const InputDecoration(
                               hintText: 'Enter price',
                               hintStyle: TextStyle(

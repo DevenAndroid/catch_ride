@@ -25,7 +25,7 @@ class BodyworkProfileCard extends StatelessWidget {
     final Map? insurance = bodyworkData['insurance'];
     final List travelPreferences = bodyworkData['travelPreferences'] ?? [];
     final Map? cancellationPolicy = bodyworkData['cancellationPolicy'];
-    
+
     // Application level data (should be available in the main vendor object usually, but passed here)
     // For now we assume these come from the parent or the root of the service data
     final List disciplines = bodyworkData['disciplines'] ?? [];
@@ -48,76 +48,116 @@ class BodyworkProfileCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Obx(() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CommonText('Services & Rates', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-          const SizedBox(height: 16),
-
-          ...services.map((s) => _buildServiceItem(s, showMore.value)).toList(),
-
-          if (!showMore.value) ...[
-             const SizedBox(height: 8),
-             _buildNoteBox(),
-          ],
-
-          const Divider(height: 32, color: AppColors.dividerColor),
-
-          _buildTwoColumnDetails(
-            'Location', location, 
-            'Years of Experience', experience
-          ),
-
-          if (showMore.value) ...[
-            const SizedBox(height: 20),
-            _buildTwoColumnDetails(
-              'Disciplines', 
-              disciplines.isEmpty ? 'N/A' : disciplines.join(', '),
-              'Typical Level of Horses', 
-              horseLevels.isEmpty ? 'N/A' : horseLevels.join(', ')
-            ),
-            const SizedBox(height: 20),
-            _buildSingleColumnDetail('Scope of Work', scopeOfWork.isEmpty ? 'N/A' : scopeOfWork.join(', ')),
-            const SizedBox(height: 20),
-            _buildSingleColumnDetail('Travel Preferences', travelPreferences.isEmpty ? 'N/A' : travelPreferences.join(', ')),
-            const SizedBox(height: 20),
-            _buildSingleColumnDetail('Regions Covered', regionsCovered.isEmpty ? 'N/A' : regionsCovered.join(', ')),
-            const SizedBox(height: 24),
-          //  _buildDisclaimerBox(),
-          ],
-
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: () => showMore.value = !showMore.value,
-            child: CommonText(
-              showMore.value ? 'View Less' : 'View More',
-              color: AppColors.linkBlue,
+      child: Obx(
+        () => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const CommonText(
+              'Services & Rates',
               fontSize: AppTextSizes.size14,
               fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
             ),
-          ),
-        ],
-      )),
+            const SizedBox(height: 16),
+
+            ...services
+                .map((s) => _buildServiceItem(s, showMore.value))
+                .toList(),
+
+            if (!showMore.value) ...[
+              const SizedBox(height: 8),
+              _buildNoteBox(),
+            ],
+
+            const Divider(height: 32, color: AppColors.dividerColor),
+
+            _buildTwoColumnDetails(
+              'Location',
+              location,
+              'Years of Experience',
+              experience,
+            ),
+
+            if (showMore.value) ...[
+              const SizedBox(height: 20),
+              _buildTwoColumnDetails(
+                'Disciplines',
+                disciplines.isEmpty ? 'N/A' : disciplines.join(', '),
+                'Typical Level of Horses',
+                horseLevels.isEmpty ? 'N/A' : horseLevels.join(', '),
+              ),
+              const SizedBox(height: 20),
+              _buildSingleColumnDetail(
+                'Scope of Work',
+                scopeOfWork.isEmpty ? 'N/A' : scopeOfWork.join(', '),
+              ),
+              const SizedBox(height: 20),
+              _buildSingleColumnDetail(
+                'Travel Preferences',
+                travelPreferences.isEmpty
+                    ? 'N/A'
+                    : travelPreferences.join(', '),
+              ),
+              const SizedBox(height: 20),
+              _buildSingleColumnDetail(
+                'Regions Covered',
+                regionsCovered.isEmpty ? 'N/A' : regionsCovered.join(', '),
+              ),
+              const SizedBox(height: 24),
+              //  _buildDisclaimerBox(),
+            ],
+
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () => showMore.value = !showMore.value,
+              child: CommonText(
+                showMore.value ? 'View Less' : 'View More',
+                color: AppColors.linkBlue,
+                fontSize: AppTextSizes.size14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildServiceItem(Map service, bool isExpanded) {
     final String name = service['name'] ?? 'Service';
     final Map rates = service['rates'] ?? {};
-    
+
     if (isExpanded) {
       // Find a default price for expanded view, or just show its first available rate
-      final String firstRate = rates.values.firstWhere((v) => v != null && v.toString().isNotEmpty, orElse: () => '0');
+      final String firstRate = rates.values.firstWhere(
+        (v) => v != null && v.toString().isNotEmpty,
+        orElse: () => '0',
+      );
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Column(
           children: [
             Row(
               children: [
-                const Icon(Icons.check_circle_outline, size: 20, color: AppColors.textSecondary),
+                const Icon(
+                  Icons.check_circle_outline,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600)),
-                CommonText('\$ $firstRate', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.secondary),
+                Expanded(
+                  child: CommonText(
+                    name,
+                    fontSize: AppTextSizes.size16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                CommonText(
+                  '\$ $firstRate',
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.secondary,
+                ),
               ],
             ),
             Padding(
@@ -125,9 +165,9 @@ class BodyworkProfileCard extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: CommonText(
-                  'Sessions: ${rates.keys.join(', ')} mins', 
-                  fontSize: 12, 
-                  color: AppColors.textSecondary
+                  'Sessions: ${rates.keys.join(', ')} mins',
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
@@ -141,16 +181,26 @@ class BodyworkProfileCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.check_circle_outline, size: 20, color: AppColors.textSecondary),
+            const Icon(
+              Icons.check_circle_outline,
+              size: 20,
+              color: AppColors.textSecondary,
+            ),
             const SizedBox(width: 8),
-            CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600),
+            CommonText(
+              name,
+              fontSize: AppTextSizes.size16,
+              fontWeight: FontWeight.w600,
+            ),
           ],
         ),
         const SizedBox(height: 12),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: rates.entries.map((e) => _buildRateBox(e.key, e.value)).toList(),
+            children: rates.entries
+                .map((e) => _buildRateBox(e.key, e.value))
+                .toList(),
           ),
         ),
         const SizedBox(height: 16),
@@ -168,14 +218,28 @@ class BodyworkProfileCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          CommonText('\$ ${price ?? '0'}', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.accentRed),
-          CommonText('$mins mins', fontSize: 10, color: AppColors.textSecondary),
+          CommonText(
+            '\$ ${price ?? '0'}',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: AppColors.accentRed,
+          ),
+          CommonText(
+            '$mins mins',
+            fontSize: 10,
+            color: AppColors.textSecondary,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTwoColumnDetails(String label1, String val1, String label2, String val2) {
+  Widget _buildTwoColumnDetails(
+    String label1,
+    String val1,
+    String label2,
+    String val2,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -194,9 +258,18 @@ class BodyworkProfileCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        CommonText(
+          label,
+          fontSize: AppTextSizes.size12,
+          color: AppColors.textSecondary,
+        ),
         const SizedBox(height: 6),
-        CommonText(value, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        CommonText(
+          value,
+          fontSize: AppTextSizes.size14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
         const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
@@ -215,8 +288,8 @@ class BodyworkProfileCard extends StatelessWidget {
           Icon(Icons.circle, size: 4, color: Color(0xFF8B4444)),
           SizedBox(width: 6),
           CommonText(
-            'Need vet approval & Trainer presence', 
-            fontSize: 12, 
+            'Need vet approval & Trainer presence',
+            fontSize: 12,
             color: Color(0xFF8B4444),
             fontWeight: FontWeight.w500,
           ),

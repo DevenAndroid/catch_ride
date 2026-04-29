@@ -35,48 +35,49 @@ class _CommonSuggestionFieldState extends State<CommonSuggestionField> {
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      if (_focusNode.hasFocus) {
-        _showOverlay();
-      } else {
-        _hideOverlay();
-      }
-    });
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    if (_focusNode.hasFocus) {
+      _showOverlay();
+    } else {
+      _hideOverlay();
+    }
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_handleFocusChange);
     _focusNode.dispose();
-    _hideOverlay();
+    _removeOverlay();
     super.dispose();
   }
 
   void _showOverlay() {
-    if (_isOverlayVisible) return;
+    if (_isOverlayVisible || !mounted) return;
     
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
-    if (mounted) {
-      setState(() {
-        _isOverlayVisible = true;
-      });
-    } else {
+    setState(() {
       _isOverlayVisible = true;
-    }
+    });
   }
 
   void _hideOverlay() {
     if (!_isOverlayVisible) return;
     
-    _overlayEntry?.remove();
-    _overlayEntry = null;
+    _removeOverlay();
     if (mounted) {
       setState(() {
         _isOverlayVisible = false;
       });
-    } else {
-      _isOverlayVisible = false;
     }
+  }
+
+  void _removeOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
   }
 
   OverlayEntry _createOverlayEntry() {

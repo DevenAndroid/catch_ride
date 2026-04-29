@@ -471,7 +471,7 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
                             if (controller.selectedTravelFeeType.value != 'Varies by location' && controller.selectedTravelFeeType.value != 'No travel fee')
                                const CommonText('Price', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
                             
-                            if (controller.selectedTravelFeeType.value != 'No travel fee') ...[
+                            if (controller.selectedTravelFeeType.value != 'No travel fee' && controller.selectedTravelFeeType.value != 'Varies by location') ...[
                               const SizedBox(height: 10),
                               Container(
                                 height: 54,

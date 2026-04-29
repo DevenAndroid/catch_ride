@@ -844,7 +844,7 @@ class BraidingApplicationView extends StatelessWidget {
       controlAffinity: ListTileControlAffinity.leading,
       contentPadding: EdgeInsets.zero,
       dense: true,
-      activeColor: AppColors.primary,
+      activeColor: AppColors.greenColor,
     );
   }
 }

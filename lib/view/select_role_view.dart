@@ -132,13 +132,16 @@ class _SelectRoleViewState extends State<SelectRoleView> {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setString('role', backendRole);
 
+                        print("tttttt ${response.body["data"]["vendorId"]}");
+
+
                         // Navigate based on role
                         if (backendRole == 'trainer') {
                           Get.to(() => const TrainerProfileSetupView());
                         } else if (backendRole == 'barn_manager') {
                           Get.to(() => const BarnManagerCreateProfileView());
                         } else {
-                          // Service Provider - go to select services screen
+                          await prefs.setString('vendorId', response.body["data"]["vendorId"]);
                           Get.to(() => const VendorSelectServicesView());
                         }
                       } else {

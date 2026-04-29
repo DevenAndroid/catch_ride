@@ -124,7 +124,7 @@ class BraidingDetailsController extends GetxController {
             .where((s) => s['isSelected'].value == true)
             .map((s) => {
                   'name': s['name'],
-                  'price': (s['price'] as TextEditingController).text,
+                  'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 })
             .toList(),
         'travelPreferences': selectedTravel.toList(),

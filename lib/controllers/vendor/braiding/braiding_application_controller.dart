@@ -190,9 +190,9 @@ class BraidingApplicationController extends GetxController {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery,imageQuality: 85);
-    if (image != null) {
-      photos.add(File(image.path));
+    final List<XFile> images = await _picker.pickMultiImage(imageQuality: 85);
+    if (images.isNotEmpty) {
+      photos.addAll(images.map((image) => File(image.path)));
     }
   }
 

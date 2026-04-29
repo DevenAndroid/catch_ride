@@ -87,6 +87,8 @@ class ApiService extends GetConnect implements GetxService {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
 
+    print("token:::::::::::${token}");
+
     if (token == null || token.isEmpty) {
       debugPrint('Request to $path blocked: No auth token');
       await _triggerAutoLogout();
