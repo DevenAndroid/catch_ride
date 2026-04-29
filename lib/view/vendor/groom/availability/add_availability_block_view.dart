@@ -312,7 +312,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 if (_categoryName == 'Bodywork') ...[
                   _buildSectionHeader('Time window'),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning Window', 'Afternoon Window']),
+                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning window', 'Afternoon window']),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Location Type'),
                   const SizedBox(height: 8),
@@ -342,7 +342,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   const SizedBox(height: 12),
                   const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'AM', 'PM']),
+                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning window', 'Afternoon window']),
                   const SizedBox(height: 16),
                   const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
                   const SizedBox(height: 8),
