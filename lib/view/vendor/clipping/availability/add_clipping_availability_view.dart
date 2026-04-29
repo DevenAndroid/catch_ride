@@ -269,7 +269,7 @@ groomController.fetchProfile();
             fontWeight: FontWeight.bold,
           ),
           const SizedBox(height: 8),
-          _buildDropdownField(_availabilityType, ['Full Day', 'AM', 'PM']),
+          _buildDropdownField(_availabilityType, ['Full Day', 'Morning window', 'Afternoon window']),
           const SizedBox(height: 16),
           const CommonText(
             'Capacity',

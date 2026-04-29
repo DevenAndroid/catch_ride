@@ -182,7 +182,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
               const SizedBox(height: 24),
               const CommonText('Timeframe', fontSize: 14, fontWeight: FontWeight.bold),
               const SizedBox(height: 8),
-              _buildDropdownField(_timeWindow, ['Full Day', 'AM', 'PM']),
+              _buildDropdownField(_timeWindow, ['Full Day', 'Morning window', 'Afternoon window']),
               const SizedBox(height: 24),
               _buildVenueSection(),
               const SizedBox(height: 24),
