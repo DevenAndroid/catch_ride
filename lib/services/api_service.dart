@@ -133,7 +133,13 @@ class ApiService extends GetConnect implements GetxService {
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
     debugPrint('📤 POST REQUEST: $fullUrl');
-    log('📦 REQUEST BODY: ${jsonEncode(body)}');
+    
+    if (body is FormData) {
+      log('📦 REQUEST BODY: [FormData]');
+    } else {
+      log('📦 REQUEST BODY: ${jsonEncode(body)}');
+    }
+    
     return post(path, body);
   }
 
@@ -143,7 +149,13 @@ class ApiService extends GetConnect implements GetxService {
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
     debugPrint('📤 PUT REQUEST: $fullUrl');
-    log('📦 REQUEST BODY: ${jsonEncode(body)}');
+    
+    if (body is FormData) {
+      log('📦 REQUEST BODY: [FormData]');
+    } else {
+      log('📦 REQUEST BODY: ${jsonEncode(body)}');
+    }
+    
     return put(path, body);
   }
 

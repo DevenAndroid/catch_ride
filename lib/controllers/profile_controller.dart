@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/models/user_model.dart';
 import 'package:catch_ride/services/api_service.dart';
@@ -363,8 +364,15 @@ class ProfileController extends GetxController {
 
   Future<String?> uploadRawFile(String filePath, {String? type}) async {
     try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        _logger.e('File does not exist at path: $filePath');
+        return null;
+      }
+
+      final bytes = await file.readAsBytes();
       final formData = FormData({
-        'media': MultipartFile(filePath, filename: filePath.split('/').last),
+        'media': MultipartFile(bytes, filename: filePath.split('/').last),
       });
 
       String url = AppUrls.upload;
