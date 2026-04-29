@@ -315,10 +315,26 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
+        Obx(() => _buildDropdownField(
+          'Number of Horses', 
+          'Select Number of Horses', 
+          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
+          controller.selectedNumHorses
+        )),
         const SizedBox(height: 20),
         // Location
-        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
+        Obx(() => _buildDropdownField(
+          'Location', 
+          'Select Location', 
+          controller.availableLocations, 
+          controller.selectedLocation, 
+          isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          }
+        )),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -388,10 +404,26 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], controller.selectedNumHorses),
+        Obx(() => _buildDropdownField(
+          'Number of Horses', 
+          'Select Number of Horses', 
+          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
+          controller.selectedNumHorses
+        )),
         const SizedBox(height: 20),
         // Location
-        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
+        Obx(() => _buildDropdownField(
+          'Location', 
+          'Select Location', 
+          controller.availableLocations, 
+          controller.selectedLocation, 
+          isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          }
+        )),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -461,10 +493,26 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'], controller.selectedNumHorses),
+        Obx(() => _buildDropdownField(
+          'Number of Horses', 
+          'Select Number of Horses', 
+          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
+          controller.selectedNumHorses
+        )),
         const SizedBox(height: 20),
         // Location
-        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
+        Obx(() => _buildDropdownField(
+          'Location', 
+          'Select Location', 
+          controller.availableLocations, 
+          controller.selectedLocation, 
+          isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          }
+        )),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -493,14 +541,34 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 16),
         Obx(() => Column(
           children: controller.coreServicesList.map((service) {
-            final isSelected = controller.selectedCoreServiceIds.contains(service['id']);
-            // Session info from naming or special data
-            final String sessionInfo = service['session'] ?? '30 mins session:';
+            final Map rates = service['rates'] ?? {};
+            final activeRates = rates.entries
+                .where((e) => e.value != null && e.value.toString().isNotEmpty)
+                .toList();
             
+            final selectedSessionId = controller.selectedCoreServiceIds.firstWhereOrNull((sid) => sid.startsWith('${service['id']}_'));
+            final isSelected = controller.selectedCoreServiceIds.contains(service['id']) || selectedSessionId != null;
+            
+            String sessionInfo = 'Choose session';
+            if (activeRates.length == 1) {
+              sessionInfo = '${activeRates.first.key} mins';
+            } else if (selectedSessionId != null) {
+              final duration = selectedSessionId.split('_')[1];
+              sessionInfo = '$duration mins session';
+            } else if (activeRates.length > 1) {
+              sessionInfo = '${activeRates.length} sessions available';
+            }
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: GestureDetector(
-                onTap: () => _showSessionBottomSheet(controller, service),
+                onTap: () {
+                  if (activeRates.length == 1) {
+                    controller.toggleCoreService(service['id']);
+                  } else {
+                    _showSessionBottomSheet(controller, service);
+                  }
+                },
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -533,7 +601,12 @@ class SendBookingRequestView extends StatelessWidget {
                           ],
                         ),
                       ),
-                      CommonText('\$ ${service['price']}', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      if (activeRates.length == 1)
+                        CommonText('\$ ${activeRates.first.value}', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)
+                      else if (selectedSessionId != null)
+                        CommonText('\$ ${rates[selectedSessionId.split('_')[1]]}', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)
+                      else if (activeRates.length > 1)
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
                     ],
                   ),
                 ),
@@ -543,10 +616,26 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
+        Obx(() => _buildDropdownField(
+          'Number of Horses', 
+          'Select Number of Horses', 
+          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
+          controller.selectedNumHorses
+        )),
         const SizedBox(height: 20),
         // Location
-        Obx(() => _buildDropdownField('Location', 'Select Location', controller.availableLocations, controller.selectedLocation, isLoading: controller.isLoadingAvailability.value)),
+        Obx(() => _buildDropdownField(
+          'Location', 
+          'Select Location', 
+          controller.availableLocations, 
+          controller.selectedLocation, 
+          isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          }
+        )),
         const SizedBox(height: 20),
         // Start Date and End Date
         Row(
@@ -567,14 +656,18 @@ class SendBookingRequestView extends StatelessWidget {
   }
 
   void _showSessionBottomSheet(SendBookingRequestController controller, Map<String, dynamic> service) {
-    // Session options (Mocking for now as shown in image)
-    final sessions = [
-      {'label': '30 mins', 'price': 150},
-      {'label': '45 mins', 'price': 250},
-      {'label': '60 mins', 'price': 300},
-      {'label': '90 mins', 'price': 450},
-    ];
+    final Map rates = service['rates'] ?? {};
+    final activeRates = rates.entries
+        .where((e) => e.value != null && e.value.toString().isNotEmpty)
+        .toList()
+      ..sort((a, b) {
+        final aVal = int.tryParse(a.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        final bVal = int.tryParse(b.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+        return aVal.compareTo(bVal);
+      });
     
+    if (activeRates.isEmpty) return;
+
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -585,14 +678,14 @@ class SendBookingRequestView extends StatelessWidget {
           children: [
             const CommonText('Choose Session', fontSize: 20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            ...sessions.map((session) {
-              final isThis = service['session'] == session['label'];
+            ...activeRates.map((rate) {
+              final isSelected = controller.selectedCoreServiceIds.contains('${service['id']}_${rate.key}');
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: GestureDetector(
                   onTap: () {
-                    // Update controller/service state
-                    controller.toggleCoreService(service['id']);
+                    // Use a unique ID for the specific session
+                    controller.toggleCoreService('${service['id']}_${rate.key}');
                     Get.back();
                   },
                   child: Container(
@@ -600,20 +693,20 @@ class SendBookingRequestView extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: isThis ? const Color(0xFF00083B) : const Color(0xFFE4E7EC), width: isThis ? 2 : 1),
+                      border: Border.all(color: isSelected ? const Color(0xFF00083B) : const Color(0xFFE4E7EC), width: isSelected ? 2 : 1),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Row(
                           children: [
-                            Icon(isThis ? Icons.radio_button_checked : Icons.radio_button_off, 
-                                 color: isThis ? const Color(0xFF00083B) : Colors.grey, size: 20),
+                            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, 
+                                 color: isSelected ? const Color(0xFF00083B) : Colors.grey, size: 20),
                             const SizedBox(width: 12),
-                            CommonText(session['label'].toString(), fontSize: 14, fontWeight: isThis ? FontWeight.bold : FontWeight.normal),
+                            CommonText('${rate.key} mins', fontSize: 14, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
                           ],
                         ),
-                        CommonText('\$ ${session['price']}', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
+                        CommonText('\$ ${rate.value}', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
                       ],
                     ),
                   ),
@@ -677,13 +770,40 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        _buildDropdownField('Number of Horses', 'Select Number of Horses', ['1', '2', '3', '4', '5'], controller.selectedNumHorses),
+        Obx(() => _buildDropdownField(
+          'Number of Horses', 
+          'Select Number of Horses', 
+          controller.getHorseOptionsForLocation(controller.selectedOrigin.value), 
+          controller.selectedNumHorses
+        )),
         const SizedBox(height: 20),
         // Origin Location
-        Obx(() => _buildDropdownField('Origin Location', 'Select Origin', controller.availableLocations, controller.selectedOrigin, isLoading: controller.isLoadingAvailability.value)),
+        Obx(() => _buildDropdownField(
+          'Origin Location', 
+          'Select Origin', 
+          controller.availableLocations, 
+          controller.selectedOrigin, 
+          isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          }
+        )),
         const SizedBox(height: 16),
         // Destination Location
-        Obx(() => _buildDropdownField('Destination Location', 'Select Destination', controller.availableLocations, controller.selectedDestination, isLoading: controller.isLoadingAvailability.value)),
+        Obx(() => _buildDropdownField(
+          'Destination Location', 
+          'Select Destination', 
+          controller.availableLocations, 
+          controller.selectedDestination, 
+          isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          }
+        )),
         const SizedBox(height: 16),
         _buildDateField('Start Date', 'Select Date', controller.startDate, controller, locationObs: controller.selectedOrigin),
         const SizedBox(height: 16),
@@ -712,12 +832,12 @@ class SendBookingRequestView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        _buildDropdownField(
+        Obx(() => _buildDropdownField(
           'Number Of Horses', 
           'Select', 
-          ['1', '2', '3', '4', '5'],
+          controller.getHorseOptionsForLocation(controller.selectedLocation.value),
           controller.selectedNumHorses,
-        ),
+        )),
         const SizedBox(height: 20),
         Obx(() => _buildDropdownField(
           'Location', 
@@ -725,6 +845,11 @@ class SendBookingRequestView extends StatelessWidget {
           controller.availableLocations,
           controller.selectedLocation,
           isLoading: controller.isLoadingAvailability.value,
+          onChanged: (val) {
+            controller.startDate.value = null;
+            controller.endDate.value = null;
+            controller.selectedNumHorses.value = null;
+          },
         )),
         const SizedBox(height: 20),
         _buildTextField('Notes to your Groom', 'Add a note for the service provider...', controller.notesController),
@@ -775,7 +900,7 @@ class SendBookingRequestView extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdownField(String label, String hint, List<String> options, RxnString selectedValue, {bool isLoading = false}) {
+  Widget _buildDropdownField(String label, String hint, List<String> options, RxnString selectedValue, {bool isLoading = false, void Function(String?)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -797,7 +922,10 @@ class SendBookingRequestView extends StatelessWidget {
                   value: (options.contains(selectedValue.value)) ? selectedValue.value : null,
                   hint: CommonText(hint, color: const Color(0xFF98A2B3), fontSize: 14),
                   items: options.map((o) => DropdownMenuItem(value: o, child: CommonText(o, fontSize: 14))).toList(),
-                  onChanged: (val) => selectedValue.value = val,
+                  onChanged: (val) {
+                    selectedValue.value = val;
+                    if (onChanged != null) onChanged(val);
+                  },
                   icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
                 ),
               ),
