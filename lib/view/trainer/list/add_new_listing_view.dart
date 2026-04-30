@@ -2109,16 +2109,16 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   } else if (_currentStep == 3) {
                     if (!controller.validateStep3()) return;
                   } else if (_currentStep == 4) {
-                    if (controller.localImages.isEmpty && controller.uploadedImages.isEmpty) {
-                      Get.snackbar(
-                        'Required',
-                        'Please upload at least one image',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.redAccent,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
+                    // if (controller.localImages.isEmpty && controller.uploadedImages.isEmpty) {
+                    //   Get.snackbar(
+                    //     'Required',
+                    //     'Please upload at least one image',
+                    //     snackPosition: SnackPosition.BOTTOM,
+                    //     backgroundColor: Colors.redAccent,
+                    //     colorText: Colors.white,
+                    //   );
+                    //   return;
+                    // }
                     if (!controller.validateStep4()) return;
                   }
                   setState(() {

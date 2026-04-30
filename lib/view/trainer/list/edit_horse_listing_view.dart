@@ -1067,13 +1067,8 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 ],
               ),
               const SizedBox(height: 16),
-              CommonTextField(
-                label: 'Color',
-                controller: controller.colorController,
-                hintText: 'Enter color',
-                isRequired: false,
-              ),
-              const SizedBox(height: 16),
+              _buildColorSelection(),
+              const SizedBox(height: 20),
 
               // Discipline Dropdown Stub
               Padding(
@@ -1479,6 +1474,37 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
         }).toList(),
       );
     });
+  }
+  
+  Widget _buildColorSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          'Color',
+          fontSize: AppTextSizes.size14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 12),
+        Obx(
+          () => Wrap(
+            spacing: 8,
+            runSpacing: 10,
+            children: controller.colors.map((color) {
+              final isSelected = controller.selectedColor.value == color;
+              return GestureDetector(
+                onTap: () {
+                  controller.selectedColor.value = color;
+                  controller.colorController.text = color;
+                },
+                child: _buildTagChip(color, isSelected),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildDynamicTagSection({

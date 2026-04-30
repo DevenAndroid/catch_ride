@@ -287,11 +287,9 @@ class ProfileController extends GetxController {
           instagram: data['instagram'] ?? '',
           facebook: data['facebook'] ?? '',
           website: data['website'] ?? '',
-          showCircuits:
-              (data['horseShows'] as List?)
-                  ?.map((e) => e['name'].toString())
-                  .toList() ??
-              [],
+          showCircuits: (data['showCircuits'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ?? [],
           horseShows:
               (data['horseShows'] as List?)
                   ?.map((e) => e['_id'].toString())

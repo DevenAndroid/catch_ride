@@ -282,6 +282,7 @@ class SettingsView extends StatelessWidget {
               width: 90,
               shape: BoxShape.circle,
               isUserImage: true,
+              enableFullScreen: true,
             ),
 
           ),
