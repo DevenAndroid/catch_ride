@@ -5,6 +5,7 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class OtpVerificationView extends StatefulWidget {
@@ -31,6 +32,20 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
   void initState() {
     super.initState();
     _startTimer();
+    
+    // Add backspace listener to handle empty fields
+    for (int i = 0; i < 6; i++) {
+      _focusNodes[i].onKeyEvent = (node, event) {
+        if (event is KeyDownEvent && 
+            event.logicalKey == LogicalKeyboardKey.backspace) {
+          if (_controllers[i].text.isEmpty && i > 0) {
+            _focusNodes[i - 1].requestFocus();
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      };
+    }
   }
 
   void _startTimer() {
@@ -79,6 +94,14 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
     if (_otp.length == 6) {
       _authController.verifyEmail(widget.email, _otp);
     }
+    setState(() {});
+  }
+
+  void _clearOtp() {
+    for (var controller in _controllers) {
+      controller.clear();
+    }
+    _focusNodes[0].requestFocus();
     setState(() {});
   }
 
@@ -215,7 +238,6 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                           ),
                           onChanged: (val) {
                             _onOtpChanged(val, index);
-                            setState(() {});
                           },
                         ),
                       ),
@@ -223,7 +245,25 @@ class _OtpVerificationViewState extends State<OtpVerificationView> {
                   }),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
+  
+                // Clear button
+                TextButton(
+                  onPressed: _clearOtp,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: CommonText(
+                    'Clear Code',
+                    fontSize: AppTextSizes.size14,
+                    color: AppColors.textSecondary.withOpacity(0.8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+
+                const SizedBox(height: 24),
   
                 // Resend timer
                 _canResend
