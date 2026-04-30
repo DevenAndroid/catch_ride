@@ -92,7 +92,10 @@ class ExploreController extends GetxController {
       location.value.isNotEmpty ||
       showVenue.value.isNotEmpty ||
       regionsCovered.isNotEmpty ||
-      (startDate.value != null && endDate.value != null);
+      (startDate.value != null && endDate.value != null) ||
+      shippingStartLocation.value.isNotEmpty ||
+      shippingEndLocation.value.isNotEmpty ||
+      isServiceFilterApplied.value;
 
   // Suggested search items
   final RxList<Map<String, String>> defaultLocations =

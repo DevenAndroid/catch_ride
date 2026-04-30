@@ -11,6 +11,9 @@ class TripModel {
   bool allowIntermediateStops;
   List<String> intermediateStops;
   String status; // 'Open', 'Limited', 'Full'
+  List<Map<String, dynamic>>? intermediateStopsData;
+  List<double>? originCoords;
+  List<double>? destinationCoords;
 
   TripModel({
     this.id,
@@ -25,9 +28,35 @@ class TripModel {
     this.allowIntermediateStops = false,
     this.intermediateStops = const [],
     this.status = 'Open',
+    this.originCoords,
+    this.destinationCoords,
+    this.intermediateStopsData,
   });
 
   factory TripModel.fromJson(Map<String, dynamic> json) {
+    // Handle coordinates
+    List<double>? parseCoords(dynamic coordsJson) {
+      if (coordsJson != null && coordsJson['coordinates'] != null) {
+        return List<double>.from(coordsJson['coordinates'].map((e) => e.toDouble()));
+      }
+      return null;
+    }
+
+    // Handle intermediate stops safely
+    List<String> stops = [];
+    List<Map<String, dynamic>> stopsData = [];
+    
+    if (json['intermediateStops'] != null && json['intermediateStops'] is List) {
+      for (var item in json['intermediateStops']) {
+        if (item is String) {
+          stops.add(item);
+        } else if (item is Map) {
+          stops.add(item['address']?.toString() ?? '');
+          stopsData.add(Map<String, dynamic>.from(item));
+        }
+      }
+    }
+
     return TripModel(
       id: json['_id'] ?? json['id'],
       origin: json['origin'],
@@ -39,8 +68,11 @@ class TripModel {
       equipmentDescription: json['equipmentDescription'],
       routeNotes: json['routeNotes'],
       allowIntermediateStops: json['allowIntermediateStops'] ?? false,
-      intermediateStops: List<String>.from(json['intermediateStops'] ?? []),
+      intermediateStops: stops,
+      intermediateStopsData: stopsData,
       status: json['status'] ?? 'Open',
+      originCoords: parseCoords(json['originCoords']),
+      destinationCoords: parseCoords(json['destinationCoords']),
     );
   }
 

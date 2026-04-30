@@ -61,7 +61,12 @@ class VendorAvailabilityModel {
     var rawVenues = json['showVenues'];
     List<String> parsedVenues = [];
     if (rawVenues is List) {
-      parsedVenues = List<String>.from(rawVenues);
+      parsedVenues = rawVenues.map((v) {
+        if (v is Map && (v['name'] != null || v['address'] != null)) {
+          return (v['name'] ?? v['address']).toString();
+        }
+        return v.toString();
+      }).toList();
     } else if (rawVenues is String && rawVenues.isNotEmpty) {
       parsedVenues = [rawVenues];
     }

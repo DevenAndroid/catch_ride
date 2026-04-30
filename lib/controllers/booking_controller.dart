@@ -44,8 +44,10 @@ class BookingController extends GetxController {
           sentBookings.assignAll(newBookings);
         }
 
-        // Always update the master list for things like isRequested checks
-        bookings.assignAll(type == 'sent' ? sentBookings : receivedBookings);
+        // We only update the 'bookings' master list if it's explicitly needed for backward compatibility
+        // but we should avoid using it for tab-specific views.
+        // If needed, we could assign the one currently being fetched.
+        bookings.assignAll(newBookings);
 
         _logger.i(
           'Fetched ${newBookings.length} $type bookings (time: $time, status: $status)',
