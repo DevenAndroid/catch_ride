@@ -610,8 +610,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     final String barnName =
         (isOwnHorse &&
-            (horse!.trainerBarnName == null || horse!.trainerBarnName!.isEmpty))
-        ? profileController.barnName
+            (horse!.trainerId == null))
+        ? (profileController.barnName ?? "")
         : (horse!.trainerBarnName ?? "");
 
     return Padding(
@@ -671,24 +671,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.secondary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding:  EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  SizedBox(width: 10),
-                  Icon(Icons.chat_bubble_outline, size: 18),
                   SizedBox(width: 8),
+                  Icon(Icons.chat_bubble_outline, size: 14),
+                  SizedBox(width: 6),
                   CommonText(
                     'Message',
-                    fontSize: 16,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
-                  SizedBox(width: 10),
+                  SizedBox(width: 8),
                 ],
               ),
             )

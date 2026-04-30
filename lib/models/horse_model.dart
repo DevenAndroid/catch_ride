@@ -338,6 +338,7 @@ class HorseModel {
       trainerId: tId,
       trainerName: tName,
       trainerAvatar: tAvatar,
+      trainerBarnName: tBarnName,
 
       ownerId: oId,
       ownerName: oName,
