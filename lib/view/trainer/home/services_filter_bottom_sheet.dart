@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../constant/app_colors.dart';
 import '../../../../controllers/explore_controller.dart';
+import '../../../../controllers/google_api_controller.dart';
 import '../../../../widgets/common_text.dart';
 import 'package:collection/collection.dart';
 
@@ -46,6 +47,8 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
   final Set<String> _localShippingStallTypes = {};
   final TextEditingController startLocationController = TextEditingController();
   final TextEditingController endLocationController = TextEditingController();
+  final FocusNode startLocationFocusNode = FocusNode();
+  final FocusNode endLocationFocusNode = FocusNode();
 
   bool _isApplying = false;
 
@@ -331,11 +334,11 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                     ] else if (_selectedTab == 'Shipping') ...[
                       _buildLabel('Start Location'),
                       const SizedBox(height: 8),
-                      _buildLocationField(startLocationController, 'Select Start Location'),
+                      _buildLocationField(startLocationController, startLocationFocusNode, 'Select Start Location'),
                       const SizedBox(height: 20),
                       _buildLabel('End Location'),
                       const SizedBox(height: 8),
-                      _buildLocationField(endLocationController, 'Select Show Venue or City'),
+                      _buildLocationField(endLocationController, endLocationFocusNode, 'Select Show Venue or City'),
                       const SizedBox(height: 24),
                       _buildChipSection('Travel Scope', [
                         'Local', 'Nationwide', 'State-wide', 'Regional (North East, South East etc.)'
@@ -608,28 +611,92 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
     );
   }
 
-  Widget _buildLocationField(TextEditingController controller, String hint) {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: TextField(
-        controller: controller,
-        readOnly: true, // Assuming it opens a picker
-        onTap: () {
-          // TODO: Open location picker
-        },
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          prefixIcon: const Icon(Icons.location_on_outlined, color: AppColors.textSecondary),
-          suffixIcon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  Widget _buildLocationField(TextEditingController fieldController, FocusNode focusNode, String hint) {
+    final googleApiController = Get.put(GoogleApiController());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: TextField(
+            controller: fieldController,
+            focusNode: focusNode,
+            onChanged: (val) {
+              googleApiController.searchGooglePlaces(val);
+              setState(() {}); // To refresh the UI and show suggestions
+            },
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              prefixIcon: const Icon(Icons.location_on_outlined, color: AppColors.textSecondary),
+              suffixIcon: fieldController.text.isNotEmpty 
+                ? IconButton(
+                    icon: const Icon(Icons.clear, size: 20, color: AppColors.textSecondary),
+                    onPressed: () {
+                      fieldController.clear();
+                      googleApiController.googleSuggestions.clear();
+                      setState(() {});
+                    },
+                  )
+                : const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            ),
+          ),
         ),
-      ),
+        Obx(() {
+          if (googleApiController.googleSuggestions.isEmpty || 
+              !fieldController.text.isNotEmpty || 
+              !focusNode.hasFocus) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(top: 4),
+            constraints: const BoxConstraints(maxHeight: 200),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: googleApiController.googleSuggestions.length,
+              separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.borderLight),
+              itemBuilder: (context, index) {
+                final suggestion = googleApiController.googleSuggestions[index];
+                return ListTile(
+                  dense: true,
+                  title: CommonText(
+                    suggestion['name'] ?? '',
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
+                  onTap: () {
+                    fieldController.text = suggestion['name'] ?? '';
+                    googleApiController.googleSuggestions.clear();
+                    focusNode.unfocus();
+                    setState(() {});
+                  },
+                );
+              },
+            ),
+          );
+        }),
+      ],
     );
   }
 }
