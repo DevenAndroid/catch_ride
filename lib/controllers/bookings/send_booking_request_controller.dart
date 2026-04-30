@@ -202,13 +202,26 @@ class SendBookingRequestController extends GetxController {
       if (avail['destination'] != null && avail['destination'].toString().isNotEmpty) {
         locations.add(avail['destination'].toString());
       }
+      
       if (avail['intermediateStops'] != null && avail['intermediateStops'] is List) {
-        locations.addAll(List<String>.from(avail['intermediateStops']));
+        for (var stop in avail['intermediateStops']) {
+          if (stop is Map && stop['address'] != null) {
+            locations.add(stop['address'].toString());
+          } else if (stop != null && stop is! Map) {
+            locations.add(stop.toString());
+          }
+        }
       }
 
       // General availability venues
       if (avail['showVenues'] != null && avail['showVenues'] is List) {
-        locations.addAll(List<String>.from(avail['showVenues']));
+        for (var venue in avail['showVenues']) {
+          if (venue is Map && (venue['name'] != null || venue['address'] != null)) {
+            locations.add((venue['name'] ?? venue['address']).toString());
+          } else if (venue != null && venue is! Map) {
+            locations.add(venue.toString());
+          }
+        }
       } else if (avail['showVenues'] != null && avail['showVenues'] is String && avail['showVenues'].toString().isNotEmpty) {
         locations.add(avail['showVenues'].toString());
       }
@@ -234,11 +247,21 @@ class SendBookingRequestController extends GetxController {
     if (avail['origin'] == locationName || avail['destination'] == locationName) return true;
     
     // Check intermediate stops
-    if (avail['intermediateStops'] is List && avail['intermediateStops'].contains(locationName)) return true;
+    if (avail['intermediateStops'] is List) {
+      for (var stop in avail['intermediateStops']) {
+        if (stop is Map && stop['address'] == locationName) return true;
+        if (stop.toString() == locationName) return true;
+      }
+    }
 
     // Check showVenues
     if (avail['showVenues'] != null) {
-      if (avail['showVenues'] is List && avail['showVenues'].contains(locationName)) return true;
+      if (avail['showVenues'] is List) {
+        for (var venue in avail['showVenues']) {
+          if (venue is Map && (venue['name'] == locationName || venue['address'] == locationName)) return true;
+          if (venue.toString() == locationName) return true;
+        }
+      }
       if (avail['showVenues'].toString() == locationName) return true;
     }
     

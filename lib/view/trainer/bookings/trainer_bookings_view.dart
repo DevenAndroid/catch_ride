@@ -106,6 +106,10 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         time: apiTime,
       );
     }
+    
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
@@ -178,7 +182,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (bookingController.bookings.isEmpty) {
+              // Check if BOTH are empty to show the global empty state
+              // or just rely on the TabBarView to show empty lists if one is empty
+              if (bookingController.receivedBookings.isEmpty && bookingController.sentBookings.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -277,6 +283,27 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   }
 
   Widget _buildBookingsList(List<BookingModel> bookings) {
+    if (bookings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_outlined,
+              size: 48,
+              color: AppColors.textSecondary.withValues(alpha: 0.2),
+            ),
+            const SizedBox(height: 16),
+            CommonText(
+              'No ${_tabController.index == 0 ? "received" : "sent"} bookings found',
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: bookings.length + 1, // +1 for the bottom padding
@@ -288,7 +315,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         final booking = bookings[index];
         String displayStatus = booking.status.capitalizeFirst ?? booking.status;
         if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
-        if (booking.status == 'cancelled') displayStatus = 'Canceled';
+        if (booking.status == 'cancelled') displayStatus = 'Cancelled';
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
@@ -316,7 +343,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
               'bookingId': booking.id,
               'bookingStatus': booking.status,
             },
-          );
+          )?.then((_) => _loadBookings());
         } else {
           final bool isReceived = _tabController.index == 0;
           final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
@@ -336,7 +363,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
               otherImage: otherImage,
               myTeamId: myTeamId,
             ),
-          );
+          )?.then((_) => _loadBookings());
         }
       },
       child: Container(

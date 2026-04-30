@@ -338,7 +338,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                       const SizedBox(height: 20),
                       _buildLabel('End Location'),
                       const SizedBox(height: 8),
-                      _buildLocationField(endLocationController, endLocationFocusNode, 'Select Show Venue or City'),
+                      _buildLocationField(endLocationController, endLocationFocusNode, 'Select End Location'),
                       const SizedBox(height: 24),
                       _buildChipSection('Travel Scope', [
                         'Local', 'Nationwide', 'State-wide', 'Regional (North East, South East etc.)'
