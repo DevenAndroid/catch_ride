@@ -215,20 +215,20 @@ class AddNewListingController extends GetxController {
 
     final Set<String> processedUrls = {};
 
-   // 1. Handle primary photo
-    if(horse.images.isEmpty){
-      if (horse.photo != null && horse.photo!.isNotEmpty) {
-        if (isVideo(horse.photo!)) {
-          uploadedVideos.add(horse.photo!);
-        } else {
-          uploadedImages.add(horse.photo!);
-        }
-        processedUrls.add(horse.photo!);
+    // 1. Handle primary photo
+    if (horse.photo != null && horse.photo!.isNotEmpty) {
+      if (isVideo(horse.photo!)) {
+        uploadedVideos.add(horse.photo!);
+      } else {
+        uploadedImages.add(horse.photo!);
       }
+      processedUrls.add(horse.photo!);
     }
 
     // 2. Handle videoLink if it's a direct video URL
-    if (horse.videoLink != null && horse.videoLink!.isNotEmpty && horse.videoLink != 'N/A') {
+    if (horse.videoLink != null &&
+        horse.videoLink!.isNotEmpty &&
+        horse.videoLink != 'N/A') {
       if (isVideo(horse.videoLink!)) {
         if (!processedUrls.contains(horse.videoLink!)) {
           uploadedVideos.add(horse.videoLink!);
@@ -246,6 +246,13 @@ class AddNewListingController extends GetxController {
       } else {
         uploadedImages.add(url);
       }
+      processedUrls.add(url);
+    }
+
+    // 4. Handle videoFile array
+    for (var url in horse.videoFile) {
+      if (processedUrls.contains(url)) continue;
+      uploadedVideos.add(url);
       processedUrls.add(url);
     }
 
@@ -448,41 +455,45 @@ class AddNewListingController extends GetxController {
       );
 
       // 1. Upload Media
-      List<String> finalImages = [
-        ...uploadedImages,
-        ...uploadedVideos,
-      ];
-      
+      List<String> allImages = [...uploadedImages];
+      List<String> allVideos = [...uploadedVideos];
+
       for (var imageFile in localImages) {
         if (isUploadCancelled.value) return; // Check for cancellation
         final url = await _uploadFile(imageFile);
         if (url != null) {
-          finalImages.add(url);
+          allImages.add(url);
         } else {
           if (Get.isDialogOpen ?? false) Get.back();
           if (!isUploadCancelled.value) {
-            Get.snackbar('Error', 'Failed to upload image',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red,
-                colorText: Colors.white);
+            Get.snackbar(
+              'Error',
+              'Failed to upload image',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
           }
           isPublishing.value = false;
           return;
         }
       }
-      
+
       for (var videoFile in localVideos) {
         if (isUploadCancelled.value) return; // Check for cancellation
         final url = await _uploadFile(videoFile);
         if (url != null) {
-          finalImages.add(url);
+          allVideos.add(url);
         } else {
           if (Get.isDialogOpen ?? false) Get.back();
           if (!isUploadCancelled.value) {
-            Get.snackbar('Error', 'Failed to upload video',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red,
-                colorText: Colors.white);
+            Get.snackbar(
+              'Error',
+              'Failed to upload video',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
           }
           isPublishing.value = false;
           return;
@@ -503,8 +514,9 @@ class AddNewListingController extends GetxController {
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkController.text,
-        'images': finalImages.whereType<String>().toList(),
-        'photo': uploadedImages.isNotEmpty ? uploadedImages.first : (finalImages.isNotEmpty ? finalImages.first : null),
+        'images': allImages.length > 1 ? allImages.sublist(1) : [],
+        'photo': allImages.isNotEmpty ? allImages.first : null,
+        'videoFile': allVideos,
         'listingTypes': selectedListingTypes.toList(),
         'tags': selectedTags.toList(),
         'isActive': activeStatus.value,

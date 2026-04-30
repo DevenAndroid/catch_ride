@@ -36,7 +36,7 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
   final RxString _bufferTime = '15 min'.obs;
   final _notesController = TextEditingController();
 
-  final List<String> _timeWindowOptions = ['Full Day', 'Morning Window', 'Afternoon Window'];
+  final List<String> _timeWindowOptions = ['Full Day', 'Morning window', 'Afternoon window'];
   final List<String> _locationTypeOptions = ['Both', 'Barn', 'Show Venue'];
   final List<String> _bufferOptions = ['15 min', '30 min', '45 min'];
 

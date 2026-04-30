@@ -21,6 +21,7 @@ class HorseModel {
   final List<TagModel> opportunityTags;
   final List<TagModel> personalityTags;
   final List<TagModel> tags;
+  final List<String> videoFile;
   final String? description;
   final String? photo;
   final List<String> images;
@@ -68,6 +69,7 @@ class HorseModel {
     this.opportunityTags = const [],
     this.personalityTags = const [],
     this.tags = const [],
+    this.videoFile = const [],
     this.description,
     this.photo,
     this.images = const [],
@@ -325,6 +327,7 @@ class HorseModel {
       tags:
           (json['tags'] as List?)?.map((e) => TagModel.fromJson(e)).toList() ??
           [],
+      videoFile: List<String>.from(json['videoFile'] ?? []),
       description: json['description'],
       photo: json['photo'],
       images: List<String>.from(json['images'] ?? []),
@@ -371,6 +374,7 @@ class HorseModel {
       'opportunityTags': opportunityTags.map((e) => e.toJson()).toList(),
       'personalityTags': personalityTags.map((e) => e.toJson()).toList(),
       'tags': tags.map((e) => e.toJson()).toList(),
+      'videoFile': videoFile,
       'description': description,
       'photo': photo,
       'images': images,
@@ -405,6 +409,7 @@ class HorseModel {
     List<TagModel>? opportunityTags,
     List<TagModel>? personalityTags,
     List<TagModel>? tags,
+    List<String>? videoFile,
     String? description,
     String? photo,
     List<String>? images,
@@ -444,6 +449,7 @@ class HorseModel {
       opportunityTags: opportunityTags ?? this.opportunityTags,
       personalityTags: personalityTags ?? this.personalityTags,
       tags: tags ?? this.tags,
+      videoFile: videoFile ?? this.videoFile,
       description: description ?? this.description,
       photo: photo ?? this.photo,
       images: images ?? this.images,
