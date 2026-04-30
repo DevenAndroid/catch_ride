@@ -429,6 +429,9 @@ class _BarnManagerCreateProfileViewState
                         'bio': _bioController.text.trim(),
                         'yearsInIndustry': _yearsInIndustryController.text
                             .trim(),
+                        'isProfileCompleted': true,
+                        'isProfileSetup': true,
+                        'isProfileApprove': true,
                       };
 
                       if (profileUrl != null)

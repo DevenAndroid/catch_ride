@@ -1022,14 +1022,17 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   Widget _buildImageSection() {
     final List<String> allMedia = [
-      if (horse!.images.isEmpty && horse!.photo != null) horse!.photo!,
+      if (horse!.photo != null && horse!.photo!.isNotEmpty) horse!.photo!,
       ...horse!.images,
+      ...horse!.videoFile,
       if (horse!.videoLink != null &&
           horse!.videoLink!.isNotEmpty &&
           horse!.videoLink != 'N/A' &&
-          !horse!.images.contains(horse!.videoLink))
+          !horse!.images.contains(horse!.videoLink) &&
+          horse!.photo != horse!.videoLink &&
+          !horse!.videoFile.contains(horse!.videoLink))
         horse!.videoLink!,
-    ];
+    ].toSet().toList();
 
     final int totalItems = allMedia.length;
 
