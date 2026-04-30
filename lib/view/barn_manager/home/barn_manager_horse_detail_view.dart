@@ -1051,9 +1051,33 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
     }
   }
 
+  bool _isUrlVideo(String url) {
+    if (url.isEmpty) return false;
+    final lower = url.toLowerCase();
+    final isYoutube =
+        lower.contains('youtube.com') || lower.contains('youtu.be');
+    return isYoutube ||
+        lower.contains('horsevideos') ||
+        lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi');
+  }
+
   Widget _buildImageSection() {
-    final images = horse!.images;
-    final int totalItems = images.length + (_hasVideo ? 1 : 0);
+    final List<String> allMedia = [
+      if (horse!.photo != null && horse!.photo!.isNotEmpty) horse!.photo!,
+      ...horse!.images,
+      ...horse!.videoFile,
+      if (horse!.videoLink != null &&
+          horse!.videoLink!.isNotEmpty &&
+          horse!.videoLink != 'N/A' &&
+          !horse!.images.contains(horse!.videoLink) &&
+          horse!.photo != horse!.videoLink &&
+          !horse!.videoFile.contains(horse!.videoLink))
+        horse!.videoLink!,
+    ].toSet().toList();
+
+    final int totalItems = allMedia.length;
 
     if (totalItems == 0) {
       return const CommonImageView(
@@ -1061,7 +1085,6 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
         height: 240,
         width: double.infinity,
       );
-
     }
 
     return Stack(
@@ -1077,50 +1100,32 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
             },
             itemCount: totalItems,
             itemBuilder: (context, index) {
-              if (index < images.length) {
+              final String url = allMedia[index];
+              if (!_isUrlVideo(url)) {
                 return CommonImageView(
-                  url: images[index],
+                  url: url,
                   height: 260,
                   width: double.infinity,
                   fit: BoxFit.cover,
                 );
               } else {
-                return Container(
-                  color: Colors.black,
-                  child: _isYoutube
-                      ? YoutubePlayer(
-                          controller: _youtubeController!,
-                          showVideoProgressIndicator: true,
-                          progressIndicatorColor: AppColors.primary,
-                        )
-                      : _videoPlayerController!.value.isInitialized
-                      ? GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _videoPlayerController!.value.isPlaying
-                                  ? _videoPlayerController!.pause()
-                                  : _videoPlayerController!.play();
-                            });
-                          },
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              AspectRatio(
-                                aspectRatio:
-                                    _videoPlayerController!.value.aspectRatio,
-                                child: VideoPlayer(_videoPlayerController!),
-                              ),
-                              if (!_videoPlayerController!.value.isPlaying)
-                                const Icon(
-                                  Icons.play_circle_fill,
-                                  color: Colors.white,
-                                  size: 64,
-                                ),
-                            ],
-                          ),
-                        )
-                      : const Center(child: CircularProgressIndicator()),
-                );
+                // For videos, we use the existing video logic if it matches the horse.videoLink
+                // or just show a black placeholder with a play icon if it's a general video
+                // Actually, let's just use the URL to decide what to show
+                final String? youtubeId = YoutubePlayer.convertUrlToId(url);
+                if (youtubeId != null) {
+                  return YoutubePlayer(
+                    controller: YoutubePlayerController(
+                      initialVideoId: youtubeId,
+                      flags:
+                          const YoutubePlayerFlags(autoPlay: false, mute: false),
+                    ),
+                    showVideoProgressIndicator: true,
+                    progressIndicatorColor: AppColors.primary,
+                  );
+                } else {
+                  return _SimpleVideoPlayer(url: url);
+                }
               }
             },
           ),
@@ -1625,6 +1630,65 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SimpleVideoPlayer extends StatefulWidget {
+  final String url;
+  const _SimpleVideoPlayer({required this.url});
+
+  @override
+  State<_SimpleVideoPlayer> createState() => _SimpleVideoPlayerState();
+}
+
+class _SimpleVideoPlayerState extends State<_SimpleVideoPlayer> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+          });
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _controller!.value.isPlaying
+              ? _controller!.pause()
+              : _controller!.play();
+        });
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
+          ),
+          if (!_controller!.value.isPlaying)
+            const Icon(Icons.play_circle_fill, color: Colors.white, size: 64),
+        ],
       ),
     );
   }

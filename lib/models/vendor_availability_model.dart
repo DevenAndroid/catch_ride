@@ -22,7 +22,7 @@ class VendorAvailabilityModel {
   final DateTime? unavailableEnd;
   final String? locationType; // 'Both', 'Barn', 'Show Venue'
   final String? capacityType; // 'No capacity limit', 'Max horses per time block', 'Max horses per day'
-  final String? timeBlockType; // 'Full Day', 'AM', 'PM'
+  final String? timeBlockType; // 'Full Day', 'Morning window', 'Afternoon window'
   final String? bufferTime; // '15 min', '30 min', '45 min'
   final int maxDays;
   final String? availabilityMode; // 'General bookings', 'Emergency-only'

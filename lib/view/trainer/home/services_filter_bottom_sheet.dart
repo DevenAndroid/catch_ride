@@ -365,7 +365,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                     if (_selectedTab == 'Farrier' || _selectedTab == 'Bodywork' ||  _selectedTab=="Clipping") ...[
                       const SizedBox(height: 24),
                       _buildChipSection('Timeframe', [
-                        'Full Day', 'AM', 'PM'
+                        'Full Day', 'Morning window', 'Afternoon window'
                       ], _selectedTab == 'Farrier' ? _localFarrierTimeframe : _localBodyworkTimeframe),
                     ],
 

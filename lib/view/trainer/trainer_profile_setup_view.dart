@@ -158,102 +158,84 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                       ),
                       const SizedBox(height: 24),
                       _buildCurrentStep(),
+                      const SizedBox(height: 32),
+                      Obx(
+                        () => CommonButton(
+                          text: AppStrings.next,
+                          isLoading: _authController.isLoading.value,
+                          onPressed: () async {
+                            void showError(String msg) {
+                              Get.snackbar(
+                                'Input Required',
+                                msg,
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                              );
+                            }
+
+                            if (!_formKey.currentState!.validate()) {
+                              FormUtility.scrollToFirstError(context);
+                              return;
+                            }
+
+                            final List<Map<String, String>> references = [];
+                            for (int i = 0; i < 2; i++) {
+                              references.add({
+                                'name': _refNameControllers[i].text.trim(),
+                                'business': _refBusinessControllers[i].text.trim(),
+                                'relationship': _refRelationControllers[i].text.trim(),
+                                'phone': _refPhoneControllers[i].text.trim(),
+                              });
+                            }
+
+                            if (_selectedFederation == 'Select Federation') {
+                              showError('Please select a federation type');
+                              return;
+                            }
+
+                            final List<String> primaryUse = [];
+                            if (_useSelling) primaryUse.add('Selling / Leasing');
+                            if (_useBuying) primaryUse.add('Buying / Leasing');
+                            if (_useBooking)
+                              primaryUse.add('Booking Service Providers');
+
+                            if (primaryUse.isEmpty) {
+                              showError(
+                                'Please select at least one choice for how you will use Catch-Ride',
+                              );
+                              return;
+                            }
+
+                            if (!_confirm18 || !_agreeTerms || !_understandPlatform) {
+                              showError(
+                                'Please confirm all three checkboxes at the bottom',
+                              );
+                              return;
+                            }
+
+                            final Map<String, dynamic> applicationData = {
+                              'whyJoin': _whyJoinController.text.trim().isEmpty 
+                                  ? AppStrings.whyJoinText 
+                                  : _whyJoinController.text.trim(),
+                              'facebook': _facebookController.text.trim(),
+                              'website': _websiteController.text.trim(),
+                              'instagram': _instagramController.text.trim(),
+                              'federationId': _federationIdController.text.trim(),
+                              'federationType': _selectedFederation,
+                              'primaryUse': primaryUse,
+                              'name': _nameController.text.trim(),
+                              'references': references,
+                            };
+
+                            await _authController.completeTrainerProfile(
+                              applicationData,
+                            );
+                          },
+                        ),
+                      ),
                       const SizedBox(height: 40),
                     ],
-                  ),
-                ),
-              ),
-
-              // Bottom Button
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Obx(
-                  () => CommonButton(
-                    text: AppStrings.next,
-                    isLoading: _authController.isLoading.value,
-                    onPressed: () async {
-
-
-                      // Get.to(() => const TrainerCompleteProfileView());
-                      // return;
-
-                      // Helper for snackbars
-                      void showError(String msg) {
-                        Get.snackbar(
-                          'Input Required',
-                          msg,
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.red,
-                          colorText: Colors.white,
-                        );
-                      }
-
-                      // 1. Trigger Form Validation
-                      if (!_formKey.currentState!.validate()) {
-                        FormUtility.scrollToFirstError(context);
-                        return;
-                      }
-
-                      // 2. Additional validation for custom widgets
-                      // References logic: ensuring at least 2 references are fully filled (Form handles fields, we just collect)
-                      final List<Map<String, String>> references = [];
-                      for (int i = 0; i < 2; i++) {
-                        references.add({
-                          'name': _refNameControllers[i].text.trim(),
-                          'business': _refBusinessControllers[i].text.trim(),
-                          'relationship': _refRelationControllers[i].text.trim(),
-                          'phone': _refPhoneControllers[i].text.trim(),
-                        });
-                      }
-
-                      // Federation selection check
-                      if (_selectedFederation == 'Select Federation') {
-                        showError('Please select a federation type');
-                        return;
-                      }
-
-                      // Primary use Validation
-                      final List<String> primaryUse = [];
-                      if (_useSelling) primaryUse.add('Selling / Leasing');
-                      if (_useBuying) primaryUse.add('Buying / Leasing');
-                      if (_useBooking)
-                        primaryUse.add('Booking Service Providers');
-
-                      if (primaryUse.isEmpty) {
-                        showError(
-                          'Please select at least one choice for how you will use Catch-Ride',
-                        );
-                        return;
-                      }
-
-                      // Compliance Checkboxes Validation
-                      if (!_confirm18 || !_agreeTerms || !_understandPlatform) {
-                        showError(
-                          'Please confirm all three checkboxes at the bottom',
-                        );
-                        return;
-                      }
-
-                      // Compilation & Submission
-                      final Map<String, dynamic> applicationData = {
-                        'whyJoin': _whyJoinController.text.trim().isEmpty 
-                            ? AppStrings.whyJoinText 
-                            : _whyJoinController.text.trim(),
-                        'facebook': _facebookController.text.trim(),
-                        'website': _websiteController.text.trim(),
-                        'instagram': _instagramController.text.trim(),
-                        'federationId': _federationIdController.text.trim(),
-                        'federationType': _selectedFederation,
-                        'primaryUse': primaryUse,
-                        'name': _nameController.text.trim(),
-                        'references': references,
-                      };
-
-
-                      await _authController.completeTrainerProfile(
-                        applicationData,
-                      );
-                    },
                   ),
                 ),
               ),
