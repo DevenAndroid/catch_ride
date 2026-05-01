@@ -27,6 +27,8 @@ class SocketService extends GetxService {
     final String lastName = prefs.getString('userLastName') ?? '';
     final String userName = '$firstName $lastName'.trim();
     final String userRole = prefs.getString('role') ?? '';
+    final String token = prefs.getString('token') ?? '';
+    final String email = prefs.getString('userEmail') ?? '';
 
     _logger.i('Initializing Socket Connection to ${AppUrls.socketUrl}');
     if (userId.isNotEmpty) {
@@ -41,6 +43,11 @@ class SocketService extends GetxService {
             if (userId.isNotEmpty) 'userId': userId,
             if (userName.isNotEmpty) 'userName': userName,
             if (userRole.isNotEmpty) 'userRole': userRole,
+          })
+          .setAuth({
+            if (token.isNotEmpty) 'token': token,
+            if (email.isNotEmpty) 'email': email,
+            if (userId.isNotEmpty) 'userId': userId,
           })
           .enableAutoConnect()
           .enableReconnection()
@@ -80,7 +87,7 @@ class SocketService extends GetxService {
     connect();
   }
 
-  Future<void> authenticate(String userId, String userName, String? userRole, {String? avatar}) async {
+  Future<void> authenticate(String userId, String userName, String? userRole, {String? avatar, String? token, String? email}) async {
     try {
       _logger.i('🔄 Upgrading Socket to Handshake Authentication for $userName');
       
@@ -88,6 +95,8 @@ class SocketService extends GetxService {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('userId', userId);
       await prefs.setString('role', userRole ?? '');
+      if (token != null) await prefs.setString('token', token);
+      if (email != null) await prefs.setString('userEmail', email);
       
       // Split name safely to sync with AuthController's storage pattern
       final parts = userName.trim().split(' ');
