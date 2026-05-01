@@ -57,7 +57,7 @@ class BodyworkDetailsController extends GetxController {
 
   // Travel Preferences
   final selectedTravel = <String, Map<String, dynamic>>{}.obs;
-  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
+  final travelOptions = ['Local Only', 'Regional'];
 
   // Cancellation Policy
   final selectedCancellationPolicy = RxnString();

@@ -187,12 +187,14 @@ class VendorDetailsController extends GetxController {
 
     // Fallback to vendor level
     final loc = vendorData['location'] ?? vendorData['homeBase'];
+
     if (loc is Map) {
       city = loc['city']?.toString();
       state = loc['state']?.toString();
     }
     if (_isValid(city) && _isValid(state)) return '$city, $state';
-    
+    if (loc != null) return '$loc';
+
     return 'N/A';
   }
 

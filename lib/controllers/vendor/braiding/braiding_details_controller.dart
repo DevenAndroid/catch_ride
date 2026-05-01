@@ -39,7 +39,7 @@ class BraidingDetailsController extends GetxController {
   }
 
   // Travel Preferences
-  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
+  final travelOptions = ['Local Only', 'Regional'];
   final selectedTravel = <String>{}.obs;
 
   void toggleTravel(String item) {

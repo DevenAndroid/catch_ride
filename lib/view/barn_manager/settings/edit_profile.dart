@@ -306,6 +306,8 @@ class _EditBarnManagerProfileViewState
                         'Email',
                         _emailController,
                         hint: 'Enter your email',
+                        readOnly: true
+
                       ),
                       const SizedBox(height: 20),
                       _buildTextField(
@@ -389,6 +391,7 @@ class _EditBarnManagerProfileViewState
     TextEditingController controller, {
     String? hint,
     bool isRequired = false,
+    bool readOnly = false,
     int maxLines = 1,
   }) {
     return Column(
@@ -417,6 +420,7 @@ class _EditBarnManagerProfileViewState
           controller: controller,
           maxLines: maxLines,
           style: const TextStyle(fontSize: 15, color: Color(0xFF101828)),
+          readOnly: readOnly,
           decoration: InputDecoration(
             hintText: hint,
             contentPadding: const EdgeInsets.symmetric(

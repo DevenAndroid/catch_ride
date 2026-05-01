@@ -1262,6 +1262,7 @@ class BodyworkApplicationView extends StatelessWidget {
     if (controller.insuranceFile.value == null) return const SizedBox.shrink();
     final file = controller.insuranceFile.value!;
     final name = file.path.split('/').last;
+    final isPdf = name.toLowerCase().endsWith('.pdf');
     
     return Container(
       padding: const EdgeInsets.all(12),
@@ -1273,25 +1274,10 @@ class BodyworkApplicationView extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEE2E2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                const Icon(Icons.description, color: Color(0xFFEF4444), size: 32),
-                Positioned(
-                  bottom: 2,
-                   child: Container(
-                     padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-                     color: const Color(0xFFEF4444),
-                     child: const Text('PDF', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                   ),
-                )
-              ],
-            ),
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(color: AppColors.tabBackground, borderRadius: BorderRadius.circular(8)),
+            child: Icon(isPdf ? Icons.picture_as_pdf : Icons.image, color: isPdf ? AppColors.accentRed : AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(

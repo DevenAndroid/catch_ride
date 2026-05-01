@@ -2403,7 +2403,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildBookingHorseCard() {
     final hasImages = horse != null && horse!.images.isNotEmpty;
-    final photoUrl = horse?.photo ?? (hasImages ? horse!.images.first : '');
+    final photoUrl =  hasImages ? horse!.images.first : horse?.photo;
 
     // Extract dynamic venue and dates
     String venueText = 'Venue - N/A';

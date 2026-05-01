@@ -1,6 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_constants.dart';
+
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
@@ -66,7 +64,9 @@ class HorseCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: CommonImageView(
-                url: horse.photo,
+                url:  horse.images.isNotEmpty
+              ? horse.images[0]
+                : horse.photo,
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
