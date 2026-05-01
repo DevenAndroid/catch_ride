@@ -215,9 +215,6 @@ class MenuView extends StatelessWidget {
   Widget _buildLogoutButton() {
     return GestureDetector(
       onTap: () {
-        Get.to(ClippingDetailView());
-        return;
-
         _showLogoutDialog(Get.context!);
       },
       child: Container(
