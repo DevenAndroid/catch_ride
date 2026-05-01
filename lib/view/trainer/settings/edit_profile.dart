@@ -9,6 +9,7 @@ import 'dart:io';
 import '../../../constant/app_strings.dart';
 import '../../../utils/validators.dart';
 import '../../../controllers/google_api_controller.dart';
+import '../trainer_profile_setup_view.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -33,7 +34,7 @@ class _EditProfileViewState extends State<EditProfileView> {
   final TextEditingController _websiteController = TextEditingController();
   final TextEditingController _instagramController = TextEditingController();
   final TextEditingController _yearsController = TextEditingController();
-  final TextEditingController _federationNameController = TextEditingController();
+  String _selectedFederation = 'USEF';
   final TextEditingController _federationNumberController = TextEditingController();
   final TextEditingController _searchCircuitsController =
       TextEditingController();
@@ -91,7 +92,11 @@ class _EditProfileViewState extends State<EditProfileView> {
     _location2Controller.text = profileController.location2;
     
     final trainerData = profileController.userData['trainerId'] ?? profileController.userData;
-    _federationNameController.text = trainerData['federationName'] ?? 'USEF (United States)';
+    final fedName = trainerData['federationName']?.toString() ?? '';
+    if (fedName.startsWith('EC')) _selectedFederation = 'EC';
+    else if (fedName.startsWith('FEI')) _selectedFederation = 'FEI';
+    else _selectedFederation = 'USEF';
+    
     _federationNumberController.text = trainerData['federationNumber'] ?? profileController.userData['federationId'] ?? '';
 
     final expItems = ['0-1', '2-4', '5-9', '10+'];
@@ -131,7 +136,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                 profileController.user.value?.instagram ?? '';
             
             final updatedTrainerData = profileController.userData['trainerId'] ?? profileController.userData;
-            _federationNameController.text = updatedTrainerData['federationName'] ?? 'USEF (United States)';
+            final updatedFedName = updatedTrainerData['federationName']?.toString() ?? '';
+            if (updatedFedName.startsWith('EC')) _selectedFederation = 'EC';
+            else if (updatedFedName.startsWith('FEI')) _selectedFederation = 'FEI';
+            else _selectedFederation = 'USEF';
+            
             _federationNumberController.text = updatedTrainerData['federationNumber'] ?? profileController.userData['federationId'] ?? '';
             
             final expItems = ['0-1', '2-4', '5-9', '10+'];
@@ -173,7 +182,6 @@ class _EditProfileViewState extends State<EditProfileView> {
     _websiteController.dispose();
     _instagramController.dispose();
     _yearsController.dispose();
-    _federationNameController.dispose();
     _federationNumberController.dispose();
     _searchCircuitsController.dispose();
     _location1Focus.dispose();
@@ -579,16 +587,86 @@ class _EditProfileViewState extends State<EditProfileView> {
     return _buildSectionContainer(
       title: 'Federation Information',
       children: [
-        _buildTextField(
+        const CommonText(
           'Federation Name',
-          _federationNameController,
-          hint: 'e.g. USEF (United States)',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.borderMedium),
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedFederation,
+              isExpanded: true,
+              icon: const Icon(
+                Icons.keyboard_arrow_down,
+                color: AppColors.textSecondary,
+              ),
+              items: ['USEF', 'EC', "FEI"].map((e) => DropdownMenuItem(
+                      value: e,
+                      child: CommonText(
+                        e,
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
+                    )).toList(),
+              onChanged: (val) {
+                setState(() => _selectedFederation = val!);
+              },
+            ),
+          ),
         ),
         const SizedBox(height: 20),
         _buildTextField(
           'Federation ID Number',
           _federationNumberController,
           hint: 'ID Number',
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0FDF4),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFBBF7D0)),
+          ),
+          child: const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: Color(0xFF16A34A),
+                size: 18,
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonText(
+                      AppStrings.federationVerification,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF16A34A),
+                    ),
+                    SizedBox(height: 4),
+                    CommonText(
+                      "Your federation number will be verified to ensure authenticity and maintain standards",
+                      fontSize: 12,
+                      color: Color(0xFF16A34A),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -1546,6 +1624,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                 onTap: profileController.isLoading.value
                     ? null
                     : () async {
+
                         if (!_formKey.currentState!.validate()) {
                           // Scroll to first error
                           FocusNode? firstErrorFocus;
@@ -1644,7 +1723,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                           'showCircuits': _selectedHorseShows.toList(),
                           'horseShows': _selectedHorseShowIds.toList(),
                           'tags': _selectedTags.toList(),
-                          'federationName': _federationNameController.text.trim(),
+                          'federationName': _selectedFederation,
                           'federationNumber': _federationNumberController.text.trim(),
                         });
 

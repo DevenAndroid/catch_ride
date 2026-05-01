@@ -216,7 +216,7 @@ class AddNewListingController extends GetxController {
     final Set<String> processedUrls = {};
 
     // 1. Handle primary photo
-    if (horse.photo != null && horse.photo!.isNotEmpty) {
+    if (horse.photo != null && horse.images.isEmpty) {
       if (isVideo(horse.photo!)) {
         uploadedVideos.add(horse.photo!);
       } else {
@@ -514,8 +514,8 @@ class AddNewListingController extends GetxController {
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkController.text,
-        'images': allImages.length > 1 ? allImages.sublist(1) : [],
-        'photo': allImages.isNotEmpty ? allImages.first : null,
+        'images': allImages,
+       // 'photo': allImages.isNotEmpty ? allImages.first : null,
         'videoFile': allVideos,
         'listingTypes': selectedListingTypes.toList(),
         'tags': selectedTags.toList(),

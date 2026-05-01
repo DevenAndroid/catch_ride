@@ -278,20 +278,6 @@ class ClippingServiceAndRates extends GetView<ClippingDetailsController> {
               hintText: 'Enter your skill',
               controller: controller.addServiceInputController,
             ),
-            const SizedBox(height: 20),
-            const CommonText('Price', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-            const SizedBox(height: 8),
-            CommonTextField(
-              label: '',
-              hintText: 'Enter price (e.g. 40)',
-              controller: controller.addServicePriceController,
-              prefixIcon: const Padding(
-                padding: EdgeInsets.all(14),
-                child: CommonText('\$ ', fontSize: AppTextSizes.size14),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [PriceInputFormatter()],
-            ),
             const SizedBox(height: 32),
             Row(
               children: [
@@ -311,17 +297,17 @@ class ClippingServiceAndRates extends GetView<ClippingDetailsController> {
                     text: 'Save',
                     onPressed: () {
                       if (isAddOn) {
-                        controller.addOnServices.add({
-                          'name': controller.addServiceInputController.text,
-                          'isSelected': true.obs,
-                          'price': TextEditingController(text: controller.addServicePriceController.text),
-                        });
-                        controller.addServiceInputController.clear();
-                        controller.addServicePriceController.clear();
+                        if (controller.addServiceInputController.text.isNotEmpty) {
+                          controller.addOnServices.add({
+                            'name': controller.addServiceInputController.text,
+                            'isSelected': true.obs,
+                            'price': TextEditingController(),
+                          });
+                          controller.addServiceInputController.clear();
+                        }
                       } else {
                         controller.addClippingService(
                           controller.addServiceInputController.text,
-                          controller.addServicePriceController.text,
                         );
                       }
                       Get.back();

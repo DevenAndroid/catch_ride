@@ -62,6 +62,7 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
                   title: 'Add - Ons',
                   description: 'Optional services offered in addition to standard clipping.',
                   services: controller.addOnServices,
+                  onAddSkills: () => _showAddMoreBottomSheet(context, controller, isAddon: true),
                 ),
                 const SizedBox(height: 24),
                 _buildTravelPreferences(controller),
@@ -194,7 +195,7 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
                 Icon(Icons.add, size: 18, color: AppColors.linkBlue),
                 SizedBox(width: 4),
                 CommonText(
-                  'Add Service',
+                  'Add Skills',
                   color: AppColors.linkBlue,
                   fontWeight: FontWeight.bold,
                   fontSize: AppTextSizes.size14,
@@ -572,177 +573,112 @@ class _ClippingDetailViewState extends State<ClippingDetailView> {
     );
   }
 
-  void _showAddMoreBottomSheet(BuildContext context, ClippingDetailsController controller) {
+  void _showAddMoreBottomSheet(BuildContext context, ClippingDetailsController controller, {bool isAddon = false}) {
     Get.bottomSheet(
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       Container(
         padding: EdgeInsets.only(
-          top: 12,
-          left: 24,
-          right: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+          top: 10,
+          left: 20,
+          right: 20,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
         decoration: const BoxDecoration(
-          color: AppColors.cardColor,
+          color: Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(24),
             topRight: Radius.circular(24),
           ),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 60,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderLight,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              const CommonText(
-                'Add Service',
-                fontSize: AppTextSizes.size22,
-                fontWeight: FontWeight.bold,
-              ),
-              const SizedBox(height: 24),
-              const CommonText(
-                'Service',
-                fontSize: AppTextSizes.size14,
-                fontWeight: FontWeight.w600,
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: controller.addServiceInputController,
-                decoration: InputDecoration(
-                  hintText: 'i.e. custom clip, mane pull, trace clip',
-                  hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.borderLight),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.borderLight),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.primary),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 50,
+                height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.tabBackground,
-                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const CommonText(
-                      'Price per horse',
-                      fontSize: AppTextSizes.size14,
+              ),
+            ),
+            const SizedBox(height: 24),
+            const CommonText(
+              'Add More Service',
+              fontSize: AppTextSizes.size22,
+              fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(height: 24),
+            const CommonText(
+              'Skill',
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.w600,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: controller.addServiceInputController,
+              decoration: InputDecoration(
+                hintText: 'Enter your skill',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      controller.addServiceInputController.clear();
+                      Get.back();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: AppColors.borderLight),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const CommonText(
+                      'Cancel',
+                      fontSize: AppTextSizes.size16,
                       fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(height: 10),
-                    Container(
-                      height: 54,
-                      decoration: BoxDecoration(
-                        color: AppColors.cardColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.borderLight),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 45,
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                right: BorderSide(color: AppColors.borderLight),
-                              ),
-                            ),
-                            child: const CommonText(
-                              '\$',
-                              fontSize: AppTextSizes.size16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextField(
-                              controller: controller.addServicePriceController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              inputFormatters: [PriceInputFormatter()],
-                              decoration: const InputDecoration(
-                                hintText: 'Enter price',
-                                hintStyle: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        controller.addServiceInputController.clear();
-                        controller.addServicePriceController.clear();
-                        Get.back();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        side: const BorderSide(color: AppColors.borderLight),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: AppColors.cardColor,
-                      ),
-                      child: const CommonText(
-                        'Cancel',
-                        fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CommonButton(
-                      text: 'Save',
-                      backgroundColor: AppColors.primary,
-                      onPressed: () {
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CommonButton(
+                    text: 'Save',
+                    backgroundColor: AppColors.primary,
+                    onPressed: () {
+                      if (isAddon) {
+                        if (controller.addServiceInputController.text.isNotEmpty) {
+                          controller.addOnServices.add({
+                            'name': controller.addServiceInputController.text,
+                            'isSelected': true.obs,
+                            'price': TextEditingController(),
+                          });
+                          controller.addServiceInputController.clear();
+                        }
+                      } else {
                         controller.addClippingService(
                           controller.addServiceInputController.text,
-                          controller.addServicePriceController.text,
                         );
-                        Get.back();
-                      },
-                    ),
+                      }
+                      Get.back();
+                    },
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
