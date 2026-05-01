@@ -33,17 +33,15 @@ class ClippingDetailsController extends GetxController {
   ].obs;
 
   final addServiceInputController = TextEditingController();
-  final addServicePriceController = TextEditingController();
 
-  void addClippingService(String name, String price) {
+  void addClippingService(String name) {
     if (name.isNotEmpty) {
       clippingServices.add({
         'name': name,
         'isSelected': true.obs,
-        'price': TextEditingController(text: price),
+        'price': TextEditingController(),
       });
       addServiceInputController.clear();
-      addServicePriceController.clear();
     }
   }
 
@@ -316,7 +314,6 @@ class ClippingDetailsController extends GetxController {
     }
     customCancellationController.dispose();
     addServiceInputController.dispose();
-    addServicePriceController.dispose();
     travelFeePriceController.dispose();
     travelFeeNotesController.dispose();
     super.onClose();
