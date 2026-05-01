@@ -395,13 +395,11 @@ class _BarnManagerCreateProfileViewState
                     }
 
                     // Split Name
-                    final nameParts = _fullNameController.text.trim().split(
-                      ' ',
-                    );
-                    final firstName = nameParts.first;
+                    final nameParts = _fullNameController.text.trim().split(' ');
+                    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
                     final lastName = nameParts.length > 1
                         ? nameParts.sublist(1).join(' ')
-                        : ' ';
+                        : '';
 
                     // Handle Image Uploads first if needed
                     String? profileUrl;

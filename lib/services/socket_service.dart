@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_urls.dart';
 import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class SocketService extends GetxService {
@@ -9,6 +10,7 @@ class SocketService extends GetxService {
   final Logger _logger = Logger();
 
   final RxBool isConnected = false.obs;
+  final List<void Function()> _refreshCallbacks = [];
 
   @override
   void onInit() {
@@ -16,13 +18,30 @@ class SocketService extends GetxService {
     super.onInit();
   }
 
-  void initSocket() {
+  void initSocket() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    
+    // Attempt to pull user data for handshake authentication
+    final String userId = prefs.getString('userId') ?? '';
+    final String firstName = prefs.getString('userFirstName') ?? '';
+    final String lastName = prefs.getString('userLastName') ?? '';
+    final String userName = '$firstName $lastName'.trim();
+    final String userRole = prefs.getString('role') ?? '';
+
     _logger.i('Initializing Socket Connection to ${AppUrls.socketUrl}');
+    if (userId.isNotEmpty) {
+      _logger.i('🔄 Using Handshake Authentication for User: $userName ($userId)');
+    }
 
     socket = io.io(
       AppUrls.socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket'])
+          .setQuery({
+            if (userId.isNotEmpty) 'userId': userId,
+            if (userName.isNotEmpty) 'userName': userName,
+            if (userRole.isNotEmpty) 'userRole': userRole,
+          })
           .enableAutoConnect()
           .enableReconnection()
           .setReconnectionDelay(3000)
@@ -61,21 +80,57 @@ class SocketService extends GetxService {
     connect();
   }
 
-  void authenticate(String userId, String userName, String? userRole, {String? avatar}) {
-    if (socket.connected) {
-      _logger.i('Authenticating Socket for $userName ($userId)');
-      socket.emit('user:authenticate', {
-        'userId': userId,
-        'userName': userName,
-        'userRole': userRole,
-        'avatar': avatar,
-      });
-    } else {
-      _logger.w(
-        'Cannot authenticate: Socket not connected. Will retry on connect.',
-      );
-      socket.once('connect', (_) => authenticate(userId, userName, userRole, avatar: avatar));
+  Future<void> authenticate(String userId, String userName, String? userRole, {String? avatar}) async {
+    try {
+      _logger.i('🔄 Upgrading Socket to Handshake Authentication for $userName');
+      
+      // Ensure data is in SharedPreferences for reconnection/persistence
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', userId);
+      await prefs.setString('role', userRole ?? '');
+      
+      // Split name safely to sync with AuthController's storage pattern
+      final parts = userName.trim().split(' ');
+      if (parts.isNotEmpty && parts.first.isNotEmpty) {
+        await prefs.setString('userFirstName', parts.first);
+        if (parts.length > 1) {
+          await prefs.setString('userLastName', parts.sublist(1).join(' '));
+        } else {
+          await prefs.setString('userLastName', '');
+        }
+      } else {
+        await prefs.setString('userFirstName', userName);
+        await prefs.setString('userLastName', '');
+      }
+      
+      if (avatar != null) await prefs.setString('userAvatar', avatar);
+
+      // Re-initialize the socket with the new query parameters
+      // This forces a new connection with the handshake data
+      if (socket.connected) {
+        socket.disconnect();
+      }
+      
+      // We clear the old socket listeners and instance
+      socket.clearListeners();
+      socket.dispose();
+      
+      // Re-run initialization which will now pick up the new data from SharedPreferences
+      initSocket();
+
+      // Notify listeners that the socket has been refreshed
+      for (var callback in _refreshCallbacks) {
+        callback();
+      }
+    } catch (e, stack) {
+      _logger.e('Error during socket authentication upgrade: $e');
+      _logger.e(stack);
     }
+  }
+
+
+  void onRefresh(void Function() callback) {
+    _refreshCallbacks.add(callback);
   }
 
   void connect() {

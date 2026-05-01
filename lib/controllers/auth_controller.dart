@@ -72,12 +72,11 @@ class AuthController extends GetxController {
       if (token != null) _apiService.setToken(token);
       isLoggedIn.value = true;
       currentUser.value = UserModel(
-        firstName: '',
-        // We don't store first/last name in prefs currently
-        lastName: '',
+        firstName: prefs.getString('userFirstName') ?? '',
+        lastName: prefs.getString('userLastName') ?? '',
         email: email,
         role: role,
-        id: box.read('userId'),
+        id: prefs.getString('userId'),
         isProfileCompleted: prefs.getBool('isProfileCompleted') ?? false,
         isProfileSetup: prefs.getBool('isProfileSetup') ?? false,
         isProfileApprove: prefs.getBool('isProfileApprove') ?? false,
@@ -85,10 +84,10 @@ class AuthController extends GetxController {
 
       // Auto-authenticate socket if possible
       Get.find<SocketService>().authenticate(
-        box.read('userId') ?? '',
-        '${box.read('userFirstName') ?? ''} ${box.read('userLastName') ?? ''}'.trim(),
+        prefs.getString('userId') ?? '',
+        '${prefs.getString('userFirstName') ?? ''} ${prefs.getString('userLastName') ?? ''}'.trim(),
         role,
-        avatar: box.read('userAvatar'),
+        avatar: prefs.getString('userAvatar'),
       );
       
       // Update notification token if service is ready
@@ -259,10 +258,10 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileSetup', isProfileSetup);
         await prefs.setBool('isProfileApprove', isProfileApprove);
         await prefs.setString('status', user['status'] ?? 'active');
-        box.write('userId', user['_id'] ?? user['id']);
-        box.write('userAvatar', user['avatar']);
-        box.write('userFirstName', user['firstName']);
-        box.write('userLastName', user['lastName']);
+        await prefs.setString('userId', user['_id'] ?? user['id']);
+        await prefs.setString('userAvatar', user['avatar'] ?? '');
+        await prefs.setString('userFirstName', user['firstName'] ?? '');
+        await prefs.setString('userLastName', user['lastName'] ?? '');
 
         currentUser.value = UserModel.fromJson(user);
 
@@ -428,10 +427,10 @@ class AuthController extends GetxController {
           await prefs.setBool('isProfileSetup', isProfileSetup);
           await prefs.setBool('isProfileApprove', isProfileApprove);
           await prefs.setString('status', user['status'] ?? 'active');
-          box.write('userId', user['_id'] ?? user['id']);
-          box.write('userAvatar', user['avatar']);
-          box.write('userFirstName', user['firstName']);
-          box.write('userLastName', user['lastName']);
+          await prefs.setString('userId', user['_id'] ?? user['id']);
+          await prefs.setString('userAvatar', user['avatar'] ?? '');
+          await prefs.setString('userFirstName', user['firstName'] ?? '');
+          await prefs.setString('userLastName', user['lastName'] ?? '');
 
           currentUser.value = UserModel.fromJson(user);
           _apiService.setToken(token);
@@ -553,10 +552,10 @@ class AuthController extends GetxController {
           await prefs.setBool('isProfileSetup', isProfileSetup);
           await prefs.setBool('isProfileApprove', isProfileApprove);
           await prefs.setString('status', user['status'] ?? 'active');
-          box.write('userId', user['_id'] ?? user['id']);
-          box.write('userAvatar', user['avatar']);
-          box.write('userFirstName', user['firstName']);
-          box.write('userLastName', user['lastName']);
+          await prefs.setString('userId', user['_id'] ?? user['id']);
+          await prefs.setString('userAvatar', user['avatar'] ?? '');
+          await prefs.setString('userFirstName', user['firstName'] ?? '');
+          await prefs.setString('userLastName', user['lastName'] ?? '');
 
           currentUser.value = UserModel.fromJson(user);
           _apiService.setToken(token);
