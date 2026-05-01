@@ -3,6 +3,7 @@ import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
 import 'package:catch_ride/services/notification_service.dart';
+import 'package:catch_ride/services/link_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,9 @@ Future<void> main() async {
   
   // Initialize Push Notifications
   await Get.putAsync(() => NotificationService().init());
+  
+  // Initialize Deep Linking
+  await Get.putAsync(() => LinkHandler().init());
 
   runApp(const MyApp());
 }

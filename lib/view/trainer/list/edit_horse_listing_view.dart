@@ -2107,17 +2107,17 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   } else if (_currentStep == 3) {
                     if (!controller.validateStep3()) return;
                   } else if (_currentStep == 4) {
-                    if (controller.localImages.isEmpty &&
-                        controller.uploadedImages.isEmpty) {
-                      Get.snackbar(
-                        'Required',
-                        'Please upload at least one image',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: Colors.redAccent,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
+                    // if (controller.localImages.isEmpty &&
+                    //     controller.uploadedImages.isEmpty) {
+                    //   Get.snackbar(
+                    //     'Required',
+                    //     'Please upload at least one image',
+                    //     snackPosition: SnackPosition.BOTTOM,
+                    //     backgroundColor: Colors.redAccent,
+                    //     colorText: Colors.white,
+                    //   );
+                    //   return;
+                    // }
                     if (!controller.validateStep4()) return;
                   }
                   setState(() {
@@ -2153,96 +2153,6 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     );
   }
 
-  void _showSingleSelectBottomSheet({
-    required String title,
-    required String currentValue,
-    required List<String> items,
-    required Function(String) onSelected,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.95,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  child: CommonText(
-                    title,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: items.length,
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final isSelected = item == currentValue;
-                      return InkWell(
-                        onTap: () {
-                          onSelected(item);
-                          Navigator.pop(context);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border(
-                              bottom: BorderSide(color: Colors.grey.shade100),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(child: CommonText(item, fontSize: 15)),
-                              if (isSelected)
-                                const Icon(
-                                  Icons.check,
-                                  color: AppColors.primary,
-                                  size: 20,
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 }
 
 class ThousandsSeparatorInputFormatter extends TextInputFormatter {

@@ -1,23 +1,16 @@
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
-
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/list/add_new_listing_view.dart';
 import 'package:catch_ride/view/trainer/list/edit_horse_listing_view.dart';
-import 'package:catch_ride/view/barn_manager/barn_manager_availability_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-
 import 'package:catch_ride/controllers/horse_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
-import 'package:catch_ride/widgets/horse_card.dart';
-import 'package:catch_ride/widgets/horse_card.dart';
-
 import 'package:catch_ride/utils/date_util.dart';
 
 class HorseListingView extends StatefulWidget {
@@ -287,7 +280,9 @@ class _HorseListingViewState extends State<HorseListingView> {
     final String userName = user?.fullName ?? 'N/A';
     final String? userAvatar = user?.displayAvatar;
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
-    final String? mainImageUrl = horse.photo;
+    final String? mainImageUrl =horse.images.isNotEmpty
+        ? horse.images[0]
+        : horse.photo;
     final String imageCount = horse.images.isNotEmpty
         ? "1 / ${horse.images.length}"
         : "1 / 1";

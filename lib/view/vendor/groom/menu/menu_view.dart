@@ -30,6 +30,7 @@ import '../../../trainer/settings/privacy_policy_view.dart';
 import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
+import '../../bodywork/create_profile/bodywork_application_view.dart';
 import '../../clipping/profile_create/clipping_detail_view.dart';
 import '../../farrier/profile/add_operations_and_compliance_view.dart';
 import '../../shipping/create_profile/shipping_application_view.dart';
@@ -214,7 +215,9 @@ class MenuView extends StatelessWidget {
 
   Widget _buildLogoutButton() {
     return GestureDetector(
+
       onTap: () {
+
         _showLogoutDialog(Get.context!);
       },
       child: Container(
