@@ -88,6 +88,8 @@ class AuthController extends GetxController {
         '${prefs.getString('userFirstName') ?? ''} ${prefs.getString('userLastName') ?? ''}'.trim(),
         role,
         avatar: prefs.getString('userAvatar'),
+        token: token,
+        email: email,
       );
       
       // Update notification token if service is ready
@@ -272,6 +274,8 @@ class AuthController extends GetxController {
           '${user['firstName'] ?? ''} ${user['lastName'] ?? ''}'.trim(),
           user['role'],
           avatar: user['avatar'],
+          token: token,
+          email: user['email'],
         );
 
         isLoggedIn.value = true;
@@ -441,6 +445,8 @@ class AuthController extends GetxController {
             user['email'] ?? '',
             user['role'] ?? '',
             avatar: user['avatar'],
+            token: token,
+            email: user['email'],
           );
 
           isLoggedIn.value = true;
@@ -566,6 +572,8 @@ class AuthController extends GetxController {
             '${user['firstName'] ?? ''} ${user['lastName'] ?? ''}'.trim(),
             user['role'] ?? '',
             avatar: user['avatar'],
+            token: token,
+            email: user['email'],
           );
 
           isLoggedIn.value = true;
@@ -909,7 +917,20 @@ class AuthController extends GetxController {
       if (response.statusCode == 200) {
         debugPrint('Barn Manager application submitted.');
         final data = response.body['data'];
-        currentUser.value = UserModel.fromJson(data);
+        
+        // Sync fresh data to storage so socket can use updated flags in handshake
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isProfileCompleted', data['isProfileCompleted'] ?? true);
+        await prefs.setBool('isProfileSetup', data['isProfileSetup'] ?? true);
+        await prefs.setBool('isProfileApprove', data['isProfileApprove'] ?? true);
+        await prefs.setString('role', data['role'] ?? 'barn_manager');
+        await prefs.setString('userFirstName', data['firstName'] ?? '');
+        await prefs.setString('userLastName', data['lastName'] ?? '');
+        await prefs.setString('userAvatar', data['avatar'] ?? '');
+
+        // Refresh memory state and re-authenticate socket with new flags
+        await _loadUserFromStorage();
+
         Get.offAll(() => const BarnManagerApplicationSubmittedView());
       } else {
         String message =

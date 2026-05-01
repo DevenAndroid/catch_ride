@@ -65,7 +65,7 @@ class _SingleChatViewState extends State<SingleChatView> {
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
+        0.0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -251,14 +251,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                           final isAtBottom = _scrollController.offset < 50;
                           
                           if (isAtBottom) {
-                             _scrollController.animateTo(
-                                0.0,
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeOut,
-                              );
-                          } else {
-                            // If it's the very first render and we haven't scrolled yet, jump to bottom
-                             // Otherwise, don't interrupt the user's reading.
+                             _scrollController.jumpTo(0.0);
                           }
                         }
                       });
