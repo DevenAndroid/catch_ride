@@ -51,76 +51,6 @@ class ClippingApplicationView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildGroupedSection(
-                  'Full Name',
-                  isRequired: true,
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.fullNameController,
-                      hintText: 'Enter Your Full Name',
-                      validator: RequiredValidator(
-                        errorText: "Please enter your full name",
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                _buildGroupedSection(
-                  'Why Join Our Community?',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.joinCommunityController,
-                      hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
-                      maxLines: 4,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                _buildGroupedSection(
-                  'Home Base Location',
-                  children: [
-                    _buildSectionHeader('Country', isRequired: true),
-                    Obx(() {
-                      final _ = controller.selectedCountryCode.value;
-                      return CommonDropdown(
-                        value: controller.countryController.text,
-                        hint: 'Select Country',
-                        options: controller.countries,
-                        onSelected: (val) => controller.onCountrySelected(val),
-                        validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
-                      );
-                    }),
-                    const SizedBox(height: 16),
-
-                    _buildSectionHeader('State / Province', isRequired: true),
-                    Obx(() => CommonSuggestionField(
-                      controller: controller.stateController,
-                      hint: 'Select State / Province',
-                      suggestions: controller.states,
-                      isLoading: controller.isLoadingStates.value,
-                      onSelected: (val) => controller.onStateSelected(val),
-                      validator: (value) => controller.selectedState.value == null ? 'Please select state' : null,
-                    )),
-                    const SizedBox(height: 16),
-
-                    _buildSectionHeader('City', isRequired: true),
-                    Obx(() => CommonSuggestionField(
-                      controller: controller.cityController,
-                      hint: controller.selectedState.value == null
-                          ? 'Select State first'
-                          : 'Select City',
-                      suggestions: controller.cities,
-                      isLoading: controller.isLoadingCities.value,
-                      onSelected: (val) => controller.onCitySelected(val),
-                      validator: (value) => controller.selectedCity.value == null ? 'Please select city' : null,
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 16),
 
                 _buildGroupedSection(
                   'Experience',
@@ -270,8 +200,6 @@ class ClippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                _buildTrainerReferences(controller),
-                const SizedBox(height: 16),
 
                 _buildGroupedSection(
                   'Experience Highlights (optional)',
@@ -325,13 +253,6 @@ class ClippingApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildGroupedSection(
-                  'Confirmations',
-                  children: [
-                    _buildCheckboxes(controller),
-                  ],
-                ),
-                const SizedBox(height: 16),
                 const SizedBox(height: 32),
 
                 Obx(() => Padding(
@@ -449,81 +370,6 @@ class ClippingApplicationView extends StatelessWidget {
     );
   }
 
-  void _showLocationBottomSheet({
-    required BuildContext context,
-    required String title,
-    required List<Map<String, dynamic>> options,
-    required Function(Map<String, dynamic>) onSelected,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(
-                    title,
-                    fontSize: AppTextSizes.size18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final item = options[index];
-                      return InkWell(
-                        onTap: () {
-                          onSelected(item);
-                          Navigator.pop(ctx);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: AppColors.dividerColor)),
-                          ),
-                          child: CommonText(
-                            item['name'] ?? '',
-                            fontSize: AppTextSizes.size16,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _showExperienceBottomSheet({
     required BuildContext context,
@@ -758,99 +604,6 @@ class ClippingApplicationView extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTrainerReferences(ClippingApplicationController controller) {
-    return _buildGroupedSection(
-      'Professional References',
-      description: 'Provide references here regarding your experience, professionalism, and reliability.',
-      children: [
-        _buildTrainerReferenceInputs(controller, 1),
-        const SizedBox(height: 24),
-        _buildTrainerReferenceInputs(controller, 2),
-      ],
-    );
-  }
-
-  Widget _buildTrainerReferenceInputs(ClippingApplicationController controller, int number) {
-    final nameCtrl = number == 1 ? controller.ref1FullNameController : controller.ref2FullNameController;
-    final busCtrl = number == 1 ? controller.ref1BusinessNameController : controller.ref2BusinessNameController;
-    final relCtrl = number == 1 ? controller.ref1RelationshipController : controller.ref2RelationshipController;
-    final phoneCtrl = number == 1 ? controller.ref1PhoneController : controller.ref2PhoneController;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText('Trainer Reference $number', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Full Name',
-          controller: nameCtrl,
-          hintText: 'Enter Full Name',
-          isRequired: number == 1 ,
-          validator:  number == 1 ? RequiredValidator(errorText: "Please enter reference full name").call:null,
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-          label: 'Business Name',
-          controller: busCtrl,
-          hintText: 'Enter Business Name',
-          isRequired: number == 1 ,
-          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter business name").call:null,
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-          label: 'Relationship',
-          controller: relCtrl,
-          hintText: 'Enter Relationship Name' ,
-          isRequired: number == 1 ,
-          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter relationship").call:null,
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-            label: 'Phone Number',
-            controller: phoneCtrl,
-            hintText: 'Enter phone number',
-            keyboardType: TextInputType.phone,
-            isRequired: number == 1 ,
-            validator:  number == 1 ? RequiredValidator(errorText: "Please enter phone no").call:null
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCheckboxes(ClippingApplicationController controller) {
-    return Column(
-      children: [
-        Obx(() => _buildCheckboxTile(
-          'I confirm that I am at least 18 years or older.',
-          controller.is18OrOlder.value,
-          (val) => controller.is18OrOlder.value = val!,
-        )),
-        Obx(() => _buildCheckboxTile(
-          'I agree to the Terms of Service and Privacy Policy.',
-          controller.agreeToTerms.value,
-          (val) => controller.agreeToTerms.value = val!,
-        )),
-        Obx(() => _buildCheckboxTile(
-          'I understand that my professional references may be contacted regarding my history, competence, and reliability.',
-          controller.confirmReferences.value,
-          (val) => controller.confirmReferences.value = val!,
-        )),
-      ],
-    );
-  }
-
-  Widget _buildCheckboxTile(String title, bool value, Function(bool?) onChanged) {
-    return CheckboxListTile(
-      value: value,
-      onChanged: onChanged,
-      title: CommonText(title, fontSize: AppTextSizes.size12),
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      activeColor: AppColors.greenColor,
     );
   }
 }

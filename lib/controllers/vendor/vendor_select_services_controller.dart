@@ -2,12 +2,7 @@ import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
-import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
-import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
-import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
-import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
-import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
+import 'package:catch_ride/controllers/vendor/common_application_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -62,71 +57,22 @@ class VendorSelectServicesController extends GetxController {
 
     isLoading.value = true;
     try {
-      // 1. Get vendor ID
-      // final Response myVendorResponse = await _apiService.getRequest(AppUrls.myVendorProfile);
-      // if (myVendorResponse.statusCode != 200 || myVendorResponse.body['success'] != true) {
-      //   // Fallback or retry?
-      //   throw Exception('Failed to fetch your vendor profile');
-      // }
-      // final vendorData = myVendorResponse.body['data'];
-
       final prefs = await SharedPreferences.getInstance();
-      var vendorId=  prefs.getString('vendorId');
-    //  final vendorId = vendorData['id'] ?? vendorData['_id'];
+      var vendorId = prefs.getString('vendorId');
 
-      // 2. Update services selection
-    //  final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
-      
       final Response updateResponse = await _apiService.putRequest(
         '${AppUrls.vendors}/$vendorId',
         {
           'services': selectedServices.toList(),
-          //'servicesData': existingServicesData,
-        //  'isProfileCompleted': vendorData['isProfileCompleted'] ?? false, // Maintain existing status
-         // 'isProfileSetup': vendorData['isProfileSetup'] ?? false,
         },
       );
 
       if (updateResponse.statusCode == 200 && updateResponse.body['success'] == true) {
-        // Navigation logic
-        final selectedList = selectedServices.toList();
-        final firstService = selectedList.first;
-        final remaining = selectedList.skip(1).toList();
-
-        if (firstService == 'Grooming') {
-          Get.to(
-            () => const SetupGroomApplicationView(),
-            arguments: {'remainingServices': remaining},
-          );
-        } else if (firstService == 'Braiding') {
-          Get.to(
-            () => const BraidingApplicationView(),
-            arguments: {'remainingServices': remaining},
-          );
-        } else if (firstService == 'Clipping') {
-          Get.to(
-            () => const ClippingApplicationView(),
-            arguments: {'remainingServices': remaining},
-          );
-        } else if (firstService == 'Farrier') {
-          Get.to(
-            () => const FarrierApplicationView(),
-            arguments: {'remainingServices': remaining},
-          );
-        } else if (firstService == 'Bodywork') {
-          Get.to(
-            () => const BodyworkApplicationView(),
-            arguments: {'remainingServices': remaining},
-          );
-        } else if (firstService == 'Shipping') {
-          Get.to(
-            () => const ShippingApplicationView(),
-            arguments: {'remainingServices': remaining},
-          );
-        } else {
-          // If other services don't have views yet, navigate based on role status
-          _authController.navigateAfterRoleSet();
-        }
+        // Navigate to the Common Gateway Screen first
+        Get.to(
+          () => const CommonApplicationView(),
+          arguments: {'remainingServices': selectedServices.toList()},
+        );
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to save services: $e');

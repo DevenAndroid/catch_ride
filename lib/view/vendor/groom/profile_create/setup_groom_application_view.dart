@@ -50,79 +50,6 @@ class SetupGroomApplicationView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildGroupedSection(
-                  'Full Name',
-                  isRequired: true,
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      isRequired: false,
-                      controller: controller.fullNameController,
-                      hintText: 'Enter your full name',
-                      validator: (value) {
-                         if (value == null || value.isEmpty) return "Please enter your full name";
-                         return null;
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _buildGroupedSection(
-                  'Why Join Our Community?',
-                  children: [
-                    CommonTextField(
-                      label: '',
-                      controller: controller.joinCommunityController,
-                      hintText: 'Tell us about your experience, the type of horses you’ve worked with, and what kind of opportunities you’re looking for.',
-                      maxLines: 4,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                _buildGroupedSection(
-                  'Home Base Location',
-                  children: [
-                    _buildSectionHeader('Country', isRequired: true),
-                    Obx(() {
-                      // Trigger rebuild when country code changes
-                      final _ = controller.selectedCountryCode.value;
-                      return CommonDropdown(
-                        value: controller.countryController.text,
-                        hint: 'Select Country',
-                        options: controller.countries,
-                        onSelected: (val) => controller.onCountrySelected(val),
-                        validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
-                      );
-                    }),
-                    const SizedBox(height: 16),
-
-                    _buildSectionHeader('State/Province', isRequired: true),
-                    Obx(() => CommonSuggestionField(
-                      controller: controller.stateController,
-                      hint: 'Select State/Province',
-                      suggestions: controller.states,
-                      isLoading: controller.isLoadingStates.value,
-                      onSelected: (val) => controller.onStateSelected(val),
-                      validator: (value) => controller.selectedState.value == null ? 'Please select state' : null,
-                    )),
-                    const SizedBox(height: 16),
-
-                    _buildSectionHeader('City', isRequired: true),
-                    Obx(() => CommonSuggestionField(
-                      controller: controller.cityController,
-                      hint: controller.selectedState.value == null
-                          ? 'Select state first'
-                          : 'Select city',
-                      suggestions: controller.cities,
-                      isLoading: controller.isLoadingCities.value,
-                      onSelected: (val) => controller.onCitySelected(val),
-                      validator: (value) => controller.selectedCity.value == null ? 'Please select city' : null,
-                    )),
-                  ],
-                ),
-                const SizedBox(height: 24),
 
                 _buildGroupedSection(
                   'Experience',
@@ -277,8 +204,6 @@ class SetupGroomApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildTrainerReferences(controller),
-                const SizedBox(height: 24),
 
                 _buildGroupedSection(
                   'Experience Highlights (optional)',
@@ -333,7 +258,6 @@ class SetupGroomApplicationView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                _buildCheckboxes(controller),
                 const SizedBox(height: 32),
 
                 Obx(() => Padding(
@@ -415,6 +339,8 @@ class SetupGroomApplicationView extends StatelessWidget {
 
 
 
+
+
   Widget _buildBottomTrigger({String? value, required String hint, required VoidCallback? onTap, bool isLoading = false}) {
     return GestureDetector(
       onTap: onTap,
@@ -452,7 +378,6 @@ class SetupGroomApplicationView extends StatelessWidget {
       ),
     );
   }
-
 
   void _showExperienceBottomSheet({
     required BuildContext context,
@@ -691,96 +616,5 @@ class SetupGroomApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildTrainerReferences(SetupGroomApplicationController controller) {
-    return _buildGroupedSection(
-      'Professional References',
-      description: "Provide references who can speak to your experience, professionalism, and reliability",
-      children: [
-        _buildTrainerReferenceInputs(controller, 1),
-        const SizedBox(height: 24),
-        _buildTrainerReferenceInputs(controller, 2),
-      ],
-    );
-  }
 
-  Widget _buildTrainerReferenceInputs(SetupGroomApplicationController controller, int number) {
-    final nameCtrl = number == 1 ? controller.ref1FullNameController : controller.ref2FullNameController;
-    final busCtrl = number == 1 ? controller.ref1BusinessNameController : controller.ref2BusinessNameController;
-    final relCtrl = number == 1 ? controller.ref1RelationshipController : controller.ref2RelationshipController;
-    final phoneCtrl = number == 1 ? controller.ref1PhoneController : controller.ref2PhoneController;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CommonText('Trainer Reference $number', color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Full Name',
-          controller: nameCtrl,
-          hintText: 'Enter Full Name',
-          isRequired: number == 1 ,
-          validator:  number == 1 ? RequiredValidator(errorText: "Please enter reference full name").call:null,
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-          label: 'Business Name',
-          controller: busCtrl,
-          hintText: 'Enter Business Name',
-          isRequired: number == 1 ,
-          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter business name").call:null,
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-          label: 'Relationship',
-          controller: relCtrl,
-          hintText: 'Enter Relationship Name' ,
-          isRequired: number == 1 ,
-          validator:  number == 1 ?  RequiredValidator(errorText: "Please enter relationship").call:null,
-        ),
-        const SizedBox(height: 16),
-        CommonTextField(
-            label: 'Phone Number',
-            controller: phoneCtrl,
-            hintText: 'Enter phone number',
-            keyboardType: TextInputType.phone,
-            isRequired: number == 1 ,
-            validator:  number == 1 ? RequiredValidator(errorText: "Please enter phone no").call:null
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCheckboxes(SetupGroomApplicationController controller) {
-    return Column(
-      children: [
-        Obx(() => _buildCheckboxTile(
-          'I confirm that I am at least 18 years or older',
-          controller.is18OrOlder.value,
-          (val) => controller.is18OrOlder.value = val!,
-        )),
-        Obx(() => _buildCheckboxTile(
-          'I agree to the Terms of Service and Privacy Policy',
-          controller.agreeToTerms.value,
-          (val) => controller.agreeToTerms.value = val!,
-        )),
-        Obx(() => _buildCheckboxTile(
-          'I understand that my professional references may be contacted regarding my history, competence, and reliability',
-          controller.confirmReferences.value,
-          (val) => controller.confirmReferences.value = val!,
-        )),
-      ],
-    );
-  }
-
-  Widget _buildCheckboxTile(String title, bool value, Function(bool?) onChanged) {
-    return CheckboxListTile(
-      value: value,
-      onChanged: onChanged,
-      title: CommonText(title, fontSize: AppTextSizes.size12),
-      controlAffinity: ListTileControlAffinity.leading,
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      activeColor: AppColors.greenColor,
-    );
-  }
 }

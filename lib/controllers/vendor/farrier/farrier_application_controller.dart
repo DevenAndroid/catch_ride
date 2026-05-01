@@ -5,6 +5,7 @@ import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart';
+import 'package:catch_ride/controllers/vendor/common_application_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,32 +13,13 @@ import 'package:collection/collection.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
+import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
 
 class FarrierApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.put(ApiService());
+  final authController = Get.find<AuthController>();
 
-  // Form Fields
-  final fullNameController = TextEditingController();
-  final joinCommunityController = TextEditingController();
-  
-  // Location
-  final countryController = TextEditingController(text: 'USA');
-  final stateController = TextEditingController();
-  final cityController = TextEditingController();
-  final states = <Map<String, dynamic>>[].obs;
-  final cities = <Map<String, dynamic>>[].obs;
-  
-  final selectedState = Rxn<Map<String, dynamic>>();
-  final selectedCity = Rxn<Map<String, dynamic>>();
-  final selectedCountryCode = 'US'.obs;
-  final countries = [
-    {'name': 'USA', 'code': 'US'},
-    {'name': 'Canada', 'code': 'CA'},
-  ];
-
-  final isLoadingStates = false.obs;
-  final isLoadingCities = false.obs;
   final isLoadingTags = false.obs;
 
   // Farrier Certification
@@ -59,73 +41,9 @@ class FarrierApplicationController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final authController = Get.put(AuthController());
-    fullNameController.text = authController.currentUser.value?.fullName ?? '';
-    fetchStates();
     fetchDynamicTags();
   }
 
-  Future<void> fetchStates() async {
-    isLoadingStates.value = true;
-    try {
-      final countryCode = selectedCountryCode.value;
-      final Response response = await apiService.getRequest('/locations/states?countryCode=$countryCode');
-      if (response.statusCode == 200 && response.body['success'] == true) {
-        states.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
-      }
-    } catch (e) {
-      debugPrint('Error fetching states: $e');
-    } finally {
-      isLoadingStates.value = false;
-    }
-  }
-
-  Future<void> fetchCities(String stateCode) async {
-    isLoadingCities.value = true;
-    selectedCity.value = null;
-    cities.clear();
-    try {
-      final countryCode = selectedCountryCode.value;
-      final Response response = await apiService.getRequest('/locations/states/$stateCode/cities?countryCode=$countryCode');
-      if (response.statusCode == 200 && response.body['success'] == true) {
-        cities.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
-      }
-    } catch (e) {
-      debugPrint('Error fetching cities: $e');
-    } finally {
-      isLoadingCities.value = false;
-    }
-  }
-
-  void onCountrySelected(Map<String, dynamic> country) {
-    if (selectedCountryCode.value != country['code']) {
-      selectedCountryCode.value = country['code'] ?? 'US';
-      countryController.text = country['name'] ?? 'USA';
-      
-      // Reset state and city when country changes
-      selectedState.value = null;
-      selectedCity.value = null;
-      stateController.clear();
-      cityController.clear();
-      states.clear();
-      cities.clear();
-      
-      fetchStates();
-    }
-  }
-
-  void onStateSelected(Map<String, dynamic> state) {
-    selectedState.value = state;
-    stateController.text = state['name'] ?? '';
-    cityController.clear();
-    selectedCity.value = null;
-    fetchCities(state['isoCode']);
-  }
-
-  void onCitySelected(Map<String, dynamic> city) {
-    selectedCity.value = city;
-    cityController.text = city['name'] ?? '';
-  }
 
   Future<void> fetchDynamicTags() async {
     isLoadingTags.value = true;
@@ -240,16 +158,6 @@ class FarrierApplicationController extends GetxController {
     photos.removeAt(index);
   }
 
-  // Professional References
-  final ref1FullNameController = TextEditingController();
-  final ref1BusinessNameController = TextEditingController();
-  final ref1RelationshipController = TextEditingController();
-  final ref1PhoneController = TextEditingController();
-
-  final ref2FullNameController = TextEditingController();
-  final ref2BusinessNameController = TextEditingController();
-  final ref2RelationshipController = TextEditingController();
-  final ref2PhoneController = TextEditingController();
 
   // Experience Highlights
   final highlightsControllers = <TextEditingController>[TextEditingController()].obs;
@@ -267,34 +175,17 @@ class FarrierApplicationController extends GetxController {
     }
   }
 
-  // Checkboxes
-  final is18OrOlder = false.obs;
-  final agreeToTerms = false.obs;
-  final confirmReferences = false.obs;
   final isSubmitting = false.obs;
 
   @override
   void onClose() {
-    fullNameController.dispose();
-    joinCommunityController.dispose();
+    for (var ctrl in highlightsControllers) {
+      ctrl.dispose();
+    }
     otherDisciplineController.dispose();
     otherCertificationController.dispose();
     facebookController.dispose();
     instagramController.dispose();
-    ref1FullNameController.dispose();
-    ref1BusinessNameController.dispose();
-    ref1RelationshipController.dispose();
-    ref1PhoneController.dispose();
-    ref2FullNameController.dispose();
-    ref2BusinessNameController.dispose();
-    ref2RelationshipController.dispose();
-    ref2PhoneController.dispose();
-    for (var ctrl in highlightsControllers) {
-      ctrl.dispose();
-    }
-    countryController.dispose();
-    stateController.dispose();
-    cityController.dispose();
     super.onClose();
   }
 
@@ -317,10 +208,6 @@ class FarrierApplicationController extends GetxController {
   Future<void> submitApplication() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
-    if (selectedState.value == null || selectedCity.value == null) {
-      Get.snackbar('Missing Info', 'Please select your home base city and state', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
-      return;
-    }
 
     if (experience.value == null) {
       Get.snackbar('Missing Info', 'Please select your experience level', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
@@ -347,33 +234,20 @@ class FarrierApplicationController extends GetxController {
       return;
     }
 
-    if (!is18OrOlder.value) {
-      Get.snackbar('Age Verification', 'Please confirm that you are at least 18 years of age', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
-      return;
-    }
-
-    if (!agreeToTerms.value) {
-      Get.snackbar('Terms & Privacy', 'Please agree to the Terms of Service and Privacy Policy', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
-      return;
-    }
-
-    if (!confirmReferences.value) {
-      Get.snackbar('References', 'Please confirm that we may contact your professional references', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
-      return;
-    }
 
     isSubmitting.value = true;
     try {
       final authController = Get.put(AuthController());
+      final commonCtrl = Get.find<CommonApplicationController>();
       final applicationData = {
-        'fullName': fullNameController.text,
+        'fullName': commonCtrl.fullNameController.text,
         'phone': authController.currentUser.value?.phone ?? '', 
         'phoneNumber': authController.currentUser.value?.phone ?? '', 
-        'whyJoin': joinCommunityController.text,
+        'whyJoin': commonCtrl.joinCommunityController.text,
         'homeBase': {
-          'country': countryController.text,
-          'state': selectedState.value?['name'],
-          'city': selectedCity.value?['name'],
+          'country': commonCtrl.countryController.text,
+          'state': commonCtrl.selectedState.value?['name'],
+          'city': commonCtrl.selectedCity.value?['name'],
         },
         'experience': experience.value,
         'certifications': selectedCertifications.toList(),
@@ -385,16 +259,16 @@ class FarrierApplicationController extends GetxController {
         'regions': selectedRegions.toList(),
         'references': [
           {
-            'fullName': ref1FullNameController.text,
-            'businessName': ref1BusinessNameController.text,
-            'relationship': ref1RelationshipController.text,
-            'phone': ref1PhoneController.text,
+            'fullName': commonCtrl.ref1FullNameController.text,
+            'businessName': commonCtrl.ref1BusinessNameController.text,
+            'relationship': commonCtrl.ref1RelationshipController.text,
+            'phone': commonCtrl.ref1PhoneController.text,
           },
           {
-            'fullName': ref2FullNameController.text,
-            'businessName': ref2BusinessNameController.text,
-            'relationship': ref2RelationshipController.text,
-            'phone': ref2PhoneController.text,
+            'fullName': commonCtrl.ref2FullNameController.text,
+            'businessName': commonCtrl.ref2BusinessNameController.text,
+            'relationship': commonCtrl.ref2RelationshipController.text,
+            'phone': commonCtrl.ref2PhoneController.text,
           }
         ],
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
@@ -426,7 +300,27 @@ class FarrierApplicationController extends GetxController {
 
         Get.snackbar('Success', 'Your farrier application has been submitted successfully.', backgroundColor: AppColors.successPrimary, colorText: AppColors.cardColor);
 
-        Get.off(() => const VendorApplicationSubmitView());
+        final List<String> remaining = Get.arguments?['remainingServices'] as List<String>? ?? [];
+        if (remaining.isNotEmpty) {
+          final nextService = remaining.first;
+          final nextRemaining = remaining.skip(1).toList();
+
+          if (nextService == 'Grooming') {
+            Get.off(() => const SetupGroomApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Braiding') {
+            Get.off(() => const BraidingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Clipping') {
+            Get.off(() => const ClippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Bodywork') {
+            Get.off(() => const BodyworkApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else if (nextService == 'Shipping') {
+            Get.off(() => const ShippingApplicationView(), arguments: {'remainingServices': nextRemaining});
+          } else {
+            Get.offAll(() => const VendorApplicationSubmitView());
+          }
+        } else {
+          Get.offAll(() => const VendorApplicationSubmitView());
+        }
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Please try again later.', backgroundColor: AppColors.accentRed, colorText: AppColors.cardColor);
       }

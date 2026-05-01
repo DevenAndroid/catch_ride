@@ -1,4 +1,6 @@
 import 'dart:io';
+
+import 'package:catch_ride/controllers/vendor/common_application_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,28 +20,11 @@ class ShippingApplicationController extends GetxController {
   final authController = Get.find<AuthController>();
 
   // ── Controllers ─────────────────────────────────────────────────────────────
-  final fullNameController = TextEditingController();
-  final bioController = TextEditingController();
   final legalNameController = TextEditingController();
   final dotNumberController = TextEditingController();
   final facebookController = TextEditingController();
   final instagramController = TextEditingController();
   
-  // Locations
-  final countryController = TextEditingController(text: 'USA');
-  final stateController = TextEditingController();
-  final cityController = TextEditingController();
-  final Rxn<Map<String, dynamic>> selectedState = Rxn<Map<String, dynamic>>();
-  final Rxn<Map<String, dynamic>> selectedCity = Rxn<Map<String, dynamic>>();
-  final RxList<Map<String, dynamic>> states = <Map<String, dynamic>>[].obs;
-  final RxList<Map<String, dynamic>> cities = <Map<String, dynamic>>[].obs;
-  final RxBool isLoadingStates = false.obs;
-  final RxBool isLoadingCities = false.obs;
-  final selectedCountryCode = 'US'.obs;
-  final countries = [
-    {'name': 'USA', 'code': 'US'},
-    {'name': 'Canada', 'code': 'CA'},
-  ];
 
   // ── Selections ──────────────────────────────────────────────────────────────
   final RxnString experience = RxnString();
@@ -61,12 +46,8 @@ class ShippingApplicationController extends GetxController {
   final Rxn<File> licensePhoto = Rxn<File>();
   final RxList<File> rigPhotos = <File>[].obs;
 
-  // Checkboxes
   final RxBool confirmUSDOT = false.obs;
   final RxBool confirmLicense = false.obs;
-  final RxBool is18OrOlder = false.obs;
-  final RxBool agreeTerms = false.obs;
-  final RxBool agreeReferences = false.obs;
   final RxBool agreeCompliance = false.obs;
   final RxBool agreeVerification = false.obs;
   final RxBool isSubmitting = false.obs;
@@ -79,20 +60,10 @@ class ShippingApplicationController extends GetxController {
   final RxList<String> stallTypeOptions = <String>[].obs;
   final RxList<String> regionOptions = <String>[].obs;
 
-  // ── References ─────────────────────────────────────────────────────────────
-  final RxList<ReferenceController> referenceControllers = <ReferenceController>[
-    ReferenceController(),
-    ReferenceController(),
-  ].obs;
 
   @override
   void onInit() {
     super.onInit();
-    final user = authController.currentUser.value;
-    if (user != null) {
-      fullNameController.text = user.fullName ?? '';
-    }
-    _fetchStates();
     fetchDynamicTags();
   }
 
@@ -132,62 +103,6 @@ class ShippingApplicationController extends GetxController {
     }
   }
 
-  void _fetchStates() async {
-    isLoadingStates.value = true;
-    try {
-      final countryCode = selectedCountryCode.value;
-      final res = await apiService.getRequest('/locations/states?countryCode=$countryCode');
-      if (res.statusCode == 200 && res.body['success'] == true) {
-        states.assignAll(List<Map<String, dynamic>>.from(res.body['data']));
-      }
-    } finally {
-      isLoadingStates.value = false;
-    }
-  }
-
-  void _fetchCities(String stateCode) async {
-    isLoadingCities.value = true;
-    try {
-      final countryCode = selectedCountryCode.value;
-      final res = await apiService.getRequest('/locations/states/$stateCode/cities?countryCode=$countryCode');
-      if (res.statusCode == 200 && res.body['success'] == true) {
-        cities.assignAll(List<Map<String, dynamic>>.from(res.body['data']));
-      }
-    } finally {
-      isLoadingCities.value = false;
-    }
-  }
-
-  void onStateSelected(Map<String, dynamic> state) {
-    selectedState.value = state;
-    stateController.text = state['name'] ?? '';
-    selectedCity.value = null;
-    cityController.clear();
-    cities.clear();
-    _fetchCities(state['isoCode']);
-  }
-
-  void onCountrySelected(Map<String, dynamic> country) {
-    if (selectedCountryCode.value != country['code']) {
-      selectedCountryCode.value = country['code'] ?? 'US';
-      countryController.text = country['name'] ?? 'USA';
-      
-      // Reset state and city when country changes
-      selectedState.value = null;
-      selectedCity.value = null;
-      stateController.clear();
-      cityController.clear();
-      states.clear();
-      cities.clear();
-      
-      _fetchStates();
-    }
-  }
-
-  void onCitySelected(Map<String, dynamic> city) {
-    selectedCity.value = city;
-    cityController.text = city['name'] ?? '';
-  }
 
   Future<void> pickFile(Rxn<File> target) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -242,8 +157,8 @@ class ShippingApplicationController extends GetxController {
 
   void submitApplication() async {
     if (!formKey.currentState!.validate()) return;
-    if (!is18OrOlder.value || !agreeTerms.value || !agreeReferences.value || !agreeCompliance.value || !agreeVerification.value) {
-      Get.snackbar('Error', 'Please agree to all terms before submitting.', backgroundColor: Colors.red, colorText: Colors.white);
+    if (!confirmUSDOT.value || !confirmLicense.value || !agreeCompliance.value || !agreeVerification.value) {
+      Get.snackbar('Error', 'Please confirm all compliance statements.', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
@@ -265,14 +180,15 @@ class ShippingApplicationController extends GetxController {
         if (url != null) rigPhotoUrls.add(url);
       }
 
+      final commonCtrl = Get.find<CommonApplicationController>();
       // 2. Build Payload
       final applicationData = {
-        'fullName': fullNameController.text,
-        'bio': bioController.text,
+        'fullName': commonCtrl.fullNameController.text,
+        'bio': commonCtrl.joinCommunityController.text,
         'homeBase': {
-          'country': countryController.text,
-          'state': selectedState.value?['name'],
-          'city': selectedCity.value?['name'],
+          'country': commonCtrl.countryController.text,
+          'state': commonCtrl.selectedState.value?['name'],
+          'city': commonCtrl.selectedCity.value?['name'],
         },
         'businessInfo': {
           'legalName': legalNameController.text,
@@ -286,12 +202,20 @@ class ShippingApplicationController extends GetxController {
         'stallTypes': selectedStallTypes.toList(),
         'rigCapacity': rigCapacity.value,
         'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
-        'references': referenceControllers.map((r) => {
-          'fullName': r.fullName.text,
-          'businessName': r.businessName.text,
-          'relationship': r.relationship.text,
-          'phone': r.phone.text,
-        }).toList(),
+        'references': [
+          {
+            'fullName': commonCtrl.ref1FullNameController.text,
+            'businessName': commonCtrl.ref1BusinessNameController.text,
+            'relationship': commonCtrl.ref1RelationshipController.text,
+            'phone': commonCtrl.ref1PhoneController.text,
+          },
+          {
+            'fullName': commonCtrl.ref2FullNameController.text,
+            'businessName': commonCtrl.ref2BusinessNameController.text,
+            'relationship': commonCtrl.ref2RelationshipController.text,
+            'phone': commonCtrl.ref2PhoneController.text,
+          }
+        ],
         'media': {
           'dotCopy': dotUrl,
           'insurance': insuranceUrl,
@@ -309,7 +233,7 @@ class ShippingApplicationController extends GetxController {
         'serviceType': 'Shipping',
         'applicationData': applicationData,
         'profileData': {
-          'bio': bioController.text,
+          'bio': commonCtrl.joinCommunityController.text,
           'isProfileSetup': true,
         },
       });
@@ -354,21 +278,13 @@ class ShippingApplicationController extends GetxController {
 
   @override
   void onClose() {
-    fullNameController.dispose();
-    bioController.dispose();
-    legalNameController.dispose();
-    dotNumberController.dispose();
-    countryController.dispose();
-    stateController.dispose();
-    cityController.dispose();
-    facebookController.dispose();
-    instagramController.dispose();
     for (var ctrl in highlightsControllers) {
       ctrl.dispose();
     }
-    for (var ctrl in referenceControllers) {
-      ctrl.dispose();
-    }
+    legalNameController.dispose();
+    dotNumberController.dispose();
+    facebookController.dispose();
+    instagramController.dispose();
     super.onClose();
   }
 }

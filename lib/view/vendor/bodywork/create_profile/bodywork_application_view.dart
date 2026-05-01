@@ -54,71 +54,6 @@ class BodyworkApplicationView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildGroupedSection(
-                    'Full Name',
-                    isRequired: true,
-                    children: [
-                      CommonTextField(
-                        label: '',
-                        controller: controller.fullNameController,
-                        hintText: 'Enter Your Full Name',
-                        validator: RequiredValidator(errorText: "Please enter your full name"),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  _buildGroupedSection(
-                    'Why Join Our Community?',
-                    isRequired: true,
-                    children: [
-                      CommonTextField(
-                        label: '',
-                        controller: controller.joinCommunityController,
-                        hintText: 'Share a bit about your approach, experience, and anything else we should know when working with you.',
-                        maxLines: 4,
-                        // validator: RequiredValidator(errorText: "Please tell us why you want to join"),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  _buildGroupedSection(
-                    'Home Base Location',
-                    children: [
-                      _buildSectionHeader('Country', isRequired: true),
-                      Obx(() {
-                        final _ = controller.selectedCountryCode.value;
-                        return CommonDropdown(
-                        value: controller.countryController.text,
-                        hint: 'Select Country',
-                        options: controller.countries,
-                        onSelected: (val) => controller.onCountrySelected(val),
-                        validator: (value) => (value == null || value.isEmpty) ? 'Please select country' : null,
-                      );}),
-                      const SizedBox(height: 16),
-                      _buildSectionHeader('State / Province', isRequired: true),
-                      Obx(() => CommonSuggestionField(
-                        controller: controller.stateController,
-                        hint: 'Select State / Province',
-                        suggestions: controller.states,
-                        isLoading: controller.isLoadingStates.value,
-                        onSelected: (val) => controller.onStateSelected(val),
-                        validator: (value) => controller.selectedState.value == null ? 'Please select state' : null,
-                      )),
-                      const SizedBox(height: 16),
-                      _buildSectionHeader('City', isRequired: true),
-                      Obx(() => CommonSuggestionField(
-                        controller: controller.cityController,
-                        hint: controller.selectedState.value == null ? 'Select State first' : 'Select City',
-                        suggestions: controller.cities,
-                        isLoading: controller.isLoadingCities.value,
-                        onSelected: (val) => controller.onCitySelected(val),
-                        validator: (value) => controller.selectedCity.value == null ? 'Please select city' : null,
-                      )),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
 
                   _buildGroupedSection(
                     'Experience',
@@ -530,8 +465,6 @@ class BodyworkApplicationView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  _buildProfessionalReferences(controller),
-                  const SizedBox(height: 24),
 
                   _buildGroupedSection(
                     'Experience Highlights (optional)',
@@ -588,15 +521,6 @@ class BodyworkApplicationView extends StatelessWidget {
                   _buildStandardsSection(controller),
                   const SizedBox(height: 24),
 
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildCheckboxes(controller),
-                      ],
-                    ),
-                  ),
 
                   const SizedBox(height: 32),
 
@@ -714,81 +638,6 @@ class BodyworkApplicationView extends StatelessWidget {
     );
   }
 
-  void _showLocationBottomSheet({
-    required BuildContext context,
-    required String title,
-    required List<Map<String, dynamic>> options,
-    required Function(Map<String, dynamic>) onSelected,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: AppColors.cardColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          minChildSize: 0.4,
-          maxChildSize: 0.9,
-          builder: (_, scrollController) {
-            return Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: CommonText(
-                    title,
-                    fontSize: AppTextSizes.size18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const Divider(),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: options.length,
-                    itemBuilder: (context, index) {
-                      final item = options[index];
-                      return InkWell(
-                        onTap: () {
-                          onSelected(item);
-                          Navigator.pop(ctx);
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: AppColors.dividerColor)),
-                          ),
-                          child: CommonText(
-                            item['name'] ?? '',
-                            fontSize: AppTextSizes.size16,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
 
   void _showExperienceBottomSheet({
     required BuildContext context,
@@ -1003,71 +852,6 @@ class BodyworkApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildProfessionalReferences(BodyworkApplicationController controller) {
-    return _buildGroupedSection(
-      'Professional References',
-      description: 'Provide references who can speak to your experience, professionalism, and reliability',
-      children: [
-        CommonText('Trainer Reference 1', color: AppColors.secondary, fontSize: AppTextSizes.size14, fontWeight: FontWeight.normal),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Full name',
-          controller: controller.ref1FullNameController,
-          hintText: 'Enter Full Name',
-          validator: RequiredValidator(errorText: "Please enter reference full name").call,
-        ),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Business name',
-          controller: controller.ref1BusinessNameController,
-          hintText: 'Enter Business Name',
-          validator: RequiredValidator(errorText: "Please enter business name").call,
-        ),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Relationship',
-          controller: controller.ref1RelationshipController,
-          hintText: 'Enter Relationship',
-          validator: RequiredValidator(errorText: "Please enter relationship").call,
-        ),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Phone number',
-          controller: controller.ref1PhoneController,
-          hintText: 'Enter phone number',
-          keyboardType: TextInputType.phone,
-          validator: RequiredValidator(errorText: "Please enter phone no").call,
-        ),
-        const SizedBox(height: 24),
-        CommonText('Trainer Reference 2', color: AppColors.secondary, fontSize: AppTextSizes.size14, fontWeight: FontWeight.normal),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Full name',
-          controller: controller.ref2FullNameController,
-          hintText: 'Enter Full Name',
-        ),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Business name',
-          controller: controller.ref2BusinessNameController,
-          hintText: 'Enter Business Name',
-        ),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Relationship',
-          controller: controller.ref2RelationshipController,
-          hintText: 'Enter Relationship',
-        ),
-        const SizedBox(height: 12),
-        CommonTextField(
-          label: 'Phone number',
-          controller: controller.ref2PhoneController,
-          hintText: 'Enter phone number',
-          keyboardType: TextInputType.phone,
-        ),
-      ],
-    );
-  }
 
   Widget _buildStandardsSection(BodyworkApplicationController controller) {
     return _buildGroupedSection(
@@ -1098,27 +882,6 @@ class BodyworkApplicationView extends StatelessWidget {
     );
   }
 
-  Widget _buildCheckboxes(BodyworkApplicationController controller) {
-    return Column(
-      children: [
-        Obx(() => _buildCheckRow(
-          'I confirm that I am at least 18 years or older.',
-          controller.is18OrOlder.value,
-          () => controller.is18OrOlder.value = !controller.is18OrOlder.value,
-        )),
-        Obx(() => _buildCheckRow(
-          'I agree to the Terms of Service and Privacy Policy.',
-          controller.agreeToTerms.value,
-          () => controller.agreeToTerms.value = !controller.agreeToTerms.value,
-        )),
-        Obx(() => _buildCheckRow(
-          'I understand that my professional references may be contacted regarding my work history, competence, and reliability.',
-          controller.confirmReferences.value,
-          () => controller.confirmReferences.value = !controller.confirmReferences.value,
-        )),
-      ],
-    );
-  }
 
   Widget _buildCheckRow(String text, bool value, VoidCallback onTap) {
     return GestureDetector(

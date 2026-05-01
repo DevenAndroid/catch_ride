@@ -56,73 +56,6 @@ class ShippingApplicationView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Full Name
-                  _buildGroupedSection(
-                    'Full Name',
-                    isRequired: true,
-                    children: [
-                      CommonTextField(
-                        label: '',
-                        isRequired: true,
-                        controller: controller.fullNameController,
-                        hintText: 'Enter Your Full Name',
-                        validator: RequiredValidator(errorText: "Please enter your full name").call,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 2. Services Bio
-                  _buildGroupedSection(
-                    'Why Join Our Community?',
-                    children: [
-                      CommonTextField(
-                        label: '',
-                        isRequired: true,
-                        controller: controller.bioController,
-                        hintText: 'Briefly describe your operation, services, and the type of routes or clients you typically work with.',
-                        maxLines: 4,
-                     //   validator: RequiredValidator(errorText: "Please tell us about your services").call,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 3. Physical Address
-                  _buildGroupedSection(
-                    'Home Base Location',
-                    children: [
-                      _buildFieldLabel('Country', isRequired: true),
-                      Obx(() {
-                        final _ = controller.selectedCountryCode.value;
-                        return CommonDropdown(
-                          value: controller.countryController.text,
-                          hint: 'Select Country',
-                          options: controller.countries,
-                          onSelected: (val) => controller.onCountrySelected(val),
-                        );
-                      }),
-                      const SizedBox(height: 16),
-                      _buildFieldLabel('State', isRequired: true),
-                      Obx(() => CommonSuggestionField(
-                        controller: controller.stateController,
-                        hint: 'Select State',
-                        suggestions: controller.states,
-                        isLoading: controller.isLoadingStates.value,
-                        onSelected: (val) => controller.onStateSelected(val),
-                      )),
-                      const SizedBox(height: 16),
-                      _buildFieldLabel('City', isRequired: true),
-                      Obx(() => CommonSuggestionField(
-                        controller: controller.cityController,
-                        hint: controller.stateController.text.isEmpty ? 'Select State first' : 'Select City',
-                        suggestions: controller.cities,
-                        isLoading: controller.isLoadingCities.value,
-                        onSelected: (val) => controller.onCitySelected(val),
-                      )),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
 
                   // 4. Business Information
                   _buildGroupedSection(
@@ -363,9 +296,6 @@ class ShippingApplicationView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // 15. Professional References
-                  _buildProfessionalReferences(controller),
-                  const SizedBox(height: 24),
 
                   // 16. Experience Highlights
                   _buildGroupedSection(
@@ -421,19 +351,7 @@ class ShippingApplicationView extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
 
-                  // 17. Final Checkboxes
-                  _buildAgreementCheckbox(
-                    value: controller.is18OrOlder,
-                    label: 'I confirm that I am at least 18 years or older.',
-                  ),
-                  _buildAgreementCheckbox(
-                    value: controller.agreeTerms,
-                    label: 'I agree to the Terms of Service and Privacy Policy.',
-                  ),
-                  _buildAgreementCheckbox(
-                    value: controller.agreeReferences,
-                    label: 'I understand that my professional references may be contacted regarding my work history, competence, and reliability.',
-                  ),
+                  // 17. Final Compliance Checkboxes
                   _buildAgreementCheckbox(
                     value: controller.agreeCompliance,
                     label: 'I operate in compliance with applicable transport regulations and licensing requirements',
@@ -749,117 +667,7 @@ class ShippingApplicationView extends StatelessWidget {
     ));
   }
 
-  Widget _buildProfessionalReferences(ShippingApplicationController controller) {
-    return _buildGroupedSection(
-      'Professional References',
-      description: 'Provide references who can speak to your experience, professionalism, and reliability',
-      children: [
-        Obx(() => Column(
-          children: controller.referenceControllers.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final ref = entry.value;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildFieldLabel('Reference ${idx + 1}'),
-                const SizedBox(height: 12),
 
-                CommonTextField(
-                  label: 'Full Name',
-                  controller:  ref.fullName,
-                  hintText: 'Enter Full Name',
-                  isRequired: idx == 0,
-                  validator: idx == 0 ? RequiredValidator(errorText: "Please enter reference full name").call:null,
-                ),
-                const SizedBox(height: 16),
-                CommonTextField(
-                  label: 'Business Name',
-                  controller:  ref.businessName,
-                  hintText: 'Enter Business Name',
-                  isRequired: idx == 0 ,
-                  validator:  idx == 0 ?  RequiredValidator(errorText: "Please enter business name").call:null,
-                ),
-                const SizedBox(height: 16),
-                CommonTextField(
-                  label: 'Relationship',
-                  controller: ref.relationship,
-                  hintText: 'Enter Relationship Name' ,
-                  isRequired: idx == 0 ,
-                  validator:  idx == 0 ?  RequiredValidator(errorText: "Please enter relationship").call:null,
-                ),
-                const SizedBox(height: 16),
-                CommonTextField(
-                    label: 'Phone Number',
-                    controller: ref.phone,
-                    hintText: 'Enter phone number',
-                    keyboardType: TextInputType.phone,
-                    isRequired: idx == 0 ,
-                    validator:  idx == 0 ? RequiredValidator(errorText: "Please enter phone no").call:null
-                ),
-                const SizedBox(height: 24),
-              ],
-            );
-          }).toList(),
-        )),
-      ],
-    );
-  }
-
-  Widget _buildAgreementCheckbox({required RxBool value, required String label}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 24,
-            width: 24,
-            child: Obx(() => Checkbox(
-              value: value.value,
-              onChanged: (val) => value.value = val ?? false,
-              activeColor: Colors.green,
-              side: const BorderSide(width: 2, color: Colors.black),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            )),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: CommonText(
-              label,
-              fontSize: 14,
-              color: AppColors.textPrimary,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ── Bottom Sheet Methods (Omitted for brevity, but exist in logic) ─────────
-  void _showLocationBottomSheet({required BuildContext context, required String title, required List<Map<String, dynamic>> options, required Function(Map<String, dynamic>) onSelected}) {
-     showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Column(
-        children: [
-          const SizedBox(height: 10),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
-          Padding(padding: const EdgeInsets.all(20), child: CommonText(title, fontWeight: FontWeight.bold, fontSize: 18)),
-          const Divider(),
-          Expanded(child: ListView.builder(
-            itemCount: options.length,
-            itemBuilder: (context, index) => ListTile(
-              title: CommonText(options[index]['name'] ?? ''),
-              onTap: () { onSelected(options[index]); Navigator.pop(ctx); },
-            ),
-          )),
-        ],
-      ),
-    );
-  }
 
   void _showExperienceBottomSheet({required BuildContext context, required String title, String? currentValue, required List<String> options, required Function(String) onSelected}) {
      showModalBottomSheet(
@@ -903,6 +711,34 @@ class ShippingApplicationView extends StatelessWidget {
           )),
         ],
       )),
+    );
+  }
+
+  Widget _buildAgreementCheckbox({required RxBool value, required String label}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() => Checkbox(
+            value: value.value,
+            onChanged: (val) => value.value = val ?? false,
+            activeColor: const Color(0xFF001149),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: VisualDensity.compact,
+          )),
+          const SizedBox(width: 8),
+          Expanded(
+            child: CommonText(
+              label,
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
