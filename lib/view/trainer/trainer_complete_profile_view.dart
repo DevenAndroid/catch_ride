@@ -1325,10 +1325,10 @@ class _TrainerCompleteProfileViewState
 
                   // 2. Prepare Name
                   final nameParts = _fullNameController.text.trim().split(' ');
-                  final firstName = nameParts.first;
+                  final firstName = nameParts.isNotEmpty ? nameParts.first : '';
                   final lastName = nameParts.length > 1
                       ? nameParts.sublist(1).join(' ')
-                      : ' ';
+                      : '';
 
                   // 3. Update Text Profile — include isProfileCompleted:true
                   final success = await profileController.updateProfile({

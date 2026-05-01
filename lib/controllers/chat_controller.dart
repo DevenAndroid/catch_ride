@@ -27,7 +27,7 @@ class ChatController extends GetxController {
   final RxString activeConversationId = ''.obs;
   final RxBool isUpdatingStatus = false.obs;
 
-  Timer? _refreshTimer;
+  // Timer? _refreshTimer;
 
   int get totalUnreadCount {
     return conversations.fold(0, (sum, convo) => sum + convo.unread);
@@ -38,16 +38,17 @@ class ChatController extends GetxController {
     super.onInit();
     // Use microtask to ensure this doesn't run during a build phase
     Future.microtask(() => fetchConversations());
+    _socketService.onRefresh(_setupSocketListeners);
     _setupSocketListeners();
     // Periodic background refresh as a safety net for missed socket events
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      fetchConversations(quiet: true);
-    });
+    // _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+    //   fetchConversations(quiet: true);
+    // });
   }
 
   @override
   void onClose() {
-    _refreshTimer?.cancel();
+    // _refreshTimer?.cancel();
     super.onClose();
   }
 
