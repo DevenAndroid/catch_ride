@@ -1,4 +1,5 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/constant/app_theme.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/view/trainer/settings/privacy_policy_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -105,7 +106,7 @@ class SettingsView extends StatelessWidget {
                       height: 54,
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF00083B),
+                        color:AppColors.primary,
                         shape: BoxShape.circle,
                       ),
                       child: SvgPicture.asset(

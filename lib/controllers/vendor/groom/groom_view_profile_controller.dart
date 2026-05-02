@@ -1,4 +1,6 @@
 // Groom View Profile Controller - Multi-service support (Grooming, Bodywork, Farrier, Shipping)
+import 'dart:developer';
+
 import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
@@ -38,10 +40,53 @@ class GroomViewProfileController extends GetxController {
             : currentServiceIndex.value]
       : null;
 
-  Map<String, dynamic> get _activeProfileData =>
-      _activeService?['profile']?['profileData'] ?? {};
+  Map<String, dynamic> get _activeProfileData {
+    final serviceType = activeServiceType.toLowerCase().replaceAll(' ', '');
+    final servicesData = vendorData['servicesData'] ?? {};
+    
+    // Data from specific service block in vendorData
+    final Map<String, dynamic> directServiceData = servicesData[serviceType] is Map 
+        ? Map<String, dynamic>.from(servicesData[serviceType]) 
+        : {};
+
+    final profile = _activeService?['profile'] ?? {};
+    final profileData = profile['profileData'] ?? {};
+    
+    final Map<String, dynamic> merged = {
+      ...profile,
+      ...profileData,
+      ...directServiceData,
+    };
+
+    // Special handling for lists that should be merged, not overwritten
+    final List<dynamic> pAddServices = profileData['additionalServices'] ?? profile['additionalServices'] ?? [];
+    final List<dynamic> dAddServices = directServiceData['additionalServices'] ?? [];
+    
+    if (pAddServices.isNotEmpty || dAddServices.isNotEmpty) {
+      final Map<String, dynamic> uniqueAddServices = {};
+      for (var s in [...pAddServices, ...dAddServices]) {
+        if (s is Map && s['name'] != null) {
+          final name = s['name'].toString().toLowerCase();
+          // Keep the one with more data (e.g. description or higher price if applicable)
+          if (!uniqueAddServices.containsKey(name) || (s['description'] != null && uniqueAddServices[name]['description'] == null)) {
+            uniqueAddServices[name] = s;
+          }
+        }
+      }
+      merged['additionalServices'] = uniqueAddServices.values.toList();
+    }
+
+    final List<dynamic> pServices = profileData['services'] ?? profile['services'] ?? [];
+    final List<dynamic> dServices = directServiceData['services'] ?? [];
+    if (pServices.isNotEmpty || dServices.isNotEmpty) {
+      merged['services'] = {...pServices, ...dServices}.toList();
+    }
+
+    return merged;
+  }
+
   Map<String, dynamic> get _activeApplicationData =>
-      _activeService?['application']?['applicationData'] ?? {};
+      _activeService?['application']?['applicationData'] ?? _activeService?['application'] ?? {};
 
   Map<String, dynamic> get activeServiceProfile =>
       _activeService?['profile'] ?? {};
@@ -190,12 +235,8 @@ class GroomViewProfileController extends GetxController {
 
   void _updateActiveServiceData() {
     if (allAssignedServices.isEmpty) return;
-    final currentIndex = currentServiceIndex.value >= allAssignedServices.length
-        ? 0
-        : currentServiceIndex.value;
-    final activeService = allAssignedServices[currentIndex];
-    final profile = activeService['profile'] ?? {};
-    final profileDataMap = profile['profileData'] ?? {};
+    final profileDataMap = _activeProfileData;
+
     // Update Additional Services
     final List addServices = profileDataMap['additionalServices'] ?? [];
     additionalServices.assignAll(addServices.map((s) {
@@ -203,7 +244,7 @@ class GroomViewProfileController extends GetxController {
       return {'name': s.toString(), 'price': '0'};
     }).toList());
 
-    // Update Bodywork Services (if applicable)
+    log("Active Profile Data Services: ${profileDataMap['services']}");
     final List bwServices =
         profileDataMap['services'] ??
         profileDataMap['additionalServices'] ??
@@ -213,10 +254,9 @@ class GroomViewProfileController extends GetxController {
       return {'name': s.toString(), 'price': '0', 'isSelected': true};
     }).toList());
 
-    final application = activeService['application'] ?? {};
-    final appDataMap = application['applicationData'] ?? application ?? {};
+    final appDataMap = _activeApplicationData;
 
-    _updateLocationAndExperience(appDataMap, activeService);
+    _updateLocationAndExperience(appDataMap, _activeService);
     _updateTags(appDataMap);
     travelScopeList.assignAll(
       List<String>.from(appDataMap['travelScope'] ?? []),
@@ -463,13 +503,20 @@ class GroomViewProfileController extends GetxController {
   }
 
   // Rates
-  String get dailyRate => _activeProfileData['rates']?['daily'] ?? 'N/A';
-  String get weeklyRate =>
-      _activeProfileData['rates']?['weekly']?['price'] ?? 'N/A';
+  String get dailyRate {
+    final rate = _activeProfileData['rates']?['daily'];
+    return (rate == null || rate.toString() == 'N/A') ? '' : rate.toString();
+  }
+  String get weeklyRate {
+    final rate = _activeProfileData['rates']?['weekly']?['price'];
+    return (rate == null || rate.toString() == 'N/A') ? '' : rate.toString();
+  }
   String get weeklyDays =>
       _activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
-  String get monthlyRate =>
-      _activeProfileData['rates']?['monthly']?['price'] ?? 'N/A';
+  String get monthlyRate {
+    final rate = _activeProfileData['rates']?['monthly']?['price'];
+    return (rate == null || rate.toString() == 'N/A') ? '' : rate.toString();
+  }
   String get monthlyDays =>
       _activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
 

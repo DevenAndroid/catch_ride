@@ -82,7 +82,7 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> additionalSkillsOptions = <String>['Braiding', 'Clipping'].obs;
   final RxList<String> selectedAdditionalSkills = <String>[].obs;
 
-  final RxList<String> travelOptions = <String>['Local Only', 'Regional', 'Nationwide', 'International'].obs;
+  final RxList<String> travelOptions = <String>['Local Only', 'Regional'].obs;
   final RxList<String> selectedTravel = <String>[].obs;
 
   // Braiding Tab Specifics
@@ -1378,9 +1378,7 @@ class EditVendorProfileController extends GetxController {
         // Update local AuthController state for immediate UI reflection in Menu/Personal Info
         if (_authController.currentUser.value != null) {
           final updatedUser = _authController.currentUser.value!.copyWith(
-            firstName: fullNameController.text
-                .split(' ')
-                .first,
+            firstName: fullNameController.text.split(' ').first,
             lastName: fullNameController.text.contains(' ') ? fullNameController.text.split(' ').skip(1).join(' ') : '',
             phone: phoneController.text,
             bio: aboutController.text,

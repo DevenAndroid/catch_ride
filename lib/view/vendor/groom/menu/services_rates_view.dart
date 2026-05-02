@@ -15,6 +15,7 @@ import '../../bodywork/profile/bodywork_service_rates_tab.dart';
 import '../../../../controllers/vendor/farrier/farrier_details_controller.dart' as fdc; 
 import '../../../../controllers/vendor/bodywork/bodywork_details_controller.dart' as bdc;
 import '../../shipping/profile/service_price_view.dart';
+import '../profile_create/grooming_details_view.dart';
 
 class ServicesRatesView extends StatefulWidget {
   const ServicesRatesView({super.key});
@@ -68,17 +69,64 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
   }
 
   void _updateLocalFields() {
+    if (controller.allAssignedServices.isEmpty) return;
+    
+    debugPrint('Updating local fields for service index: ${controller.currentServiceIndex.value}');
+    
     dailyController.text = controller.dailyRate;
     weeklyController.text = controller.weeklyRate;
     monthlyController.text = controller.monthlyRate;
     weeklyDays.value = controller.weeklyDays;
     monthlyDays.value = controller.monthlyDays;
-    additionalServices.assignAll(controller.additionalServices.map((s) => {...s, 'isSelected': true.obs}).toList());
+    
+    // Default list from GroomingDetailsController
+    final List<Map<String, dynamic>> defaultAddServices = [
+      {'name': 'Hunter Mane + Tail', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Hunter Tail Only', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Fullbody Clip', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Hunter Clip', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Trace Clip', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Custom Clip', 'price': '0', 'description': 'Per horse'},
+    ];
+
+    final savedAddServices = controller.additionalServices;
+    final List<Map<String, dynamic>> mergedList = [];
+
+    // 1. Add saved services (some might be from default list, some custom)
+    for (var saved in savedAddServices) {
+      mergedList.add({
+        ...saved,
+        'priceController': TextEditingController(text: saved['price']?.toString() ?? '0'),
+        'isSelected': RxBool(true),
+      });
+    }
+
+    // 2. Add missing default services
+    for (var def in defaultAddServices) {
+      bool alreadyExists = mergedList.any((m) => m['name'].toString().toLowerCase() == def['name'].toString().toLowerCase());
+      if (!alreadyExists) {
+        mergedList.add({
+          ...def,
+          'priceController': TextEditingController(text: def['price']?.toString() ?? '0'),
+          'isSelected': RxBool(false),
+        });
+      }
+    }
+
+    additionalServices.assignAll(mergedList);
     
     // Sync grooming skills
     final currentSkills = controller.groomingServices.map((e) => e.toString()).toList();
+    debugPrint('Current skills from controller: $currentSkills');
+
+    // Reset to defaults then add custom ones to avoid infinite growth
+    availableGroomingSkills.assignAll([
+      'Grooming & Turnout',
+      'Wrapping & Bandaging',
+      'Stall Upkeep & Daily Care',
+      'Show Prep (non braiding)',
+    ]);
     
-    // Ensure any custom skills from profile are added to the available list
     for (var skill in currentSkills) {
       if (!availableGroomingSkills.contains(skill)) {
         availableGroomingSkills.add(skill);
@@ -204,7 +252,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                   );
                 }).toList(),
               )),
-          _buildAddServiceLink('Add Service', () => _showAddServicePopup()),
+          _buildAddServiceLink('Add Skills', () => _showAddServicePopup()),
         ],
       ),
     );
@@ -282,6 +330,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                     height: 52,
                     child: ElevatedButton(
                       onPressed: () {
+
                         final newService = nameController.text.trim();
                         if (newService.isNotEmpty) {
                           if (!availableGroomingSkills.contains(newService)) {
@@ -432,7 +481,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                         index,
                         s['name'] ?? 'Service',
                         s['description'] ?? 'Per horse',
-                        s['price']?.toString() ?? '0',
+                        s['priceController'] as TextEditingController,
                         (s['isSelected'] as RxBool).value,
                         onToggle: (val) => (s['isSelected'] as RxBool).value = val ?? false,
                       )),
@@ -440,7 +489,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                   }).toList(),
                 )),
           const SizedBox(height: 12),
-          _buildAddServiceLink('Add Service', () => _showAddSkillBS()),
+          _buildAddServiceLink('Add Skills', () => _showAddSkillBS()),
         ],
       ),
     );
@@ -480,7 +529,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
     );
   }
 
-  Widget _buildServiceItem(int index, String title, String subtitle, String price, bool isSelected, {required Function(bool?) onToggle}) {
+  Widget _buildServiceItem(int index, String title, String subtitle, TextEditingController priceController, bool isSelected, {required Function(bool?) onToggle}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -509,7 +558,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
           ),
           Container(
             width: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFFF2F4F7),
               borderRadius: BorderRadius.circular(10),
@@ -518,7 +568,24 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const CommonText('\$ ', fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF667085)),
-                Expanded(child: CommonText(price, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF101828))),
+                Expanded(
+                  child: TextField(
+                    controller: priceController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [PriceInputFormatter()],
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF101828),
+                      fontFamily: 'Outfit',
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -633,7 +700,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                       if (nameController.text.isNotEmpty && priceController.text.isNotEmpty) {
                         additionalServices.add({
                           'name': nameController.text,
-                          'price': priceController.text,
+                          'priceController': TextEditingController(text: priceController.text),
                           'description': 'Per horse',
                           'isSelected': true.obs,
                         });
@@ -681,6 +748,8 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                 height: 52,
                 child: ElevatedButton(
                   onPressed: () async {
+
+
                   final activeType = controller.activeServiceType.toLowerCase();
                   bool success = false;
 
@@ -692,17 +761,16 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                       weeklyDays: weeklyDays.value,
                       monthly: monthlyController.text,
                       monthlyDays: monthlyDays.value,
-                      additional: additionalServices
+                       additional: additionalServices
                           .where((s) => (s['isSelected'] as RxBool).value)
                           .map((s) => {
                                 'name': s['name'],
-                                'price': s['price'],
+                                'price': (s['priceController'] as TextEditingController).text,
                                 'description': s['description'],
                               })
                           .toList(),
                     );
                   } else if (activeType.contains('braid')) {
-                    // Braiding tab handles its own local state usually or we can pull from its controller
                     // For now, if braiding is active, we might need a generic or specialized save.
                     // Usually tabs like BraidingServiceRatesTab should maybe handle their own save internally
                     // OR we pull from Get.find<BraidingController>()
