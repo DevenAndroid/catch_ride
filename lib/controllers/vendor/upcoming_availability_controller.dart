@@ -8,6 +8,7 @@ class UpcomingAvailabilityController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   
   final RxString vendorId = ''.obs;
+  final RxString serviceType = ''.obs;
   final RxList<VendorAvailabilityModel> availabilityList = <VendorAvailabilityModel>[].obs;
   final RxList<dynamic> combinedList = <dynamic>[].obs;
   final RxBool isLoading = true.obs;
@@ -25,6 +26,7 @@ class UpcomingAvailabilityController extends GetxController {
     final args = Get.arguments;
     if (args != null && args is Map) {
       vendorId.value = args['vendorId'] ?? '';
+      serviceType.value = args['serviceType'] ?? '';
     }
     
     if (vendorId.isNotEmpty) {
@@ -98,6 +100,24 @@ class UpcomingAvailabilityController extends GetxController {
 
         return (dateA ?? DateTime(2099)).compareTo(dateB ?? DateTime(2099));
       });
+
+      // Filter by service type if provided
+      if (serviceType.isNotEmpty) {
+        final type = serviceType.value.toLowerCase();
+        if (type.contains('shipping') || type.contains('transportation')) {
+          localList.removeWhere((item) => item is! TripModel);
+        } else {
+          localList.removeWhere((item) {
+            if (item is TripModel) return true;
+            if (item is VendorAvailabilityModel) {
+              return !item.serviceTypes.any((st) => 
+                st.toLowerCase().contains(type) || type.contains(st.toLowerCase())
+              );
+            }
+            return true;
+          });
+        }
+      }
 
       combinedList.assignAll(localList);
       availabilityList.assignAll(localList.whereType<VendorAvailabilityModel>().toList());

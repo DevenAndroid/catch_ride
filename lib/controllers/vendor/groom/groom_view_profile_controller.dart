@@ -25,6 +25,23 @@ class GroomViewProfileController extends GetxController {
       <Map<String, dynamic>>[].obs;
   final RxBool isAvailabilityLoading = false.obs;
 
+  List<Map<String, dynamic>> get filteredAvailabilityList {
+    if (availabilityList.isEmpty) return [];
+    final type = activeServiceType.toLowerCase();
+
+    // Shipping/Transportation special case
+    if (type.contains('shipping') || type.contains('transportation')) {
+      return availabilityList.where((a) => a['isTrip'] == true).toList();
+    }
+
+    // Standard service types
+    return availabilityList.where((a) {
+      if (a['isTrip'] == true) return false;
+      final List serviceTypes = a['serviceTypes'] ?? [];
+      return serviceTypes.any((st) => st.toString().toLowerCase().contains(type) || type.contains(st.toString().toLowerCase()));
+    }).toList();
+  }
+
   final RxList<String> paymentMethods = <String>[].obs;
   final RxList<String> disciplinesSelected = <String>[].obs;
   final RxList<String> horseLevels = <String>[].obs;

@@ -15,6 +15,27 @@ class VendorDetailsController extends GetxController {
   final RxMap vendorData = {}.obs;
   final RxList<dynamic> availabilityList = <dynamic>[].obs;
   final RxBool isAvailabilityLoading = false.obs;
+
+  List<dynamic> get filteredAvailabilityList {
+    if (availabilityList.isEmpty) return [];
+    if (availableServices.isEmpty) return availabilityList;
+    
+    final activeService = availableServices[selectedTabIndex.value].toLowerCase();
+    
+    if (activeService.contains('shipping') || activeService.contains('transportation')) {
+      return availabilityList.where((a) => a is Map && a['isTrip'] == true).toList();
+    }
+    
+    return availabilityList.where((a) {
+      if (a is Map && a['isTrip'] == true) return false;
+      if (a is VendorAvailabilityModel) {
+        return a.serviceTypes.any((st) => 
+          st.toLowerCase().contains(activeService) || activeService.contains(st.toLowerCase())
+        );
+      }
+      return true;
+    }).toList();
+  }
   final RxBool canMessage = false.obs;
 
   // Booking specific (if coming from booking screen)

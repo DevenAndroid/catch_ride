@@ -548,7 +548,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {'vendorId': controller.vendorId.value}),
+          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {
+            'vendorId': controller.vendorId.value,
+            'serviceType': controller.availableServices.isNotEmpty 
+                ? controller.availableServices[controller.selectedTabIndex.value] 
+                : null,
+          }),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -560,7 +565,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         const SizedBox(height: 16),
         Obx(() {
           if (controller.isAvailabilityLoading.value) return const Center(child: CircularProgressIndicator());
-          if (controller.availabilityList.isEmpty) {
+          final list = controller.filteredAvailabilityList;
+          if (list.isEmpty) {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
@@ -568,7 +574,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
             );
           }
           return Column(
-            children: controller.availabilityList.take(3).map((avail) {
+            children: list.take(3).map((avail) {
               if (avail is Map && avail['isTrip'] == true) {
                 return ShippingTripCard(trip: TripModel.fromJson(Map<String, dynamic>.from(avail)));
               }
