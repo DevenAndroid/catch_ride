@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class BodyworkServiceAndRatesView extends StatefulWidget {
   final Map bodyworkData;
@@ -256,10 +257,10 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
                       child: Column(
                         children: [
                           CommonText(
-                            '\$ ${e.value}',
+                            '\$ ${NumberFormat('#,###').format(double.tryParse(e.value.toString().replaceAll(',', '')) ?? 0)}',
                             fontSize: AppTextSizes.size16,
                             fontWeight: FontWeight.bold,
-                            color: const Color(0xFFB91C1C),
+                            color: AppColors.secondary,
                           ),
                           const SizedBox(height: 2),
                           CommonText(

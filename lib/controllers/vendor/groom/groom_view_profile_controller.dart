@@ -720,8 +720,14 @@ class GroomViewProfileController extends GetxController {
         ...existing,
         'profileData': {
             ...existingProfile,
-            'services': services, 
-            'addOns': addOns
+            'services': services.map((s) => {
+                ...s,
+                'price': s['price']?.toString().replaceAll(',', '') ?? '0'
+            }).toList(), 
+            'addOns': addOns.map((s) => {
+                ...s,
+                'price': s['price']?.toString().replaceAll(',', '') ?? '0'
+            }).toList()
         },
         'isProfileCompleted': true,
       };
@@ -771,7 +777,12 @@ class GroomViewProfileController extends GetxController {
         ...existing,
         'profileData': {
             ...existingProfile,
-            'services': services
+            'services': services.map((s) => {
+                ...s,
+                'price': s['price']?.toString().replaceAll(',', '') ?? '0',
+                if (s['rates'] != null && s['rates'] is Map)
+                  'rates': (s['rates'] as Map).map((key, value) => MapEntry(key, value?.toString().replaceAll(',', '') ?? '0'))
+            }).toList()
         },
         'isProfileCompleted': true,
       };
@@ -829,13 +840,13 @@ class GroomViewProfileController extends GetxController {
           ...existingProfile,
           'services': services,
           'rates': {
-            'daily': daily,
+            'daily': daily.replaceAll(',', ''),
             'weekly': {
-              'price': weekly,
+              'price': weekly.replaceAll(',', ''),
               'days': int.tryParse(weeklyDays) ?? 5,
             },
             'monthly': {
-              'price': monthly,
+              'price': monthly.replaceAll(',', ''),
               'days': int.tryParse(monthlyDays) ?? 5,
             },
           },

@@ -176,7 +176,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                           _controller.fullName.isEmpty
                                               ? 'N/A'
                                               : profile.fullName,
-                                          fontSize: 28,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.w800,
                                           color: const Color(0xFF101828),
                                           maxLines: 2,
@@ -224,11 +224,11 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                           color: const Color(0xFF475467),
                                                         ),
                                                       ),
-                                                      if (profile.location2?.isNotEmpty ?? false)
-                                                        const Padding(
-                                                          padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                                          child: CommonText("|", color: Color(0xFFD0D5DD)),
-                                                        ),
+                                                      // if (profile.location2?.isNotEmpty ?? false)
+                                                      //   const Padding(
+                                                      //     padding: EdgeInsets.symmetric(horizontal: 6.0),
+                                                      //     child: CommonText("|", color: Color(0xFFD0D5DD)),
+                                                      //   ),
                                                     ],
                                                   ),
                                                   if (profile.location2?.isNotEmpty ?? false)

@@ -51,7 +51,17 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       _isSearching = true;
     });
     controller.selectedDiscipline.value = _selectedCategory;
-    controller.searchQuery.value = _searchController.text;
+    
+    // If the search text exactly matches the selected location/venue/region, 
+    // don't send it as a keyword search (only as a location filter)
+    final searchText = _searchController.text.trim();
+    if (searchText == controller.location.value || 
+        searchText == controller.showVenue.value || 
+        controller.regionsCovered.contains(searchText)) {
+      controller.searchQuery.value = '';
+    } else {
+      controller.searchQuery.value = searchText;
+    }
     controller.startDate.value = _rangeStart;
     controller.endDate.value = _rangeEnd;
 
@@ -338,15 +348,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 final isSearching = _searchController.text.isNotEmpty;
 
                 if (isShowVenue) {
-                  final query = _searchController.text.toLowerCase();
                   final list = isSearching
-                      ? profileController.rawHorseShows.where((show) {
-                          final name = (show['name'] ?? '').toString().toLowerCase();
-                          final venue = (show['showVenue'] ?? '').toString().toLowerCase();
-                          final circuit = (show['circuit'] ?? '').toString().toLowerCase();
-                          return name.contains(query) || venue.contains(query) || circuit.contains(query);
-                        }).toList()
-                      : profileController.rawHorseShows.take(10).toList();
+                      ? controller.venuesSuggestions
+                      : controller.defaultVenues;
 
                   final bool hasMore = list.length > 3;
                   final displayList =
@@ -610,7 +614,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               Row(
                 children: [
                   Expanded(child: _buildDateInput('Start Date', _rangeStart)),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 10),
                   Expanded(child: _buildDateInput('End Date', _rangeEnd)),
                 ],
               ),
@@ -745,11 +749,12 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
     return GestureDetector(
       onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
         controller.showVenue.value = name;
         controller.location.value = '';
         controller.regionsCovered.clear();
-        _searchController.clear();
-        _onSearchPressed();
+        _searchController.text = name;
+        setState(() {});
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -800,6 +805,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   }) {
     return GestureDetector(
       onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
         if (isRegion) {
           controller.regionsCovered.assignAll([location]);
           controller.location.value = '';
@@ -814,8 +820,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           controller.showVenue.value = '';
           controller.regionsCovered.clear();
         }
-        _searchController.clear();
-        _onSearchPressed();
+        _searchController.text = location;
+        setState(() {});
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -893,17 +899,17 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           if (isKnownVenue) {
             controller.showVenue.value = address;
             controller.location.value = '';
-            _searchController.clear();
+            _searchController.text = address;
           } else if (isKnownLocation) {
             controller.location.value = address;
             controller.showVenue.value = '';
-            _searchController.clear();
+            _searchController.text = address;
           } else {
             // Default to text search
             _searchController.text = address;
           }
         }
-        _onSearchPressed();
+        setState(() {});
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -1146,11 +1152,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           Expanded(
             flex: 2,
             child: GestureDetector(
-              onTap:() {
-                controller.regionsCovered.clear();
-              controller.location.value="";
-                _onSearchPressed();
-              } ,
+              onTap: _onSearchPressed,
               child: Container(
                 height: 56,
                 decoration: BoxDecoration(

@@ -56,7 +56,7 @@ class EditVendorProfileController extends GetxController {
 
   // Grooming Tab - Experience & Choices
   final RxnString experience = RxnString();
-  final List<String> experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+  final List<String> experienceOptions = ['0-1', '2-4', '3-5', '6-10', '10+'];
   
   final RxList<String> disciplineOptions = <String>['Eventing', 'Hunter/Jumper', 'Dressage', 'Other'].obs;
   final RxList<String> selectedDisciplines = <String>[].obs;
@@ -434,15 +434,19 @@ class EditVendorProfileController extends GetxController {
         selectedBodyworkStandards.assignAll(standards);
       } else if (type == 'Shipping') {
         dotNumberController.text = appData['businessInfo']?['dotNumber'] ?? '';
-        shippingOperationType.value = appData['operationType'];
-        shippingTravelScope.assignAll(List<String>.from(appData['travelScope'] ?? profileData['travelScope'] ?? []));
-        shippingRigTypes.assignAll(List<String>.from(appData['rigTypes'] ?? profileData['rigTypes'] ?? []));
-        shippingStallTypes.assignAll(List<String>.from(appData['stallType'] ?? profileData['stallType'] ?? []));
-        shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []));
+        shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
+        if (shippingOperationType.value == 'Independent Small Operation') {
+          shippingOperationType.value = 'Independent / Small Operation';
+        }
+        shippingTravelScope.assignAll(List<String>.from(profileData['travelScope'] ?? appData['travelScope'] ?? []));
+        shippingRigTypes.assignAll(List<String>.from(profileData['rigTypes'] ?? appData['rigTypes'] ?? []));
+        shippingStallTypes.assignAll(List<String>.from(profileData['stallTypes'] ?? profileData['stallType'] ?? appData['stallTypes'] ?? appData['stallType'] ?? []));
+        shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []).map((s) => s == 'Long-Distance Transport' ? 'Long distance transport' : s).toList());
+        shippingHasCDL.value = profileData['hasCDL'] ?? appData['hasCDL'] ?? false;
         shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
         shippingNotesController.text = profileData['notes'] ?? '';
         shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
-        shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'] ?? profileData['media']?['cdlPhoto'];
+        shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
       }
       
       // Photos for each service
@@ -611,16 +615,19 @@ class EditVendorProfileController extends GetxController {
           bodyworkExistingCertUrls.assignAll(certs);
         } else if (activeService['serviceType'] == 'Shipping') {
           dotNumberController.text = appData['businessInfo']?['dotNumber'] ?? '';
-          shippingOperationType.value = appData['operationType'];
-          shippingTravelScope.assignAll(List<String>.from(appData['travelScope'] ?? []));
-          shippingRigTypes.assignAll(List<String>.from(appData['rigTypes'] ?? []));
-          shippingStallTypes.assignAll(List<String>.from(appData['stallType'] ?? []));
-          shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []));
-          shippingHasCDL.value = appData['hasCDL'] ?? false;
-          shippingRigCapacity.value = appData['rigCapacity'] ?? 1;
+          shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
+          if (shippingOperationType.value == 'Independent Small Operation') {
+            shippingOperationType.value = 'Independent / Small Operation';
+          }
+          shippingTravelScope.assignAll(List<String>.from(appData['travelScope'] ?? profileData['travelScope'] ?? []));
+          shippingRigTypes.assignAll(List<String>.from(appData['rigTypes'] ?? profileData['rigTypes'] ?? []));
+          shippingStallTypes.assignAll(List<String>.from(appData['stallTypes'] ?? appData['stallType'] ?? profileData['stallTypes'] ?? profileData['stallType'] ?? []));
+          shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []).map((s) => s == 'Long-Distance Transport' ? 'Long distance transport' : s).toList());
+          shippingHasCDL.value = profileData['hasCDL'] ?? appData['hasCDL'] ?? false;
+          shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
           shippingNotesController.text = profileData['notes'] ?? '';
           shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
-          shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'];
+          shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
           
           experience.value = appData['experience']?.toString();
           selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
@@ -643,10 +650,16 @@ class EditVendorProfileController extends GetxController {
         }
       }
       
-      cancellationPolicy.value = profileData['cancellationPolicy']?['policy'];
-      isCustomCancellation.value = profileData['cancellationPolicy']?['isCustom'] ?? false;
-      if (isCustomCancellation.value) {
-        customCancellationController.text = profileData['cancellationPolicy']?['customText'] ?? cancellationPolicy.value ?? '';
+      final cp = profileData['cancellationPolicy'];
+      if (cp is Map) {
+        cancellationPolicy.value = cp['policy'];
+        isCustomCancellation.value = cp['isCustom'] ?? false;
+        if (isCustomCancellation.value) {
+          customCancellationController.text = cp['customText'] ?? cancellationPolicy.value ?? '';
+        }
+      } else {
+        cancellationPolicy.value = cp?.toString();
+        isCustomCancellation.value = false;
       }
       
       // Populate service-specific photos

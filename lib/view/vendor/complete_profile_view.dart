@@ -12,6 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
+import 'braiding/profile_create/braiding_application_view.dart';
+import 'braiding/profile_create/braiding_details_view.dart';
+
 class CompleteProfileView extends StatelessWidget {
   const CompleteProfileView({super.key});
 

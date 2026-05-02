@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class GeneralServiceAndRatesView extends StatefulWidget {
   final String title;
@@ -78,16 +79,20 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildRateItem('\$ ${widget.dailyRate}', 'Day Rate'),
-                _buildRateItem('\$ ${widget.weeklyRate}', 'Week Rate (${widget.weeklyDays}d)'),
-                _buildRateItem('\$ ${widget.monthlyRate}', 'Month Rate (${widget.monthlyDays}d)'),
+                _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.dailyRate.replaceAll(',', '')) ?? 0)}', 'Day Rate'),
+                _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.weeklyRate.replaceAll(',', '')) ?? 0)}', 'Week Rate (${widget.weeklyDays}d)'),
+                _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.monthlyRate.replaceAll(',', '')) ?? 0)}', 'Month Rate (${widget.monthlyDays}d)'),
               ],
             ),
             const SizedBox(height: 20),
           ],
 
           if (widget.isClipping)
-            ...widget.services.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse'))
+            ...widget.services.map((s) {
+              final String price = s['price']?.toString() ?? '0';
+              final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+              return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice / horse');
+            })
           else
             ..._buildCapabilityItems(),
           
@@ -95,7 +100,11 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
             const SizedBox(height: 20),
             const CommonText('Additional Services', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
             const SizedBox(height: 16),
-            ...widget.additionalServices.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'} / horse')),
+            ...widget.additionalServices.map((s) {
+              final String price = s['price']?.toString() ?? '0';
+              final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+              return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice / horse');
+            }),
           ],
 
           const SizedBox(height: 20),
@@ -110,7 +119,9 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
 
     for (var s in widget.services) {
       if (s is Map) {
-        items.add(_buildPricedItem(s['name'] ?? 'N/A', '\$${s['price'] ?? '0'}/horse'));
+        final String price = s['price']?.toString() ?? '0';
+        final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+        items.add(_buildPricedItem(s['name'] ?? 'N/A', '\$$formattedPrice/horse'));
       } else {
         items.add(_buildCheckItem(s.toString()));
       }

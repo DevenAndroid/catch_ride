@@ -760,7 +760,8 @@ class SendBookingRequestView extends StatelessWidget {
                       Expanded(
                         child: CommonText(service['name'], fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                       ),
-                      CommonText('\$ ${service['price']} / per mile', fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF8B4242)),
+                      CommonText('\$ ${service['price']} / ', fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.secondary),
+                      CommonText('per mile', fontSize: 14,),
                     ],
                   ),
                 ),
