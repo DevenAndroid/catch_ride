@@ -492,7 +492,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                     Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: CommonText(
-                        '${(booking.status == 'confirmed' || booking.status == 'Accepted') ? 'Accepted' : 'Rejected'} By: ${booking.acceptedByRole == 'trainer' ? 'Trainer' : 'Barn Manager'} (${booking.acceptedByName})',
+                        '${(booking.status.toLowerCase() == 'confirmed' || booking.status.toLowerCase() == 'accepted') ? 'Accepted' : (booking.status.toLowerCase() == 'cancelled') ? 'Cancelled' : 'Rejected'} By: ${booking.acceptedByRole == 'trainer' ? 'Trainer' : 'Barn Manager'} (${booking.acceptedByName})',
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: AppColors.secondary,

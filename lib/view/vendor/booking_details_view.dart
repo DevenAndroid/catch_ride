@@ -280,7 +280,17 @@ class BookingDetailsView extends StatelessWidget {
       name = service['name'] ?? 'Service';
       price = service['price']?.toString() ?? '';
     } else if (service is String) {
-      name = service;
+      if (service.contains('_')) {
+        final parts = service.split('_');
+        // Handle duration pattern (e.g. Sports massage_30 -> Sports massage (30 mins))
+        if (parts.length == 2 && int.tryParse(parts[1]) != null) {
+          name = '${parts[0]} (${parts[1]} mins)';
+        } else {
+          name = service.replaceAll('_', ' ');
+        }
+      } else {
+        name = service;
+      }
     }
 
     return Padding(
