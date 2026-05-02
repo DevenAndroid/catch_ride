@@ -40,9 +40,9 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
   @override
   Widget build(BuildContext context) {
     final profileData = widget.groomingData['profileData'] ?? widget.groomingData;
-    final Map rates = widget.groomingData['rates'] ?? profileData['rates'] ?? {};
-    final List services = widget.groomingData['services'] ?? profileData['services'] ?? [];
-    final List additionalServices = widget.groomingData['additionalServices'] ?? profileData['additionalServices'] ?? [];
+    final Map rates =  profileData['rates'] ??widget.groomingData['rates'] ?? {};
+    final List services = profileData['services'] ?? widget.groomingData['services'] ?? [];
+    final List additionalServices =  profileData['additionalServices'] ??widget.groomingData['additionalServices'] ?? [];
     
     // Core services are usually simple boolean checks or priced
     final List coreServices = services;
@@ -93,7 +93,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                     children: coreServices.map((s) {
                       final name = s is Map ? (s['name'] ?? 'Service') : s.toString();
                       return SizedBox(
-                        width: (MediaQuery.of(context).size.width - 100) / 2,
+                     //   width: (MediaQuery.of(context).size.width - 100) / 2,
                         child: _buildCheckItem(name),
                       );
                     }).toList(),

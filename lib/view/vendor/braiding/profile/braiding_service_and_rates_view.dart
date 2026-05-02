@@ -34,7 +34,7 @@ class _BraidingServiceAndRatesViewState extends State<BraidingServiceAndRatesVie
   @override
   Widget build(BuildContext context) {
     final profileData = widget.braidingData['profileData'] ?? widget.braidingData;
-    final List services = widget.braidingData['services'] ?? profileData['services'] ?? [];
+    final List services =profileData['services'] ??  widget.braidingData['services'] ??  [];
     
     return Container(
       width: double.infinity,
@@ -67,7 +67,7 @@ class _BraidingServiceAndRatesViewState extends State<BraidingServiceAndRatesVie
             if (services.isEmpty)
               const Center(child: CommonText('No braiding services configured', fontSize: 13, color: AppColors.textSecondary))
             else
-              ...services.map((s) => _buildServiceItem(s['name'] ?? 'Service', '\$ ${s['price'] ?? '0'} / horse')),
+              ...services.map((s) => _buildServiceItem(s['name'] ?? 'Service', '\$ ${s['price'] ?? '0'} / ')),
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
 
@@ -114,13 +114,14 @@ class _BraidingServiceAndRatesViewState extends State<BraidingServiceAndRatesVie
 
   Widget _buildServiceItem(String name, String price) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, size: 22, color: AppColors.textSecondary),
+          const Icon(Icons.check_circle_outline, size: 15, color: AppColors.textSecondary),
           const SizedBox(width: 10),
-          Expanded(child: CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          CommonText(price, fontSize: AppTextSizes.size14, color: const Color(0xFFB91C1C), fontWeight: FontWeight.bold),
+          Expanded(child: CommonText(name, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          CommonText(price, fontSize: AppTextSizes.size14, color: const Color(0xFFB91C1C), fontWeight: FontWeight.w500),
+          CommonText("horse", fontSize: AppTextSizes.size14, fontWeight: FontWeight.w400),
         ],
       ),
     );

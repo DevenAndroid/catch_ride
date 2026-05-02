@@ -120,7 +120,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: const BoxDecoration(
-                          color: Color(0xFFF2F4F7),
+                          color:AppColors.primary,
                           shape: BoxShape.circle,
                         ),
                         child: SvgPicture.asset(

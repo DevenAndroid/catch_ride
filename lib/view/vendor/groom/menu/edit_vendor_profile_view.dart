@@ -1087,7 +1087,8 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
             radius: 12,
             file: imageFile,
             url: imageUrl,
-            isUserImage: false,
+            isUserImage: true,
+
           ),
         ),
         if (imageUrl != null || imageFile != null)

@@ -58,14 +58,15 @@ class AuthController extends GetxController {
     _googleSignIn = gsi.GoogleSignIn(
       serverClientId: '804782276759-ngr7onn8cmdlrok2fvgjo8ciac6rog81.apps.googleusercontent.com',
     );
-    _loadUserFromStorage();
+    loadUserFromStorage();
   }
 
-  Future<void> _loadUserFromStorage() async {
+  Future<void> loadUserFromStorage() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? email = prefs.getString('userEmail');
     final String? role = prefs.getString('role');
     final String? token = prefs.getString('token');
+    print("asdfsdf${role}");
 
     // Minimal user object for initial load, can be refreshed by a profile API call
     if (email != null && role != null) {
@@ -279,6 +280,10 @@ class AuthController extends GetxController {
         );
 
         isLoggedIn.value = true;
+        
+        // Fetch full profile data to populate assignedServices and other professional details
+        await updateUserMetadata();
+
         // Update notification token if service is ready
         if (Get.isRegistered<NotificationService>()) {
           Get.find<NotificationService>().updateToken();
@@ -451,6 +456,9 @@ class AuthController extends GetxController {
 
           isLoggedIn.value = true;
           
+          // Fetch full profile data to populate assignedServices and other professional details
+          await updateUserMetadata();
+          
           if (Get.isRegistered<NotificationService>()) {
             Get.find<NotificationService>().updateToken();
           }
@@ -577,6 +585,9 @@ class AuthController extends GetxController {
           );
 
           isLoggedIn.value = true;
+
+          // Fetch full profile data to populate assignedServices and other professional details
+          await updateUserMetadata();
 
           if (Get.isRegistered<NotificationService>()) {
             Get.find<NotificationService>().updateToken();
@@ -929,7 +940,7 @@ class AuthController extends GetxController {
         await prefs.setString('userAvatar', data['avatar'] ?? '');
 
         // Refresh memory state and re-authenticate socket with new flags
-        await _loadUserFromStorage();
+        await loadUserFromStorage();
 
         Get.offAll(() => const BarnManagerApplicationSubmittedView());
       } else {
