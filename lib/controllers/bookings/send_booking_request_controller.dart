@@ -13,6 +13,7 @@ class SendBookingRequestController extends GetxController {
   final RxString selectedService = ''.obs;
   final RxList availabilityList = [].obs;
   final RxBool isLoadingAvailability = false.obs;
+  final RxBool isSending = false.obs;
 
   // Form fields
   final RxnString selectedRateType = RxnString();
@@ -525,81 +526,92 @@ class SendBookingRequestController extends GetxController {
       return;
     }
 
-    // Combine bookedServices + current form (if valid)
-    final allBookings = List<Map<String, dynamic>>.from(bookedServices);
-    if (currentFormValid) {
-      if (!validateForm()) return;
-      
-      allBookings.add({
-        'serviceType': selectedService.value,
-        'rateType': selectedRateType.value ?? (isBraiding ? 'Braiding Service' : isShipping ? 'Shipping Service' : 'Service'),
-        'startDate': startDate.value,
-        'endDate': endDate.value,
-        'horses': selectedNumHorses.value,
-        'location': isShipping ? '${selectedOrigin.value} to ${selectedDestination.value}' : selectedLocation.value,
-        'origin': selectedOrigin.value,
-        'destination': selectedDestination.value,
-        'notes': notesController.text,
-        'additionalIds': List<String>.from(selectedAdditionalIds),
-        'coreIds': List<String>.from(selectedCoreServiceIds),
-        'basePrice': basePrice.value,
-        'totalPrice': totalPrice.value,
-      });
-    }
+    isSending.value = true;
+    try {
+      // Combine bookedServices + current form (if valid)
+      final allBookings = List<Map<String, dynamic>>.from(bookedServices);
+      if (currentFormValid) {
+        if (!validateForm()) {
+          isSending.value = false;
+          return;
+        }
+        
+        allBookings.add({
+          'serviceType': selectedService.value,
+          'rateType': selectedRateType.value ?? (isBraiding ? 'Braiding Service' : isShipping ? 'Shipping Service' : 'Service'),
+          'startDate': startDate.value,
+          'endDate': endDate.value,
+          'horses': selectedNumHorses.value,
+          'location': isShipping ? '${selectedOrigin.value} to ${selectedDestination.value}' : selectedLocation.value,
+          'origin': selectedOrigin.value,
+          'destination': selectedDestination.value,
+          'notes': notesController.text,
+          'additionalIds': List<String>.from(selectedAdditionalIds),
+          'coreIds': List<String>.from(selectedCoreServiceIds),
+          'basePrice': basePrice.value,
+          'totalPrice': totalPrice.value,
+        });
+      }
 
-    final bookingController = Get.find<BookingController>();
-    
-    // We send them as an array or multiple requests
-    bool allSuccess = true;
-    String? lastConversationId;
-
-    for (var booking in allBookings) {
-      final Map<String, dynamic> payload = {
-        'vendorId': vendorData['_id'] ?? vendorData['id'],
-        'serviceType': booking['serviceType'],
-        'type': booking['serviceType'],
-        'startDate': DateFormat('yyyy-MM-dd').format(booking['startDate']),
-        'endDate': DateFormat('yyyy-MM-dd').format(booking['endDate']),
-        'date': DateFormat('yyyy-MM-dd').format(booking['startDate']),
-        'rateType': booking['rateType'],
-        'numberOfHorses': booking['horses'],
-        'location': booking['location'],
-        'origin': booking['origin'],
-        'destination': booking['destination'],
-        'notes': booking['notes'],
-        'additionalServices': booking['additionalIds'],
-        'coreServices': booking['coreIds'],
-        'price': booking['totalPrice'],
-      };
+      final bookingController = Get.find<BookingController>();
       
-      final result = await bookingController.createBooking(payload);
-      if (result == null) {
-        allSuccess = false;
-      } else {
-        if (result is Map && result['conversationId'] != null) {
-          lastConversationId = result['conversationId'];
+      // We send them as an array or multiple requests
+      bool allSuccess = true;
+      String? lastConversationId;
+
+      for (var booking in allBookings) {
+        final Map<String, dynamic> payload = {
+          'vendorId': vendorData['_id'] ?? vendorData['id'],
+          'serviceType': booking['serviceType'],
+          'type': booking['serviceType'],
+          'startDate': DateFormat('yyyy-MM-dd').format(booking['startDate']),
+          'endDate': DateFormat('yyyy-MM-dd').format(booking['endDate']),
+          'date': DateFormat('yyyy-MM-dd').format(booking['startDate']),
+          'rateType': booking['rateType'],
+          'numberOfHorses': booking['horses'],
+          'location': booking['location'],
+          'origin': booking['origin'],
+          'destination': booking['destination'],
+          'notes': booking['notes'],
+          'additionalServices': booking['additionalIds'],
+          'coreServices': booking['coreIds'],
+          'price': booking['totalPrice'],
+        };
+        
+        final result = await bookingController.createBooking(payload);
+        if (result == null) {
+          allSuccess = false;
+        } else {
+          if (result is Map && result['conversationId'] != null) {
+            lastConversationId = result['conversationId'];
+          }
         }
       }
-    }
 
-    if (allSuccess) {
-      // Refresh chat requests/inbox just in case
-      if (Get.isRegistered<ChatController>()) {
-        Get.find<ChatController>().fetchConversations();
-      }
-      
-      Get.back();
-      Get.snackbar('Success', 'Booking requests sent successfully!', backgroundColor: Colors.green, colorText: Colors.white);
+      if (allSuccess) {
+        // Refresh chat requests/inbox just in case
+        if (Get.isRegistered<ChatController>()) {
+          Get.find<ChatController>().fetchConversations();
+        }
+        
+        Get.back();
+        Get.snackbar('Success', 'Booking requests sent successfully!', backgroundColor: Colors.green, colorText: Colors.white);
 
-      // Redirect to chat
-      if (lastConversationId != null) {
-        Get.to(() => SingleChatView(
-          name: vendorFullName,
-          image: profilePhoto,
-          conversationId: lastConversationId!,
-          otherId: vendorData['_id'] ?? vendorData['id'],
-        ));
+        // Redirect to chat
+        if (lastConversationId != null) {
+          Get.to(() => SingleChatView(
+            name: vendorFullName,
+            image: profilePhoto,
+            conversationId: lastConversationId!,
+            otherId: vendorData['_id'] ?? vendorData['id'],
+          ));
+        }
       }
+    } catch (e) {
+      debugPrint('Error sending booking request: $e');
+      Get.snackbar('Error', 'Failed to send booking request. Please try again.', backgroundColor: Colors.redAccent, colorText: Colors.white);
+    } finally {
+      isSending.value = false;
     }
   }
 

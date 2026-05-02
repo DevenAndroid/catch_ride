@@ -25,6 +25,23 @@ class GroomViewProfileController extends GetxController {
       <Map<String, dynamic>>[].obs;
   final RxBool isAvailabilityLoading = false.obs;
 
+  List<Map<String, dynamic>> get filteredAvailabilityList {
+    if (availabilityList.isEmpty) return [];
+    final type = activeServiceType.toLowerCase();
+
+    // Shipping/Transportation special case
+    if (type.contains('shipping') || type.contains('transportation')) {
+      return availabilityList.where((a) => a['isTrip'] == true).toList();
+    }
+
+    // Standard service types
+    return availabilityList.where((a) {
+      if (a['isTrip'] == true) return false;
+      final List serviceTypes = a['serviceTypes'] ?? [];
+      return serviceTypes.any((st) => st.toString().toLowerCase().contains(type) || type.contains(st.toString().toLowerCase()));
+    }).toList();
+  }
+
   final RxList<String> paymentMethods = <String>[].obs;
   final RxList<String> disciplinesSelected = <String>[].obs;
   final RxList<String> horseLevels = <String>[].obs;
@@ -40,7 +57,7 @@ class GroomViewProfileController extends GetxController {
             : currentServiceIndex.value]
       : null;
 
-  Map<String, dynamic> get _activeProfileData {
+  Map<String, dynamic> get activeProfileData {
     final serviceType = activeServiceType.toLowerCase().replaceAll(' ', '');
     final servicesData = vendorData['servicesData'] ?? {};
     
@@ -88,8 +105,7 @@ class GroomViewProfileController extends GetxController {
   Map<String, dynamic> get _activeApplicationData =>
       _activeService?['application']?['applicationData'] ?? _activeService?['application'] ?? {};
 
-  Map<String, dynamic> get activeServiceProfile =>
-      _activeService?['profile'] ?? {};
+  Map<String, dynamic> get activeServiceProfile => activeProfileData;
   Map<String, dynamic> get activeServiceApplication =>
       _activeService?['application'] ?? {};
 
@@ -106,7 +122,7 @@ class GroomViewProfileController extends GetxController {
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
     
     // Check possible locations for pricing data
-    final pricing = _activeProfileData['pricing'] ?? 
+    final pricing = activeProfileData['pricing'] ?? 
                     flatData['pricing'] ?? 
                     _activeApplicationData['pricing'] ?? {};
     
@@ -114,8 +130,8 @@ class GroomViewProfileController extends GetxController {
     
     // Check multiple possible key names for base rate
     final rate = pricing['baseRate'] ?? 
-                 _activeProfileData['rates']?['baseRate'] ?? 
-                 _activeProfileData['rates']?['base'] ?? 
+                 activeProfileData['rates']?['baseRate'] ?? 
+                 activeProfileData['rates']?['base'] ?? 
                  _activeApplicationData['pricing']?['baseRate'] ?? 
                  'N/A';
                  
@@ -127,7 +143,7 @@ class GroomViewProfileController extends GetxController {
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
     
     // Check possible locations for pricing data
-    final pricing = _activeProfileData['pricing'] ?? 
+    final pricing = activeProfileData['pricing'] ?? 
                     flatData['pricing'] ?? 
                     _activeApplicationData['pricing'] ?? {};
     
@@ -135,8 +151,8 @@ class GroomViewProfileController extends GetxController {
     
     // Check multiple possible key names for loaded rate
     final rate = pricing['loadedRate'] ?? 
-                 _activeProfileData['rates']?['fullyLoaded'] ?? 
-                 _activeProfileData['rates']?['loaded'] ?? 
+                 activeProfileData['rates']?['fullyLoaded'] ?? 
+                 activeProfileData['rates']?['loaded'] ?? 
                  _activeApplicationData['pricing']?['loadedRate'] ?? 
                  'N/A';
                  
@@ -145,26 +161,26 @@ class GroomViewProfileController extends GetxController {
   String get shippingOperationType {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? 'N/A';
+    return flatData['operationType'] ?? activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? 'N/A';
   }
 
   List<String> get shippingRigTypes {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['rigTypes'] ?? _activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [];
+    final list = flatData['rigTypes'] ?? activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [];
     return List<String>.from(list);
   }
 
   String get shippingRigCapacity {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? 'N/A').toString();
+    return (flatData['rigCapacity'] ?? activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? 'N/A').toString();
   }
 
   String get shippingEquipmentSummary {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? 'N/A';
+    return flatData['equipmentSummary'] ?? activeProfileData['equipmentSummary'] ?? activeProfileData['equipmentsSummary'] ?? 'N/A';
   }
 
   String get shippingEquipmentsSummary => shippingEquipmentSummary;
@@ -175,7 +191,7 @@ class GroomViewProfileController extends GetxController {
   bool get shippingHasCDL {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['hasCDL'] ?? _activeProfileData['hasCDL'] ?? _activeApplicationData['confirmLicense'] ?? false;
+    return flatData['hasCDL'] ?? activeProfileData['hasCDL'] ?? _activeApplicationData['confirmLicense'] ?? false;
   }
       
   String get shippingBusinessName => 
@@ -185,21 +201,21 @@ class GroomViewProfileController extends GetxController {
   List<String> get shippingServicesOffered {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['services'] ?? _activeProfileData['services'] ?? _activeProfileData['servicesOffered'] ?? [];
+    final list = flatData['services'] ?? activeProfileData['services'] ?? activeProfileData['servicesOffered'] ?? [];
     return List<String>.from(list);
   }
 
   List<String> get shippingRegionsCovered {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['regionsCovered'] ?? _activeProfileData['regionsCovered'] ?? _activeApplicationData['regions'] ?? [];
+    final list = flatData['regionsCovered'] ?? activeProfileData['regionsCovered'] ?? _activeApplicationData['regions'] ?? [];
     return List<String>.from(list);
   }
 
   List<String> get shippingTravelScope {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['travelScope'] ?? _activeProfileData['travelScope'] ?? _activeApplicationData['travelScope'] ?? [];
+    final list = flatData['travelScope'] ?? activeProfileData['travelScope'] ?? _activeApplicationData['travelScope'] ?? [];
     return List<String>.from(list);
   }
   List<String> get travelScope => shippingTravelScope;
@@ -235,7 +251,7 @@ class GroomViewProfileController extends GetxController {
 
   void _updateActiveServiceData() {
     if (allAssignedServices.isEmpty) return;
-    final profileDataMap = _activeProfileData;
+    final profileDataMap = activeProfileData;
 
     // Update Additional Services
     final List addServices = profileDataMap['additionalServices'] ?? [];
@@ -265,9 +281,17 @@ class GroomViewProfileController extends GetxController {
 
   void _updateTags(Map appData) {
     // 1. Try Service Application Data
-    final List<String> d = List<String>.from(appData['disciplines'] ?? []);
-    final List<String> h = List<String>.from(appData['horseLevels'] ?? []);
-    final List<String> r = List<String>.from(appData['regions'] ?? []);
+    List<String> d = List<String>.from(appData['disciplines'] ?? []);
+    if (d.contains('Other') && appData['otherDiscipline'] != null && appData['otherDiscipline'].toString().isNotEmpty) {
+      d = d.map((e) => e == 'Other' ? "${appData['otherDiscipline']}" : e).toList();
+    }
+
+    List<String> h = List<String>.from(appData['horseLevels'] ?? []);
+    if (h.contains('Other') && appData['otherHorseLevel'] != null && appData['otherHorseLevel'].toString().isNotEmpty) {
+      h = h.map((e) => e == 'Other' ? "${appData['otherHorseLevel']}" : e).toList();
+    }
+
+    List<String> r = List<String>.from(appData['regions'] ?? []);
 
     if (d.isNotEmpty) {
       disciplinesSelected.assignAll(d);
@@ -504,44 +528,56 @@ class GroomViewProfileController extends GetxController {
 
   // Rates
   String get dailyRate {
-    final rate = _activeProfileData['rates']?['daily'];
+    final rate = activeProfileData['rates']?['daily'];
     return (rate == null || rate.toString() == 'N/A') ? '' : rate.toString();
   }
   String get weeklyRate {
-    final rate = _activeProfileData['rates']?['weekly']?['price'];
+    final rate = activeProfileData['rates']?['weekly']?['price'];
     return (rate == null || rate.toString() == 'N/A') ? '' : rate.toString();
   }
   String get weeklyDays =>
-      _activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
+      activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
   String get monthlyRate {
-    final rate = _activeProfileData['rates']?['monthly']?['price'];
+    final rate = activeProfileData['rates']?['monthly']?['price'];
     return (rate == null || rate.toString() == 'N/A') ? '' : rate.toString();
   }
   String get monthlyDays =>
-      _activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
+      activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
 
   // Capabilities
   List<dynamic> get groomingServices =>
-      List<dynamic>.from(_activeProfileData['services'] ?? []);
+      List<dynamic>.from(activeProfileData['services'] ?? []);
   List<String> get supportOptions =>
-      List<String>.from(_activeProfileData['capabilities']?['support'] ?? []);
+      List<String>.from(activeProfileData['capabilities']?['support'] ?? []);
   List<String> get handlingOptions =>
-      List<String>.from(_activeProfileData['capabilities']?['handling'] ?? []);
+      List<String>.from(activeProfileData['capabilities']?['handling'] ?? []);
 
   // Social Media
   String get instagramUrl =>
-      _activeProfileData['socialMedia']?['instagram'] ?? '';
+      activeProfileData['socialMedia']?['instagram'] ?? '';
   String get facebookUrl =>
-      _activeProfileData['socialMedia']?['facebook'] ?? '';
+      activeProfileData['socialMedia']?['facebook'] ?? '';
 
   // Travel & Policy
   List<String> get travelPreferences {
-    final raw = _activeProfileData['travelPreferences'] ?? [];
+    final raw = activeProfileData['travelPreferences'] ?? activeProfileData['travelFees'] ?? [];
     if (raw is! List) return [];
     return raw
         .map((item) {
-          if (item is Map)
-            return item['region']?.toString() ?? item['name']?.toString() ?? '';
+          if (item is Map) {
+            final category = item['category']?.toString() ?? item['region']?.toString() ?? item['name']?.toString() ?? item['type']?.toString();
+            final type = item['type']?.toString();
+            final price = item['price']?.toString();
+            
+            if (category != null && type != null && type != 'No travel fee' && type.isNotEmpty) {
+              String str = "$category: $type";
+              if (price != null && price.isNotEmpty && price != '0') {
+                str += " (\$ $price)";
+              }
+              return str;
+            }
+            return category ?? '';
+          }
           return item.toString();
         })
         .where((s) => s.isNotEmpty)
@@ -549,7 +585,7 @@ class GroomViewProfileController extends GetxController {
   }
 
   String get cancellationPolicy {
-    final raw = _activeProfileData['cancellationPolicy'];
+    final raw = activeProfileData['cancellationPolicy'];
     if (raw is Map) {
       return raw['policy']?.toString() ?? "";
     }
@@ -572,8 +608,8 @@ class GroomViewProfileController extends GetxController {
     if (ah.isNotEmpty) return ah;
 
     final List<String> ph = List<String>.from(
-      _activeProfileData['highlights'] ??
-          _activeProfileData['additionalSkills'] ??
+      activeProfileData['highlights'] ??
+          activeProfileData['additionalSkills'] ??
           [],
     );
     return ph;
@@ -581,7 +617,7 @@ class GroomViewProfileController extends GetxController {
 
   // Combined Media
   List<String> get allMedia => {
-    ..._extractMedia(_activeProfileData['media']),
+    ..._extractMedia(activeProfileData['media']),
     ..._extractMedia(_activeApplicationData['media']),
     ..._extractMedia(_activeApplicationData['rigPhotos']),
     ..._extractMedia(_activeApplicationData['photos']),
@@ -607,11 +643,16 @@ class GroomViewProfileController extends GetxController {
 
   // Farrier Getters
   List<dynamic> get farrierServices =>
-      List<dynamic>.from(_activeProfileData['services'] ?? []);
+      List<dynamic>.from(activeProfileData['services'] ?? []);
   List<dynamic> get farrierAddOns =>
-      List<dynamic>.from(_activeProfileData['addOns'] ?? []);
-  List<String> get farrierScopeOfWork =>
-      List<String>.from(_activeApplicationData['scopeOfWork'] ?? []);
+      List<dynamic>.from(activeProfileData['addOns'] ?? []);
+  List<String> get farrierScopeOfWork {
+    List<String> scope = List<String>.from(_activeApplicationData['scopeOfWork'] ?? []);
+    if (scope.contains('Other') && _activeApplicationData['otherScopeOfWork'] != null && _activeApplicationData['otherScopeOfWork'].toString().isNotEmpty) {
+      scope = scope.map((e) => e == 'Other' ? "${_activeApplicationData['otherScopeOfWork']}" : e).toList();
+    }
+    return scope;
+  }
   List<String> get farrierDisciplines =>
       List<String>.from(_activeApplicationData['disciplines'] ?? []);
   List<String> get farrierHorseLevels =>

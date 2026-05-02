@@ -3,9 +3,12 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/bookings/send_booking_request_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../widgets/common_button.dart';
 
 class SendBookingRequestView extends StatelessWidget {
   const SendBookingRequestView({super.key});
@@ -98,7 +101,7 @@ class SendBookingRequestView extends StatelessWidget {
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    const Icon(Icons.person_outline, color: AppColors.textSecondary, size: 12),
+                    SvgPicture.asset("assets/icons/badge.svg"),
                     const SizedBox(width: 4),
                     Expanded(child: CommonText(controller.selectedService.value, fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
                   ],
@@ -336,14 +339,8 @@ class SendBookingRequestView extends StatelessWidget {
           }
         )),
         const SizedBox(height: 20),
-        // Start Date and End Date
-        Row(
-          children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
-          ],
-        ),
+        // Date Range
+        _buildDateRangeField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Braider', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
@@ -425,14 +422,8 @@ class SendBookingRequestView extends StatelessWidget {
           }
         )),
         const SizedBox(height: 20),
-        // Start Date and End Date
-        Row(
-          children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
-          ],
-        ),
+        // Date Range
+        _buildDateRangeField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Clipping Service', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
@@ -514,14 +505,8 @@ class SendBookingRequestView extends StatelessWidget {
           }
         )),
         const SizedBox(height: 20),
-        // Start Date and End Date
-        Row(
-          children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
-          ],
-        ),
+        // Date Range
+        _buildDateRangeField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Farrier', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
@@ -637,14 +622,8 @@ class SendBookingRequestView extends StatelessWidget {
           }
         )),
         const SizedBox(height: 20),
-        // Start Date and End Date
-        Row(
-          children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
-          ],
-        ),
+        // Date Range
+        _buildDateRangeField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Bodywork Specialist', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
@@ -804,10 +783,8 @@ class SendBookingRequestView extends StatelessWidget {
             controller.selectedNumHorses.value = null;
           }
         )),
-        const SizedBox(height: 16),
-        _buildDateField('Start Date', 'Select Date', controller.startDate, controller, locationObs: controller.selectedOrigin),
-        const SizedBox(height: 16),
-        _buildDateField('End Date', 'Select Date', controller.endDate, controller, locationObs: controller.selectedOrigin),
+        // Date Range
+        _buildDateRangeField(controller, locationObs: controller.selectedOrigin),
         const SizedBox(height: 16),
         _buildTextField('Notes To Your Shipper', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
@@ -823,14 +800,8 @@ class SendBookingRequestView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildRateDropdownField(controller),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(child: _buildDateField('Start Date', 'Select Date', controller.startDate, controller)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDateField('End Date', 'Select Date', controller.endDate, controller)),
-          ],
-        ),
+        // Date Range
+        _buildDateRangeField(controller),
         const SizedBox(height: 20),
         Obx(() => _buildDropdownField(
           'Number Of Horses', 
@@ -934,72 +905,88 @@ class SendBookingRequestView extends StatelessWidget {
     );
   }
 
-  Widget _buildDateField(String label, String hint, Rxn<DateTime> dateObs, SendBookingRequestController controller, {RxnString? locationObs}) {
+  Widget _buildDateRangeField(SendBookingRequestController controller, {RxnString? locationObs}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        const CommonText('Select Date Range', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         const SizedBox(height: 8),
-        Obx(() => GestureDetector(
-          onTap: () async {
-            final allowedDates = controller.getAllowedDatesForLocation(locationObs?.value ?? controller.selectedLocation.value);
-            final DateTime now = DateTime.now();
-            final DateTime today = DateTime(now.year, now.month, now.day);
-            
-            DateTime first = allowedDates['start'] ?? today;
-            DateTime last = allowedDates['end'] ?? today.add(const Duration(days: 365));
+        Obx(() {
+          final startDate = controller.startDate.value;
+          final endDate = controller.endDate.value;
+          String displayDate = 'Select Date Range';
+          if (startDate != null && endDate != null) {
+            displayDate = '${DateFormat('MM/dd/yyyy').format(startDate)} - ${DateFormat('MM/dd/yyyy').format(endDate)}';
+          }
 
-            // Adjust firstDate if it's in the past
-            if (first.isBefore(today)) {
-              first = today;
-            }
+          return GestureDetector(
+            onTap: () async {
+              final allowedDates = controller.getAllowedDatesForLocation(locationObs?.value ?? controller.selectedLocation.value);
+              final DateTime now = DateTime.now();
+              final DateTime today = DateTime(now.year, now.month, now.day);
 
-            // Adjust initialDate to be valid
-            DateTime initial = dateObs.value ?? first;
-            if (initial.isBefore(first)) initial = first;
-            if (initial.isAfter(last)) initial = first;
+              DateTime first = allowedDates['start'] ?? today;
+              DateTime last = allowedDates['end'] ?? today.add(const Duration(days: 365));
 
-            final date = await showDatePicker(
-              context: Get.context!,
-              initialDate: initial,
-              firstDate: first,
-              lastDate: last.isBefore(first) ? first.add(const Duration(days: 1)) : last,
-              selectableDayPredicate: (DateTime day) {
-                if (allowedDates['start'] == null) {
-                  // Home or Other: only prevent past dates
-                  return !day.isBefore(today);
+              // Adjust firstDate if it's in the past
+              if (first.isBefore(today)) {
+                first = today;
+              }
+
+              // Ensure initial range is valid within first/last
+              DateTimeRange? initialRange;
+              if (startDate != null && endDate != null) {
+                if (!startDate.isBefore(first) && !endDate.isAfter(last)) {
+                  initialRange = DateTimeRange(start: startDate, end: endDate);
                 }
-                
-                final dateOnly = DateTime(day.year, day.month, day.day);
-                final sOnly = DateTime(first.year, first.month, first.day);
-                final eOnly = DateTime(last.year, last.month, last.day);
-                
-                return (dateOnly.isAtSameMomentAs(sOnly) || dateOnly.isAfter(sOnly)) &&
-                       (dateOnly.isAtSameMomentAs(eOnly) || dateOnly.isBefore(eOnly));
-              },
-            );
-            if (date != null) dateObs.value = date;
-          },
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE4E7EC)),
+              }
+
+              final DateTimeRange? picked = await showDateRangePicker(
+                context: Get.context!,
+                firstDate: first,
+                lastDate: last.isBefore(first) ? first.add(const Duration(days: 1)) : last,
+                initialDateRange: initialRange,
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.light(
+                        primary: AppColors.primary,
+                        onPrimary: Colors.white,
+                        surface: Colors.white,
+                        onSurface: AppColors.textPrimary,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+
+              if (picked != null) {
+                controller.startDate.value = picked.start;
+                controller.endDate.value = picked.end;
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE4E7EC)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CommonText(
+                    displayDate,
+                    fontSize: 14,
+                    color: (startDate != null && endDate != null) ? AppColors.textPrimary : const Color(0xFF98A2B3),
+                  ),
+                  const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CommonText(
-                  dateObs.value != null ? DateFormat('MM/dd/yyyy').format(dateObs.value!) : hint,
-                  fontSize: 14,
-                  color: dateObs.value != null ? AppColors.textPrimary : const Color(0xFF98A2B3),
-                ),
-                const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
-              ],
-            ),
-          ),
-        )),
+          );
+        }),
       ],
     );
   }
@@ -1137,18 +1124,11 @@ class SendBookingRequestView extends StatelessWidget {
   }
 
   Widget _buildSendButton(SendBookingRequestController controller) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => controller.sendRequest(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF00083B),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          elevation: 0,
-        ),
-        child: const CommonText('Send Request', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    );
+    return Obx(() => CommonButton(
+      text: 'Send Request',
+      isLoading: controller.isSending.value,
+      backgroundColor: const Color(0xFF00083B),
+      onPressed: () => controller.sendRequest(),
+    ));
   }
 }

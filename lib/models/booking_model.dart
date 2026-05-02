@@ -257,7 +257,7 @@ class BookingModel {
       barnManagerName: bmName,
       senderBarnName: senderBN,
       providerBarnName: providerBN,
-      numberOfHorses: json['numberOfHorses'] is num ? (json['numberOfHorses'] as num).toInt() : null,
+      numberOfHorses: json['numberOfHorses'] != null ? int.tryParse(json['numberOfHorses'].toString()) : null,
       origin: json['origin'],
       destination: json['destination'],
       coreServices: json['coreServices'] is List ? json['coreServices'] : [],

@@ -558,7 +558,10 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {'vendorId': groomController.vendorData['_id']}),
+          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {
+            'vendorId': groomController.vendorData['_id'],
+            'serviceType': groomController.activeServiceType,
+          }),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
@@ -572,7 +575,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           if (groomController.isAvailabilityLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (groomController.availabilityList.isEmpty) {
+          final list = groomController.filteredAvailabilityList;
+          if (list.isEmpty) {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.lightGray, borderRadius: BorderRadius.circular(12)),
@@ -580,7 +584,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
             );
           }
           return Column(
-            children: groomController.availabilityList.take(3).map((avail) {
+            children: list.take(3).map((avail) {
               if (avail['isTrip'] == true) {
                 return ShippingTripCard(trip: TripModel.fromJson(avail));
               }
