@@ -64,6 +64,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   bool _canMessage = false;
   HorseModel? horse;
   String? _currentBookingStatus;
+  final BookingController bookingController = Get.put(BookingController());
 
   // Image carousel state
   final PageController _pageController = PageController();
@@ -90,11 +91,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     }
   }
 
-  Future<void> _fetchHorseDetails() async {
+  Future<void> _fetchHorseDetails({bool showLoader = true}) async {
     final id = horse?.id ?? widget.horseId;
     if (id == null) return;
     try {
-      setState(() => _isLoading = true);
+      if (showLoader) setState(() => _isLoading = true);
       final ApiService api = Get.put(ApiService());
       final response = await api.getRequest('/horses/$id');
       if (response.statusCode == 200) {
@@ -468,7 +469,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           await Get.to(
             () => BarnManagerAvailabilityView(horse: horse!),
           );
-          _fetchHorseDetails();
+          _fetchHorseDetails(showLoader: false);
         } else if (value == 'active') {
           final horseController = Get.put(HorseController());
           final success = await horseController.toggleHorseActive(
@@ -1506,15 +1507,16 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       ),
       child: widget.fromBooking
           ? _buildBookingSpecificActions()
-          : CommonButton(
+          : Obx(() => CommonButton(
               text:
                   _isRequested ? 'Your request is submitted' : 'Request a Trial',
+              isLoading: bookingController.isLoading.value,
               backgroundColor: _isRequested
                   ? Colors.grey
                   : const Color(0xFF00083B), // Navy blue
               textColor: Colors.white,
               onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
-            ),
+            )),
     );
   }
 
@@ -1523,34 +1525,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final bool canCancel =
         status == 'pending' || status == 'confirmed' || status == 'accepted';
 
-    return Row(
+    return Obx(() => Row(
       children: [
         if (canCancel)
           Expanded(
-            child: ElevatedButton(
+            child: CommonButton(
+              text: 'Cancel Booking',
               onPressed: () => _showCancelConfirmation(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.textPrimary,
-                elevation: 0,
-                side: const BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const CommonText(
-                'Cancel Booking',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+              isLoading: bookingController.isLoading.value && status == 'pending', // or any logic to know which button is loading
+              backgroundColor: Colors.white,
+              textColor: AppColors.textPrimary,
+              borderColor: AppColors.border,
             ),
           ),
         if (canCancel) const SizedBox(width: 12),
         if (canCancel && isHorseOwner)
           Expanded(
-            child: ElevatedButton(
+            child: CommonButton(
+              text: 'Complete Booking',
               onPressed: () {
                 final status = (_currentBookingStatus ?? '').toLowerCase();
                 if (status == 'accepted' || status == 'confirmed') {
@@ -1565,26 +1557,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.textPrimary,
-                elevation: 0,
-                side: const BorderSide(color: AppColors.border),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const CommonText(
-                'Complete Booking',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
+              isLoading: bookingController.isLoading.value && (status == 'accepted' || status == 'confirmed'),
+              backgroundColor: Colors.white,
+              textColor: Colors.green,
+              borderColor: AppColors.border,
             ),
           ),
       ],
-    );
+    ));
   }
 
   void _showCompleteConfirmation() {
@@ -1692,7 +1672,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       setState(() {
         _currentBookingStatus = 'completed';
       });
-      // Optionally refresh horse details or navigate back
+       _fetchHorseDetails(showLoader: false);
     } else {
       Get.snackbar(
         'Action Failed',
@@ -1808,6 +1788,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       setState(() {
         _currentBookingStatus = 'cancelled';
       });
+      _fetchHorseDetails(showLoader: false);
     } else {
       Get.snackbar(
         'Action Failed',
@@ -2355,7 +2336,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                     margin: const EdgeInsets.all(16),
                                   );
                                   setState(() => _isRequested = true);
-                                  _fetchHorseDetails(); 
+                                  _fetchHorseDetails(showLoader: false); 
                                    
                                    final String? conversationId = (result is Map) ? result["conversationId"] : null;
                                    if (conversationId != null) {
@@ -2367,26 +2348,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                      ));
                                    }
                                  }                              },
-                        child: Container(
+                        child: CommonButton(
+                          text: 'Submit',
+                          isLoading: bookingController.isLoading.value,
                           height: 56,
-                          decoration: BoxDecoration(
-                            color: bookingController.isLoading.value
-                                ? AppColors.inputBackground
-                                : AppColors.primary,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(
-                            child: bookingController.isLoading.value
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const CommonText(
-                                    'Submit',
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                          ),
+                          borderRadius: 16,
+                          backgroundColor: AppColors.primary,
                         ),
                       ),
                     ),
