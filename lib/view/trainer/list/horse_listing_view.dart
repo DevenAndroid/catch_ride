@@ -1,5 +1,4 @@
 import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
@@ -128,7 +127,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                           width: 32,
                           height: 32,
                           colorFilter: const ColorFilter.mode(
-                            Color(0xFF00083B),
+                            Colors.white,
                             BlendMode.srcIn,
                           ),
                         ),

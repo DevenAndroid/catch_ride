@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class ShippingServiceAndRatesView extends StatefulWidget {
   final Map shippingData;
@@ -91,15 +92,15 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
                   const CommonText(
                     'Inquire for price',
                     fontSize: AppTextSizes.size16,
-                    color: Color(0xFFB91C1C),
+                    color: AppColors.secondary,
                     fontWeight: FontWeight.bold,
                   ),
                 ],
               ),
             ] else ...[
-              _buildPriceItem('Base Rate', '\$ ${widget.baseRate} / per mile'),
+              _buildPriceItem('Base Rate', '\$ ${NumberFormat('#,###').format(double.tryParse(widget.baseRate.replaceAll(',', '')) ?? 0)} / '),
               const SizedBox(height: 12),
-              _buildPriceItem('Fully Loaded', '\$ ${widget.fullyLoadedRate} / per mile'),
+              _buildPriceItem('Fully Loaded', '\$ ${NumberFormat('#,###').format(double.tryParse(widget.fullyLoadedRate.replaceAll(',', '')) ?? 0)} / '),
             ],
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
@@ -216,8 +217,12 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
         CommonText(
           price,
           fontSize: AppTextSizes.size16,
-          color: const Color(0xFFB91C1C),
+          color: AppColors.secondary,
           fontWeight: FontWeight.bold,
+        ),
+        CommonText(
+          "per mile",
+          fontSize: AppTextSizes.size16,
         ),
       ],
     );

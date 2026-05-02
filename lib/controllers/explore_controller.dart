@@ -100,11 +100,11 @@ class ExploreController extends GetxController {
   // Suggested search items
   final RxList<Map<String, String>> defaultLocations =
       <Map<String, String>>[].obs;
-  final RxList<Map<String, String>> defaultVenues = <Map<String, String>>[].obs;
+  final RxList<Map<String, dynamic>> defaultVenues = <Map<String, dynamic>>[].obs;
   final RxList<Map<String, String>> locationsSuggestions =
       <Map<String, String>>[].obs;
-  final RxList<Map<String, String>> venuesSuggestions =
-      <Map<String, String>>[].obs;
+  final RxList<Map<String, dynamic>> venuesSuggestions =
+      <Map<String, dynamic>>[].obs;
   final RxBool isSuggestionsLoading = false.obs;
 
 
@@ -552,7 +552,7 @@ class ExploreController extends GetxController {
 
         // Extract 3 unique locations (City, State)
         final List<Map<String, String>> locations = [];
-        final List<Map<String, String>> venues = [];
+        final List<Map<String, dynamic>> venues = [];
 
         for (var show in data) {
           final city = show['city'] ?? '';
@@ -568,7 +568,7 @@ class ExploreController extends GetxController {
 
           if (venue.isNotEmpty) {
             if (!venues.any((v) => v['name'] == venue)) {
-              venues.add({'name': venue, 'subtitle': "$city, $state"});
+              venues.add(Map<String, dynamic>.from(show));
             }
           }
         }
@@ -635,7 +635,7 @@ class ExploreController extends GetxController {
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        final List<Map<String, String>> suggestions = [];
+        final List<Map<String, dynamic>> suggestions = [];
 
         for (var item in data) {
           final venue = item['name'] ?? '';
@@ -643,7 +643,7 @@ class ExploreController extends GetxController {
           final state = item['state'] ?? '';
           if (venue.isNotEmpty) {
             if (!suggestions.any((s) => s['name'] == venue)) {
-              suggestions.add({'name': venue, 'subtitle': "$city, $state"});
+              suggestions.add(Map<String, dynamic>.from(item));
             }
           }
         }

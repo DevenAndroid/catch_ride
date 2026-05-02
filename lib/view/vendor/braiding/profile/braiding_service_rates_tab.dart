@@ -287,7 +287,7 @@ class _BraidingServiceRatesTabState extends State<BraidingServiceRatesTab> {
                   .where((s) => s['isSelected'].value)
                   .map((s) => {
                         'name': s['name'],
-                        'price': double.tryParse(s['price'].text) ?? 0.0,
+                        'price': double.tryParse(s['price'].text.replaceAll(',', '')) ?? 0.0,
                       })
                   .toList();
               final success = await controller.updateBraidingServices(payload);

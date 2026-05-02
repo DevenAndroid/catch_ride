@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class GroomingServiceAndRatesView extends StatefulWidget {
   final Map groomingData;
@@ -116,7 +117,8 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                   ...additionalServices.map((s) {
                     final name = s is Map ? (s['name'] ?? 'Service') : s.toString();
                     final price = s is Map ? (s['price']?.toString() ?? '0') : '0';
-                    return _buildPricedServiceItem(name, price);
+                    final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+                    return _buildPricedServiceItem(name, formattedPrice);
                   }),
                   const SizedBox(height: 8),
                 ],
@@ -184,6 +186,10 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     final weeklyDays = rates['weekly']?['days']?.toString() ?? '6';
     final monthly = rates['monthly']?['price']?.toString() ?? 'N/A';
 
+    final String formattedDaily = daily != 'N/A' ? NumberFormat('#,###').format(double.tryParse(daily.replaceAll(',', '')) ?? 0) : 'N/A';
+    final String formattedWeekly = weekly != 'N/A' ? NumberFormat('#,###').format(double.tryParse(weekly.replaceAll(',', '')) ?? 0) : 'N/A';
+    final String formattedMonthly = monthly != 'N/A' ? NumberFormat('#,###').format(double.tryParse(monthly.replaceAll(',', '')) ?? 0) : 'N/A';
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
@@ -194,11 +200,11 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildRateItem(daily != 'N/A' ? '\$ $daily' : 'N/A', 'Day Rate'),
+          _buildRateItem(formattedDaily != 'N/A' ? '\$ $formattedDaily' : 'N/A', 'Day Rate'),
           _buildSeparator(),
-          _buildRateItem(weekly != 'N/A' ? '\$ $weekly' : 'N/A', 'Week Rate (${weeklyDays}d)'),
+          _buildRateItem(formattedWeekly != 'N/A' ? '\$ $formattedWeekly' : 'N/A', 'Week Rate (${weeklyDays}d)'),
           _buildSeparator(),
-          _buildRateItem(monthly != 'N/A' ? '\$ $monthly' : 'N/A', 'Month Rate'),
+          _buildRateItem(formattedMonthly != 'N/A' ? '\$ $formattedMonthly' : 'N/A', 'Month Rate'),
         ],
       ),
     );
@@ -213,7 +219,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
           price,
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: const Color(0xFFB91C1C),
+          color: AppColors.secondary,
         ),
         const SizedBox(height: 4),
         CommonText(
@@ -266,7 +272,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                 TextSpan(
                   text: '\$ $price ',
                   style: const TextStyle(
-                    color: Color(0xFFB91C1C),
+                    color: AppColors.secondary,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Outfit',

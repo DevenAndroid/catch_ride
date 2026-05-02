@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class FarrierServiceAndRatesView extends StatefulWidget {
   final Map farrierData;
@@ -78,12 +79,20 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
                 ),
               )
             else ...[
-              ...services.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'}')),
+              ...services.map((s) {
+                final String price = s['price']?.toString() ?? '0';
+                final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+                return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice');
+              }),
               if (addOns.isNotEmpty) ...[
                 const SizedBox(height: 20),
                 const CommonText('Add-ons', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
                 const SizedBox(height: 16),
-                ...addOns.map((s) => _buildPricedItem(s['name'] ?? 'N/A', '\$ ${s['price'] ?? '0'}')),
+                ...addOns.map((s) {
+                  final String price = s['price']?.toString() ?? '0';
+                  final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+                  return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice');
+                }),
               ],
             ],
 

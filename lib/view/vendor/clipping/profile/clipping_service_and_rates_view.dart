@@ -3,6 +3,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class ClippingServiceAndRatesView extends StatefulWidget {
   final Map clippingData;
@@ -67,7 +68,11 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
             if (services.isEmpty)
               const Center(child: CommonText('No clipping services configured', fontSize: 13, color: AppColors.textSecondary))
             else
-              ...services.map((s) => _buildServiceItem(s['name'] ?? 'Service', '\$ ${s['price'] ?? '0'} / horse')),
+              ...services.map((s) {
+                final String price = s['price']?.toString() ?? '0';
+                final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+                return _buildServiceItem(s['name'] ?? 'Service', '\$ $formattedPrice / horse');
+              }),
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
 
@@ -120,7 +125,7 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
           const Icon(Icons.check_circle_outline, size: 22, color: AppColors.textSecondary),
           const SizedBox(width: 10),
           Expanded(child: CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          CommonText(price, fontSize: AppTextSizes.size14, color: const Color(0xFFB91C1C), fontWeight: FontWeight.bold),
+          CommonText(price, fontSize: AppTextSizes.size14, color: AppColors.secondary, fontWeight: FontWeight.bold),
         ],
       ),
     );

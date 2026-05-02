@@ -334,13 +334,16 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CommonText(
-                              mainText,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF101828),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
+                            SingleChildScrollView(
+                               scrollDirection: Axis.horizontal,
+                              child: CommonText(
+                                mainText,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF101828),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                             CommonText(
                               subText,
@@ -353,6 +356,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                         );
                       }),
                     ),
+                    const SizedBox(width: 8),
                   ],
                 ),
               ),

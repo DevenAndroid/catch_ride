@@ -765,7 +765,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
                           .where((s) => (s['isSelected'] as RxBool).value)
                           .map((s) => {
                                 'name': s['name'],
-                                'price': (s['priceController'] as TextEditingController).text,
+                                'price': (s['priceController'] as TextEditingController).text.replaceAll(',', ''),
                                 'description': s['description'],
                               })
                           .toList(),
