@@ -362,37 +362,72 @@ class _RequestCardState extends State<RequestCard> {
                     onTap: _isBusy
                         ? null
                         : () async {
-                            setState(() => _isRejecting = true);
-                            final bookingController = Get.put(BookingController());
-                            bool success = await bookingController.updateBookingStatus(
-                              widget.booking.id!,
-                              'rejected'
-                            ) != null;
+                            Get.dialog(
+                              AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                title: const CommonText(
+                                  'Confirm Rejection',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                content: const CommonText(
+                                  'Are you sure you want to reject this request?',
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: const CommonText(
+                                      'Cancel',
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Get.back(); // Close dialog
+                                      setState(() => _isRejecting = true);
+                                      final bookingController = Get.put(BookingController());
+                                      bool success = await bookingController.updateBookingStatus(
+                                        widget.booking.id!,
+                                        'rejected'
+                                      ) != null;
 
-                            if (mounted) setState(() => _isRejecting = false);
+                                      if (mounted) setState(() => _isRejecting = false);
 
-                            if (success) {
-                              chatController.fetchConversations();
-                              Get.snackbar(
-                                'Success',
-                                'Request declined',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.black87,
-                                colorText: Colors.white,
-                                barBlur: 0,
-                                margin: const EdgeInsets.all(16),
-                              );
-                            } else {
-                              Get.snackbar(
-                                'Error',
-                                'Failed to decline request',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.redAccent,
-                                colorText: Colors.white,
-                                barBlur: 0,
-                                margin: const EdgeInsets.all(16),
-                              );
-                            }
+                                      if (success) {
+                                        chatController.fetchConversations();
+                                        Get.snackbar(
+                                          'Success',
+                                          'Request declined',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: Colors.black87,
+                                          colorText: Colors.white,
+                                          barBlur: 0,
+                                          margin: const EdgeInsets.all(16),
+                                        );
+                                      } else {
+                                        Get.snackbar(
+                                          'Error',
+                                          'Failed to decline request',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: Colors.redAccent,
+                                          colorText: Colors.white,
+                                          barBlur: 0,
+                                          margin: const EdgeInsets.all(16),
+                                        );
+                                      }
+                                    },
+                                    child: const CommonText(
+                                      'Reject',
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 14),

@@ -302,7 +302,9 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    convo.lastMessage ?? 'No messages yet',
+                    (convo.lastMessage ?? 'No messages yet')
+                        .replaceFirst('[System]:', '')
+                        .trim(),
                     fontSize: 15,
                     color: const Color(
                       0xFF535862,
