@@ -166,6 +166,21 @@ class BookingDetailsView extends StatelessWidget {
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
+                if (booking.numberOfHorses != null && booking.numberOfHorses! > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.pets_outlined, size: 14, color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        CommonText(
+                          '${booking.numberOfHorses} ${booking.numberOfHorses == 1 ? 'Horse' : 'Horses'}',
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

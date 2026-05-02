@@ -110,7 +110,34 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               ],
               if (widget.travelPreferences?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
-                _buildDetailItem('Travel Preferences', widget.travelPreferences!.join(', ')),
+                const CommonText('Travel Preferences', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                const SizedBox(height: 8),
+                ...widget.travelPreferences!.map((pref) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                
+                      Expanded(child: CommonText(pref, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    ],
+                  ),
+                )),
+                const Divider(height: 24, color: AppColors.dividerColor),
+              ],
+              
+              if (widget.farrierData['newClientPolicy'] != null || widget.farrierData['minHorses'] != null) ...[
+                _buildTwoColumnDetails(
+                  'Client Policy',
+                  widget.farrierData['newClientPolicy']?.toString() ?? 'N/A',
+                  'Min Horses per Stop',
+                  widget.farrierData['minHorses']?.toString() ?? '1',
+                ),
+              ],
+
+              if (widget.farrierData['emergencySupport'] != null) ...[
+                _buildDetailItem(
+                  'Emergency Support',
+                  widget.farrierData['emergencySupport'] == true ? 'Available' : 'Not Available',
+                ),
               ],
               if (widget.regionsCovered?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),

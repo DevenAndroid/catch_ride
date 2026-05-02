@@ -295,10 +295,14 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
 
   Widget _buildPaymentMethods() {
     return GestureDetector(
-      onTap: () => Get.to(() => const PaymentMethods()),
+      onTap: () => Get.to(() => PaymentMethods(
+            methods: controller.paymentMethods,
+            extraDetails: controller.otherPaymentDetails,
+          )),
       child: Obx(() {
         final methods = controller.paymentMethods;
-        if (methods.isEmpty) return const SizedBox.shrink();
+        final extraDetails = controller.otherPaymentDetails;
+        if (methods.isEmpty && extraDetails.isEmpty) return const SizedBox.shrink();
         return Row(
           children: [
             SizedBox(

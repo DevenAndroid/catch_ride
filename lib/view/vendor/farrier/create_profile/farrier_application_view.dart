@@ -157,6 +157,19 @@ class FarrierApplicationView extends StatelessWidget {
                           );
                         }).toList(),
                       )),
+                      Obx(() {
+                        if (controller.selectedScopeOfWork.contains('Other')) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: CommonTextField(
+                              label: '',
+                              controller: controller.otherScopeOfWorkController,
+                              hintText: 'Write here...',
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
                     ],
                   ),
                   const SizedBox(height: 24),

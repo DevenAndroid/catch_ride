@@ -29,6 +29,7 @@ class FarrierApplicationController extends GetxController {
 
   // Scope of Work
   final selectedScopeOfWork = <String>[].obs;
+  final otherScopeOfWorkController = TextEditingController();
   final scopeOfWorkOptions = <String>[
     'Routine trimming/shoeing',
     'Corrective / therapeutic work',
@@ -184,6 +185,7 @@ class FarrierApplicationController extends GetxController {
     }
     otherDisciplineController.dispose();
     otherCertificationController.dispose();
+    otherScopeOfWorkController.dispose();
     facebookController.dispose();
     instagramController.dispose();
     super.onClose();
@@ -253,6 +255,7 @@ class FarrierApplicationController extends GetxController {
         'certifications': selectedCertifications.toList(),
         'otherCertification': otherCertificationController.text,
         'scopeOfWork': selectedScopeOfWork.toList(),
+        'otherScopeOfWork': otherScopeOfWorkController.text,
         'disciplines': selectedDisciplines.toList(),
         'otherDiscipline': otherDisciplineController.text,
         'horseLevels': selectedHorseLevels.toList(),

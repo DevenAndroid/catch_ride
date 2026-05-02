@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:collection/collection.dart';
@@ -202,6 +203,8 @@ class EditVendorProfileController extends GetxController {
 
   // Combined Services Cache
   final RxMap rawServicesData = {}.obs;
+  final RxMap draftServicesData = {}.obs;
+  final RxMap originalServicesData = {}.obs;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -334,6 +337,8 @@ class EditVendorProfileController extends GetxController {
         // Cache raw services data to preserve unmanaged fields (like rates)
         final Map<String, dynamic> sData = data['servicesData'] ?? {};
         rawServicesData.assignAll(sData);
+        originalServicesData.assignAll(jsonDecode(jsonEncode(sData)));
+        draftServicesData.assignAll(jsonDecode(jsonEncode(sData)));
         
         // Populate ALL service data into our reactive fields to prevent overwriting with blanks
         _initializeAllServicesFields();
@@ -467,9 +472,12 @@ class EditVendorProfileController extends GetxController {
     }
 
     if (activeService != null) {
-      final profileData = activeService['profile']?['profileData'] ?? {};
+      final type = activeService['serviceType']?.toString().toLowerCase();
+      final draft = type != null ? draftServicesData[type] ?? {} : {};
+
+      final profileData = draft['profileData'] ?? activeService['profile']?['profileData'] ?? {};
       final application = activeService['application'] ?? {};
-      final appData = application['applicationData'] ?? application ?? {};
+      final appData = draft['applicationData'] ?? application['applicationData'] ?? application ?? {};
 
       final vendorData = assignedServices.isEmpty ? {} : (assignedServices[0]['vendorId'] is Map ? assignedServices[0]['vendorId'] : {});
 
@@ -564,9 +572,9 @@ class EditVendorProfileController extends GetxController {
         }).toList());
 
         selectedCertifications.assignAll(List<String>.from(appData['certifications'] ?? []));
-        otherCertificationController.text = appData['otherCertification'] ?? '';
+        otherCertificationController.text = (appData['otherCertification'] ?? '').toString().replaceFirst('Other:', '').trim();
         selectedFarrierScope.assignAll(List<String>.from(appData['scopeOfWork'] ?? []));
-        otherFarrierScopeController.text = appData['otherScope'] ?? '';
+        otherFarrierScopeController.text = (appData['otherScopeOfWork'] ?? appData['otherScope'] ?? '').toString().replaceFirst('Other:', '').trim();
 
         final List travelFees = profileData['travelPreferences'] ?? [];
         farrierTravelFees.assignAll(travelFees.map((t) => Map<String, dynamic>.from(t)).toList());
@@ -575,6 +583,9 @@ class EditVendorProfileController extends GetxController {
         for (var t in farrierTravelFees) {
           if (t['category'] != null) {
             selectedTravelData[t['category']] = Map<String, dynamic>.from(t);
+            if (!selectedTravel.contains(t['category'])) {
+              selectedTravel.add(t['category']);
+            }
           }
         }
 
@@ -632,14 +643,25 @@ class EditVendorProfileController extends GetxController {
           final Map<String, Map<String, dynamic>> travelMap = {};
           for (var item in travelPrefRaw) {
             if (item is Map) {
-              travelMap[item['type'] ?? ''] = Map<String, dynamic>.from(item);
+              final type = item['type'] ?? item['category'] ?? '';
+              if (type.isNotEmpty) {
+                travelMap[type] = Map<String, dynamic>.from(item);
+                if (!selectedTravel.contains(type)) {
+                  selectedTravel.add(type);
+                }
+              }
             } else {
-              travelMap[item.toString()] = {'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
+              final name = item.toString();
+              travelMap[name] = {'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
+              if (name.isNotEmpty && !selectedTravel.contains(name)) {
+                selectedTravel.add(name);
+              }
             }
           }
           selectedTravelData.assignAll(travelMap);
         } else {
-          selectedTravel.assignAll(travelPrefRaw.map((e) => (e is Map) ? (e['type']?.toString() ?? '') : e.toString()).where((s) => s.isNotEmpty).toList());
+          final List<String> cats = travelPrefRaw.map((e) => (e is Map) ? (e['category']?.toString() ?? e['type']?.toString() ?? '') : e.toString()).where((s) => s.isNotEmpty).toList();
+          selectedTravel.assignAll(cats);
         }
       }
       
@@ -988,372 +1010,54 @@ class EditVendorProfileController extends GetxController {
         'isProfileSetup': true,
       };
 
-      // 1.5 Helpers for Service payloads
-      final braidingServicesPayload = braidingServices.map((s) {
-        final ctrl = s['price'];
-        return {
-          'name': s['name'],
-          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
-          'isSelected': s['isSelected'].value,
-        };
-      }).toList();
-
-      final clippingServicesPayload = clippingServices.map((s) {
-        final ctrl = s['price'];
-        return {
-          'name': s['name'],
-          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
-          'isSelected': s['isSelected'].value,
-        };
-      }).toList();
-
-      // Start with cached data to preserve fields we don't manage (like rates)
+      // Start with cached data to preserve fields we don't manage
       final servicesData = Map<String, dynamic>.from(rawServicesData);
 
-      // Construct grooming payload if assigned
-      if (assignedServices.any((s) => s['serviceType'] == 'Grooming')) {
-        final newGroomingData = {
-          'applicationData': {
-            'homeBase': {
-              'city': cityController.text,
-              'state': stateController.text,
-              'country': countryController.text,
-            },
-            'experience': experience.value,
-            'disciplines': selectedDisciplines.toList(),
-            'otherDiscipline': otherDisciplineController.text,
-            'horseLevels': selectedHorseLevels.toList(),
-            'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Grooming'] ?? [],
-          },
-          'profileData': {
-            'socialMedia': {
-              'facebook': facebookController.text,
-              'instagram': instagramController.text,
-            },
-            'capabilities': {
-              'support': selectedSupport.toList(),
-              'handling': selectedHandling.toList(),
-            },
-            'additionalSkills': selectedAdditionalSkills.toList(),
-            'travelPreferences': selectedTravel.toList(),
-            'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-            },
-            'media': serviceMediaKeys['Grooming'] ?? [],
-          }
-        };
+      // Save currently active tab into draft before payload building
+      saveCurrentTabToCache(selectedServiceIndex.value);
 
-        // Merge to preserve unmanaged fields (rates, etc.)
-        final existing = Map<String, dynamic>.from(servicesData['grooming'] ?? {});
-        final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
-        final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
+      // Loop over assigned services and merge their drafts
+      for (var s in assignedServices) {
+        final type = s['serviceType']?.toString();
+        if (type == null) continue;
+        final typeKey = type.toLowerCase();
+
+        final draft = draftServicesData[typeKey] ?? {};
         
-        servicesData['grooming'] = {
-          'applicationData': {
-            ...existingApp,
-            ...newGroomingData['applicationData']!,
-          },
-          'profileData': {
-            ...existingProfile,
-            ...newGroomingData['profileData']!,
-          }
-        };
-      }
-
-      // Construct braiding payload if assigned
-      if (assignedServices.any((s) => s['serviceType'] == 'Braiding')) {
-        final newBraidingData = {
-          'applicationData': {
-            'homeBase': {
-              'city': cityController.text,
-              'state': stateController.text,
-              'country': countryController.text,
-            },
-            'experience': experience.value,
-            'disciplines': selectedDisciplines.toList(),
-            'otherDiscipline': otherDisciplineController.text,
-            'horseLevels': selectedHorseLevels.toList(),
-            'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Braiding'] ?? [],
-          },
-          'profileData': {
-            'socialMedia': {
-              'facebook': facebookController.text,
-              'instagram': instagramController.text,
-            },
-            'services': braidingServicesPayload,
-            'additionalSkills': selectedAdditionalSkills.toList(),
-            'travelPreferences': selectedTravel.toList(),
-            'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-            },
-            'media': serviceMediaKeys['Braiding'] ?? [],
-          }
-        };
-
-        final existing = Map<String, dynamic>.from(servicesData['braiding'] ?? {});
-        final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
+        final existing = Map<String, dynamic>.from(servicesData[typeKey] ?? {});
         final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
+        final existingProf = Map<String, dynamic>.from(existing['profileData'] ?? {});
 
-        servicesData['braiding'] = {
-          'applicationData': {
-            ...existingApp,
-            ...newBraidingData['applicationData']!,
-          },
-          'profileData': {
-            ...existingProfile,
-            ...newBraidingData['profileData']!,
+        final newApp = Map<String, dynamic>.from(draft['applicationData'] ?? {});
+        final newProf = Map<String, dynamic>.from(draft['profileData'] ?? {});
+
+        if (type == 'Shipping') {
+          final List<String> shippingMedia = [...shippingRigPhotos];
+          for (var f in newShippingRigPhotos) {
+            final key = await _uploadFile(f, 'shipping_rigs');
+            if (key != null) shippingMedia.add(key);
           }
-        };
-      }
-
-      // Construct clipping payload if assigned
-      if (assignedServices.any((s) => s['serviceType'] == 'Clipping')) {
-        final newClippingData = {
-          'applicationData': {
-            'homeBase': {
-              'city': cityController.text,
-              'state': stateController.text,
-              'country': countryController.text,
-            },
-            'experience': experience.value,
-            'disciplines': selectedDisciplines.toList(),
-            'otherDiscipline': otherDisciplineController.text,
-            'horseLevels': selectedHorseLevels.toList(),
-            'regions': selectedRegions.toList(),
-            'media': serviceMediaKeys['Clipping'] ?? [],
-          },
-          'profileData': {
-            'socialMedia': {
-              'facebook': facebookController.text,
-              'instagram': instagramController.text,
-            },
-            'services': clippingServicesPayload, 
-            'additionalSkills': selectedAdditionalSkills.toList(),
-            'travelPreferences': selectedTravel.toList(),
-            'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-            },
-            'media': serviceMediaKeys['Clipping'] ?? [],
+          String? cdlUrl = shippingExistingCDLUrl.value;
+          if (shippingCDLFile.value != null) {
+            cdlUrl = await _uploadFile(shippingCDLFile.value!, 'shipping_docs');
           }
-        };
-
-        final existing = Map<String, dynamic>.from(servicesData['clipping'] ?? {});
-        final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
-        final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
-
-        servicesData['clipping'] = {
-          'applicationData': {
-            ...existingApp,
-            ...newClippingData['applicationData']!,
-          },
-          'profileData': {
-            ...existingProfile,
-            ...newClippingData['profileData']!,
+          newApp['media'] = {
+            'cdlPhoto': cdlUrl,
+            'rigPhotos': shippingMedia,
+          };
+          newProf['media'] = {
+            'rigPhotos': shippingMedia,
+          };
+        } else {
+          if (serviceMediaKeys.containsKey(type)) {
+            newApp['media'] = serviceMediaKeys[type] ?? [];
+            newProf['media'] = serviceMediaKeys[type] ?? [];
           }
-        };
-      }
-
-      // Construct farrier payload if assigned
-      if (assignedServices.any((s) => s['serviceType'] == 'Farrier')) {
-        final newFarrierData = {
-          'applicationData': {
-            'homeBase': {
-              'city': cityController.text,
-              'state': stateController.text,
-              'country': countryController.text,
-            },
-            'experience': experience.value,
-            'disciplines': selectedDisciplines.toList(),
-            'otherDiscipline': otherDisciplineController.text,
-            'horseLevels': selectedHorseLevels.toList(),
-            'regions': selectedRegions.toList(),
-            'certifications': selectedCertifications.toList(),
-            'otherCertification': otherCertificationController.text,
-            'scopeOfWork': selectedFarrierScope.toList(),
-            'otherScope': otherFarrierScopeController.text,
-            'clientIntake': {
-              'policy': farrierNewClientPolicy.value,
-              'minHorses': farrierMinHorses.value,
-              'emergencySupport': farrierEmergencySupport.value,
-            },
-            'insuranceStatus': farrierInsuranceStatus.value,
-            'media': serviceMediaKeys['Farrier'] ?? [],
-          },
-          'profileData': {
-            'socialMedia': {
-              'facebook': facebookController.text,
-              'instagram': instagramController.text,
-            },
-            'services': farrierServices.map((s) {
-              final ctrl = s['price'];
-              return {
-                'name': s['name'],
-                'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
-                'isSelected': s['isSelected'].value,
-              };
-            }).toList(),
-            'addOns': farrierAddOns.map((s) {
-              final ctrl = s['price'];
-              return {
-                'name': s['name'],
-                'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
-                'isSelected': s['isSelected'].value,
-              };
-            }).toList(),
-            'travelPreferences': farrierTravelFees,
-            'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-            },
-            'media': serviceMediaKeys['Farrier'] ?? [],
-          }
-        };
-
-        final existing = Map<String, dynamic>.from(servicesData['farrier'] ?? {});
-        final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
-        final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
-
-        servicesData['farrier'] = {
-          'applicationData': {
-            ...existingApp,
-            ...newFarrierData['applicationData']!,
-          },
-          'profileData': {
-            ...existingProfile,
-            ...newFarrierData['profileData']!,
-          }
-        };
-      }
-
-      // Construct bodywork payload if assigned
-      if (assignedServices.any((s) => s['serviceType'] == 'Bodywork')) {
-        final newBodyworkData = {
-          'applicationData': {
-            'homeBase': {
-              'city': cityController.text,
-              'state': stateController.text,
-              'country': countryController.text,
-            },
-            'experience': experience.value,
-            'disciplines': selectedDisciplines.toList(),
-            'otherDiscipline': otherDisciplineController.text,
-            'horseLevels': selectedHorseLevels.toList(),
-            'regions': selectedRegions.toList(),
-            'otherModality': otherModalityController.text,
-            'certifications': bodyworkExistingCertUrls.toList(),
-            'media': serviceMediaKeys['Bodywork'] ?? [],
-          },
-          'profileData': {
-            'socialMedia': {
-              'facebook': facebookController.text,
-              'instagram': instagramController.text,
-            },
-            'services': bodyworkServices.map((s) => {
-              'name': s['name'],
-              'rates': s['rates'],
-              'isSelected': s['isSelected'].value,
-              'note': s['note'],
-              'trainerPresence': s['trainerPresence'],
-              'vetApproval': s['vetApproval'],
-            }).toList(),
-            'professionalStandards': selectedBodyworkStandards.toList(),
-            'travelPreferences': selectedTravelData.values.toList(),
-            'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-            },
-            'media': serviceMediaKeys['Bodywork'] ?? [],
-          }
-        };
-
-        final existing = Map<String, dynamic>.from(servicesData['bodywork'] ?? {});
-        final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
-        final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
-
-        servicesData['bodywork'] = {
-          'applicationData': {
-            ...existingApp,
-            ...newBodyworkData['applicationData']!,
-          },
-          'profileData': {
-            ...existingProfile,
-            ...newBodyworkData['profileData']!,
-          }
-        };
-      }
-
-      // Construct shipping payload if assigned
-      if (assignedServices.any((s) => s['serviceType'] == 'Shipping')) {
-        final List<String> shippingMedia = [...shippingRigPhotos];
-        for (var f in newShippingRigPhotos) {
-          final key = await _uploadFile(f, 'shipping_rigs');
-          if (key != null) shippingMedia.add(key);
         }
 
-        String? cdlUrl = shippingExistingCDLUrl.value;
-        if (shippingCDLFile.value != null) {
-          cdlUrl = await _uploadFile(shippingCDLFile.value!, 'shipping_docs');
-        }
-
-        servicesData['shipping'] = {
-          'applicationData': {
-            'homeBase': {
-              'city': cityController.text,
-              'state': stateController.text,
-              'country': countryController.text,
-            },
-            'businessInfo': {
-              'legalName': businessNameController.text,
-              'dotNumber': dotNumberController.text,
-            },
-            'experience': experience.value,
-            'operationType': shippingOperationType.value,
-            'travelScope': shippingTravelScope.toList(),
-            'regions': selectedRegions.toList(),
-            'rigTypes': shippingRigTypes.toList(),
-            'stallType': shippingStallTypes.toList(),
-            'rigCapacity': shippingRigCapacity.value,
-            'hasCDL': shippingHasCDL.value,
-            'media': {
-              'cdlPhoto': cdlUrl,
-              'rigPhotos': shippingMedia,
-            }
-          },
-          'profileData': {
-            'socialMedia': {
-              'facebook': facebookController.text,
-              'instagram': instagramController.text,
-            },
-            'servicesOffered': shippingServicesOffered.toList(),
-            'notes': shippingNotesController.text,
-            'cancellationPolicy': {
-              'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-              'isCustom': isCustomCancellation.value,
-            },
-            'media': {
-              'rigPhotos': shippingMedia,
-            }
-          }
-        };
-
-        final existing = Map<String, dynamic>.from(servicesData['shipping'] ?? {});
-        final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
-        final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
-
-        servicesData['shipping'] = {
-          'applicationData': {
-            ...existingApp,
-            ...(servicesData['shipping']!['applicationData'] as Map<String, dynamic>),
-          },
-          'profileData': {
-            ...existingProfile,
-            ...(servicesData['shipping']!['profileData'] as Map<String, dynamic>),
-          }
+        servicesData[typeKey] = {
+          'applicationData': { ...existingApp, ...newApp },
+          'profileData': { ...existingProf, ...newProf }
         };
       }
 
@@ -1413,5 +1117,128 @@ class EditVendorProfileController extends GetxController {
     } finally {
       isSaving.value = false;
     }
+  }
+
+  void saveCurrentTabToCache(int index) {
+    if (index == 0 || assignedServices.isEmpty || index > assignedServices.length) return;
+    final type = assignedServices[index - 1]['serviceType']?.toString();
+    if (type == null) return;
+    final typeKey = type.toLowerCase();
+
+    final Map<String, dynamic> appData = {
+      'homeBase': {
+        'city': cityController.text,
+        'state': stateController.text,
+        'country': countryController.text,
+      },
+      'experience': experience.value,
+      'disciplines': selectedDisciplines.toList(),
+      'otherDiscipline': otherDisciplineController.text,
+      'horseLevels': selectedHorseLevels.toList(),
+      'regions': selectedRegions.toList(),
+    };
+
+    final Map<String, dynamic> profData = {
+      'socialMedia': {
+        'facebook': facebookController.text,
+        'instagram': instagramController.text,
+      },
+      'cancellationPolicy': {
+        'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+        'isCustom': isCustomCancellation.value,
+      },
+    };
+
+    if (type == 'Grooming') {
+      profData['capabilities'] = {
+        'support': selectedSupport.toList(),
+        'handling': selectedHandling.toList(),
+      };
+      profData['additionalSkills'] = selectedAdditionalSkills.toList();
+      profData['travelPreferences'] = selectedTravel.toList();
+    } else if (type == 'Braiding') {
+      profData['services'] = braidingServices.map((s) {
+        final ctrl = s['price'];
+        return {
+          'name': s['name'],
+          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+          'isSelected': s['isSelected'].value,
+        };
+      }).toList();
+      profData['additionalSkills'] = selectedAdditionalSkills.toList();
+      profData['travelPreferences'] = selectedTravel.toList();
+    } else if (type == 'Clipping') {
+      profData['services'] = clippingServices.map((s) {
+        final ctrl = s['price'];
+        return {
+          'name': s['name'],
+          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+          'isSelected': s['isSelected'].value,
+        };
+      }).toList();
+      profData['additionalSkills'] = selectedAdditionalSkills.toList();
+      profData['travelPreferences'] = selectedTravel.toList();
+    } else if (type == 'Farrier') {
+      profData['services'] = farrierServices.map((s) {
+        final ctrl = s['price'];
+        return {
+          'name': s['name'],
+          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+          'isSelected': s['isSelected'].value,
+        };
+      }).toList();
+      profData['addOns'] = farrierAddOns.map((s) {
+        final ctrl = s['price'];
+        return {
+          'name': s['name'],
+          'price': ctrl is TextEditingController ? ctrl.text : (ctrl?.toString() ?? '0'),
+          'isSelected': s['isSelected'].value,
+        };
+      }).toList();
+      appData['certifications'] = selectedCertifications.toList();
+      appData['otherCertification'] = otherCertificationController.text;
+      appData['scopeOfWork'] = selectedFarrierScope.toList();
+      appData['otherScope'] = otherFarrierScopeController.text;
+      profData['travelFees'] = farrierTravelFees.toList();
+      profData['newClientPolicy'] = farrierNewClientPolicy.value;
+      profData['minHorses'] = farrierMinHorses.value;
+      profData['emergencySupport'] = farrierEmergencySupport.value;
+      profData['insuranceStatus'] = farrierInsuranceStatus.value;
+    } else if (type == 'Bodywork') {
+      appData['modalities'] = bodyworkModalityOptions.toList(); 
+      appData['otherModality'] = otherModalityController.text;
+      appData['professionalStandards'] = selectedBodyworkStandards.toList();
+      profData['services'] = bodyworkServices.map((s) => {
+        'name': s['name'],
+        'rates': s['rates'],
+        'isSelected': s['isSelected'].value,
+        'note': s['note'],
+        'trainerPresence': s['trainerPresence'],
+        'vetApproval': s['vetApproval'],
+      }).toList();
+      profData['travelPreferences'] = selectedTravelData.values.toList();
+    } else if (type == 'Shipping') {
+      appData['businessInfo'] = {
+        'legalName': businessNameController.text,
+        'dotNumber': dotNumberController.text,
+      };
+      appData['operationType'] = shippingOperationType.value;
+      appData['travelScope'] = shippingTravelScope.toList();
+      appData['rigTypes'] = shippingRigTypes.toList();
+      appData['stallType'] = shippingStallTypes.toList();
+      appData['rigCapacity'] = shippingRigCapacity.value;
+      appData['hasCDL'] = shippingHasCDL.value;
+      profData['servicesOffered'] = shippingServicesOffered.toList();
+      profData['notes'] = shippingNotesController.text;
+    }
+
+    final existing = Map<String, dynamic>.from(draftServicesData[typeKey] ?? {});
+    final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
+    final existingProf = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
+    draftServicesData[typeKey] = {
+      'applicationData': { ...existingApp, ...appData },
+      'profileData': { ...existingProf, ...profData }
+    };
   }
 }

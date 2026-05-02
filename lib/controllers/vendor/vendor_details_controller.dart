@@ -233,6 +233,7 @@ class VendorDetailsController extends GetxController {
   bool _isValid(dynamic v) => v != null && v.toString().isNotEmpty && v.toString().toLowerCase() != 'n/a';
 
   List<String> get paymentMethods => List<String>.from(vendorData['paymentMethods'] ?? []);
+  String get otherPaymentDetails => vendorData['otherPaymentDetails']?.toString() ?? '';
   String get instagramUrl => _activeProfileData['socialMedia']?['instagram'] ?? '';
   String get facebookUrl => _activeProfileData['socialMedia']?['facebook'] ?? '';
 

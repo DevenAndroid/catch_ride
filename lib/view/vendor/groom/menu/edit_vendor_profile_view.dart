@@ -58,6 +58,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
 
   void _handleTabChange() {
     if (!_tabController.indexIsChanging) {
+      controller.saveCurrentTabToCache(_tabController.previousIndex);
       controller.selectedServiceIndex.value = _tabController.index;
       controller.populateServiceData();
       setState(() {});
