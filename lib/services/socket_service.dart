@@ -40,6 +40,7 @@ class SocketService extends GetxService {
       io.OptionBuilder()
           .setTransports(['websocket'])
           .setQuery({
+            'caller': 'flutter',
             if (userId.isNotEmpty) 'userId': userId,
             if (userName.isNotEmpty) 'userName': userName,
             if (userRole.isNotEmpty) 'userRole': userRole,
