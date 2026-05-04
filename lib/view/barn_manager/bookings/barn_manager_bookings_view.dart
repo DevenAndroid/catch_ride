@@ -14,6 +14,8 @@ import 'package:get/get.dart';
 import '../../../constant/app_constants.dart';
 import '../../../widgets/common_button.dart';
 import '../../vendor/vendor_details_view.dart';
+import 'package:catch_ride/view/trainer/edit_booking_form_trainer.dart';
+import 'package:catch_ride/view/trainer/edit_booking_form_vendor.dart';
 
 
 class BarnManagerBookingsView extends StatefulWidget {
@@ -264,24 +266,62 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
   }
 
   Widget _buildBookingsList(List<BookingModel> bookings) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: bookings.length + 1, // +1 for the bottom padding
-      itemBuilder: (context, index) {
-        if (index == bookings.length) {
-          return const SizedBox(height: 120);
-        }
+    if (bookings.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () async => _loadBookings(),
+        color: AppColors.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 48,
+                      color: AppColors.textSecondary.withValues(alpha: 0.2),
+                    ),
+                    const SizedBox(height: 16),
+                    CommonText(
+                      'No ${_tabController.index == 0 ? "received" : "sent"} bookings found',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
-        final booking = bookings[index];
-        String displayStatus = booking.status.capitalizeFirst ?? booking.status;
-        if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
-        if (booking.status == 'cancelled') displayStatus = 'Canceled';
+    return RefreshIndicator(
+      onRefresh: () async => _loadBookings(),
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: bookings.length + 1,
+        itemBuilder: (context, index) {
+          if (index == bookings.length) {
+            return const SizedBox(height: 120);
+          }
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildBookingCard(booking: booking, status: displayStatus),
-        );
-      },
+          final booking = bookings[index];
+          String displayStatus = booking.status.capitalizeFirst ?? booking.status;
+          if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
+          if (booking.status == 'cancelled') displayStatus = 'Canceled';
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: _buildBookingCard(booking: booking, status: displayStatus),
+          );
+        },
+      ),
     );
   }
 
@@ -412,21 +452,46 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: CommonText(
-                          booking.type.capitalizeFirst ?? 'Trial',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: CommonText(
+                              booking.type.capitalizeFirst ?? 'Trial',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          if (booking.status.toLowerCase() == 'pending' && _tabController.index == 1)
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary),
+                              padding: EdgeInsets.zero,
+                              onSelected: (value) {
+                                if (value == 'update') {
+                                  if (isVendorBooking) {
+                                    Get.to(() => EditBookingFormVendor(booking: booking));
+                                  } else {
+                                    Get.to(() => EditBookingFormTrainer(booking: booking));
+                                  }
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'update',
+                                  child: Text('Update Booking'),
+                                ),
+                              ],
+                            ),
+                        ],
                       ),
                     ],
                   ),

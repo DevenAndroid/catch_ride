@@ -1345,8 +1345,28 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
+  /// Returns only shows whose endDate is today or in the future.
+  List<AvailabilityModel> get _upcomingShows {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return horse!.showAvailability.where((avail) {
+      if (avail.endDate.isEmpty) return true;
+      DateTime? end;
+      try {
+        end = DateTime.parse(avail.endDate);
+      } catch (_) {
+        try {
+          end = DateFormat('dd MMM yyyy').parse(avail.endDate);
+        } catch (_) {}
+      }
+      if (end == null) return true;
+      return !end.isBefore(today);
+    }).toList();
+  }
+
   Widget _buildAvailabilitySection() {
-    if (horse!.showAvailability.isEmpty) return const SizedBox.shrink();
+    final upcoming = _upcomingShows;
+    if (upcoming.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -1369,7 +1389,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: horse!.showAvailability.asMap().entries.map((entry) {
+              children: upcoming.asMap().entries.map((entry) {
                 final index = entry.key;
                 final show = entry.value;
                 return Column(
@@ -2128,7 +2148,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                             ),
                           ),
                         ),
-                      ...horse!.showAvailability.map((show) {
+                      ..._upcomingShows.map((show) {
                         final dateRange = DateUtil.formatRange(
                             show.startDate, show.endDate);
                         final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
@@ -2165,7 +2185,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     onChanged: (val) {
                       setSheetState(() {
                         selectedLocation = val;
-                        selectedShow = horse!.showAvailability.firstWhereOrNull(
+                        selectedShow = _upcomingShows.firstWhereOrNull(
                           (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
                         );
 
