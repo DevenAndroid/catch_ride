@@ -63,7 +63,7 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> selectedDisciplines = <String>[].obs;
   final otherDisciplineController = TextEditingController();
 
-  final RxList<String> horseLevelOptions = <String>['AAAA Circuit', 'FEI', 'Grand Prix', 'Young horses'].obs;
+  final RxList<String> horseLevelOptions = <String>['A/AA Circuit', 'FEI', 'Grand Prix', 'Young horses'].obs;
   final RxList<String> selectedHorseLevels = <String>[].obs;
 
   final RxList<String> regionOptions = <String>[].obs;
@@ -360,9 +360,10 @@ class EditVendorProfileController extends GetxController {
       final appData = application['applicationData'] ?? application ?? {};
       
       if (type == 'Grooming') {
-        selectedSupport.assignAll(List<String>.from(profileData['capabilities']?['support'] ?? []));
-        selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
-        selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
+        final caps = draftServicesData['grooming']?['capabilities'] ?? profileData['capabilities'] ?? {};
+        selectedSupport.assignAll(List<String>.from(caps['support'] ?? []));
+        selectedHandling.assignAll(List<String>.from(caps['handling'] ?? []));
+        selectedAdditionalSkills.assignAll(List<String>.from(draftServicesData['grooming']?['additionalSkills'] ?? profileData['additionalSkills'] ?? []));
       } else if (type == 'Braiding' || type == 'Clipping') {
         final List bServices = profileData['services'] ?? [];
         final targetList = type == 'Braiding' ? braidingServices : clippingServices;
@@ -521,9 +522,10 @@ class EditVendorProfileController extends GetxController {
       _syncLocationNodes();
       // Capabilities based on service type
       if (activeService['serviceType'] == 'Grooming') {
-        selectedSupport.assignAll(List<String>.from(profileData['capabilities']?['support'] ?? []));
-        selectedHandling.assignAll(List<String>.from(profileData['capabilities']?['handling'] ?? []));
-        selectedAdditionalSkills.assignAll(List<String>.from(profileData['additionalSkills'] ?? []));
+        final caps = draft['capabilities'] ?? profileData['capabilities'] ?? {};
+        selectedSupport.assignAll(List<String>.from(caps['support'] ?? []));
+        selectedHandling.assignAll(List<String>.from(caps['handling'] ?? []));
+        selectedAdditionalSkills.assignAll(List<String>.from(draft['additionalSkills'] ?? profileData['additionalSkills'] ?? []));
       } else if (activeService['serviceType'] == 'Braiding' || activeService['serviceType'] == 'Clipping') {
         final serviceType = activeService['serviceType'];
         final List bServices = profileData['services'] ?? [];
@@ -644,7 +646,7 @@ class EditVendorProfileController extends GetxController {
           selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
         }
 
-      final travelPrefRaw = profileData['travelPreferences'] ?? [];
+      final travelPrefRaw = draft['travelPreferences'] ?? profileData['travelPreferences'] ?? [];
       if (travelPrefRaw is List) {
         if (activeService['serviceType'] == 'Bodywork') {
           final Map<String, Map<String, dynamic>> travelMap = {};
@@ -672,7 +674,7 @@ class EditVendorProfileController extends GetxController {
         }
       }
       
-      final cp = profileData['cancellationPolicy'];
+      final cp = draft['cancellationPolicy'] ?? profileData['cancellationPolicy'];
       if (cp is Map) {
         cancellationPolicy.value = cp['policy'];
         isCustomCancellation.value = cp['isCustom'] ?? false;
@@ -1069,6 +1071,7 @@ class EditVendorProfileController extends GetxController {
         }
 
         servicesData[typeKey] = {
+          ...draft,
           'applicationData': { ...existingApp, ...newApp },
           'profileData': { ...existingProf, ...newProf }
         };
@@ -1163,12 +1166,28 @@ class EditVendorProfileController extends GetxController {
     };
 
     if (type == 'Grooming') {
-      profData['capabilities'] = {
-        'support': selectedSupport.toList(),
-        'handling': selectedHandling.toList(),
+      profData['cancellationPolicy'] = {
+        'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
+        'isCustom': isCustomCancellation.value,
       };
-      profData['additionalSkills'] = selectedAdditionalSkills.toList();
-      profData['travelPreferences'] = selectedTravel.toList();
+      
+      final existing = Map<String, dynamic>.from(draftServicesData[typeKey] ?? {});
+      final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
+      final existingProf = Map<String, dynamic>.from(existing['profileData'] ?? {});
+
+      draftServicesData[typeKey] = {
+        ...existing,
+        'applicationData': { ...existingApp, ...appData },
+        'profileData': { ...existingProf, ...profData },
+        'capabilities': {
+          'support': selectedSupport.toList(),
+          'handling': selectedHandling.toList(),
+        },
+        'additionalSkills': selectedAdditionalSkills.toList(),
+        'travelPreferences': selectedTravel.toList(),
+        'cancellationPolicy': profData['cancellationPolicy'], // Keep at root too
+      };
+      return; // Exit early as we've handled Grooming specially
     } else if (type == 'Braiding') {
       profData['services'] = braidingServices.map((s) {
         final ctrl = s['price'];
