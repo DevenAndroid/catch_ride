@@ -41,7 +41,7 @@ class ShippingApplicationController extends GetxController {
   ].obs;
 
   // ── File & Image Uploads ────────────────────────────────────────────────────
-  final Rxn<File> dotCopy = Rxn<File>();
+ // final Rxn<File> dotCopy = Rxn<File>();
   final Rxn<File> insuranceFile = Rxn<File>();
   final Rxn<File> licensePhoto = Rxn<File>();
   final RxList<File> rigPhotos = <File>[].obs;
@@ -165,9 +165,9 @@ class ShippingApplicationController extends GetxController {
     isSubmitting.value = true;
     try {
       // 1. Upload Files
-      String? dotUrl;
-      if (dotCopy.value != null) dotUrl = await _uploadFile(dotCopy.value!, 'shipping_docs');
-      
+      // String? dotUrl;
+      // if (dotCopy.value != null) dotUrl = await _uploadFile(dotCopy.value!, 'shipping_docs');
+      //
       String? insuranceUrl;
       if (insuranceFile.value != null) insuranceUrl = await _uploadFile(insuranceFile.value!, 'shipping_docs');
       
@@ -217,7 +217,6 @@ class ShippingApplicationController extends GetxController {
           }
         ],
         'media': {
-          'dotCopy': dotUrl,
           'insurance': insuranceUrl,
           'licensePhoto': licenseUrl,
           'rigPhotos': rigPhotoUrls,

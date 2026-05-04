@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/google_api_controller.dart';
 import '../../widgets/common_button.dart';
 
 class SendBookingRequestView extends StatelessWidget {
@@ -757,33 +758,83 @@ class SendBookingRequestView extends StatelessWidget {
           controller.selectedNumHorses
         )),
         const SizedBox(height: 20),
+        
         // Origin Location
-        Obx(() => _buildDropdownField(
-          'Origin Location', 
-          'Select Origin', 
-          controller.availableLocations, 
-          controller.selectedOrigin, 
-          isLoading: controller.isLoadingAvailability.value,
-          onChanged: (val) {
-            controller.startDate.value = null;
-            controller.endDate.value = null;
-            controller.selectedNumHorses.value = null;
-          }
-        )),
+        LocationSearchField(
+          label: 'Origin Location',
+          hint: 'Search Origin',
+          selectedValue: controller.selectedOrigin,
+          isOrigin: true,
+        ),
         const SizedBox(height: 16),
+
+        // Intermediate Stops
+        // Obx(() => Column(
+        //   crossAxisAlignment: CrossAxisAlignment.start,
+        //   children: [
+        //     if (controller.intermediateStops.isNotEmpty) ...[
+        //       const CommonText('Intermediate Stops', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        //       const SizedBox(height: 8),
+        //       ...controller.intermediateStops.asMap().entries.map((entry) {
+        //         final index = entry.key;
+        //         final stopValue = entry.value;
+        //
+        //         final stopObs = RxnString(stopValue.isEmpty ? null : stopValue);
+        //
+        //         return Padding(
+        //           padding: const EdgeInsets.only(bottom: 12),
+        //           child: Row(
+        //             children: [
+        //               Expanded(
+        //                 child: LocationSearchField(
+        //                   label: '',
+        //                   hint: 'Select Stop ${index + 1}',
+        //                   selectedValue: stopObs,
+        //                   anchorLocation: stopValue,
+        //                   onChanged: (val) {
+        //                     controller.intermediateStops[index] = val ?? '';
+        //                   }
+        //                 ),
+        //               ),
+        //               const SizedBox(width: 8),
+        //               Padding(
+        //                 padding: const EdgeInsets.only(top: 8.0),
+        //                 child: IconButton(
+        //                   onPressed: () => controller.removeIntermediateStop(index),
+        //                   icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+        //                 ),
+        //               ),
+        //             ],
+        //           ),
+        //         );
+        //       }),
+        //     ],
+        //     GestureDetector(
+        //       onTap: () => controller.addIntermediateStop(),
+        //       child: Padding(
+        //         padding: const EdgeInsets.symmetric(vertical: 8),
+        //         child: Row(
+        //           children: const [
+        //             Icon(Icons.add_circle_outline, color: AppColors.primary, size: 18),
+        //             SizedBox(width: 8),
+        //             CommonText('Add Intermediate Stop', color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //     const SizedBox(height: 16),
+        //   ],
+        // )),
+
         // Destination Location
-        Obx(() => _buildDropdownField(
-          'Destination Location', 
-          'Select Destination', 
-          controller.availableLocations, 
-          controller.selectedDestination, 
-          isLoading: controller.isLoadingAvailability.value,
-          onChanged: (val) {
-            controller.startDate.value = null;
-            controller.endDate.value = null;
-            controller.selectedNumHorses.value = null;
-          }
-        )),
+        LocationSearchField(
+          label: 'Destination Location',
+          hint: 'Search Destination',
+          selectedValue: controller.selectedDestination,
+          isDestination: true,
+        ),
+        const SizedBox(height: 16),
+
         // Date Range
         _buildDateRangeField(controller, locationObs: controller.selectedOrigin),
         const SizedBox(height: 16),
@@ -1131,5 +1182,208 @@ class SendBookingRequestView extends StatelessWidget {
       backgroundColor: const Color(0xFF00083B),
       onPressed: () => controller.sendRequest(),
     ));
+  }
+}
+
+class LocationSearchField extends StatefulWidget {
+  final String label;
+  final String hint;
+  final RxnString selectedValue;
+  final String? anchorLocation;
+  final void Function(String?)? onChanged;
+  final bool isOrigin;
+  final bool isDestination;
+
+  const LocationSearchField({
+    super.key,
+    required this.label,
+    required this.hint,
+    required this.selectedValue,
+    this.anchorLocation,
+    this.onChanged,
+    this.isOrigin = false,
+    this.isDestination = false,
+  });
+
+  @override
+  State<LocationSearchField> createState() => _LocationSearchFieldState();
+}
+
+class _LocationSearchFieldState extends State<LocationSearchField> {
+  final googleController = Get.put(GoogleApiController());
+  final controller = Get.find<SendBookingRequestController>();
+  late final TextEditingController textController;
+  final focusNode = FocusNode();
+  final isFocused = false.obs;
+
+  @override
+  void initState() {
+    super.initState();
+    textController = TextEditingController(text: widget.selectedValue.value);
+    focusNode.addListener(() {
+      isFocused.value = focusNode.hasFocus;
+    });
+    
+    // Update text field if selectedValue changes from outside
+    ever(widget.selectedValue, (String? val) {
+       if (val != textController.text) {
+          textController.text = val ?? '';
+       }
+    });
+  }
+
+  @override
+  void dispose() {
+    textController.dispose();
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.label.isNotEmpty) ...[
+          CommonText(
+            widget.label,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          const SizedBox(height: 8),
+        ],
+        TextFormField(
+          controller: textController,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: Colors.white,
+            suffixIcon: const Icon(Icons.search, color: AppColors.textSecondary, size: 20),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+          ),
+          onChanged: (val) {
+            widget.selectedValue.value = val;
+            if (widget.onChanged != null) widget.onChanged!(val);
+
+            // Fetch coords for radius search
+            String? coords;
+            if (widget.isOrigin) {
+               for (var avail in controller.availabilityList) {
+                  if (avail['originCoords'] != null) {
+                     final c = avail['originCoords']['coordinates'];
+                     coords = '${c[1]},${c[0]}';
+                     break;
+                  }
+               }
+            } else if (widget.isDestination) {
+               for (var avail in controller.availabilityList) {
+                  if (avail['destinationCoords'] != null) {
+                     final c = avail['destinationCoords']['coordinates'];
+                     coords = '${c[1]},${c[0]}';
+                     break;
+                  }
+               }
+            } else {
+               coords = controller.getCoordsForLocation(widget.anchorLocation);
+            }
+
+            googleController.searchGooglePlaces(
+              val,
+              location: coords,
+              radius: 241402, // 150 miles
+            );
+          },
+        ),
+        Obx(() {
+          if (!isFocused.value) return const SizedBox.shrink();
+          
+          final suggestions = googleController.googleSuggestions;
+          final available = controller.availableLocations.where((l) => 
+            l.toLowerCase().contains(textController.text.toLowerCase())).toList();
+
+          if (suggestions.isEmpty && available.isEmpty) return const SizedBox.shrink();
+
+          // Get coords to check if we should show Google suggestions
+          String? coords;
+          if (widget.isOrigin) {
+             for (var avail in controller.availabilityList) {
+                if (avail['originCoords'] != null) {
+                   final c = avail['originCoords']['coordinates'];
+                   coords = '${c[1]},${c[0]}';
+                   break;
+                }
+             }
+          } else if (widget.isDestination) {
+             for (var avail in controller.availabilityList) {
+                if (avail['destinationCoords'] != null) {
+                   final c = avail['destinationCoords']['coordinates'];
+                   coords = '${c[1]},${c[0]}';
+                   break;
+                }
+             }
+          } else {
+             coords = controller.getCoordsForLocation(widget.anchorLocation);
+          }
+
+          final showGoogle = coords != null;
+
+          return Container(
+            margin: const EdgeInsets.only(top: 4),
+            constraints: const BoxConstraints(maxHeight: 250),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE4E7EC)),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
+            ),
+            child: ListView(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              children: [
+                if (available.isNotEmpty)
+                  ...available.map((l) => ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.location_on_outlined, size: 16, color: AppColors.primary),
+                    title: CommonText(l, fontSize: 13),
+                    onTap: () {
+                      textController.text = l;
+                      widget.selectedValue.value = l;
+                      if (widget.onChanged != null) widget.onChanged!(l);
+                      focusNode.unfocus();
+                    },
+                  )),
+                if (showGoogle && suggestions.isNotEmpty)
+                  ...suggestions.map((s) => ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.location_on_outlined, size: 16, color: AppColors.textSecondary),
+                    title: CommonText(s['name'] ?? '', fontSize: 13),
+                    onTap: () {
+                      textController.text = s['name'] ?? '';
+                      widget.selectedValue.value = s['name'];
+                      if (widget.onChanged != null) widget.onChanged!(s['name']);
+                      focusNode.unfocus();
+                    },
+                  )),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
   }
 }

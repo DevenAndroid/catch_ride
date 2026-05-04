@@ -90,23 +90,19 @@ class AppStrings {
   static const String ocklawahaUsaUnitedStates =
       'Ocklawaha, USA, United States';
   static const String
-  onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount =
-      'You’ll receive access details once your account has been approved.';
+  onceYourApplicationHasBeenVerifiedByTheAdministratorYouMayLogInToYourAccount = 'If approved, you’ll receive a notification to activate your account.';
   static const String orLogInWith = 'Or Log In with';
   static const String orSignUpWith = 'Or sign up with';
   static const String password = 'Password';
-  static const String passwordMustBeAtLeast6Characters =
-      'Password must be at least 6 characters';
+  static const String passwordMustBeAtLeast6Characters = 'Password must be at least 6 characters';
   static const String passwordsDoNotMatch = 'Passwords do not match';
   static const String phoneNumber = 'Phone Number';
   static const String pleaseFillInAllFields = 'Please fill in all fields';
-  static const String pleaseProvideFourReferences =
-      'Provide references who can speak to your experience, professionalism, and reliability';
+  static const String pleaseProvideFourReferences = 'Provide references who can speak to your experience, professionalism, and reliability';
   static const String professionalHorseTrainer = 'Professional Horse Trainer';
   static const String profilePhoto = 'Profile Photo';
   static const String profileSetup = 'Profile setup';
-  static const String provideFollowingDetails =
-      'Provide the following details to join our trusted community of equestrian professionals.';
+  static const String provideFollowingDetails = 'Provide the following details to join our trusted community of equestrian professionals.';
   static const String programTags = 'Program tags';
   static const String received = 'Received';
   static const String requestBooking = 'Request Booking';

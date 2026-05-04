@@ -186,9 +186,15 @@ class MenuView extends StatelessWidget {
 
   Widget _buildPromoCard() {
     return GestureDetector(
-      onTap: () => Get.to(() => const AvailabilityView()),
+      onTap: () {
+        if(_hasRole(['shipping'])){
+          Get.to(() => const ShippingTripView());
+          return;
+        }
+
+        Get.to(() => const AvailabilityView());},
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -197,14 +203,21 @@ class MenuView extends StatelessWidget {
         ),
         child: Row(
           children: [
-            SvgPicture.asset("assets/images/logo.svg", width: 40, height: 40),
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary
+
+              ),
+                child: SvgPicture.asset("assets/images/logo.svg", width: 38, height: 38,color: Colors.white,)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  CommonText('Add Your Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                  CommonText('Manage your availability blocks', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                children:  [
+                  CommonText(_hasRole(['shipping'])? "List Your Trips": 'Add Your Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                  CommonText( _hasRole(['shipping'])? "Manage and monitor your upcoming trips.": 'Manage your availability blocks', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
                 ],
               ),
             ),
