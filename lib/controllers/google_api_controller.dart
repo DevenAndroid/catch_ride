@@ -7,23 +7,24 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../main.dart';
-class GoogleApiController extends GetxController{
 
-
-
-  final RxList<Map<String, String>> googleSuggestions = <Map<String, String>>[].obs;
+class GoogleApiController extends GetxController {
+  final RxList<Map<String, String>> googleSuggestions =
+      <Map<String, String>>[].obs;
   final RxInt refreshInt = 0.obs;
 
-
-  Future<void> searchGooglePlaces(String query) async {
+  Future<void> searchGooglePlaces(String query, {String? location, int? radius}) async {
     if (query.trim().isEmpty) {
       googleSuggestions.clear();
       return;
     }
 
     try {
-      final url =
-          "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey&types=(regions)";
+      String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey";
+      
+      if (location != null && radius != null) {
+        url += "&location=$location&radius=$radius&strictbounds=true";
+      }
 
       final response = await http.get(Uri.parse(url));
       log(jsonEncode(jsonDecode(response.body)));
@@ -40,7 +41,7 @@ class GoogleApiController extends GetxController{
 
         googleSuggestions.assignAll(suggestions);
       }
-      refreshInt.value=DateTime.now().millisecondsSinceEpoch;
+      refreshInt.value = DateTime.now().millisecondsSinceEpoch;
     } catch (e) {
       debugPrint('Error searching Google Places: $e');
     }

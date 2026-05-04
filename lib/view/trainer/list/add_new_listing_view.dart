@@ -744,9 +744,9 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           final query = textEditingValue.text.trim();
                           
                           // If query is empty, show all local suggestions (on tap behavior)
-                          if (query.isEmpty) {
-                            return _locationSuggestions;
-                          }
+                          // if (query.isEmpty) {
+                          //   return _locationSuggestions;
+                          // }
 
                           final queryLower = query.toLowerCase();
                           final local = _locationSuggestions.where((String option) {

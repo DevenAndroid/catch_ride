@@ -131,8 +131,8 @@ class ShippingApplicationView extends StatelessWidget {
                     children: [
                       _buildFileUploadBox(
                         title: 'Click to upload',
-                        targetFile: controller.dotCopy,
-                        onTap: () => controller.pickFile(controller.dotCopy),
+                        targetFile: controller.insuranceFile,
+                        onTap: () => controller.pickFile(controller.insuranceFile),
                       ),
                       const SizedBox(height: 12),
                       Row(

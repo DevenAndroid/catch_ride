@@ -187,7 +187,15 @@ class GroomViewProfileController extends GetxController {
   
   String get shippingDotNumber =>
       (_activeApplicationData['businessInfo']?['dotNumber'] ?? 'N/A').toString();
-      
+
+  bool get hasDotNumber => shippingDotNumber != 'N/A' && shippingDotNumber.isNotEmpty;
+
+  bool get isInsured {
+    final media = _activeApplicationData['media'] ?? {};
+    final insurance = media['insurance'] ?? activeProfileData['insurance'] ?? activeProfileData['insurancePhoto']?? activeProfileData['dotCopy'];
+    return insurance != null && insurance.toString().isNotEmpty && insurance.toString() != 'null';
+  }
+
   bool get shippingHasCDL {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};

@@ -251,11 +251,15 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 if (_controller.disciplines.isNotEmpty)
-                                                  CommonText(
-                                                    _controller.disciplines.join("\u00A0/\u00A0") + "\u00A0Trainer",
-                                                    fontSize: 14,
-                                                    color: const Color(0xFF667085),
-                                                    fontWeight: FontWeight.w500,
+                                                  Flexible(
+                                                    child: CommonText(
+                                                      "${_controller.disciplines.join("\u00A0/\u00A0")}\u00A0Trainer",
+                                                      fontSize: 14,
+                                                      color: const Color(0xFF667085),
+                                                      fontWeight: FontWeight.w500,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
                                                   const Padding(

@@ -26,6 +26,8 @@ import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availabili
 import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
 import 'package:catch_ride/models/trip_model.dart';
 import 'package:catch_ride/view/vendor/shipping/availability/shipping_trip_card.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../shipping/trip/shipping_trip_view.dart';
 import '../menu/edit_vendor_profile_view.dart';
 
 class GroomViewProfile extends StatefulWidget {
@@ -74,6 +76,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         if (groomController.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
+        final activeService = groomController.activeServiceType.toLowerCase().replaceAll(' ', '');
         return RefreshIndicator(
           onRefresh: groomController.fetchProfile,
           child: SingleChildScrollView(
@@ -88,6 +91,32 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
+                      if(activeService=="shipping")
+                      ...[
+                        Row(
+                          children: [
+                            if (groomController.hasDotNumber) ...[
+                              BadgeChip(
+                                text: "USDOT REGISTERED",
+                                icon: Icons.verified,
+                                borderColor: const Color(0xFF2E7D32),
+                                backgroundColor: const Color(0xFFE8F5E9),
+                                textColor: const Color(0xFF2E7D32),
+                              ),
+                              if (groomController.isInsured) const SizedBox(width: 10),
+                            ],
+                            if (groomController.isInsured)
+                              BadgeChip(
+                                text: "INSURED",
+                                icon: LucideIcons.shieldCheck,
+                                borderColor: const Color(0xFF1565C0),
+                                backgroundColor: const Color(0xFFE3F2FD),
+                                textColor: const Color(0xFF1565C0),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       _buildBio(groomController),
                       const SizedBox(height: 16),
     /*                  _buildHighlights(groomController),
@@ -558,14 +587,20 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     return Column(
       children: [
         GestureDetector(
-          onTap: () => Get.to(() => const UpcomingAvailability(), arguments: {
-            'vendorId': groomController.vendorData['_id'],
-            'serviceType': groomController.activeServiceType,
-          }),
+          onTap: () {
+            if( groomController.activeServiceType.toLowerCase().contains('shipping')){
+              Get.to(() => const ShippingTripView());
+              return;
+            }
+      Get.to(() => const UpcomingAvailability(), arguments: {
+        'vendorId': groomController.vendorData['_id'],
+        'serviceType': groomController.activeServiceType,
+      });
+    },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              CommonText('Upcoming Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+            children:  [
+              CommonText( groomController.activeServiceType.toLowerCase().contains('shipping') ? "Active / Upcoming Loads": 'Upcoming Availability', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
               Icon(Icons.chevron_right, color: AppColors.textSecondary),
             ],
           ),
@@ -669,6 +704,52 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
           ),
         )),
       ],
+    );
+  }
+}
+
+
+class BadgeChip extends StatelessWidget {
+  final String text;
+  final IconData icon;
+  final Color borderColor;
+  final Color backgroundColor;
+  final Color textColor;
+
+  const BadgeChip({
+    super.key,
+    required this.text,
+    required this.icon,
+    required this.borderColor,
+    required this.backgroundColor,
+    required this.textColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: borderColor,),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              letterSpacing: 1,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
