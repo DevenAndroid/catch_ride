@@ -26,12 +26,23 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final tId = profileController.trainerId;
+      
+      // Check if we already have some horses for this trainer
+      final bool hasDataForTrainer = horseController.horses.isNotEmpty && 
+          horseController.horses.any((h) => h.trainerId == tId);
+
+      if (!hasDataForTrainer) {
+        horseController.horses.clear();
+        horseController.isLoading.value = true;
+      }
+      
       _loadHorses();
     });
     // Re-load when user profile is fetched
     ever(profileController.user, (_) => _loadHorses());
-    _scrollController.addListener(_onScroll);
   }
 
   Future<void> _loadHorses({bool refresh = true}) async {
@@ -99,7 +110,8 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
       ),
       body: SafeArea(
         child: Obx(() {
-          if ((horseController.isLoading.value || profileController.isLoading.value) &&
+          if ((horseController.isLoading.value ||
+                  profileController.isLoading.value) &&
               horseController.horses.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -135,21 +147,16 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                 final horse = displayHorses[index];
                 return _buildPostCard(
                   horse: horse,
-                  userName:
-                      (horse.trainerName != null &&
+                  userName: (horse.trainerName != null &&
                           horse.trainerName!.isNotEmpty)
-                      ? horse.trainerName!
-                      : profileController.fullName,
+                      ? horse.trainerName! : profileController.fullName,
                   userAvatar:
                       (horse.trainerAvatar != null &&
                           horse.trainerAvatar!.isNotEmpty)
                       ? horse.trainerAvatar!
                       : profileController.avatar,
                   timePosted: DateUtil.getTimeAgo(horse.createdAt),
-                  mainImageUrl: horse.images.isNotEmpty
-                      ? horse.images.first
-                      : (horse.photo ?? ''),
-
+                  mainImageUrl: horse.images.isNotEmpty ? horse.images.first : (horse.photo ?? ''),
                   imageCount: '1 / ${horse.images.length}',
                   tags: horse.listingTypes,
                   postTitle: horse.listingTitle ?? horse.name,
@@ -172,16 +179,16 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-           // const Text('🐴', style: TextStyle(fontSize: 72)),
-         //   const SizedBox(height: 20),
-         //    const CommonText(
-         //      'Your stable is empty!',
-         //      fontSize: 22,
-         //      fontWeight: FontWeight.bold,
-         //      color: AppColors.textPrimary,
-         //      textAlign: TextAlign.center,
-         //    ),
-         //    const SizedBox(height: 12),
+            // const Text('🐴', style: TextStyle(fontSize: 72)),
+            //   const SizedBox(height: 20),
+            //    const CommonText(
+            //      'Your stable is empty!',
+            //      fontSize: 22,
+            //      fontWeight: FontWeight.bold,
+            //      color: AppColors.textPrimary,
+            //      textAlign: TextAlign.center,
+            //    ),
+            //    const SizedBox(height: 12),
             const CommonText(
               'List your horses and they will appear here.',
               fontSize: 14,
@@ -233,9 +240,12 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12).copyWith(right: 0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ).copyWith(right: 0),
               child: Row(
-             //   crossAxisAlignment: CrossAxisAlignment.start,
+                //   crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonImageView(
                     url: userAvatar,
@@ -357,7 +367,11 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            const Icon(Icons.delete, size: 20, color: Colors.red),
+                            const Icon(
+                              Icons.delete,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             const SizedBox(width: 8),
                             const CommonText(
                               'Delete listing',
@@ -384,7 +398,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     fit: BoxFit.cover,
                   ),
                 ),
-             /*   Positioned(
+                /*   Positioned(
                   bottom: 12,
                   right: 12,
                   child: Container(
@@ -450,7 +464,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     color: AppColors.textPrimary,
                     height: 1.3,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   CommonText(
                     postDescription,
                     fontSize: 14,
@@ -459,20 +473,26 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 4),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: AppColors.textSecondary,
-                        size: 16,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: const Icon(
+                          Icons.location_on_outlined,
+                          color: AppColors.textSecondary,
+                          size: 16,
+                        ),
                       ),
                       const SizedBox(width: 4),
-                      CommonText(
-                        location,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                      Flexible(
+                        child: CommonText(
+                          location,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ],
                   ),

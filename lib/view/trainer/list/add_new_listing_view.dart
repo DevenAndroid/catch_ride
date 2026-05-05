@@ -701,8 +701,8 @@ class _AddNewListingViewState extends State<AddNewListingView> {
               const SizedBox(height: 16),
               CommonTextField(
                 label: 'Horse\'s Registered Name',
+
                 controller: controller.horseNameController,
-                //textCapitalization: TextCapitalization.words,
                 hintText: 'Enter name',
                 isRequired: true,
                 validator: (val) {
@@ -1489,9 +1489,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                   } else {
                     controller.selectedDisciplines.add(discipline);
                   }
-                  controller.disciplineController.text = controller
-                      .selectedDisciplines
-                      .join(', ');
+                  controller.disciplineController.text = controller.selectedDisciplines.join(', ');
                 },
                 child: _buildTagChip(discipline, isSelected),
               );

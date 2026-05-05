@@ -24,6 +24,7 @@ class HorseController extends GetxController {
     bool refresh = true,
     String? trainerId,
     String? ownerId,
+    bool? isActive,
     int limit = 10,
   }) async {
     if (refresh) {
@@ -48,6 +49,9 @@ class HorseController extends GetxController {
       }
       if (ownerId != null) {
         query['ownerId'] = ownerId;
+      }
+      if (isActive != null) {
+        query['isActive'] = isActive.toString();
       }
 
       final response = await _apiService.getRequest(
@@ -78,7 +82,7 @@ class HorseController extends GetxController {
       isMoreLoading.value = false;
     }
   }
-  
+
   Future<bool> deleteHorse(String id) async {
     try {
       final response = await _apiService.deleteRequest("${AppUrls.horses}/$id");
@@ -96,10 +100,9 @@ class HorseController extends GetxController {
 
   Future<bool> toggleHorseActive(String id, bool isActive) async {
     try {
-      final response = await _apiService.putRequest(
-        "${AppUrls.horses}/$id",
-        {"isActive": isActive},
-      );
+      final response = await _apiService.putRequest("${AppUrls.horses}/$id", {
+        "isActive": isActive,
+      });
       if (response.statusCode == 200) {
         final index = horses.indexWhere((h) => h.id == id);
         if (index != -1) {

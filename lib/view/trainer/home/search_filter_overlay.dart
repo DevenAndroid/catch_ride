@@ -22,6 +22,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   final ProfileController profileController = Get.find<ProfileController>();
   final TextEditingController _searchController = TextEditingController();
   final  googleApiController = Get.put(GoogleApiController());
+  final ScrollController _scrollController = ScrollController();
 
   String _selectedSection = 'location'; // 'location' or 'date'
   late String _selectedCategory;
@@ -103,6 +104,21 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     Get.back();
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _unfocusAndScrollTop() {
+    FocusScope.of(context).unfocus();
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
   final List<Map<String, dynamic>> _categories = [
     {'name': 'All', 'icon': Icons.grid_view_rounded, 'isSvg': false},
 
@@ -138,6 +154,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 _buildTopBar(),
                 Expanded(
                   child: SingleChildScrollView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 10,
@@ -749,7 +766,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
     return GestureDetector(
       onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
+        _unfocusAndScrollTop();
         controller.showVenue.value = name;
         controller.location.value = '';
         controller.regionsCovered.clear();
@@ -805,7 +822,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   }) {
     return GestureDetector(
       onTap: () {
-        FocusManager.instance.primaryFocus?.unfocus();
+        _unfocusAndScrollTop();
         if (isRegion) {
           controller.regionsCovered.assignAll([location]);
           controller.location.value = '';
@@ -867,6 +884,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   Widget _buildHistoryItem(String address) {
     return GestureDetector(
       onTap: () {
+        _unfocusAndScrollTop();
         // Logic to restore the correct filter type from history string
         bool isDateRange = address.contains(' - ') && address.length > 20;
         bool isSingleDate =

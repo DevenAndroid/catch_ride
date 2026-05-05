@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/view/trainer/settings/view_all_horses_view.dart';
+import 'package:catch_ride/view/trainer/settings/trainer_active_horses_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -145,7 +146,9 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(22),
-                      border:Border(bottom: BorderSide(color: AppColors.borderLight),),
+                      border: Border(
+                        bottom: BorderSide(color: AppColors.borderLight),
+                      ),
                       //Border.(color: AppColors.borderLight),
                       boxShadow: [
                         BoxShadow(
@@ -162,15 +165,20 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 180), // Reserve space for the cover image
+                            const SizedBox(
+                              height: 180,
+                            ), // Reserve space for the cover image
                             Row(
                               children: [
-                                const SizedBox(width: 130), // Space for the overlapping avatar
+                                const SizedBox(
+                                  width: 130,
+                                ), // Space for the overlapping avatar
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 16),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         CommonText(
                                           _controller.fullName.isEmpty
@@ -216,12 +224,19 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                     children: [
                                                       Expanded(
                                                         child: CommonText(
-                                                          profile.location?.isEmpty ?? true
+                                                          profile
+                                                                      .location
+                                                                      ?.isEmpty ??
+                                                                  true
                                                               ? 'N/A'
-                                                              : profile.location!,
+                                                              : profile
+                                                                    .location!,
                                                           fontSize: 14,
-                                                          fontWeight: FontWeight.w500,
-                                                          color: const Color(0xFF475467),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: const Color(
+                                                            0xFF475467,
+                                                          ),
                                                         ),
                                                       ),
                                                       // if (profile.location2?.isNotEmpty ?? false)
@@ -231,12 +246,18 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                       //   ),
                                                     ],
                                                   ),
-                                                  if (profile.location2?.isNotEmpty ?? false)
+                                                  if (profile
+                                                          .location2
+                                                          ?.isNotEmpty ??
+                                                      false)
                                                     CommonText(
                                                       profile.location2!,
                                                       fontSize: 14,
-                                                      fontWeight: FontWeight.w500,
-                                                      color: const Color(0xFF475467),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                      color: const Color(
+                                                        0xFF475467,
+                                                      ),
                                                     ),
                                                 ],
                                               ),
@@ -245,30 +266,54 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         ),
                                         const SizedBox(height: 4),
                                         Wrap(
-                                          crossAxisAlignment: WrapCrossAlignment.center,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
                                           children: [
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                if (_controller.disciplines.isNotEmpty)
+                                                if (_controller
+                                                    .disciplines
+                                                    .isNotEmpty)
                                                   Flexible(
                                                     child: CommonText(
                                                       "${_controller.disciplines.join("\u00A0/\u00A0")}\u00A0Trainer",
                                                       fontSize: 14,
-                                                      color: const Color(0xFF667085),
-                                                      fontWeight: FontWeight.w500,
+                                                      color: const Color(
+                                                        0xFF667085,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.w500,
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ),
-                                                if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
+                                                if (_controller
+                                                        .yearsExperience
+                                                        .isNotEmpty &&
+                                                    _controller
+                                                            .yearsExperience !=
+                                                        '0')
                                                   const Padding(
-                                                    padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                                    child: CommonText("·", color: Color(0xFFD0D5DD), fontWeight: FontWeight.bold),
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          horizontal: 6.0,
+                                                        ),
+                                                    child: CommonText(
+                                                      "·",
+                                                      color: Color(0xFFD0D5DD),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
                                                   ),
                                               ],
                                             ),
-                                            if (_controller.yearsExperience.isNotEmpty && _controller.yearsExperience != '0')
+                                            if (_controller
+                                                    .yearsExperience
+                                                    .isNotEmpty &&
+                                                _controller.yearsExperience !=
+                                                    '0')
                                               CommonText(
                                                 '${_controller.yearsExperience} yrs',
                                                 fontSize: 14,
@@ -280,11 +325,13 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       ],
                                     ),
                                   ),
-                                )
+                                ),
                               ],
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -311,7 +358,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                 const Color(0xFFD62976),
                                                 () {
                                                   UrlHelper.launchInstagram(
-                                                    profile.instagram!.toLowerCase(),
+                                                    profile.instagram!
+                                                        .toLowerCase(),
                                                   );
                                                 },
                                               ),
@@ -324,7 +372,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                 const Color(0xFF1877F2),
                                                 () {
                                                   UrlHelper.launchFacebook(
-                                                    profile.facebook!.toLowerCase(),
+                                                    profile.facebook!
+                                                        .toLowerCase(),
                                                   );
                                                 },
                                               ),
@@ -338,7 +387,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                 Colors.black87,
                                                 () {
                                                   UrlHelper.launchWebsite(
-                                                    profile.website!.toLowerCase(),
+                                                    profile.website!
+                                                        .toLowerCase(),
                                                   );
                                                 },
                                               ),
@@ -391,7 +441,11 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                     color: Colors.white.withValues(alpha: 0.8),
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(Icons.chevron_left, size: 24, color: Colors.black),
+                                  child: const Icon(
+                                    Icons.chevron_left,
+                                    size: 24,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                               if (isOwnProfile)
@@ -401,20 +455,38 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       Get.to(() => const EditProfileView());
                                     }
                                   },
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   child: Container(
                                     padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.8), shape: BoxShape.circle),
-                                    child: const Icon(Icons.more_vert, size: 24, color: Colors.black),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.more_vert,
+                                      size: 24,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                   itemBuilder: (context) => [
                                     const PopupMenuItem(
                                       value: 'edit',
                                       child: Row(
                                         children: [
-                                          Icon(Icons.edit_outlined, size: 20, color: AppColors.textPrimary),
+                                          Icon(
+                                            Icons.edit_outlined,
+                                            size: 20,
+                                            color: AppColors.textPrimary,
+                                          ),
                                           SizedBox(width: 12),
-                                          CommonText('Edit Profile', fontWeight: FontWeight.bold),
+                                          CommonText(
+                                            'Edit Profile',
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -426,7 +498,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
                         // Profile Avatar (Positioned Overlap)
                         Positioned(
-                          top: 165, // Positioned relative to the 180px cover (180 - 15px overlap)
+                          top:
+                              165, // Positioned relative to the 180px cover (180 - 15px overlap)
                           left: 16,
                           child: Container(
                             padding: const EdgeInsets.all(5),
@@ -485,21 +558,22 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF101828),
                                   ),
-                                  if (isOwnProfile)
-                                    TextButton(
-                                      onPressed: () => Get.to(
-                                        () => const ViewAllHorsesView(),
-                                      ),
-                                      child: const CommonText(
-                                        'View all',
-                                        color: AppColors.linkBlue,
-                                        fontWeight: FontWeight.bold,
+                                  TextButton(
+                                    onPressed: () => Get.to(
+                                      () => TrainerActiveHorsesView(
+                                        trainerId: isOwnProfile ? null : widget.trainerId,
                                       ),
                                     ),
+                                    child: const CommonText(
+                                      'View all',
+                                      color: AppColors.linkBlue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              ...horses
+                              ...horses.take(3)
                                   .map((horse) => _buildHorseCard(horse))
                                   .toList(),
                             ],
@@ -716,7 +790,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: CommonImageView(
-                url: horse.photo ?? horse.images.firstOrNull,
+                url:  horse.images.firstOrNull ?? horse.photo,
                 height: 90,
                 width: 90,
                 fit: BoxFit.cover,
@@ -729,7 +803,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    horse.name,
+                    horse.listingTitle?? horse.name,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF101828),

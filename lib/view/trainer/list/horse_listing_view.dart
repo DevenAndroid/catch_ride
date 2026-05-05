@@ -286,8 +286,7 @@ class _HorseListingViewState extends State<HorseListingView> {
         ? "1 / ${horse.images.length}"
         : "1 / 1";
     final List<String> listingTypes = horse.listingTypes;
-    final String postTitle =
-        "${horse.name.isEmpty ? 'N/A' : horse.name} - ${horse.displayDiscipline.isEmpty ? 'N/A' : horse.displayDiscipline}";
+    final String postTitle = horse.listingTitle ??horse.name??"";
     final String postDescription =
         (horse.description == null || horse.description!.isEmpty)
         ? "N/A"
@@ -519,20 +518,25 @@ class _HorseListingViewState extends State<HorseListingView> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 16,
-                      color: Color(0xFF6B7280),
-                    ),
+                     Padding(
+                       padding: const EdgeInsets.only(top:4),
+                       child: Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Color(0xFF6B7280),
+                                           ),
+                     ),
                     const SizedBox(width: 4),
-                    CommonText(
-                      location,
-                      fontSize: 13,
-                      color: const Color(0xFF6B7280),
+                    Flexible(
+                      child: CommonText(
+                        location,
+                        fontSize: 13,
+                        color: const Color(0xFF6B7280),
+                      ),
                     ),
                   ],
                 ),

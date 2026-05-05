@@ -358,7 +358,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   children: [
                     Expanded(
                       child: CommonText(
-                        '${horse!.name} - ${horse!.displayDiscipline}',
+                        '${horse!.listingTitle}',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
