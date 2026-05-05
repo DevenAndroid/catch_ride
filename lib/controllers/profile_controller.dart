@@ -34,6 +34,16 @@ class ProfileController extends GetxController {
   final RxList<Map<String, dynamic>> tagTypes = <Map<String, dynamic>>[].obs;
   final RxList<String> selectedTags = <String>[].obs;
 
+  void clearData() {
+    user.value = null;
+    viewedUser.value = null;
+    linkedTrainerProfile.value = null;
+    userData.clear();
+    trainerHorses.clear();
+    viewedUserHorses.clear();
+    _logger.i('ProfileController: Data cleared.');
+  }
+
   @override
   void onInit() {
     super.onInit();

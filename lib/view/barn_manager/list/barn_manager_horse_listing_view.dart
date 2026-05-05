@@ -51,9 +51,6 @@ class _BarnManagerHorseListingViewState
 
     if (trainerId.isNotEmpty) {
       horseController.fetchHorses(refresh: refresh, trainerId: trainerId);
-    } else if (userId.isNotEmpty) {
-      // Fallback to ownerId if trainer profile is not yet fully linked
-      horseController.fetchHorses(refresh: refresh, ownerId: userId);
     } else {
       // Ensure loading spinner stops even if no IDs found
       horseController.isLoading.value = false;
@@ -174,26 +171,20 @@ class _BarnManagerHorseListingViewState
   }
 
   Widget _buildVerticalHorseCard(HorseModel horse) {
-    // Determine the "Owner" to display in the header
-    // Preference: 1. Booked User (buyer) 2. Specific Owner 3. Trainer info on horse 4. Linked Trainer profile 5. Trainer on User record
-    final String ownerName = horse.bookedByName ??
-        horse.ownerName ??
-        horse.trainerName ??
+    // Display Trainer info in the header (Owner/BookedBy info removed per request)
+    final String trainerName = horse.trainerName ??
         profileController.linkedTrainerProfile.value?.fullName ??
         profileController.user.value?.linkedTrainer?.fullName ??
         'N/A';
 
-    final String? ownerAvatar = horse.bookedByAvatar ??
-        horse.ownerAvatar ??
-        horse.trainerAvatar ??
+    final String? trainerAvatar = horse.trainerAvatar ??
         profileController.linkedTrainerProfile.value?.displayAvatar ??
         profileController.user.value?.linkedTrainer?.avatar;
 
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
-    final String? mainImageUrl = horse.photo;
+    final String? mainImageUrl = horse.images.firstOrNull??horse.photo;
     final List<String> listingTypes = horse.listingTypes;
-    final String postTitle =
-        "${horse.name.isEmpty ? 'N/A' : horse.name} - ${horse.displayDiscipline.isEmpty ? 'N/A' : horse.displayDiscipline}";
+    final String postTitle = horse.listingTitle??horse.name;
     final String postDescription =
         (horse.description == null || horse.description!.isEmpty)
             ? "N/A"
@@ -224,7 +215,7 @@ class _BarnManagerHorseListingViewState
             child: Row(
               children: [
                 CommonImageView(
-                  url: ownerAvatar,
+                  url: trainerAvatar,
                   height: 40,
                   width: 40,
                   shape: BoxShape.circle,
@@ -238,7 +229,7 @@ class _BarnManagerHorseListingViewState
                       Row(
                         children: [
                           CommonText(
-                            ownerName,
+                            trainerName,
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,

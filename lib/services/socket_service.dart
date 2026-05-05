@@ -7,18 +7,21 @@ import 'dart:convert';
 
 class SocketService extends GetxService {
   late io.Socket socket;
+  bool _isSocketInitialized = false;
   final Logger _logger = Logger();
 
   final RxBool isConnected = false.obs;
   final List<void Function()> _refreshCallbacks = [];
+  bool get isInitialized => _isSocketInitialized;
 
   @override
   void onInit() {
-    initSocket();
+    // Socket is NOT connected here. Connection happens only after login
+    // via authenticate(), or on session restore in AuthController.
     super.onInit();
   }
 
-  void initSocket() async {
+  Future<void> initSocket() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     
     // Attempt to pull user data for handshake authentication
@@ -33,6 +36,9 @@ class SocketService extends GetxService {
     _logger.i('Initializing Socket Connection to ${AppUrls.socketUrl}');
     if (userId.isNotEmpty) {
       _logger.i('🔄 Using Handshake Authentication for User: $userName ($userId)');
+      _logger.i('🔑 Token present: ${token.isNotEmpty}');
+    } else {
+      _logger.w('⚠️ Initializing socket WITHOUT userId in SharedPreferences');
     }
 
     socket = io.io(
@@ -50,12 +56,17 @@ class SocketService extends GetxService {
             if (email.isNotEmpty) 'email': email,
             if (userId.isNotEmpty) 'userId': userId,
           })
-          .enableAutoConnect()
+          .setExtraHeaders({
+            if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+          })
+          .enableForceNew() // Crucial for account switching
+          .disableAutoConnect()
           .enableReconnection()
           .setReconnectionDelay(3000)
           .setReconnectionAttempts(50)
           .build(),
     );
+    _isSocketInitialized = true;
 
     socket.onConnect((_) {
       _logger.i('Socket Connected');
@@ -85,7 +96,18 @@ class SocketService extends GetxService {
       }
     });
 
-    connect();
+    // Only connect if the user is authenticated (userId present)
+    if (userId.isNotEmpty) {
+      _logger.i('✅ User authenticated, connecting socket...');
+      connect();
+    } else {
+      _logger.i('⏸ No user session found — socket will connect after login.');
+    }
+
+    // Notify listeners that the socket is ready (Fix LateInitializationError)
+    for (var callback in _refreshCallbacks) {
+      callback();
+    }
   }
 
   Future<void> authenticate(String userId, String userName, String? userRole, {String? avatar, String? token, String? email}) async {
@@ -117,21 +139,16 @@ class SocketService extends GetxService {
 
       // Re-initialize the socket with the new query parameters
       // This forces a new connection with the handshake data
-      if (socket.connected) {
-        socket.disconnect();
+      if (_isSocketInitialized) {
+        if (socket.connected) {
+          socket.disconnect();
+        }
+        socket.clearListeners();
+        socket.dispose();
       }
-      
-      // We clear the old socket listeners and instance
-      socket.clearListeners();
-      socket.dispose();
       
       // Re-run initialization which will now pick up the new data from SharedPreferences
-      initSocket();
-
-      // Notify listeners that the socket has been refreshed
-      for (var callback in _refreshCallbacks) {
-        callback();
-      }
+      await initSocket();
     } catch (e, stack) {
       _logger.e('Error during socket authentication upgrade: $e');
       _logger.e(stack);
@@ -144,19 +161,19 @@ class SocketService extends GetxService {
   }
 
   void connect() {
-    if (!socket.connected) {
+    if (_isSocketInitialized && !socket.connected) {
       socket.connect();
     }
   }
 
   void disconnect() {
-    if (socket.connected) {
+    if (_isSocketInitialized && socket.connected) {
       socket.disconnect();
     }
   }
 
   void emit(String event, dynamic data) {
-    if (socket.connected) {
+    if (_isSocketInitialized && socket.connected) {
       try {
         _logger.d('📤 SOCKET EMIT [$event]: ${jsonEncode(data)}');
       } catch (e) {

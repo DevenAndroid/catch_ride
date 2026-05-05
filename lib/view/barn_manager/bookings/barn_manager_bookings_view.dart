@@ -432,6 +432,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
             // Details
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -457,7 +458,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 4,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F4F6),
@@ -472,30 +473,33 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                           ),
                           const SizedBox(width: 4),
                           if (booking.status.toLowerCase() == 'pending' && _tabController.index == 1)
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary),
-                              padding: EdgeInsets.zero,
-                              onSelected: (value) {
-                                if (value == 'update') {
-                                  if (isVendorBooking) {
-                                    Get.to(() => EditBookingFormVendor(booking: booking));
-                                  } else {
-                                    Get.to(() => EditBookingFormTrainer(booking: booking));
+                            SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary),
+                                padding: EdgeInsets.zero,
+                                onSelected: (value) {
+                                  if (value == 'update') {
+                                    if (isVendorBooking) {
+                                      Get.to(() => EditBookingFormVendor(booking: booking));
+                                    } else {
+                                      Get.to(() => EditBookingFormTrainer(booking: booking));
+                                    }
                                   }
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'update',
-                                  child: Text('Update Booking'),
-                                ),
-                              ],
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'update',
+                                    child: Text('Update Booking'),
+                                  ),
+                                ],
+                              ),
                             ),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
                   CommonText(
                     isVendorBooking
                         ? (booking.type.capitalizeFirst ?? 'Service')

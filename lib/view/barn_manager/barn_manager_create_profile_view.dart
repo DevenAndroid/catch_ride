@@ -78,14 +78,14 @@ class _BarnManagerCreateProfileViewState
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        leading: IconButton(
+/*        leading: IconButton(
           icon: const Icon(
             Icons.arrow_back_ios_new,
             color: AppColors.textPrimary,
             size: 20,
           ),
           onPressed: () => Get.back(),
-        ),
+        ),*/
         title: const CommonText(
           AppStrings.profileSetup,
           color: AppColors.textPrimary,

@@ -17,12 +17,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:logger/logger.dart';
 import 'dart:io';
 
 import '../models/user_model.dart';
 import '../services/socket_service.dart';
 import '../services/notification_service.dart';
 import '../controllers/profile_controller.dart';
+import '../controllers/chat_controller.dart';
 import '../view/barn_manager/barn_manager_application_submitted_view.dart';
 import '../view/barn_manager/barn_manager_create_profile_view.dart';
 import '../view/create_account_view.dart';
@@ -32,9 +34,11 @@ import '../view/trainer/trainer_profile_setup_view.dart';
 import '../view/vendor/community_standards_view.dart';
 import '../view/vendor/vendor_application_submit_view.dart';
 import '../view/vendor/complete_profile_view.dart';
+import '../view/force_change_password_view.dart';
 
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
+  final Logger _logger = Logger();
   final box = GetStorage();
   late final gsi.GoogleSignIn _googleSignIn;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -108,6 +112,7 @@ class AuthController extends GetxController {
       final response = await _apiService.getRequest(AppUrls.profile);
       if (response.statusCode == 200) {
         final data = response.body['data'];
+        _logger.d('👤 AuthController: Profile fetched: ${data?['_id']} | ${data?['email']}');
         currentUser.value = UserModel.fromJson(data);
         
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -183,6 +188,27 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileCompleted', completed);
         await prefs.setString('status', data['status'] ?? 'active');
 
+        // ── isFirstLogin persisted flag check ──────────────────────────
+        final bool pendingFirstLogin = prefs.getBool('isFirstLogin') ?? false;
+        if (pendingFirstLogin) {
+          debugPrint('isFirstLogin flag found on reopen → ForceChangePasswordView');
+          final String savedPassword = prefs.getString('tempLoginPassword') ?? '';
+          Get.offAll(() => ForceChangePasswordView(
+            currentPassword: savedPassword,
+            onPasswordChanged: () {
+              _navigateBasedOnRole(
+                refreshedRole,
+                completed,
+                setup,
+                approve,
+                data['status'] ?? 'active',
+                data['trainerId']?.toString(),
+              );
+            },
+          ));
+          return;
+        }
+
         // ALWAYS Navigate based on the FRESH API response
         _navigateBasedOnRole(
           refreshedRole,
@@ -248,9 +274,10 @@ class AuthController extends GetxController {
         final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
         final bool isProfileSetup = user['isProfileSetup'] ?? false;
         final bool isProfileApprove = user['isProfileApprove'] ?? false;
+        final bool isFirstLogin = responseData['isFirstLogin'] ?? false;
 
         debugPrint(
-          'Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove',
+          'Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove isFirstLogin=$isFirstLogin',
         );
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -284,9 +311,37 @@ class AuthController extends GetxController {
         // Fetch full profile data to populate assignedServices and other professional details
         await updateUserMetadata();
 
+        // Refresh ProfileController for new user session
+        if (Get.isRegistered<ProfileController>()) {
+          Get.find<ProfileController>().fetchProfile();
+        }
+
         // Update notification token if service is ready
         if (Get.isRegistered<NotificationService>()) {
           Get.find<NotificationService>().updateToken();
+        }
+
+        // ── isFirstLogin check (MUST be done before any other navigation) ──
+        if (isFirstLogin) {
+          debugPrint('isFirstLogin=true → routing to ForceChangePasswordView');
+          // Persist flag + password so the screen works correctly if app is killed
+          await prefs.setBool('isFirstLogin', true);
+          final String loginPassword = passwordController.text;
+          await prefs.setString('tempLoginPassword', loginPassword);
+          Get.offAll(() => ForceChangePasswordView(
+            currentPassword: loginPassword,
+            onPasswordChanged: () {
+              _navigateBasedOnRole(
+                role,
+                isProfileCompleted,
+                isProfileSetup,
+                isProfileApprove,
+                user['status'] ?? 'active',
+                user['trainerId']?.toString(),
+              );
+            },
+          ));
+          return;
         }
 
         _navigateBasedOnRole(
@@ -459,6 +514,11 @@ class AuthController extends GetxController {
           // Fetch full profile data to populate assignedServices and other professional details
           await updateUserMetadata();
           
+          // Refresh ProfileController for new user session
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().fetchProfile();
+          }
+          
           if (Get.isRegistered<NotificationService>()) {
             Get.find<NotificationService>().updateToken();
           }
@@ -588,6 +648,11 @@ class AuthController extends GetxController {
 
           // Fetch full profile data to populate assignedServices and other professional details
           await updateUserMetadata();
+
+          // Refresh ProfileController for new user session
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().fetchProfile();
+          }
 
           if (Get.isRegistered<NotificationService>()) {
             Get.find<NotificationService>().updateToken();
@@ -1018,10 +1083,18 @@ class AuthController extends GetxController {
       // 4. Reset API state
       _apiService.clearToken();
       isLoggedIn.value = false;
+      currentUser.value = null; // Clear local user state (Fix identity bug)
 
-      // Reset controllers data if necessary
-      emailController.clear();
-      passwordController.clear();
+      // 5. Clear Controller Data (Fix stale state bug)
+      if (Get.isRegistered<ChatController>()) {
+        Get.find<ChatController>().clearData();
+      }
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().clearData();
+      }
+
+      // 6. Disconnect Socket
+      Get.find<SocketService>().disconnect();
 
       // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());

@@ -46,6 +46,17 @@ class ChatController extends GetxController {
     // });
   }
 
+  void clearData() {
+    conversations.clear();
+    currentMessages.clear();
+    activeConversationId.value = '';
+    isLoadingConversations.value = false;
+    isLoadingMessages.value = false;
+    isLoadingMore.value = false;
+    hasMoreMessages.value = true;
+    _logger.i('ChatController: Data cleared.');
+  }
+
   @override
   void onClose() {
     // _refreshTimer?.cancel();
@@ -53,6 +64,16 @@ class ChatController extends GetxController {
   }
 
   void _setupSocketListeners() {
+    if (!_socketService.isInitialized) {
+      _logger.w('ChatController: Socket not initialized yet. Skipping listener setup.');
+      return;
+    }
+
+    // 0. Remove old listeners before re-registering (Fix #2)
+    _socketService.socket.off('message:received');
+    _socketService.socket.off('message:sent');
+    _socketService.socket.off('conversation:status:updated');
+
     // 1. Message Received
     _socketService.socket.on('message:received', (data) {
       _logger.d('📩 ChatController: Received message:received event');
@@ -71,6 +92,9 @@ class ChatController extends GetxController {
     _socketService.socket.on('conversation:status:updated', (data) {
       _handleStatusUpdate(data);
     });
+
+    // 4. Refresh conversations list (Sync inbox for new user session)
+    fetchConversations(quiet: true);
   }
 
   // ─── API ACTIONS ─────────────────────────────────────────────────────────────
@@ -135,7 +159,9 @@ class ChatController extends GetxController {
       activeConversationId.value = convoId;
       isLoadingMessages.value = true;
       hasMoreMessages.value = true;
-      currentMessages.clear();
+      
+      // Clear but KEEP optimistic/temp messages (Fix #1)
+      currentMessages.removeWhere((m) => !m.id.startsWith('temp-'));
 
       // Join new room
       _socketService.emit('conversation:join', convoId);
@@ -147,9 +173,19 @@ class ChatController extends GetxController {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = response.body['data'] ?? [];
-        currentMessages.value = data
+        final List<ChatMessage> newMessages = data
             .map((json) => ChatMessage.fromJson(json))
             .toList();
+
+        // Merge API data with existing temp messages (Fix #1)
+        for (var msg in newMessages) {
+          if (!currentMessages.any((m) => m.id == msg.id)) {
+            currentMessages.add(msg);
+          }
+        }
+        
+        // Sort to ensure temp messages are at the top if they are newest
+        currentMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
         if (data.length < 30) {
           hasMoreMessages.value = false;
@@ -157,6 +193,26 @@ class ChatController extends GetxController {
 
         // Mark as read locally and on server
         _socketService.emit('message:read', {'conversationId': convoId});
+        
+        // --- LOCAL UNREAD SYNC (Fix #4) ---
+        final index = conversations.indexWhere((c) => c.conversationId == convoId);
+        if (index != -1) {
+          final old = conversations[index];
+          conversations[index] = ChatConversation(
+            id: old.id,
+            conversationId: old.conversationId,
+            otherUser: old.otherUser,
+            lastMessage: old.lastMessage,
+            date: old.date,
+            unread: 0, // Set to 0 instantly
+            status: old.status,
+            senderId: old.senderId,
+            booking: old.booking,
+            pinned: old.pinned,
+            label: old.label,
+          );
+          conversations.refresh();
+        }
       }
     } catch (e) {
       _logger.e('Error fetching messages: $e');
@@ -192,7 +248,16 @@ class ChatController extends GetxController {
         }
 
         if (olderMessages.isNotEmpty) {
-          currentMessages.addAll(olderMessages);
+          // Filter out any messages that might already exist (Fix #3)
+          final List<ChatMessage> uniqueOlder = olderMessages
+              .where((newMsg) => !currentMessages.any((oldMsg) => oldMsg.id == newMsg.id))
+              .toList();
+          
+          if (uniqueOlder.isNotEmpty) {
+            currentMessages.addAll(uniqueOlder);
+            // Re-sort to maintain order if something arrived out of sync
+            currentMessages.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+          }
         }
       }
     } catch (e) {
@@ -369,13 +434,18 @@ class ChatController extends GetxController {
     _logger.d('📥 Handling incoming message for convo: ${message.conversationId}');
     _logger.d('📱 Active conversation: ${activeConversationId.value}');
 
+    final String currentUserId = _authController.currentUser.value?.id ?? '';
+    final bool isMe = message.senderId == currentUserId && currentUserId.isNotEmpty;
+
+    _logger.d('👤 ChatController ID Check: Msg Sender: ${message.senderId} | Current User: $currentUserId | isMe: $isMe');
+    _logger.d('💬 Content: ${message.content}');
+
     if (message.conversationId == activeConversationId.value) {
       _logger.d('✅ Message matches active conversation. Inserting into list.');
       // 1. Check if ID already exists
       bool exists = currentMessages.any((m) => m.id == message.id);
 
       // 2. For the SENDER: check for matching optimistic message
-      final String currentUserId = _authController.currentUser.value?.id ?? '';
       if (!exists && message.senderId == currentUserId) {
         final optimisticIndex = currentMessages.indexWhere(
           (m) => m.id.startsWith('temp-') && m.content == message.content,
@@ -393,6 +463,28 @@ class ChatController extends GetxController {
       _socketService.emit('message:read', {
         'conversationId': message.conversationId,
       });
+
+      // --- LOCAL UNREAD SYNC (Fix #4) ---
+      // If we are currently in this chat, keep unread at 0 locally
+      final convoIndex = conversations.indexWhere((c) => c.conversationId == message.conversationId);
+      if (convoIndex != -1) {
+        final old = conversations[convoIndex];
+        conversations[convoIndex] = ChatConversation(
+          id: old.id,
+          conversationId: old.conversationId,
+          otherUser: old.otherUser,
+          lastMessage: message.content,
+          date: message.timestamp,
+          unread: 0, 
+          status: message.status ?? old.status,
+          senderId: message.senderId,
+          booking: old.booking,
+          pinned: old.pinned,
+          label: old.label,
+        );
+        conversations.refresh();
+        return; // Skip the standard increment logic below
+      }
     } else if (activeConversationId.isNotEmpty) {
       // HANDLE ID TRANSITION (e.g. from Temp/Vendor ID to Normalized User ID)
       // We check if the incoming message's participants overlap with our current active chat.
@@ -403,7 +495,7 @@ class ChatController extends GetxController {
       if (activeParts.length >= 2 && msgParts.length >= 2) {
         // If both IDs involve the same two people (even if one ID is a profile ID and other is User ID)
         // We check if the sender of this message is one of the people we are talking to.
-        final String me = _authController.currentUser.value?.id ?? '';
+        final String me = currentUserId;
         final String otherInActive = activeParts[0] == me ? activeParts[1] : activeParts[0];
         
         if (msgParts.contains(me) && msgParts.contains(message.senderId)) {
@@ -420,6 +512,49 @@ class ChatController extends GetxController {
         _socketService.emit('message:read', {
           'conversationId': message.conversationId,
         });
+      } else {
+        // --- BACKGROUND NOTIFICATION (Fix #6) ---
+        // If we are on a different screen or in a different chat, show a notification
+        if (!isMe) {
+          // Get.snackbar(
+          //   message.senderName,
+          //   message.content,
+          //   snackPosition: SnackPosition.TOP,
+          //   backgroundColor: AppColors.primary,
+          //   colorText: Colors.white,
+          //   duration: const Duration(seconds: 4),
+          //   onTap: (_) {
+          //     // Open this chat when tapped
+          //     openBookingChat(
+          //       bookingId: message.conversationId,
+          //       otherId: message.senderId,
+          //       otherName: message.senderName,
+          //       otherImage: message.senderImage ?? '',
+          //     );
+          //   },
+          // );
+        }
+      }
+    } else {
+      // --- BACKGROUND NOTIFICATION (Fix #6) ---
+      // If no active conversation is open at all, show notification
+      if (!isMe) {
+        // Get.snackbar(
+        //   message.senderName,
+        //   message.content,
+        //   snackPosition: SnackPosition.TOP,
+        //   backgroundColor: AppColors.primary,
+        //   colorText: Colors.white,
+        //   duration: const Duration(seconds: 4),
+        //   onTap: (_) {
+        //     openBookingChat(
+        //       bookingId: message.conversationId,
+        //       otherId: message.senderId,
+        //       otherName: message.senderName,
+        //       otherImage: message.senderImage ?? '',
+        //     );
+        //   },
+        // );
       }
     }
 
@@ -427,8 +562,6 @@ class ChatController extends GetxController {
     final index = conversations.indexWhere(
       (c) => c.conversationId == message.conversationId,
     );
-    
-    final bool isMe = message.senderId == (_authController.currentUser.value?.id ?? '');
 
     if (index != -1) {
       // Update existing conversation item
@@ -533,11 +666,14 @@ class ChatController extends GetxController {
   }
 
   void _handleSentConfirmation(String tempId, ChatMessage message) {
-    // 1. Update activeConversationId if the backend returned a normalized one
-    if (activeConversationId.value == message.conversationId || 
-        activeConversationId.value.contains(message.conversationId.split('-')[0]) ||
-        activeConversationId.value.contains(message.conversationId.split('-')[1])) {
-      if (activeConversationId.value != message.conversationId) {
+    // 1. Update activeConversationId if the backend returned a normalized one (Fix #3)
+    final String currentActiveId = activeConversationId.value;
+    if (currentActiveId == tempId || 
+        currentActiveId == message.conversationId || 
+        currentActiveId.contains(message.conversationId.split('-')[0]) ||
+        currentActiveId.contains(message.conversationId.split('-')[1])) {
+      
+      if (currentActiveId != message.conversationId) {
         _logger.i('🔄 Syncing activeConversationId to normalized ID: ${message.conversationId}');
         activeConversationId.value = message.conversationId;
       }

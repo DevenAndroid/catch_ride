@@ -335,10 +335,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
           if (booking.status == 'cancelled') displayStatus = 'Cancelled';
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: _buildBookingCard(booking: booking, status: displayStatus),
-          );
+          return _buildBookingCard(booking: booking, status: displayStatus);
         },
       ),
     );
@@ -451,6 +448,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
             // Details
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -476,7 +474,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
-                              vertical: 4,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F4F6),
@@ -491,10 +489,13 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                           ),
                           const SizedBox(width: 4),
                           if (booking.status.toLowerCase() == 'pending' && _tabController.index == 1)
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary),
-                              padding: EdgeInsets.zero,
-                              onSelected: (value) {
+                            SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary,),
+                                padding: EdgeInsets.zero,
+                                onSelected: (value) {
                                 if (value == 'update') {
                                   if (isVendorBooking) {
                                     Get.to(() => EditBookingFormVendor(booking: booking));
@@ -510,11 +511,11 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                                 ),
                               ],
                             ),
+                          ),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
                   CommonText(
                     isVendorBooking
                         ? (booking.type.capitalizeFirst ?? 'Service')
@@ -525,7 +526,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(
