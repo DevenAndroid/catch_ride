@@ -504,7 +504,7 @@ class AddNewListingController extends GetxController {
  
       final horseData = {
         'listingTitle': listingTitleController.text,
-        'name': horseNameController.text,
+        'registeredName': horseNameController.text,
         'age': calculatedAge.value,
         'height': heightController.text,
         'breed': breedController.text,
@@ -551,6 +551,7 @@ class AddNewListingController extends GetxController {
             )
           : await _apiService.postRequest(AppUrls.horses, horseData);
 
+      Get.back(); // Remove loading dialog
       Get.back(); // Remove loading dialog
 
       if (response.statusCode == 200 || response.statusCode == 201) {

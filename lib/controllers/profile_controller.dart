@@ -41,14 +41,15 @@ class ProfileController extends GetxController {
     fetchMetadata();
   }
 
-  Future<void> fetchTrainerHorses() async {
+  Future<void> fetchTrainerHorses({isActive}) async {
     try {
       final tId = user.value?.trainerProfileId;
       if (tId == null) return;
 
+
       final response = await _apiService.getRequest(
         AppUrls.horses,
-        query: {'trainerId': tId, 'limit': '5'},
+        query: {'trainerId': tId, 'limit': '5' ,  "isActive":isActive.toString() },
       );
 
       if (response.statusCode == 200) {
@@ -163,7 +164,7 @@ class ProfileController extends GetxController {
         if ((user.value?.role == 'trainer' ||
                 user.value?.role == 'barn_manager') &&
             user.value?.trainerProfileId != null) {
-          fetchTrainerHorses();
+          fetchTrainerHorses(isActive: true);
         }
 
         // Fetch full trainer profile if barn manager
@@ -305,7 +306,7 @@ class ProfileController extends GetxController {
         // Fetch horses for this trainer
         final horseResponse = await _apiService.getRequest(
           AppUrls.horses,
-          query: {'trainerId': trainerId, 'limit': '10'},
+          query: {'trainerId': trainerId, 'limit': '10',"isActive":"true"},
         );
 
         if (horseResponse.statusCode == 200) {

@@ -234,7 +234,7 @@ class HorseModel {
 
     return HorseModel(
       id: json['_id'],
-      name: json['name'] ?? '',
+      name: json["registeredName"] ?? json['name'] ?? '',
       breed: json['breed'] ?? '',
       age: json['age'] is num ? (json['age'] as num).toInt() : 0,
       color: json['color'],

@@ -96,15 +96,15 @@ class HorseCard extends StatelessWidget {
                             ),
                             children: [
                               TextSpan(
-                                text: horse.name.isEmpty ? 'N/A' : horse.name,
+                                text: horse.listingTitle??horse.name,
                               ),
-                              TextSpan(
-                                text: ' - $discipline',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w400,
-                                  color: Color(0xFF667085),
-                                ),
-                              ),
+                              // TextSpan(
+                              //   text: ' - $discipline',
+                              //   style: const TextStyle(
+                              //     fontWeight: FontWeight.w400,
+                              //     color: Color(0xFF667085),
+                              //   ),
+                              // ),
                             ],
                           ),
                         ),
