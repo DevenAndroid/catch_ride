@@ -71,6 +71,7 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
 
   @override
   void dispose() {
+    controller.clearActiveConversation();
     textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -78,7 +79,13 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          controller.clearActiveConversation();
+        }
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -356,7 +363,7 @@ class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
           ],
         );
       }),
-    );
+    ));
   }
 
   Widget _buildStatusBanner(

@@ -74,6 +74,7 @@ class _SingleChatViewState extends State<SingleChatView> {
 
   @override
   void dispose() {
+    controller.clearActiveConversation();
     textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -81,7 +82,13 @@ class _SingleChatViewState extends State<SingleChatView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          controller.clearActiveConversation();
+        }
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -261,6 +268,22 @@ class _SingleChatViewState extends State<SingleChatView> {
                       return const Center(child: CircularProgressIndicator());
                     }
 
+                    if (Get.find<AuthController>().currentUser.value == null) {
+                      return const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            CommonText(
+                              'Syncing profile...',
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
                     if (controller.currentMessages.isEmpty) {
                       return const Center(
                         child: CommonText(
@@ -302,6 +325,8 @@ class _SingleChatViewState extends State<SingleChatView> {
                                     .value
                                     ?.id ??
                                 '';
+                        
+                        debugPrint('DEBUG: SingleChatView Rendering - currentUserId: $currentUserId, msg.senderId: ${msg.senderId}, content: ${msg.content}');
 
                         final bool isMe = (msg.senderId == currentUserId && currentUserId.isNotEmpty) ||
                             msg.senderName == 'You';
@@ -365,7 +390,7 @@ class _SingleChatViewState extends State<SingleChatView> {
           ],
         );
       }),
-    );
+    ));
   }
 
   Widget _buildStatusBanner(

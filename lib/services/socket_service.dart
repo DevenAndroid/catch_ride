@@ -12,6 +12,7 @@ class SocketService extends GetxService {
 
   final RxBool isConnected = false.obs;
   final List<void Function()> _refreshCallbacks = [];
+  bool get isInitialized => _isSocketInitialized;
 
   @override
   void onInit() {
@@ -20,7 +21,7 @@ class SocketService extends GetxService {
     super.onInit();
   }
 
-  void initSocket() async {
+  Future<void> initSocket() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     
     // Attempt to pull user data for handshake authentication
@@ -35,6 +36,9 @@ class SocketService extends GetxService {
     _logger.i('Initializing Socket Connection to ${AppUrls.socketUrl}');
     if (userId.isNotEmpty) {
       _logger.i('🔄 Using Handshake Authentication for User: $userName ($userId)');
+      _logger.i('🔑 Token present: ${token.isNotEmpty}');
+    } else {
+      _logger.w('⚠️ Initializing socket WITHOUT userId in SharedPreferences');
     }
 
     socket = io.io(
@@ -52,6 +56,10 @@ class SocketService extends GetxService {
             if (email.isNotEmpty) 'email': email,
             if (userId.isNotEmpty) 'userId': userId,
           })
+          .setExtraHeaders({
+            if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+          })
+          .enableForceNew() // Crucial for account switching
           .disableAutoConnect()
           .enableReconnection()
           .setReconnectionDelay(3000)
@@ -95,6 +103,11 @@ class SocketService extends GetxService {
     } else {
       _logger.i('⏸ No user session found — socket will connect after login.');
     }
+
+    // Notify listeners that the socket is ready (Fix LateInitializationError)
+    for (var callback in _refreshCallbacks) {
+      callback();
+    }
   }
 
   Future<void> authenticate(String userId, String userName, String? userRole, {String? avatar, String? token, String? email}) async {
@@ -135,12 +148,7 @@ class SocketService extends GetxService {
       }
       
       // Re-run initialization which will now pick up the new data from SharedPreferences
-      initSocket();
-
-      // Notify listeners that the socket has been refreshed
-      for (var callback in _refreshCallbacks) {
-        callback();
-      }
+      await initSocket();
     } catch (e, stack) {
       _logger.e('Error during socket authentication upgrade: $e');
       _logger.e(stack);

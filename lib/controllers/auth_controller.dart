@@ -17,12 +17,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:logger/logger.dart';
 import 'dart:io';
 
 import '../models/user_model.dart';
 import '../services/socket_service.dart';
 import '../services/notification_service.dart';
 import '../controllers/profile_controller.dart';
+import '../controllers/chat_controller.dart';
 import '../view/barn_manager/barn_manager_application_submitted_view.dart';
 import '../view/barn_manager/barn_manager_create_profile_view.dart';
 import '../view/create_account_view.dart';
@@ -36,6 +38,7 @@ import '../view/force_change_password_view.dart';
 
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
+  final Logger _logger = Logger();
   final box = GetStorage();
   late final gsi.GoogleSignIn _googleSignIn;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -109,6 +112,7 @@ class AuthController extends GetxController {
       final response = await _apiService.getRequest(AppUrls.profile);
       if (response.statusCode == 200) {
         final data = response.body['data'];
+        _logger.d('👤 AuthController: Profile fetched: ${data?['_id']} | ${data?['email']}');
         currentUser.value = UserModel.fromJson(data);
         
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -306,6 +310,11 @@ class AuthController extends GetxController {
         
         // Fetch full profile data to populate assignedServices and other professional details
         await updateUserMetadata();
+
+        // Refresh ProfileController for new user session
+        if (Get.isRegistered<ProfileController>()) {
+          Get.find<ProfileController>().fetchProfile();
+        }
 
         // Update notification token if service is ready
         if (Get.isRegistered<NotificationService>()) {
@@ -505,6 +514,11 @@ class AuthController extends GetxController {
           // Fetch full profile data to populate assignedServices and other professional details
           await updateUserMetadata();
           
+          // Refresh ProfileController for new user session
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().fetchProfile();
+          }
+          
           if (Get.isRegistered<NotificationService>()) {
             Get.find<NotificationService>().updateToken();
           }
@@ -634,6 +648,11 @@ class AuthController extends GetxController {
 
           // Fetch full profile data to populate assignedServices and other professional details
           await updateUserMetadata();
+
+          // Refresh ProfileController for new user session
+          if (Get.isRegistered<ProfileController>()) {
+            Get.find<ProfileController>().fetchProfile();
+          }
 
           if (Get.isRegistered<NotificationService>()) {
             Get.find<NotificationService>().updateToken();
@@ -1064,10 +1083,18 @@ class AuthController extends GetxController {
       // 4. Reset API state
       _apiService.clearToken();
       isLoggedIn.value = false;
+      currentUser.value = null; // Clear local user state (Fix identity bug)
 
-      // Reset controllers data if necessary
-      emailController.clear();
-      passwordController.clear();
+      // 5. Clear Controller Data (Fix stale state bug)
+      if (Get.isRegistered<ChatController>()) {
+        Get.find<ChatController>().clearData();
+      }
+      if (Get.isRegistered<ProfileController>()) {
+        Get.find<ProfileController>().clearData();
+      }
+
+      // 6. Disconnect Socket
+      Get.find<SocketService>().disconnect();
 
       // Navigate to Login and wipe route history
       Get.offAll(() => const LoginView());

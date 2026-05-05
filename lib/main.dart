@@ -33,7 +33,7 @@ Future<void> main() async {
   Get.put(ApiService());
   Get.put(SocketService());
   Get.put(AuthController(), permanent: true);
-  Get.lazyPut(() => ChatController(), fenix: true);
+  Get.put(ChatController(), permanent: true);
   
   // Initialize Push Notifications
   await Get.putAsync(() => NotificationService().init());
