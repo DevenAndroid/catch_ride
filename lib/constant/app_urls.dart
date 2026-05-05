@@ -11,7 +11,7 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = false;
+  static bool isLive = true;
 
   static String get baseUrl {
     try {
@@ -19,7 +19,7 @@ class AppUrls {
      if (isLive) return 'https://api.catchrideapp.com/api';
 
     } catch (_) {}
-  return '$host/api';
+      return '$host/api';
     //  return 'http://$host:5000/api';
   }
 
