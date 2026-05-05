@@ -310,7 +310,7 @@ class CommonImageView extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      isUserImage ? Icons.person_rounded : Icons.pets_rounded,
+                       Icons.person_rounded ,
                       size: (width != null && width! < 100) ? 20 : 28,
                       color: AppColors.primary.withOpacity(0.4),
                     ),

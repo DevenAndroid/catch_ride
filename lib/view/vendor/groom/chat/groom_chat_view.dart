@@ -106,12 +106,49 @@ class GroomChatView extends StatelessWidget {
                   otherId: chat.otherUser?.id,
                 )),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                leading: CommonImageView(
-                  url: chat.otherUser?.avatar ?? '',
-                  height: 56,
-                  width: 56,
-                  shape: BoxShape.circle,
-                  isUserImage: true,
+                leading: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CommonImageView(
+                      url: chat.otherUser?.avatar ?? '',
+                      height: 56,
+                      width: 56,
+                      shape: BoxShape.circle,
+                      isUserImage: true,
+                    ),
+                    if (chat.unread > 0)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF04438), // Red for notifications
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 20,
+                            minHeight: 20,
+                          ),
+                          child: Center(
+                            child: CommonText(
+                              chat.unread > 99 ? '99+' : chat.unread.toString(),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -138,13 +175,6 @@ class GroomChatView extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (chat.unread > 0)
-                        Container(
-                          margin: const EdgeInsets.only(left: 8),
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(color: Color(0xFF13CA8B), shape: BoxShape.circle),
-                        ),
                     ],
                   ),
                 ),
