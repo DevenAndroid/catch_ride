@@ -7,6 +7,7 @@ import 'dart:convert';
 
 class SocketService extends GetxService {
   late io.Socket socket;
+  bool _isSocketInitialized = false;
   final Logger _logger = Logger();
 
   final RxBool isConnected = false.obs;
@@ -14,7 +15,8 @@ class SocketService extends GetxService {
 
   @override
   void onInit() {
-    initSocket();
+    // Socket is NOT connected here. Connection happens only after login
+    // via authenticate(), or on session restore in AuthController.
     super.onInit();
   }
 
@@ -50,12 +52,13 @@ class SocketService extends GetxService {
             if (email.isNotEmpty) 'email': email,
             if (userId.isNotEmpty) 'userId': userId,
           })
-          .enableAutoConnect()
+          .disableAutoConnect()
           .enableReconnection()
           .setReconnectionDelay(3000)
           .setReconnectionAttempts(50)
           .build(),
     );
+    _isSocketInitialized = true;
 
     socket.onConnect((_) {
       _logger.i('Socket Connected');
@@ -85,7 +88,13 @@ class SocketService extends GetxService {
       }
     });
 
-    connect();
+    // Only connect if the user is authenticated (userId present)
+    if (userId.isNotEmpty) {
+      _logger.i('✅ User authenticated, connecting socket...');
+      connect();
+    } else {
+      _logger.i('⏸ No user session found — socket will connect after login.');
+    }
   }
 
   Future<void> authenticate(String userId, String userName, String? userRole, {String? avatar, String? token, String? email}) async {
@@ -117,13 +126,13 @@ class SocketService extends GetxService {
 
       // Re-initialize the socket with the new query parameters
       // This forces a new connection with the handshake data
-      if (socket.connected) {
-        socket.disconnect();
+      if (_isSocketInitialized) {
+        if (socket.connected) {
+          socket.disconnect();
+        }
+        socket.clearListeners();
+        socket.dispose();
       }
-      
-      // We clear the old socket listeners and instance
-      socket.clearListeners();
-      socket.dispose();
       
       // Re-run initialization which will now pick up the new data from SharedPreferences
       initSocket();
@@ -144,19 +153,19 @@ class SocketService extends GetxService {
   }
 
   void connect() {
-    if (!socket.connected) {
+    if (_isSocketInitialized && !socket.connected) {
       socket.connect();
     }
   }
 
   void disconnect() {
-    if (socket.connected) {
+    if (_isSocketInitialized && socket.connected) {
       socket.disconnect();
     }
   }
 
   void emit(String event, dynamic data) {
-    if (socket.connected) {
+    if (_isSocketInitialized && socket.connected) {
       try {
         _logger.d('📤 SOCKET EMIT [$event]: ${jsonEncode(data)}');
       } catch (e) {

@@ -32,6 +32,7 @@ import '../view/trainer/trainer_profile_setup_view.dart';
 import '../view/vendor/community_standards_view.dart';
 import '../view/vendor/vendor_application_submit_view.dart';
 import '../view/vendor/complete_profile_view.dart';
+import '../view/force_change_password_view.dart';
 
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -183,6 +184,27 @@ class AuthController extends GetxController {
         await prefs.setBool('isProfileCompleted', completed);
         await prefs.setString('status', data['status'] ?? 'active');
 
+        // ── isFirstLogin persisted flag check ──────────────────────────
+        final bool pendingFirstLogin = prefs.getBool('isFirstLogin') ?? false;
+        if (pendingFirstLogin) {
+          debugPrint('isFirstLogin flag found on reopen → ForceChangePasswordView');
+          final String savedPassword = prefs.getString('tempLoginPassword') ?? '';
+          Get.offAll(() => ForceChangePasswordView(
+            currentPassword: savedPassword,
+            onPasswordChanged: () {
+              _navigateBasedOnRole(
+                refreshedRole,
+                completed,
+                setup,
+                approve,
+                data['status'] ?? 'active',
+                data['trainerId']?.toString(),
+              );
+            },
+          ));
+          return;
+        }
+
         // ALWAYS Navigate based on the FRESH API response
         _navigateBasedOnRole(
           refreshedRole,
@@ -248,9 +270,10 @@ class AuthController extends GetxController {
         final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
         final bool isProfileSetup = user['isProfileSetup'] ?? false;
         final bool isProfileApprove = user['isProfileApprove'] ?? false;
+        final bool isFirstLogin = responseData['isFirstLogin'] ?? false;
 
         debugPrint(
-          'Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove',
+          'Login: role=$role completed=$isProfileCompleted setup=$isProfileSetup approve=$isProfileApprove isFirstLogin=$isFirstLogin',
         );
 
         final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -287,6 +310,29 @@ class AuthController extends GetxController {
         // Update notification token if service is ready
         if (Get.isRegistered<NotificationService>()) {
           Get.find<NotificationService>().updateToken();
+        }
+
+        // ── isFirstLogin check (MUST be done before any other navigation) ──
+        if (isFirstLogin) {
+          debugPrint('isFirstLogin=true → routing to ForceChangePasswordView');
+          // Persist flag + password so the screen works correctly if app is killed
+          await prefs.setBool('isFirstLogin', true);
+          final String loginPassword = passwordController.text;
+          await prefs.setString('tempLoginPassword', loginPassword);
+          Get.offAll(() => ForceChangePasswordView(
+            currentPassword: loginPassword,
+            onPasswordChanged: () {
+              _navigateBasedOnRole(
+                role,
+                isProfileCompleted,
+                isProfileSetup,
+                isProfileApprove,
+                user['status'] ?? 'active',
+                user['trainerId']?.toString(),
+              );
+            },
+          ));
+          return;
         }
 
         _navigateBasedOnRole(
