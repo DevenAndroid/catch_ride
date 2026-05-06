@@ -19,9 +19,11 @@ import '../../../controllers/profile_controller.dart';
 import '../../../controllers/barn_manager/barn_manager_booking_controller.dart';
 import '../../../services/api_service.dart';
 import '../../trainer/settings/trainer_profile_view.dart';
-import '../../trainer/list/edit_horse_listing_view.dart';
+
 import '../../../controllers/chat_controller.dart';
 import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_availability_view.dart';
+
 
 class BarnManagerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
@@ -181,15 +183,21 @@ class _BarnManagerHorseDetailViewState extends State<BarnManagerHorseDetailView>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+
             if (isHorseOwner)
               ListTile(
-                leading: const Icon(Icons.edit, color: AppColors.textPrimary),
-                title: const CommonText('Edit Listing', fontSize: 16),
-                onTap: () {
+                leading: const Icon(
+                  Icons.calendar_month_outlined,
+                  color: AppColors.textPrimary,
+                ),
+                title: const CommonText('Edit Availability', fontSize: 16),
+                onTap: () async {
                   Navigator.pop(context);
-                  Get.to(() => EditHorseListingView(horse: horse!));
+                  await Get.to(() => BarnManagerAvailabilityView(horse: horse!));
+                  _fetchHorseDetails();
                 },
               ),
+
             if (!isHorseOwner)
               ListTile(
                 leading: const Icon(
