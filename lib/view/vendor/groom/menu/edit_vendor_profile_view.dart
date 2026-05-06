@@ -27,6 +27,7 @@ class EditVendorProfileView extends StatefulWidget {
 class _EditVendorProfileViewState extends State<EditVendorProfileView>
     with TickerProviderStateMixin {
   late TabController _tabController;
+  bool _isSettingUpController = false;
   final controller = Get.put(EditVendorProfileController());
 
   @override
@@ -57,7 +58,10 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   }
 
   void _handleTabChange() {
+    if (_isSettingUpController) return;
     if (!_tabController.indexIsChanging) {
+      if (controller.selectedServiceIndex.value == _tabController.index) return;
+      
       controller.saveCurrentTabToCache(_tabController.previousIndex);
       controller.selectedServiceIndex.value = _tabController.index;
       controller.populateServiceData();
@@ -68,15 +72,30 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   void _setupTabController(int length) {
     if (_tabController.length != length) {
       if (!mounted) return;
+      _isSettingUpController = true;
       final oldIndex = _tabController.index;
+      
+      // Prefer the selected index from controller if it's still valid
+      int nextIndex = controller.selectedServiceIndex.value;
+      if (nextIndex >= length) {
+        nextIndex = oldIndex < length ? oldIndex : 0;
+      }
+
       _tabController.removeListener(_handleTabChange);
       _tabController.dispose();
       _tabController = TabController(
         length: length,
         vsync: this,
-        initialIndex: oldIndex < length ? oldIndex : 0,
+        initialIndex: nextIndex,
       );
       _tabController.addListener(_handleTabChange);
+      
+      // Sync controller index if it changed due to length
+      if (controller.selectedServiceIndex.value != nextIndex) {
+        controller.selectedServiceIndex.value = nextIndex;
+      }
+      
+      _isSettingUpController = false;
       setState(() {});
     }
   }
@@ -111,7 +130,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                 child: Builder(
                   builder: (context) {
                     // Ensure index is valid for current controller
-                    final currentIndex = _tabController.index;
+                    final currentIndex = controller.selectedServiceIndex.value;
                     if (currentIndex >= _tabController.length) {
                       return const SizedBox.shrink();
                     }

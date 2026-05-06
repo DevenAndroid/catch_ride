@@ -74,7 +74,7 @@ class AddTripView extends StatelessWidget {
                 title: 'Schedule',
                 children: [
                   Obx(() => CommonTextField(
-                        label: 'Availability',
+                        label: "",
                         hintText: 'Select date range',
                         readOnly: true,
                         controller: TextEditingController(
@@ -245,11 +245,11 @@ class AddTripView extends StatelessWidget {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: CommonButton(
+                    child: Obx(() => CommonButton(
                       text: 'List',
                       onPressed: controller.listTrip,
                       isLoading: controller.isLoading.value,
-                    ),
+                    )),
                   ),
                 ],
               ),

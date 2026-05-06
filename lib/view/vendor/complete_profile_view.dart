@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/auth_controller.dart';
 import 'braiding/profile_create/braiding_application_view.dart';
 import 'braiding/profile_create/braiding_details_view.dart';
 
@@ -21,6 +22,7 @@ class CompleteProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(GroomCompleteProfileController());
+    final user = Get.put(AuthController());
 
     return GestureDetector(
       onTap: () {
@@ -47,30 +49,35 @@ class CompleteProfileView extends StatelessWidget {
             child: Container(color: AppColors.border, height: 1.0),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Form(
-              key: controller.formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildBasicDetailsSection(controller),
-                  const SizedBox(height: 20),
-                  _buildPaymentMethodsSection(controller),
-                  const SizedBox(height: 20),
-                  _buildHighlightsSection(controller),
-                  const SizedBox(height: 20),
-                  _buildNotesSection(controller),
-                  const SizedBox(height: 32),
-                  Obx(() => CommonButton(
-                    text: 'Next',
-                    isLoading: controller.isLoading.value,
-                    backgroundColor: const Color(0xFF001144),
-                    onPressed: controller.submit,
-                  )),
-                  const SizedBox(height: 40),
-                ],
+        body: RefreshIndicator(
+          onRefresh: ()async{
+            user.updateUserMetadata();
+          },
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: Form(
+                key: controller.formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBasicDetailsSection(controller),
+                    const SizedBox(height: 20),
+                    _buildPaymentMethodsSection(controller),
+                    const SizedBox(height: 20),
+                    _buildHighlightsSection(controller),
+                    const SizedBox(height: 20),
+                    _buildNotesSection(controller),
+                    const SizedBox(height: 32),
+                    Obx(() => CommonButton(
+                      text: 'Next',
+                      isLoading: controller.isLoading.value,
+                      backgroundColor: const Color(0xFF001144),
+                      onPressed: controller.submit,
+                    )),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
