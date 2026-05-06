@@ -166,10 +166,19 @@ class UserModel {
       }
 
     }
-    if(parsedHighlights.isEmpty){
-      parsedHighlights.add(proData?["servicesData"][parsedServices.firstOrNull]["highlights"]??"");
-    }
+    if (parsedHighlights.isEmpty) {
+      final services = proData?["servicesData"];
 
+      if (services != null && parsedServices.isNotEmpty) {
+        final key = parsedServices.first;
+
+        final highlights = services[key]?["highlights"];
+
+        if (highlights != null) {
+          parsedHighlights.add(highlights);
+        }
+      }
+    }
 
     return UserModel(
       id: json['_id'] ?? json['id'],
@@ -220,7 +229,12 @@ class UserModel {
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
       notesForTrainer: json['notesForTrainer'] ?? (proData != null ? proData['notesForTrainer'] : null),
-      businessName: json['businessName'] ?? (proData != null ?  proData["servicesData"][parsedServices.firstOrNull]["businessName"]:proData?['businessName']  ??""),
+      businessName: json['businessName'] ??
+          (proData?['servicesData'] != null &&
+              parsedServices.isNotEmpty &&
+              proData!['servicesData'][parsedServices.firstOrNull] != null
+              ? proData['servicesData'][parsedServices.firstOrNull]['businessName']
+              : proData?['businessName'] ?? ""),
       paymentMethods: parsedPaymentMethods,
       otherPaymentDetails: json['otherPaymentDetails'] ?? (proData != null ? proData['otherPaymentDetails'] : null),
       highlights: parsedHighlights,
