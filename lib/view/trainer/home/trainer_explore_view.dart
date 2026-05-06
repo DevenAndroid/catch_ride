@@ -371,7 +371,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                  isScrollControlled: true,
                  backgroundColor: Colors.transparent,
                  builder: (context) => SizedBox(
-                   height: MediaQuery.of(context).size.height * 0.85,
+                   height: MediaQuery.of(context).size.height * 0.92,
                    child: isServices ? const ServicesFilterBottomSheet() : const FilterBottomSheet()
                  ),
                );

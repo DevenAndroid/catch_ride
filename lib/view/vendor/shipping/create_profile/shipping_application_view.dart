@@ -105,21 +105,29 @@ class ShippingApplicationView extends StatelessWidget {
                     'Operation Type',
                     isRequired: false,
                     children: [
-                      Obx(() => Column(
-                        children: [
-                          _buildSelectionTile(
-                            title: 'Independent Small Operation',
-                            isSelected: controller.operationType.value == 'Independent Small Operation',
-                            onTap: () => controller.operationType.value = 'Independent Small Operation',
-                          ),
-                          const SizedBox(height: 12),
-                          _buildSelectionTile(
-                            title: 'Established Shipping Company',
-                            isSelected: controller.operationType.value == 'Established Shipping Company',
-                            onTap: () => controller.operationType.value = 'Established Shipping Company',
-                          ),
-                        ],
-                      )),
+                      Obx(() {
+                        if (controller.operationTypeOptions.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        }
+                        
+                        return Column(
+                          children: controller.operationTypeOptions.map((opt) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildSelectionTile(
+                                title: opt,
+                                isSelected: controller.operationType.value == opt,
+                                onTap: () => controller.operationType.value = opt,
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }),
                     ],
                   ),
                   const SizedBox(height: 24),
