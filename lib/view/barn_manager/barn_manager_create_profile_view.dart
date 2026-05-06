@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -32,6 +33,7 @@ class _BarnManagerCreateProfileViewState
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _barnNameController = TextEditingController();
   final TextEditingController _yearsInIndustryController =
       TextEditingController();
 
@@ -40,10 +42,42 @@ class _BarnManagerCreateProfileViewState
   final ImagePicker _picker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-fill if data is already there
+    _prefillData();
+    // Listen for future updates (e.g. if API is still loading)
+    ever(_profileController.user, (_) {
+      if (mounted) {
+        _prefillData();
+        setState(() {});
+      }
+    });
+  }
+
+  void _prefillData() {
+    final user = _profileController.user.value;
+    if (user != null) {
+      _fullNameController.text = user.fullName;
+      // Remove +1 prefix if it exists to match the field's behavior
+      String phone = user.phone??"";
+      if (phone.startsWith('+1')) {
+        phone = phone.substring(2);
+      }
+      log("objectedefdecdcd::${user.barnName}");
+      _phoneController.text = phone;
+      _bioController.text = user.bio ?? "";
+      _barnNameController.text = user.barnName ?? "";
+      _yearsInIndustryController.text = user.yearsInIndustry ?? "";
+    }
+  }
+
+  @override
   void dispose() {
     _fullNameController.dispose();
     _phoneController.dispose();
     _bioController.dispose();
+    _barnNameController.dispose();
     _yearsInIndustryController.dispose();
     super.dispose();
   }
@@ -137,7 +171,7 @@ class _BarnManagerCreateProfileViewState
                             onTap: () => _pickImage(true),
                             child: Stack(
                               children: [
-                                Container(
+                                Obx(() => Container(
                                   height: 100,
                                   width: 100,
                                   decoration: BoxDecoration(
@@ -154,12 +188,24 @@ class _BarnManagerCreateProfileViewState
                                             fit: BoxFit.cover,
                                           ),
                                         )
-                                      : const Icon(
-                                          Icons.person_outline,
-                                          size: 50,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                ),
+                                      : _profileController.avatar.isNotEmpty
+                                          ? ClipOval(
+                                              child: Image.network(
+                                                _profileController.avatar,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) => const Icon(
+                                                  Icons.person_outline,
+                                                  size: 50,
+                                                  color: AppColors.textSecondary,
+                                                ),
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.person_outline,
+                                              size: 50,
+                                              color: AppColors.textSecondary,
+                                            ),
+                                )),
                                 Positioned(
                                   bottom: 0,
                                   right: 0,
@@ -202,8 +248,8 @@ class _BarnManagerCreateProfileViewState
                         const SizedBox(height: 12),
                         GestureDetector(
                           onTap: () => _pickImage(false),
-                          child: CustomPaint(
-                            painter: _bannerImage == null
+                          child: Obx(() => CustomPaint(
+                            painter: (_bannerImage == null && _profileController.coverImage.isEmpty)
                                 ? DashPainter(color: AppColors.border)
                                 : null,
                             child: Container(
@@ -221,15 +267,30 @@ class _BarnManagerCreateProfileViewState
                                         fit: BoxFit.cover,
                                       ),
                                     )
-                                  : const Center(
-                                      child: Icon(
-                                        Icons.add,
-                                        color: AppColors.textSecondary,
-                                        size: 30,
-                                      ),
-                                    ),
+                                  : _profileController.coverImage.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: Image.network(
+                                            _profileController.coverImage,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => const Center(
+                                              child: Icon(
+                                                Icons.add,
+                                                color: AppColors.textSecondary,
+                                                size: 30,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Icon(
+                                            Icons.add,
+                                            color: AppColors.textSecondary,
+                                            size: 30,
+                                          ),
+                                        ),
                             ),
-                          ),
+                          )),
                         ),
                         const SizedBox(height: 24),
                         CommonTextField(
@@ -323,6 +384,16 @@ class _BarnManagerCreateProfileViewState
                           label: 'About',
                           hintText: 'Write a short bio',
                           maxLines: 4,
+                        ),
+                        const SizedBox(height: 16),
+                        CommonTextField(
+                          controller: _barnNameController,
+                          label: 'Barn Name',
+                          hintText: 'Enter Barn Name',
+                          isRequired: true,
+                          validator: RequiredValidator(
+                            errorText: 'Please enter your Barn Name',
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Column(
@@ -425,6 +496,7 @@ class _BarnManagerCreateProfileViewState
                         'lastName': lastName,
                         'phone': _phoneController.text.trim(),
                         'bio': _bioController.text.trim(),
+                        'barnName': _barnNameController.text.trim(),
                         'yearsInIndustry': _yearsInIndustryController.text
                             .trim(),
                         'isProfileCompleted': true,
