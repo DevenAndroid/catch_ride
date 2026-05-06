@@ -28,7 +28,8 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> travelScope = <String>[].obs;
   final RxList<String> rigTypes = <String>[].obs;
   final RxList<String> regionsCovered = <String>[].obs;
-  final RxString operationType = 'Independent Small Operation'.obs;
+  final RxString operationType = ''.obs;
+  final RxList<String> operationOptions = <String>[].obs;
 
   // ── Content ────────────────────────────────────────────────────────────────
   final equipmentSummaryController = TextEditingController();
@@ -47,6 +48,8 @@ class ShippingDetailsController extends GetxController {
   final Rxn<File> insuranceFile = Rxn<File>();
   final RxnString currentCdlUrl = RxnString();
   final RxnString currentInsuranceUrl = RxnString();
+  final RxnString currentCdlFileName = RxnString();
+  final RxnString currentInsuranceFileName = RxnString();
   final insuranceExpiryController = TextEditingController();
   final cancellationPolicy = RxnString();
 
@@ -146,6 +149,8 @@ class ShippingDetailsController extends GetxController {
             rigOptions.assignAll(values);
           } else if (name == 'Regions Covered') {
             regionOptions.assignAll(values);
+          } else if (name == 'Operation Type') {
+            operationOptions.assignAll(values);
           }
         }
       }
@@ -245,11 +250,15 @@ class ShippingDetailsController extends GetxController {
           // Documentation URLs from application media
           final appMedia = applicationData['media'] ?? {};
           currentCdlUrl.value =
-              profileData['cdlFile'] ?? appMedia['licensePhoto'];
+              profileData['cdlFile'] ?? applicationData['cdlDoc'] ?? appMedia['licensePhoto'] ?? appMedia['cdlDoc'];
+          currentCdlFileName.value = profileData['cdlFileName'] ?? applicationData['cdlDocName'] ?? appMedia['cdlDocName'] ?? 'CDL Document';
+          
           currentInsuranceUrl.value =
               profileData['insuranceFile'] ??
+              applicationData['insuranceFile'] ??
               appMedia['insurance'] ??
               appMedia['dotCopy'];
+          currentInsuranceFileName.value = profileData['insuranceFileName'] ?? applicationData['insuranceFileName'] ?? appMedia['insuranceFileName'] ?? 'Insurance Document';
 
           insuranceExpiryController.text = profileData['insuranceExpiry'] ?? '';
           final savedPolicy = profileData['cancellationPolicy'];
@@ -275,10 +284,16 @@ class ShippingDetailsController extends GetxController {
   Future<void> pickFile(Rxn<File> target) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'png'],
+      allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg'],
     );
     if (result != null && result.files.single.path != null) {
       target.value = File(result.files.single.path!);
+      final name = result.files.single.name;
+      if (target == insuranceFile) {
+        currentInsuranceFileName.value = name;
+      } else if (target == cdlFile) {
+        currentCdlFileName.value = name;
+      }
     }
   }
 

@@ -115,10 +115,15 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                               ),
                           ],
                         ),
+                        const SizedBox(height: 18),
+                      ],
+                      if(groomController.bioDisplay.isNotEmpty )
+                      ...[
+                        _buildBio(groomController),
                         const SizedBox(height: 16),
                       ],
-                      _buildBio(groomController),
-                      const SizedBox(height: 16),
+
+
     /*                  _buildHighlights(groomController),
                       const SizedBox(height: 16),*/
                       _buildSocials(groomController),
@@ -256,14 +261,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
   }
 
   Widget _buildBio(GroomViewProfileController groomController) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: CommonText(
-        groomController.bioDisplay,
-        fontSize: AppTextSizes.size14,
-        color: AppColors.textSecondary,
-        height: 1.5,
-      ),
+    return CommonText(
+      groomController.bioDisplay,
+      fontSize: AppTextSizes.size14,
+      color: AppColors.textSecondary,
+      height: 1.5,
     );
   }
 
@@ -290,7 +292,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -298,7 +300,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         ),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 18),
+            Icon(icon, color: color, size: 14),
             const SizedBox(width: 8),
             CommonText(label, fontSize: AppTextSizes.size14, color: color, fontWeight: FontWeight.w600),
           ],

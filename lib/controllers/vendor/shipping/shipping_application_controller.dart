@@ -192,7 +192,7 @@ class ShippingApplicationController extends GetxController {
         },
         'businessInfo': {
           'legalName': legalNameController.text,
-          'dotNumber': dotNumberController.text,
+          'usdotNumber': dotNumberController.text,
         },
         'experience': experience.value,
         'operationType': operationType.value,

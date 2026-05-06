@@ -21,6 +21,7 @@ import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
 import '../../farrier/profile/add_operations_and_compliance_view.dart';
+import '../../shipping/create_profile/shipping_details_view.dart';
 import '../../shipping/trip/shipping_trip_view.dart';
 import '../availability/availability_view.dart';
 
@@ -187,6 +188,9 @@ class MenuView extends StatelessWidget {
   Widget _buildPromoCard() {
     return GestureDetector(
       onTap: () {
+        Get.to(ShippingDetailsView());
+        return;
+
         if(_hasRole(['shipping'])){
           Get.to(() => const ShippingTripView());
           return;
