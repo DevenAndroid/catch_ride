@@ -11,6 +11,7 @@ import '../../../../widgets/common_button.dart';
 import '../../../../widgets/common_image_view.dart';
 import '../../../../widgets/common_dropdown.dart';
 import '../../../../widgets/common_suggestion_field.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ShippingEditProfileTab extends StatelessWidget {
   final EditVendorProfileController controller;
@@ -43,6 +44,8 @@ class ShippingEditProfileTab extends StatelessWidget {
         _buildServicesOfferedSection(),
         const SizedBox(height: 20),
         _buildDriverCredentialsSection(),
+        const SizedBox(height: 20),
+        _buildInsuranceSection(),
         const SizedBox(height: 20),
         _buildHorseCapacitySection(),
         const SizedBox(height: 20),
@@ -142,6 +145,7 @@ class ShippingEditProfileTab extends StatelessWidget {
             hintText: 'Enter USDOT Number',
             isRequired: true,
             controller: controller.dotNumberController,
+            keyboardType: TextInputType.number,
           ),
         ],
       ),
@@ -167,20 +171,31 @@ class ShippingEditProfileTab extends StatelessWidget {
     return _buildCard(
       title: 'Operation Type',
       child: Obx(() {
+        if (controller.shippingOperationOptions.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Set default if not set
+        if ((controller.shippingOperationType.value == null ||
+                controller.shippingOperationType.value!.isEmpty) &&
+            controller.shippingOperationOptions.isNotEmpty) {
+          Future.delayed(Duration.zero, () {
+            controller.shippingOperationType.value =
+                controller.shippingOperationOptions.first;
+          });
+        }
+
         return Column(
-          children: [
-            _buildSelectionTile(
-              title: 'Independent / Small Operation',
-              isSelected: controller.shippingOperationType.value == 'Independent / Small Operation',
-              onTap: () => controller.shippingOperationType.value = 'Independent / Small Operation',
-            ),
-            const SizedBox(height: 12),
-            _buildSelectionTile(
-              title: 'Established Shipping Company',
-              isSelected: controller.shippingOperationType.value == 'Established Shipping Company',
-              onTap: () => controller.shippingOperationType.value = 'Established Shipping Company',
-            ),
-          ],
+          children: controller.shippingOperationOptions.map((opt) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildSelectionTile(
+                title: opt,
+                isSelected: controller.shippingOperationType.value == opt,
+                onTap: () => controller.shippingOperationType.value = opt,
+              ),
+            );
+          }).toList(),
         );
       }),
     );
@@ -195,10 +210,13 @@ class ShippingEditProfileTab extends StatelessWidget {
           const CommonText('Select range you typically cover', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           Obx(() {
+            final options = controller.shippingTravelScopeOptions.isNotEmpty
+                ? controller.shippingTravelScopeOptions
+                : ['Local', 'Nationwide'];
             return Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: ['Local', 'Nationwide'].map((opt) {
+              children: options.map((opt) {
                 final isSelected = controller.shippingTravelScope.contains(opt);
                 return GestureDetector(
                   onTap: () {
@@ -385,50 +403,170 @@ class ShippingEditProfileTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          GestureDetector(
-            onTap: controller.pickShippingCDLFile,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderLight, style: BorderStyle.none),
-              ),
-              child: Column(
-                children: [
-                  Obx(() {
-                    final hasFile = controller.shippingCDLFile.value != null || (controller.shippingExistingCDLUrl.value != null && controller.shippingExistingCDLUrl.value!.isNotEmpty);
-                    return Icon(
-                      hasFile ? Icons.check_circle : Icons.cloud_upload_outlined,
-                      color: hasFile ? Colors.green : AppColors.textSecondary,
-                      size: 32,
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  Obx(() {
-                    String text = 'Click to upload copy of license';
-                    if (controller.shippingCDLFile.value != null) {
-                      text = controller.shippingCDLFile.value!.path.split('/').last;
-                    } else if (controller.shippingExistingCDLUrl.value != null && controller.shippingExistingCDLUrl.value!.isNotEmpty) {
-                      text = 'License copy uploaded';
-                    }
-                    return CommonText(
-                      text,
-                      color: AppColors.linkBlue,
-                      fontSize: AppTextSizes.size14,
-                      fontWeight: FontWeight.bold,
-                    );
-                  }),
-                  const SizedBox(height: 4),
-                  const CommonText('PDF, JPG, PNG (max 10MB)', fontSize: 10, color: AppColors.textSecondary),
-                ],
-              ),
-            ),
+          Obx(() {
+            final hasLocalFile = controller.shippingCDLFile.value != null;
+            final hasRemoteFile = controller.shippingExistingCDLUrl.value != null && 
+                                 controller.shippingExistingCDLUrl.value!.isNotEmpty;
+
+            if (hasLocalFile || hasRemoteFile) {
+              final fileName = hasLocalFile 
+                  ? controller.shippingCDLFile.value!.path.split('/').last 
+                  : (controller.shippingCdlFileName.value ?? 'CDL Document');
+
+              return _buildDocumentTile(
+                fileName: fileName,
+                url: hasRemoteFile && !hasLocalFile ? controller.shippingExistingCDLUrl.value : null,
+                onRemove: () {
+                  controller.shippingCDLFile.value = null;
+                  controller.shippingExistingCDLUrl.value = null;
+                  controller.shippingCdlFileName.value = null;
+                },
+              );
+            }
+
+            return _buildUploadTrigger(
+              title: 'Click to upload copy of license',
+              onTap: controller.pickShippingCDLFile,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsuranceSection() {
+    return _buildCard(
+      title: 'Insurance & Documentation',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            'Active commercial insurance is required. Documentation may be reviewed as part of the approval process.',
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 16),
+          Obx(() {
+            final hasLocalFile = controller.shippingInsuranceFile.value != null;
+            final hasRemoteFile = controller.shippingExistingInsuranceUrl.value != null && 
+                                 controller.shippingExistingInsuranceUrl.value!.isNotEmpty;
+
+            if (hasLocalFile || hasRemoteFile) {
+              final fileName = hasLocalFile 
+                  ? controller.shippingInsuranceFile.value!.path.split('/').last 
+                  : (controller.shippingInsuranceFileName.value ?? 'Insurance Document');
+
+              return _buildDocumentTile(
+                fileName: fileName,
+                url: hasRemoteFile && !hasLocalFile ? controller.shippingExistingInsuranceUrl.value : null,
+                onRemove: () {
+                  controller.shippingInsuranceFile.value = null;
+                  controller.shippingExistingInsuranceUrl.value = null;
+                  controller.shippingInsuranceFileName.value = null;
+                },
+              );
+            }
+
+            return _buildUploadTrigger(
+              title: 'Click to upload insurance document',
+              onTap: controller.pickShippingInsuranceFile,
+            );
+          }),
+          const SizedBox(height: 16),
+          CommonTextField(
+            label: 'Expiration date',
+            isRequired: true,
+            controller: controller.insuranceExpiryController,
+            hintText: 'Select Date...',
+            readOnly: true,
+            onTap: () async {
+              final DateTime? picked = await showDatePicker(
+                context: Get.context!,
+                initialDate: DateTime.now().add(const Duration(days: 365)),
+                firstDate: DateTime.now(),
+                lastDate: DateTime(2101),
+              );
+              if (picked != null) {
+                controller.insuranceExpiryController.text =
+                    "${picked.day} ${_monthName(picked.month)} ${picked.year}";
+              }
+            },
+            prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18),
           ),
         ],
       ),
     );
+  }
+
+  String _monthName(int month) {
+    const list = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return list[month - 1];
+  }
+
+  Widget _buildDocumentTile({required String fileName, String? url, required VoidCallback onRemove}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.description, color: AppColors.primary, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonText(fileName, fontSize: 14, fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis),
+                if (url != null)
+                  GestureDetector(
+                    onTap: () => _launchURL(url),
+                    child: const CommonText('View Document', fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+                  ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
+            onPressed: onRemove,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadTrigger({required String title, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight, style: BorderStyle.none),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.cloud_upload_outlined, color: AppColors.textSecondary, size: 32),
+            const SizedBox(height: 8),
+            CommonText(title, color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+            const SizedBox(height: 4),
+            const CommonText('PDF, JPG, PNG (max 10MB)', fontSize: 10, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      Get.snackbar('Error', 'Could not launch URL');
+    }
   }
 
   Widget _buildHorseCapacitySection() {

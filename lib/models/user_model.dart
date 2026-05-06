@@ -164,7 +164,12 @@ class UserModel {
       for (var h in proData['highlights']) {
         if (h is String) parsedHighlights.add(h);
       }
+
     }
+    if(parsedHighlights.isEmpty){
+      parsedHighlights.add(proData?["servicesData"][parsedServices.firstOrNull]["highlights"]??"");
+    }
+
 
     return UserModel(
       id: json['_id'] ?? json['id'],
@@ -215,7 +220,7 @@ class UserModel {
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
       notesForTrainer: json['notesForTrainer'] ?? (proData != null ? proData['notesForTrainer'] : null),
-      businessName: json['businessName'] ?? (proData != null ? proData['businessName'] : null),
+      businessName: json['businessName'] ?? (proData != null ?  proData["servicesData"][parsedServices.firstOrNull]["businessName"]:proData?['businessName']  ??""),
       paymentMethods: parsedPaymentMethods,
       otherPaymentDetails: json['otherPaymentDetails'] ?? (proData != null ? proData['otherPaymentDetails'] : null),
       highlights: parsedHighlights,

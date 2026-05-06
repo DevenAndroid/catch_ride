@@ -192,6 +192,11 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> shippingRigPhotos = <String>[].obs;
   final RxList<File> newShippingRigPhotos = <File>[].obs;
   final RxnString shippingExistingCDLUrl = RxnString();
+  final RxnString shippingExistingInsuranceUrl = RxnString();
+  final RxnString shippingInsuranceFileName = RxnString();
+  final RxnString shippingCdlFileName = RxnString();
+  final Rxn<File> shippingInsuranceFile = Rxn<File>();
+  final insuranceExpiryController = TextEditingController();
 
   // Shipping Dynamic Options
   final RxList<String> shippingOperationOptions = <String>[].obs;
@@ -205,15 +210,75 @@ class EditVendorProfileController extends GetxController {
   final RxMap rawServicesData = {}.obs;
   final RxMap draftServicesData = {}.obs;
   final RxMap originalServicesData = {}.obs;
+  final RxMap vendorRootData = {}.obs;
+
+  // Static cache to persist data across controller recreations
+  static Map? _cachedVendorRootData;
+  static List<String>? _cachedDisciplineOptions;
+  static List<String>? _cachedHorseLevelOptions;
+  static List<String>? _cachedRegionOptions;
+  static List<String>? _cachedShippingOperationOptions;
+  static List<String>? _cachedShippingTravelScopeOptions;
+  static List<String>? _cachedShippingRigTypeOptions;
+  static List<String>? _cachedShippingStallOptions;
+  static List<String>? _cachedShippingServicesOptions;
+  static List? _cachedAssignedServices;
+  static Map<String, dynamic>? _cachedRawServicesData;
+  static Map<String, dynamic>? _cachedOriginalServicesData;
+  static Map<String, dynamic>? _cachedDraftServicesData;
 
   final ImagePicker _picker = ImagePicker();
 
   @override
   void onInit() {
     super.onInit();
+    
+    // Restore from cache if available
+    if (_cachedVendorRootData != null) vendorRootData.assignAll(_cachedVendorRootData!);
+    if (_cachedDisciplineOptions != null) disciplineOptions.assignAll(_cachedDisciplineOptions!);
+    if (_cachedHorseLevelOptions != null) horseLevelOptions.assignAll(_cachedHorseLevelOptions!);
+    if (_cachedRegionOptions != null) regionOptions.assignAll(_cachedRegionOptions!);
+    if (_cachedShippingOperationOptions != null) shippingOperationOptions.assignAll(_cachedShippingOperationOptions!);
+    if (_cachedShippingTravelScopeOptions != null) shippingTravelScopeOptions.assignAll(_cachedShippingTravelScopeOptions!);
+    if (_cachedShippingRigTypeOptions != null) shippingRigTypeOptions.assignAll(_cachedShippingRigTypeOptions!);
+    if (_cachedShippingStallOptions != null) shippingStallOptions.assignAll(_cachedShippingStallOptions!);
+    if (_cachedShippingServicesOptions != null) shippingServicesOptions.assignAll(_cachedShippingServicesOptions!);
+    if (_cachedAssignedServices != null) assignedServices.assignAll(_cachedAssignedServices!);
+    if (_cachedRawServicesData != null) rawServicesData.assignAll(_cachedRawServicesData!);
+    if (_cachedOriginalServicesData != null) originalServicesData.assignAll(_cachedOriginalServicesData!);
+    if (_cachedDraftServicesData != null) draftServicesData.assignAll(_cachedDraftServicesData!);
+
+    // Populate UI fields immediately from cache
+    _populateAllFieldsFromCache();
+
     fetchProfileData();
     fetchDynamicTags();
     fetchStates();
+  }
+
+  void _populateAllFieldsFromCache() {
+    if (vendorRootData.isEmpty) return;
+
+    final data = vendorRootData;
+    fullNameController.text = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+    phoneController.text = data['phone'] ?? '';
+    businessNameController.text = data['businessName'] ?? '';
+    aboutController.text = data['bio'] ?? '';
+    notesForTrainerController.text = data['notesForTrainer'] ?? '';
+    profilePhotoUrl.value = data['profilePhoto'] ?? '';
+    coverImageUrl.value = data['coverImage'] ?? '';
+    otherPaymentController.text = data["otherPaymentDetails"] ?? "";
+    selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
+
+    final List<String> loadedHighlights = List<String>.from(data['highlights'] ?? []);
+    if (loadedHighlights.isEmpty) {
+      highlightControllers.assignAll([TextEditingController()]);
+    } else {
+      highlightControllers.assignAll(loadedHighlights.map((h) => TextEditingController(text: h)).toList());
+    }
+
+    _initializeAllServicesFields();
+    populateServiceData();
   }
 
   Future<void> fetchStates() async {
@@ -304,12 +369,16 @@ class EditVendorProfileController extends GetxController {
     }
   }
 
-  Future<void> fetchProfileData() async {
-    isLoading.value = true;
+  Future<void> fetchProfileData({bool forceLoading = false}) async {
+    if (vendorRootData.isEmpty || forceLoading) {
+      isLoading.value = true;
+    }
     try {
       final response = await _apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final data = response.body['data'];
+        _cachedVendorRootData = data; // Update cache
+        vendorRootData.assignAll(data);
         
         // Basic Details
         fullNameController.text = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
@@ -332,13 +401,34 @@ class EditVendorProfileController extends GetxController {
 
         // Service level data
         final List services = data['assignedServices'] ?? [];
-        assignedServices.assignAll(services);
+        _cachedAssignedServices = services;
+        
+        // Only update if changed to avoid unnecessary tab resets
+        if (assignedServices.length != services.length) {
+           assignedServices.assignAll(services);
+        } else {
+           // If same length, update contents but don't trigger ever() if possible
+           // (assignedServices is RxList, assignAll always triggers. 
+           // Let's use a more surgical update if needed, but for now just check if they are identical)
+           bool identical = true;
+           for(int i=0; i<services.length; i++) {
+             if (assignedServices[i]['_id'] != services[i]['_id']) {
+               identical = false;
+               break;
+             }
+           }
+           if (!identical) assignedServices.assignAll(services);
+        }
         
         // Cache raw services data to preserve unmanaged fields (like rates)
         final Map<String, dynamic> sData = data['servicesData'] ?? {};
+        _cachedRawServicesData = sData;
+        _cachedOriginalServicesData = jsonDecode(jsonEncode(sData));
+        _cachedDraftServicesData = jsonDecode(jsonEncode(sData));
+        
         rawServicesData.assignAll(sData);
-        originalServicesData.assignAll(jsonDecode(jsonEncode(sData)));
-        draftServicesData.assignAll(jsonDecode(jsonEncode(sData)));
+        originalServicesData.assignAll(_cachedOriginalServicesData!);
+        draftServicesData.assignAll(_cachedDraftServicesData!);
         
         // Populate ALL service data into our reactive fields to prevent overwriting with blanks
         _initializeAllServicesFields();
@@ -439,7 +529,7 @@ class EditVendorProfileController extends GetxController {
         final List<String> standards = List<String>.from(profileData['professionalStandards'] ?? []);
         selectedBodyworkStandards.assignAll(standards);
       } else if (type == 'Shipping') {
-        dotNumberController.text = appData['businessInfo']?['dotNumber'] ?? '';
+        dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
         shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
         if (shippingOperationType.value == 'Independent Small Operation') {
           shippingOperationType.value = 'Independent / Small Operation';
@@ -452,7 +542,12 @@ class EditVendorProfileController extends GetxController {
         shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
         shippingNotesController.text = profileData['notes'] ?? '';
         shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
-        shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
+        shippingExistingCDLUrl.value = profileData['cdlFile'] ?? appData['cdlDoc'] ?? appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
+        shippingCdlFileName.value = profileData['cdlFileName'] ?? appData['cdlDocName'] ?? appData['media']?['cdlDocName'] ?? 'CDL Document';
+        
+        shippingExistingInsuranceUrl.value = profileData['insuranceFile'] ?? appData['insuranceFile'] ?? appData['media']?['insurance'] ?? appData['media']?['dotCopy'];
+        shippingInsuranceFileName.value = profileData['insuranceFileName'] ?? appData['insuranceFileName'] ?? appData['media']?['insuranceFileName'] ?? 'Insurance Document';
+        insuranceExpiryController.text = profileData['insuranceExpiry'] ?? appData['insuranceExpiry'] ?? '';
       }
       
       // Photos for each service
@@ -484,16 +579,14 @@ class EditVendorProfileController extends GetxController {
       final application = activeService['application'] ?? {};
       final appData = draft['applicationData'] ?? application['applicationData'] ?? application ?? {};
 
-      final vendorData = assignedServices.isEmpty ? {} : (assignedServices[0]['vendorId'] is Map ? assignedServices[0]['vendorId'] : {});
-
       // Home Base Fallbacks
       String? city = appData['homeBase']?['city'] ?? appData['city'];
       String? state = appData['homeBase']?['state'] ?? appData['state'];
       String? country = appData['homeBase']?['country'] ?? appData['country'];
 
-      if (city == null || city.isEmpty) city = vendorData['city']?.toString();
-      if (state == null || state.isEmpty) state = vendorData['state']?.toString();
-      if (country == null || country.isEmpty) country = vendorData['country']?.toString();
+      if (city == null || city.isEmpty) city = vendorRootData['city']?.toString();
+      if (state == null || state.isEmpty) state = vendorRootData['state']?.toString();
+      if (country == null || country.isEmpty) country = vendorRootData['country']?.toString();
 
       cityController.text = city ?? '';
       stateController.text = state ?? '';
@@ -508,13 +601,13 @@ class EditVendorProfileController extends GetxController {
       }
 
       // Experience Fallback
-      dynamic exp = appData['experience'] ?? appData['yearsExperience'] ?? vendorData['yearsExperience'] ?? vendorData['experience'];
+      dynamic exp = appData['experience'] ?? appData['yearsExperience'] ?? vendorRootData['yearsExperience'] ?? vendorRootData['experience'];
       experience.value = exp?.toString();
 
-      selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? vendorData['disciplines'] ?? []));
+      selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? vendorRootData['disciplines'] ?? []));
       otherDisciplineController.text = appData['otherDiscipline'] ?? '';
-      selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? vendorData['horseLevels'] ?? []));
-      selectedRegions.assignAll(List<String>.from(appData['regions'] ?? vendorData['regions'] ?? []));
+      selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? vendorRootData['horseLevels'] ?? []));
+      selectedRegions.assignAll(List<String>.from(appData['regions'] ?? vendorRootData['regions'] ?? []));
 
       instagramController.text = profileData['socialMedia']?['instagram'] ?? appData['socialMedia']?['instagram'] ?? '';
       facebookController.text = profileData['socialMedia']?['facebook'] ?? appData['socialMedia']?['facebook'] ?? '';
@@ -627,7 +720,7 @@ class EditVendorProfileController extends GetxController {
           final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
           bodyworkExistingCertUrls.assignAll(certs);
         } else if (activeService['serviceType'] == 'Shipping') {
-          dotNumberController.text = appData['businessInfo']?['dotNumber'] ?? '';
+          dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
           shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
           if (shippingOperationType.value == 'Independent Small Operation') {
             shippingOperationType.value = 'Independent / Small Operation';
@@ -640,7 +733,12 @@ class EditVendorProfileController extends GetxController {
           shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
           shippingNotesController.text = profileData['notes'] ?? '';
           shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
-          shippingExistingCDLUrl.value = appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
+          shippingExistingCDLUrl.value = profileData['cdlFile'] ?? appData['cdlDoc'] ?? appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
+          shippingCdlFileName.value = profileData['cdlFileName'] ?? appData['cdlDocName'] ?? appData['media']?['cdlDocName'] ?? 'CDL Document';
+          
+          shippingExistingInsuranceUrl.value = profileData['insuranceFile'] ?? appData['insuranceFile'] ?? appData['media']?['insurance'] ?? appData['media']?['dotCopy'];
+          shippingInsuranceFileName.value = profileData['insuranceFileName'] ?? appData['insuranceFileName'] ?? appData['media']?['insuranceFileName'] ?? 'Insurance Document';
+          insuranceExpiryController.text = profileData['insuranceExpiry'] ?? appData['insuranceExpiry'] ?? '';
           
           experience.value = appData['experience']?.toString();
           selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
@@ -709,16 +807,19 @@ class EditVendorProfileController extends GetxController {
         if (disciplineType != null) {
           disciplineOptions.assignAll(List<String>.from(disciplineType['values'].map((v) => v['name'])));
           if (!disciplineOptions.contains('Other')) disciplineOptions.add('Other');
+          _cachedDisciplineOptions = List<String>.from(disciplineOptions);
         }
 
         final horseLevelType = types.firstWhereOrNull((t) => t['name'] == 'Typical Level of Horses');
         if (horseLevelType != null) {
           horseLevelOptions.assignAll(List<String>.from(horseLevelType['values'].map((v) => v['name'])));
+          _cachedHorseLevelOptions = List<String>.from(horseLevelOptions);
         }
 
         final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
         if (regionType != null) {
           regionOptions.assignAll(List<String>.from(regionType['values'].map((v) => v['name'])));
+          _cachedRegionOptions = List<String>.from(regionOptions);
         }
       }
 
@@ -731,21 +832,21 @@ class EditVendorProfileController extends GetxController {
           final name = type['name'];
           final List<String> values = List<String>.from(type['values'].map((v) => v['name']));
           
-          if (name == 'Hauling Experience') {
-            // Re-use or separate if needed
-          } else if (name == 'Operation Type') {
+          if (name == 'Hauling Experience' || name == 'Operation Type') {
             shippingOperationOptions.assignAll(values);
+            _cachedShippingOperationOptions = values;
           } else if (name == 'Travel Scope') {
             shippingTravelScopeOptions.assignAll(values);
-          } else if (name == 'Rig Types') {
+            _cachedShippingTravelScopeOptions = values;
+          } else if (name == 'Rig Type') {
             shippingRigTypeOptions.assignAll(values);
-          } else if (name == 'Regions Covered') {
-            // Already handled by Grooming if shared, but let's ensure
-            if (regionOptions.isEmpty) regionOptions.assignAll(values);
-          } else if (name == 'Shipping Services') {
-            shippingServicesOptions.assignAll(values);
+            _cachedShippingRigTypeOptions = values;
           } else if (name == 'Stall Type') {
             shippingStallOptions.assignAll(values);
+            _cachedShippingStallOptions = values;
+          } else if (name == 'Services Offered' || name == 'Shipping Services') {
+            shippingServicesOptions.assignAll(values);
+            _cachedShippingServicesOptions = values;
           }
         }
       }
@@ -905,8 +1006,25 @@ class EditVendorProfileController extends GetxController {
   void removeNewShippingRigPhoto(int index) => newShippingRigPhotos.removeAt(index);
 
   Future<void> pickShippingCDLFile() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) shippingCDLFile.value = File(image.path);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg'],
+    );
+    if (result != null) {
+      shippingCDLFile.value = File(result.files.single.path!);
+      shippingCdlFileName.value = result.files.single.name;
+    }
+  }
+
+  Future<void> pickShippingInsuranceFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'png', 'jpeg'],
+    );
+    if (result != null) {
+      shippingInsuranceFile.value = File(result.files.single.path!);
+      shippingInsuranceFileName.value = result.files.single.name;
+    }
   }
 
   void addBraidingService(String name) {
@@ -1056,8 +1174,20 @@ class EditVendorProfileController extends GetxController {
           if (shippingCDLFile.value != null) {
             cdlUrl = await _uploadFile(shippingCDLFile.value!, 'shipping_docs');
           }
+          String? insUrl = shippingExistingInsuranceUrl.value;
+          if (shippingInsuranceFile.value != null) {
+            insUrl = await _uploadFile(shippingInsuranceFile.value!, 'shipping_docs');
+          }
+          
+          newApp['cdlDoc'] = cdlUrl;
+          newApp['cdlDocName'] = shippingCdlFileName.value;
+          newApp['insuranceFile'] = insUrl;
+          newApp['insuranceFileName'] = shippingInsuranceFileName.value;
+          newApp['insuranceExpiry'] = insuranceExpiryController.text;
+
           newApp['media'] = {
             'cdlPhoto': cdlUrl,
+            'insurance': insUrl,
             'rigPhotos': shippingMedia,
           };
           newProf['media'] = {
@@ -1252,16 +1382,22 @@ class EditVendorProfileController extends GetxController {
     } else if (type == 'Shipping') {
       appData['businessInfo'] = {
         'legalName': businessNameController.text,
-        'dotNumber': dotNumberController.text,
+        'usdotNumber': dotNumberController.text,
       };
+      appData['usdotNumber'] = dotNumberController.text;
       appData['operationType'] = shippingOperationType.value;
       appData['travelScope'] = shippingTravelScope.toList();
       appData['rigTypes'] = shippingRigTypes.toList();
       appData['stallType'] = shippingStallTypes.toList();
       appData['rigCapacity'] = shippingRigCapacity.value;
       appData['hasCDL'] = shippingHasCDL.value;
+      appData['insuranceExpiry'] = insuranceExpiryController.text;
+      appData['insuranceFileName'] = shippingInsuranceFileName.value;
+      appData['cdlDocName'] = shippingCdlFileName.value;
+      
       profData['servicesOffered'] = shippingServicesOffered.toList();
       profData['notes'] = shippingNotesController.text;
+      profData['insuranceExpiry'] = insuranceExpiryController.text;
     }
 
     final existing = Map<String, dynamic>.from(draftServicesData[typeKey] ?? {});
