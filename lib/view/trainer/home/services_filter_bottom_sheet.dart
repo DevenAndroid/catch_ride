@@ -186,7 +186,12 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: EdgeInsets.only(
+        top: 12,
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.only(
@@ -242,7 +247,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
           const SizedBox(height: 16),
 
           // Scrollable Content
-          Flexible(
+          Expanded(
             child: SingleChildScrollView(
               child: Obx(() {
                 if (controller.isServiceTagsLoading.value) {
@@ -396,7 +401,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
           ),
           // Buttons
           Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 10, top: 10),
+            padding: const EdgeInsets.only(top: 16),
             child: Row(
               children: [
                 Expanded(
