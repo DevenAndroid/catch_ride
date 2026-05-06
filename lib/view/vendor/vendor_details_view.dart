@@ -234,8 +234,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                         ],
                       ],
                     ),
-                    if (experience.isNotEmpty)
-                      CommonText('$experience Years', fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                    if (experience.isNotEmpty && experience != 'N/A')
+                      CommonText(experience, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                   ],
                 );
               }),
@@ -401,7 +401,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
        return BodyworkServiceAndRatesView(
          bodyworkData: bodyworkData,
          location: controller.location,
-         experience: '${controller.experienceStr} Years',
+         experience: controller.experienceStr,
          disciplines: controller.disciplinesSelected,
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
@@ -438,7 +438,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
        return GroomingServiceAndRatesView(
          groomingData: groomingData,
          location: controller.location,
-         experience: '${controller.experienceStr} Years',
+         experience: controller.experienceStr,
          disciplines: controller.disciplinesSelected,
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
@@ -454,7 +454,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
        return ClippingServiceAndRatesView(
          clippingData: clippingData,
          location: controller.location,
-         experience: '${controller.experienceStr} Years',
+         experience: controller.experienceStr,
          disciplines: controller.disciplinesSelected,
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
@@ -467,7 +467,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
        return BraidingServiceAndRatesView(
          braidingData: braidingData,
          location: controller.location,
-         experience: '${controller.experienceStr} Years',
+         experience: controller.experienceStr,
          disciplines: controller.disciplinesSelected,
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
@@ -479,7 +479,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
       return FarrierServiceAndRatesView(
         farrierData: servicesData['farrier'] ?? platformProfile,
         location: controller.location,
-        experience: '${controller.experienceStr} Years',
+        experience: controller.experienceStr,
         disciplines: controller.disciplinesSelected,
         horseLevels: controller.horseLevels,
         scopeOfWork: List<String>.from(assignedService?['application']?['applicationData']?['scopeOfWork'] ?? []),
@@ -502,7 +502,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
       supportOptions: controller.supportOptions,
       handlingOptions: controller.handlingOptions,
       location: controller.location,
-      experience: '${controller.experienceStr} Years',
+      experience: controller.experienceStr,
       disciplines: controller.disciplinesSelected,
       horseLevels: controller.horseLevels,
       travelPreferences: controller.travelPreferences,

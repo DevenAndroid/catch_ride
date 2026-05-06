@@ -853,6 +853,7 @@ class SendBookingRequestView extends StatelessWidget {
       children: [
         _buildRateDropdownField(controller),
         // Date Range
+        const SizedBox(height: 20),
         _buildDateRangeField(controller),
         const SizedBox(height: 20),
         Obx(() => _buildDropdownField(

@@ -79,7 +79,28 @@ class NotificationsView extends StatelessWidget {
             itemCount: controller.notifications.length,
             itemBuilder: (context, index) {
               final notification = controller.notifications[index];
-              return _buildNotificationItem(notification, controller);
+              return Dismissible(
+                key: ValueKey(notification.id),
+                direction: DismissDirection.endToStart,
+                onDismissed: (direction) {
+                  controller.deleteNotification(notification.id);
+                },
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20.0),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentRed,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                child: _buildNotificationItem(notification, controller),
+              );
             },
           ),
         );
