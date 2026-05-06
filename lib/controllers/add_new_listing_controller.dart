@@ -14,7 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../constant/app_colors.dart';
 import '../main.dart';
 import '../models/horse_model.dart';
@@ -348,6 +348,9 @@ class AddNewListingController extends GetxController {
       isUploadCancelled.value = false;
       uploadCancelToken = dio_lib.CancelToken();
 
+      // Enable wakelock to prevent screen from locking during upload
+      WakelockPlus.enable();
+
       // Initial loader
       Get.dialog(
         Obx(() => WillPopScope(
@@ -614,6 +617,8 @@ class AddNewListingController extends GetxController {
       }
     } finally {
       isPublishing.value = false;
+      // Disable wakelock when finished
+      WakelockPlus.disable();
     }
   }
 

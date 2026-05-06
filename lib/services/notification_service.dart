@@ -15,14 +15,27 @@ class NotificationService extends GetxService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final Logger _logger = Logger();
+  bool _isInitialized = false;
 
   Future<NotificationService> init() async {
+    if (_isInitialized) return this;
+    _isInitialized = true;
+
     // 1. Request Permission
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
       badge: false,
       sound: true,
     );
+
+    // Set foreground notification options for iOS
+    if (Platform.isIOS) {
+      await _fcm.setForegroundNotificationPresentationOptions(
+        alert: true,  // Use native system banner for iOS
+        badge: false, // Ensure no badge is shown
+        sound: true,
+      );
+    }
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       _logger.i('User granted permission');
@@ -133,9 +146,10 @@ class NotificationService extends GetxService {
     String? title = notification?.title ?? data['title'] ?? 'New Message';
     String? body = notification?.body ?? data['body'] ?? data['content'] ?? '';
 
-    if (title != null) {
+    // Only show manual local notification on Android
+    if (Platform.isAndroid && title != null) {
       _localNotifications.show(
-        notification.hashCode,
+        (message.messageId ?? title).hashCode, // Stable ID prevents duplicates
         title,
         body,
         NotificationDetails(
