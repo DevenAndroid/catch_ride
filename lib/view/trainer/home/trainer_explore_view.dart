@@ -629,7 +629,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                 left: 0,
                 right: 0,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(12, 32, 12, 12),
+                  padding: const EdgeInsets.fromLTRB(10, 32, 10, 10),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomCenter,
@@ -643,14 +643,14 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
                     ),
                   ),
                   child: Text(
-                    horse.name,
+                    horse.listingTitle??  horse.name,
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
