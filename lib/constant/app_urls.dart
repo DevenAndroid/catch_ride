@@ -11,7 +11,7 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = false;
+  static bool isLive = true;
 
   static String get baseUrl {
     try {
