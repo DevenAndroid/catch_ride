@@ -186,7 +186,7 @@ class GroomViewProfileController extends GetxController {
   String get shippingEquipmentsSummary => shippingEquipmentSummary;
   
   String get shippingDotNumber =>
-      (_activeApplicationData['businessInfo']?['dotNumber'] ?? 'N/A').toString();
+      (_activeApplicationData['businessInfo']?['usdotNumber'] ??  _activeApplicationData["usdotNumber"] ??'N/A').toString();
 
   bool get hasDotNumber => shippingDotNumber != 'N/A' && shippingDotNumber.isNotEmpty;
 

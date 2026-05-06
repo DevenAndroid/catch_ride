@@ -8,6 +8,7 @@ import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/utils/price_formatter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ShippingDetailsView extends StatelessWidget {
   const ShippingDetailsView({super.key});
@@ -158,9 +159,27 @@ class ShippingDetailsView extends StatelessWidget {
                   _buildGroupedSection(
                     'Operation Type',
                     children: [
-                      _buildRadioOption('Independent / Small Operation', 'Independent Small Operation', controller.operationType),
-                      const SizedBox(height: 12),
-                      _buildRadioOption('Established Shipping Company', 'Established Shipping Company', controller.operationType),
+                      Obx(() {
+                        if (controller.operationOptions.isEmpty) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        
+                        // Set default if not set
+                        if (controller.operationType.value.isEmpty && controller.operationOptions.isNotEmpty) {
+                          Future.delayed(Duration.zero, () {
+                            controller.operationType.value = controller.operationOptions.first;
+                          });
+                        }
+
+                        return Column(
+                          children: controller.operationOptions.map((opt) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _buildRadioOption(opt, opt, controller.operationType),
+                            );
+                          }).toList(),
+                        );
+                      }),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -189,7 +208,13 @@ class ShippingDetailsView extends StatelessWidget {
                       _buildFileUploadTrigger(
                         target: controller.cdlFile,
                         existingUrl: controller.currentCdlUrl,
+                        existingFileName: controller.currentCdlFileName,
                         onTap: () => controller.pickFile(controller.cdlFile),
+                        onClear: () {
+                          controller.currentCdlUrl.value = null;
+                          controller.currentCdlFileName.value = null;
+                          controller.cdlFile.value = null;
+                        },
                       ),
                     ],
                   ),
@@ -205,7 +230,13 @@ class ShippingDetailsView extends StatelessWidget {
                       _buildFileUploadTrigger(
                         target: controller.insuranceFile,
                         existingUrl: controller.currentInsuranceUrl,
+                        existingFileName: controller.currentInsuranceFileName,
                         onTap: () => controller.pickFile(controller.insuranceFile),
+                        onClear: () {
+                          controller.currentInsuranceUrl.value = null;
+                          controller.currentInsuranceFileName.value = null;
+                          controller.insuranceFile.value = null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       CommonTextField(
@@ -425,10 +456,66 @@ class ShippingDetailsView extends StatelessWidget {
     });
   }
 
-  Widget _buildFileUploadTrigger({required Rxn<File> target, RxnString? existingUrl, required VoidCallback onTap}) {
+  Widget _buildFileUploadTrigger({
+    required Rxn<File> target,
+    RxnString? existingUrl,
+    RxnString? existingFileName,
+    required VoidCallback onTap,
+    required VoidCallback onClear,
+  }) {
     return Obx(() {
       final hasLocalFile = target.value != null;
-      final hasRemoteFile = existingUrl?.value != null && existingUrl!.value!.isNotEmpty;
+      final hasRemoteFile =
+          existingUrl?.value != null && existingUrl!.value!.isNotEmpty;
+
+      if (hasLocalFile || hasRemoteFile) {
+        final fileName = hasLocalFile
+            ? target.value!.path.split('/').last
+            : (existingFileName?.value ?? 'Document');
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+            color: AppColors.primary.withOpacity(0.05),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.description, color: AppColors.primary, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonText(
+                      fileName,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (hasRemoteFile && !hasLocalFile)
+                      GestureDetector(
+                        onTap: () => _launchURL(existingUrl!.value!),
+                        child: const CommonText(
+                          'View Document',
+                          fontSize: 12,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
+                onPressed: onClear,
+              ),
+            ],
+          ),
+        );
+      }
 
       return GestureDetector(
         onTap: onTap,
@@ -437,37 +524,51 @@ class ShippingDetailsView extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.borderLight, style: BorderStyle.solid),
+            border: Border.all(
+              color: AppColors.borderLight,
+              style: BorderStyle.solid,
+            ),
           ),
           child: Column(
             children: [
-              if (hasLocalFile) ...[
-                const Icon(Icons.description, color: AppColors.primary, size: 32),
-                const SizedBox(height: 8),
-                CommonText(target.value!.path.split('/').last, fontSize: 12, overflow: TextOverflow.ellipsis),
-              ] else if (hasRemoteFile) ...[
-                const Icon(Icons.check_circle, color: Colors.green, size: 32),
-                const SizedBox(height: 8),
-                const CommonText('Document Uploaded', fontSize: 13, fontWeight: FontWeight.bold),
-              ] else ...[
-                const Icon(Icons.file_upload_outlined, color: AppColors.textSecondary, size: 32),
-                const SizedBox(height: 12),
-                RichText(
-                  text: const TextSpan(
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                    children: [
-                      TextSpan(text: 'Click to upload', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                      TextSpan(text: ' or drag and drop'),
-                    ],
-                  ),
+              const Icon(
+                Icons.file_upload_outlined,
+                color: AppColors.textSecondary,
+                size: 32,
+              ),
+              const SizedBox(height: 12),
+              RichText(
+                text: const TextSpan(
+                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                  children: [
+                    TextSpan(
+                      text: 'Click to upload',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextSpan(text: ' or drag and drop'),
+                  ],
                 ),
-                const CommonText('PDF, PNG or JPG (max. 400x400px)', fontSize: 11, color: AppColors.textSecondary),
-              ],
+              ),
+              const CommonText(
+                'PDF, PNG or JPG (max. 10MB)',
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
             ],
           ),
         ),
       );
     });
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      Get.snackbar('Error', 'Could not launch URL');
+    }
   }
 
   Widget _buildDropdownTrigger({String? value, required String hint, required VoidCallback onTap}) {
