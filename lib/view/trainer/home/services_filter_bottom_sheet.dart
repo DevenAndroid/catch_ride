@@ -309,20 +309,20 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                       _buildChipSection('Clipping Services', [
                         'Full Body Clip', 'Hunter Clip', 'Trace Clip', 'Bib Clip', 'Irish Clip', 'Touch Ups'
                       ], _localClippingServices),
-                      const SizedBox(height: 24),
-                      _buildChipSection('Add - Ons', [
-                        'Bath & Clip Prep', 'Show Clean Up'
-                      ], _localAdditional),
+                      // const SizedBox(height: 24),
+                      // _buildChipSection('Add - Ons', [
+                      //   'Bath & Clip Prep', 'Show Clean Up'
+                      // ], _localAdditional),
                     ] else if (_selectedTab == 'Farrier') ...[
                       _buildChipSection('Farrier Services', [
                         'Trimming', 'Front Shoes', 'Hind Shoes', 'Full Set', 'Corrective / Therapeutic Work',
                         'Glue-on Shoes', 'Drill & Tap', 'Specialty Shoes (bar shoes, pads, wedges, etc.)',
                         'Barefoot / Natural Trim Specialist',
                       ], _localFarrierServices),
-                      const SizedBox(height: 24),
-                      _buildChipSection('Add - Ons', [
-                        'Aluminum'
-                      ], _localAdditional),
+                      // const SizedBox(height: 24),
+                      // _buildChipSection('Add - Ons', [
+                      //   'Aluminum'
+                      // ], _localAdditional),
                       const SizedBox(height: 24),
                       _buildChipSection('Client Intake & Scheduling', [
                         'Accepting new clients', 'Limited availability', 'Referral-only', 'Not accepting new clients'
