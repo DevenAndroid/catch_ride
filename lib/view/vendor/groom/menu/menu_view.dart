@@ -188,8 +188,7 @@ class MenuView extends StatelessWidget {
   Widget _buildPromoCard() {
     return GestureDetector(
       onTap: () {
-        Get.to(ShippingDetailsView());
-        return;
+
 
         if(_hasRole(['shipping'])){
           Get.to(() => const ShippingTripView());
