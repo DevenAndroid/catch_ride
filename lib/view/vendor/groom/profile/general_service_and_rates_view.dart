@@ -75,13 +75,18 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
           CommonText(widget.title, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
           const SizedBox(height: 16),
           
-          if (widget.dailyRate != 'N/A' || widget.weeklyRate != 'N/A' || widget.monthlyRate != 'N/A') ...[
+          if (widget.dailyRate.isNotEmpty && widget.dailyRate != 'N/A' || 
+              widget.weeklyRate.isNotEmpty && widget.weeklyRate != 'N/A' || 
+              widget.monthlyRate.isNotEmpty && widget.monthlyRate != 'N/A') ...[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.dailyRate.replaceAll(',', '')) ?? 0)}', 'Day Rate'),
-                _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.weeklyRate.replaceAll(',', '')) ?? 0)}', 'Week Rate (${widget.weeklyDays}d)'),
-                _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.monthlyRate.replaceAll(',', '')) ?? 0)}', 'Month Rate (${widget.monthlyDays}d)'),
+                if (widget.dailyRate.isNotEmpty && widget.dailyRate != 'N/A')
+                  _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.dailyRate.replaceAll(',', '')) ?? 0)}', 'Day Rate'),
+                if (widget.weeklyRate.isNotEmpty && widget.weeklyRate != 'N/A')
+                  _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.weeklyRate.replaceAll(',', '')) ?? 0)}', 'Week Rate (${widget.weeklyDays}d)'),
+                if (widget.monthlyRate.isNotEmpty && widget.monthlyRate != 'N/A')
+                  _buildRateItem('\$ ${NumberFormat('#,###').format(double.tryParse(widget.monthlyRate.replaceAll(',', '')) ?? 0)}', 'Month Rate (${widget.monthlyDays}d)'),
               ],
             ),
             const SizedBox(height: 20),
@@ -183,25 +188,25 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
             const SizedBox(height: 20),
             _buildTwoColumnDetails(
               'Disciplines',
-              widget.disciplines.isEmpty ? 'N/A' : widget.disciplines.join(', '),
+              widget.disciplines.isEmpty ? '' : widget.disciplines.join(', '),
               'Typical Level of Horses',
-              widget.horseLevels.isEmpty ? 'N/A' : widget.horseLevels.join(', '),
+              widget.horseLevels.isEmpty ? '' : widget.horseLevels.join(', '),
             ),
             const SizedBox(height: 20),
             if (!widget.isClipping) ...[
-              _buildSingleColumnDetail('Show & barn support', widget.supportOptions.isEmpty ? 'N/A' : widget.supportOptions.join(', ')),
+              _buildSingleColumnDetail('Show & barn support', widget.supportOptions.isEmpty ? '' : widget.supportOptions.join(', ')),
               const SizedBox(height: 20),
               _buildTwoColumnDetails(
                 'Horse handling',
-                widget.handlingOptions.isEmpty ? 'N/A' : widget.handlingOptions.join(', '),
+                widget.handlingOptions.isEmpty ? '' : widget.handlingOptions.join(', '),
                 'Travel preferences',
-                widget.travelPreferences.isEmpty ? 'N/A' : widget.travelPreferences.join(', '),
+                widget.travelPreferences.isEmpty ? '' : widget.travelPreferences.join(', '),
               ),
             ] else ...[
-              _buildSingleColumnDetail('Travel Preferences', widget.travelPreferences.isEmpty ? 'N/A' : widget.travelPreferences.join(', ')),
+              _buildSingleColumnDetail('Travel Preferences', widget.travelPreferences.isEmpty ? '' : widget.travelPreferences.join(', ')),
             ],
             const SizedBox(height: 20),
-            _buildSingleColumnDetail('Regions Covered', widget.operatingRegions.isEmpty ? 'N/A' : widget.operatingRegions.join(', ')),
+            _buildSingleColumnDetail('Regions Covered', widget.operatingRegions.isEmpty ? '' : widget.operatingRegions.join(', ')),
             const SizedBox(height: 20),
             GestureDetector(
               onTap: () => _showMoreDetails.value = false,
@@ -224,14 +229,23 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
   }
 
   Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
+    if ((value1.isEmpty || value1 == 'N/A') && (value2.isEmpty || value2 == 'N/A')) return const SizedBox.shrink();
     return Column(
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
-            const SizedBox(width: 20),
-            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+            Expanded(
+              child: (value1.isEmpty || value1 == 'N/A')
+                  ? const SizedBox.shrink()
+                  : _buildDetailItem(label1, value1, showDivider: false),
+            ),
+            if (value1.isNotEmpty && value1 != 'N/A' && value2.isNotEmpty && value2 != 'N/A') const SizedBox(width: 20),
+            Expanded(
+              child: (value2.isEmpty || value2 == 'N/A')
+                  ? const SizedBox.shrink()
+                  : _buildDetailItem(label2, value2, showDivider: false),
+            ),
           ],
         ),
         const Divider(height: 24, color: AppColors.dividerColor),
@@ -244,6 +258,7 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
   }
 
   Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {
+    if (value.isEmpty || value == 'N/A') return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

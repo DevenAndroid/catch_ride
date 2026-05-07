@@ -276,7 +276,7 @@ class _HorseListingViewState extends State<HorseListingView> {
 
   Widget _buildVerticalHorseCard(HorseModel horse) {
     final user = profileController.user.value;
-    final String userName = user?.fullName ?? 'N/A';
+    final String userName = user?.fullName ?? '';
     final String? userAvatar = user?.displayAvatar;
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
     final String? mainImageUrl =horse.images.isNotEmpty
@@ -289,10 +289,10 @@ class _HorseListingViewState extends State<HorseListingView> {
     final String postTitle = horse.listingTitle ??horse.name??"";
     final String postDescription =
         (horse.description == null || horse.description!.isEmpty)
-        ? "N/A"
+        ? ""
         : horse.description!;
     final String location = (horse.location == null || horse.location!.isEmpty)
-        ? "N/A"
+        ? ""
         : horse.location!;
 
     return Container(

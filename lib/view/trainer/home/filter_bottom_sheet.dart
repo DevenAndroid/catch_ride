@@ -24,6 +24,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   final TextEditingController maxPriceController = TextEditingController();
 
   String selectedListingType = '';
+  String selectedGender = '';
+  DateTime? selectedAvailableBy;
   bool _isApplying = false;
 
   // Local list to store selected tags before applying
@@ -58,6 +60,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           priceFormatter.format(controller.priceMax.value);
     }
     selectedListingType = controller.listingType.value;
+    selectedGender = controller.genderFilter.value;
+    selectedAvailableBy = controller.availableBy.value;
     _localSelectedTags.addAll(controller.selectedTags);
   }
 
@@ -70,6 +74,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       minPriceController.clear();
       maxPriceController.clear();
       selectedListingType = '';
+      selectedGender = '';
+      selectedAvailableBy = null;
       _localSelectedTags.clear();
     });
 
@@ -81,6 +87,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.priceMin.value = null;
     controller.priceMax.value = null;
     controller.listingType.value = '';
+    controller.genderFilter.value = '';
     controller.selectedTags.clear();
 
     controller.fetchHorses(showLoading: false);
@@ -100,6 +107,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.priceMax.value =
         double.tryParse(maxPriceController.text.replaceAll(',', ''));
     controller.listingType.value = selectedListingType;
+    controller.genderFilter.value = selectedGender;
+    controller.availableBy.value = selectedAvailableBy;
     controller.selectedTags.assignAll(_localSelectedTags.toList());
 
     await controller.fetchHorses(showLoading: false);
@@ -235,6 +244,113 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             selectedListingType = val ?? '';
                           });
                         },
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                  const CommonText(
+                    'Gender',
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: ['Mare', 'Gelding', 'Stallion'].map<Widget>((g) {
+                      final bool isSelected = selectedGender == g;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              selectedGender = '';
+                            } else {
+                              selectedGender = g;
+                            }
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFFEFF4FF)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.border,
+                            ),
+                          ),
+                          child: CommonText(
+                            g,
+                            fontSize: 12,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.textPrimary,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  const CommonText(
+                    'Available By Date',
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedAvailableBy ?? DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          selectedAvailableBy = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      height: 48,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+                          const SizedBox(width: 12),
+                          CommonText(
+                            selectedAvailableBy == null
+                                ? 'Select Date'
+                                : DateFormat('MMM dd, yyyy').format(selectedAvailableBy!),
+                            color: selectedAvailableBy == null ? AppColors.textSecondary : AppColors.textPrimary,
+                          ),
+                          const Spacer(),
+                          if (selectedAvailableBy != null)
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedAvailableBy = null;
+                                });
+                              },
+                              child: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                            ),
+                        ],
                       ),
                     ),
                   ),

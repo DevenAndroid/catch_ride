@@ -151,8 +151,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   void _initVideo() {
-    final String? videoLink = horse!.videoLink;
-    if (videoLink == null || videoLink.isEmpty || videoLink == 'N/A') {
+    final String? videoLink = horse!.videoLink.isNotEmpty ? horse!.videoLink.first : null;
+    if (videoLink == null || videoLink.isEmpty || videoLink == '') {
       _hasVideo = false;
       return;
     }
@@ -359,7 +359,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     Expanded(
                       child: CommonText(
                         '${horse!.listingTitle}',
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -405,26 +405,25 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      color: Colors.white,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: CommonText(
-                        (horse!.location == null || horse!.location!.isEmpty)
-                            ? 'N/A'
-                            : horse!.location!,
-                        fontSize: 11,
+                if (horse!.location != null && horse!.location!.isNotEmpty)
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
                         color: Colors.white,
-                        overflow: TextOverflow.ellipsis,
+                        size: 14,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: CommonText(
+                          horse!.location!,
+                          fontSize: 11,
+                          color: Colors.white,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -605,9 +604,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     final String trainerName =
         (isOwnHorse &&
-            (horse!.trainerName == null || horse!.trainerName == 'N/A'))
+            (horse!.trainerName == null || horse!.trainerName == ''))
         ? profileController.fullName
-        : (horse!.trainerName ?? 'N/A');
+        : (horse!.trainerName ?? '');
 
     final String barnName =
         (isOwnHorse &&
@@ -770,7 +769,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     final String bName =
         (isBookedByMe &&
-            (horse!.bookedByName == null || horse!.bookedByName == 'N/A'))
+            (horse!.bookedByName == null || horse!.bookedByName == ''))
         ? profileController.fullName
         : (horse!.bookedByName ?? '');
 
@@ -836,7 +835,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   child: CommonText(
                                     isBookedByMe
                                         ? profileController.location
-                                        : (horse!.bookedByLocation ?? 'N/A'),
+                                        : (horse!.bookedByLocation ?? ''),
                                     fontSize: AppTextSizes.size12,
                                     color: AppColors.textSecondary,
                                     overflow: TextOverflow.ellipsis,
@@ -916,7 +915,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CommonText(
-                        horse!.trainerName ?? 'N/A',
+                        horse!.trainerName ?? '',
                         fontSize: AppTextSizes.size16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -957,7 +956,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CommonText(
-                  horse!.trainerName ?? 'N/A',
+                  horse!.trainerName ?? '',
                   fontSize: AppTextSizes.size14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -993,13 +992,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       if (horse!.photo != null && horse!.images.isEmpty) horse!.photo!,
       ...horse!.images,
       ...horse!.videoFile,
-      if (horse!.videoLink != null &&
-          horse!.videoLink!.isNotEmpty &&
-          horse!.videoLink != 'N/A' &&
-          !horse!.images.contains(horse!.videoLink) &&
-          horse!.photo != horse!.videoLink &&
-          !horse!.videoFile.contains(horse!.videoLink))
-        horse!.videoLink!,
+      ...horse!.videoLink.where((link) =>
+          link.isNotEmpty &&
+          link != '' &&
+          !horse!.images.contains(link) &&
+          horse!.photo != link &&
+          !horse!.videoFile.contains(link)),
     ].toSet().toList();
 
     final int totalItems = allMedia.length;
@@ -1042,6 +1040,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 child: _isUrlVideo(url)
                     ? _InlineVideoPlayer(
                         url: url,
+                        isActive: index == _currentPage,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -1090,7 +1089,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildUsefNumberBanner() {
     final usef = horse!.usefNumber;
-    if (usef == null || usef.toString().isEmpty || usef == 'N/A') {
+    if (usef == null || usef.toString().isEmpty || usef == '') {
       return const SizedBox.shrink();
     }
     return Container(
@@ -1141,11 +1140,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               children: [
                 _buildDetailRow(
                   'Horse name',
-                  horse!.name.isEmpty ? 'N/A' : horse!.name,
+                  horse!.name.isEmpty ? '' : horse!.name,
                   'USEF',
                   (horse!.usefNumber == null ||
                           horse!.usefNumber.toString().isEmpty)
-                      ? 'N/A'
+                      ? ''
                       : horse!.usefNumber.toString(),
                   onLabelTap2: () async {
                     final Uri url =
@@ -1158,29 +1157,29 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Age',
-                  horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years',
+                  horse!.age.toString().isEmpty ? '' : '${horse!.age} Years',
                   'Height',
                   (horse!.height == null || horse!.height!.isEmpty)
-                      ? 'N/A'
+                      ? ''
                       : horse!.height!,
                 ),
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Breed',
-                  horse!.breed.isEmpty ? 'N/A' : horse!.breed,
+                  horse!.breed.isEmpty ? '' : horse!.breed,
                   'Color',
                   (horse!.color == null || horse!.color!.isEmpty)
-                      ? 'N/A'
+                      ? ''
                       : horse!.color!,
                 ),
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Discipline',
                   horse!.displayDiscipline.isEmpty
-                      ? 'N/A'
+                      ? ''
                       : horse!.displayDiscipline,
-                  '',
-                  '',
+                  'Gender',
+                  horse!.gender.isEmpty ? '' : horse!.gender,
                 ),
               ],
             ),
@@ -1196,6 +1195,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     VoidCallback? onLabelTap,
     bool showDivider = true,
   }) {
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1350,6 +1350,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     return horse!.showAvailability.where((avail) {
+      if (avail.showVenue.trim().isEmpty &&
+          avail.cityState.trim().isEmpty &&
+          avail.startDate.trim().isEmpty &&
+          avail.endDate.trim().isEmpty) {
+        return false;
+      }
       if (avail.endDate.isEmpty) return true;
       DateTime? end;
       try {
@@ -1366,7 +1372,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildAvailabilitySection() {
     final upcoming = _upcomingShows;
-    if (upcoming.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -1379,6 +1384,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           ),
           const SizedBox(height: 16),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1387,24 +1393,30 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: upcoming.asMap().entries.map((entry) {
-                final index = entry.key;
-                final show = entry.value;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (index > 0) const SizedBox(height: 20),
-                    _buildPremiumAvailabilityItem(
-                      show.showVenue,
-                      show.cityState,
-                      DateUtil.formatRange(show.startDate, show.endDate),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
+            child: upcoming.isEmpty
+                ? const CommonText(
+                    'No Upcoming Shows Currently',
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: upcoming.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final show = entry.value;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index > 0) const SizedBox(height: 20),
+                          _buildPremiumAvailabilityItem(
+                            show.showVenue.isEmpty ? 'N/A' : show.showVenue,
+                            show.cityState,
+                            DateUtil.formatRange(show.startDate, show.endDate),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
           ),
         ],
       ),
@@ -1437,7 +1449,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             const SizedBox(width: 8),
             Expanded(
               child: CommonText(
-                dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
+                dates.trim() == '-' || dates.isEmpty ? '' : dates,
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -1458,7 +1470,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             const SizedBox(width: 8),
             Expanded(
               child: CommonText(
-                cityState.isEmpty ? 'N/A' : cityState,
+                cityState.isEmpty ? '' : cityState,
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -2397,27 +2409,19 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final photoUrl = hasImages ? horse!.images.first : horse?.photo;
 
     // Extract dynamic venue and dates
-    String venueText = 'Home Location';
-    String dateRangeText = 'Available at home';
-    String locationText = horse?.location ?? 'N/A';
-
-    if (selectedShow != null) {
-      venueText = selectedShow.showVenue;
-      locationText = selectedShow.cityState;
-      dateRangeText =
-          DateUtil.formatRange(selectedShow.startDate, selectedShow.endDate);
-    } else if (selectedLocation != null &&
-        selectedLocation != horse!.location) {
-      // Find the show if selectedLocation is a uniqueValue but selectedShow wasn't passed or found
-      final show = _upcomingShows.firstWhereOrNull(
-        (s) => (s.id ?? "${s.cityState}_${s.startDate}") == selectedLocation,
-      );
-      if (show != null) {
-        venueText = show.showVenue;
-        locationText = show.cityState;
-        dateRangeText = DateUtil.formatRange(show.startDate, show.endDate);
-      }
-    }
+    String barnName = '';
+    String dateRangeText = '';
+    if (horse != null ) {
+      barnName=horse?.trainerBarnName??"";
+    //   final firstShow = horse!.showAvailability.first;
+    //   if (firstShow.showVenue.isNotEmpty) {
+    //     venueText = firstShow.showVenue;
+    //   }
+    //   final formattedDates = DateUtil.formatRange(firstShow.startDate, firstShow.endDate);
+    //   if (formattedDates.isNotEmpty) {
+    //     dateRangeText = formattedDates;
+    //   }
+     }
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -2483,28 +2487,34 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: CommonText(
-                          locationText,
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                      TextSpan(text: horse?.listingTitle??horse?.name),
+                      // TextSpan(
+                      //   text:
+                      //       ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
+                      //   style: const TextStyle(
+                      //     fontWeight: FontWeight.normal,
+                      //     color: AppColors.textSecondary,
+                      //   ),
+                      // ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                ),
+                const SizedBox(height: 4),
+
+                  CommonText(
+                    barnName,
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 4),
+
+                if (horse?.location != null && horse!.location!.isNotEmpty)
                   Row(
                     children: [
                       const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 12,
+                        Icons.location_on_outlined,
+                        size: 13,
+
                         color: AppColors.textSecondary,
                       ),
                       const SizedBox(width: 6),
@@ -2586,9 +2596,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 child: _buildPremiumDetailItem(label1, val1, showDivider: false)),
             const SizedBox(width: 16),
             Expanded(
-              child: label2.isEmpty
-                  ? const SizedBox.shrink()
-                  : _buildPremiumDetailItem(label2, val2,
+              child: _buildPremiumDetailItem(label2, val2,
                       onLabelTap: onLabelTap2, showDivider: false),
             ),
           ],
@@ -2602,8 +2610,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
 class _InlineVideoPlayer extends StatefulWidget {
   final String url;
+  final bool isActive;
   final VoidCallback? onTap;
-  const _InlineVideoPlayer({required this.url, this.onTap});
+  const _InlineVideoPlayer({required this.url, required this.isActive, this.onTap});
 
   @override
   State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
@@ -2651,6 +2660,15 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with AutomaticKe
             });
           }
         });
+    }
+  }
+
+  @override
+  void didUpdateWidget(_InlineVideoPlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.isActive) {
+      _controller?.pause();
+      _youtubeController?.pause();
     }
   }
 

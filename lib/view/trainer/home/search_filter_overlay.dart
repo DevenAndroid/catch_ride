@@ -26,7 +26,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
   String _selectedSection = 'location'; // 'location' or 'date'
   late String _selectedCategory;
-  String _locationType = 'City or Region'; // 'City or Region' or 'Show Venue'
+  String _locationType = 'City,State or Region'; // 'City or Region' or 'Show Venue'
 
   // Dynamic Calendar State
   late DateTime _focusedDate;
@@ -35,6 +35,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   bool _showAllLocations = false;
   bool _showAllVenues = false;
   bool _isSearching = false;
+  bool _showSuggestions = true;
+  DateTime? _venueStartDate;
+  DateTime? _venueEndDate;
 
   @override
   void initState() {
@@ -96,9 +99,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     setState(() {
       _selectedCategory = 'All';
       _searchController.clear();
-      _locationType = 'City or Region';
+      _locationType = 'City,State or Region';
       _rangeStart = null;
       _rangeEnd = null;
+      _showSuggestions = true;
     });
     controller.fetchHorses(showLoading: false);
     Get.back();
@@ -301,14 +305,14 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               TextField(
                 controller: _searchController,
                 onChanged: (val) {
+                  setState(() {
+                    _showSuggestions = true;
+                  });
                   if (isShowVenue) {
                     controller.searchVenues(val);
                   } else {
                     controller.searchLocations(val);
                   }
-                  setState(
-                    () {},
-                  ); // Rebuild to switch between default and suggestions
                 },
                 decoration: InputDecoration(
                   hintText: 'Search horses, services, and circuits',
@@ -336,8 +340,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                   children: [
                     Expanded(
                       child: _buildToggleItem(
-                        'City or Region',
-                        _locationType == 'City or Region',
+                        'City,State or Region',
+                        _locationType == 'City,State or Region',
                       ),
                     ),
                     Expanded(
@@ -352,6 +356,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               const SizedBox(height: 20),
 
               // Suggested Items (Matching Design)
+              if (_showSuggestions)
               Obx(() {
                 if (controller.isSuggestionsLoading.value) {
                   return const Padding(
@@ -492,35 +497,37 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 }
               }),
 
-              const SizedBox(height: 20),
-              const Padding(
-                padding: EdgeInsets.only(left: 4),
-                child: CommonText(
-                  'Search History',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+              if (_showSuggestions) ...[
+                const SizedBox(height: 20),
+                const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: CommonText(
+                    'Search History',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Obx(
-                () => Column(
-                  children: controller.recentSearches.isEmpty
-                      ? [
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: CommonText(
-                              'No recent searches',
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
+                const SizedBox(height: 8),
+                Obx(
+                  () => Column(
+                    children: controller.recentSearches.isEmpty
+                        ? [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 10),
+                              child: CommonText(
+                                'No recent searches',
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
-                          ),
-                        ]
-                      : controller.recentSearches
-                            .map((search) => _buildHistoryItem(search))
-                            .toList(),
+                          ]
+                        : controller.recentSearches.take(3)
+                              .map((search) => _buildHistoryItem(search))
+                              .toList(),
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),
@@ -590,7 +597,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText(
-                  'City or Region',
+                  'City,State or Region',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -714,9 +721,19 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   Widget _buildToggleItem(String title, bool isActive) {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _locationType = title;
-        });
+        if (_locationType != title) {
+          setState(() {
+            _locationType = title;
+            _searchController.clear();
+            _showSuggestions = true;
+            // Clear current selection when switching types
+            controller.location.value = '';
+            controller.showVenue.value = '';
+            controller.regionsCovered.clear();
+            _venueStartDate = null;
+            _venueEndDate = null;
+          });
+        }
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -771,7 +788,28 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         controller.location.value = '';
         controller.regionsCovered.clear();
         _searchController.text = name;
-        setState(() {});
+
+        DateTime? showStart;
+        DateTime? showEnd;
+        try {
+          if (show['startDate'] != null && show['endDate'] != null) {
+            showStart = DateTime.parse(show['startDate']);
+            showEnd = DateTime.parse(show['endDate']);
+          }
+        } catch (_) {}
+
+        setState(() {
+          _showSuggestions = false;
+          _venueStartDate = showStart;
+          _venueEndDate = showEnd;
+          if (showStart != null && showEnd != null) {
+            _rangeStart = showStart;
+            _rangeEnd = showEnd;
+            controller.startDate.value = showStart;
+            controller.endDate.value = showEnd;
+            _focusedDate = showStart;
+          }
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -838,7 +876,11 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           controller.regionsCovered.clear();
         }
         _searchController.text = location;
-        setState(() {});
+        setState(() {
+          _showSuggestions = false;
+          _venueStartDate = null;
+          _venueEndDate = null;
+        });
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -927,19 +969,23 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             _searchController.text = address;
           }
         }
-        setState(() {});
+        setState(() {
+          _showSuggestions = false;
+          _venueStartDate = null;
+          _venueEndDate = null;
+        });
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
             const Icon(
               Icons.restart_alt_rounded,
-              size: 24,
+              size: 20,
               color: AppColors.textSecondary,
             ),
-            const SizedBox(width: 16),
-            Expanded(child: CommonText(address, fontSize: 15, color: AppColors.textPrimary)),
+            const SizedBox(width: 12),
+            Expanded(child: CommonText(address, fontSize: 13, color: AppColors.textPrimary,maxLines: 2,overflow: TextOverflow.ellipsis,)),
           ],
         ),
       ),
@@ -1062,20 +1108,33 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
         bool isToday = _isSameDay(date, DateTime.now());
 
+        final bool isOutOfRange = (_venueStartDate != null && _venueEndDate != null) &&
+            (date.isBefore(_venueStartDate!) || date.isAfter(_venueEndDate!));
+
         return GestureDetector(
-          onTap: () {
-            setState(() {
-              if (_rangeStart == null ||
-                  (_rangeStart != null && _rangeEnd != null)) {
-                _rangeStart = date;
-                _rangeEnd = null;
-              } else if (date.isBefore(_rangeStart!)) {
-                _rangeStart = date;
-              } else {
-                _rangeEnd = date;
-              }
-            });
-          },
+          onTap: isOutOfRange
+              ? () {
+                  Get.snackbar(
+                    'Out of Range',
+                    'Please select a date within the horse show period.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.black87,
+                    colorText: Colors.white,
+                  );
+                }
+              : () {
+                  setState(() {
+                    if (_rangeStart == null ||
+                        (_rangeStart != null && _rangeEnd != null)) {
+                      _rangeStart = date;
+                      _rangeEnd = null;
+                    } else if (date.isBefore(_rangeStart!)) {
+                      _rangeStart = date;
+                    } else {
+                      _rangeEnd = date;
+                    }
+                  });
+                },
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -1105,12 +1164,12 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 child: Center(
                   child: CommonText(
                     dayNumber.toString(),
-                    color: (isStart || isEnd)
-                        ? Colors.white
-                        : AppColors.textPrimary,
-                    fontWeight: (isStart || isEnd)
-                        ? FontWeight.bold
-                        : FontWeight.w500,
+                    color: isOutOfRange
+                        ? AppColors.textSecondary.withOpacity(0.2)
+                        : ((isStart || isEnd)
+                            ? Colors.white
+                            : AppColors.textPrimary),
+                    fontWeight: (isStart || isEnd) ? FontWeight.bold : FontWeight.w500,
                     fontSize: 14,
                   ),
                 ),
