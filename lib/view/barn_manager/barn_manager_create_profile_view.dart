@@ -104,6 +104,28 @@ class _BarnManagerCreateProfileViewState
     }
   }
 
+  String? get _bmProfilePhoto {
+    final bmData = _profileController.userData['barnManagerId'];
+    if (bmData is Map) {
+      final photo = bmData['profilePhoto'] ?? bmData['avatar'];
+      if (photo != null && photo.toString().isNotEmpty) {
+        return photo.toString();
+      }
+    }
+    return null;
+  }
+
+  String? get _bmCoverImage {
+    final bmData = _profileController.userData['barnManagerId'];
+    if (bmData is Map) {
+      final image = bmData['coverImage'];
+      if (image != null && image.toString().isNotEmpty) {
+        return image.toString();
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -188,10 +210,10 @@ class _BarnManagerCreateProfileViewState
                                             fit: BoxFit.cover,
                                           ),
                                         )
-                                      : _profileController.avatar.isNotEmpty
+                                      : _bmProfilePhoto != null
                                           ? ClipOval(
                                               child: Image.network(
-                                                _profileController.avatar,
+                                                _bmProfilePhoto!,
                                                 fit: BoxFit.cover,
                                                 errorBuilder: (context, error, stackTrace) => const Icon(
                                                   Icons.person_outline,
@@ -267,11 +289,11 @@ class _BarnManagerCreateProfileViewState
                                         fit: BoxFit.cover,
                                       ),
                                     )
-                                  : _profileController.coverImage.isNotEmpty
+                                  : _bmCoverImage != null
                                       ? ClipRRect(
                                           borderRadius: BorderRadius.circular(12),
                                           child: Image.network(
-                                            _profileController.coverImage,
+                                            _bmCoverImage!,
                                             fit: BoxFit.cover,
                                             errorBuilder: (context, error, stackTrace) => const Center(
                                               child: Icon(

@@ -173,7 +173,7 @@ class VendorDetailsController extends GetxController {
 
   // Getters for display
   String get fullName => '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
-  String get businessName => vendorData['businessName'] ?? 'N/A';
+  String get businessName => vendorData['businessName'] ?? '';
   String get profilePhoto => vendorData['profilePhoto'] ?? '';
   String get coverImage => vendorData['coverImage'] ?? '';
   String get bio => vendorData['bio'] ?? 'No bio provided.';
@@ -216,7 +216,7 @@ class VendorDetailsController extends GetxController {
     if (_isValid(city) && _isValid(state)) return '$city, $state';
     if (loc != null) return '$loc';
 
-    return 'N/A';
+    return '';
   }
 
   String get experienceStr {
@@ -224,8 +224,8 @@ class VendorDetailsController extends GetxController {
                 _activeApplicationData['yearsExperience'] ?? 
                 vendorData['yearsExperience'] ?? 
                 vendorData['experience'] ?? 
-                'N/A';
-    if (exp == 'N/A') return 'N/A';
+                '';
+    if (exp == '' || exp == 'N/A') return '';
     String val = exp.toString();
     return val.toLowerCase().contains('year') ? val : '$val Years';
   }
@@ -238,10 +238,10 @@ class VendorDetailsController extends GetxController {
   String get facebookUrl => _activeProfileData['socialMedia']?['facebook'] ?? '';
 
   // Service specific getters
-  String get dailyRate => _activeProfileData['rates']?['daily'] ?? 'N/A';
-  String get weeklyRate => _activeProfileData['rates']?['weekly']?['price']?.toString() ?? 'N/A';
+  String get dailyRate => _activeProfileData['rates']?['daily'] ?? '';
+  String get weeklyRate => _activeProfileData['rates']?['weekly']?['price']?.toString() ?? '';
   String get weeklyDays => _activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
-  String get monthlyRate => _activeProfileData['rates']?['monthly']?['price']?.toString() ?? 'N/A';
+  String get monthlyRate => _activeProfileData['rates']?['monthly']?['price']?.toString() ?? '';
   String get monthlyDays => _activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
 
   // Shipping Specific Getters
@@ -250,7 +250,7 @@ class VendorDetailsController extends GetxController {
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
     final pricing = _activeProfileData['pricing'] ?? flatData['pricing'] ?? _activeApplicationData['pricing'] ?? {};
     if (pricing['inquiryPrice'] == true) return "Inquire for price";
-    final rate = pricing['baseRate'] ?? _activeProfileData['rates']?['baseRate'] ?? _activeProfileData['rates']?['base'] ?? 'N/A';
+    final rate = pricing['baseRate'] ?? _activeProfileData['rates']?['baseRate'] ?? _activeProfileData['rates']?['base'] ?? '';
     return rate.toString();
   }
 
@@ -259,14 +259,14 @@ class VendorDetailsController extends GetxController {
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
     final pricing = _activeProfileData['pricing'] ?? flatData['pricing'] ?? _activeApplicationData['pricing'] ?? {};
     if (pricing['inquiryPrice'] == true) return "Inquire for price";
-    final rate = pricing['loadedRate'] ?? _activeProfileData['rates']?['fullyLoaded'] ?? _activeProfileData['rates']?['loaded'] ?? 'N/A';
+    final rate = pricing['loadedRate'] ?? _activeProfileData['rates']?['fullyLoaded'] ?? _activeProfileData['rates']?['loaded'] ?? '';
     return rate.toString();
   }
 
   String get shippingOperationType {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? 'N/A';
+    return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? '';
   }
 
   List<String> get shippingRigTypes {
@@ -279,16 +279,16 @@ class VendorDetailsController extends GetxController {
   String get shippingRigCapacity {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? 'N/A').toString();
+    return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? '').toString();
   }
 
   String get shippingEquipmentSummary {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? 'N/A';
+    return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? '';
   }
 
-  String get shippingDotNumber => (_activeApplicationData['businessInfo']?['dotNumber'] ?? 'N/A').toString();
+  String get shippingDotNumber => (_activeApplicationData['businessInfo']?['dotNumber'] ?? '').toString();
       
   bool get shippingHasCDL {
     final servicesData = vendorData['servicesData'] ?? {};

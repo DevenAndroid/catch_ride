@@ -49,10 +49,11 @@ class VendorModel {
       businessName: json['businessName'] ?? '',
       serviceType: json['serviceType'] ?? '',
       location:
-          json['location'] ??
-          (json['homeBase'] is Map
-              ? '${json['homeBase']['city'] ?? ''}${json['homeBase']['city'] != null && json['homeBase']['state'] != null ? ', ' : ''}${json['homeBase']['state'] ?? ''}'
-              : json['homeBase']) ??
+      (json['location'] != null && json['location'].toString().trim().isNotEmpty)
+          ? json['location']
+          : (json['homeBase'] is Map
+          ? '${json['homeBase']['city'] ?? ''}${json['homeBase']['city'] != null && json['homeBase']['state'] != null ? ', ' : ''}${json['homeBase']['state'] ?? ''}'
+          : json['homeBase']) ??
           (json['city'] != null
               ? '${json['city']}${json['state'] != null ? ', ${json['state']}' : ''}'
               : null),

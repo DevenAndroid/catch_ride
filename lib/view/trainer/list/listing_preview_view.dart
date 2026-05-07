@@ -45,9 +45,9 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
   @override
   Widget build(BuildContext context) {
     final user = profileController.user.value;
-    final String userName = user?.fullName ?? 'N/A';
+    final String userName = user?.fullName ?? '';
     final String userAvatar = user?.displayAvatar ?? '';
-    final String userStables = user?.barnName ?? 'N/A';
+    final String userStables = user?.barnName ?? '';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -79,15 +79,15 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
       final List<dynamic> allVideos = [
         ...controller.uploadedVideos,
         ...controller.localVideos,
-        if (controller.videoLinkController.text.isNotEmpty) controller.videoLinkController.text,
+        ...controller.videoLinkControllers.map((c) => c.text).where((text) => text.isNotEmpty),
       ];
       final int totalItems = allImages.length + allVideos.length;
 
       final String title = controller.listingTitleController.text.isEmpty
-          ? 'N/A'
+          ? ''
           : controller.listingTitleController.text;
       final String location = controller.locationController.text.isEmpty
-          ? 'N/A'
+          ? ''
           : controller.locationController.text;
 
       return Stack(
@@ -262,7 +262,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
 
   Widget _buildDescriptionAndTags() {
     final String description = controller.descriptionController.text.isEmpty
-        ? 'N/A'
+        ? ''
         : controller.descriptionController.text;
 
     return Container(
@@ -355,11 +355,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               _buildGridRow(
                 'Horse name',
                 controller.horseNameController.text.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : controller.horseNameController.text,
                 'USEF',
                 controller.usefNumberController.text.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : controller.usefNumberController.text,
                 isExternal: true,
               ),
@@ -370,11 +370,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               _buildGridRow(
                 'Year Foaled',
                 controller.ageController.text.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : '${controller.ageController.text}',
                 'Height',
                 controller.heightController.text.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : controller.heightController.text,
               ),
               const Padding(
@@ -384,11 +384,11 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               _buildGridRow(
                 'Breed',
                 controller.breedController.text.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : controller.breedController.text,
                 'Color',
                 controller.colorController.text.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : controller.colorController.text,
               ),
               const Padding(
@@ -398,10 +398,10 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               _buildGridRow(
                 'Discipline',
                 controller.selectedDisciplines.isEmpty
-                    ? 'N/A'
+                    ? ''
                     : controller.selectedDisciplines.join(', '),
-                '',
-                '',
+                'Gender',
+                controller.gender.value.isEmpty ? '' : controller.gender.value,
               ),
             ],
           ),
@@ -521,7 +521,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
               final fMin = formatPrice(minPrice);
               final fMax = formatPrice(maxPrice);
 
-              String priceText = 'N/A';
+              String priceText = '';
               if (isInquire) {
                 priceText = 'Inquire';
               } else if (fMin.isNotEmpty && fMax.isNotEmpty) {
@@ -532,7 +532,7 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                 priceText = '\$ $fMax';
               }
 
-              if (priceText == 'N/A' && !isInquire) {
+              if (priceText == '' && !isInquire) {
                 return const SizedBox.shrink();
               }
 
@@ -618,9 +618,9 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                   location = entry.cityStateController.text;
                 }
 
-                if (venue.isEmpty) venue = 'N/A';
-                if (dates.trim() == '-') dates = 'N/A';
-                if (location.isEmpty) location = 'N/A';
+                if (venue.isEmpty) venue = '';
+                if (dates.trim() == '-') dates = '';
+                if (location.isEmpty) location = '';
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

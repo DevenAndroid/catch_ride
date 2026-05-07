@@ -53,9 +53,9 @@ class _PastClientsViewState extends State<PastClientsView> {
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _buildClientCard(
-                name: booking.clientName ?? booking.trainerName ?? 'N/A',
+                name: booking.clientName ?? booking.trainerName ?? '',
                 service: booking.type.toUpperCase(),
-                location: booking.location ?? 'N/A',
+                location: booking.location ?? '',
                 date: booking.date,
                 note: booking.notes ?? 'No notes provided',
                 imageUrl: booking.horseImage ?? '',

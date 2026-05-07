@@ -127,25 +127,25 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                 if (showMore) ...[
                   const Divider(height: 32, color: AppColors.dividerColor),
                   _buildTwoColumnDetails(
-                    'Location', widget.location ?? 'N/A',
-                    'Years of Experience', widget.experience ?? 'N/A',
+                    'Location', widget.location ?? '',
+                    'Years of Experience', widget.experience ?? '',
                   ),
                   const SizedBox(height: 20),
                   _buildTwoColumnDetails(
-                    'Disciplines', (widget.disciplines?.isEmpty ?? true) ? 'N/A' : widget.disciplines!.join(', '),
-                    'Typical Level of Horses', (widget.horseLevels?.isEmpty ?? true) ? 'N/A' : widget.horseLevels!.join(', '),
+                    'Disciplines', (widget.disciplines?.isEmpty ?? true) ? '' : widget.disciplines!.join(', '),
+                    'Typical Level of Horses', (widget.horseLevels?.isEmpty ?? true) ? '' : widget.horseLevels!.join(', '),
                   ),
                   const SizedBox(height: 20),
-                  _buildDetailItem('Show & Barn Support', (widget.supportOptions?.isEmpty ?? true) ? 'N/A' : widget.supportOptions!.join(', ')),
+                  _buildDetailItem('Show & Barn Support', (widget.supportOptions?.isEmpty ?? true) ? '' : widget.supportOptions!.join(', ')),
                   const SizedBox(height: 20),
                   _buildTwoColumnDetails(
-                    'Horse Handling', (widget.handlingOptions?.isEmpty ?? true) ? 'N/A' : widget.handlingOptions!.join(', '),
-                    'Additional Skills', (widget.additionalSkills?.isEmpty ?? true) ? 'N/A' : widget.additionalSkills!.join(', '),
+                    'Horse Handling', (widget.handlingOptions?.isEmpty ?? true) ? '' : widget.handlingOptions!.join(', '),
+                    'Additional Skills', (widget.additionalSkills?.isEmpty ?? true) ? '' : widget.additionalSkills!.join(', '),
                   ),
                   const SizedBox(height: 20),
-                  _buildDetailItem('Travel Preferences', (widget.travelPreferences?.isEmpty ?? true) ? 'N/A' : widget.travelPreferences!.join(', ')),
+                  _buildDetailItem('Travel Preferences', (widget.travelPreferences?.isEmpty ?? true) ? '' : widget.travelPreferences!.join(', ')),
                   const SizedBox(height: 20),
-                  _buildDetailItem('Regions Covered', (widget.regionsCovered?.isEmpty ?? true) ? 'N/A' : widget.regionsCovered!.join(', ')),
+                  _buildDetailItem('Regions Covered', (widget.regionsCovered?.isEmpty ?? true) ? '' : widget.regionsCovered!.join(', ')),
                   const SizedBox(height: 20),
                   InkWell(
                     onTap: () => _showMoreDetails.value = false,
@@ -181,14 +181,13 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
   }
 
   Widget _buildBaseRatesRow(Map rates) {
-    final daily = rates['daily']?.toString() ?? 'N/A';
-    final weekly = rates['weekly']?['price']?.toString() ?? 'N/A';
+    final daily = rates['daily']?.toString() ?? '';
+    final weekly = rates['weekly']?['price']?.toString() ?? '';
     final weeklyDays = rates['weekly']?['days']?.toString() ?? '6';
-    final monthly = rates['monthly']?['price']?.toString() ?? 'N/A';
-
-    final String formattedDaily = daily != 'N/A' ? NumberFormat('#,###').format(double.tryParse(daily.replaceAll(',', '')) ?? 0) : 'N/A';
-    final String formattedWeekly = weekly != 'N/A' ? NumberFormat('#,###').format(double.tryParse(weekly.replaceAll(',', '')) ?? 0) : 'N/A';
-    final String formattedMonthly = monthly != 'N/A' ? NumberFormat('#,###').format(double.tryParse(monthly.replaceAll(',', '')) ?? 0) : 'N/A';
+    final monthly = rates['monthly']?['price']?.toString() ?? '';
+    final String formattedDaily = (daily.isNotEmpty && daily != 'N/A') ? NumberFormat('#,###').format(double.tryParse(daily.replaceAll(',', '')) ?? 0) : '';
+    final String formattedWeekly = (weekly.isNotEmpty && weekly != 'N/A') ? NumberFormat('#,###').format(double.tryParse(weekly.replaceAll(',', '')) ?? 0) : '';
+    final String formattedMonthly = (monthly.isNotEmpty && monthly != 'N/A') ? NumberFormat('#,###').format(double.tryParse(monthly.replaceAll(',', '')) ?? 0) : '';
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -200,11 +199,17 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildRateItem(formattedDaily != 'N/A' ? '\$ $formattedDaily' : 'N/A', 'Day Rate'),
-          _buildSeparator(),
-          _buildRateItem(formattedWeekly != 'N/A' ? '\$ $formattedWeekly' : 'N/A', 'Week Rate (${weeklyDays}d)'),
-          _buildSeparator(),
-          _buildRateItem(formattedMonthly != 'N/A' ? '\$ $formattedMonthly' : 'N/A', 'Month Rate'),
+          if (formattedDaily.isNotEmpty) ...[
+            _buildRateItem('\$ $formattedDaily', 'Day Rate'),
+            if (formattedWeekly.isNotEmpty || formattedMonthly.isNotEmpty) _buildSeparator(),
+          ],
+          if (formattedWeekly.isNotEmpty) ...[
+            _buildRateItem('\$ $formattedWeekly', 'Week Rate (${weeklyDays}d)'),
+            if (formattedMonthly.isNotEmpty) _buildSeparator(),
+          ],
+          if (formattedMonthly.isNotEmpty) ...[
+            _buildRateItem('\$ $formattedMonthly', 'Month Rate'),
+          ],
         ],
       ),
     );
@@ -296,14 +301,23 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
   }
 
   Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
+    if (value1.isEmpty && value2.isEmpty) return const SizedBox.shrink();
     return Column(
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+            Expanded(
+              child: value1.isEmpty
+                  ? const SizedBox.shrink()
+                  : _buildDetailItem(label1, value1, showDivider: false),
+            ),
+            if (value1.isNotEmpty && value2.isNotEmpty) const SizedBox(width: 16),
+            Expanded(
+              child: value2.isEmpty
+                  ? const SizedBox.shrink()
+                  : _buildDetailItem(label2, value2, showDivider: false),
+            ),
           ],
         ),
         const Divider(height: 24, color: AppColors.dividerColor),
@@ -312,6 +326,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
   }
 
   Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {
+    if (value.isEmpty || value == 'N/A') return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
