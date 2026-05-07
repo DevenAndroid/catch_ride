@@ -172,7 +172,7 @@ class SendBookingRequestView extends StatelessWidget {
                       children: [
                         const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 6),
-                        CommonText(booking['location'] ?? 'N/A', fontSize: 12, color: AppColors.textSecondary),
+                        CommonText(booking['location'] ?? '', fontSize: 12, color: AppColors.textSecondary),
                       ],
                     ),
                     const SizedBox(height: 4),

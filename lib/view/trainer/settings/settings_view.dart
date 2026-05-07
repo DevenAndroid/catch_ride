@@ -194,7 +194,7 @@ class SettingsView extends StatelessWidget {
             _buildSettingsGroup([
               _buildSettingsTile(
                 icon: Icons.person_add_alt_outlined,
-                title: 'Invite Barn Manager',
+                title: 'Manage Barn Managers',
                 onTap: () => Get.to(() => const InviteBarnManagerView()),
               ),
               _buildSettingsTile(

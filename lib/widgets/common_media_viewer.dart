@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -72,7 +73,10 @@ class _CommonMediaViewerState extends State<CommonMediaViewer> {
             itemBuilder: (context, index) {
               final source = widget.mediaSources[index];
               if (_isSourceVideo(source)) {
-                return CommonVideoPlayerWidget(source: source);
+                return CommonVideoPlayerWidget(
+                  source: source,
+                  isActive: index == _currentIndex,
+                );
               } else {
                 return Center(
                   child: InteractiveViewer(
@@ -140,7 +144,8 @@ class _CommonMediaViewerState extends State<CommonMediaViewer> {
 
 class CommonVideoPlayerWidget extends StatefulWidget {
   final dynamic source;
-  const CommonVideoPlayerWidget({super.key, required this.source});
+  final bool isActive;
+  const CommonVideoPlayerWidget({super.key, required this.source, required this.isActive});
 
   @override
   State<CommonVideoPlayerWidget> createState() => _CommonVideoPlayerWidgetState();
@@ -204,6 +209,14 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
           ),
           placeholder: Container(color: Colors.black),
           autoInitialize: true,
+          deviceOrientationsOnEnterFullScreen: [
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
+          ],
+          deviceOrientationsAfterFullScreen: [
+            DeviceOrientation.portraitUp,
+          ],
+          allowFullScreen: true,
         );
         setState(() {
           _initialized = true;
@@ -217,6 +230,15 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
         });
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(CommonVideoPlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.isActive) {
+      _videoPlayerController?.pause();
+      _youtubeController?.pause();
+    }
   }
 
   @override

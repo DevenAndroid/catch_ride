@@ -10,12 +10,12 @@ class BarnManagerController extends GetxController {
 
   var isLoading = false.obs;
 
-  Future<bool> inviteBarnManager(String email) async {
+  Future<bool> inviteBarnManager(String email, String name) async {
     try {
       isLoading.value = true;
       final response = await _apiService.postRequest(
         AppUrls.inviteBarnManager,
-        {'email': email},
+        {'email': email, 'name': name},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

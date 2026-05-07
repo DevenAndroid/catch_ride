@@ -25,17 +25,14 @@ class HorseCard extends StatelessWidget {
     final show = horse.showAvailability.isNotEmpty
         ? horse.showAvailability.first
         : null;
-    final String discipline = horse.displayDiscipline;
-    final String venue = (show?.showVenue == null || show!.showVenue!.isEmpty)
-        ? 'N/A'
-        : show.showVenue!;
+    final barnName= horse.trainerBarnName??"";
     final String datesStr = DateUtil.formatRange(
       show?.startDate,
       show?.endDate,
     );
-    final String dates = (datesStr.isEmpty || datesStr.trim() == '-')
-        ? 'N/A'
-        : datesStr;
+    // final String dates = (datesStr.isEmpty || datesStr.trim() == '-')
+    //     ? 'N/A'
+    //     : datesStr;
     final String location = (horse.location == null || horse.location!.isEmpty)
         ? 'N/A'
         : horse.location!;
@@ -85,12 +82,12 @@ class HorseCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: RichText(
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           text: TextSpan(
                             style: const TextStyle(
                               fontFamily: 'Outfit',
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF101828),
                             ),
@@ -114,58 +111,65 @@ class HorseCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   // Venue
-                  CommonText(
-                    venue,
-                    fontSize: 14,
-                    color: const Color(0xFF667085),
-                    fontWeight: FontWeight.w400,
-                  ),
-                  const SizedBox(height: 4),
+                  if (barnName != '') ...[
+                    CommonText(
+                      barnName,
+                      fontSize: 14,
+                      color: const Color(0xFF667085),
+                      fontWeight: FontWeight.w400,
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                   // Location
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 3),
-                        child: Icon(
-                          Icons.location_on_outlined,
-                          size: 16,
-                          color: const Color(0xFF667085),
+                  if (location != 'N/A') ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 3),
+                          child: Icon(
+                            Icons.location_on_outlined,
+                            size: 16,
+                            color: const Color(0xFF667085),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: CommonText(
-                          location,
-                          fontSize: 14,
-                          color: const Color(0xFF667085),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: CommonText(
+                            location,
+                            fontSize: 14,
+                            color: const Color(0xFF667085),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                  ],
                   // Dates
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.calendar_today_outlined,
-                        size: 16,
-                        color: const Color(0xFF667085),
-                      ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: CommonText(
-                          dates,
-                          fontSize: 14,
-                          color: const Color(0xFF667085),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+                  // if (dates != 'N/A') ...[
+                  //   Row(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       Icon(
+                  //         Icons.calendar_today_outlined,
+                  //         size: 16,
+                  //         color: const Color(0xFF667085),
+                  //       ),
+                  //       const SizedBox(width: 8),
+                  //       Flexible(
+                  //         child: CommonText(
+                  //           dates,
+                  //           fontSize: 14,
+                  //           color: const Color(0xFF667085),
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  //   const SizedBox(height: 12),
+                  // ] else
+                    const SizedBox(height: 6),
                   // Tags/Badges
                    SingleChildScrollView(
                     scrollDirection: Axis.horizontal,

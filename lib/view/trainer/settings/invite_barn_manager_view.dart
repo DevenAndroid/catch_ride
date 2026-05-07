@@ -21,6 +21,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
   final BarnManagerController _controller = Get.put(BarnManagerController());
   final ProfileController _profileController = Get.find<ProfileController>();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
   @override
   void dispose() {
     _emailController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -94,6 +96,18 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
                     ? null
                     : () async {
                         final email = _emailController.text.trim();
+                        final name = _nameController.text.trim();
+                        if (name.isEmpty) {
+                          Get.snackbar(
+                            'Error',
+                            'Please enter a name',
+                            backgroundColor: const Color(0xFFF04438),
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                            margin: const EdgeInsets.all(16),
+                          );
+                          return;
+                        }
                         if (email.isEmpty || !GetUtils.isEmail(email)) {
                           Get.snackbar(
                             'Error',
@@ -108,9 +122,11 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
 
                         final success = await _controller.inviteBarnManager(
                           email,
+                          name,
                         );
                         if (success) {
                           _emailController.clear();
+                          _nameController.clear();
                           Get.snackbar(
                             'Success',
                             'Invitation sent successfully',
@@ -340,6 +356,14 @@ class _InviteBarnManagerViewState extends State<InviteBarnManagerView> {
           const SizedBox(height: 24),
           const Divider(height: 1, color: AppColors.border),
           const SizedBox(height: 24),
+          CommonTextField(
+            controller: _nameController,
+            label: 'Barn Manager Name',
+            hintText: 'Enter name',
+            isRequired: true,
+            prefixIcon: const Icon(Icons.person_outline, size: 20),
+          ),
+          const SizedBox(height: 16),
           CommonTextField(
             controller: _emailController,
             label: 'Email Address',

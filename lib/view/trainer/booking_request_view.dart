@@ -174,7 +174,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   }
 
   void _initVideo() {
-    final String? videoLink = horse!.videoLink;
+    final String? videoLink = horse!.videoLink.isNotEmpty ? horse!.videoLink.first : null;
     if (videoLink == null || videoLink.isEmpty || videoLink == 'N/A') {
       _hasVideo = false;
       return;
@@ -1025,13 +1025,12 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       if (horse!.photo != null && horse!.photo!.isNotEmpty) horse!.photo!,
       ...horse!.images,
       ...horse!.videoFile,
-      if (horse!.videoLink != null &&
-          horse!.videoLink!.isNotEmpty &&
-          horse!.videoLink != 'N/A' &&
-          !horse!.images.contains(horse!.videoLink) &&
-          horse!.photo != horse!.videoLink &&
-          !horse!.videoFile.contains(horse!.videoLink))
-        horse!.videoLink!,
+      ...horse!.videoLink.where((link) =>
+          link.isNotEmpty &&
+          link != 'N/A' &&
+          !horse!.images.contains(link) &&
+          horse!.photo != link &&
+          !horse!.videoFile.contains(link)),
     ].toSet().toList();
 
     final int totalItems = allMedia.length;
@@ -1378,7 +1377,6 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   }
 
   Widget _buildAvailabilitySection() {
-    if (horse!.showAvailability.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -1391,6 +1389,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           ),
           const SizedBox(height: 16),
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -1399,24 +1398,30 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: horse!.showAvailability.asMap().entries.map((entry) {
-                final index = entry.key;
-                final show = entry.value;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (index > 0) const SizedBox(height: 20),
-                    _buildPremiumAvailabilityItem(
-                      show.showVenue,
-                      show.cityState,
-                      DateUtil.formatRange(show.startDate, show.endDate),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
+            child: horse!.showAvailability.isEmpty
+                ? const CommonText(
+                    'No Upcoming Shows Currently',
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: horse!.showAvailability.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final show = entry.value;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index > 0) const SizedBox(height: 20),
+                          _buildPremiumAvailabilityItem(
+                            show.showVenue.isEmpty ? 'N/A' : show.showVenue,
+                            show.cityState,
+                            DateUtil.formatRange(show.startDate, show.endDate),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
           ),
         ],
       ),
