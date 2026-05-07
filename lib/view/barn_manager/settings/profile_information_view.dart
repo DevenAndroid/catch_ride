@@ -98,7 +98,7 @@ class ProfileInformationView extends StatelessWidget {
                 CommonText(
                   profileController.phone.isNotEmpty
                       ? profileController.phone
-                      : '+1 6587 4385 244',
+                      : '',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,

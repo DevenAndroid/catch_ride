@@ -39,7 +39,7 @@ class BraidingDetailsController extends GetxController {
   }
 
   // Travel Preferences
-  final travelOptions = ['Local Only', 'Regional'];
+  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
   final selectedTravel = <String>{}.obs;
 
   void toggleTravel(String item) {
@@ -92,6 +92,10 @@ class BraidingDetailsController extends GetxController {
         operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
         
         final braidingData = servicesData['braiding'] ?? {};
+        if (braidingData['travelPreferences'] != null) {
+          selectedTravel.assignAll(List<String>.from(braidingData['travelPreferences']));
+        }
+
         final cancellationPolicyData = braidingData['cancellationPolicy'];
         if (cancellationPolicyData != null) {
           cancellationPolicy.value = cancellationPolicyData['policy'];

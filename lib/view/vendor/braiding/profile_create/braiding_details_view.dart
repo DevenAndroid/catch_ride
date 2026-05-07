@@ -400,19 +400,21 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
   Widget _buildSelectableChip(String text, {required bool isSelected, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight, width: 1),
-          boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))] : null,
+          color: isSelected ? const Color(0xFFF5F8FF) : const Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF001144) : const Color(0xFFE5E5E5),
+          ),
         ),
         child: CommonText(
           text,
-          fontSize: AppTextSizes.size14,
+          fontSize: 12.5,
+          color: isSelected ? const Color(0xFF001144) : const Color(0xFF444444),
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isSelected ? Colors.white : AppColors.textSecondary,
         ),
       ),
     );

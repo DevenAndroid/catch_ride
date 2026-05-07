@@ -50,57 +50,78 @@ class GroomViewProfileController extends GetxController {
   final RxString locationStr = 'N/A'.obs;
   final RxString experienceStr = 'N/A'.obs;
 
+  Map<String, dynamic> getProfileDataByType(String type) {
+    final serviceTypeKey = type.toLowerCase().replaceAll(' ', '');
+    final _activeService = allAssignedServices.firstWhereOrNull(
+      (s) => s['serviceType'].toString().toLowerCase() == type.toLowerCase()
+    );
+    
+    final servicesData = vendorData['servicesData'] ?? {};
+    
+    // Data from specific service block in vendorData (usually most up-to-date)
+    final Map<String, dynamic> directServiceData = servicesData[serviceTypeKey] is Map 
+        ? Map<String, dynamic>.from(servicesData[serviceTypeKey]) 
+        : {};
+
+    // Base profile data from assignedServices
+    final profile = _activeService?['profile'] ?? {};
+    final pProfileData = profile['profileData'] ?? {};
+    
+    // Profile data from direct services block
+    final dProfileData = directServiceData['profileData'] ?? {};
+
+    // Merge the profileData maps together first
+    final Map<String, dynamic> mergedProfileData = {
+      if (pProfileData is Map) ...pProfileData,
+      if (dProfileData is Map) ...dProfileData,
+    };
+
+    // Construct the final merged map
+    final Map<String, dynamic> merged = {
+      if (profile is Map) ...profile,
+      if (directServiceData is Map) ...directServiceData,
+      ...mergedProfileData, // Spread merged profile data at top level for convenience
+      'profileData': mergedProfileData, // Keep nested for compatibility
+    };
+
+    // Special handling for lists that should be merged and deduplicated
+    void mergeList(String key) {
+      final List<dynamic> list1 = mergedProfileData[key] is List ? mergedProfileData[key] : [];
+      final List<dynamic> list2 = merged[key] is List ? merged[key] : [];
+      
+      if (list1.isNotEmpty || list2.isNotEmpty) {
+        final Map<String, dynamic> uniqueMap = {};
+        for (var item in [...list1, ...list2]) {
+          String? name;
+          if (item is Map && item['name'] != null) {
+            name = item['name'].toString().toLowerCase().trim();
+          } else if (item is String && item.isNotEmpty) {
+            name = item.toLowerCase().trim();
+          }
+          
+          if (name != null) {
+            uniqueMap[name] = item;
+          }
+        }
+        final mergedList = uniqueMap.values.toList();
+        merged[key] = mergedList;
+        mergedProfileData[key] = mergedList;
+      }
+    }
+
+    mergeList('services');
+    mergeList('additionalServices');
+    mergeList('addOns');
+
+    return merged;
+  }
+
   dynamic get _activeService => allAssignedServices.isNotEmpty
       ? allAssignedServices[currentServiceIndex.value >=
                 allAssignedServices.length
             ? 0
             : currentServiceIndex.value]
       : null;
-
-  Map<String, dynamic> get activeProfileData {
-    final serviceType = activeServiceType.toLowerCase().replaceAll(' ', '');
-    final servicesData = vendorData['servicesData'] ?? {};
-    
-    // Data from specific service block in vendorData
-    final Map<String, dynamic> directServiceData = servicesData[serviceType] is Map 
-        ? Map<String, dynamic>.from(servicesData[serviceType]) 
-        : {};
-
-    final profile = _activeService?['profile'] ?? {};
-    final profileData = profile['profileData'] ?? {};
-    
-    final Map<String, dynamic> merged = {
-      ...profile,
-      ...profileData,
-      ...directServiceData,
-    };
-
-    // Special handling for lists that should be merged, not overwritten
-    final List<dynamic> pAddServices = profileData['additionalServices'] ?? profile['additionalServices'] ?? [];
-    final List<dynamic> dAddServices = directServiceData['additionalServices'] ?? [];
-    
-    if (pAddServices.isNotEmpty || dAddServices.isNotEmpty) {
-      final Map<String, dynamic> uniqueAddServices = {};
-      for (var s in [...pAddServices, ...dAddServices]) {
-        if (s is Map && s['name'] != null) {
-          final name = s['name'].toString().toLowerCase();
-          // Keep the one with more data (e.g. description or higher price if applicable)
-          if (!uniqueAddServices.containsKey(name) || (s['description'] != null && uniqueAddServices[name]['description'] == null)) {
-            uniqueAddServices[name] = s;
-          }
-        }
-      }
-      merged['additionalServices'] = uniqueAddServices.values.toList();
-    }
-
-    final List<dynamic> pServices = profileData['services'] ?? profile['services'] ?? [];
-    final List<dynamic> dServices = directServiceData['services'] ?? [];
-    if (pServices.isNotEmpty || dServices.isNotEmpty) {
-      merged['services'] = {...pServices, ...dServices}.toList();
-    }
-
-    return merged;
-  }
 
   Map<String, dynamic> get _activeApplicationData =>
       _activeService?['application']?['applicationData'] ?? _activeService?['application'] ?? {};
@@ -649,7 +670,15 @@ class GroomViewProfileController extends GetxController {
     return [];
   }
 
-  // Farrier Getters
+  // Methods to get specific data by type
+  List<dynamic> getServicesByType(String type) => getProfileDataByType(type)['services'] ?? [];
+  List<dynamic> getAdditionalServicesByType(String type) => getProfileDataByType(type)['additionalServices'] ?? [];
+
+  // Legacy getters
+  Map<String, dynamic> get activeProfileData => getProfileDataByType(
+    allAssignedServices.isEmpty ? '' : allAssignedServices[currentServiceIndex.value]['serviceType'].toString()
+  );
+
   List<dynamic> get farrierServices =>
       List<dynamic>.from(activeProfileData['services'] ?? []);
   List<dynamic> get farrierAddOns =>
