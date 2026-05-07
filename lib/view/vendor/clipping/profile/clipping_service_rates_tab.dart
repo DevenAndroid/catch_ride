@@ -11,13 +11,17 @@ import 'package:catch_ride/utils/price_formatter.dart';
 import '../../../../services/api_service.dart';
 
 class ClippingServiceRatesTab extends StatefulWidget {
-  const ClippingServiceRatesTab({super.key});
+  final String serviceType;
+  const ClippingServiceRatesTab({super.key, this.serviceType = 'Clipping'});
 
   @override
   State<ClippingServiceRatesTab> createState() => _ClippingServiceRatesTabState();
 }
 
-class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
+class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   final controller = Get.find<GroomViewProfileController>();
   
   final RxList<Map<String, dynamic>> clippingServices = <Map<String, dynamic>>[].obs;
@@ -44,12 +48,16 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
   }
 
   void _loadServices() {
-    final existing = controller.groomingServices; // Reusing the same underlying list for the active role
+    // Fetch data specifically for THIS service type
+    final existing = controller.getServicesByType(widget.serviceType); 
     
     final Map<String, Map<String, dynamic>> existingMap = {};
     for (var s in existing) {
-      if (s is Map<String, dynamic>) {
-        existingMap[s['name'] ?? ''] = s;
+      if (s is Map) {
+        final name = s['name']?.toString() ?? '';
+        if (name.isNotEmpty) {
+          existingMap[name] = Map<String, dynamic>.from(s);
+        }
       }
     }
 
@@ -92,6 +100,7 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Column(
       children: [
         _buildServiceCard(
@@ -353,8 +362,9 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: CommonButton(
+          child: Obx(() => CommonButton(
             text: 'Save',
+            isLoading: controller.isLoading.value,
             onPressed: () async {
               final payload = [
                 ...clippingServices,
@@ -367,8 +377,6 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
               })
               .toList();
               
-              // Reusing braiding update method because it basically updates the 'services' list in the payload
-              // But we need to make sure backend handles 'clipping' key
               final success = await _updateClippingServices(payload);
               if (success) {
                 Get.back();
@@ -376,13 +384,12 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> {
                     backgroundColor: Colors.green, colorText: Colors.white);
               }
             },
-          ),
+          )),
         ),
       ],
     );
   }
   
-  // Local implementation since controller might not have it yet or we need special handling
   Future<bool> _updateClippingServices(List<Map<String, dynamic>> services) async {
     try {
       controller.isLoading.value = true;

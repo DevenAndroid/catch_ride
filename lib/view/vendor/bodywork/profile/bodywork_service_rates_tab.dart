@@ -8,15 +8,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/utils/price_formatter.dart';
 
-class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
+class BodyworkServiceRatesTab extends StatefulWidget {
   const BodyworkServiceRatesTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    if (!Get.isRegistered<BodyworkDetailsController>()) {
-      Get.put(BodyworkDetailsController());
-    }
+  State<BodyworkServiceRatesTab> createState() => _BodyworkServiceRatesTabState();
+}
 
+class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  final controller = Get.isRegistered<BodyworkDetailsController>() 
+      ? Get.find<BodyworkDetailsController>() 
+      : Get.put(BodyworkDetailsController());
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -34,26 +43,46 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
                 );
               }),
               const SizedBox(height: 12),
- /*             GestureDetector(
-                onTap: () => _showAddServiceBottomSheet(context),
-                child: Row(
-                  children: const [
-                    Icon(Icons.add, size: 18, color: AppColors.linkBlue),
-                    SizedBox(width: 4),
-                    CommonText(
-                      'Add Modality',
-                      color: AppColors.linkBlue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: AppTextSizes.size14,
-                    ),
-                  ],
-                ),
-              ),*/
             ],
           ),
+          const SizedBox(height: 32),
+          _buildBottomButtons(),
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => Get.back(),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: const BorderSide(color: AppColors.borderLight),
+            ),
+            child: const CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Obx(() => ElevatedButton(
+            onPressed: controller.isLoading.value ? null : () => controller.submitDetails(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF001149),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: controller.isLoading.value 
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const CommonText('Save', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          )),
+        ),
+      ],
     );
   }
 
@@ -183,7 +212,6 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
   }
 
   void _showRatesBottomSheet(Map service) {
-    // Clone data for editing
     final editingRates = Map<String, dynamic>.from(service['rates']);
     final editingNote = TextEditingController(text: service['note'] ?? '');
     final RxnString trainerPresence = RxnString(service['trainerPresence']);
@@ -305,11 +333,6 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
                     child: CommonButton(
                       text: 'Save',
                       onPressed: () {
-                        // Cleanup editing rates: if unchecked, clear the value
-                        // (Wait, current logic updates editingRates in onChanged, 
-                        // but we need to ensure uncheck clears it if we want it to not show in summary)
-                        // Actually, the summary logic uses .isNotEmpty.
-                        
                         service['rates'] = editingRates;
                         service['note'] = editingNote.text;
                         service['trainerPresence'] = trainerPresence.value;
@@ -349,74 +372,6 @@ class BodyworkServiceRatesTab extends GetView<BodyworkDetailsController> {
           onChanged: (val) {
             if (val != null) onChanged(val);
           },
-        ),
-      ),
-    );
-  }
-
-  void _showAddServiceBottomSheet(BuildContext context) {
-    final nameCtrl = TextEditingController();
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CommonText('Add More Modality', fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
-            const SizedBox(height: 24),
-            const CommonText('Name', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-            const SizedBox(height: 8),
-            CommonTextField(
-              label: '',
-              hintText: 'Enter modality name',
-              controller: nameCtrl,
-            ),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const CommonText('Cancel'),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (nameCtrl.text.isNotEmpty) {
-                        controller.services.add({
-                          'name': nameCtrl.text,
-                          'isSelected': true,
-                          'rates': {'30': '', '45': '', '60': '', '90': ''},
-                          'note': '',
-                          'trainerPresence': null,
-                          'vetApproval': null,
-                        });
-                        Get.back();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const CommonText('Add', color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
         ),
       ),
     );

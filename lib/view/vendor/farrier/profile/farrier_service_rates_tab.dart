@@ -10,13 +10,17 @@ import 'package:catch_ride/utils/price_formatter.dart';
 import '../../../../widgets/common_textfield.dart';
 
 class FarrierServiceRatesTab extends StatefulWidget {
-  const FarrierServiceRatesTab({super.key});
+  final String serviceType;
+  const FarrierServiceRatesTab({super.key, this.serviceType = 'Farrier'});
 
   @override
   State<FarrierServiceRatesTab> createState() => _FarrierServiceRatesTabState();
 }
 
-class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
+class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   late FarrierDetailsController farrierController;
   final mainController = Get.find<GroomViewProfileController>();
 
@@ -41,8 +45,9 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
   }
 
   void _syncWithProfile() {
-    final savedServices = mainController.farrierServices;
-    final savedAddOns = mainController.farrierAddOns;
+    final rawData = mainController.getProfileDataByType(widget.serviceType);
+    final savedServices = rawData['services'] ?? rawData['profileData']?['services'] ?? [];
+    final savedAddOns = rawData['addOns'] ?? rawData['profileData']?['addOns'] ?? [];
 
     // Sync Services
     _syncList(savedServices, farrierController.farrierServices, isAddOn: false);
@@ -75,6 +80,7 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -92,9 +98,67 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> {
             services: farrierController.addOns,
             onAddTap: () => _showAddServiceBottomSheet(context, isAddOn: true),
           ),
+          const SizedBox(height: 32),
+          _buildBottomButtons(),
           const SizedBox(height: 40),
         ],
       ),
+    );
+  }
+
+  Widget _buildBottomButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => Get.back(),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: const BorderSide(color: AppColors.borderLight),
+            ),
+            child: const CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Obx(() => ElevatedButton(
+            onPressed: mainController.isLoading.value ? null : () async {
+              final success = await mainController.updateFarrierServices(
+                services: farrierController.farrierServices
+                    .where((s) => s['isSelected'].value == true)
+                    .map((s) => {
+                          'name': s['name'],
+                          'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
+                        })
+                    .toList(),
+                addOns: farrierController.addOns
+                    .where((s) => s['isSelected'].value == true)
+                    .map((s) => {
+                          'name': s['name'],
+                          'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
+                        })
+                    .toList(),
+              );
+
+              if (success) {
+                Get.back();
+                Get.snackbar('Success', 'Farrier rates updated successfully', 
+                    backgroundColor: Colors.green, colorText: Colors.white);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF001149),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: mainController.isLoading.value 
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const CommonText('Save', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          )),
+        ),
+      ],
     );
   }
 

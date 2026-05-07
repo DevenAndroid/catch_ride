@@ -136,7 +136,7 @@ class GroomingDetailsController extends GetxController {
 
 
   // Travel Preferences
-  final travelOptions = ['Local Only', 'Regional'];
+  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
   final selectedTravel = <String>{}.obs;
 
   void toggleTravel(String item) {
@@ -188,6 +188,17 @@ class GroomingDetailsController extends GetxController {
           disciplinesSelected.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+
+          if (groomingData['travelPreferences'] != null) {
+            selectedTravel.assignAll(List<String>.from(groomingData['travelPreferences']));
+          }
+          
+          if (groomingData['cancellationPolicy'] != null) {
+            final cp = groomingData['cancellationPolicy'];
+            cancellationPolicy.value = cp['policy'];
+            isCustomCancellation.value = cp['isCustom'] ?? false;
+            customCancellationController.text = cp['customText'] ?? '';
+          }
         } else {
           location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
           experience.value = vendor['experience'] ?? 'N/A';

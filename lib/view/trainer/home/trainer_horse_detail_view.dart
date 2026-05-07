@@ -1995,7 +1995,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               const SizedBox(height: 16),
 
               // Horse Card
-              _buildBookingHorseCard(),
+              _buildBookingHorseCard(
+                selectedShow: selectedShow,
+                selectedLocation: selectedLocation,
+              ),
               const SizedBox(height: 20),
 
               // Single Date
@@ -2173,13 +2176,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 CommonText(
-                                  show.cityState,
+                                  show.showVenue,
                                   fontSize: 14,
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 CommonText(
-                                  dateRange,
+                                  "$dateRange • ${show.cityState}",
                                   fontSize: 11,
                                   color: AppColors.textSecondary,
                                 ),
@@ -2344,9 +2347,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                       'date': DateFormat(
                                         'yyyy-MM-dd',
                                       ).format(startDate!),
-                                      'location': selectedShow?.cityState ??
-                                          horse!.location ??
-                                          '',
+                                      'location': selectedShow != null
+                                          ? "${selectedShow!.showVenue}, ${selectedShow!.cityState}"
+                                          : (horse!.location ?? 'N/A'),
                                       'notes': messageController.text,
                                       'service': selectedType,
                                       'price': horse!.price ?? 0,
@@ -2398,11 +2401,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       ),
     ),
   ));
-}
-
-  Widget _buildBookingHorseCard() {
+}  Widget _buildBookingHorseCard({
+    AvailabilityModel? selectedShow,
+    String? selectedLocation,
+  }) {
     final hasImages = horse != null && horse!.images.isNotEmpty;
-    final photoUrl =  hasImages ? horse!.images.first : horse?.photo;
+    final photoUrl = hasImages ? horse!.images.first : horse?.photo;
 
     // Extract dynamic venue and dates
     String barnName = '';
@@ -2447,17 +2451,41 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ),
             const SizedBox(width: 16),
             Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                      fontFamily: 'Outfit',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Outfit',
+                      ),
+                      children: [
+                        TextSpan(
+                            text: horse?.name.toString().capitalizeFirst ??
+                                'Unknown'),
+                        TextSpan(
+                          text:
+                              ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  CommonText(
+                    venueText,
+                    fontSize: 12,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
                       TextSpan(text: horse?.listingTitle??horse?.name),
                       // TextSpan(
@@ -2486,26 +2514,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       const Icon(
                         Icons.location_on_outlined,
                         size: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: CommonText(
-                          horse!.location!,
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 2),
-                if (dateRangeText.isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_outlined,
-                        size: 12,
+
                         color: AppColors.textSecondary,
                       ),
                       const SizedBox(width: 6),
@@ -2518,34 +2527,37 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       ),
                     ],
                   ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: horse!.listingTypes
-                        .asMap()
-                        .entries
-                        .map(
-                          (entry) => Padding(
-                            padding: EdgeInsets.only(
-                              right: entry.key == horse!.listingTypes.length - 1
-                                  ? 0
-                                  : 8,
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: horse!.listingTypes
+                          .asMap()
+                          .entries
+                          .map(
+                            (entry) => Padding(
+                              padding: EdgeInsets.only(
+                                right:
+                                    entry.key == horse!.listingTypes.length - 1
+                                        ? 0
+                                        : 8,
+                              ),
+                              child: _buildOverlayBadge(
+                                entry.value,
+                                const Color(0xFFFDE4E1),
+                                const Color(0xFFE11D48),
+                              ),
                             ),
-                            child: _buildOverlayBadge(
-                              entry.value,
-                              const Color(0xFFFDE4E1),
-                              const Color(0xFFE11D48),
-                            ),
-                          ),
-                        ).toList(),
+                          )
+                          .toList(),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      )),
+          ],
+        ),
+      ),
     );
   }
 
