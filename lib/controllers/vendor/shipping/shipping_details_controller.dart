@@ -35,9 +35,44 @@ class ShippingDetailsController extends GetxController {
   final equipmentSummaryController = TextEditingController();
   final additionalNotesController = TextEditingController();
 
-  // ── Read-only displays (from profile) ──────────────────────────────────────
-  final locationDisplay = "Denver, Colorado, USA".obs;
-  final experienceDisplay = "4 years".obs;
+  // Summary Data (Read-only -> Editable)
+  final locationDisplay = 'N/A'.obs;
+  final experienceDisplay = RxnString();
+  final experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+
+  final disciplines = <String>[].obs;
+  final disciplineOptions = <String>[].obs;
+
+  final horseLevels = <String>[].obs;
+  final horseLevelOptions = <String>[].obs;
+
+ // final regionsCovered = <String>[].obs;
+  final regionOptions = <String>[].obs;
+
+  void toggleDiscipline(String disc) {
+    if (disciplines.contains(disc)) {
+      disciplines.remove(disc);
+    } else {
+      disciplines.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (horseLevels.contains(level)) {
+      horseLevels.remove(level);
+    } else {
+      horseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (regionsCovered.contains(region)) {
+      regionsCovered.remove(region);
+    } else {
+      regionsCovered.add(region);
+    }
+  }
+
   final usdotDisplay = "USDOT 1234567".obs;
 
   // ── Credentials & Insurance ────────────────────────────────────────────────
@@ -60,7 +95,7 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> serviceOptions = <String>[].obs;
   final RxList<String> travelOptions = <String>[].obs;
   final RxList<String> rigOptions = <String>[].obs;
-  final RxList<String> regionOptions = <String>[].obs;
+ // final RxList<String> regionOptions = <String>[].obs;
   final List<String> cancellationOptions = [
     'Flexible (24+ hrs)',
     'Moderate (48+ hrs)',
@@ -151,6 +186,10 @@ class ShippingDetailsController extends GetxController {
             regionOptions.assignAll(values);
           } else if (name == 'Operation Type') {
             operationOptions.assignAll(values);
+          } else if (name == 'Disciplines') {
+            disciplineOptions.assignAll(values);
+          } else if (name == 'Typical Level of Horses') {
+            horseLevelOptions.assignAll(values);
           }
         }
       }
@@ -215,6 +254,13 @@ class ShippingDetailsController extends GetxController {
             List<String>.from(profileData['regionsCovered'] ?? appRegions),
           );
 
+          disciplines.assignAll(
+            List<String>.from(profileData['disciplines'] ?? applicationData['disciplines'] ?? []),
+          );
+          horseLevels.assignAll(
+            List<String>.from(profileData['horseLevels'] ?? applicationData['horseLevels'] ?? []),
+          );
+
           operationType.value =
               profileData['operationType'] ??
               applicationData['operationType'] ??
@@ -233,9 +279,7 @@ class ShippingDetailsController extends GetxController {
           if (city.isNotEmpty && state.isNotEmpty) {
             locationDisplay.value = '$city, $state, USA';
           }
-          if (applicationData['experience'] != null) {
-            experienceDisplay.value = '${applicationData['experience']} years';
-          }
+          experienceDisplay.value = applicationData['experience']?.toString();
           if (applicationData['businessInfo']?['dotNumber'] != null) {
             usdotDisplay.value =
                 'USDOT ${applicationData['businessInfo']['dotNumber']}';
@@ -410,6 +454,11 @@ class ShippingDetailsController extends GetxController {
           ? customCancellationController.text
           : cancellationPolicy.value;
       profileData['additionalNotes'] = additionalNotesController.text;
+
+      profileData['experience'] = experienceDisplay.value;
+      profileData['disciplines'] = disciplines.toList();
+      profileData['horseLevels'] = horseLevels.toList();
+      profileData['regionsCovered'] = regionsCovered.toList();
 
       currentShipping['profileData'] = profileData;
       currentShipping['isProfileCompleted'] = true;
