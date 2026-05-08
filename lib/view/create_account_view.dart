@@ -106,7 +106,17 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           MinLengthValidator(
                             6,
                             errorText:
-                                'Please use at least 6 characters for your password',
+                                'Password must be at least 6 characters',
+                          ),
+                          PatternValidator(
+                            r'[A-Z]',
+                            errorText:
+                                'Password must have at least one uppercase letter',
+                          ),
+                          PatternValidator(
+                            r'[!@#\$&*~]',
+                            errorText:
+                                'Password must have at least one special character',
                           ),
                         ]),
                         suffixIcon: IconButton(

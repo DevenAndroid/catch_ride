@@ -184,6 +184,40 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                     return;
                   }
 
+                  if (_newPasswordController.text.length < 6) {
+                    Get.snackbar(
+                      'Error',
+                      'Password must be at least 6 characters',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+
+                  if (!RegExp(r'[A-Z]').hasMatch(_newPasswordController.text)) {
+                    Get.snackbar(
+                      'Error',
+                      'Password must have at least one uppercase letter',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+
+                  if (!RegExp(r'[!@#\$&*~]')
+                      .hasMatch(_newPasswordController.text)) {
+                    Get.snackbar(
+                      'Error',
+                      'Password must have at least one special character',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red,
+                      colorText: Colors.white,
+                    );
+                    return;
+                  }
+
                   if (_newPasswordController.text !=
                       _confirmPasswordController.text) {
                     Get.snackbar(

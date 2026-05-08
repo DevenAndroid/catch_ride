@@ -32,6 +32,8 @@ class GroomCompleteProfileController extends GetxController {
   final bannerImage = Rxn<File>();
   final existingProfilePhoto = ''.obs;
   final existingCoverImage = ''.obs;
+  final profilePhotoError = ''.obs;
+  final bannerImageError = ''.obs;
   final ImagePicker _picker = ImagePicker();
   
   final isLoading = false.obs;
@@ -70,6 +72,7 @@ class GroomCompleteProfileController extends GetxController {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85,);
     if (image != null) {
       profileImage.value = File(image.path);
+      profilePhotoError.value = '';
     }
   }
 
@@ -77,6 +80,7 @@ class GroomCompleteProfileController extends GetxController {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85,);
     if (image != null) {
       bannerImage.value = File(image.path);
+      bannerImageError.value = '';
     }
   }
 
@@ -169,13 +173,19 @@ class GroomCompleteProfileController extends GetxController {
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
+    profilePhotoError.value = '';
+    bannerImageError.value = '';
+
     if (profileImage.value == null && existingProfilePhoto.value.isEmpty) {
-      Get.snackbar('Missing Info', 'Please upload a profile photo', backgroundColor: Colors.red, colorText: Colors.white);
-      return;
+      profilePhotoError.value = 'Please upload a profile photo';
     }
 
     if (bannerImage.value == null && existingCoverImage.value.isEmpty) {
-      Get.snackbar('Missing Info', 'Please upload a banner photo', backgroundColor: Colors.red, colorText: Colors.white);
+      bannerImageError.value = 'Please upload a banner photo';
+    }
+
+    if (profilePhotoError.value.isNotEmpty || bannerImageError.value.isNotEmpty) {
+      Get.snackbar('Missing Info', 'Please complete all required fields', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 

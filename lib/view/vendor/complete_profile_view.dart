@@ -91,7 +91,12 @@ class CompleteProfileView extends StatelessWidget {
       title: 'Basic Details',
       subtitle: 'Add your information as it will appear to clients',
       children: [
-        const CommonText('Profile Photo', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        Row(
+          children: [
+            const CommonText('Profile Photo', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            const CommonText(' *', fontSize: AppTextSizes.size14, color: Colors.red),
+          ],
+        ),
         const SizedBox(height: 16),
         Center(
           child: Stack(
@@ -136,8 +141,26 @@ class CompleteProfileView extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        Obx(() => controller.profilePhotoError.value.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Center(
+                  child: CommonText(
+                    controller.profilePhotoError.value,
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
+              )
+            : const SizedBox.shrink()),
         const SizedBox(height: 24),
-        const CommonText('Banner Image', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        Row(
+          children: [
+            const CommonText('Banner Image', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            const CommonText(' *', fontSize: AppTextSizes.size14, color: Colors.red),
+          ],
+        ),
         const SizedBox(height: 12),
         GestureDetector(
           onTap: controller.pickBannerImage,
@@ -189,6 +212,17 @@ class CompleteProfileView extends StatelessWidget {
               );
           }),
         ),
+        const SizedBox(height: 24),
+        Obx(() => controller.bannerImageError.value.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: CommonText(
+                  controller.bannerImageError.value,
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              )
+            : const SizedBox.shrink()),
         const SizedBox(height: 24),
         _buildInputField(
           label: 'Full Name',
@@ -260,7 +294,12 @@ class CompleteProfileView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Phone Number', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        Row(
+          children: [
+            const CommonText('Phone Number', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            const CommonText(' *', fontSize: AppTextSizes.size14, color: Colors.red),
+          ],
+        ),
         const SizedBox(height: 8),
         Container(
           height: 56,
@@ -285,6 +324,15 @@ class CompleteProfileView extends StatelessWidget {
               Expanded(
                 child: TextFormField(
                   controller: controller.phoneNumberController,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    if (value.length != 10) {
+                      return 'Phone number must be 10 digits';
+                    }
+                    return null;
+                  },
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(fontSize: 15, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                   maxLength: 10,
