@@ -629,8 +629,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
       'clipping',
       'farrier',
       'bodywork',
-      'shipping',
-      'transportation'
+      'shipping'
     ];
     return vendorTypes.contains(booking.type.toLowerCase());
   }

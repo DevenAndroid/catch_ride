@@ -30,7 +30,7 @@ class GroomViewProfileController extends GetxController {
     final type = activeServiceType.toLowerCase();
 
     // Shipping/Transportation special case
-    if (type.contains('shipping') || type.contains('transportation')) {
+    if (type.contains('shipping')) {
       return availabilityList.where((a) => a['isTrip'] == true).toList();
     }
 

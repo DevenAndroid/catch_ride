@@ -410,7 +410,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
        );
     }
     
-    if (activeServiceKey == 'shipping' || activeServiceKey == 'transportation') {
+    if (activeServiceKey == 'shipping') {
       final Map shippingData = servicesData['shipping'] ?? platformProfile;
       
       return ShippingServiceAndRatesView(

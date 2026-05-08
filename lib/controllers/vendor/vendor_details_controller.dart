@@ -265,7 +265,7 @@ class VendorDetailsController extends GetxController {
 
   String get shippingOperationType {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? '';
   }
 
@@ -278,13 +278,13 @@ class VendorDetailsController extends GetxController {
 
   String get shippingRigCapacity {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? '').toString();
   }
 
   String get shippingEquipmentSummary {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? '';
   }
 

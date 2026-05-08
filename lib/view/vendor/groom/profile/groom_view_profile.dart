@@ -447,7 +447,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
        );
     }
     
-    if (activeService == 'shipping' || activeService == 'transportation') {
+    if (activeService == 'shipping') {
        final Map shippingData = servicesData['shipping'] ?? groomController.activeServiceProfile;
       return ShippingServiceAndRatesView(
         shippingData: shippingData,

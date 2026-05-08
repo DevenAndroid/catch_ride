@@ -67,8 +67,7 @@ class SendBookingRequestController extends GetxController {
         final profileData = activeService['profile']?['profileData'] ?? {};
         final appData = activeService['application']?['applicationData'] ?? {};
         final servicesData = vendorData['servicesData'] ?? {};
-        final flatData =
-            servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+        final flatData = servicesData['shipping'] ?? {};
 
         final List additional = profileData['additionalServices'] ?? [];
         additionalServicesList.assignAll(

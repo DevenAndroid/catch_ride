@@ -169,7 +169,7 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
       subtitle = "$subtitle • ${booking.providerBarnName}";
     }
 
-    final vendorTypes = ['grooming', 'braiding', 'clipping', 'farrier', 'bodywork', 'shipping', 'transportation'];
+    final vendorTypes = ['grooming', 'braiding', 'clipping', 'farrier', 'bodywork', 'shipping'];
     final bool isVendorBooking = vendorTypes.contains(booking.type.toLowerCase());
 
     return GestureDetector(

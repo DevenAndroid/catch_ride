@@ -612,8 +612,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
       'clipping',
       'farrier',
       'bodywork',
-      'shipping',
-      'transportation'
+      'shipping'
     ];
     return vendorTypes.contains(booking.type.toLowerCase());
   }

@@ -104,7 +104,7 @@ class UpcomingAvailabilityController extends GetxController {
       // Filter by service type if provided
       if (serviceType.isNotEmpty) {
         final type = serviceType.value.toLowerCase();
-        if (type.contains('shipping') || type.contains('transportation')) {
+        if (type.contains('shipping')) {
           localList.removeWhere((item) => item is! TripModel);
         } else {
           localList.removeWhere((item) {
