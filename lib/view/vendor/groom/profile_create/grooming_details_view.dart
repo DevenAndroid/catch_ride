@@ -324,96 +324,224 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
   Widget _buildReadOnlyInfo(GroomingDetailsController controller) {
     return Obx(() {
       if (controller.isLoading.value) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: CircularProgressIndicator(),
-          ),
-        );
+        return const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator()));
       }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildLabelValue('Location', controller.location.value),
+          _buildSummaryItem('Location', controller.location.value),
           const SizedBox(height: 20),
-          _buildLabelValue('Years of Experience', controller.experience.value),
+          _buildEditableExperience(controller),
           const SizedBox(height: 24),
-          _buildChipsList('Disciplines', controller.disciplinesSelected),
+          _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplinesSelected, controller.disciplineOptions, controller.toggleDiscipline),
           const SizedBox(height: 24),
-          _buildSectionHeader('Typical Level of Horses'),
-          const SizedBox(height: 4),
-          const CommonText(
-            'Select the level of horses you have the most experience with',
-            fontSize: 13,
-            color: AppColors.textSecondary,
-            height: 1.4,
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: controller.horseLevels
-                .map(
-                  (it) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF2F2F2),
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: CommonText(
-                      it,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF444444),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
+          _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
           const SizedBox(height: 24),
-          _buildSectionHeader('Regions Covered'),
-          const SizedBox(height: 4),
-          const CommonText(
-            'Select the regions you have the most experience with',
-            fontSize: 13,
-            color: AppColors.textSecondary,
-            height: 1.4,
-          ),
-          const SizedBox(height: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: controller.operatingRegions
-                .map(
-                  (r) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9F9F9),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFFEEEEEE)),
-                      ),
-                      child: CommonText(
-                        r,
-                        fontSize: 13,
-                        color: const Color(0xFF1A1A1A),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
+          _buildEditableRegions(controller),
         ],
       );
     });
+  }
+
+  Widget _buildSummaryItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(label),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9F9F9),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFEEEEEE)),
+          ),
+          child: CommonText(value, fontSize: 13, color: const Color(0xFF1A1A1A), fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableExperience(GroomingDetailsController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Years of Experience'),
+        const SizedBox(height: 12),
+        Obx(() => GestureDetector(
+          onTap: () => _showPickerBottomSheet(
+            title: 'Experience',
+            options: controller.experienceOptions,
+            onSelected: (val) => controller.experience.value = val,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9F9F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFEEEEEE)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: 13, color: const Color(0xFF1A1A1A), fontWeight: FontWeight.w500),
+                ),
+                const Icon(Icons.keyboard_arrow_down, color: Color(0xFF999999), size: 20),
+              ],
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableChips(String label, String description, RxList<String> selectedItems, RxList<String> allOptions, Function(String) onToggle) {
+    return _buildSectionContainer(
+      title: label,
+      description: description,
+      children: [
+        Obx(() => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: allOptions.map((it) {
+            final isSelected = selectedItems.contains(it);
+            return GestureDetector(
+              onTap: () => onToggle(it),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF3F4FF) : const Color(0xFFF2F2F2),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
+                ),
+                child: CommonText(
+                  it, 
+                  fontSize: 12, 
+                  color: isSelected ? const Color(0xFF001149) : const Color(0xFF444444),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableRegions(GroomingDetailsController controller) {
+    return _buildSectionContainer(
+      title: 'Regions Covered',
+      description: 'Select the regions you have the most experience with',
+      children: [
+        Obx(() => Column(
+          children: [
+            GestureDetector(
+              onTap: () => _showMultiSelectBottomSheet(
+                title: 'Select Regions',
+                options: controller.regionOptions,
+                selectedItems: controller.operatingRegions,
+                onToggle: controller.toggleRegion,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9F9F9),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEEEEEE)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
+                    const Icon(Icons.add, color: Color(0xFF001144), size: 20),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.operatingRegions.map((region) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF001144)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001144), fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => controller.toggleRegion(region),
+                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001144)),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+          ],
+        )),
+      ],
+    );
+  }
+
+  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            ...options.map((opt) => ListTile(
+              title: CommonText(opt),
+              onTap: () {
+                onSelected(opt);
+                Get.back();
+              },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMultiSelectBottomSheet({required String title, required List<String> options, required RxList<String> selectedItems, required Function(String) onToggle}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            Expanded(
+              child: ListView(
+                children: options.map((opt) => Obx(() => CheckboxListTile(
+                  title: CommonText(opt),
+                  value: selectedItems.contains(opt),
+                  onChanged: (val) => onToggle(opt),
+                  activeColor: const Color(0xFF001144),
+                ))).toList(),
+              ),
+            ),
+            CommonButton(text: 'Done', onPressed: () => Get.back()),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCancellationPolicy(GroomingDetailsController controller) {

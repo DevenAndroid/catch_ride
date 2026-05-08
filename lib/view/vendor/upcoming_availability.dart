@@ -9,6 +9,13 @@ import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_availabili
 import 'package:catch_ride/view/vendor/shipping/availability/shipping_trip_card.dart';
 import 'package:catch_ride/models/trip_model.dart';
 import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_card.dart';
+import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
+import 'package:catch_ride/view/vendor/groom/availability/add_availability_block_view.dart';
+import 'package:catch_ride/view/vendor/clipping/availability/add_clipping_availability_view.dart';
+import 'package:catch_ride/view/vendor/farrier/availability/add_farrier_availability_view.dart';
+import 'package:catch_ride/view/vendor/bodywork/availability/bodywork_add_availability.dart';
+import 'package:catch_ride/view/vendor/braiding/availability/braiding_add_availability.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -79,22 +86,54 @@ class _UpcomingAvailabilityState extends State<UpcomingAvailability> {
                 }
 
                 final b = item as VendorAvailabilityModel;
+                final serviceTypes = b.serviceTypes;
+
+                final authController = Get.find<AuthController>();
+                final isOwner = b.vendorId == authController.currentUser.value?.vendorProfileId;
+
+                final onEdit = isOwner ? () {
+                  final type = serviceTypes.firstOrNull ?? 'Grooming';
+                  if (type == 'Farrier') {
+                    Get.to(() => const AddFarrierAvailabilityView(), arguments: {'block': b});
+                  } else if (type == 'Clipping') {
+                    Get.to(() => const AddClippingAvailabilityView(), arguments: {'block': b});
+                  } else if (type == 'Braiding') {
+                    Get.to(() => const BraidingAddAvailabilityView(), arguments: {'block': b});
+                  } else if (type == 'Bodywork') {
+                    Get.to(() => const BodyworkAddAvailabilityView(), arguments: {'block': b});
+                  } else {
+                    Get.to(() => const AddAvailabilityBlockView(), arguments: {
+                      'categoryIndex': 0,
+                      'block': b
+                    });
+                  }
+                } : null;
+
+                final onDelete = isOwner ? () {
+                  if (b.id != null) {
+                    final availabilityController = Get.isRegistered<VendorAvailabilityController>() 
+                        ? Get.find<VendorAvailabilityController>() 
+                        : Get.put(VendorAvailabilityController());
+                    availabilityController.deleteAvailabilityBlock(b.id!);
+                  }
+                } : null;
+
                 if (b.serviceTypes.contains('Braiding')) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: BraidingAvailabilityCard(availability: b),
+                    child: BraidingAvailabilityCard(availability: b, onEdit: onEdit, onDelete: onDelete),
                   );
                 }
                 if (b.serviceTypes.contains('Clipping')) {
-                  return ClippingAvailabilityBlockCard(block: b);
+                  return ClippingAvailabilityBlockCard(block: b, onEdit: onEdit, onDelete: onDelete);
                 }
                 if (b.serviceTypes.contains('Farrier')) {
-                  return FarrierAvailabilityBlockCard(block: b);
+                  return FarrierAvailabilityBlockCard(block: b, onEdit: onEdit, onDelete: onDelete);
                 }
                 if (b.serviceTypes.contains('Bodywork')) {
-                  return BodyworkAvailabilityBlockCard(block: b);
+                  return BodyworkAvailabilityBlockCard(block: b, onEdit: onEdit, onDelete: onDelete);
                 }
-                return GroomingAvailabilityCard(availability: b);
+                return GroomingAvailabilityCard(availability: b, onEdit: onEdit, onDelete: onDelete);
               } else {
                 return controller.hasMore.value
                     ? const Padding(

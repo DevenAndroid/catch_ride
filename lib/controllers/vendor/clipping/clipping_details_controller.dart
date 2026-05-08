@@ -71,12 +71,44 @@ class ClippingDetailsController extends GetxController {
     travelFees.remove(option);
   }
 
-  // Pre-filled / Read-only info from Application
+  // Summary Data (Read-only -> Editable)
   final location = 'N/A'.obs;
-  final experience = 'N/A'.obs;
+  final experience = RxnString();
+  final experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+
   final disciplines = <String>[].obs;
+  final disciplineOptions = <String>[].obs;
+
   final horseLevels = <String>[].obs;
+  final horseLevelOptions = <String>[].obs;
+
   final operatingRegions = <String>[].obs;
+  final regionOptions = <String>[].obs;
+
+  void toggleDiscipline(String disc) {
+    if (disciplines.contains(disc)) {
+      disciplines.remove(disc);
+    } else {
+      disciplines.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (horseLevels.contains(level)) {
+      horseLevels.remove(level);
+    } else {
+      horseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (operatingRegions.contains(region)) {
+      operatingRegions.remove(region);
+    } else {
+      operatingRegions.add(region);
+    }
+  }
+
   final isLoading = false.obs; // For initial fetching
   final isSubmitting = false.obs; // For form submission
 
@@ -94,6 +126,44 @@ class ClippingDetailsController extends GetxController {
   Future<void> fetchClippingData() async {
     isLoading.value = true;
     try {
+      // Fetch options from system config
+      final tagResponse = await apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Clipping',
+      );
+      if (tagResponse.statusCode == 200 &&
+          tagResponse.body['success'] == true) {
+        final List types = tagResponse.body['data'];
+
+        // Populate Disciplines
+        final disciplineType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Disciplines',
+        );
+        if (disciplineType != null) {
+          disciplineOptions.value = List<String>.from(
+            disciplineType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Level of Horses
+        final horseLevelType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Typical Level of Horses',
+        );
+        if (horseLevelType != null) {
+          horseLevelOptions.value = List<String>.from(
+            horseLevelType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Regions Covered
+        final regionType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Regions Covered',
+        );
+        if (regionType != null) {
+          regionOptions.value = List<String>.from(
+            regionType['values'].map((v) => v['name']),
+          );
+        }
+      }
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -110,7 +180,7 @@ class ClippingDetailsController extends GetxController {
           final country = applicationData['homeBase']?['country'] ?? 'USA';
           location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, $country' : 'N/A';
           
-          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} years' : 'N/A';
+          experience.value = applicationData['experience']?.toString();
           disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
@@ -128,7 +198,7 @@ class ClippingDetailsController extends GetxController {
           final country = applicationData['homeBase']?['country'] ?? 'USA';
           location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, $country' : 'N/A';
 
-          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} years' : 'N/A';
+          experience.value = applicationData['experience']?.toString();
           disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
@@ -230,7 +300,15 @@ class ClippingDetailsController extends GetxController {
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
       
+      // Update applicationData with new selections
+      final Map<String, dynamic> updatedApplicationData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData']?['clipping']?['applicationData'] ?? {});
+      updatedApplicationData['experience'] = experience.value;
+      updatedApplicationData['disciplines'] = disciplines.toList();
+      updatedApplicationData['horseLevels'] = horseLevels.toList();
+      updatedApplicationData['regions'] = operatingRegions.toList();
+
       existingServicesData['clipping'] = {
+        'applicationData': updatedApplicationData,
         'services': [
           ...clippingServices
             .where((s) => s['isSelected'].value == true)

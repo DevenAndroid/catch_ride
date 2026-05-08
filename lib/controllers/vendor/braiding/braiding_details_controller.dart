@@ -50,12 +50,44 @@ class BraidingDetailsController extends GetxController {
     }
   }
 
-  // Pre-filled / Read-only info from Application
-  final location = ''.obs;
-  final experience = ''.obs;
+  // Summary Data (Read-only -> Editable)
+  final location = 'N/A'.obs;
+  final experience = RxnString();
+  final experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+
   final disciplines = <String>[].obs;
+  final disciplineOptions = <String>[].obs;
+
   final horseLevels = <String>[].obs;
+  final horseLevelOptions = <String>[].obs;
+
   final operatingRegions = <String>[].obs;
+  final regionOptions = <String>[].obs;
+
+  void toggleDiscipline(String disc) {
+    if (disciplines.contains(disc)) {
+      disciplines.remove(disc);
+    } else {
+      disciplines.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (horseLevels.contains(level)) {
+      horseLevels.remove(level);
+    } else {
+      horseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (operatingRegions.contains(region)) {
+      operatingRegions.remove(region);
+    } else {
+      operatingRegions.add(region);
+    }
+  }
+
   final isLoading = false.obs; // For initial fetching
   final isSubmitting = false.obs; // For form submission
 
@@ -73,6 +105,44 @@ class BraidingDetailsController extends GetxController {
   Future<void> fetchBraidingData() async {
     isLoading.value = true;
     try {
+      // Fetch options from system config
+      final tagResponse = await apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Braiding',
+      );
+      if (tagResponse.statusCode == 200 &&
+          tagResponse.body['success'] == true) {
+        final List types = tagResponse.body['data'];
+
+        // Populate Disciplines
+        final disciplineType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Disciplines',
+        );
+        if (disciplineType != null) {
+          disciplineOptions.value = List<String>.from(
+            disciplineType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Level of Horses
+        final horseLevelType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Typical Level of Horses',
+        );
+        if (horseLevelType != null) {
+          horseLevelOptions.value = List<String>.from(
+            horseLevelType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Regions Covered
+        final regionType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Regions Covered',
+        );
+        if (regionType != null) {
+          regionOptions.value = List<String>.from(
+            regionType['values'].map((v) => v['name']),
+          );
+        }
+      }
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -84,8 +154,7 @@ class BraidingDetailsController extends GetxController {
         final state = applicationData['homeBase']?['state'] ?? vendor['state'] ?? '';
         location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : '';
         
-        final exp = applicationData['experience'] ?? vendor['experience'] ?? vendor['yearsExperience'];
-        experience.value = exp != null && exp.toString().isNotEmpty ? '$exp Years' : '';
+        experience.value = applicationData['experience']?.toString();
         
         disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
         horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
@@ -123,7 +192,15 @@ class BraidingDetailsController extends GetxController {
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
       
+      // Update applicationData with new selections
+      final Map<String, dynamic> updatedApplicationData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData']?['braiding']?['applicationData'] ?? {});
+      updatedApplicationData['experience'] = experience.value;
+      updatedApplicationData['disciplines'] = disciplines.toList();
+      updatedApplicationData['horseLevels'] = horseLevels.toList();
+      updatedApplicationData['regions'] = operatingRegions.toList();
+
       existingServicesData['braiding'] = {
+        'applicationData': updatedApplicationData,
         'services': braidingServices
             .where((s) => s['isSelected'].value == true)
             .map((s) => {

@@ -20,12 +20,43 @@ import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 class BodyworkDetailsController extends GetxController {
   final apiService = Get.find<ApiService>();
 
-  // Data from Application (Read-only for details view)
-  final location = ''.obs;
-  final experience = ''.obs;
+  // Summary Data (Read-only -> Editable)
+  final location = 'N/A'.obs;
+  final experience = RxnString();
+  final experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+
   final disciplines = <String>[].obs;
+  final disciplineOptions = <String>[].obs;
+
   final horseLevels = <String>[].obs;
+  final horseLevelOptions = <String>[].obs;
+
   final regionsCovered = <String>[].obs;
+  final regionOptions = <String>[].obs;
+
+  void toggleDiscipline(String disc) {
+    if (disciplines.contains(disc)) {
+      disciplines.remove(disc);
+    } else {
+      disciplines.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (horseLevels.contains(level)) {
+      horseLevels.remove(level);
+    } else {
+      horseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (regionsCovered.contains(region)) {
+      regionsCovered.remove(region);
+    } else {
+      regionsCovered.add(region);
+    }
+  }
 
   // Services
   final services = <Map<String, dynamic>>[].obs;
@@ -128,6 +159,44 @@ class BodyworkDetailsController extends GetxController {
   Future<void> fetchBodyworkData() async {
     isDataLoading.value = true;
     try {
+      // Fetch options from system config
+      final tagResponse = await apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Bodywork',
+      );
+      if (tagResponse.statusCode == 200 &&
+          tagResponse.body['success'] == true) {
+        final List types = tagResponse.body['data'];
+
+        // Populate Disciplines
+        final disciplineType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Disciplines',
+        );
+        if (disciplineType != null) {
+          disciplineOptions.value = List<String>.from(
+            disciplineType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Level of Horses
+        final horseLevelType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Typical Level of Horses',
+        );
+        if (horseLevelType != null) {
+          horseLevelOptions.value = List<String>.from(
+            horseLevelType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Regions Covered
+        final regionType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Regions Covered',
+        );
+        if (regionType != null) {
+          regionOptions.value = List<String>.from(
+            regionType['values'].map((v) => v['name']),
+          );
+        }
+      }
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -145,9 +214,7 @@ class BodyworkDetailsController extends GetxController {
               location.value = '$city, $state, USA';
             }
 
-            if (applicationData['experience'] != null) {
-              experience.value = '${applicationData['experience']} years';
-            }
+            experience.value = applicationData['experience']?.toString();
 
             disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
             horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
@@ -339,10 +406,20 @@ class BodyworkDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
+      // Update applicationData with new selections
+      final Map<String, dynamic> updatedApplicationData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData']?['bodywork']?['applicationData'] ?? {});
+      updatedApplicationData['experience'] = experience.value;
+      updatedApplicationData['disciplines'] = disciplines.toList();
+      updatedApplicationData['horseLevels'] = horseLevels.toList();
+      updatedApplicationData['regions'] = regionsCovered.toList();
+
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
       
-      existingServicesData['bodywork'] = bodyworkData;
+      existingServicesData['bodywork'] = {
+        ...bodyworkData,
+        'applicationData': updatedApplicationData,
+      };
 
       final body = {
         'servicesData': existingServicesData,
