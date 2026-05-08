@@ -42,9 +42,13 @@ class ClippingEditProfileTab extends StatelessWidget {
         const SizedBox(height: 20),
         _buildSocialMediaSection(),
         const SizedBox(height: 20),
+        _buildCertificationSection(),
+        const SizedBox(height: 20),
         _buildAddPhotosSection(),
         const SizedBox(height: 20),
         _buildTravelPreferencesSection(),
+        const SizedBox(height: 20),
+        _buildInsuranceSection(),
         const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 40),
@@ -485,7 +489,7 @@ class ClippingEditProfileTab extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(child: CommonText(text, fontSize: AppTextSizes.size14, color: AppColors.textPrimary)),
+          Flexible(child: CommonText(text, fontSize: AppTextSizes.size14, color: AppColors.textPrimary, overflow: TextOverflow.ellipsis)),
           if (showRemove) ...[
             const SizedBox(width: 8),
             GestureDetector(
@@ -493,6 +497,188 @@ class ClippingEditProfileTab extends StatelessWidget {
               child: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsuranceSection() {
+    final options = [
+      'Carries Insurance',
+      'Insurance available upon request',
+      'Not currently insured'
+    ];
+
+    return _buildCard(
+      title: 'Insurance Status',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            'Keep your insurance information up to date to remain active and receive requests',
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 20),
+          Obx(() => Column(
+            children: options.map((opt) {
+              final isSelected = controller.clippingInsuranceStatus.value == opt;
+              return GestureDetector(
+                onTap: () => controller.clippingInsuranceStatus.value = opt,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                        color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(
+                          opt,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCertificationSection() {
+    return _buildCard(
+      title: 'Certification',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText('Upload any relevant certifications or licenses for your services', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+          const SizedBox(height: 16),
+          const CommonText('Upload Certificate', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+          const SizedBox(height: 12),
+          _buildUploadBox(onTap: () => controller.pickClippingCertification()),
+          Obx(() => Column(
+            children: [
+              ...controller.clippingExistingCertUrls.asMap().entries.map((entry) => _buildFileItem(
+                url: entry.value,
+                onRemove: () => controller.removeClippingExistingCert(entry.key),
+              )),
+              ...controller.clippingCertFiles.asMap().entries.map((entry) => _buildFileItem(
+                file: entry.value,
+                onRemove: () => controller.removeClippingCertFile(entry.key),
+              )),
+            ],
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadBox({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight), 
+          color: Colors.white,
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.borderLight),
+              ),
+              child: const Icon(Icons.cloud_upload_outlined, size: 24, color: AppColors.textPrimary),
+            ),
+            const SizedBox(height: 12),
+            RichText(
+              text: const TextSpan(
+                children: [
+                  TextSpan(text: 'Click to upload', style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.bold, fontSize: 14)),
+                  TextSpan(text: ' or drag and drop', style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            const CommonText('PNG, JPG or PDF (max. 800x400px)', fontSize: 12, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileItem({File? file, String? url, required VoidCallback onRemove}) {
+    String fileName = file != null ? file.path.split('/').last : (url != null ? url.split('/').last : 'Certification.pdf');
+    if (fileName.contains('?')) fileName = fileName.split('?').first;
+    if (fileName.contains('/')) fileName = fileName.split('/').last;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(Icons.description_outlined, color: Color(0xFFEF4444), size: 32),
+                Positioned(
+                  bottom: -2,
+                   child: Container(
+                     padding: const EdgeInsets.symmetric(horizontal: 2),
+                     color: const Color(0xFFEF4444),
+                     child: const Text('PDF', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+                   ),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonText(fileName, fontSize: 14, fontWeight: FontWeight.w600, maxLines: 1),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(Icons.delete_outline, color: AppColors.textSecondary, size: 22),
+          ),
         ],
       ),
     );

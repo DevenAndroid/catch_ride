@@ -159,6 +159,14 @@ class EditVendorProfileController extends GetxController {
   final travelFeePriceController = TextEditingController();
   final travelFeeDisclaimerController = TextEditingController();
 
+  // Clipping Tab Specifics
+  final RxnString clippingInsuranceStatus = RxnString();
+  final RxList<File> clippingCertFiles = <File>[].obs;
+  final RxList<String> clippingExistingCertUrls = <String>[].obs;
+
+  // Bodywork Additional
+  final RxnString bodyworkInsuranceStatus = RxnString();
+
   void saveFarrierTravelConfig(String category) {
     selectedTravelData[category] = {
       'type': tempSelectedFeeType.value,
@@ -485,6 +493,12 @@ class EditVendorProfileController extends GetxController {
             'isSelected': RxBool(true),
           };
         }).toList());
+
+        if (type == 'Clipping') {
+          clippingInsuranceStatus.value = appData['insuranceStatus'] ?? profileData['insuranceStatus'];
+          final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
+          clippingExistingCertUrls.assignAll(certs);
+        }
       } else if (type == 'Farrier') {
         final List fServices = profileData['services'] ?? [];
         farrierServices.assignAll(fServices.map((s) {
@@ -528,6 +542,7 @@ class EditVendorProfileController extends GetxController {
       } else if (type == 'Bodywork') {
         _mergeBodyworkModalities();
         otherModalityController.text = appData['otherModality'] ?? profileData['otherModality'] ?? '';
+        bodyworkInsuranceStatus.value = appData['insuranceStatus'] ?? profileData['insuranceStatus'];
         final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
         bodyworkExistingCertUrls.assignAll(certs);
         
@@ -1078,6 +1093,21 @@ class EditVendorProfileController extends GetxController {
       bodyworkExistingCertUrls.removeAt(index);
   }
 
+  Future<void> pickClippingCertification() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null && result.files.single.path != null) {
+      clippingCertFiles.add(File(result.files.single.path!));
+    }
+  }
+
+  void removeClippingCertFile(int index) => clippingCertFiles.removeAt(index);
+  void removeClippingExistingCert(int index) {
+      clippingExistingCertUrls.removeAt(index);
+  }
+
   void toggleBraidingService(int index) {
     final service = braidingServices[index];
     service['isSelected'].value = !service['isSelected'].value;
@@ -1217,6 +1247,36 @@ class EditVendorProfileController extends GetxController {
           newProf['media'] = {
             'rigPhotos': shippingMedia,
           };
+        } else if (type == 'Clipping') {
+           final List<String> certUrls = [...clippingExistingCertUrls];
+           if (clippingCertFiles.isNotEmpty) {
+             final uploads = await Future.wait(clippingCertFiles.map((f) => _uploadFile(f, 'clipping_certs')));
+             certUrls.addAll(uploads.whereType<String>());
+           }
+           newApp['certifications'] = certUrls;
+           newProf['certifications'] = certUrls;
+           newApp['insuranceStatus'] = clippingInsuranceStatus.value;
+           newProf['insuranceStatus'] = clippingInsuranceStatus.value;
+           
+           if (serviceMediaKeys.containsKey(type)) {
+             newApp['media'] = serviceMediaKeys[type] ?? [];
+             newProf['media'] = serviceMediaKeys[type] ?? [];
+           }
+        } else if (type == 'Bodywork') {
+           final List<String> certUrls = [...bodyworkExistingCertUrls];
+           if (bodyworkCertFiles.isNotEmpty) {
+             final uploads = await Future.wait(bodyworkCertFiles.map((f) => _uploadFile(f, 'bodywork_certs')));
+             certUrls.addAll(uploads.whereType<String>());
+           }
+           newApp['certifications'] = certUrls;
+           newProf['certifications'] = certUrls;
+           newApp['insuranceStatus'] = bodyworkInsuranceStatus.value;
+           newProf['insuranceStatus'] = bodyworkInsuranceStatus.value;
+
+           if (serviceMediaKeys.containsKey(type)) {
+             newApp['media'] = serviceMediaKeys[type] ?? [];
+             newProf['media'] = serviceMediaKeys[type] ?? [];
+           }
         } else {
           if (serviceMediaKeys.containsKey(type)) {
             newApp['media'] = serviceMediaKeys[type] ?? [];
@@ -1364,6 +1424,8 @@ class EditVendorProfileController extends GetxController {
       }).toList();
       profData['additionalSkills'] = selectedAdditionalSkills.toList();
       profData['travelPreferences'] = selectedTravel.toList();
+      appData['insuranceStatus'] = clippingInsuranceStatus.value;
+      appData['certifications'] = clippingExistingCertUrls.toList();
     } else if (type == 'Farrier') {
       profData['services'] = farrierServices.map((s) {
         final ctrl = s['price'];
@@ -1394,6 +1456,8 @@ class EditVendorProfileController extends GetxController {
       appData['modalities'] = bodyworkModalityOptions.toList(); 
       appData['otherModality'] = otherModalityController.text;
       appData['professionalStandards'] = selectedBodyworkStandards.toList();
+      appData['insuranceStatus'] = bodyworkInsuranceStatus.value;
+      appData['certifications'] = bodyworkExistingCertUrls.toList();
       profData['services'] = bodyworkServices.map((s) => {
         'name': s['name'],
         'rates': s['rates'],

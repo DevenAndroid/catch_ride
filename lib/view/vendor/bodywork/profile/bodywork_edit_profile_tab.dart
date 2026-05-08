@@ -48,6 +48,8 @@ class BodyworkEditProfileTab extends StatelessWidget {
         const SizedBox(height: 20),
         _buildProfessionalStandardsSection(),
         const SizedBox(height: 20),
+        _buildInsuranceSection(),
+        const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 40),
       ],
@@ -785,6 +787,62 @@ class BodyworkEditProfileTab extends StatelessWidget {
             }
             return const SizedBox.shrink();
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsuranceSection() {
+    final options = [
+      'Carries Insurance',
+      'Insurance available upon request',
+      'Not currently insured'
+    ];
+
+    return _buildCard(
+      title: 'Insurance Status',
+      description: 'Keep your insurance information up to date to remain active and receive requests',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Obx(() => Column(
+            children: options.map((opt) {
+              final isSelected = controller.bodyworkInsuranceStatus.value == opt;
+              return GestureDetector(
+                onTap: () => controller.bodyworkInsuranceStatus.value = opt,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                      width: isSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                        color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: CommonText(
+                          opt,
+                          fontSize: AppTextSizes.size14,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          )),
         ],
       ),
     );
