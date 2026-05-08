@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
@@ -15,7 +14,7 @@ class AppUrls {
     return 'localhost';
   }
 
-  static bool isLive = true;
+  static bool isLive = false;
 
   static String get baseUrl {
     try {
@@ -24,7 +23,7 @@ class AppUrls {
 
 
     // return 'http://$host:5000/api';
-  // return '$host/api';
+   return '$host/api';
     return 'http://$host:5000/api';
 
   }
@@ -35,7 +34,7 @@ class AppUrls {
     } catch (_) {}
 
     //  return 'http://$host:5000';
-     //  return '$host';
+       return '$host';
 
     return 'http://$host:5000';
 
