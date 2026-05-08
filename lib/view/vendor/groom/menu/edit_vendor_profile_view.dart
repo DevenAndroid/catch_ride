@@ -511,15 +511,30 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   }
 
   Widget _buildExperienceHighlights() {
-    return _buildCard(
-      title: 'Experience Highlights',
-      subText: "Share key experience, programs, or specialties you’d like clients to know",
-      child: CommonTextField(
-        label: '',
-        hintText: 'Share your highlights here...',
-        controller: controller.experienceHighlightsController,
-        maxLines: 5,
-      ),
+    return Column(
+      children: [
+        _buildCard(
+          title: 'Experience Highlights',
+          subText: "Share key experience, programs, or specialties you’d like clients to know",
+          child: CommonTextField(
+            label: '',
+            hintText: 'Share your highlights here...',
+            controller: controller.experienceHighlightsController,
+            maxLines: 5,
+          ),
+        ),
+        const SizedBox(height: 20),
+        _buildCard(
+          title: 'Why Join Catch-Ride?',
+          subText: "Tell us why you want to join our community",
+          child: CommonTextField(
+            label: '',
+            hintText: 'Share your thoughts here...',
+            controller: controller.whyJoinController,
+            maxLines: 5,
+          ),
+        ),
+      ],
     );
   }
 

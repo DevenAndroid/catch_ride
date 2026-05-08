@@ -23,6 +23,7 @@ class EditVendorProfileController extends GetxController {
   final phoneController = TextEditingController();
   final businessNameController = TextEditingController();
   final aboutController = TextEditingController();
+  final whyJoinController = TextEditingController();
   final notesForTrainerController = TextEditingController();
   final RxString profilePhotoUrl = ''.obs;
   final RxString coverImageUrl = ''.obs;
@@ -268,6 +269,7 @@ class EditVendorProfileController extends GetxController {
     notesForTrainerController.text = data['notesForTrainer'] ?? '';
     profilePhotoUrl.value = data['profilePhoto'] ?? '';
     coverImageUrl.value = data['coverImage'] ?? '';
+    whyJoinController.text = data['whyJoin'] ?? '';
     otherPaymentController.text = data["otherPaymentDetails"] ?? "";
     selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
 
@@ -394,6 +396,7 @@ class EditVendorProfileController extends GetxController {
         notesForTrainerController.text = data['notesForTrainer'] ?? '';
         profilePhotoUrl.value = data['profilePhoto'] ?? '';
         coverImageUrl.value = data['coverImage'] ?? '';
+        whyJoinController.text = data['whyJoin'] ?? '';
         otherPaymentController.text=data["otherPaymentDetails"]??"";
         
         selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
@@ -1150,6 +1153,7 @@ class EditVendorProfileController extends GetxController {
         'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
         'experienceHighlights': experienceHighlightsController.text,
+        'whyJoin': whyJoinController.text,
         'highlights': experienceHighlightsController.text.isNotEmpty ? experienceHighlightsController.text.split('\n').where((s) => s.trim().isNotEmpty).toList() : [],
         'city': cityController.text,
         'state': stateController.text,

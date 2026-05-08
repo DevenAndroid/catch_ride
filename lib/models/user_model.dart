@@ -41,6 +41,7 @@ class UserModel {
   final String? otherPaymentDetails;
   final List<String> highlights;
   final String? experienceHighlights;
+  final String? whyJoin;
   final VendorCompliance? compliance;
   final DateTime? createdAt;
 
@@ -85,6 +86,7 @@ class UserModel {
     this.otherPaymentDetails,
     this.highlights = const [],
     this.experienceHighlights,
+    this.whyJoin,
     this.compliance,
     this.createdAt,
   });
@@ -249,6 +251,7 @@ class UserModel {
       otherPaymentDetails: json['otherPaymentDetails'] ?? (proData != null ? proData['otherPaymentDetails'] : null),
       highlights: parsedHighlights,
       experienceHighlights: experienceHighlights,
+      whyJoin: json['whyJoin'] ?? (proData != null ? proData['whyJoin'] : null),
       compliance: (json['compliance'] != null || (proData != null && proData['compliance'] != null))
           ? VendorCompliance.fromJson(json['compliance'] ?? proData!['compliance'])
           : null,
@@ -297,6 +300,7 @@ class UserModel {
       if (otherPaymentDetails != null) 'otherPaymentDetails': otherPaymentDetails,
       'highlights': highlights,
       'experienceHighlights': experienceHighlights,
+      'whyJoin': whyJoin,
       if (compliance != null) 'compliance': compliance!.toJson(),
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
@@ -342,6 +346,7 @@ class UserModel {
     String? otherPaymentDetails,
     List<String>? highlights,
     String? experienceHighlights,
+    String? whyJoin,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -385,6 +390,7 @@ class UserModel {
       otherPaymentDetails: otherPaymentDetails ?? this.otherPaymentDetails,
       highlights: highlights ?? this.highlights,
       experienceHighlights: experienceHighlights ?? this.experienceHighlights,
+      whyJoin: whyJoin ?? this.whyJoin,
       createdAt: createdAt ?? this.createdAt,
     );
   }
