@@ -35,10 +35,7 @@ class ShippingApplicationController extends GetxController {
   final RxList<String> selectedStallTypes = <String>[].obs;
   final RxInt rigCapacity = 2.obs;
   
-  // Experience Highlights
-  final RxList<TextEditingController> highlightsControllers = <TextEditingController>[
-    TextEditingController(),
-  ].obs;
+
 
   // ── File & Image Uploads ────────────────────────────────────────────────────
  // final Rxn<File> dotCopy = Rxn<File>();
@@ -125,18 +122,7 @@ class ShippingApplicationController extends GetxController {
     rigPhotos.removeAt(index);
   }
 
-  void addHighlight() {
-    highlightsControllers.add(TextEditingController());
-  }
 
-  void removeHighlight(int index) {
-    if (highlightsControllers.length > 1) {
-      highlightsControllers[index].dispose();
-      highlightsControllers.removeAt(index);
-    } else {
-      highlightsControllers[index].clear();
-    }
-  }
 
   Future<String?> _uploadFile(File file, String type) async {
     try {
@@ -201,7 +187,6 @@ class ShippingApplicationController extends GetxController {
         'rigTypes': selectedRigTypes.toList(),
         'stallTypes': selectedStallTypes.toList(),
         'rigCapacity': rigCapacity.value,
-        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'references': [
           {
             'fullName': commonCtrl.ref1FullNameController.text,
@@ -277,9 +262,6 @@ class ShippingApplicationController extends GetxController {
 
   @override
   void onClose() {
-    for (var ctrl in highlightsControllers) {
-      ctrl.dispose();
-    }
     legalNameController.dispose();
     dotNumberController.dispose();
     facebookController.dispose();

@@ -194,8 +194,8 @@ class CompleteProfileView extends StatelessWidget {
           label: 'Full Name',
           controller: controller.fullNameController,
           hintText: 'Thomas Martin',
-          isRequired: true,
-          validator: RequiredValidator(errorText: 'Please enter your full name'),
+          isRequired: false,
+
         ),
         const SizedBox(height: 20),
         _buildPhoneField(controller),
@@ -428,50 +428,20 @@ class CompleteProfileView extends StatelessWidget {
       subtitle: 'Share key experience, programs, or specialties you\'d like clients to know',
       optional: true,
       children: [
-        Obx(() => ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: controller.highlightControllers.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: CommonTextField(
-                        label: '',
-                        controller: controller.highlightControllers[index],
-                        hintText: 'e.g. Specialized in show jumping',
-                        maxLines: 1,
-                        fillColor: Colors.white,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                      ),
-                    ),
-                    if (controller.highlightControllers.length > 1)
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                        onPressed: () => controller.removeHighlight(index),
-                      ),
-                  ],
-                );
-              },
-            )),
-        const SizedBox(height: 12),
-        GestureDetector(
-          onTap: controller.addHighlight,
-          child: const Row(
-            children: [
-              Icon(Icons.add, color: Color(0xFF3366FF), size: 18),
-              SizedBox(width: 4),
-              CommonText('Add More', color: Color(0xFF3366FF), fontWeight: FontWeight.w600, fontSize: 13),
-            ],
+        CommonTextField(
+          label: '',
+          controller: controller.experienceHighlightsController,
+          hintText: 'Share key experience, programs, or specialties you\'d like clients to know...',
+          maxLines: 4,
+          fillColor: Colors.white,
+          filled: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
           ),
         ),
       ],

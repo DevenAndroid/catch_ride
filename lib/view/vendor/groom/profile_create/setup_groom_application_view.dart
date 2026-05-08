@@ -205,57 +205,6 @@ class SetupGroomApplicationView extends StatelessWidget {
                 const SizedBox(height: 24),
 
 
-                _buildGroupedSection(
-                  'Experience Highlights (optional)',
-                  description: "Share key experience, programs, or specialties you’d like clients to know",
-                  children: [
-                    Obx(() => Column(
-                      children: controller.highlightsControllers.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final ctrl = entry.value;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: CommonTextField(
-                                  label: '',
-                                  controller: ctrl,
-                                  hintText: 'Write here...',
-                                ),
-                              ),
-                              if (controller.highlightsControllers.length > 1)
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
-                                  onPressed: () => controller.removeHighlight(index),
-                                ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    )),
-                    const SizedBox(height: 8),
-                    GestureDetector(
-                      onTap: controller.addHighlight,
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.add, color: AppColors.linkBlue, size: 18),
-                            SizedBox(width: 4),
-                            CommonText(
-                              'Add More',
-                              color: AppColors.linkBlue,
-                              fontWeight: FontWeight.w600,
-                              fontSize: AppTextSizes.size14,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 24),
 
                 const SizedBox(height: 32),

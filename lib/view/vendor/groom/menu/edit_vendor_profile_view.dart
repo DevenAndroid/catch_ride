@@ -244,7 +244,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           CommonTextField(
             label: 'Full Name',
             hintText: 'Enter your full name',
-            isRequired: true,
+            isRequired: false,
             controller: controller.fullNameController,
           ),
           const SizedBox(height: 20),
@@ -513,53 +513,12 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   Widget _buildExperienceHighlights() {
     return _buildCard(
       title: 'Experience Highlights',
-      subText:"Share key experience, programs, or specialties you’d like clients to know",
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Obx(
-            () => Column(
-              children: controller.highlightControllers.asMap().entries.map((
-                entry,
-              ) {
-                final index = entry.key;
-                final ctrl = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CommonTextField(
-                          label: '',
-                          hintText: 'Write here...',
-                          controller: ctrl,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.remove_circle_outline,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                        onPressed: () => controller.removeHighlight(index),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: controller.addHighlight,
-            child: const CommonText(
-              '+ Add More',
-              color: AppColors.linkBlue,
-              fontSize: AppTextSizes.size14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
+      subText: "Share key experience, programs, or specialties you’d like clients to know",
+      child: CommonTextField(
+        label: '',
+        hintText: 'Share your highlights here...',
+        controller: controller.experienceHighlightsController,
+        maxLines: 5,
       ),
     );
   }

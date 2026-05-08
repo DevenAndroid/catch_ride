@@ -24,6 +24,7 @@ class GroomCompleteProfileController extends GetxController {
   final phoneNumberController = TextEditingController();
   final businessNameController = TextEditingController();
   final aboutController = TextEditingController();
+  final experienceHighlightsController = TextEditingController();
   final notesForTrainerController = TextEditingController();
 
 
@@ -54,11 +55,10 @@ class GroomCompleteProfileController extends GetxController {
     }
     otherPaymentController.text = user?.otherPaymentDetails ?? '';
 
-    if (user?.highlights != null && user!.highlights.isNotEmpty) {
-      highlightControllers.clear();
-      for (var highlight in user.highlights) {
-        highlightControllers.add(TextEditingController(text: highlight));
-      }
+    if (user?.experienceHighlights != null && user!.experienceHighlights!.isNotEmpty) {
+      experienceHighlightsController.text = user.experienceHighlights!;
+    } else if (user?.highlights != null && user!.highlights.isNotEmpty) {
+      experienceHighlightsController.text = user.highlights.join('\n');
     }
 
     print("Name----:${fullNameController.text}");
@@ -118,21 +118,7 @@ class GroomCompleteProfileController extends GetxController {
     }
   }
 
-  // Experience Highlights
-  final highlightControllers = <TextEditingController>[TextEditingController()].obs;
 
-  void addHighlight() {
-    highlightControllers.add(TextEditingController());
-  }
-
-  void removeHighlight(int index) {
-    if (highlightControllers.length > 1) {
-      highlightControllers[index].dispose();
-      highlightControllers.removeAt(index);
-    } else {
-      highlightControllers[0].clear();
-    }
-  }
 
 
   @override
@@ -141,12 +127,9 @@ class GroomCompleteProfileController extends GetxController {
     phoneNumberController.dispose();
     businessNameController.dispose();
     aboutController.dispose();
+    experienceHighlightsController.dispose();
     notesForTrainerController.dispose();
     otherPaymentController.dispose();
-
-    for (var c in highlightControllers) {
-      c.dispose();
-    }
     super.onClose();
   }
 
@@ -206,7 +189,8 @@ class GroomCompleteProfileController extends GetxController {
         'bio': aboutController.text,
         'paymentMethods': selectedPaymentMethods.toList(),
         'otherPaymentDetails': otherPaymentController.text,
-        'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'experienceHighlights': experienceHighlightsController.text,
+        'highlights': experienceHighlightsController.text.isNotEmpty ? experienceHighlightsController.text.split('\n').where((s) => s.trim().isNotEmpty).toList() : [],
         'notesForTrainer': notesForTrainerController.text,
         'isProfileCompleted': true,
         'isProfileSetup': true,

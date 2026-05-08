@@ -97,29 +97,12 @@ class SetupGroomApplicationController extends GetxController {
   }
 
 
-  // Experience Highlights
-  final highlightsControllers = <TextEditingController>[TextEditingController()].obs;
 
-  void addHighlight() {
-    highlightsControllers.add(TextEditingController());
-  }
-
-  void removeHighlight(int index) {
-    if (highlightsControllers.length > 1) {
-      highlightsControllers[index].dispose();
-      highlightsControllers.removeAt(index);
-    } else {
-      highlightsControllers[index].clear();
-    }
-  }
 
   final isSubmitting = false.obs;
 
   @override
   void onClose() {
-    for (var ctrl in highlightsControllers) {
-      ctrl.dispose();
-    }
     otherDisciplineController.dispose();
     facebookController.dispose();
     instagramController.dispose();
@@ -202,7 +185,6 @@ class SetupGroomApplicationController extends GetxController {
             'phone': commonCtrl.ref2PhoneController.text,
           }
         ],
-        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
       };
 
       // 3. Upload Photos

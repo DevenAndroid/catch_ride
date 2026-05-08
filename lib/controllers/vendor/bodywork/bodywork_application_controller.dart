@@ -67,8 +67,7 @@ class BodyworkApplicationController extends GetxController {
   final certificates = <File>[].obs;
 
 
-  // Experience Highlights
-  final highlightsControllers = <TextEditingController>[TextEditingController()].obs;
+
 
   // Experience level dropdown
   final experience = RxnString();
@@ -225,24 +224,10 @@ class BodyworkApplicationController extends GetxController {
     photos.removeAt(index);
   }
 
-  void addHighlight() {
-    highlightsControllers.add(TextEditingController());
-  }
 
-  void removeHighlight(int index) {
-    if (highlightsControllers.length > 1) {
-      highlightsControllers[index].dispose();
-      highlightsControllers.removeAt(index);
-    } else {
-      highlightsControllers[index].clear();
-    }
-  }
 
   @override
   void onClose() {
-    for (var ctrl in highlightsControllers) {
-      ctrl.dispose();
-    }
     otherDisciplineController.dispose();
     otherModalityController.dispose();
     facebookController.dispose();
@@ -329,7 +314,6 @@ class BodyworkApplicationController extends GetxController {
             'phone': commonCtrl.ref2PhoneController.text,
           }
         ],
-        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'standards': {
            'provideSupportiveBodywork': confirmSupportiveBodywork.value,
            'refertoVet': confirmReferToVet.value,

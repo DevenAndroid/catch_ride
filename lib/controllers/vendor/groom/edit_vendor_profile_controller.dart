@@ -35,6 +35,7 @@ class EditVendorProfileController extends GetxController {
   final otherPaymentController = TextEditingController();
 
   // Experience Highlights
+  final experienceHighlightsController = TextEditingController();
   final RxList<TextEditingController> highlightControllers = <TextEditingController>[].obs;
 
   // Grooming Tab - Home Base
@@ -270,7 +271,12 @@ class EditVendorProfileController extends GetxController {
     otherPaymentController.text = data["otherPaymentDetails"] ?? "";
     selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
 
+    experienceHighlightsController.text = data['experienceHighlights'] ?? '';
     final List<String> loadedHighlights = List<String>.from(data['highlights'] ?? []);
+    if (experienceHighlightsController.text.isEmpty && loadedHighlights.isNotEmpty) {
+      experienceHighlightsController.text = loadedHighlights.join('\n');
+    }
+    
     if (loadedHighlights.isEmpty) {
       highlightControllers.assignAll([TextEditingController()]);
     } else {
@@ -392,7 +398,12 @@ class EditVendorProfileController extends GetxController {
         
         selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
         
+        experienceHighlightsController.text = data['experienceHighlights'] ?? '';
         final List<String> loadedHighlights = List<String>.from(data['highlights'] ?? []);
+        if (experienceHighlightsController.text.isEmpty && loadedHighlights.isNotEmpty) {
+          experienceHighlightsController.text = loadedHighlights.join('\n');
+        }
+
         if (loadedHighlights.isEmpty) {
           highlightControllers.assignAll([TextEditingController()]);
         } else {
@@ -1138,7 +1149,8 @@ class EditVendorProfileController extends GetxController {
         'coverImage': coverImage,
         'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
-        'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'experienceHighlights': experienceHighlightsController.text,
+        'highlights': experienceHighlightsController.text.isNotEmpty ? experienceHighlightsController.text.split('\n').where((s) => s.trim().isNotEmpty).toList() : [],
         'city': cityController.text,
         'state': stateController.text,
         'country': countryController.text,

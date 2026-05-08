@@ -40,6 +40,7 @@ class UserModel {
   final List<String> paymentMethods;
   final String? otherPaymentDetails;
   final List<String> highlights;
+  final String? experienceHighlights;
   final VendorCompliance? compliance;
   final DateTime? createdAt;
 
@@ -83,6 +84,7 @@ class UserModel {
     this.paymentMethods = const [],
     this.otherPaymentDetails,
     this.highlights = const [],
+    this.experienceHighlights,
     this.compliance,
     this.createdAt,
   });
@@ -180,6 +182,14 @@ class UserModel {
       }
     }
 
+    String? experienceHighlights = json['experienceHighlights'] ?? (proData != null ? proData['experienceHighlights'] : null);
+    if (experienceHighlights == null || experienceHighlights.isEmpty) {
+       // Fallback to highlights list if experienceHighlights is not set
+       if (parsedHighlights.isNotEmpty) {
+         experienceHighlights = parsedHighlights.join('\n');
+       }
+    }
+
     return UserModel(
       id: json['_id'] ?? json['id'],
       firstName: json['firstName'] ?? '',
@@ -238,6 +248,7 @@ class UserModel {
       paymentMethods: parsedPaymentMethods,
       otherPaymentDetails: json['otherPaymentDetails'] ?? (proData != null ? proData['otherPaymentDetails'] : null),
       highlights: parsedHighlights,
+      experienceHighlights: experienceHighlights,
       compliance: (json['compliance'] != null || (proData != null && proData['compliance'] != null))
           ? VendorCompliance.fromJson(json['compliance'] ?? proData!['compliance'])
           : null,
@@ -285,6 +296,7 @@ class UserModel {
       'paymentMethods': paymentMethods,
       if (otherPaymentDetails != null) 'otherPaymentDetails': otherPaymentDetails,
       'highlights': highlights,
+      'experienceHighlights': experienceHighlights,
       if (compliance != null) 'compliance': compliance!.toJson(),
       if (createdAt != null) 'createdAt': createdAt!.toIso8601String(),
     };
@@ -329,6 +341,7 @@ class UserModel {
     List<String>? paymentMethods,
     String? otherPaymentDetails,
     List<String>? highlights,
+    String? experienceHighlights,
     DateTime? createdAt,
   }) {
     return UserModel(
@@ -371,6 +384,7 @@ class UserModel {
       paymentMethods: paymentMethods ?? this.paymentMethods,
       otherPaymentDetails: otherPaymentDetails ?? this.otherPaymentDetails,
       highlights: highlights ?? this.highlights,
+      experienceHighlights: experienceHighlights ?? this.experienceHighlights,
       createdAt: createdAt ?? this.createdAt,
     );
   }
