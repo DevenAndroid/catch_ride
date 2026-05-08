@@ -525,7 +525,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         ),
         const SizedBox(height: 20),
         _buildCard(
-          title: 'Why Join Catch-Ride?',
+          title: 'Why Join Community?',
           subText: "Tell us why you want to join our community",
           child: CommonTextField(
             label: '',

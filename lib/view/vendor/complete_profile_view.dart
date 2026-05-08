@@ -67,8 +67,6 @@ class CompleteProfileView extends StatelessWidget {
                     const SizedBox(height: 20),
                     _buildHighlightsSection(controller),
                     const SizedBox(height: 20),
-                    _buildWhyJoinSection(controller),
-                    const SizedBox(height: 20),
                     _buildNotesSection(controller),
                     const SizedBox(height: 32),
                     Obx(() => CommonButton(
@@ -434,32 +432,6 @@ class CompleteProfileView extends StatelessWidget {
           label: '',
           controller: controller.experienceHighlightsController,
           hintText: 'Share key experience, programs, or specialties you\'d like clients to know...',
-          maxLines: 4,
-          fillColor: Colors.white,
-          filled: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWhyJoinSection(GroomCompleteProfileController controller) {
-    return _buildContainer(
-      title: 'Why Join Catch-Ride?',
-      subtitle: 'Tell us why you want to join our community',
-      optional: true,
-      children: [
-        CommonTextField(
-          label: '',
-          controller: controller.whyJoinController,
-          hintText: 'Share your thoughts here...',
           maxLines: 4,
           fillColor: Colors.white,
           filled: true,

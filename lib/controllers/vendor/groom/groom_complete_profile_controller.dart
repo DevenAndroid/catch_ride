@@ -25,7 +25,6 @@ class GroomCompleteProfileController extends GetxController {
   final businessNameController = TextEditingController();
   final aboutController = TextEditingController();
   final experienceHighlightsController = TextEditingController();
-  final whyJoinController = TextEditingController();
   final notesForTrainerController = TextEditingController();
 
 
@@ -62,7 +61,7 @@ class GroomCompleteProfileController extends GetxController {
       experienceHighlightsController.text = user.highlights.join('\n');
     }
     
-    whyJoinController.text = user?.whyJoin ?? '';
+
 
     print("Name----:${fullNameController.text}");
     print("Phone----:${phoneNumberController.text}");
@@ -131,7 +130,6 @@ class GroomCompleteProfileController extends GetxController {
     businessNameController.dispose();
     aboutController.dispose();
     experienceHighlightsController.dispose();
-    whyJoinController.dispose();
     notesForTrainerController.dispose();
     otherPaymentController.dispose();
     super.onClose();
@@ -194,7 +192,6 @@ class GroomCompleteProfileController extends GetxController {
         'paymentMethods': selectedPaymentMethods.toList(),
         'otherPaymentDetails': otherPaymentController.text,
         'experienceHighlights': experienceHighlightsController.text,
-        'whyJoin': whyJoinController.text,
         'highlights': experienceHighlightsController.text.isNotEmpty ? experienceHighlightsController.text.split('\n').where((s) => s.trim().isNotEmpty).toList() : [],
         'notesForTrainer': notesForTrainerController.text,
         'isProfileCompleted': true,
