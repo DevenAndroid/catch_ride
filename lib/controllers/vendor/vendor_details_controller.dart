@@ -187,15 +187,15 @@ class VendorDetailsController extends GetxController {
   
   String get location {
     final appData = _activeApplicationData;
-    String? city = appData['homeBase']?['city'] ?? appData['city'];
-    String? state = appData['homeBase']?['state'] ?? appData['state'];
-    String? country = appData['homeBase']?['country'] ?? appData['country'];
+    String? city = (appData['homeBase'] is Map) ? appData['homeBase']['city'] : appData['city'];
+    String? state = (appData['homeBase'] is Map) ? appData['homeBase']['state'] : appData['state'];
+    String? country = (appData['homeBase'] is Map) ? appData['homeBase']['country'] : appData['country'];
 
     if (!_isValid(city) || !_isValid(state)) {
       final topAppData = _activeService?['application'] ?? {};
-      city ??= topAppData['homeBase']?['city'] ?? topAppData['city'];
-      state ??= topAppData['homeBase']?['state'] ?? topAppData['state'];
-      country ??= topAppData['homeBase']?['country'] ?? topAppData['country'];
+      city ??= (topAppData['homeBase'] is Map) ? topAppData['homeBase']['city'] : topAppData['city'];
+      state ??= (topAppData['homeBase'] is Map) ? topAppData['homeBase']['state'] : topAppData['state'];
+      country ??= (topAppData['homeBase'] is Map) ? topAppData['homeBase']['country'] : topAppData['country'];
     }
 
     if (_isValid(city) || _isValid(state) || _isValid(country)) {

@@ -51,9 +51,9 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
 
     // Location / experience
     final displayLocation = widget.location ??
-        (applicationData['homeBase']?['city'] != null
-            ? '${applicationData['homeBase']['city']}, ${applicationData['homeBase']['state'] ?? ''}'
-            : 'N/A');
+        (applicationData['homeBase'] is Map
+            ? '${applicationData['homeBase']['city'] ?? ''}${applicationData['homeBase']['city'] != null && applicationData['homeBase']['state'] != null ? ', ' : ''}${applicationData['homeBase']['state'] ?? ''}'
+            : applicationData['homeBase']?.toString() ?? 'N/A');
     final displayExperience = widget.experience ??
         (applicationData['experience'] != null
             ? '${applicationData['experience']} Years'

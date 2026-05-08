@@ -228,11 +228,14 @@ class SendBookingRequestController extends GetxController {
         _activeServiceData?['application']?['applicationData']?['homeBase'];
     if (homeBase == null) return '';
 
-    final city = homeBase['city']?.toString() ?? '';
-    final state = homeBase['state']?.toString() ?? '';
+    if (homeBase is Map) {
+      final city = homeBase['city']?.toString() ?? '';
+      final state = homeBase['state']?.toString() ?? '';
+      if (city.isEmpty || state.isEmpty) return city.isEmpty ? state : city;
+      return '$city, $state';
+    }
 
-    if (city.isEmpty || state.isEmpty) return '';
-    return '$city, $state';
+    return homeBase.toString();
   }
 
   List<String> get availableLocations {

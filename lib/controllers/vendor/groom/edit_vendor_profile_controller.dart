@@ -580,9 +580,9 @@ class EditVendorProfileController extends GetxController {
       final appData = draft['applicationData'] ?? application['applicationData'] ?? application ?? {};
 
       // Home Base Fallbacks
-      String? city = appData['homeBase']?['city'] ?? appData['city'];
-      String? state = appData['homeBase']?['state'] ?? appData['state'];
-      String? country = appData['homeBase']?['country'] ?? appData['country'];
+      String? city = (appData['homeBase'] is Map) ? appData['homeBase']['city'] : appData['city'];
+      String? state = (appData['homeBase'] is Map) ? appData['homeBase']['state'] : appData['state'];
+      String? country = (appData['homeBase'] is Map) ? appData['homeBase']['country'] : appData['country'];
 
       if (city == null || city.isEmpty) city = vendorRootData['city']?.toString();
       if (state == null || state.isEmpty) state = vendorRootData['state']?.toString();
@@ -1139,6 +1139,14 @@ class EditVendorProfileController extends GetxController {
         'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'city': cityController.text,
+        'state': stateController.text,
+        'country': countryController.text,
+        'homeBase': {
+          'city': cityController.text,
+          'state': stateController.text,
+          'country': countryController.text,
+        },
         'isProfileCompleted': true,
         'isProfileSetup': true,
       };
