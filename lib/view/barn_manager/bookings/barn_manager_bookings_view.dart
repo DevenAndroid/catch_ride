@@ -191,8 +191,8 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
               return TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildBookingsList(bookingController.receivedBookings),
-                  _buildBookingsList(bookingController.sentBookings),
+                  _buildBookingsList(_getFilteredBookings(bookingController.receivedBookings)),
+                  _buildBookingsList(_getFilteredBookings(bookingController.sentBookings)),
                 ],
               );
             }),
@@ -616,6 +616,27 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
       'transportation'
     ];
     return vendorTypes.contains(booking.type.toLowerCase());
+  }
+
+  List<BookingModel> _getFilteredBookings(List<BookingModel> bookings) {
+    if (_selectedFilterIndex >= _currentFilters.length) return bookings;
+
+    final filter = _currentFilters[_selectedFilterIndex].toLowerCase();
+
+    return bookings.where((b) {
+      final status = b.status.toLowerCase();
+
+      if (filter == 'accepted') {
+        return status == 'confirmed' || status == 'accepted';
+      }
+
+      if (filter == 'cancelled' || filter == 'canceled') {
+        return status == 'cancelled' || status == 'canceled';
+      }
+
+      // For Pending and Rejected
+      return status == filter;
+    }).toList();
   }
 
   Color _getStatusBgColor(String status) {

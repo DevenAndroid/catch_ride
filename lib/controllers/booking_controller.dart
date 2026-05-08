@@ -70,7 +70,7 @@ class BookingController extends GetxController {
       if (response.statusCode == 201 || response.statusCode == 200) {
         _logger.i('Booking created successfully');
         // Refresh the 'Sent' bookings list in global state
-        fetchBookings(type: 'sent');
+        // fetchBookings(type: 'sent');
         return response.body['data'];
       } else {
         _logger.e('Failed to create booking: ${response.statusText}');
@@ -127,8 +127,8 @@ class BookingController extends GetxController {
             colorText: Colors.white,
           );
           // Refresh both lists to move the booking to the correct section
-          fetchBookings(type: 'received');
-          fetchBookings(type: 'sent');
+          // fetchBookings(type: 'received');
+          // fetchBookings(type: 'sent');
           return response.body['data']; // Returns the updated booking object including conversationId
         } else {
           _logger.e('Failed to update booking status: ${response.statusText}');
