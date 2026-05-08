@@ -167,12 +167,16 @@ class BodyworkDetailsView extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              Obx(() => _buildReadOnlySection('Location', value: controller.location.value.isEmpty ? 'Loading...' : controller.location.value)),
-              Obx(() => _buildReadOnlySection('Years of Experience', value: controller.experience.value.isEmpty ? 'Loading...' : controller.experience.value)),
-
-              Obx(() => _buildReadOnlyTags('Disciplines', tags: controller.disciplines)),
-              Obx(() => _buildReadOnlyTags('Typical Level of Horses', tags: controller.horseLevels)),
-              Obx(() => _buildReadOnlyTags('Regions Covered', tags: controller.regionsCovered)),
+              _buildSummaryItem('Location', controller.location.value),
+              const SizedBox(height: 24),
+              _buildEditableExperience(controller),
+              const SizedBox(height: 24),
+              _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
+              const SizedBox(height: 24),
+              _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
+              const SizedBox(height: 24),
+              _buildEditableRegions(controller),
+              const SizedBox(height: 24),
 
               _buildGroupedSection(
                 'Cancellation Policy',
@@ -710,11 +714,11 @@ class BodyworkDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildReadOnlySection(String title, {required String value}) {
+  Widget _buildSummaryItem(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(title, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+        CommonText(label, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -722,38 +726,192 @@ class BodyworkDetailsView extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.lightGray.withOpacity(0.5),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
           ),
           child: CommonText(value, fontSize: AppTextSizes.size14),
         ),
-        const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _buildReadOnlyTags(String title, {required List<String> tags}) {
+  Widget _buildEditableExperience(BodyworkDetailsController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildGroupedSection(
-          title,
-          description: 'Select the $title you most commonly work with.',
+        const CommonText('Years of Experience', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+        const SizedBox(height: 12),
+        Obx(() => GestureDetector(
+          onTap: () => _showPickerBottomSheet(
+            title: 'Experience',
+            options: controller.experienceOptions,
+            onSelected: (val) => controller.experience.value = val,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.lightGray.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                ),
+                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
+              ],
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableChips(String label, String description, RxList<String> selectedItems, RxList<String> allOptions, Function(String) onToggle) {
+    return _buildGroupedSection(
+      label,
+      description: description,
+      children: [
+        Obx(() => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: allOptions.map((it) {
+            final isSelected = selectedItems.contains(it);
+            return GestureDetector(
+              onTap: () => onToggle(it),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF3F4FF) : AppColors.lightGray.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
+                ),
+                child: CommonText(
+                  it, 
+                  fontSize: 12, 
+                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableRegions(BodyworkDetailsController controller) {
+    return _buildGroupedSection(
+      'Regions Covered',
+      description: 'Select the regions you most commonly work in.',
+      children: [
+        Obx(() => Column(
           children: [
+            GestureDetector(
+              onTap: () => _showMultiSelectBottomSheet(
+                title: 'Select Regions',
+                options: controller.regionOptions,
+                selectedItems: controller.regionsCovered,
+                onToggle: controller.toggleRegion,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGray.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
+                    const Icon(Icons.add, color: Color(0xFF001149), size: 20),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: tags.map((tag) => Container(
+              children: controller.regionsCovered.map((region) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.lightGray.withOpacity(0.5),
+                  color: const Color(0xFFF3F4FF),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF001149)),
                 ),
-                child: CommonText(tag, fontSize: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001149), fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => controller.toggleRegion(region),
+                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001149)),
+                    ),
+                  ],
+                ),
               )).toList(),
             ),
           ],
-        ),
-        const SizedBox(height: 24),
+        )),
       ],
+    );
+  }
+
+  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            ...options.map((opt) => ListTile(
+              title: CommonText(opt),
+              onTap: () {
+                onSelected(opt);
+                Get.back();
+              },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMultiSelectBottomSheet({required String title, required List<String> options, required RxList<String> selectedItems, required Function(String) onToggle}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            Expanded(
+              child: ListView(
+                children: options.map((opt) => Obx(() => CheckboxListTile(
+                  title: CommonText(opt),
+                  value: selectedItems.contains(opt),
+                  onChanged: (val) => onToggle(opt),
+                  activeColor: const Color(0xFF001149),
+                ))).toList(),
+              ),
+            ),
+            CommonButton(text: 'Done', onPressed: () => Get.back()),
+          ],
+        ),
+      ),
     );
   }
 

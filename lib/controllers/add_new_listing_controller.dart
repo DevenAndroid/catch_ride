@@ -95,7 +95,7 @@ class AddNewListingController extends GetxController {
 
 
   // Step 1
-  final videoLinkController = TextEditingController();
+  final RxList<TextEditingController> videoLinkControllers = <TextEditingController>[TextEditingController()].obs;
   var uploadedImages = <String>[].obs;
   var uploadedVideos = <String>[].obs;
 
@@ -187,9 +187,20 @@ class AddNewListingController extends GetxController {
     selectedColor.value = horse.color ?? '';
     descriptionController.text = horse.description ?? '';
     usefNumberController.text = horse.usefNumber ?? '';
-    videoLinkController.text = horse.videoLink ?? '';
+    videoLinkControllers.clear();
+    if (horse.videoLink.isNotEmpty) {
+      for (var link in horse.videoLink) {
+        if (link.isNotEmpty) {
+          videoLinkControllers.add(TextEditingController(text: link));
+        }
+      }
+    }
+    if (videoLinkControllers.isEmpty) {
+      videoLinkControllers.add(TextEditingController());
+    }
+
     locationController.text = horse.location ?? '';
-    print("asdfasdfasdf4${locationController.text}");
+    print("asdfasdfasdf4${ horse.gender}");
     gender.value = horse.gender;
     selectedDisciplines.assignAll(horse.disciplines);
     disciplineController.text = horse.disciplines.join(', ');
@@ -226,13 +237,13 @@ class AddNewListingController extends GetxController {
     }
 
     // 2. Handle videoLink if it's a direct video URL
-    if (horse.videoLink != null &&
-        horse.videoLink!.isNotEmpty &&
-        horse.videoLink != 'N/A') {
-      if (isVideo(horse.videoLink!)) {
-        if (!processedUrls.contains(horse.videoLink!)) {
-          uploadedVideos.add(horse.videoLink!);
-          processedUrls.add(horse.videoLink!);
+    if (horse.videoLink.isNotEmpty) {
+      for (var link in horse.videoLink) {
+        if (link.isNotEmpty && link != 'N/A' && isVideo(link)) {
+          if (!processedUrls.contains(link)) {
+            uploadedVideos.add(link);
+            processedUrls.add(link);
+          }
         }
       }
     }
@@ -516,7 +527,7 @@ class AddNewListingController extends GetxController {
         'discipline': selectedDisciplines.toList(),
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
-        'videoLink': videoLinkController.text,
+        'videoLink': videoLinkControllers.map((c) => c.text.trim()).where((text) => text.isNotEmpty).toList(),
         'images': allImages,
        // 'photo': allImages.isNotEmpty ? allImages.first : null,
         'videoFile': allVideos,
@@ -855,8 +866,10 @@ class AddNewListingController extends GetxController {
     if (uploadedVideos.length > index) {
       final String removedUrl = uploadedVideos[index];
       uploadedVideos.removeAt(index);
-      if (videoLinkController.text.trim() == removedUrl.trim()) {
-        videoLinkController.clear();
+      for (var controller in videoLinkControllers) {
+        if (controller.text.trim() == removedUrl.trim()) {
+          controller.clear();
+        }
       }
     }
   }
@@ -976,11 +989,13 @@ class AddNewListingController extends GetxController {
   }
 
   bool validateStep4() {
-    final url = videoLinkController.text.trim();
-    if (url.isNotEmpty) {
-      if (!isValidVideoUrl(url)) {
-        _showError('Please enter a valid youtube link');
-        return false;
+    for (var controller in videoLinkControllers) {
+      final url = controller.text.trim();
+      if (url.isNotEmpty) {
+        if (!isValidVideoUrl(url)) {
+          _showError('Please enter a valid youtube link');
+          return false;
+        }
       }
     }
     return true;
@@ -1013,7 +1028,9 @@ class AddNewListingController extends GetxController {
 
   @override
   void onClose() {
-    videoLinkController.dispose();
+    for (var controller in videoLinkControllers) {
+      controller.dispose();
+    }
     listingTitleController.dispose();
     horseNameController.dispose();
     ageController.dispose();

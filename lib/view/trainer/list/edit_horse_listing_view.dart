@@ -633,8 +633,8 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
               text: 'Video link ',
               style: const TextStyle(
                 fontFamily: 'Inter',
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
               children: const [
@@ -646,39 +646,83 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
             ),
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
+          Obx(
+            () => Column(
               children: [
-                const Icon(
-                  Icons.link,
-                  color: AppColors.textSecondary,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: controller.videoLinkController,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      hintText: 'https://url.com',
-                      hintStyle: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: AppTextSizes.size14,
-                        fontWeight: FontWeight.w400,
+                ...controller.videoLinkControllers.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  TextEditingController linkController = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.link,
+                            color: AppColors.textSecondary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: linkController,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                hintText: 'https://youtube.com/watch?v=...',
+                                hintStyle: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: AppTextSizes.size14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (controller.videoLinkControllers.length > 1)
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.red, size: 20),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () {
+                                controller.videoLinkControllers.removeAt(index);
+                              },
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                if (controller.videoLinkControllers.length < 3)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () {
+                        controller.videoLinkControllers.add(TextEditingController());
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.add, color: Color(0xFF2C74EA), size: 18),
+                          SizedBox(width: 4),
+                          CommonText(
+                            'Add another link',
+                            color: Color(0xFF2C74EA),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -741,6 +785,25 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+              const CommonText(
+                'Gender',
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+              const SizedBox(height: 8),
+              Obx(() => Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: ['Mare', 'Gelding', 'Stallion'].map((g) {
+                      final isSelected = controller.gender.value == g;
+                      return GestureDetector(
+                        onTap: () => controller.gender.value = g,
+                        child: _buildTagChip(g, isSelected),
+                      );
+                    }).toList(),
+                  )),
               const SizedBox(height: 16),
               RichText(
                 text: const TextSpan(

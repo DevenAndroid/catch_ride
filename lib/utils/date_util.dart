@@ -80,7 +80,7 @@ class DateUtil {
   }
 
   static String formatRangeString(String? rangeStr) {
-    if (rangeStr == null || rangeStr.isEmpty || rangeStr == 'N/A') return 'N/A';
+    if (rangeStr == null || rangeStr.isEmpty || rangeStr == 'N/A') return '';
     if (rangeStr.contains(' to ')) {
       final parts = rangeStr.split(' to ');
       return formatRange(parts[0], parts[1]);
@@ -110,7 +110,7 @@ class DateUtil {
   }
 
   static String getTimeAgo(DateTime? date) {
-    if (date == null) return 'N/A';
+    if (date == null) return '';
 
     final duration = DateTime.now().difference(date);
 

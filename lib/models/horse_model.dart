@@ -11,7 +11,7 @@ class HorseModel {
   final String gender;
   final String? height;
   final String? listingTitle;
-  final String? videoLink;
+  final List<String> videoLink;
   final String? usefNumber;
   final List<String> listingTypes;
   final List<AvailabilityModel> showAvailability;
@@ -47,7 +47,7 @@ class HorseModel {
   String get displayDiscipline {
     if (disciplines.isNotEmpty) return disciplines.join(', ');
     if (programTags.isNotEmpty) return programTags.first.name;
-    return 'N/A';
+    return '';
   }
 
   HorseModel({
@@ -59,7 +59,7 @@ class HorseModel {
     required this.gender,
     this.height,
     this.listingTitle,
-    this.videoLink,
+    this.videoLink = const [],
     this.usefNumber,
     this.listingTypes = const [],
     this.showAvailability = const [],
@@ -241,7 +241,20 @@ class HorseModel {
       gender: json['gender'] ?? 'Other',
       height: json['height'],
       listingTitle: json['listingTitle'],
-      videoLink: json['videoLink'],
+      videoLink: (() {
+        final val = json['videoLink'];
+        if (val == null) return <String>[];
+        if (val is List) {
+          return List<String>.from(val)
+              .where((e) => e.trim().isNotEmpty && e != 'N/A')
+              .toList();
+        }
+        if (val is String) {
+          final trimmed = val.trim();
+          if (trimmed.isNotEmpty && trimmed != 'N/A') return [trimmed];
+        }
+        return <String>[];
+      })(),
       usefNumber: json['usefNumber'],
       listingTypes: List<String>.from(json['listingTypes'] ?? []),
       showAvailability: (() {
@@ -249,6 +262,12 @@ class HorseModel {
                 ?.map((e) => AvailabilityModel.fromJson(e))
                 .toList() ??
             [];
+        return list.where((avail) {
+          return !(avail.showVenue.trim().isEmpty &&
+                   avail.cityState.trim().isEmpty &&
+                   avail.startDate.trim().isEmpty &&
+                   avail.endDate.trim().isEmpty);
+        }).toList();
         // final now = DateTime.now();
         // final today = DateTime(now.year, now.month, now.day);
 
@@ -397,7 +416,7 @@ class HorseModel {
     String? gender,
     String? height,
     String? listingTitle,
-    String? videoLink,
+    List<String>? videoLink,
     String? usefNumber,
     List<String>? listingTypes,
     List<AvailabilityModel>? showAvailability,

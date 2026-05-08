@@ -3,22 +3,35 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/shipping/shipping_details_controller.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
-import 'package:catch_ride/widgets/common_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/utils/price_formatter.dart';
 
-class ServicePriceView extends StatelessWidget {
+class ServicePriceView extends StatefulWidget {
   const ServicePriceView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Using Get.put to initialize the controller for this view
-    final ShippingDetailsController controller = Get.put(ShippingDetailsController());
-    
-    // Explicitly marking as edit mode so the controller knows to go back on success
-    controller.editModeEnabled.value = true;
+  State<ServicePriceView> createState() => _ServicePriceViewState();
+}
 
+class _ServicePriceViewState extends State<ServicePriceView> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  late ShippingDetailsController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.isRegistered<ShippingDetailsController>()
+        ? Get.find<ShippingDetailsController>()
+        : Get.put(ShippingDetailsController());
+    controller.editModeEnabled.value = true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SingleChildScrollView(
@@ -71,7 +84,6 @@ class ServicePriceView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 24),
-                        // Base Rate
                         const CommonText(
                           'Base Rate',
                           fontSize: AppTextSizes.size14,
@@ -82,10 +94,7 @@ class ServicePriceView extends StatelessWidget {
                           controller: controller.baseRateController,
                           hint: 'Enter Price',
                         ),
-                        
                         const SizedBox(height: 24),
-                        
-                        // Fully Loaded Rate
                         const CommonText(
                           'Fully Loaded Rate',
                           fontSize: AppTextSizes.size14,
@@ -170,7 +179,7 @@ class ServicePriceView extends StatelessWidget {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 56, // Matching input height
+            height: 56,
             decoration: const BoxDecoration(
               border: Border(left: BorderSide(color: AppColors.borderLight)),
             ),

@@ -83,7 +83,7 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> additionalSkillsOptions = <String>['Braiding', 'Clipping'].obs;
   final RxList<String> selectedAdditionalSkills = <String>[].obs;
 
-  final RxList<String> travelOptions = <String>['Local Only', 'Regional'].obs;
+  final RxList<String> travelOptions = <String>['Local Only', 'Regional', 'Nationwide', 'International'].obs;
   final RxList<String> selectedTravel = <String>[].obs;
 
   // Braiding Tab Specifics

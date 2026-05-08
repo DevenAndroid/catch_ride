@@ -136,7 +136,7 @@ class GroomingDetailsController extends GetxController {
 
 
   // Travel Preferences
-  final travelOptions = ['Local Only', 'Regional'];
+  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
   final selectedTravel = <String>{}.obs;
 
   void toggleTravel(String item) {
@@ -148,18 +148,51 @@ class GroomingDetailsController extends GetxController {
   }
 
   // Pre-filled / Read-only
+  // Summary Data (Read-only -> Editable)
   final location = 'N/A'.obs;
-  final experience = 'N/A'.obs;
+  final experience = RxnString();
+  final experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+
   final disciplinesSelected = <String>[].obs;
+  final disciplineOptions = <String>[].obs;
+
   final horseLevels = <String>[].obs;
+  final horseLevelOptions = <String>[].obs;
+
   final operatingRegions = <String>[].obs;
-  final isLoading = false.obs; // For initial fetching
-  final isSubmitting = false.obs; // For form submission
+  final regionOptions = <String>[].obs;
+
+  void toggleDiscipline(String disc) {
+    if (disciplinesSelected.contains(disc)) {
+      disciplinesSelected.remove(disc);
+    } else {
+      disciplinesSelected.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (horseLevels.contains(level)) {
+      horseLevels.remove(level);
+    } else {
+      horseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (operatingRegions.contains(region)) {
+      operatingRegions.remove(region);
+    } else {
+      operatingRegions.add(region);
+    }
+  }
 
   // Cancellation Policy
   final cancellationPolicy = RxnString();
   final isCustomCancellation = false.obs;
   final customCancellationController = TextEditingController();
+
+  final isLoading = false.obs;
+  final isSubmitting = false.obs;
 
   @override
   void onInit() {
@@ -170,6 +203,44 @@ class GroomingDetailsController extends GetxController {
   Future<void> fetchGroomingData() async {
     isLoading.value = true;
     try {
+      // Fetch options from system config
+      final tagResponse = await apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Grooming',
+      );
+      if (tagResponse.statusCode == 200 &&
+          tagResponse.body['success'] == true) {
+        final List types = tagResponse.body['data'];
+
+        // Populate Disciplines
+        final disciplineType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Disciplines',
+        );
+        if (disciplineType != null) {
+          disciplineOptions.value = List<String>.from(
+            disciplineType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Level of Horses
+        final horseLevelType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Typical Level of Horses',
+        );
+        if (horseLevelType != null) {
+          horseLevelOptions.value = List<String>.from(
+            horseLevelType['values'].map((v) => v['name']),
+          );
+        }
+
+        // Populate Regions Covered
+        final regionType = types.firstWhereOrNull(
+          (t) => t['name'] == 'Regions Covered',
+        );
+        if (regionType != null) {
+          regionOptions.value = List<String>.from(
+            regionType['values'].map((v) => v['name']),
+          );
+        }
+      }
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -184,10 +255,21 @@ class GroomingDetailsController extends GetxController {
           final state = applicationData['homeBase']?['state'] ?? vendor['state'] ?? '';
           location.value = city.isNotEmpty && state.isNotEmpty ? '$city, $state, USA' : 'N/A';
           
-          experience.value = applicationData['experience'] != null ? '${applicationData['experience']} Years' : (vendor['experience'] ?? 'N/A');
+          experience.value = applicationData['experience']?.toString();
           disciplinesSelected.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
           operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+
+          if (groomingData['travelPreferences'] != null) {
+            selectedTravel.assignAll(List<String>.from(groomingData['travelPreferences']));
+          }
+          
+          if (groomingData['cancellationPolicy'] != null) {
+            final cp = groomingData['cancellationPolicy'];
+            cancellationPolicy.value = cp['policy'];
+            isCustomCancellation.value = cp['isCustom'] ?? false;
+            customCancellationController.text = cp['customText'] ?? '';
+          }
         } else {
           location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
           experience.value = vendor['experience'] ?? 'N/A';
@@ -214,13 +296,18 @@ class GroomingDetailsController extends GetxController {
       // Merge with existing servicesData to prevent clearing other services (Braiding, Clipping, etc.)
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendor['servicesData'] ?? {});
       
-      final existingGroomingData = existingServicesData['grooming'] ?? {};
-      final existingApplicationData = existingGroomingData['applicationData'] ?? {};
+      // Update applicationData with new selections
+      final Map<String, dynamic> updatedApplicationData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData']?['grooming']?['applicationData'] ?? {});
+      updatedApplicationData['experience'] = experience.value;
+      updatedApplicationData['disciplines'] = disciplinesSelected.toList();
+      updatedApplicationData['horseLevels'] = horseLevels.toList();
+      updatedApplicationData['regions'] = operatingRegions.toList();
 
       // Update ONLY the grooming part of servicesData
+      final Map<String, dynamic> existingGroomingData = Map<String, dynamic>.from(existingServicesData['grooming'] ?? {});
       existingServicesData['grooming'] = {
         ...existingGroomingData,
-        'applicationData': existingApplicationData, // CRITICAL: preserve location/experience
+        'applicationData': updatedApplicationData,
         'rates': {
           'daily': dailyRateController.text.replaceAll(',', ''),
           'weekly': {

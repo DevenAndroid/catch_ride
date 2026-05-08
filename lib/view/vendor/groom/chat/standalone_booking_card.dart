@@ -165,7 +165,7 @@ class _StandaloneBookingCardState extends State<StandaloneBookingCard> {
                             const SizedBox(width: 4),
                             Expanded(
                               child: CommonText(
-                                widget.booking.location ?? 'N/A',
+                                widget.booking.location ?? '',
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                                 maxLines: 1,

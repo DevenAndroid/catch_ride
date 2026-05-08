@@ -149,12 +149,43 @@ class FarrierDetailsController extends GetxController {
   ];
   final selectedInsurance = 'Carries Insurance'.obs;
 
-  // Summary Data (Read-only)
+  // Summary Data (Read-only -> Editable)
   final location = 'N/A'.obs;
-  final experience = 'N/A'.obs;
+  final experience = RxnString();
+  final experienceOptions = ['0-1', '2-4', '5-9', '10+'];
+
   final disciplines = <String>[].obs;
+  final disciplineOptions = <String>[].obs;
+
   final horseLevels = <String>[].obs;
+  final horseLevelOptions = <String>[].obs;
+
   final regionsCovered = <String>[].obs;
+  final regionOptions = <String>[].obs;
+
+  void toggleDiscipline(String disc) {
+    if (disciplines.contains(disc)) {
+      disciplines.remove(disc);
+    } else {
+      disciplines.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (horseLevels.contains(level)) {
+      horseLevels.remove(level);
+    } else {
+      horseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (regionsCovered.contains(region)) {
+      regionsCovered.remove(region);
+    } else {
+      regionsCovered.add(region);
+    }
+  }
 
 
   // Cancellation Policy
@@ -221,6 +252,24 @@ class FarrierDetailsController extends GetxController {
                 .toList(),
           );
         }
+
+        // Populate Disciplines
+        final disciplineType = types.firstWhereOrNull((t) => t['name'] == 'Disciplines');
+        if (disciplineType != null) {
+          disciplineOptions.value = List<String>.from(disciplineType['values'].map((v) => v['name']));
+        }
+
+        // Populate Level of Horses
+        final horseLevelType = types.firstWhereOrNull((t) => t['name'] == 'Typical Level of Horses');
+        if (horseLevelType != null) {
+          horseLevelOptions.value = List<String>.from(horseLevelType['values'].map((v) => v['name']));
+        }
+
+        // Populate Regions Covered
+        final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
+        if (regionType != null) {
+          regionOptions.value = List<String>.from(regionType['values'].map((v) => v['name']));
+        }
       }
 
       // 2. Fetch vendor profile data
@@ -240,7 +289,7 @@ class FarrierDetailsController extends GetxController {
           }
 
           if (applicationData['experience'] != null) {
-            experience.value = '${applicationData['experience']} years';
+            experience.value = applicationData['experience'].toString();
           }
 
           disciplines.assignAll(
@@ -283,7 +332,15 @@ class FarrierDetailsController extends GetxController {
             vendorResponse.body['data']['servicesData'] ?? {},
           );
 
+      // Update applicationData with new selections
+      final Map<String, dynamic> updatedApplicationData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData']?['farrier']?['applicationData'] ?? {});
+      updatedApplicationData['experience'] = experience.value;
+      updatedApplicationData['disciplines'] = disciplines.toList();
+      updatedApplicationData['horseLevels'] = horseLevels.toList();
+      updatedApplicationData['regions'] = regionsCovered.toList();
+
       existingServicesData['farrier'] = {
+        'applicationData': updatedApplicationData,
         'services': farrierServices
             .where((s) => s['isSelected'].value == true)
             .map(

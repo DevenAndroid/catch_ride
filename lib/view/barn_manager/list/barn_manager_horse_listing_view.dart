@@ -16,6 +16,8 @@ import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/widgets/horse_card.dart';
 
+import '../../trainer/home/trainer_horse_detail_view.dart';
+
 class BarnManagerHorseListingView extends StatefulWidget {
   const BarnManagerHorseListingView({super.key});
 
@@ -304,7 +306,7 @@ class _BarnManagerHorseListingViewState
           // Image
           GestureDetector(
             onTap: () => Get.to(
-              () => BarnManagerHorseDetailView(horse: horse, isOwnHorse: false),
+              () => TrainerHorseDetailView(horse: horse, isOwnHorse: false),
             ),
             child: CommonImageView(
               url: mainImageUrl,

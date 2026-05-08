@@ -192,42 +192,220 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
         return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()));
       }
       
-      final hasLocation = controller.location.value.isNotEmpty;
-      final hasExperience = controller.experience.value.isNotEmpty;
-      final hasDisciplines = controller.disciplines.isNotEmpty;
-      final hasHorseLevels = controller.horseLevels.isNotEmpty;
-      final hasRegions = controller.operatingRegions.isNotEmpty;
-      
-      if (!hasLocation && !hasExperience && !hasDisciplines && !hasHorseLevels && !hasRegions) {
-        return const SizedBox.shrink();
-      }
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hasLocation) ...[
-            _buildLabelValue('Location', controller.location.value),
-            const SizedBox(height: 24),
-          ],
-          if (hasExperience) ...[
-            _buildLabelValue('Years of experience', controller.experience.value),
-            const SizedBox(height: 24),
-          ],
-          if (hasDisciplines) ...[
-            _buildChipsList('Disciplines', controller.disciplines),
-            const SizedBox(height: 24),
-          ],
-          if (hasHorseLevels) ...[
-            _buildChipsList('Typical level of horses', controller.horseLevels),
-            const SizedBox(height: 24),
-          ],
-          if (hasRegions) ...[
-            _buildChipsList('Regions covered', controller.operatingRegions),
-            const SizedBox(height: 24),
-          ],
+          _buildSummaryItem('Location', controller.location.value),
+          const SizedBox(height: 24),
+          _buildEditableExperience(controller),
+          const SizedBox(height: 24),
+          _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
+          const SizedBox(height: 24),
+          _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
+          const SizedBox(height: 24),
+          _buildEditableRegions(controller),
         ],
       );
     });
+  }
+
+  Widget _buildSummaryItem(String label, String value) {
+    return _buildSectionContainer(
+      title: label,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6), 
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
+          ),
+          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditableExperience(BraidingDetailsController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Years of experience'),
+        const SizedBox(height: 12),
+        Obx(() => GestureDetector(
+          onTap: () => _showPickerBottomSheet(
+            title: 'Experience',
+            options: controller.experienceOptions,
+            onSelected: (val) => controller.experience.value = val,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6), 
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                ),
+                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
+              ],
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableChips(String label, String description, RxList<String> selectedItems, RxList<String> allOptions, Function(String) onToggle) {
+    return _buildSectionContainer(
+      title: label,
+      description: description,
+      children: [
+        Obx(() => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: allOptions.map((it) {
+            final isSelected = selectedItems.contains(it);
+            return GestureDetector(
+              onTap: () => onToggle(it),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF3F4FF) : const Color(0xFFF3F4F6),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
+                ),
+                child: CommonText(
+                  it, 
+                  fontSize: 12, 
+                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableRegions(BraidingDetailsController controller) {
+    return _buildSectionContainer(
+      title: 'Regions covered',
+      description: 'Select the regions you have the most experience with',
+      children: [
+        Obx(() => Column(
+          children: [
+            GestureDetector(
+              onTap: () => _showMultiSelectBottomSheet(
+                title: 'Select Regions',
+                options: controller.regionOptions,
+                selectedItems: controller.operatingRegions,
+                onToggle: controller.toggleRegion,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4F6), 
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
+                    const Icon(Icons.add, color: Color(0xFF001144), size: 20),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.operatingRegions.map((region) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF001144)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001144), fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => controller.toggleRegion(region),
+                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001144)),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+          ],
+        )),
+      ],
+    );
+  }
+
+  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            ...options.map((opt) => ListTile(
+              title: CommonText(opt),
+              onTap: () {
+                onSelected(opt);
+                Get.back();
+              },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMultiSelectBottomSheet({required String title, required List<String> options, required RxList<String> selectedItems, required Function(String) onToggle}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            Expanded(
+              child: ListView(
+                children: options.map((opt) => Obx(() => CheckboxListTile(
+                  title: CommonText(opt),
+                  value: selectedItems.contains(opt),
+                  onChanged: (val) => onToggle(opt),
+                  activeColor: const Color(0xFF001144),
+                ))).toList(),
+              ),
+            ),
+            CommonButton(text: 'Done', onPressed: () => Get.back()),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildCancellationPolicy(BraidingDetailsController controller) {
@@ -400,19 +578,21 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
   Widget _buildSelectableChip(String text, {required bool isSelected, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight, width: 1),
-          boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 4, offset: const Offset(0, 2))] : null,
+          color: isSelected ? const Color(0xFFF5F8FF) : const Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(100),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF001144) : const Color(0xFFE5E5E5),
+          ),
         ),
         child: CommonText(
           text,
-          fontSize: AppTextSizes.size14,
+          fontSize: 12.5,
+          color: isSelected ? const Color(0xFF001144) : const Color(0xFF444444),
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isSelected ? Colors.white : AppColors.textSecondary,
         ),
       ),
     );
@@ -425,39 +605,4 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
     );
   }
 
-  Widget _buildLabelValue(String label, String value) {
-    return _buildSectionContainer(
-      title: label,
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6), 
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChipsList(String label, List<String> items) {
-    return _buildSectionContainer(
-      title: label,
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: items
-              .map((it) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(color: const Color(0xFFF3F4F6), borderRadius: BorderRadius.circular(8)),
-                    child: CommonText(it, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
-                  ))
-              .toList(),
-        ),
-      ],
-    );
-  }
 }

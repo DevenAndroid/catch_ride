@@ -104,7 +104,7 @@ class ShippingTripView extends StatelessWidget {
     final statusColor = controller.getStatusColor(trip.status);
     final dates = trip.startDate != null && trip.endDate != null
         ? '${DateFormat('MMM dd').format(trip.startDate!)} - ${DateFormat('MMM dd, yyyy').format(trip.endDate!)}'
-        : 'N/A';
+        : '';
     
     return Container(
       padding: const EdgeInsets.all(16),
@@ -132,7 +132,7 @@ class ShippingTripView extends StatelessWidget {
                   children: [
                     Flexible(
                       child: CommonText(
-                        trip.origin ?? 'N/A',
+                        trip.origin ?? '',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -144,7 +144,7 @@ class ShippingTripView extends StatelessWidget {
                     ),
                     Flexible(
                       child: CommonText(
-                        trip.destination ?? 'N/A',
+                        trip.destination ?? '',
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -215,11 +215,14 @@ class ShippingTripView extends StatelessWidget {
 
           const SizedBox(height: 16),
           
-          _buildInfoRow(Icons.calendar_today_outlined, dates),
-          const SizedBox(height: 8),
+          if (dates.isNotEmpty) ...[
+            _buildInfoRow(Icons.calendar_today_outlined, dates),
+            const SizedBox(height: 8),
+          ],
           _buildInfoRow(Icons.access_time, '${trip.maxHorses} slots available'),
           const SizedBox(height: 8),
-          _buildInfoRow(Icons.chat_bubble_outline, trip.routeNotes ?? 'N/A'),
+          if (trip.routeNotes != null && trip.routeNotes!.isNotEmpty && trip.routeNotes != 'N/A')
+            _buildInfoRow(Icons.chat_bubble_outline, trip.routeNotes!),
         ],
       ),
     );
@@ -265,6 +268,7 @@ class ShippingTripView extends StatelessWidget {
   }
 
   Widget _buildInfoRow(IconData icon, String text) {
+    if (text.isEmpty || text == 'N/A') return const SizedBox.shrink();
     return Row(
       children: [
         Icon(icon, size: 16, color: AppColors.textSecondary),

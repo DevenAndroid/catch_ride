@@ -24,6 +24,7 @@ class ExploreController extends GetxController {
   final RxString showVenue = ''.obs;
   final Rxn<DateTime> startDate = Rxn<DateTime>();
   final Rxn<DateTime> endDate = Rxn<DateTime>();
+  final Rxn<DateTime> availableBy = Rxn<DateTime>();
   final RxList<String> recentSearches = <String>[].obs;
   final RxBool isGridView = true.obs;
 
@@ -115,6 +116,7 @@ class ExploreController extends GetxController {
     selectedDiscipline.value = 'All';
     startDate.value = null;
     endDate.value = null;
+    availableBy.value = null;
     ageMin.value = null;
     ageMax.value = null;
     heightMin.value = null;
@@ -309,6 +311,12 @@ class ExploreController extends GetxController {
         queryParams['endDate'] = DateFormat(
           'yyyy-MM-dd',
         ).format(endDate.value!);
+      }
+      
+      if (availableBy.value != null) {
+        queryParams['availableBy'] = DateFormat(
+          'yyyy-MM-dd',
+        ).format(availableBy.value!);
       }
 
       // Add advanced filters

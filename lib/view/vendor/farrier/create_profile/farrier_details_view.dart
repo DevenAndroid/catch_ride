@@ -428,54 +428,213 @@ class FarrierDetailsView extends StatelessWidget {
       children: [
         _buildSummaryItem('Location', controller.location.value),
         const SizedBox(height: 24),
-        _buildSummaryItem('Years of Experience', controller.experience.value),
+        _buildEditableExperience(controller),
         const SizedBox(height: 24),
-        _buildSummaryChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines),
+        _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
         const SizedBox(height: 24),
-        _buildSummaryChips('Typical level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels),
+        _buildEditableChips('Typical level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
         const SizedBox(height: 24),
-        _buildSummaryChips('Regions Covered', 'Select the regions you most commonly work in.', controller.regionsCovered),
+        _buildEditableRegions(controller),
       ],
     );
   }
 
   Widget _buildSummaryItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return _buildSectionContainer(
+      title: label,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-        const SizedBox(height: 12),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: AppColors.tabBackground,
+            color: const Color(0xFFF3F4F6),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
           ),
-          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
         ),
       ],
     );
   }
 
-  Widget _buildSummaryChips(String label, String description, List<String> items) {
+  Widget _buildEditableExperience(FarrierDetailsController controller) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText('Years of Experience', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+        const SizedBox(height: 12),
+        Obx(() => GestureDetector(
+          onTap: () => _showPickerBottomSheet(
+            title: 'Experience',
+            options: controller.experienceOptions,
+            onSelected: (val) => controller.experience.value = val,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: AppColors.tabBackground,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                ),
+                const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        )),
+      ],
+    );
+  }
+
+  Widget _buildEditableChips(String label, String description, RxList<String> selectedItems, RxList<String> allOptions, Function(String) onToggle) {
     return _buildSectionContainer(
       title: label,
       description: description,
       children: [
-        Wrap(
+        Obx(() => Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: items.map((it) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.tabBackground,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: CommonText(it, fontSize: AppTextSizes.size12, color: AppColors.textPrimary),
-          )).toList(),
-        ),
+          children: allOptions.map((it) {
+            final isSelected = selectedItems.contains(it);
+            return GestureDetector(
+              onTap: () => onToggle(it),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF3F4FF) : AppColors.tabBackground,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? const Color(0xFF001149) : AppColors.borderLight),
+                ),
+                child: CommonText(
+                  it, 
+                  fontSize: AppTextSizes.size12, 
+                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+            );
+          }).toList(),
+        )),
       ],
+    );
+  }
+
+  Widget _buildEditableRegions(FarrierDetailsController controller) {
+    return _buildSectionContainer(
+      title: 'Regions Covered',
+      description: 'Select the regions you most commonly work in.',
+      children: [
+        Obx(() => Column(
+          children: [
+            GestureDetector(
+              onTap: () => _showMultiSelectBottomSheet(
+                title: 'Select Regions',
+                options: controller.regionOptions,
+                selectedItems: controller.regionsCovered,
+                onToggle: controller.toggleRegion,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.tabBackground,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.borderLight),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText('Select Regions...', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+                    const Icon(Icons.add, color: AppColors.primary),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.regionsCovered.map((region) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F4FF),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF1E1B4B)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: CommonText(region, fontSize: 12, color: const Color(0xFF1E1B4B), fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => controller.toggleRegion(region),
+                      child: const Icon(Icons.close, size: 14, color: Color(0xFF1E1B4B)),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+          ],
+        )),
+      ],
+    );
+  }
+
+  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            ...options.map((opt) => ListTile(
+              title: CommonText(opt),
+              onTap: () {
+                onSelected(opt);
+                Get.back();
+              },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMultiSelectBottomSheet({required String title, required List<String> options, required RxList<String> selectedItems, required Function(String) onToggle}) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
+            const SizedBox(height: 24),
+            Expanded(
+              child: ListView(
+                children: options.map((opt) => Obx(() => CheckboxListTile(
+                  title: CommonText(opt),
+                  value: selectedItems.contains(opt),
+                  onChanged: (val) => onToggle(opt),
+                  activeColor: AppColors.primary,
+                ))).toList(),
+              ),
+            ),
+            CommonButton(text: 'Done', onPressed: () => Get.back()),
+          ],
+        ),
+      ),
     );
   }
 
