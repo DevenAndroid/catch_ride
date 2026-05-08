@@ -179,7 +179,7 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
         const CommonText('Certifications', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
         const SizedBox(height: 12),
         ...certs.map((url) => GestureDetector(
-          onTap: () => UrlHelper.launchUrl(url),
+          onTap: () => UrlHelper.launchURL(url),
           child: Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
