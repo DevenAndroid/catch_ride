@@ -170,7 +170,7 @@ class ShippingApplicationController extends GetxController {
       // 2. Build Payload
       final applicationData = {
         'fullName': commonCtrl.fullNameController.text,
-        'bio': commonCtrl.joinCommunityController.text,
+        'whyJoin': commonCtrl.joinCommunityController.text,
         'homeBase': {
           'country': commonCtrl.countryController.text,
           'state': commonCtrl.selectedState.value?['name'],
@@ -217,7 +217,7 @@ class ShippingApplicationController extends GetxController {
         'serviceType': 'Shipping',
         'applicationData': applicationData,
         'profileData': {
-          'bio': commonCtrl.joinCommunityController.text,
+          'whyJoin': commonCtrl.joinCommunityController.text,
           'isProfileSetup': true,
         },
       });
