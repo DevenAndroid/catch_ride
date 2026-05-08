@@ -98,11 +98,10 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
-                      if(activeService=="shipping")
                       ...[
                         Row(
                           children: [
-                            if (groomController.hasDotNumber) ...[
+                            if (activeService == "shipping" && groomController.hasDotNumber) ...[
                               BadgeChip(
                                 text: "USDOT REGISTERED",
                                 icon: Icons.verified,
@@ -435,16 +434,18 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
 
     if (activeService.contains('bodywork')) {
         final Map bodyworkData = servicesData['bodywork'] ?? groomController.activeServiceProfile;
-       return BodyworkServiceAndRatesView(
-         bodyworkData: bodyworkData,
-         location: groomController.locationStr.value,
-         experience: groomController.experienceStr.value,
-         disciplines: groomController.disciplinesSelected,
-         horseLevels: groomController.horseLevels,
-         regionsCovered: groomController.operatingRegions,
-         travelPreferences: groomController.travelPreferences,
-         services: groomController.bodyworkServices,
-       );
+        return BodyworkServiceAndRatesView(
+          bodyworkData: bodyworkData,
+          location: groomController.locationStr.value,
+          experience: groomController.experienceStr.value,
+          disciplines: groomController.disciplinesSelected,
+          horseLevels: groomController.horseLevels,
+          regionsCovered: groomController.operatingRegions,
+          travelPreferences: groomController.travelPreferences,
+          services: groomController.bodyworkServices,
+          insuranceStatus: groomController.insuranceStatus,
+          certifications: groomController.certifications,
+        );
     }
     
     if (activeService == 'shipping') {
@@ -487,15 +488,17 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     
     if (activeService == 'clipping') {
         final Map clippingData = servicesData['clipping'] ?? groomController.activeServiceProfile;
-       return ClippingServiceAndRatesView(
-         clippingData: clippingData,
-         location: groomController.locationStr.value,
-         experience: groomController.experienceStr.value,
-         disciplines: groomController.disciplinesSelected,
-         horseLevels: groomController.horseLevels,
-         regionsCovered: groomController.operatingRegions,
-         travelPreferences: groomController.travelPreferences,
-       );
+        return ClippingServiceAndRatesView(
+          clippingData: clippingData,
+          location: groomController.locationStr.value,
+          experience: groomController.experienceStr.value,
+          disciplines: groomController.disciplinesSelected,
+          horseLevels: groomController.horseLevels,
+          regionsCovered: groomController.operatingRegions,
+          travelPreferences: groomController.travelPreferences,
+          insuranceStatus: groomController.insuranceStatus,
+          certifications: groomController.certifications,
+        );
     }
     
     if (activeService == 'braiding') {
@@ -523,6 +526,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         travelPreferences: groomController.travelPreferences,
         services: groomController.farrierServices,
         addOns: groomController.farrierAddOns,
+        insuranceStatus: groomController.insuranceStatus,
+        certifications: groomController.certifications,
       );
     }
 

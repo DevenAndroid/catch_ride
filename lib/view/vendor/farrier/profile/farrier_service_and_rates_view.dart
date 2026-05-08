@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/url_helper.dart';
 
 class FarrierServiceAndRatesView extends StatefulWidget {
   final Map farrierData;
@@ -16,6 +17,8 @@ class FarrierServiceAndRatesView extends StatefulWidget {
   final List<String>? travelPreferences;
   final List<dynamic>? services;
   final List<dynamic>? addOns;
+  final String? insuranceStatus;
+  final List<String>? certifications;
 
   const FarrierServiceAndRatesView({
     super.key,
@@ -29,6 +32,8 @@ class FarrierServiceAndRatesView extends StatefulWidget {
     this.travelPreferences,
     this.services,
     this.addOns,
+    this.insuranceStatus,
+    this.certifications,
   });
 
   @override
@@ -152,6 +157,14 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
                 const SizedBox(height: 16),
                 _buildDetailItem('Regions Covered', widget.regionsCovered!.join(', ')),
               ],
+              if (widget.insuranceStatus?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Insurance Status', widget.insuranceStatus!),
+              ],
+              if (widget.certifications?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildCertificationsSection(widget.certifications!),
+              ],
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => _showMoreDetails.value = false,
@@ -208,6 +221,44 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
         const SizedBox(height: 6),
         CommonText(value, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         if (showDivider) const Divider(height: 24, color: AppColors.dividerColor),
+      ],
+    );
+  }
+
+  Widget _buildCertificationsSection(List<String> certs) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText('Certifications', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        const SizedBox(height: 12),
+        ...certs.map((url) => GestureDetector(
+          onTap: () => UrlHelper.launchUrl(url),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.description_outlined, color: Colors.red, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CommonText(
+                    url.split('/').last.split('?').first,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Icon(Icons.open_in_new, size: 16, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        )),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/url_helper.dart';
 
 class ClippingServiceAndRatesView extends StatefulWidget {
   final Map clippingData;
@@ -13,6 +14,8 @@ class ClippingServiceAndRatesView extends StatefulWidget {
   final List<String>? horseLevels;
   final List<String>? regionsCovered;
   final List<String>? travelPreferences;
+  final String? insuranceStatus;
+  final List<String>? certifications;
 
   const ClippingServiceAndRatesView({
     super.key,
@@ -23,6 +26,8 @@ class ClippingServiceAndRatesView extends StatefulWidget {
     this.horseLevels,
     this.regionsCovered,
     this.travelPreferences,
+    this.insuranceStatus,
+    this.certifications,
   });
 
   @override
@@ -99,6 +104,14 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
                 const SizedBox(height: 16),
                 _buildDetailItem('Regions Covered', widget.regionsCovered!.join(', ')),
               ],
+              if (widget.insuranceStatus?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Insurance Status', widget.insuranceStatus!),
+              ],
+              if (widget.certifications?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildCertificationsSection(widget.certifications!),
+              ],
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => _showMoreDetails.value = false,
@@ -158,4 +171,44 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
       ],
     );
   }
+
+  Widget _buildCertificationsSection(List<String> certs) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText('Certifications', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        const SizedBox(height: 12),
+        ...certs.map((url) => GestureDetector(
+          onTap: () => UrlHelper.launchUrl(url),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.description_outlined, color: Colors.red, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CommonText(
+                    url.split('/').last.split('?').first,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const Icon(Icons.open_in_new, size: 16, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        )),
+        const Divider(height: 24, color: AppColors.dividerColor),
+      ],
+    );
+  }
 }
+
+// Add this to imports if missing: import 'package:catch_ride/utils/url_helper.dart';
