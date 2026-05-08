@@ -158,9 +158,20 @@ class EditVendorProfileController extends GetxController {
   final RxString tempSelectedFeeType = 'No travel fee'.obs;
   final travelFeePriceController = TextEditingController();
   final travelFeeDisclaimerController = TextEditingController();
+  final List<String> bodyworkFallbackServices = [
+    'Sports massage',
+    'Myofascial release',
+    'PEMF',
+    'Chiropractic',
+    'Acupuncture',
+    'Laser therapy',
+    'Red Light',
+    'Other'
+  ];
 
   // Clipping Tab Specifics
   final RxnString clippingInsuranceStatus = RxnString();
+  final RxnString bodyworkInsuranceStatus = RxnString();
   final RxList<File> clippingCertFiles = <File>[].obs;
   final RxList<String> clippingExistingCertUrls = <String>[].obs;
 
@@ -1106,6 +1117,156 @@ class EditVendorProfileController extends GetxController {
   void removeClippingCertFile(int index) => clippingCertFiles.removeAt(index);
   void removeClippingExistingCert(int index) {
       clippingExistingCertUrls.removeAt(index);
+  }
+
+  Future<void> onCountrySelected(Map<String, dynamic> country) async {
+    countryController.text = country['name'] ?? '';
+    selectedCountryCode.value = country['code'] ?? 'US';
+    stateController.clear();
+    cityController.clear();
+    states.clear();
+    cities.clear();
+    await fetchStates(selectedCountryCode.value);
+  }
+
+  Future<void> fetchStates(String countryCode) async {
+    isLoadingStates.value = true;
+    try {
+      final response = await _apiService.getRequest('/locations/states?countryCode=$countryCode');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        states.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
+      }
+    } catch (e) {
+      debugPrint('Error fetching states: $e');
+    } finally {
+      isLoadingStates.value = false;
+    }
+  }
+
+  Future<void> onStateSelected(Map<String, dynamic> state) async {
+    stateController.text = state['name'] ?? '';
+    selectedStateNode.value = state;
+    cityController.clear();
+    cities.clear();
+    if (state['isoCode'] != null) {
+      await fetchCities(state['isoCode']);
+    }
+  }
+
+  Future<void> fetchCities(String stateCode) async {
+    isLoadingCities.value = true;
+    try {
+      final response = await _apiService.getRequest('/locations/cities?countryCode=${selectedCountryCode.value}&stateCode=$stateCode');
+      if (response.statusCode == 200 && response.body['success'] == true) {
+        cities.assignAll(List<Map<String, dynamic>>.from(response.body['data']));
+      }
+    } catch (e) {
+      debugPrint('Error fetching cities: $e');
+    } finally {
+      isLoadingCities.value = false;
+    }
+  }
+
+  void onCitySelected(Map<String, dynamic> city) {
+    cityController.text = city['name'] ?? '';
+    selectedCityNode.value = city;
+  }
+
+  void toggleDiscipline(String disc) {
+    if (selectedDisciplines.contains(disc)) {
+      selectedDisciplines.remove(disc);
+    } else {
+      selectedDisciplines.add(disc);
+    }
+  }
+
+  void toggleHorseLevel(String level) {
+    if (selectedHorseLevels.contains(level)) {
+      selectedHorseLevels.remove(level);
+    } else {
+      selectedHorseLevels.add(level);
+    }
+  }
+
+  void toggleRegion(String region) {
+    if (selectedRegions.contains(region)) {
+      selectedRegions.remove(region);
+    } else {
+      selectedRegions.add(region);
+    }
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  void addServicePhoto(String serviceType) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (image != null) {
+      serviceNewPhotos[serviceType]?.add(File(image.path));
+    }
+  }
+
+  void removeServiceExistingPhoto(String serviceType, int index) {
+    serviceExistingPhotos[serviceType]?.removeAt(index);
+  }
+
+  void removeServiceNewPhoto(String serviceType, int index) {
+    serviceNewPhotos[serviceType]?.removeAt(index);
+  }
+
+  void addClippingService(String name) {
+    final trimmed = name.trim();
+    if (trimmed.isNotEmpty) {
+      clippingServices.add({
+        'name': trimmed,
+        'price': TextEditingController(text: '0'),
+        'isSelected': RxBool(true),
+      });
+      clippingServiceInputController.clear();
+    }
+  }
+
+  void _mergeBodyworkModalities() {
+    final bodyworkService = assignedServices.firstWhereOrNull((s) => s['serviceType'] == 'Bodywork');
+    if (bodyworkService == null) return;
+    
+    final profileData = bodyworkService['profile']?['profileData'] ?? {};
+    final List existingServices = profileData['services'] ?? [];
+    
+    // Initialize with fallback
+    bodyworkServices.assignAll(bodyworkFallbackServices.map((name) => {
+      'name': name,
+      'isSelected': RxBool(false),
+      'rates': <String, dynamic>{'30': '', '45': '', '60': '', '90': ''},
+      'note': '',
+      'trainerPresence': null,
+      'vetApproval': null,
+    }).toList());
+
+    if (existingServices.isNotEmpty) {
+      for (var existing in existingServices) {
+        final index = bodyworkServices.indexWhere((s) => s['name'] == existing['name']);
+        if (index != -1) {
+          bodyworkServices[index] = {
+            'name': existing['name'],
+            'isSelected': RxBool(existing['isSelected'] ?? true),
+            'rates': Map<String, dynamic>.from(existing['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+            'note': existing['note'] ?? '',
+            'trainerPresence': existing['trainerPresence'],
+            'vetApproval': existing['vetApproval'],
+          };
+        } else {
+          bodyworkServices.add({
+            'name': existing['name'],
+            'isSelected': RxBool(existing['isSelected'] ?? true),
+            'rates': Map<String, dynamic>.from(existing['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+            'note': existing['note'] ?? '',
+            'trainerPresence': existing['trainerPresence'],
+            'vetApproval': existing['vetApproval'],
+          });
+        }
+      }
+    }
+    bodyworkServices.refresh();
   }
 
   void toggleBraidingService(int index) {
