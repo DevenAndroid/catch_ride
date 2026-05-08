@@ -185,7 +185,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                               children: [
                                 CommonText(
                                   _controller.fullName.isEmpty
-                                      ? 'N/A'
+                                      ? ''
                                       : _controller.fullName,
                                   fontSize: 24,
                                   fontWeight: FontWeight.w800,
@@ -196,7 +196,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                 const SizedBox(height: 4),
                                 CommonText(
                                   _controller.barnName.isEmpty
-                                      ? 'N/A'
+                                      ? ''
                                       : _controller.barnName,
                                   fontSize: 16,
                                   color: AppColors.textSecondary,
@@ -241,7 +241,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                           return _controller.location;
                                         }
 
-                                        return 'N/A';
+                                        return '';
                                       })(),
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -275,7 +275,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                     ),
                                     if (_controller.yearsInIndustry.isNotEmpty)
                                       CommonText(
-                                        '${_controller.yearsInIndustry}+ Years',
+                                        '${_controller.yearsInIndustry} Yrs',
                                         fontSize: 15,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
@@ -456,9 +456,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                               ],
                             ),
                             const SizedBox(height: 12),
-                            ...horses
-                                .map((horse) => _buildHorseCard(horse))
-                                .toList(),
+                            ...horses.map((horse) => _buildHorseCard(horse)).toList(),
                           ],
                         );
                       }),
@@ -580,7 +578,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: CommonImageView(
-                url: horse.photo ?? horse.images.firstOrNull,
+                url:horse.images.firstOrNull?? horse.photo,
                 height: 90,
                 width: 90,
                 fit: BoxFit.cover,
@@ -592,14 +590,15 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    horse.name,
+                    horse.listingTitle??horse.name,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
+                    maxLines: 2,
                   ),
                   const SizedBox(height: 2),
                   CommonText(
-                    "${horse.age}-year-old ${horse.breed}",
+                    "${horse.age}-year old ${horse.breed}",
                     fontSize: 13,
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
