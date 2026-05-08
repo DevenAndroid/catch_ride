@@ -397,7 +397,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     final platformProfile = assignedService?['profile'] ?? {};
 
     if (activeServiceKey.contains('bodywork')) {
-       final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? platformProfile;
+       final Map bodyworkData = servicesData['bodywork'] ?? platformProfile;
        return BodyworkServiceAndRatesView(
          bodyworkData: bodyworkData,
          location: controller.location,
@@ -411,7 +411,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     }
     
     if (activeServiceKey == 'shipping' || activeServiceKey == 'transportation') {
-      final Map shippingData = servicesData['shipping'] ?? servicesData['transportation'] ?? platformProfile;
+      final Map shippingData = servicesData['shipping'] ?? platformProfile;
       
       return ShippingServiceAndRatesView(
         shippingData: shippingData,

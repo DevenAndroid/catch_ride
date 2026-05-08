@@ -119,7 +119,7 @@ class GroomViewProfileController extends GetxController {
   // Shipping Getters
   String get shippingBaseRate {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     
     // Check possible locations for pricing data
     final pricing = activeProfileData['pricing'] ?? 
@@ -140,7 +140,7 @@ class GroomViewProfileController extends GetxController {
 
   String get shippingLoadedRate {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     
     // Check possible locations for pricing data
     final pricing = activeProfileData['pricing'] ?? 
@@ -160,26 +160,26 @@ class GroomViewProfileController extends GetxController {
   }
   String get shippingOperationType {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['operationType'] ?? activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? 'N/A';
   }
 
   List<String> get shippingRigTypes {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['rigTypes'] ?? activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [];
     return List<String>.from(list);
   }
 
   String get shippingRigCapacity {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return (flatData['rigCapacity'] ?? activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? 'N/A').toString();
   }
 
   String get shippingEquipmentSummary {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['equipmentSummary'] ?? activeProfileData['equipmentSummary'] ?? activeProfileData['equipmentsSummary'] ?? 'N/A';
   }
 
@@ -198,7 +198,7 @@ class GroomViewProfileController extends GetxController {
 
   bool get shippingHasCDL {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['hasCDL'] ?? activeProfileData['hasCDL'] ?? _activeApplicationData['confirmLicense'] ?? false;
   }
       
@@ -208,21 +208,21 @@ class GroomViewProfileController extends GetxController {
       'N/A';
   List<String> get shippingServicesOffered {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['services'] ?? activeProfileData['services'] ?? activeProfileData['servicesOffered'] ?? [];
     return List<String>.from(list);
   }
 
   List<String> get shippingRegionsCovered {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['regionsCovered'] ?? activeProfileData['regionsCovered'] ?? _activeApplicationData['regions'] ?? [];
     return List<String>.from(list);
   }
 
   List<String> get shippingTravelScope {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['travelScope'] ?? activeProfileData['travelScope'] ?? _activeApplicationData['travelScope'] ?? [];
     return List<String>.from(list);
   }

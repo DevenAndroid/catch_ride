@@ -427,7 +427,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     final Map servicesData = vendor['servicesData'] ?? {};
 
     if (activeService.contains('bodywork')) {
-        final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? groomController.activeServiceProfile;
+        final Map bodyworkData = servicesData['bodywork'] ?? groomController.activeServiceProfile;
        return BodyworkServiceAndRatesView(
          bodyworkData: bodyworkData,
          location: groomController.locationStr.value,
@@ -441,7 +441,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     }
     
     if (activeService == 'shipping' || activeService == 'transportation') {
-       final Map shippingData = servicesData['shipping'] ?? servicesData['transportation'] ?? groomController.activeServiceProfile;
+       final Map shippingData = servicesData['shipping'] ?? groomController.activeServiceProfile;
       return ShippingServiceAndRatesView(
         shippingData: shippingData,
         location: groomController.locationStr.value,

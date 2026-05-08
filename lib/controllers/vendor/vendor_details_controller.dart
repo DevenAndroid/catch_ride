@@ -247,7 +247,7 @@ class VendorDetailsController extends GetxController {
   // Shipping Specific Getters
   String get shippingBaseRate {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final pricing = _activeProfileData['pricing'] ?? flatData['pricing'] ?? _activeApplicationData['pricing'] ?? {};
     if (pricing['inquiryPrice'] == true) return "Inquire for price";
     final rate = pricing['baseRate'] ?? _activeProfileData['rates']?['baseRate'] ?? _activeProfileData['rates']?['base'] ?? 'N/A';
@@ -256,7 +256,7 @@ class VendorDetailsController extends GetxController {
 
   String get shippingLoadedRate {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final pricing = _activeProfileData['pricing'] ?? flatData['pricing'] ?? _activeApplicationData['pricing'] ?? {};
     if (pricing['inquiryPrice'] == true) return "Inquire for price";
     final rate = pricing['loadedRate'] ?? _activeProfileData['rates']?['fullyLoaded'] ?? _activeProfileData['rates']?['loaded'] ?? 'N/A';
@@ -265,26 +265,26 @@ class VendorDetailsController extends GetxController {
 
   String get shippingOperationType {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? 'N/A';
   }
 
   List<String> get shippingRigTypes {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['rigTypes'] ?? _activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [];
     return List<String>.from(list);
   }
 
   String get shippingRigCapacity {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? 'N/A').toString();
   }
 
   String get shippingEquipmentSummary {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? 'N/A';
   }
 
@@ -292,27 +292,27 @@ class VendorDetailsController extends GetxController {
       
   bool get shippingHasCDL {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     return flatData['hasCDL'] ?? _activeProfileData['hasCDL'] ?? _activeApplicationData['confirmLicense'] ?? false;
   }
 
   List<String> get shippingServicesOffered {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['services'] ?? _activeProfileData['services'] ?? _activeProfileData['servicesOffered'] ?? [];
     return List<String>.from(list);
   }
 
   List<String> get shippingRegionsCovered {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['regionsCovered'] ?? _activeProfileData['regionsCovered'] ?? _activeApplicationData['regions'] ?? [];
     return List<String>.from(list);
   }
 
   List<String> get shippingTravelScope {
     final servicesData = vendorData['servicesData'] ?? {};
-    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final flatData = servicesData['shipping'] ?? {};
     final list = flatData['travelScope'] ?? _activeProfileData['travelScope'] ?? _activeApplicationData['travelScope'] ?? [];
     return List<String>.from(list);
   }
