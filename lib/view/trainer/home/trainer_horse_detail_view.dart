@@ -123,25 +123,25 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     // Fetch latest sent bookings from server to sync with DB
     await bookingController.fetchBookings(type: 'sent');
-    
+
     if (chatController.conversations.isEmpty) {
       await chatController.fetchConversations();
     }
 
     final existingBooking = bookingController.sentBookings.firstWhereOrNull(
-      (b) => b.horseId == horse?.id && b.status.toLowerCase() == 'pending',
+          (b) => b.horseId == horse?.id && b.status.toLowerCase() == 'pending',
     );
 
     final hasAcceptedBooking = bookingController.sentBookings.any(
-      (b) => b.trainerId == horse?.trainerId && 
-             (b.status.toLowerCase() == 'accepted' || 
-              b.status.toLowerCase() == 'confirmed' || 
+          (b) => b.trainerId == horse?.trainerId &&
+          (b.status.toLowerCase() == 'accepted' ||
+              b.status.toLowerCase() == 'confirmed' ||
               b.status.toLowerCase() == 'completed'),
     );
 
     final hasExistingChat = chatController.conversations.any(
-      (c) => c.otherUser?.id == horse?.trainerId || 
-             c.otherUser?.trainerId == horse?.trainerId,
+          (c) => c.otherUser?.id == horse?.trainerId ||
+          c.otherUser?.trainerId == horse?.trainerId,
     );
 
     setState(() {
@@ -169,10 +169,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     } else {
       _isYoutube = false;
       _videoPlayerController =
-          VideoPlayerController.networkUrl(Uri.parse(videoLink))
-            ..initialize().then((_) {
-              setState(() {});
-            });
+      VideoPlayerController.networkUrl(Uri.parse(videoLink))
+        ..initialize().then((_) {
+          setState(() {});
+        });
     }
   }
 
@@ -274,34 +274,34 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         child: horse == null
             ? const Center(child: CircularProgressIndicator())
             : Builder(
-                builder: (context) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildPremiumHeader(),
-                              _buildTrainerSection(),
-                              _buildDescriptionAndTags(),
-                              _buildDetailsSection(),
-                              _buildPricingSection(),
-                              _buildAvailabilitySection(),
-                              if (isHorseOwner && horse!.bookedByName != null)
-                                _buildBookedByHeader(),
-                            //  if (!isHorseOwner) _buildCancelationPolicy(),
-                              const SizedBox(height: 20),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (!isHorseOwner || widget.fromBooking) _buildBottomAction(),
-                    ],
-                  );
-                },
-              ),
+          builder: (context) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPremiumHeader(),
+                        _buildTrainerSection(),
+                        _buildDescriptionAndTags(),
+                        _buildDetailsSection(),
+                        _buildPricingSection(),
+                        _buildAvailabilitySection(),
+                        if (isHorseOwner && horse!.bookedByName != null)
+                          _buildBookedByHeader(),
+                        //  if (!isHorseOwner) _buildCancelationPolicy(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+                if (!isHorseOwner || widget.fromBooking) _buildBottomAction(),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -396,11 +396,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     children: horse!.listingTypes
                         .map(
                           (type) => _buildOverlayBadge(
-                            type,
-                            const Color(0xFFFDE4E1),
-                            const Color(0xFFE11D48),
-                          ),
-                        )
+                        type,
+                        const Color(0xFFFDE4E1),
+                        const Color(0xFFE11D48),
+                      ),
+                    )
                         .toList(),
                   ),
                 ),
@@ -466,7 +466,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           Get.to(() => EditHorseListingView(horse: horse!));
         } else if (value == 'availability') {
           await Get.to(
-            () => BarnManagerAvailabilityView(horse: horse!),
+                () => BarnManagerAvailabilityView(horse: horse!),
           );
           _fetchHorseDetails(showLoader: false);
         } else if (value == 'active') {
@@ -597,20 +597,20 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     // If it's the trainer's own horse, use their profile data as fallback
     final String? trainerAvatar =
-        (isOwnHorse &&
-            (horse!.trainerAvatar == null || horse!.trainerAvatar!.isEmpty))
+    (isOwnHorse &&
+        (horse!.trainerAvatar == null || horse!.trainerAvatar!.isEmpty))
         ? profileController.user.value?.displayAvatar
         : horse!.trainerAvatar;
 
     final String trainerName =
-        (isOwnHorse &&
-            (horse!.trainerName == null || horse!.trainerName == ''))
+    (isOwnHorse &&
+        (horse!.trainerName == null || horse!.trainerName == ''))
         ? profileController.fullName
         : (horse!.trainerName ?? '');
 
     final String barnName =
-        (isOwnHorse &&
-            (horse!.trainerId == null))
+    (isOwnHorse &&
+        (horse!.trainerId == null))
         ? (profileController.barnName ?? "")
         : (horse!.trainerBarnName ?? "");
 
@@ -631,14 +631,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             child: GestureDetector(
               onTap: () {
                 if(horse?.trainerId == null){
-          Get.snackbar(
-          'Error', 'This trainer has been deleted.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          );
-          return;}
-                  Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));},
+                  Get.snackbar(
+                    'Error', 'This trainer has been deleted.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                  );
+                  return;}
+                Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));},
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -659,14 +659,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           if (!isHorseOwner)
             ElevatedButton(
               onPressed: () {
-                  final chatController = Get.find<ChatController>();
-                  chatController.openBookingChat(
-                    bookingId: widget.bookingId ?? '',
-                    otherId: widget.otherId ?? horse?.trainerId ?? '',
-                    otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
-                    otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
-                    myTeamId: widget.myTeamId,
-                  );
+                final chatController = Get.find<ChatController>();
+                chatController.openBookingChat(
+                  bookingId: widget.bookingId ?? '',
+                  otherId: widget.otherId ?? horse?.trainerId ?? '',
+                  otherName: widget.otherName ?? horse?.trainerName ?? 'Trainer',
+                  otherImage: widget.otherImage ?? horse?.trainerAvatar ?? '',
+                  myTeamId: widget.myTeamId,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.secondary,
@@ -699,7 +699,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
   Widget _buildDescriptionAndTags() {
     final description =
-        (horse!.description == null || horse!.description!.isEmpty)
+    (horse!.description == null || horse!.description!.isEmpty)
         ? ''
         : horse!.description!;
 
@@ -762,14 +762,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final isBookedByMe = horse!.bookedById == currentUserId;
 
     final String? bAvatar =
-        (isBookedByMe &&
-            (horse!.bookedByAvatar == null || horse!.bookedByAvatar!.isEmpty))
+    (isBookedByMe &&
+        (horse!.bookedByAvatar == null || horse!.bookedByAvatar!.isEmpty))
         ? profileController.user.value?.displayAvatar
         : horse!.bookedByAvatar;
 
     final String bName =
-        (isBookedByMe &&
-            (horse!.bookedByName == null || horse!.bookedByName == ''))
+    (isBookedByMe &&
+        (horse!.bookedByName == null || horse!.bookedByName == ''))
         ? profileController.fullName
         : (horse!.bookedByName ?? '');
 
@@ -909,24 +909,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         colorText: Colors.white,
                       );
                       return;}
-    Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
-    }
-            ,      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommonText(
-                        horse!.trainerName ?? '',
-                        fontSize: AppTextSizes.size16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const CommonText(
-                        AppStrings.professionalHorseTrainer,
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ],
-                  ),
+                    Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
+                  }
+                  ,      child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonText(
+                      horse!.trainerName ?? '',
+                      fontSize: AppTextSizes.size16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    const CommonText(
+                      AppStrings.professionalHorseTrainer,
+                      fontSize: AppTextSizes.size14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
+                ),
                 ),
               ),
               const Icon(Icons.more_vert, color: AppColors.textPrimary),
@@ -993,7 +993,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       ...horse!.images,
       ...horse!.videoFile,
       ...horse!.videoLink.where((link) =>
-          link.isNotEmpty &&
+      link.isNotEmpty &&
           link != '' &&
           !horse!.images.contains(link) &&
           horse!.photo != link &&
@@ -1039,26 +1039,26 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 },
                 child: _isUrlVideo(url)
                     ? _InlineVideoPlayer(
-                        url: url,
-                        isActive: index == _currentPage,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CommonMediaViewer(
-                                mediaSources: allMedia,
-                                initialIndex: index,
-                              ),
-                            ),
-                          );
-                        },
-                      )
-                    : CommonImageView(
-                        url: url,
-                        height: 260,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                  url: url,
+                  isActive: index == _currentPage,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CommonMediaViewer(
+                          mediaSources: allMedia,
+                          initialIndex: index,
+                        ),
                       ),
+                    );
+                  },
+                )
+                    : CommonImageView(
+                  url: url,
+                  height: 260,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               );
             },
           ),
@@ -1143,12 +1143,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   horse!.name.isEmpty ? '' : horse!.name,
                   'USEF',
                   (horse!.usefNumber == null ||
-                          horse!.usefNumber.toString().isEmpty)
+                      horse!.usefNumber.toString().isEmpty)
                       ? ''
                       : horse!.usefNumber.toString(),
                   onLabelTap2: () async {
                     final Uri url =
-                        Uri.parse('https://www.usef.org/search/horses');
+                    Uri.parse('https://www.usef.org/search/horses');
                     if (!await launchUrl(url)) {
                       Get.snackbar('Error', 'Could not launch $url');
                     }
@@ -1190,11 +1190,11 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildPremiumDetailItem(
-    String label,
-    String value, {
-    VoidCallback? onLabelTap,
-    bool showDivider = true,
-  }) {
+      String label,
+      String value, {
+        VoidCallback? onLabelTap,
+        bool showDivider = true,
+      }) {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1305,7 +1305,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   if (p == null || p.isEmpty || p == 'null') return '';
                   try {
                     final double val =
-                        double.parse(p.toString().replaceAll(',', ''));
+                    double.parse(p.toString().replaceAll(',', ''));
                     return NumberFormat.decimalPattern().format(val);
                   } catch (e) {
                     return p;
@@ -1395,28 +1395,28 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             ),
             child: upcoming.isEmpty
                 ? const CommonText(
-                    'No Upcoming Shows Currently',
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  )
+              'No Upcoming Shows Currently',
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            )
                 : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: upcoming.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final show = entry.value;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (index > 0) const SizedBox(height: 20),
-                          _buildPremiumAvailabilityItem(
-                            show.showVenue.isEmpty ? 'N/A' : show.showVenue,
-                            show.cityState,
-                            DateUtil.formatRange(show.startDate, show.endDate),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: upcoming.asMap().entries.map((entry) {
+                final index = entry.key;
+                final show = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (index > 0) const SizedBox(height: 20),
+                    _buildPremiumAvailabilityItem(
+                      show.showVenue.isEmpty ? 'N/A' : show.showVenue,
+                      show.cityState,
+                      DateUtil.formatRange(show.startDate, show.endDate),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
@@ -1424,10 +1424,10 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildPremiumAvailabilityItem(
-    String showVenue,
-    String cityState,
-    String dates,
-  ) {
+      String showVenue,
+      String cityState,
+      String dates,
+      ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1540,15 +1540,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       child: widget.fromBooking
           ? _buildBookingSpecificActions()
           : Obx(() => CommonButton(
-              text:
-                  _isRequested ? 'Your request is submitted' : 'Request a Trial',
-              isLoading: bookingController.isLoading.value,
-              backgroundColor: _isRequested
-                  ? Colors.grey
-                  : const Color(0xFF00083B), // Navy blue
-              textColor: Colors.white,
-              onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
-            )),
+        text:
+        _isRequested ? 'Your request is submitted' : 'Request a Trial',
+        isLoading: bookingController.isLoading.value,
+        backgroundColor: _isRequested
+            ? Colors.grey
+            : const Color(0xFF00083B), // Navy blue
+        textColor: Colors.white,
+        onPressed: _isRequested ? null : () => _showBookingRequestBottomSheet(),
+      )),
     );
   }
 
@@ -1704,7 +1704,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       setState(() {
         _currentBookingStatus = 'completed';
       });
-       _fetchHorseDetails(showLoader: false);
+      _fetchHorseDetails(showLoader: false);
     } else {
       Get.snackbar(
         'Action Failed',
@@ -1941,375 +1941,372 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final BookingController bookingController = Get.put(BookingController());
 
     showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheetState) => GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-            ),
-            child: SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-                left: 20,
-                right: 20,
-                top: 12,
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setSheetState) => GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Handle
-                  Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+              child: SingleChildScrollView(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  left: 20,
+                  right: 20,
+                  top: 12,
                 ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const CommonText(
-                    'Request a Trial',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  IconButton(
-                    onPressed: () => Get.back(),
-                    icon: const Icon(Icons.close, color: AppColors.textPrimary),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: AppColors.border.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const CommonText(
+                          'Request a Trial',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        IconButton(
+                          onPressed: () => Get.back(),
+                          icon: const Icon(Icons.close, color: AppColors.textPrimary),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-              // Horse Card
-              _buildBookingHorseCard(
-                selectedShow: selectedShow,
-                selectedLocation: selectedLocation,
-              ),
-              const SizedBox(height: 20),
+                    // Horse Card
+                    _buildBookingHorseCard(),
+                    const SizedBox(height: 20),
 
-              // Single Date
-              const CommonText(
-                'Date',
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-              const SizedBox(height: 8),
-              _buildDateSelector(
-                startDate != null
-                    ? DateFormat('dd MMM yyyy').format(startDate!)
-                    : 'Select Date',
-                () async {
-                  if (selectedLocation == null) {
-                    Get.snackbar(
-                      'Select Location',
-                      'Please select a location first to see available dates.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.orange,
-                      colorText: Colors.white,
-                    );
-                    return;
-                  }
+                    // Single Date
+                    const CommonText(
+                      'Date',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDateSelector(
+                      startDate != null
+                          ? DateFormat('dd MMM yyyy').format(startDate!)
+                          : 'Select Date',
+                          () async {
+                        if (selectedLocation == null) {
+                          Get.snackbar(
+                            'Select Location',
+                            'Please select a location first to see available dates.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.orange,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
 
-                  // Find a valid initial date that satisfies the predicate
-                  DateTime now = DateTime.now();
-                  DateTime today = DateTime(now.year, now.month, now.day);
-                  DateTime initial = startDate ?? today;
-                  DateTime first = today;
+                        // Find a valid initial date that satisfies the predicate
+                        DateTime now = DateTime.now();
+                        DateTime today = DateTime(now.year, now.month, now.day);
+                        DateTime initial = startDate ?? today;
+                        DateTime first = today;
 
-                  if (selectedLocation != horse!.location &&
-                      selectedShow != null) {
-                    final sDate = DateTime.tryParse(selectedShow!.startDate);
-                    final eDate = DateTime.tryParse(selectedShow!.endDate);
+                        if (selectedLocation != horse!.location &&
+                            selectedShow != null) {
+                          final sDate = DateTime.tryParse(selectedShow!.startDate);
+                          final eDate = DateTime.tryParse(selectedShow!.endDate);
 
-                    if (sDate != null && eDate != null) {
-                      final startOnly =
-                          DateTime(sDate.year, sDate.month, sDate.day);
-                      final endOnly =
-                          DateTime(eDate.year, eDate.month, eDate.day);
-
-                      // Safety check: If the show is entirely in the past, don't open picker
-                      if (endOnly.isBefore(today)) {
-                        Get.snackbar(
-                          'Show Ended',
-                          'This show has already ended. Please select a different location.',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.orange,
-                          colorText: Colors.white,
-                        );
-                        return;
-                      }
-
-                      if (initial.isBefore(startOnly)) {
-                        initial = startOnly;
-                      } else if (initial.isAfter(endOnly)) {
-                        initial = startOnly;
-                      }
-
-                      // Ensure initial date is not before today
-                      if (initial.isBefore(today)) {
-                        initial = today;
-                      }
-                    }
-                  }
-
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: initial,
-                    firstDate: first,
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                    selectableDayPredicate: (DateTime day) {
-                      final dateOnly = DateTime(day.year, day.month, day.day);
-                      final now = DateTime.now();
-                      final today = DateTime(now.year, now.month, now.day);
-
-                      // Never allow past dates
-                      if (dateOnly.isBefore(today)) return false;
-
-                      if (selectedLocation == horse!.location) return true;
-                      if (selectedShow == null) return false;
-
-                      final sDate = DateTime.tryParse(selectedShow!.startDate);
-                      final eDate = DateTime.tryParse(selectedShow!.endDate);
-                      if (sDate != null && eDate != null) {
-                        final startOnly =
+                          if (sDate != null && eDate != null) {
+                            final startOnly =
                             DateTime(sDate.year, sDate.month, sDate.day);
-                        final endOnly =
+                            final endOnly =
                             DateTime(eDate.year, eDate.month, eDate.day);
 
-                        return (dateOnly.isAtSameMomentAs(startOnly) ||
-                                dateOnly.isAfter(startOnly)) &&
-                            (dateOnly.isAtSameMomentAs(endOnly) ||
-                                dateOnly.isBefore(endOnly));
-                      }
-
-                      return false;
-                    },
-                  );
-                  if (date != null) {
-                    setSheetState(() {
-                      startDate = date;
-                      endDate = date; // For single date submission
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Location
-              const CommonText(
-                'Location',
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-              const SizedBox(height: 4),
-              const CommonText(
-                'Note: Trials can be requested at horse shows or the horse\'s home location.',
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedLocation,
-                    isExpanded: true,
-                    itemHeight: null, // Allow custom height for Column
-                    items: [
-                      if (horse!.location != null &&
-                          horse!.location!.isNotEmpty)
-                        DropdownMenuItem(
-                          value: horse!.location!,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CommonText(
-                                  "${horse!.location!} (Home)",
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                const CommonText(
-                                  "Available at home",
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ..._upcomingShows.map((show) {
-                        final dateRange = DateUtil.formatRange(
-                            show.startDate, show.endDate);
-                        final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
-                        return DropdownMenuItem(
-                          value: uniqueValue,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CommonText(
-                                  show.showVenue,
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                CommonText(
-                                  "$dateRange • ${show.cityState}",
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ],
-                    hint: const CommonText(
-                      'Select Location',
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    onChanged: (val) {
-                      setSheetState(() {
-                        selectedLocation = val;
-                        selectedShow = _upcomingShows.firstWhereOrNull(
-                          (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
-                        );
-
-                        // Reset date if it's invalid for the new location
-                        if (startDate != null) {
-                          if (val == horse!.location) {
-                            // All dates valid for home, no reset needed
-                          } else if (selectedShow != null) {
-                            final sDate = DateTime.tryParse(selectedShow!.startDate);
-                            final eDate = DateTime.tryParse(selectedShow!.endDate);
-                            bool isValid = false;
-                            if (sDate != null && eDate != null) {
-                              final dateOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);
-                              final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
-                              final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
-                              
-                              if ((dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
-                                  (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly))) {
-                                isValid = true;
-                              }
+                            // Safety check: If the show is entirely in the past, don't open picker
+                            if (endOnly.isBefore(today)) {
+                              Get.snackbar(
+                                'Show Ended',
+                                'This show has already ended. Please select a different location.',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.orange,
+                                colorText: Colors.white,
+                              );
+                              return;
                             }
-                            if (!isValid) {
-                              startDate = null;
+
+                            if (initial.isBefore(startOnly)) {
+                              initial = startOnly;
+                            } else if (initial.isAfter(endOnly)) {
+                              initial = startOnly;
+                            }
+
+                            // Ensure initial date is not before today
+                            if (initial.isBefore(today)) {
+                              initial = today;
                             }
                           }
                         }
-                      });
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
 
-              // Message
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    fontFamily: 'Outfit',
-                  ),
-                  children: [
-                    TextSpan(text: 'Message '),
-                    TextSpan(
-                      text: '(optional)',
-                      style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: AppColors.textSecondary,
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: initial,
+                          firstDate: first,
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          selectableDayPredicate: (DateTime day) {
+                            final dateOnly = DateTime(day.year, day.month, day.day);
+                            final now = DateTime.now();
+                            final today = DateTime(now.year, now.month, now.day);
+
+                            // Never allow past dates
+                            if (dateOnly.isBefore(today)) return false;
+
+                            if (selectedLocation == horse!.location) return true;
+                            if (selectedShow == null) return false;
+
+                            final sDate = DateTime.tryParse(selectedShow!.startDate);
+                            final eDate = DateTime.tryParse(selectedShow!.endDate);
+                            if (sDate != null && eDate != null) {
+                              final startOnly =
+                              DateTime(sDate.year, sDate.month, sDate.day);
+                              final endOnly =
+                              DateTime(eDate.year, eDate.month, eDate.day);
+
+                              return (dateOnly.isAtSameMomentAs(startOnly) ||
+                                  dateOnly.isAfter(startOnly)) &&
+                                  (dateOnly.isAtSameMomentAs(endOnly) ||
+                                      dateOnly.isBefore(endOnly));
+                            }
+
+                            return false;
+                          },
+                        );
+                        if (date != null) {
+                          setSheetState(() {
+                            startDate = date;
+                            endDate = date; // For single date submission
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Location
+                    const CommonText(
+                      'Location',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 4),
+                    const CommonText(
+                      'Note: Trials can be requested at horse shows or the horse\'s home location.',
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedLocation,
+                          isExpanded: true,
+                          itemHeight: null, // Allow custom height for Column
+                          items: [
+                            if (horse!.location != null &&
+                                horse!.location!.isNotEmpty)
+                              DropdownMenuItem(
+                                value: horse!.location!,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CommonText(
+                                        "${horse!.location!} (Home)",
+                                        fontSize: 14,
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      const CommonText(
+                                        "Available at home",
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ..._upcomingShows.map((show) {
+                              final dateRange = DateUtil.formatRange(
+                                  show.startDate, show.endDate);
+                              final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
+                              return DropdownMenuItem(
+                                value: uniqueValue,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CommonText(
+                                        show.cityState,
+                                        fontSize: 14,
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      CommonText(
+                                        dateRange,
+                                        fontSize: 11,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                          hint: const CommonText(
+                            'Select Location',
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                          onChanged: (val) {
+                            setSheetState(() {
+                              selectedLocation = val;
+                              selectedShow = _upcomingShows.firstWhereOrNull(
+                                    (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
+                              );
+
+                              // Reset date if it's invalid for the new location
+                              if (startDate != null) {
+                                if (val == horse!.location) {
+                                  // All dates valid for home, no reset needed
+                                } else if (selectedShow != null) {
+                                  final sDate = DateTime.tryParse(selectedShow!.startDate);
+                                  final eDate = DateTime.tryParse(selectedShow!.endDate);
+                                  bool isValid = false;
+                                  if (sDate != null && eDate != null) {
+                                    final dateOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);
+                                    final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
+                                    final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
+
+                                    if ((dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
+                                        (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly))) {
+                                      isValid = true;
+                                    }
+                                  }
+                                  if (!isValid) {
+                                    startDate = null;
+                                  }
+                                }
+                              }
+                            });
+                          },
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 120,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: messageController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText:
-                        'Please include your preferred time frame for the trial...',
-                    hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
+                    const SizedBox(height: 20),
 
-              // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
+                    // Message
+                    RichText(
+                      text: const TextSpan(
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                          fontFamily: 'Outfit',
                         ),
-                        child: const Center(
-                          child: CommonText(
-                            'Cancel',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                        children: [
+                          TextSpan(text: 'Message '),
+                          TextSpan(
+                            text: '(optional)',
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 120,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.border),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: TextField(
+                        controller: messageController,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText:
+                          'Please include your preferred time frame for the trial...',
+                          hintStyle: TextStyle(
+                            color: AppColors.textSecondary.withValues(alpha: 0.5),
+                            fontSize: 14,
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Get.back(),
+                            child: Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: const Center(
+                                child: CommonText(
+                                  'Cancel',
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Obx(
-                      () => GestureDetector(
-                        onTap: bookingController.isLoading.value
-                            ? null
-                            : () async {
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Obx(
+                                () => GestureDetector(
+                              onTap: bookingController.isLoading.value
+                                  ? null
+                                  : () async {
 
 
                                 if (startDate == null) {
@@ -2340,24 +2337,24 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
                                 final result = await bookingController
                                     .createBooking({
-                                      'horseId': horse!.id,
-                                      'horseName': horse!.name,
-                                      'trainerId': horse!.trainerId,
-                                      'type': selectedType,
-                                      'date': DateFormat(
-                                        'yyyy-MM-dd',
-                                      ).format(startDate!),
-                                      'location': selectedShow != null
-                                          ? "${selectedShow!.showVenue}, ${selectedShow!.cityState}"
-                                          : (horse!.location ?? 'N/A'),
-                                      'notes': messageController.text,
-                                      'service': selectedType,
-                                      'price': horse!.price ?? 0,
-                                      'clientId': Get.find<ProfileController>()
-                                          .user
-                                          .value
-                                          ?.id,
-                                    });
+                                  'horseId': horse!.id,
+                                  'horseName': horse!.name,
+                                  'trainerId': horse!.trainerId,
+                                  'type': selectedType,
+                                  'date': DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(startDate!),
+                                  'location': selectedShow?.cityState ??
+                                      horse!.location ??
+                                      '',
+                                  'notes': messageController.text,
+                                  'service': selectedType,
+                                  'price': horse!.price ?? 0,
+                                  'clientId': Get.find<ProfileController>()
+                                      .user
+                                      .value
+                                      ?.id,
+                                });
 
                                 if (result != null) {
                                   Get.back(); // Close bottom sheet
@@ -2371,57 +2368,56 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                     margin: const EdgeInsets.all(16),
                                   );
                                   setState(() => _isRequested = true);
-                                  _fetchHorseDetails(showLoader: false); 
-                                   
-                                   final String? conversationId = (result is Map) ? result["conversationId"] : null;
-                                   if (conversationId != null) {
-                                     Get.to(() => SingleChatView(
-                                       name: horse!.trainerName ?? "Trainer",
-                                       image: horse!.trainerAvatar ?? "",
-                                       conversationId: conversationId,
-                                       otherId: horse!.trainerId?.toString(),
-                                     ));
-                                   }
-                                 }                              },
-                        child: CommonButton(
-                          text: 'Submit',
-                          isLoading: bookingController.isLoading.value,
-                          height: 56,
-                          borderRadius: 16,
-                          backgroundColor: AppColors.primary,
+                                  _fetchHorseDetails(showLoader: false);
+
+                                  final String? conversationId = (result is Map) ? result["conversationId"] : null;
+                                  if (conversationId != null) {
+                                    Get.to(() => SingleChatView(
+                                      name: horse!.trainerName ?? "Trainer",
+                                      image: horse!.trainerAvatar ?? "",
+                                      conversationId: conversationId,
+                                      otherId: horse!.trainerId?.toString(),
+                                    ));
+                                  }
+                                }                              },
+                              child: CommonButton(
+                                text: 'Submit',
+                                isLoading: bookingController.isLoading.value,
+                                height: 56,
+                                borderRadius: 16,
+                                backgroundColor: AppColors.primary,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ),
-  ));
-}  Widget _buildBookingHorseCard({
-    AvailabilityModel? selectedShow,
-    String? selectedLocation,
-  }) {
+        ));
+  }
+
+  Widget _buildBookingHorseCard() {
     final hasImages = horse != null && horse!.images.isNotEmpty;
-    final photoUrl = hasImages ? horse!.images.first : horse?.photo;
+    final photoUrl =  hasImages ? horse!.images.first : horse?.photo;
 
     // Extract dynamic venue and dates
     String barnName = '';
     String dateRangeText = '';
     if (horse != null ) {
       barnName=horse?.trainerBarnName??"";
-    //   final firstShow = horse!.showAvailability.first;
-    //   if (firstShow.showVenue.isNotEmpty) {
-    //     venueText = firstShow.showVenue;
-    //   }
-    //   final formattedDates = DateUtil.formatRange(firstShow.startDate, firstShow.endDate);
-    //   if (formattedDates.isNotEmpty) {
-    //     dateRangeText = formattedDates;
-    //   }
-     }
+      //   final firstShow = horse!.showAvailability.first;
+      //   if (firstShow.showVenue.isNotEmpty) {
+      //     venueText = firstShow.showVenue;
+      //   }
+      //   final formattedDates = DateUtil.formatRange(firstShow.startDate, firstShow.endDate);
+      //   if (formattedDates.isNotEmpty) {
+      //     dateRangeText = formattedDates;
+      //   }
+    }
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -2438,126 +2434,118 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         ],
       ),
       child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: CommonImageView(
-                url: photoUrl,
-                width: 75,
-                fit: BoxFit.cover,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CommonImageView(
+                  url: photoUrl,
+                  width: 75,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                        fontFamily: 'Outfit',
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                          fontFamily: 'Outfit',
+                        ),
+                        children: [
+                          TextSpan(text: horse?.listingTitle??horse?.name),
+                          // TextSpan(
+                          //   text:
+                          //       ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
+                          //   style: const TextStyle(
+                          //     fontWeight: FontWeight.normal,
+                          //     color: AppColors.textSecondary,
+                          //   ),
+                          // ),
+                        ],
                       ),
-                      children: [
-                        TextSpan(
-                            text: horse?.name.toString().capitalizeFirst ??
-                                'Unknown'),
-                        TextSpan(
-                          text:
-                              ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.normal,
+                    ),
+                    const SizedBox(height: 4),
+
+                    CommonText(
+                      barnName,
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(height: 4),
+
+                    if (horse?.location != null && horse!.location!.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 13,
                             color: AppColors.textSecondary,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  CommonText(
-                    venueText,
-                    fontSize: 12,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      TextSpan(text: horse?.listingTitle??horse?.name),
-                      // TextSpan(
-                      //   text:
-                      //       ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
-                      //   style: const TextStyle(
-                      //     fontWeight: FontWeight.normal,
-                      //     color: AppColors.textSecondary,
-                      //   ),
-                      // ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-
-                  CommonText(
-                    barnName,
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(height: 4),
-
-                if (horse?.location != null && horse!.location!.isNotEmpty)
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 13,
-
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: CommonText(
-                          dateRangeText,
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: horse!.listingTypes
-                          .asMap()
-                          .entries
-                          .map(
-                            (entry) => Padding(
-                              padding: EdgeInsets.only(
-                                right:
-                                    entry.key == horse!.listingTypes.length - 1
-                                        ? 0
-                                        : 8,
-                              ),
-                              child: _buildOverlayBadge(
-                                entry.value,
-                                const Color(0xFFFDE4E1),
-                                const Color(0xFFE11D48),
-                              ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: CommonText(
+                              horse!.location!,
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          )
-                          .toList(),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 2),
+                    if (dateRangeText.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: CommonText(
+                              dateRangeText,
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: horse!.listingTypes
+                            .asMap()
+                            .entries
+                            .map(
+                              (entry) => Padding(
+                            padding: EdgeInsets.only(
+                              right: entry.key == horse!.listingTypes.length - 1
+                                  ? 0
+                                  : 8,
+                            ),
+                            child: _buildOverlayBadge(
+                              entry.value,
+                              const Color(0xFFFDE4E1),
+                              const Color(0xFFE11D48),
+                            ),
+                          ),
+                        ).toList(),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          )),
     );
   }
 
@@ -2597,7 +2585,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             const SizedBox(width: 16),
             Expanded(
               child: _buildPremiumDetailItem(label2, val2,
-                      onLabelTap: onLabelTap2, showDivider: false),
+                  onLabelTap: onLabelTap2, showDivider: false),
             ),
           ],
         ),
