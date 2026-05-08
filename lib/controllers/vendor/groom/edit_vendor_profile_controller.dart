@@ -749,11 +749,15 @@ class EditVendorProfileController extends GetxController {
           if (standards.isNotEmpty) {
             selectedBodyworkStandards.assignAll(standards);
           } else if (appData['standards'] != null) {
-            final Map stdMap = appData['standards'] ?? {};
-            if (stdMap['provideSupportiveBodywork'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
-            if (stdMap['refertoVet'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[1]);
-            if (stdMap['vetApprovalRequired'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[2]);
-            if (stdMap['operateWithinScope'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[3]);
+            final rawStandards = appData['standards'];
+            if (rawStandards is Map) {
+              if (rawStandards['provideSupportiveBodywork'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
+              if (rawStandards['refertoVet'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[1]);
+              if (rawStandards['vetApprovalRequired'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[2]);
+              if (rawStandards['operateWithinScope'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[3]);
+            } else if (rawStandards is List) {
+              selectedBodyworkStandards.assignAll(List<String>.from(rawStandards));
+            }
           }
 
           final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
