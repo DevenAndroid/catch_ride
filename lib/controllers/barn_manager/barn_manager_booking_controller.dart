@@ -21,7 +21,8 @@ class BarnManagerBookingController extends BookingController {
           backgroundColor: const Color(0xFF17B26A),
           colorText: Colors.white,
         );
-        fetchBookings(type: 'sent');
+        // Refresh the 'Sent' bookings list in global state
+        // fetchBookings(type: 'sent');
         return true;
       } else {
         String msg =

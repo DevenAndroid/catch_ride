@@ -33,6 +33,7 @@ class ForceChangePasswordView extends StatefulWidget {
 
 class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
   late final SettingsController _controller;
+  final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
@@ -57,28 +58,7 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
   }
 
   Future<void> _submit() async {
-    if (_newPasswordController.text.isEmpty ||
-        _confirmPasswordController.text.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please fill in all fields',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
-
-    if (_newPasswordController.text != _confirmPasswordController.text) {
-      Get.snackbar(
-        'Error',
-        'Passwords do not match',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     // currentPassword comes from the login form — not shown to the user.
     final success = await _controller.changePassword(
@@ -125,9 +105,11 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     const SizedBox(height: 8),
                     // ── Info banner ────────────────────────────────────
                     Container(
@@ -149,7 +131,7 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
                           const SizedBox(width: 12),
                           const Expanded(
                             child: CommonText(
-                              'For your security, please set a new password before continuing.',
+                              'For your security, please set a new password. It must be at least 6 characters long and include one uppercase letter and one special character.',
                               fontSize: 13,
                               color: AppColors.textPrimary,
                             ),
@@ -166,6 +148,21 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
                       obscureText: _obscureNew,
                       onToggle: () =>
                           setState(() => _obscureNew = !_obscureNew),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a new password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                          return 'Password must have at least one uppercase letter';
+                        }
+                        if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+                          return 'Password must have at least one special character';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
 
@@ -176,8 +173,18 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
                       obscureText: _obscureConfirm,
                       onToggle: () =>
                           setState(() => _obscureConfirm = !_obscureConfirm),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your new password';
+                        }
+                        if (value != _newPasswordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -193,6 +200,7 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
     required TextEditingController controller,
     required bool obscureText,
     required VoidCallback onToggle,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,9 +212,11 @@ class _ForceChangePasswordViewState extends State<ForceChangePasswordView> {
           color: AppColors.textPrimary,
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: controller,
           obscureText: obscureText,
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           decoration: InputDecoration(
             hintText: '••••••',
             contentPadding: const EdgeInsets.symmetric(

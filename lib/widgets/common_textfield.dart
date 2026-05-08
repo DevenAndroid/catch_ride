@@ -24,8 +24,7 @@ class CommonTextField extends StatelessWidget {
   final InputBorder? border;
   final InputBorder? enabledBorder;
   final EdgeInsetsGeometry? contentPadding;
- // final TextCapitalization? textCapitalization;
-
+  // final TextCapitalization? textCapitalization;
 
   final FocusNode? focusNode;
   final List<TextInputFormatter>? inputFormatters;
@@ -56,7 +55,6 @@ class CommonTextField extends StatelessWidget {
   });
 
   final Function(String)? onChanged;
-
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +100,7 @@ class CommonTextField extends StatelessWidget {
           readOnly: readOnly,
           onTap: onTap,
           validator: validator,
-         // textCapitalization: textCapitalization??TextCapitalization.none,
+          // textCapitalization: textCapitalization??TextCapitalization.none,
           style: const TextStyle(
             fontSize: AppTextSizes.size14,
             color: AppColors.textPrimary,
@@ -112,7 +110,7 @@ class CommonTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             suffixIconColor: AppColors.textSecondary,
-
+            errorMaxLines: 2,
             fillColor: fillColor,
             filled: filled,
             border: border,

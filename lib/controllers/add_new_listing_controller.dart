@@ -56,6 +56,7 @@ class AddNewListingController extends GetxController {
     'German Riding Pony',
     'Pony of the Americas',
     'Crossbred Pony',
+    "KWPN",
     'Other',
   ];
 

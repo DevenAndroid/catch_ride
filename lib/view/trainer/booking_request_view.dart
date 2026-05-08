@@ -77,6 +77,10 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   bool _isYoutube = false;
   bool _hasVideo = false;
   bool _isLoading = false;
+  bool _isAccepting = false;
+  bool _isRejecting = false;
+  bool _isCompleting = false;
+  bool _isCancelling = false;
 
   @override
   void initState() {
@@ -1551,6 +1555,8 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   Widget _buildBookingSpecificActions() {
     final status = (_currentBookingStatus ?? '').toLowerCase();
     
+    final bool isAnyLoading = _isAccepting || _isRejecting || _isCompleting || _isCancelling;
+
     // Professionals (Trainer/Barn Manager) actions for Received bookings
     if (isHorseOwner) {
       if (status == 'pending') {
@@ -1558,7 +1564,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () => _handleRejectBooking(),
+                onPressed: isAnyLoading ? null : () => _handleRejectBooking(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.red,
@@ -1569,18 +1575,25 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const CommonText(
-                  'Decline',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
+                child: _isRejecting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.red),
+                      )
+                    : const CommonText(
+                        'Decline',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: () => _handleAcceptBooking(),
+                onPressed: isAnyLoading ? null : () => _handleAcceptBooking(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1589,12 +1602,19 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const CommonText(
-                  'Accept',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                child: _isAccepting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const CommonText(
+                        'Accept',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
               ),
             ),
           ],
@@ -1606,7 +1626,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () => _showCancelConfirmation(),
+                onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.textPrimary,
@@ -1617,18 +1637,25 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const CommonText(
-                  'Cancel',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                child: _isCancelling
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: AppColors.textPrimary),
+                      )
+                    : const CommonText(
+                        'Cancel',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton(
-                onPressed: () => _showCompleteConfirmation(),
+                onPressed: isAnyLoading ? null : () => _showCompleteConfirmation(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.successPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1637,12 +1664,19 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const CommonText(
-                  'Complete',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                child: _isCompleting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const CommonText(
+                        'Complete',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
               ),
             ),
           ],
@@ -1656,7 +1690,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () => _showCancelConfirmation(),
+          onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
             foregroundColor: AppColors.textPrimary,
@@ -1667,12 +1701,19 @@ class _BookingRequestViewState extends State<BookingRequestView> {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const CommonText(
-            'Cancel Booking',
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
+          child: _isCancelling
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.textPrimary),
+                )
+              : const CommonText(
+                  'Cancel Booking',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
         ),
       );
     }
@@ -1682,23 +1723,35 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   void _handleAcceptBooking() async {
     if (widget.bookingId == null) return;
-    final bookingController = Get.find<BookingController>();
-    final result = await bookingController.updateBookingStatus(widget.bookingId!, 'confirmed');
-    if (result != null) {
-      setState(() {
-        _currentBookingStatus = 'confirmed';
-      });
+    try {
+      setState(() => _isAccepting = true);
+      final bookingController = Get.find<BookingController>();
+      final result = await bookingController.updateBookingStatus(
+          widget.bookingId!, 'confirmed');
+      if (result != null) {
+        setState(() {
+          _currentBookingStatus = 'confirmed';
+        });
+      }
+    } finally {
+      setState(() => _isAccepting = false);
     }
   }
 
   void _handleRejectBooking() async {
     if (widget.bookingId == null) return;
-    final bookingController = Get.find<BookingController>();
-    final result = await bookingController.updateBookingStatus(widget.bookingId!, 'rejected');
-    if (result != null) {
-      setState(() {
-        _currentBookingStatus = 'rejected';
-      });
+    try {
+      setState(() => _isRejecting = true);
+      final bookingController = Get.find<BookingController>();
+      final result = await bookingController.updateBookingStatus(
+          widget.bookingId!, 'rejected');
+      if (result != null) {
+        setState(() {
+          _currentBookingStatus = 'rejected';
+        });
+      }
+    } finally {
+      setState(() => _isRejecting = false);
     }
   }
 
@@ -1790,32 +1843,37 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   void _handleCompleteBooking() async {
     if (widget.bookingId == null) return;
 
-    final bookingController = Get.find<BookingController>();
-    final success = await bookingController.updateBookingStatus(
-      widget.bookingId!,
-      'completed',
-    );
+    try {
+      setState(() => _isCompleting = true);
+      final bookingController = Get.find<BookingController>();
+      final success = await bookingController.updateBookingStatus(
+        widget.bookingId!,
+        'completed',
+      );
 
-    if (success != null) {
-      Get.snackbar(
-        'Booking Completed',
-        'Your booking has been successfully marked as completed.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF17B26A),
-        colorText: Colors.white,
-      );
-      setState(() {
-        _currentBookingStatus = 'completed';
-      });
-      // Optionally refresh horse details or navigate back
-    } else {
-      Get.snackbar(
-        'Action Failed',
-        'Failed to complete booking. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      if (success != null) {
+        Get.snackbar(
+          'Booking Completed',
+          'Your booking has been successfully marked as completed.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF17B26A),
+          colorText: Colors.white,
+        );
+        setState(() {
+          _currentBookingStatus = 'completed';
+        });
+        // Optionally refresh horse details or navigate back
+      } else {
+        Get.snackbar(
+          'Action Failed',
+          'Failed to complete booking. Please try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      setState(() => _isCompleting = false);
     }
   }
 
@@ -1907,30 +1965,35 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   void _handleCancelBooking() async {
     if (widget.bookingId == null) return;
 
-    final bookingController = Get.find<BookingController>();
-    final success = await bookingController.updateBookingStatus(
-      widget.bookingId!,
-      'cancelled',
-    );
-    if (success != null) {
-      Get.snackbar(
-        'Booking Cancelled',
-        'Your booking has been successfully cancelled.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.black87,
-        colorText: Colors.white,
+    try {
+      setState(() => _isCancelling = true);
+      final bookingController = Get.find<BookingController>();
+      final success = await bookingController.updateBookingStatus(
+        widget.bookingId!,
+        'cancelled',
       );
-      setState(() {
-        _currentBookingStatus = 'cancelled';
-      });
-    } else {
-      Get.snackbar(
-        'Action Failed',
-        'Failed to cancel booking. Please try again.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      if (success != null) {
+        Get.snackbar(
+          'Booking Cancelled',
+          'Your booking has been successfully cancelled.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.black87,
+          colorText: Colors.white,
+        );
+        setState(() {
+          _currentBookingStatus = 'cancelled';
+        });
+      } else {
+        Get.snackbar(
+          'Action Failed',
+          'Failed to cancel booking. Please try again.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      setState(() => _isCancelling = false);
     }
   }
 

@@ -69,7 +69,7 @@ class _ForgotPasswordResetViewState extends State<ForgotPasswordResetView> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Your new password must be different from any previously used passwords.',
+                  'Your new password must be at least 6 characters long, include one uppercase letter, one special character, and be different from any previously used passwords.',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -103,6 +103,12 @@ class _ForgotPasswordResetViewState extends State<ForgotPasswordResetView> {
                     }
                     if (value.length < 6) {
                       return 'Password must be at least 6 characters';
+                    }
+                    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                      return 'Password must have at least one uppercase letter';
+                    }
+                    if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+                      return 'Password must have at least one special character';
                     }
                     return null;
                   },

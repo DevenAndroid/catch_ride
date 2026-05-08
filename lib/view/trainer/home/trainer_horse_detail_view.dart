@@ -2173,7 +2173,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       CommonText(
-                                        show.cityState,
+                                        show.showVenue.isNotEmpty ? show.showVenue : show.cityState,
                                         fontSize: 14,
                                         color: AppColors.textPrimary,
                                         fontWeight: FontWeight.bold,
@@ -2344,9 +2344,9 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   'date': DateFormat(
                                     'yyyy-MM-dd',
                                   ).format(startDate!),
-                                  'location': selectedShow?.cityState ??
-                                      horse!.location ??
-                                      '',
+                                  'location': (selectedShow != null && selectedShow!.showVenue.isNotEmpty)
+                                      ? selectedShow!.showVenue
+                                      : (selectedShow?.cityState ?? horse!.location ?? ''),
                                   'notes': messageController.text,
                                   'service': selectedType,
                                   'price': horse!.price ?? 0,
