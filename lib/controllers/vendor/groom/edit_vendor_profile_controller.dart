@@ -553,26 +553,31 @@ class EditVendorProfileController extends GetxController {
         _mergeBodyworkModalities();
         otherModalityController.text =
             (appData['otherModality'] ?? profileData['otherModality'] ?? '').toString();
-        bodyworkInsuranceStatus.value =
-            _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']);
-        bodyworkExistingCertUrls.assignAll(
-          _coerceMediaUrlList(profileData['certifications'] ?? appData['certifications']),
+        bodyworkInsuranceStatus.value = _mapBackendBodyworkInsuranceToUi(
+          _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']),
         );
 
-        final List travelFees = profileData['travelPreferences'] is List
-            ? profileData['travelPreferences'] as List
-            : [];
-        final Map<String, Map<String, dynamic>> travelMap = {};
-        for (var item in travelFees) {
-          if (item is Map) {
-            final key = _coerceScalarToString(item['type'] ?? item['category']);
-            if (key.isEmpty) continue;
-            travelMap[key] = Map<String, dynamic>.from(item);
-          }
+        final combinedCerts = [..._coerceMediaUrlList(profileData['certifications'] ?? appData['certifications'])];
+        final singleCert = profileData['certificationFile'] ?? appData['certificationFile'];
+        if (singleCert != null &&
+            singleCert.toString().isNotEmpty &&
+            singleCert.toString() != 'null') {
+          combinedCerts.insert(0, singleCert.toString());
         }
-        selectedTravelData.assignAll(travelMap);
+        bodyworkExistingCertUrls.assignAll(combinedCerts);
 
-        selectedBodyworkStandards.assignAll(_coerceStringList(profileData['professionalStandards']));
+        final mergedStandards = <String>{
+          ..._coerceStringList(profileData['professionalStandards']),
+          ..._coerceStringList(appData['professionalStandards']),
+          ..._coerceStringList(appData['standards']),
+        };
+        if (mergedStandards.isNotEmpty) {
+          selectedBodyworkStandards.assignAll(mergedStandards.toList());
+        }
+
+        final List travelFees =
+            profileData['travelPreferences'] is List ? profileData['travelPreferences'] as List : [];
+        _hydrateBodyworkTravelFromList(travelFees);
       } else if (type == 'Shipping') {
         dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
         shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
@@ -597,10 +602,18 @@ class EditVendorProfileController extends GetxController {
       
       // Photos for each service
       if (serviceExistingPhotos.containsKey(type)) {
-        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty) 
-            ? profileData['media'] 
-            : (appData['media'] ?? []);
-        serviceExistingPhotos[type]!.assignAll(List<String>.from(media));
+        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty)
+            ? profileData['media'] as List
+            : (appData['media'] is List ? appData['media'] as List : []);
+        final galleryExtras = profileData['gallery'] is List ? profileData['gallery'] as List : [];
+        final appGallery = appData['gallery'] is List ? appData['gallery'] as List : [];
+        serviceExistingPhotos[type]!.assignAll(_coerceMediaUrlList(media));
+        if (galleryExtras.isNotEmpty) {
+          serviceExistingPhotos[type]!.addAll(_coerceMediaUrlList(galleryExtras));
+        }
+        if (appGallery.isNotEmpty) {
+          serviceExistingPhotos[type]!.addAll(_coerceMediaUrlList(appGallery));
+        }
       }
     }
   }
@@ -751,13 +764,18 @@ class EditVendorProfileController extends GetxController {
 
           otherModalityController.text =
               (appData['otherModality'] ?? profileData['otherModality'] ?? '').toString();
-          bodyworkInsuranceStatus.value =
-              _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']);
+          bodyworkInsuranceStatus.value = _mapBackendBodyworkInsuranceToUi(
+            _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']),
+          );
 
-          final standards = _coerceStringList(profileData['professionalStandards']);
-          if (standards.isNotEmpty) {
-            selectedBodyworkStandards.assignAll(standards);
-          } else if (appData['standards'] != null) {
+          final listStandards = <String>{
+            ..._coerceStringList(profileData['professionalStandards']),
+            ..._coerceStringList(appData['professionalStandards']),
+            ..._coerceStringList(appData['standards']),
+          };
+          if (listStandards.isNotEmpty) {
+            selectedBodyworkStandards.assignAll(listStandards.toList());
+          } else if (appData['standards'] is Map) {
             final Map stdMap = appData['standards'] ?? {};
             if (stdMap['provideSupportiveBodywork'] == true) {
               selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
@@ -773,9 +791,15 @@ class EditVendorProfileController extends GetxController {
             }
           }
 
-          bodyworkExistingCertUrls.assignAll(
-            _coerceMediaUrlList(profileData['certifications'] ?? appData['certifications']),
-          );
+          final combinedCerts =
+              [..._coerceMediaUrlList(profileData['certifications'] ?? appData['certifications'])];
+          final singleCf = profileData['certificationFile'] ?? appData['certificationFile'];
+          if (singleCf != null &&
+              singleCf.toString().isNotEmpty &&
+              singleCf.toString() != 'null') {
+            combinedCerts.insert(0, singleCf.toString());
+          }
+          bodyworkExistingCertUrls.assignAll(combinedCerts);
         } else if (activeService['serviceType'] == 'Shipping') {
           dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
           shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
@@ -804,25 +828,7 @@ class EditVendorProfileController extends GetxController {
       final travelPrefRaw = draft['travelPreferences'] ?? profileData['travelPreferences'] ?? [];
       if (travelPrefRaw is List) {
         if (activeService['serviceType'] == 'Bodywork') {
-          final Map<String, Map<String, dynamic>> travelMap = {};
-          for (var item in travelPrefRaw) {
-            if (item is Map) {
-              final key = _coerceScalarToString(item['type'] ?? item['category']);
-              if (key.isNotEmpty) {
-                travelMap[key] = Map<String, dynamic>.from(item);
-                if (!selectedTravel.contains(key)) {
-                  selectedTravel.add(key);
-                }
-              }
-            } else {
-              final name = item.toString();
-              travelMap[name] = {'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
-              if (name.isNotEmpty && !selectedTravel.contains(name)) {
-                selectedTravel.add(name);
-              }
-            }
-          }
-          selectedTravelData.assignAll(travelMap);
+          _hydrateBodyworkTravelFromList(travelPrefRaw);
         } else {
           final List<String> cats = travelPrefRaw.map((e) => (e is Map) ? (e['category']?.toString() ?? e['type']?.toString() ?? '') : e.toString()).where((s) => s.isNotEmpty).toList();
           selectedTravel.assignAll(cats);
@@ -841,13 +847,20 @@ class EditVendorProfileController extends GetxController {
         isCustomCancellation.value = false;
       }
       
-      // Populate service-specific photos
+      // Populate service-specific photos (profile `media`, app `gallery` / `media` like Mongo flatten)
       final serviceType = activeService?['serviceType'];
       if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
         final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty)
             ? profileData['media'] as List
             : (appData['media'] is List ? appData['media'] as List : []);
-        serviceExistingPhotos[serviceType]!.assignAll(_coerceMediaUrlList(media));
+        final profileGallery =
+            profileData['gallery'] is List ? profileData['gallery'] as List : <dynamic>[];
+        final appGallery = appData['gallery'] is List ? appData['gallery'] as List : <dynamic>[];
+        serviceExistingPhotos[serviceType]!.assignAll([
+          ..._coerceMediaUrlList(media),
+          ..._coerceMediaUrlList(profileGallery),
+          ..._coerceMediaUrlList(appGallery),
+        ]);
         existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
       }
     }
@@ -978,6 +991,51 @@ class EditVendorProfileController extends GetxController {
     }
     final s = v.toString();
     return s.isEmpty ? null : s;
+  }
+
+  /// Matches backend shorthand values (Mongo `servicesData.*`) to Edit Profile dropdown labels.
+  String? _mapBackendBodyworkInsuranceToUi(String? raw) {
+    if (raw == null || raw.isEmpty) return raw;
+    switch (raw.toLowerCase().trim()) {
+      case 'available':
+      case 'upon request':
+        return 'Insurance available upon request';
+      case 'insured':
+      case 'yes':
+      case 'carries':
+        return 'Carries Insurance';
+      case 'none':
+      case 'no':
+      case 'not insured':
+        return 'Not currently insured';
+      default:
+        return raw;
+    }
+  }
+
+  /// Backend often stores `{ feeType, price, disclaimer }` without `type` — align rows to travelOptions.
+  void _hydrateBodyworkTravelFromList(dynamic rawList) {
+    selectedTravelData.clear();
+    final list = rawList is List ? rawList : <dynamic>[];
+    final travelMap = <String, Map<String, dynamic>>{};
+    for (var i = 0; i < list.length; i++) {
+      final item = list[i];
+      if (item is! Map) continue;
+      var key = _coerceScalarToString(item['type'] ?? item['category']);
+      if (key.isEmpty) {
+        final safeIdx = i < travelOptions.length ? i : travelOptions.length - 1;
+        key = travelOptions[safeIdx < 0 ? 0 : safeIdx];
+      }
+      final normalized = Map<String, dynamic>.from(item as Map);
+      normalized.putIfAbsent('feeType', () => 'No travel fee');
+      normalized.putIfAbsent('price', () => '');
+      normalized.putIfAbsent('disclaimer', () => '');
+      travelMap[key] = normalized;
+      if (!selectedTravel.contains(key)) {
+        selectedTravel.add(key);
+      }
+    }
+    selectedTravelData.assignAll(travelMap);
   }
 
   Map<String, dynamic> _coerceBodyworkRatesMap(dynamic raw) {

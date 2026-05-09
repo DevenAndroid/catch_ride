@@ -76,12 +76,34 @@ class GroomViewProfileController extends GetxController {
       if (dProfileData is Map) ...dProfileData,
     };
 
-    // Construct the final merged map
+    // Application data: servicesData.*.applicationData is canonical when assignedService is stale (Clipping / Bodywork)
+    final Map<String, dynamic> dApplicationData = directServiceData['applicationData'] is Map
+        ? Map<String, dynamic>.from(directServiceData['applicationData'] as Map)
+        : <String, dynamic>{};
+    final appFromAssigned = _activeService?['application'];
+    final Map<String, dynamic> pApplicationData = (appFromAssigned is Map &&
+            appFromAssigned['applicationData'] is Map)
+        ? Map<String, dynamic>.from(appFromAssigned['applicationData'] as Map)
+        : <String, dynamic>{};
+    final Map<String, dynamic> mergedApplicationData = {
+      ...pApplicationData,
+      ...dApplicationData,
+    };
+
+    final sanitizedDirect = directServiceData.isEmpty
+        ? <String, dynamic>{}
+        : (Map<String, dynamic>.from(directServiceData)
+          ..remove('applicationData')
+          ..remove('profileData'));
+
+    // Construct the final merged map (application + profile fields flattened for UI)
     final Map<String, dynamic> merged = {
       if (profile is Map) ...profile,
-      if (directServiceData is Map) ...directServiceData,
-      ...mergedProfileData, // Spread merged profile data at top level for convenience
-      'profileData': mergedProfileData, // Keep nested for compatibility
+      ...sanitizedDirect,
+      ...mergedApplicationData,
+      ...mergedProfileData,
+      'profileData': mergedProfileData,
+      'applicationData': mergedApplicationData,
     };
 
     // Special handling for lists that should be merged and deduplicated
@@ -214,6 +236,7 @@ class GroomViewProfileController extends GetxController {
   bool get isInsured {
     final status = insuranceStatus.toLowerCase();
     if (status.contains('carries insurance')) return true;
+    if (status == 'available' || status.contains('insurance available')) return true;
 
     final mediaRaw = _activeApplicationData['media'];
     final Map<String, dynamic> media = mediaRaw is Map
@@ -222,7 +245,9 @@ class GroomViewProfileController extends GetxController {
     final insurance = media['insurance'] ??
         activeProfileData['insurance'] ??
         activeProfileData['insurancePhoto'] ??
-        activeProfileData['dotCopy'];
+        activeProfileData['dotCopy'] ??
+        activeProfileData['insuranceFile'] ??
+        _activeApplicationData['insuranceFile'];
     return insurance != null &&
         insurance.toString().isNotEmpty &&
         insurance.toString() != 'null';
@@ -231,24 +256,36 @@ class GroomViewProfileController extends GetxController {
   String get insuranceStatus {
     final servicesData = vendorData['servicesData'] ?? {};
     final type = activeServiceType.toLowerCase().replaceAll(' ', '');
-    final flatData = servicesData[type] ?? {};
-    
-    return flatData['insuranceStatus']?.toString() ?? 
-           activeProfileData['insuranceStatus']?.toString() ?? 
-           _activeApplicationData['insuranceStatus']?.toString() ?? 
-           '';
+    final block = servicesData[type];
+    dynamic fromAppBlock;
+    dynamic fromProfBlock;
+    if (block is Map) {
+      final appBlk = block['applicationData'];
+      final profBlk = block['profileData'];
+      fromAppBlk = appBlk is Map ? appBlk['insuranceStatus'] : null;
+      fromProfBlock = profBlk is Map ? profBlk['insuranceStatus'] : null;
+    }
+
+    return fromProfBlock?.toString() ??
+        fromAppBlock?.toString() ??
+        (block is Map ? block['insuranceStatus']?.toString() : null) ??
+        activeProfileData['insuranceStatus']?.toString() ??
+        _activeApplicationData['insuranceStatus']?.toString() ??
+        '';
   }
 
   List<String> get certifications {
-    final servicesData = vendorData['servicesData'] ?? {};
-    final type = activeServiceType.toLowerCase().replaceAll(' ', '');
-    final flatData = servicesData[type] ?? {};
-    
-    final list = flatData['certifications'] ?? 
-                 activeProfileData['certifications'] ?? 
-                 _activeApplicationData['certifications'] ?? 
-                 [];
-    return List<String>.from(list);
+    final merged = activeProfileData;
+    dynamic list = merged['certifications'] ??
+        merged['applicationData']?['certifications'] ??
+        merged['profileData']?['certifications'] ??
+        _activeApplicationData['certifications'];
+
+    if (list == null || list is! List) return [];
+    return list
+        .map((e) => e is String ? e : e?.toString() ?? '')
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
 
   bool get shippingHasCDL {
