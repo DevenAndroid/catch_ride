@@ -214,10 +214,18 @@ class GroomViewProfileController extends GetxController {
   bool get isInsured {
     final status = insuranceStatus.toLowerCase();
     if (status.contains('carries insurance')) return true;
-    
-    final media = _activeApplicationData['media'] ?? {};
-    final insurance = media['insurance'] ?? activeProfileData['insurance'] ?? activeProfileData['insurancePhoto']?? activeProfileData['dotCopy'];
-    return insurance != null && insurance.toString().isNotEmpty && insurance.toString() != 'null';
+
+    final mediaRaw = _activeApplicationData['media'];
+    final Map<String, dynamic> media = mediaRaw is Map
+        ? Map<String, dynamic>.from(mediaRaw as Map)
+        : <String, dynamic>{};
+    final insurance = media['insurance'] ??
+        activeProfileData['insurance'] ??
+        activeProfileData['insurancePhoto'] ??
+        activeProfileData['dotCopy'];
+    return insurance != null &&
+        insurance.toString().isNotEmpty &&
+        insurance.toString() != 'null';
   }
 
   String get insuranceStatus {
