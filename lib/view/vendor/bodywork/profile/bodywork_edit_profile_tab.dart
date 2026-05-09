@@ -14,6 +14,12 @@ import 'package:get/get.dart';
 import 'package:catch_ride/utils/price_formatter.dart';
 import 'package:intl/intl.dart';
 
+String? _stringForDropdown(dynamic v) {
+  if (v == null) return null;
+  if (v is String) return v.isEmpty ? null : v;
+  return v.toString();
+}
+
 class BodyworkEditProfileTab extends StatelessWidget {
   final EditVendorProfileController controller;
 
@@ -237,10 +243,10 @@ class BodyworkEditProfileTab extends StatelessWidget {
 
 
   void _showServicePriceBottomSheet(Map service) {
-    final Map rates = service['rates'];
-    final editingNote = TextEditingController(text: service['note'] ?? '');
-    final RxnString trainerPresence = RxnString(service['trainerPresence']);
-    final RxnString vetApproval = RxnString(service['vetApproval']);
+    final Map rates = service['rates'] is Map ? Map.from(service['rates'] as Map) : <String, dynamic>{};
+    final editingNote = TextEditingController(text: service['note']?.toString() ?? '');
+    final RxnString trainerPresence = RxnString(_stringForDropdown(service['trainerPresence']));
+    final RxnString vetApproval = RxnString(_stringForDropdown(service['vetApproval']));
 
     Get.bottomSheet(
       Container(
@@ -378,9 +384,9 @@ class BodyworkEditProfileTab extends StatelessWidget {
 
   void _showTravelPreferenceBottomSheet(String option) {
     final existing = controller.selectedTravelData[option] ?? {'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
-    final RxString selectedFeeType = (existing['feeType'] as String).obs;
-    final priceController = TextEditingController(text: existing['price']);
-    final disclaimerController = TextEditingController(text: existing['disclaimer']);
+    final RxString selectedFeeType = RxString(existing['feeType']?.toString() ?? 'No travel fee');
+    final priceController = TextEditingController(text: existing['price']?.toString() ?? '');
+    final disclaimerController = TextEditingController(text: existing['disclaimer']?.toString() ?? '');
 
     Get.bottomSheet(
       Container(

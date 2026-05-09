@@ -551,22 +551,28 @@ class EditVendorProfileController extends GetxController {
         farrierInsuranceStatus.value = appData['insuranceStatus'] ?? profileData['insuranceStatus'];
       } else if (type == 'Bodywork') {
         _mergeBodyworkModalities();
-        otherModalityController.text = appData['otherModality'] ?? profileData['otherModality'] ?? '';
-        bodyworkInsuranceStatus.value = appData['insuranceStatus'] ?? profileData['insuranceStatus'];
-        final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
-        bodyworkExistingCertUrls.assignAll(certs);
-        
-        final List travelFees = profileData['travelPreferences'] ?? [];
+        otherModalityController.text =
+            (appData['otherModality'] ?? profileData['otherModality'] ?? '').toString();
+        bodyworkInsuranceStatus.value =
+            _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']);
+        bodyworkExistingCertUrls.assignAll(
+          _coerceMediaUrlList(profileData['certifications'] ?? appData['certifications']),
+        );
+
+        final List travelFees = profileData['travelPreferences'] is List
+            ? profileData['travelPreferences'] as List
+            : [];
         final Map<String, Map<String, dynamic>> travelMap = {};
         for (var item in travelFees) {
           if (item is Map) {
-            travelMap[item['type'] ?? ''] = Map<String, dynamic>.from(item);
+            final key = _coerceScalarToString(item['type'] ?? item['category']);
+            if (key.isEmpty) continue;
+            travelMap[key] = Map<String, dynamic>.from(item);
           }
         }
         selectedTravelData.assignAll(travelMap);
-        
-        final List<String> standards = List<String>.from(profileData['professionalStandards'] ?? []);
-        selectedBodyworkStandards.assignAll(standards);
+
+        selectedBodyworkStandards.assignAll(_coerceStringList(profileData['professionalStandards']));
       } else if (type == 'Shipping') {
         dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
         shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
@@ -743,21 +749,33 @@ class EditVendorProfileController extends GetxController {
       } else if (activeService['serviceType'] == 'Bodywork') {
           _mergeBodyworkModalities();
 
-          otherModalityController.text = appData['otherModality'] ?? profileData['otherModality'] ?? '';
-          
-          final List<String> standards = List<String>.from(profileData['professionalStandards'] ?? []);
+          otherModalityController.text =
+              (appData['otherModality'] ?? profileData['otherModality'] ?? '').toString();
+          bodyworkInsuranceStatus.value =
+              _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']);
+
+          final standards = _coerceStringList(profileData['professionalStandards']);
           if (standards.isNotEmpty) {
             selectedBodyworkStandards.assignAll(standards);
           } else if (appData['standards'] != null) {
             final Map stdMap = appData['standards'] ?? {};
-            if (stdMap['provideSupportiveBodywork'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
-            if (stdMap['refertoVet'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[1]);
-            if (stdMap['vetApprovalRequired'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[2]);
-            if (stdMap['operateWithinScope'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[3]);
+            if (stdMap['provideSupportiveBodywork'] == true) {
+              selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
+            }
+            if (stdMap['refertoVet'] == true) {
+              selectedBodyworkStandards.add(bodyworkProfessionalStandards[1]);
+            }
+            if (stdMap['vetApprovalRequired'] == true) {
+              selectedBodyworkStandards.add(bodyworkProfessionalStandards[2]);
+            }
+            if (stdMap['operateWithinScope'] == true) {
+              selectedBodyworkStandards.add(bodyworkProfessionalStandards[3]);
+            }
           }
 
-          final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
-          bodyworkExistingCertUrls.assignAll(certs);
+          bodyworkExistingCertUrls.assignAll(
+            _coerceMediaUrlList(profileData['certifications'] ?? appData['certifications']),
+          );
         } else if (activeService['serviceType'] == 'Shipping') {
           dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
           shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
@@ -789,11 +807,11 @@ class EditVendorProfileController extends GetxController {
           final Map<String, Map<String, dynamic>> travelMap = {};
           for (var item in travelPrefRaw) {
             if (item is Map) {
-              final type = item['type'] ?? item['category'] ?? '';
-              if (type.isNotEmpty) {
-                travelMap[type] = Map<String, dynamic>.from(item);
-                if (!selectedTravel.contains(type)) {
-                  selectedTravel.add(type);
+              final key = _coerceScalarToString(item['type'] ?? item['category']);
+              if (key.isNotEmpty) {
+                travelMap[key] = Map<String, dynamic>.from(item);
+                if (!selectedTravel.contains(key)) {
+                  selectedTravel.add(key);
                 }
               }
             } else {
@@ -826,10 +844,10 @@ class EditVendorProfileController extends GetxController {
       // Populate service-specific photos
       final serviceType = activeService?['serviceType'];
       if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
-        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty) 
-            ? profileData['media'] 
-            : (appData['media'] ?? []);
-        serviceExistingPhotos[serviceType]!.assignAll(List<String>.from(media));
+        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty)
+            ? profileData['media'] as List
+            : (appData['media'] is List ? appData['media'] as List : []);
+        serviceExistingPhotos[serviceType]!.assignAll(_coerceMediaUrlList(media));
         existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
       }
     }
@@ -896,8 +914,8 @@ class EditVendorProfileController extends GetxController {
         final List types = bodyworkResponse.body['data'];
         for (var type in types) {
           final name = type['name'];
-          final List<String> values = List<String>.from(type['values'].map((v) => v['name']));
-          
+          final List<String> values = _coerceStringList(type['values']);
+
           if (name == 'Modality Offered' || name == 'Modalities Offered') {
             bodyworkModalityOptions.assignAll(values);
             if (!bodyworkModalityOptions.contains('Other')) bodyworkModalityOptions.add('Other');
@@ -920,6 +938,61 @@ class EditVendorProfileController extends GetxController {
     }
   }
 
+  /// Backend / cached JSON sometimes uses String, Map, or numbers where the UI expects strings.
+  String _coerceScalarToString(dynamic e) {
+    if (e == null) return '';
+    if (e is String) return e;
+    if (e is Map) {
+      return (e['name'] ?? e['label'] ?? e['value'] ?? e['title'] ?? '').toString();
+    }
+    return e.toString();
+  }
+
+  List<String> _coerceStringList(dynamic raw) {
+    if (raw == null || raw is! List) return [];
+    return raw.map(_coerceScalarToString).where((s) => s.isNotEmpty).toList();
+  }
+
+  String _bodyworkProfileServiceName(dynamic s) {
+    if (s is Map) return (s['name'] ?? '').toString();
+    return s.toString();
+  }
+
+  List<String> _coerceMediaUrlList(dynamic raw) {
+    if (raw == null || raw is! List) return [];
+    return raw.map((e) {
+      if (e is String) return e;
+      if (e is Map) {
+        return (e['url'] ?? e['href'] ?? e['path'] ?? e['name'] ?? '').toString();
+      }
+      return e.toString();
+    }).where((s) => s.isNotEmpty).toList();
+  }
+
+  String? _asNullableUiString(dynamic v) {
+    if (v == null) return null;
+    if (v is String) return v.isEmpty ? null : v;
+    if (v is Map) {
+      final s = (v['name'] ?? v['label'] ?? v['value']).toString();
+      return s.isEmpty ? null : s;
+    }
+    final s = v.toString();
+    return s.isEmpty ? null : s;
+  }
+
+  Map<String, dynamic> _coerceBodyworkRatesMap(dynamic raw) {
+    const keys = {'30', '45', '60', '90'};
+    final out = <String, dynamic>{for (final k in keys) k: ''};
+    if (raw is! Map) return out;
+    for (final e in raw.entries) {
+      final k = e.key.toString();
+      if (keys.contains(k)) {
+        out[k] = e.value?.toString() ?? '';
+      }
+    }
+    return out;
+  }
+
   void _mergeBodyworkModalities() {
     final services = assignedServices;
     final activeService = services.firstWhereOrNull((s) => s['serviceType'] == 'Bodywork');
@@ -929,13 +1002,13 @@ class EditVendorProfileController extends GetxController {
     final application = activeService['application'] ?? {};
     final appData = application['applicationData'] ?? application ?? {};
 
-    final List existingServices = profileData['services'] ?? [];
-    final List appModalities = List<String>.from(appData['modalities'] ?? []);
+    final List existingServices = profileData['services'] is List ? profileData['services'] as List : [];
+    final List<String> appModalities = _coerceStringList(appData['modalities']);
 
     // Use system tags if available, else fallback to user's selections
-    List<String> baseModalities = bodyworkModalityOptions.isNotEmpty 
-        ? bodyworkModalityOptions.toList() 
-        : (existingServices.map((s) => s['name'].toString()).toList() + appModalities.map((m) => m.toString()).toList()).toSet().toList();
+    List<String> baseModalities = bodyworkModalityOptions.isNotEmpty
+        ? bodyworkModalityOptions.toList()
+        : (existingServices.map(_bodyworkProfileServiceName).toList() + appModalities).toSet().toList();
 
     if (baseModalities.isEmpty) {
        baseModalities = ['Sports Massage', 'Myofascial Release', 'PEMF', 'Chiropractic', 'Acupuncture', 'Other'];
@@ -943,23 +1016,28 @@ class EditVendorProfileController extends GetxController {
     if (!baseModalities.contains('Other')) baseModalities.add('Other');
 
     bodyworkServices.assignAll(baseModalities.map((name) {
-      final existing = existingServices.firstWhereOrNull((s) => s is Map && s['name'] == name);
+      final existing = existingServices.firstWhereOrNull(
+        (s) => s is Map && _bodyworkProfileServiceName(s) == name,
+      );
       final inApp = appModalities.contains(name);
 
-      if (existing != null) {
+      if (existing != null && existing is Map) {
         return {
           'name': name,
-          'rates': existing['rates'] != null ? Map<String, dynamic>.from(existing['rates']) : {'30': '', '45': '', '60': '', '90': ''},
+          'rates': _coerceBodyworkRatesMap(existing['rates']),
           'isSelected': RxBool(existing['isSelected'] == null || existing['isSelected'] == true),
-          'note': existing['note'] ?? '',
-          'trainerPresence': existing['trainerPresence'],
-          'vetApproval': existing['vetApproval'],
+          'note': existing['note']?.toString() ?? '',
+          'trainerPresence': _asNullableUiString(existing['trainerPresence']),
+          'vetApproval': _asNullableUiString(existing['vetApproval']),
         };
       }
       return {
         'name': name,
-        'rates': {'30': '', '45': '', '60': '', '90': ''},
+        'rates': _coerceBodyworkRatesMap(null),
         'isSelected': RxBool(inApp),
+        'note': '',
+        'trainerPresence': null,
+        'vetApproval': null,
       };
     }).toList());
   }
