@@ -506,8 +506,21 @@ class EditVendorProfileController extends GetxController {
 
         if (type == 'Clipping') {
           clippingInsuranceStatus.value = appData['insuranceStatus'] ?? profileData['insuranceStatus'];
-          final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
-          clippingExistingCertUrls.assignAll(certs);
+          final clippingCerts = <String>[
+            ..._coerceMediaUrlList(profileData['certifications']),
+            ..._coerceMediaUrlList(appData['certifications']),
+          ];
+          for (final single in [
+            profileData['certificationFile'],
+            appData['certificationFile'],
+          ]) {
+            if (single != null &&
+                single.toString().isNotEmpty &&
+                single.toString() != 'null') {
+              clippingCerts.add(single.toString());
+            }
+          }
+          clippingExistingCertUrls.assignAll(_uniqueByMediaKey(clippingCerts));
         }
       } else if (type == 'Farrier') {
         final List fServices = profileData['services'] ?? [];
@@ -557,14 +570,21 @@ class EditVendorProfileController extends GetxController {
           _asNullableUiString(appData['insuranceStatus'] ?? profileData['insuranceStatus']),
         );
 
-        final combinedCerts = [..._coerceMediaUrlList(profileData['certifications'] ?? appData['certifications'])];
-        final singleCert = profileData['certificationFile'] ?? appData['certificationFile'];
-        if (singleCert != null &&
-            singleCert.toString().isNotEmpty &&
-            singleCert.toString() != 'null') {
-          combinedCerts.insert(0, singleCert.toString());
+        final combinedCerts = <String>[
+          ..._coerceMediaUrlList(profileData['certifications']),
+          ..._coerceMediaUrlList(appData['certifications']),
+        ];
+        for (final single in [
+          profileData['certificationFile'],
+          appData['certificationFile'],
+        ]) {
+          if (single != null &&
+              single.toString().isNotEmpty &&
+              single.toString() != 'null') {
+            combinedCerts.add(single.toString());
+          }
         }
-        bodyworkExistingCertUrls.assignAll(combinedCerts);
+        bodyworkExistingCertUrls.assignAll(_uniqueByMediaKey(combinedCerts));
 
         final mergedStandards = <String>{
           ..._coerceStringList(profileData['professionalStandards']),
@@ -600,20 +620,22 @@ class EditVendorProfileController extends GetxController {
         insuranceExpiryController.text = profileData['insuranceExpiry'] ?? appData['insuranceExpiry'] ?? '';
       }
       
-      // Photos for each service
+      // Photos for each service (dedup signed S3 URLs against their raw key copies)
       if (serviceExistingPhotos.containsKey(type)) {
-        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty)
-            ? profileData['media'] as List
-            : (appData['media'] is List ? appData['media'] as List : []);
-        final galleryExtras = profileData['gallery'] is List ? profileData['gallery'] as List : [];
-        final appGallery = appData['gallery'] is List ? appData['gallery'] as List : [];
-        serviceExistingPhotos[type]!.assignAll(_coerceMediaUrlList(media));
-        if (galleryExtras.isNotEmpty) {
-          serviceExistingPhotos[type]!.addAll(_coerceMediaUrlList(galleryExtras));
-        }
-        if (appGallery.isNotEmpty) {
-          serviceExistingPhotos[type]!.addAll(_coerceMediaUrlList(appGallery));
-        }
+        final List profileMedia =
+            profileData['media'] is List ? profileData['media'] as List : <dynamic>[];
+        final List appMedia =
+            appData['media'] is List ? appData['media'] as List : <dynamic>[];
+        final List profileGallery =
+            profileData['gallery'] is List ? profileData['gallery'] as List : <dynamic>[];
+        final List appGallery =
+            appData['gallery'] is List ? appData['gallery'] as List : <dynamic>[];
+        serviceExistingPhotos[type]!.assignAll(_uniqueByMediaKey([
+          ..._coerceMediaUrlList(profileMedia),
+          ..._coerceMediaUrlList(appMedia),
+          ..._coerceMediaUrlList(profileGallery),
+          ..._coerceMediaUrlList(appGallery),
+        ]));
       }
     }
   }
@@ -791,15 +813,21 @@ class EditVendorProfileController extends GetxController {
             }
           }
 
-          final combinedCerts =
-              [..._coerceMediaUrlList(profileData['certifications'] ?? appData['certifications'])];
-          final singleCf = profileData['certificationFile'] ?? appData['certificationFile'];
-          if (singleCf != null &&
-              singleCf.toString().isNotEmpty &&
-              singleCf.toString() != 'null') {
-            combinedCerts.insert(0, singleCf.toString());
+          final combinedCerts = <String>[
+            ..._coerceMediaUrlList(profileData['certifications']),
+            ..._coerceMediaUrlList(appData['certifications']),
+          ];
+          for (final single in [
+            profileData['certificationFile'],
+            appData['certificationFile'],
+          ]) {
+            if (single != null &&
+                single.toString().isNotEmpty &&
+                single.toString() != 'null') {
+              combinedCerts.add(single.toString());
+            }
           }
-          bodyworkExistingCertUrls.assignAll(combinedCerts);
+          bodyworkExistingCertUrls.assignAll(_uniqueByMediaKey(combinedCerts));
         } else if (activeService['serviceType'] == 'Shipping') {
           dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
           shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
@@ -847,20 +875,23 @@ class EditVendorProfileController extends GetxController {
         isCustomCancellation.value = false;
       }
       
-      // Populate service-specific photos (profile `media`, app `gallery` / `media` like Mongo flatten)
+      // Populate service-specific photos (dedup signed S3 URLs vs raw keys for the same file)
       final serviceType = activeService?['serviceType'];
       if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
-        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty)
-            ? profileData['media'] as List
-            : (appData['media'] is List ? appData['media'] as List : []);
+        final List profileMedia =
+            profileData['media'] is List ? profileData['media'] as List : <dynamic>[];
+        final List appMedia =
+            appData['media'] is List ? appData['media'] as List : <dynamic>[];
         final profileGallery =
             profileData['gallery'] is List ? profileData['gallery'] as List : <dynamic>[];
-        final appGallery = appData['gallery'] is List ? appData['gallery'] as List : <dynamic>[];
-        serviceExistingPhotos[serviceType]!.assignAll([
-          ..._coerceMediaUrlList(media),
+        final appGallery =
+            appData['gallery'] is List ? appData['gallery'] as List : <dynamic>[];
+        serviceExistingPhotos[serviceType]!.assignAll(_uniqueByMediaKey([
+          ..._coerceMediaUrlList(profileMedia),
+          ..._coerceMediaUrlList(appMedia),
           ..._coerceMediaUrlList(profileGallery),
           ..._coerceMediaUrlList(appGallery),
-        ]);
+        ]));
         existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
       }
     }
@@ -980,6 +1011,26 @@ class EditVendorProfileController extends GetxController {
       }
       return e.toString();
     }).where((s) => s.isNotEmpty).toList();
+  }
+
+  /// `uploads/general/abc.jpg` and `https://bucket.s3.../uploads/general/abc.jpg?X-Amz-...`
+  /// describe the same file. Use the trailing filename (without query string) as a dedup key.
+  String _mediaDedupKey(String value) {
+    final noQuery = value.split('?').first;
+    final last = noQuery.split('/').last.trim();
+    return last.isEmpty ? value : last.toLowerCase();
+  }
+
+  List<String> _uniqueByMediaKey(Iterable<String> entries) {
+    final seen = <String>{};
+    final out = <String>[];
+    for (final raw in entries) {
+      final v = raw.trim();
+      if (v.isEmpty) continue;
+      final key = _mediaDedupKey(v);
+      if (seen.add(key)) out.add(v);
+    }
+    return out;
   }
 
   String? _asNullableUiString(dynamic v) {

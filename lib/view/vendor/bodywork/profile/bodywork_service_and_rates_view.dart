@@ -145,12 +145,7 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
               ],
               if (travelPreferences.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _buildDetailItem(
-                  'Travel Preferences',
-                  travelPreferences
-                      .map((t) => t is Map ? (t['type'] ?? '') : t.toString())
-                      .join(', '),
-                ),
+                _buildTravelPreferencesSection(travelPreferences),
               ],
               if (regionsCovered.isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -334,6 +329,65 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
         ),
         if (showDivider)
           const Divider(height: 24, color: AppColors.dividerColor),
+      ],
+    );
+  }
+
+  String _formatTravelEntry(dynamic entry) {
+    if (entry is! Map) return entry?.toString() ?? '';
+    final type = (entry['type'] ?? entry['category'] ?? '').toString();
+    final feeType = (entry['feeType'] ?? '').toString();
+    final price = (entry['price'] ?? '').toString();
+    final parts = <String>[];
+    if (feeType.isNotEmpty) parts.add(feeType);
+    if (price.isNotEmpty) parts.add('\$$price');
+    final right = parts.join(' · ');
+    if (type.isNotEmpty && right.isNotEmpty) return '$type — $right';
+    if (right.isNotEmpty) return right;
+    return type;
+  }
+
+  Widget _buildTravelPreferencesSection(List entries) {
+    final rows = entries
+        .map((e) => MapEntry(_formatTravelEntry(e),
+            e is Map ? (e['disclaimer']?.toString() ?? '') : ''))
+        .where((e) => e.key.trim().isNotEmpty)
+        .toList();
+
+    if (rows.isEmpty) {
+      return _buildDetailItem('Travel Preferences', 'N/A');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          'Travel Preferences',
+          fontSize: AppTextSizes.size12,
+          color: AppColors.textSecondary,
+        ),
+        const SizedBox(height: 6),
+        ...rows.map((row) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonText(
+                    row.key,
+                    fontSize: AppTextSizes.size14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  if (row.value.isNotEmpty)
+                    CommonText(
+                      row.value,
+                      fontSize: AppTextSizes.size12,
+                      color: AppColors.textSecondary,
+                    ),
+                ],
+              ),
+            )),
+        const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
