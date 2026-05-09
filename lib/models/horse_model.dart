@@ -42,6 +42,7 @@ class HorseModel {
   final String? bookedByAvatar;
   final String? bookedByLocation;
   final String? bookingDates;
+  final String? availableFrom;
   final DateTime? createdAt;
 
   String get displayDiscipline {
@@ -90,6 +91,7 @@ class HorseModel {
     this.bookedByAvatar,
     this.bookedByLocation,
     this.bookingDates,
+    this.availableFrom,
     this.createdAt,
   });
 
@@ -365,6 +367,7 @@ class HorseModel {
       bookedByName: bName?.isEmpty == true ? null : bName,
       bookedByLocation: bLocation,
       bookingDates: json['bookingDates'],
+      availableFrom: json['availableFrom'],
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString())
           : null,
@@ -403,6 +406,7 @@ class HorseModel {
       'trainerName': trainerName,
       'ownerId': ownerId,
       'location': location,
+      'availableFrom': availableFrom,
       'createdAt': createdAt?.toIso8601String(),
     };
   }
@@ -445,6 +449,7 @@ class HorseModel {
     String? bookedByAvatar,
     String? bookedByLocation,
     String? bookingDates,
+    String? availableFrom,
     DateTime? createdAt,
   }) {
     return HorseModel(
@@ -485,6 +490,7 @@ class HorseModel {
       bookedByAvatar: bookedByAvatar ?? this.bookedByAvatar,
       bookedByLocation: bookedByLocation ?? this.bookedByLocation,
       bookingDates: bookingDates ?? this.bookingDates,
+      availableFrom: availableFrom ?? this.availableFrom,
       createdAt: createdAt ?? this.createdAt,
     );
   }

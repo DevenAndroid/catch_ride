@@ -143,8 +143,17 @@ class NotificationService extends GetxService {
     Map<String, dynamic> data = message.data;
 
     // Even if notification object is null, try to show it from data if possible
-    String? title = notification?.title ?? data['title'] ?? 'New Message';
+    String? title = notification?.title ?? data['title'] ?? (data['type'] != 'badge_update' ? 'New Message' : null);
     String? body = notification?.body ?? data['body'] ?? data['content'] ?? '';
+
+    if (data['type'] == 'badge_update') {
+       if (data['badge'] != null) {
+          updateBadge(int.tryParse(data['badge'].toString()) ?? 0);
+       } else if (message.notification?.apple?.badge != null) {
+          updateBadge(int.tryParse(message.notification!.apple!.badge!) ?? 0);
+       }
+       return; // It's a silent push, do not show local notification
+    }
 
     // Only show manual local notification on Android
     if (Platform.isAndroid && title != null) {
@@ -232,6 +241,32 @@ class NotificationService extends GetxService {
       }
     } catch (e) {
       _logger.e('Error clearing notification badge: $e');
+    }
+  }
+  Future<void> updateBadge(int count) async {
+    try {
+      if (Platform.isIOS) {
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+            ?.getNotificationAppLaunchDetails();
+        
+        await _localNotifications
+            .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+            ?.show(
+              -1,
+              '',
+              '',
+              notificationDetails: DarwinNotificationDetails(
+                badgeNumber: count,
+                presentAlert: false,
+                presentSound: false,
+                presentBadge: true,
+              ),
+            );
+        _logger.i('iOS Notification badge updated to $count');
+      }
+    } catch (e) {
+      _logger.e('Error updating notification badge: $e');
     }
   }
 }

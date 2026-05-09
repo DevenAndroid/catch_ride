@@ -111,6 +111,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   @override
   void dispose() {
     _scrollController.dispose();
+    FocusManager.instance.primaryFocus?.unfocus();
     super.dispose();
   }
 
@@ -314,19 +315,21 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     controller.searchLocations(val);
                   }
                 },
-                decoration: InputDecoration(
-                  hintText: 'Search horses, services, and circuits',
-                  hintStyle: TextStyle(
-                    color: AppColors.textSecondary.withOpacity(0.5),
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  prefixIcon: const Icon(
-                    Icons.search_rounded,
-                    color: Colors.black87,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _onSearchPressed(),
+                  decoration: InputDecoration(
+                    hintText: 'Search horses, services, and circuits',
+                    hintStyle: TextStyle(
+                      color: AppColors.textSecondary.withOpacity(0.5),
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: Colors.black87,
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 12),
 
               // Toggle Switcher
@@ -535,7 +538,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
         // When Card
         GestureDetector(
-          onTap: () => setState(() => _selectedSection = 'date'),
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            setState(() => _selectedSection = 'date');
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
@@ -793,21 +799,28 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         DateTime? showEnd;
         try {
           if (show['startDate'] != null && show['endDate'] != null) {
-            showStart = DateTime.parse(show['startDate']);
-            showEnd = DateTime.parse(show['endDate']);
+            // Only take the date part (yyyy-MM-dd) to avoid timezone shifts
+            final startStr = show['startDate'].toString().split('T')[0];
+            final endStr = show['endDate'].toString().split('T')[0];
+            showStart = DateTime.parse(startStr);
+            showEnd = DateTime.parse(endStr);
           }
         } catch (_) {}
 
         setState(() {
           _showSuggestions = false;
-          _venueStartDate = showStart;
-          _venueEndDate = showEnd;
           if (showStart != null && showEnd != null) {
-            _rangeStart = showStart;
-            _rangeEnd = showEnd;
-            controller.startDate.value = showStart;
-            controller.endDate.value = showEnd;
-            _focusedDate = showStart;
+            _venueStartDate = DateTime(showStart.year, showStart.month, showStart.day);
+            _venueEndDate = DateTime(showEnd.year, showEnd.month, showEnd.day);
+            
+            _rangeStart = _venueStartDate;
+            _rangeEnd = _venueEndDate;
+            controller.startDate.value = _venueStartDate;
+            controller.endDate.value = _venueEndDate;
+            _focusedDate = _venueStartDate!;
+          } else {
+            _venueStartDate = null;
+            _venueEndDate = null;
           }
         });
       },
@@ -1108,33 +1121,21 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
         bool isToday = _isSameDay(date, DateTime.now());
 
-        final bool isOutOfRange = (_venueStartDate != null && _venueEndDate != null) &&
-            (date.isBefore(_venueStartDate!) || date.isAfter(_venueEndDate!));
-
         return GestureDetector(
-          onTap: isOutOfRange
-              ? () {
-                  Get.snackbar(
-                    'Out of Range',
-                    'Please select a date within the horse show period.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.black87,
-                    colorText: Colors.white,
-                  );
-                }
-              : () {
-                  setState(() {
-                    if (_rangeStart == null ||
-                        (_rangeStart != null && _rangeEnd != null)) {
-                      _rangeStart = date;
-                      _rangeEnd = null;
-                    } else if (date.isBefore(_rangeStart!)) {
-                      _rangeStart = date;
-                    } else {
-                      _rangeEnd = date;
-                    }
-                  });
-                },
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            setState(() {
+              if (_rangeStart == null ||
+                  (_rangeStart != null && _rangeEnd != null)) {
+                _rangeStart = date;
+                _rangeEnd = null;
+              } else if (date.isBefore(_rangeStart!)) {
+                _rangeStart = date;
+              } else {
+                _rangeEnd = date;
+              }
+            });
+          },
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -1164,11 +1165,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 child: Center(
                   child: CommonText(
                     dayNumber.toString(),
-                    color: isOutOfRange
-                        ? AppColors.textSecondary.withOpacity(0.2)
-                        : ((isStart || isEnd)
-                            ? Colors.white
-                            : AppColors.textPrimary),
+                    color: (isStart || isEnd)
+                        ? Colors.white
+                        : AppColors.textPrimary,
                     fontWeight: (isStart || isEnd) ? FontWeight.bold : FontWeight.w500,
                     fontSize: 14,
                   ),
