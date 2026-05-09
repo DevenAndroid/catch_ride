@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
+import 'package:catch_ride/services/notification_service.dart' as catch_ride_notification;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
@@ -33,6 +34,17 @@ class ChatController extends GetxController {
     return conversations.fold(0, (sum, convo) => sum + convo.unread);
   }
 
+  void _updateAppBadge() {
+    try {
+      final count = totalUnreadCount;
+      if (Get.isRegistered<catch_ride_notification.NotificationService>()) {
+        Get.find<catch_ride_notification.NotificationService>().updateBadge(count);
+      }
+    } catch (e) {
+      _logger.e('Error updating app badge: $e');
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -54,6 +66,7 @@ class ChatController extends GetxController {
     isLoadingMessages.value = false;
     isLoadingMore.value = false;
     hasMoreMessages.value = true;
+    _updateAppBadge();
     _logger.i('ChatController: Data cleared.');
   }
 
@@ -108,6 +121,7 @@ class ChatController extends GetxController {
         conversations.value = data
             .map((json) => ChatConversation.fromJson(json))
             .toList();
+        _updateAppBadge();
       }
 
       if (conversations.isEmpty) {
@@ -212,6 +226,7 @@ class ChatController extends GetxController {
             label: old.label,
           );
           conversations.refresh();
+          _updateAppBadge();
         }
       }
     } catch (e) {
@@ -377,6 +392,7 @@ class ChatController extends GetxController {
           'generalConversationId': generalId,
         });
         
+        _updateAppBadge();
         return generalId;
       }
       return null;
@@ -419,6 +435,7 @@ class ChatController extends GetxController {
       );
       if (response.statusCode == 200) {
         conversations.removeWhere((c) => c.conversationId == conversationId);
+        _updateAppBadge();
         return true;
       }
       return false;
@@ -483,6 +500,7 @@ class ChatController extends GetxController {
           label: old.label,
         );
         conversations.refresh();
+        _updateAppBadge();
         return; // Skip the standard increment logic below
       }
     } else if (activeConversationId.isNotEmpty) {
@@ -584,6 +602,7 @@ class ChatController extends GetxController {
       _logger.d('🆕 Updating conversation list item for ${message.conversationId}');
       conversations.insert(0, updated);
       conversations.refresh();
+      _updateAppBadge();
     } else {
       _logger.d('❓ Conversation not found in list. Fetching all.');
       // New conversation appeared - if it's the first message, we might need 

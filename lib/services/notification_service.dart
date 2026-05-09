@@ -8,6 +8,7 @@ import 'package:catch_ride/view/barn_manager/chats/barn_manager_single_chat_view
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
@@ -58,7 +59,7 @@ class NotificationService extends GetxService {
       iOS: initializationSettingsIOS,
     );
 
-    // Create Android Notification Channel
+    // Create Android Notification Channel (with badge support)
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'high_importance_channel',
       'High Importance Notifications',
@@ -66,6 +67,7 @@ class NotificationService extends GetxService {
       importance: Importance.max,
       playSound: true,
       enableVibration: true,
+      showBadge: true,
     );
 
     await _localNotifications
@@ -155,8 +157,16 @@ class NotificationService extends GetxService {
        return; // It's a silent push, do not show local notification
     }
 
+    // Prevent showing notifications with empty title and body
+    if ((title == null || title.isEmpty) && (body == null || body.isEmpty)) {
+      _logger.i('[FCM] Skipping notification with empty title and body');
+      return;
+    }
+
     // Only show manual local notification on Android
     if (Platform.isAndroid && title != null) {
+      final int badgeFromPayload = int.tryParse(data['badge']?.toString() ?? '') ?? 0;
+
       _localNotifications.show(
         (message.messageId ?? title).hashCode, // Stable ID prevents duplicates
         title,
@@ -171,6 +181,7 @@ class NotificationService extends GetxService {
             enableVibration: true,
             vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
             icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+            number: badgeFromPayload > 0 ? badgeFromPayload : null,
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
@@ -180,6 +191,11 @@ class NotificationService extends GetxService {
         ),
         payload: jsonEncode(message.data),
       );
+
+      // Sync the launcher app icon badge with the count from backend
+      if (badgeFromPayload > 0) {
+        updateBadge(badgeFromPayload);
+      }
     }
   }
 
@@ -221,9 +237,8 @@ class NotificationService extends GetxService {
       if (Platform.isIOS) {
         await _localNotifications
             .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
-            ?.getNotificationAppLaunchDetails(); // Just ensuring plugin is ready
+            ?.getNotificationAppLaunchDetails();
         
-        // This is the standard way to clear the badge in flutter_local_notifications
         await _localNotifications
             .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
             ?.show(
@@ -238,13 +253,26 @@ class NotificationService extends GetxService {
               ),
             );
         _logger.i('iOS Notification badge cleared');
+      } else if (Platform.isAndroid) {
+        try {
+          await AppBadgePlus.updateBadge(0);
+          _logger.i('Android app badge cleared');
+        } catch (e) {
+          _logger.w('Android app badge error: $e');
+        }
       }
     } catch (e) {
       _logger.e('Error clearing notification badge: $e');
     }
   }
+
   Future<void> updateBadge(int count) async {
     try {
+      if (count <= 0) {
+        await clearBadge();
+        return;
+      }
+
       if (Platform.isIOS) {
         await _localNotifications
             .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
@@ -264,6 +292,13 @@ class NotificationService extends GetxService {
               ),
             );
         _logger.i('iOS Notification badge updated to $count');
+      } else if (Platform.isAndroid) {
+        try {
+          await AppBadgePlus.updateBadge(count);
+          _logger.i('Android app badge updated to $count');
+        } catch (e) {
+          _logger.w('Android app badge error: $e');
+        }
       }
     } catch (e) {
       _logger.e('Error updating notification badge: $e');

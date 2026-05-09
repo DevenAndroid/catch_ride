@@ -68,6 +68,7 @@ dependencies:
   google_places_flutter: 2.1.1
   app_links: ^6.3.2
   wakelock_plus: ^1.4.0
+  app_badge_plus: ^1.1.4
 
 dev_dependencies:
   flutter_test:
