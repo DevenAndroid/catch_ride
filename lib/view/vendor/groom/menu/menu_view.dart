@@ -1,4 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/controllers/notification_controller.dart';
 import 'package:catch_ride/view/trainer/settings/notifications_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/past_clients_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/services_rates_view.dart';
@@ -21,7 +22,6 @@ import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
 import '../../farrier/profile/add_operations_and_compliance_view.dart';
-import '../../shipping/create_profile/shipping_details_view.dart';
 import '../../shipping/trip/shipping_trip_view.dart';
 import '../availability/availability_view.dart';
 
@@ -46,7 +46,35 @@ class MenuView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
-                child: const Icon(Icons.notifications_none, color: Colors.black, size: 24),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications_none, color: Colors.black, size: 24),
+                    Obx(() {
+                      final notifController = Get.put(NotificationController());
+                      if (notifController.unreadCount.value > 0) {
+                        return Positioned(
+                          right: -4,
+                          top: -4,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: CommonText(
+                              notifController.unreadCount.value > 99 ? '99+' : notifController.unreadCount.value.toString(),
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                ),
               ),
             ),
           )

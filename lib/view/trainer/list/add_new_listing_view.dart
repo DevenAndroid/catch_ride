@@ -934,6 +934,23 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 ],
               ),
               const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectDateTime(context, controller.availableFromController),
+                child: AbsorbPointer(
+                  child: CommonTextField(
+                    label: 'Available From',
+                    controller: controller.availableFromController,
+                    hintText: 'Select date',
+                    isRequired: false,
+                    suffixIcon: const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(

@@ -66,7 +66,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     }
   }
 
-  void _loadBookings() {
+  void _loadBookings({bool silent = false}) {
     final filters = _currentFilters;
     if (_selectedFilterIndex >= filters.length) {
       _selectedFilterIndex = 0;
@@ -86,8 +86,8 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
       apiStatus = filterStr.toLowerCase();
       if (filterStr == 'Accepted') apiStatus = 'confirmed';
       if (filterStr == 'Canceled') apiStatus = 'cancelled';
-      apiTime = (apiStatus == 'pending') ? 'upcoming' : 'upcoming'; 
-      
+      apiTime = (apiStatus == 'pending') ? 'upcoming' : 'upcoming';
+
       // If it's a terminal state, we might want to show it in past or upcoming?
       // Usually Rejected/Cancelled are considered "Past/History"
       if (['rejected', 'cancelled'].contains(apiStatus)) {
@@ -108,7 +108,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         time: apiTime,
       );
     }
-    
+
     if (mounted) {
       setState(() {});
     }
@@ -411,7 +411,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                   children: [
                     CommonImageView(
                       url: isVendorBooking
-                          ? (profileController.user.value?.role == 'service_provider' 
+                          ? (profileController.user.value?.role == 'service_provider'
                               ? (booking.clientImage ?? booking.horseImage)
                               : (booking.vendorImage ?? booking.horseImage))
                           : booking.horseImage,
@@ -637,25 +637,25 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
 
   List<BookingModel> _getFilteredBookings(List<BookingModel> bookings) {
     if (_selectedFilterIndex >= _currentFilters.length) return bookings;
-    
+
     final filter = _currentFilters[_selectedFilterIndex].toLowerCase();
-    
+
     return bookings.where((b) {
       final status = b.status.toLowerCase();
-      
+
       if (filter == 'accepted') {
         return status == 'confirmed' || status == 'accepted';
       }
-      
+
       if (filter == 'cancelled' || filter == 'canceled') {
         return status == 'cancelled' || status == 'canceled';
       }
-      
+
       // For Pending and Rejected
       return status == filter;
     }).toList();
   }
-  
+
   Color _getStatusBgColor(String status) {
     switch (status.toLowerCase()) {
       case 'confirmed':

@@ -7,7 +7,7 @@ class AppUrls {
   static String get host {
     if (kIsWeb) return 'localhost';
   // if (Platform.isAndroid) return '192.168.1.7';
-     return "https://fremdly-monogenistic-collette.ngrok-free.dev";
+    // return "https://fremdly-monogenistic-collette.ngrok-free.dev";
      if (Platform.isAndroid) return '10.0.2.2';
    // if (Platform.isAndroid) return '192.168.1.16';
    // return "https://fremdly-monogenistic-collette.ngrok-free.dev";
@@ -25,7 +25,7 @@ class AppUrls {
 
 
     // return 'http://$host:5000/api';
-   return '$host/api';
+  // return '$host/api';
     return 'http://$host:5000/api';
 
   }
@@ -36,7 +36,7 @@ class AppUrls {
     } catch (_) {}
 
     //  return 'http://$host:5000';
-       return '$host';
+      // return '$host';
 
     return 'http://$host:5000';
 

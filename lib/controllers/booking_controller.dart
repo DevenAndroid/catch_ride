@@ -16,13 +16,21 @@ class BookingController extends GetxController {
   final RxList<BookingModel> bookings = <BookingModel>[].obs;
   final RxBool isLoading = false.obs;
 
+  int _fetchReceivedRequestId = 0;
+  int _fetchSentRequestId = 0;
+
   Future<void> fetchBookings({
     String type = 'received',
     String? status,
     String? time,
   }) async {
+    final int currentRequestId = type == 'received'
+        ? ++_fetchReceivedRequestId
+        : ++_fetchSentRequestId;
+
     try {
       isLoading.value = true;
+
       final Map<String, String> query = {'type': type};
       if (status != null) query['status'] = status;
       if (time != null) query['time'] = time;
@@ -31,6 +39,20 @@ class BookingController extends GetxController {
         AppUrls.myBookings,
         query: query,
       );
+
+      // Check if another request of the same type started while we were waiting
+      if (type == 'received' && currentRequestId != _fetchReceivedRequestId) {
+        _logger.w(
+          'Discarding outdated fetch request (type: $type, status: $status)',
+        );
+        return;
+      }
+      if (type == 'sent' && currentRequestId != _fetchSentRequestId) {
+        _logger.w(
+          'Discarding outdated fetch request (type: $type, status: $status)',
+        );
+        return;
+      }
 
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
@@ -45,8 +67,6 @@ class BookingController extends GetxController {
         }
 
         // We only update the 'bookings' master list if it's explicitly needed for backward compatibility
-        // but we should avoid using it for tab-specific views.
-        // If needed, we could assign the one currently being fetched.
         bookings.assignAll(newBookings);
 
         _logger.i(
@@ -58,7 +78,13 @@ class BookingController extends GetxController {
     } catch (e) {
       _logger.e('Error fetching bookings: $e');
     } finally {
-      isLoading.value = false;
+      // Only clear loading state if we are the most recent request
+      if (type == 'received' && currentRequestId == _fetchReceivedRequestId) {
+        isLoading.value = false;
+      }
+      if (type == 'sent' && currentRequestId == _fetchSentRequestId) {
+        isLoading.value = false;
+      }
     }
   }
 
@@ -99,46 +125,48 @@ class BookingController extends GetxController {
         margin: const EdgeInsets.all(16),
       );
       return null;
-      } finally {
-        isLoading.value = false;
-      }
+    } finally {
+      isLoading.value = false;
     }
+  }
 
-    Future<dynamic> updateBookingStatus(String bookingId, String status) async {
-      try {
-        isLoading.value = true;
-        final response = await _apiService.putRequest(
-          '${AppUrls.bookings}/$bookingId',
-          {'status': status},
+  Future<dynamic> updateBookingStatus(String bookingId, String status) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiService.putRequest(
+        '${AppUrls.bookings}/$bookingId',
+        {'status': status},
+      );
+
+      if (response.statusCode == 200) {
+        _logger.i('Booking status updated to $status');
+        String successMsg = 'Booking status updated successfully';
+        if (status == 'confirmed') successMsg = 'Booking accepted successfully';
+        if (status == 'cancelled')
+          successMsg = 'Booking cancelled successfully';
+        if (status == 'rejected') successMsg = 'Booking declined successfully';
+
+        Get.snackbar(
+          'Success',
+          successMsg,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF17B26A),
+          colorText: Colors.white,
         );
-
-        if (response.statusCode == 200) {
-          _logger.i('Booking status updated to $status');
-          String successMsg = 'Booking status updated successfully';
-          if (status == 'confirmed') successMsg = 'Booking accepted successfully';
-          if (status == 'cancelled') successMsg = 'Booking cancelled successfully';
-          if (status == 'rejected') successMsg = 'Booking declined successfully';
-
-          Get.snackbar(
-            'Success',
-            successMsg,
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFF17B26A),
-            colorText: Colors.white,
-          );
-          // Refresh both lists to move the booking to the correct section
-          // fetchBookings(type: 'received');
-          // fetchBookings(type: 'sent');
-          return response.body['data']; // Returns the updated booking object including conversationId
-        } else {
-          _logger.e('Failed to update booking status: ${response.statusText}');
-          return null;
-        }
-      } catch (e) {
-        _logger.e('Error updating booking status: $e');
+        // Refresh both lists to move the booking to the correct section
+        // fetchBookings(type: 'received');
+        // fetchBookings(type: 'sent');
+        return response
+            .body['data']; // Returns the updated booking object including conversationId
+      } else {
+        _logger.e('Failed to update booking status: ${response.statusText}');
         return null;
-      } finally {
-        isLoading.value = false;
       }
+    } catch (e) {
+      _logger.e('Error updating booking status: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
     }
+  }
 }

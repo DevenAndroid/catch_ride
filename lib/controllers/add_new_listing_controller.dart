@@ -111,6 +111,7 @@ class AddNewListingController extends GetxController {
   final descriptionController = TextEditingController();
   final usefNumberController = TextEditingController();
   final locationController = TextEditingController();
+  final availableFromController = TextEditingController();
   var selectedDisciplines = <String>{}.obs;
   var calculatedAge = 0.obs;
 
@@ -205,6 +206,21 @@ class AddNewListingController extends GetxController {
     gender.value = horse.gender;
     selectedDisciplines.assignAll(horse.disciplines);
     disciplineController.text = horse.disciplines.join(', ');
+
+    if (horse.availableFrom != null && horse.availableFrom!.isNotEmpty) {
+      try {
+        // Parse the date and ensure it's treated as local time if it's just a date string,
+        // or converted to local if it's an ISO string from the backend.
+        final date = DateTime.tryParse(horse.availableFrom!);
+        if (date != null) {
+          availableFromController.text = DateFormat('dd MMM yyyy').format(date.toLocal());
+        } else {
+          availableFromController.text = horse.availableFrom!;
+        }
+      } catch (e) {
+        availableFromController.text = horse.availableFrom!;
+      }
+    }
     activeStatus.value = horse.isActive;
 
     selectedListingTypes.assignAll(horse.listingTypes);
@@ -529,6 +545,7 @@ class AddNewListingController extends GetxController {
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
         'videoLink': videoLinkControllers.map((c) => c.text.trim()).where((text) => text.isNotEmpty).toList(),
+        'availableFrom': _getFormattedDate(availableFromController.text),
         'images': allImages,
        // 'photo': allImages.isNotEmpty ? allImages.first : null,
         'videoFile': allVideos,
@@ -544,8 +561,7 @@ class AddNewListingController extends GetxController {
               'max': maxPriceControllers[type]?.text.replaceAll(',', ''),
             },
         },
-        'showAvailability': availabilityEntries
-            .map(
+        'showAvailability': availabilityEntries.map(
               (e) => {
                 'showId': e.showIdController.text.isEmpty
                     ? null
@@ -555,8 +571,7 @@ class AddNewListingController extends GetxController {
                 'startDate': e.startDateController.text,
                 'endDate': e.endDateController.text,
               },
-            )
-            .toList(),
+            ).toList(),
       };
 
       final response = isEditMode
@@ -1047,6 +1062,17 @@ class AddNewListingController extends GetxController {
       entry.dispose();
     }
     super.onClose();
+  }
+
+  String? _getFormattedDate(String dateStr) {
+    if (dateStr.isEmpty) return null;
+    try {
+      final date = DateFormat('dd MMM yyyy').parse(dateStr);
+      return DateFormat('yyyy-MM-dd').format(date);
+    } catch (e) {
+      debugPrint('Error formatting date for API: $e');
+      return dateStr;
+    }
   }
 }
 
