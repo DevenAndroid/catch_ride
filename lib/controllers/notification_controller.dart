@@ -1,6 +1,7 @@
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/models/notification_model.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/services/notification_service.dart' as catch_ride_notification;
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 
@@ -42,6 +43,14 @@ class NotificationController extends GetxController {
 
   void _updateUnreadCount() {
     unreadCount.value = notifications.where((n) => !n.read).length;
+    // Update iOS badge locally
+    try {
+      if (Get.isRegistered<catch_ride_notification.NotificationService>()) {
+        Get.find<catch_ride_notification.NotificationService>().updateBadge(unreadCount.value);
+      }
+    } catch (e) {
+      _logger.e('Error calling updateBadge locally: $e');
+    }
   }
 
   Future<void> markAsRead(String notificationId) async {
@@ -75,6 +84,20 @@ class NotificationController extends GetxController {
       }
     } catch (e) {
       _logger.e('Error marking all notifications as read: $e');
+    }
+  }
+
+  Future<void> deleteAllNotifications() async {
+    try {
+      final response = await _apiService.deleteRequest(
+        '${AppUrls.notifications}/delete-all',
+      );
+      if (response.statusCode == 200) {
+        notifications.clear();
+        _updateUnreadCount();
+      }
+    } catch (e) {
+      _logger.e('Error deleting all notifications: $e');
     }
   }
 

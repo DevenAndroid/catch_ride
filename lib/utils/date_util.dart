@@ -28,7 +28,7 @@ class DateUtil {
     }
 
     if (dateTime != null) {
-      return DateFormat(displayFormat).format(dateTime);
+      return DateFormat(displayFormat).format(dateTime.toLocal());
     }
     return date.toString();
   }
@@ -69,14 +69,14 @@ class DateUtil {
     }
 
     if (startDate == null && endDate == null) return '';
-    if (startDate == null) return DateFormat(displayFormat).format(endDate!);
-    if (endDate == null) return DateFormat(displayFormat).format(startDate);
+    if (startDate == null) return DateFormat(displayFormat).format(endDate!.toLocal());
+    if (endDate == null) return DateFormat(displayFormat).format(startDate.toLocal());
 
     if (startDate.year == endDate.year) {
-      return "${DateFormat('dd MMM').format(startDate)} - ${DateFormat('dd MMM yyyy').format(endDate)}";
+      return "${DateFormat('dd MMM').format(startDate.toLocal())} - ${DateFormat('dd MMM yyyy').format(endDate.toLocal())}";
     }
 
-    return "${DateFormat(displayFormat).format(startDate)} - ${DateFormat(displayFormat).format(endDate)}";
+    return "${DateFormat(displayFormat).format(startDate.toLocal())} - ${DateFormat(displayFormat).format(endDate.toLocal())}";
   }
 
   static String formatRangeString(String? rangeStr) {

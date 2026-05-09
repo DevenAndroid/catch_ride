@@ -66,7 +66,7 @@ class _BarnManagerCreateProfileViewState
       }
       log("objectedefdecdcd::${user.barnName}");
       _phoneController.text = phone;
-      _bioController.text = user.bio ?? "";
+      _bioController.text = _profileController.userData['barnManagerId']["bio"] ?? "";
       _barnNameController.text = user.barnName ?? "";
       _yearsInIndustryController.text = user.yearsInIndustry ?? "";
     }

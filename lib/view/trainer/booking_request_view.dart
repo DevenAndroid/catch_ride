@@ -216,6 +216,39 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   bool _isTrainerOwnHorse() => isHorseOwner;
 
+  bool _isDatePassed() {
+    if (booking == null) return false;
+    
+    String targetDate = booking!.endDate ?? booking!.startDate ?? booking!.date;
+    
+    if (targetDate.contains(' - ')) {
+      targetDate = targetDate.split(' - ').last.trim();
+    } else if (targetDate.contains(' to ')) {
+      targetDate = targetDate.split(' to ').last.trim();
+    }
+
+    DateTime? parsedDate;
+    
+    try {
+      parsedDate = DateTime.tryParse(targetDate);
+      parsedDate ??= DateFormat('dd MMM yyyy').parse(targetDate);
+    } catch (_) {
+      try {
+        parsedDate = DateFormat('yyyy-MM-dd').parse(targetDate);
+      } catch (_) {}
+    }
+
+    if (parsedDate != null) {
+      final today = DateTime.now();
+      final dateOnly = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+      final todayOnly = DateTime(today.year, today.month, today.day);
+      
+      return dateOnly.isBefore(todayOnly);
+    }
+    
+    return false;
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
@@ -388,7 +421,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                   children: [
                     Expanded(
                       child: CommonText(
-                        '${horse!.name} - ${horse!.displayDiscipline}',
+                        horse?.listingTitle??horse?.name??"",
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -1622,63 +1655,97 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       }
       
       if (status == 'accepted' || status == 'confirmed') {
-        return Row(
+        final bool showComplete = _isDatePassed();
+        return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppColors.textPrimary,
-                  elevation: 0,
-                  side: const BorderSide(color: AppColors.border),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.textPrimary,
+                      elevation: 0,
+                      side: const BorderSide(color: AppColors.border),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isCancelling
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: AppColors.textPrimary),
+                          )
+                        : const CommonText(
+                            'Cancel',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
                   ),
                 ),
-                child: _isCancelling
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: AppColors.textPrimary),
-                      )
-                    : const CommonText(
-                        'Cancel',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: (isAnyLoading || !showComplete) ? null : () => _showCompleteConfirmation(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: showComplete 
+                          ? AppColors.successPrimary 
+                          : AppColors.textSecondary.withValues(alpha: 0.1),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isAnyLoading ? null : () => _showCompleteConfirmation(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.successPrimary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: _isCompleting
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : CommonText(
+                            'Complete',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: showComplete ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.5),
+                          ),
                   ),
                 ),
-                child: _isCompleting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : const CommonText(
-                        'Complete',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-              ),
+              ],
             ),
+            if (!showComplete) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: CommonText(
+                        'You can complete this booking after the booking date',
+                        fontSize: 12,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         );
       }

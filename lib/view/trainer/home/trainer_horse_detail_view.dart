@@ -1181,6 +1181,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   'Gender',
                   horse!.gender.isEmpty ? '' : horse!.gender,
                 ),
+                const SizedBox(height: 16),
+                _buildDetailRow(
+                  'Available From',
+                  horse!.availableFrom == null || horse!.availableFrom!.isEmpty
+                      ? ''
+                      : DateUtil.formatDisplayDate(horse!.availableFrom),
+                  '',
+                  '',
+                ),
               ],
             ),
           ),
@@ -2442,6 +2451,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 child: CommonImageView(
                   url: photoUrl,
                   width: 75,
+                  height: 110,
                   fit: BoxFit.cover,
                 ),
               ),

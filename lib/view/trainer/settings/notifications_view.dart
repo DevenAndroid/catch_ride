@@ -35,13 +35,33 @@ class NotificationsView extends StatelessWidget {
         ),
         actions: [
           Obx(
-            () => controller.unreadCount.value > 0
+            () => controller.notifications.isNotEmpty
                 ? TextButton(
-                    onPressed: controller.markAllAsRead,
+                    onPressed: () {
+                      Get.dialog(
+                        AlertDialog(
+                          title: const CommonText('Clear All Notifications?', fontSize: 18, fontWeight: FontWeight.bold),
+                          content: const CommonText('Are you sure you want to delete all notifications? This action cannot be undone.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(),
+                              child: const CommonText('Cancel', color: AppColors.textSecondary),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Get.back();
+                                controller.deleteAllNotifications();
+                              },
+                              child: const CommonText('Delete', color: AppColors.accentRed, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     child: const CommonText(
-                      'Mark all as read',
+                      'Clear all',
                       fontSize: 14,
-                      color: AppColors.linkBlue,
+                      color: AppColors.accentRed,
                       fontWeight: FontWeight.w600,
                     ),
                   )
@@ -49,7 +69,15 @@ class NotificationsView extends StatelessWidget {
           ),
         ],
       ),
-      body: Obx(() {
+      body: Builder(
+        builder: (context) {
+          // Auto-mark all as read when opening screen
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (controller.unreadCount.value > 0) {
+              controller.markAllAsRead();
+            }
+          });
+          return Obx(() {
         if (controller.isLoading.value && controller.notifications.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -104,7 +132,9 @@ class NotificationsView extends StatelessWidget {
             },
           ),
         );
-      }),
+      });
+        },
+      ),
     );
   }
 
