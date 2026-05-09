@@ -6,8 +6,7 @@ import 'package:flutter/foundation.dart';
 class AppUrls {
   static String get host {
     if (kIsWeb) return 'localhost';
-  // if (Platform.isAndroid) return '192.168.1.7';
-    // return "https://fremdly-monogenistic-collette.ngrok-free.dev";
+
      if (Platform.isAndroid) return '10.0.2.2';
    // if (Platform.isAndroid) return '192.168.1.16';
    // return "https://fremdly-monogenistic-collette.ngrok-free.dev";
