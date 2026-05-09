@@ -262,7 +262,7 @@ class GroomViewProfileController extends GetxController {
     if (block is Map) {
       final appBlk = block['applicationData'];
       final profBlk = block['profileData'];
-      fromAppBlk = appBlk is Map ? appBlk['insuranceStatus'] : null;
+      fromAppBlock = appBlk is Map ? appBlk['insuranceStatus'] : null;
       fromProfBlock = profBlk is Map ? profBlk['insuranceStatus'] : null;
     }
 
