@@ -101,7 +101,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                           Checkbox(
                             value: isSelected,
                             onChanged: (val) => service['isSelected'].value = val!,
-                            activeColor: const Color(0xFF001149),
+                            activeColor: AppColors.primary,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                           ),
                           const SizedBox(width: 8),
@@ -217,7 +217,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6), 
+            color: Colors.white, 
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderLight),
           ),
@@ -236,6 +236,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
         Obx(() => GestureDetector(
           onTap: () => _showPickerBottomSheet(
             title: 'Experience',
+            currentValue: controller.experience.value,
             options: controller.experienceOptions,
             onSelected: (val) => controller.experience.value = val,
           ),
@@ -243,7 +244,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6), 
+              color: Colors.white, 
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -251,7 +252,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: controller.experience.value == null ? AppColors.textSecondary : AppColors.textPrimary, fontWeight: FontWeight.w500),
                 ),
                 const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
               ],
@@ -277,14 +278,14 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFF3F4FF) : const Color(0xFFF3F4F6),
+                  color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
+                  border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
                 ),
                 child: CommonText(
                   it, 
                   fontSize: 12, 
-                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
               ),
@@ -312,16 +313,17 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6), 
+                  color: Colors.white, 
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
-                    const Icon(Icons.add, color: Color(0xFF001144), size: 20),
+                    CommonText('Select regions...', fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                    const Icon(Icons.add, color: AppColors.primary, size: 20),
                   ],
                 ),
               ),
@@ -333,20 +335,20 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
               children: controller.operatingRegions.map((region) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4FF),
+                  color: const Color(0xFFF9FAFB),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF001144)),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001144), fontWeight: FontWeight.w600),
+                      child: CommonText(region, fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () => controller.toggleRegion(region),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001144)),
+                      child: const Icon(Icons.close, size: 14, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -358,7 +360,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
     );
   }
 
-  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+  void _showPickerBottomSheet({required String title, String? currentValue, required List<String> options, required Function(String) onSelected}) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -368,13 +370,16 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
           children: [
             CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            ...options.map((opt) => ListTile(
-              title: CommonText(opt),
-              onTap: () {
-                onSelected(opt);
-                Get.back();
-              },
-            )),
+            ...options.map((opt) {
+              final isSelected = opt == currentValue;
+              return ListTile(
+                title: Center(child: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                onTap: () {
+                  onSelected(opt);
+                  Get.back();
+                },
+              );
+            }),
           ],
         ),
       ),
@@ -397,7 +402,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                   title: CommonText(opt),
                   value: selectedItems.contains(opt),
                   onChanged: (val) => onToggle(opt),
-                  activeColor: const Color(0xFF001144),
+                  activeColor: AppColors.primary,
                 ))).toList(),
               ),
             ),
@@ -462,7 +467,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                           hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
                           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
-                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF001149))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primaryDark)),
                           contentPadding: const EdgeInsets.all(16),
                         ),
                       ),
@@ -582,16 +587,16 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF5F8FF) : const Color(0xFFF9F9F9),
+          color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
           borderRadius: BorderRadius.circular(100),
           border: Border.all(
-            color: isSelected ? const Color(0xFF001144) : const Color(0xFFE5E5E5),
+            color: isSelected ? AppColors.primaryDark : AppColors.borderLight,
           ),
         ),
         child: CommonText(
           text,
           fontSize: 12.5,
-          color: isSelected ? const Color(0xFF001144) : const Color(0xFF444444),
+          color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
         ),
       ),

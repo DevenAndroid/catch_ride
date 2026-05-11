@@ -269,12 +269,12 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 fontWeight: FontWeight.bold,
               ))
             : const CommonText('Add Availability Block', fontSize: 16, fontWeight: FontWeight.bold),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: AppColors.textPrimary),
-            onPressed: () => Get.back(),
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.close, color: AppColors.textPrimary),
+        //     onPressed: () => Get.back(),
+        //   ),
+        // ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -300,10 +300,6 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: const Icon(Icons.close, color: Colors.grey, size: 24),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -384,7 +380,6 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const CommonText('Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-          IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close, color: Colors.grey, size: 20)),
         ],
       ),
     );
@@ -550,7 +545,6 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText('Select Venue or City', fontSize: 18, fontWeight: FontWeight.bold),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
               ],
             ),
             const SizedBox(height: 16),
@@ -694,18 +688,18 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF030D3B) : Colors.white,
+              color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? const Color(0xFF030D3B) : const Color(0xFFD0D5DD), 
+                color: isSelected ? AppColors.primaryDark : const Color(0xFFD0D5DD), 
                 width: 1
               ),
             ),
             child: CommonText(
               t,
               fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? Colors.white : const Color(0xFF344054),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? AppColors.primaryDark : const Color(0xFF344054),
             ),
           ),
         );
