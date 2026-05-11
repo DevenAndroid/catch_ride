@@ -13,6 +13,18 @@ class ParsedBookingApprovalMessage {
   });
 }
 
+class ParsedBookingDeclineMessage {
+  final String horseName;
+  final String dateRaw;
+  final String? reason;
+
+  ParsedBookingDeclineMessage({
+    required this.horseName,
+    required this.dateRaw,
+    this.reason,
+  });
+}
+
 class ParsedBookingPendingMessage {
   final String horseName;
   final String dateRaw;
@@ -73,11 +85,48 @@ class BookingChatMessageParser {
     );
   }
 
+  static ParsedBookingDeclineMessage? parseDecline(String content) {
+    const prefix = 'Your booking request for ';
+    const marker = ' has been declined.';
+    if (!content.startsWith(prefix) || !content.contains(marker)) return null;
+
+    final afterPrefix = content.substring(prefix.length);
+    final markerIdx = afterPrefix.indexOf(marker);
+    if (markerIdx < 0) return null;
+
+    final core = afterPrefix.substring(0, markerIdx);
+    var remainder = afterPrefix.substring(markerIdx + marker.length).trim();
+
+    String? reason;
+    if (remainder.startsWith('Reason:')) {
+      reason = remainder.substring('Reason:'.length).trim();
+    }
+
+    final onIdx = core.lastIndexOf(' on ');
+    if (onIdx < 0) return null;
+
+    final horseName = core.substring(0, onIdx).trim();
+    final dateRaw = core.substring(onIdx + ' on '.length).trim();
+    if (horseName.isEmpty || dateRaw.isEmpty) return null;
+
+    return ParsedBookingDeclineMessage(
+      horseName: horseName,
+      dateRaw: dateRaw,
+      reason: reason,
+    );
+  }
+
   /// Expects content with `[System]:` already stripped.
   static ParsedBookingPendingMessage? parsePending(String content) {
     const prefix = 'Booking request submitted for ';
     const suffix = '. Waiting for professional approval.';
-    final trimmed = content.trim();
+    var trimmed = content.trim();
+    // Some builds append e.g. `[BOOKING_REF:...]` after the sentence; that
+    // breaks a strict endsWith(suffix) check and hides the chat card.
+    final refIdx = trimmed.indexOf('[BOOKING_REF:');
+    if (refIdx >= 0) {
+      trimmed = trimmed.substring(0, refIdx).trim();
+    }
     if (!trimmed.startsWith(prefix) || !trimmed.endsWith(suffix)) return null;
 
     final middle =
