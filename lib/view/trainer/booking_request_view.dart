@@ -6,6 +6,8 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:catch_ride/view/trainer/home/search_filter_overlay.dart';
+import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -3083,6 +3085,7 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
   @override
   void initState() {
     super.initState();
+    WakelockPlus.enable();
     _initPlayer();
   }
 
@@ -3096,7 +3099,7 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
           autoPlay: true,
           mute: false,
         ),
-      );
+      )..addListener(_onYoutubeControllerChange);
       _initialized = true;
     } else {
       _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.url));
@@ -3116,6 +3119,19 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
             ),
             placeholder: Container(color: Colors.black),
             autoInitialize: true,
+            deviceOrientationsOnEnterFullScreen: [
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ],
+            deviceOrientationsAfterFullScreen: [
+              DeviceOrientation.portraitUp,
+              DeviceOrientation.portraitDown,
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight,
+            ],
+            systemOverlaysOnEnterFullScreen: [],
+            systemOverlaysAfterFullScreen: SystemUiOverlay.values,
+            allowFullScreen: true,
           );
           setState(() {
             _initialized = true;
@@ -3132,11 +3148,30 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
     }
   }
 
+  void _onYoutubeControllerChange() {
+    if (_youtubeController != null && _youtubeController!.value.isFullScreen) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+  }
+
   @override
   void dispose() {
+    WakelockPlus.disable();
     _videoPlayerController?.dispose();
     _chewieController?.dispose();
     _youtubeController?.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     super.dispose();
   }
 
@@ -3167,7 +3202,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
 
     if (_chewieController != null) {
       return Center(
-        child: Chewie(controller: _chewieController!),
+        child: Chewie(
+          controller: _chewieController!,
+        ),
       );
     }
 
