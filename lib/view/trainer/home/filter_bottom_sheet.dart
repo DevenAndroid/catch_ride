@@ -52,12 +52,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       maxHeightController.text = controller.heightMax.value.toString();
     final priceFormatter = NumberFormat("#,###", "en_US");
     if (controller.priceMin.value != null) {
-      minPriceController.text =
-          priceFormatter.format(controller.priceMin.value);
+      minPriceController.text = priceFormatter.format(
+        controller.priceMin.value,
+      );
     }
     if (controller.priceMax.value != null) {
-      maxPriceController.text =
-          priceFormatter.format(controller.priceMax.value);
+      maxPriceController.text = priceFormatter.format(
+        controller.priceMax.value,
+      );
     }
     selectedListingType = controller.listingType.value;
     selectedGender = controller.genderFilter.value;
@@ -88,6 +90,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.priceMax.value = null;
     controller.listingType.value = '';
     controller.genderFilter.value = '';
+    controller.availableBy.value = null;
     controller.selectedTags.clear();
 
     controller.fetchHorses(showLoading: false);
@@ -102,10 +105,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.ageMax.value = int.tryParse(maxAgeController.text);
     controller.heightMin.value = double.tryParse(minHeightController.text);
     controller.heightMax.value = double.tryParse(maxHeightController.text);
-    controller.priceMin.value =
-        double.tryParse(minPriceController.text.replaceAll(',', ''));
-    controller.priceMax.value =
-        double.tryParse(maxPriceController.text.replaceAll(',', ''));
+    controller.priceMin.value = double.tryParse(
+      minPriceController.text.replaceAll(',', ''),
+    );
+    controller.priceMax.value = double.tryParse(
+      maxPriceController.text.replaceAll(',', ''),
+    );
     controller.listingType.value = selectedListingType;
     controller.genderFilter.value = selectedGender;
     controller.availableBy.value = selectedAvailableBy;
@@ -332,13 +337,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textSecondary),
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                            color: AppColors.textSecondary,
+                          ),
                           const SizedBox(width: 12),
                           CommonText(
                             selectedAvailableBy == null
                                 ? 'Select Date'
-                                : DateFormat('MMM dd, yyyy').format(selectedAvailableBy!),
-                            color: selectedAvailableBy == null ? AppColors.textSecondary : AppColors.textPrimary,
+                                : DateFormat(
+                                    'MMM dd, yyyy',
+                                  ).format(selectedAvailableBy!),
+                            color: selectedAvailableBy == null
+                                ? AppColors.textSecondary
+                                : AppColors.textPrimary,
                           ),
                           const Spacer(),
                           if (selectedAvailableBy != null)
@@ -348,7 +361,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                                   selectedAvailableBy = null;
                                 });
                               },
-                              child: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                              child: const Icon(
+                                Icons.close,
+                                size: 18,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
                         ],
                       ),
@@ -483,28 +500,29 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _applyFilters,
+                    onPressed: _isApplying ? null : _applyFilters,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00083B),
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
                     child: _isApplying
                         ? const SizedBox(
                             height: 20,
                             width: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
                               strokeWidth: 2,
+                              color: Colors.white,
                             ),
                           )
                         : const CommonText(
-                            'Show results',
+                            'Show horses',
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
@@ -523,8 +541,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     String label2,
     String hint1,
     String hint2,
-    TextEditingController c1,
-    TextEditingController c2, {
+    TextEditingController controller1,
+    TextEditingController controller2, {
     bool isDecimal = false,
     List<TextInputFormatter>? inputFormatters,
   }) {
@@ -536,35 +554,32 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             children: [
               CommonText(
                 label1,
-                fontSize: 12,
+                fontSize: 13,
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
               const SizedBox(height: 8),
-              Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: TextField(
-                  controller: c1,
-                  keyboardType: isDecimal
-                      ? const TextInputType.numberWithOptions(decimal: true)
-                      : TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: hint1,
-                    hintStyle: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+              TextField(
+                controller: controller1,
+                keyboardType: isDecimal
+                    ? const TextInputType.numberWithOptions(decimal: true)
+                    : TextInputType.number,
+                inputFormatters: inputFormatters,
+                decoration: InputDecoration(
+                  hintText: hint1,
+                  hintStyle: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
                   ),
-                  inputFormatters: inputFormatters,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
                 ),
               ),
             ],
@@ -577,35 +592,32 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             children: [
               CommonText(
                 label2,
-                fontSize: 12,
+                fontSize: 13,
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
               const SizedBox(height: 8),
-              Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: TextField(
-                  controller: c2,
-                  keyboardType: isDecimal
-                      ? const TextInputType.numberWithOptions(decimal: true)
-                      : TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: hint2,
-                    hintStyle: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+              TextField(
+                controller: controller2,
+                keyboardType: isDecimal
+                    ? const TextInputType.numberWithOptions(decimal: true)
+                    : TextInputType.number,
+                inputFormatters: inputFormatters,
+                decoration: InputDecoration(
+                  hintText: hint2,
+                  hintStyle: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
                   ),
-                  inputFormatters: inputFormatters,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
                 ),
               ),
             ],
@@ -619,24 +631,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.text.isEmpty) {
-      return newValue.copyWith(text: '');
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.selection.baseOffset == 0) {
+      return newValue;
     }
-
-    // Remove all non-digits
-    String newText = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
-
-    if (newText.isEmpty) {
-      return newValue.copyWith(text: '');
-    }
-
+    final double value = double.parse(newValue.text.replaceAll(',', ''));
     final formatter = NumberFormat("#,###", "en_US");
-    String formattedText = formatter.format(int.parse(newText));
-
+    final String newText = formatter.format(value);
     return newValue.copyWith(
-      text: formattedText,
-      selection: TextSelection.collapsed(offset: formattedText.length),
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }

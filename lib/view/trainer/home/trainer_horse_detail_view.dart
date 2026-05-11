@@ -1366,14 +1366,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         return false;
       }
       if (avail.endDate.isEmpty) return true;
-      DateTime? end;
-      try {
-        end = DateTime.parse(avail.endDate);
-      } catch (_) {
-        try {
-          end = DateFormat('dd MMM yyyy').parse(avail.endDate);
-        } catch (_) {}
-      }
+      DateTime? end = DateUtil.parse(avail.endDate);
       if (end == null) return true;
       return !end.isBefore(today);
     }).toList();

@@ -1,9 +1,11 @@
-
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 
+import '../controllers/explore_controller.dart';
 import 'common_image_view.dart';
 
 class HorseCard extends StatelessWidget {
@@ -22,17 +24,34 @@ class HorseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final show = horse.showAvailability.isNotEmpty
-        ? horse.showAvailability.first
-        : null;
-    final barnName= horse.trainerBarnName??"";
-    final String datesStr = DateUtil.formatRange(
-      show?.startDate,
-      show?.endDate,
-    );
-    // final String dates = (datesStr.isEmpty || datesStr.trim() == '-')
-    //     ? 'N/A'
-    //     : datesStr;
+    var barnName = horse.trainerBarnName ?? "";
+    String dates = "";
+    final ExploreController controller = Get.put(ExploreController());
+
+    if (controller.locationType == "Show Venue") {
+      var searchedVenue = controller.showVenue.value.trim().toLowerCase();
+      if (searchedVenue.isNotEmpty && horse.showAvailability.isNotEmpty) {
+        final show =
+            horse.showAvailability.firstWhereOrNull(
+              (s) => s.showVenue.trim().toLowerCase() == searchedVenue,
+            ) ??
+            (horse.showAvailability.isNotEmpty
+                ? horse.showAvailability.first
+                : null);
+
+        if (show != null) {
+          final String datesStr = DateUtil.formatRange(
+            show.startDate,
+            show.endDate,
+          );
+          dates = (datesStr.isEmpty || datesStr.trim() == '-')
+              ? 'N/A'
+              : datesStr;
+          barnName = show.showVenue;
+        }
+      }
+    }
+
     final String location = (horse.location == null || horse.location!.isEmpty)
         ? 'N/A'
         : horse.location!;
@@ -61,9 +80,7 @@ class HorseCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: CommonImageView(
-                url:  horse.images.isNotEmpty
-              ? horse.images[0]
-                : horse.photo,
+                url: horse.images.isNotEmpty ? horse.images[0] : horse.photo,
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
@@ -92,9 +109,7 @@ class HorseCard extends StatelessWidget {
                               color: Color(0xFF101828),
                             ),
                             children: [
-                              TextSpan(
-                                text: horse.listingTitle??horse.name,
-                              ),
+                              TextSpan(text: horse.listingTitle ?? horse.name),
                               // TextSpan(
                               //   text: ' - $discipline',
                               //   style: const TextStyle(
@@ -147,31 +162,31 @@ class HorseCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                   ],
-                  // Dates
-                  // if (dates != 'N/A') ...[
-                  //   Row(
-                  //     crossAxisAlignment: CrossAxisAlignment.start,
-                  //     children: [
-                  //       Icon(
-                  //         Icons.calendar_today_outlined,
-                  //         size: 16,
-                  //         color: const Color(0xFF667085),
-                  //       ),
-                  //       const SizedBox(width: 8),
-                  //       Flexible(
-                  //         child: CommonText(
-                  //           dates,
-                  //           fontSize: 14,
-                  //           color: const Color(0xFF667085),
-                  //         ),
-                  //       ),
-                  //     ],
-                  //   ),
-                  //   const SizedBox(height: 12),
-                  // ] else
+
+                  if (dates != null && dates != '') ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.calendar_today_outlined,
+                          size: 16,
+                          color: const Color(0xFF667085),
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: CommonText(
+                            dates,
+                            fontSize: 14,
+                            color: const Color(0xFF667085),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ] else
                     const SizedBox(height: 6),
                   // Tags/Badges
-                   SingleChildScrollView(
+                  SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
@@ -188,7 +203,8 @@ class HorseCard extends StatelessWidget {
                               .map(
                                 (entry) => Padding(
                                   padding: EdgeInsets.only(
-                                    right: entry.key ==
+                                    right:
+                                        entry.key ==
                                             horse.listingTypes.length - 1
                                         ? 0
                                         : 8,

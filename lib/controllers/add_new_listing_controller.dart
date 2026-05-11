@@ -18,6 +18,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../constant/app_colors.dart';
 import '../main.dart';
 import '../models/horse_model.dart';
+import '../utils/date_util.dart';
 import '../widgets/common_text.dart';
 import 'explore_controller.dart';
 
@@ -88,15 +89,12 @@ class AddNewListingController extends GetxController {
   var editingHorseId = RxnString();
   bool get isEditMode => editingHorseId.value != null;
   var selectedColor = ''.obs;
-  
 
   final RxBool isSuggestionsLoading = false.obs;
 
-
-
-
   // Step 1
-  final RxList<TextEditingController> videoLinkControllers = <TextEditingController>[TextEditingController()].obs;
+  final RxList<TextEditingController> videoLinkControllers =
+      <TextEditingController>[TextEditingController()].obs;
   var uploadedImages = <String>[].obs;
   var uploadedVideos = <String>[].obs;
 
@@ -202,24 +200,13 @@ class AddNewListingController extends GetxController {
     }
 
     locationController.text = horse.location ?? '';
-    print("asdfasdfasdf4${ horse.gender}");
+    print("asdfasdfasdf4${horse.gender}");
     gender.value = horse.gender;
     selectedDisciplines.assignAll(horse.disciplines);
     disciplineController.text = horse.disciplines.join(', ');
 
     if (horse.availableFrom != null && horse.availableFrom!.isNotEmpty) {
-      try {
-        // Parse the date and ensure it's treated as local time if it's just a date string,
-        // or converted to local if it's an ISO string from the backend.
-        final date = DateTime.tryParse(horse.availableFrom!);
-        if (date != null) {
-          availableFromController.text = DateFormat('dd MMM yyyy').format(date.toLocal());
-        } else {
-          availableFromController.text = horse.availableFrom!;
-        }
-      } catch (e) {
-        availableFromController.text = horse.availableFrom!;
-      }
+      availableFromController.text = DateUtil.formatDisplayDate(horse.availableFrom);
     }
     activeStatus.value = horse.isActive;
 
@@ -295,31 +282,21 @@ class AddNewListingController extends GetxController {
         entry.cityStateController.text = avail.cityState ?? '';
         entry.showVenueController.text = avail.showVenue ?? '';
         entry.showIdController.text = avail.showId ?? '';
-        
+
         final DateFormat formatter = DateFormat('dd MMM yyyy');
 
         if (avail.startDate != null && avail.startDate!.isNotEmpty) {
-          try {
-            final start = DateTime.parse(avail.startDate!);
-            entry.startDateController.text = formatter.format(start);
-          } catch (_) {
-            entry.startDateController.text = avail.startDate ?? '';
-          }
+          entry.startDateController.text = DateUtil.formatDisplayDate(avail.startDate);
         } else {
           entry.startDateController.text = '';
         }
 
         if (avail.endDate != null && avail.endDate!.isNotEmpty) {
-          try {
-            final end = DateTime.parse(avail.endDate!);
-            entry.endDateController.text = formatter.format(end);
-          } catch (_) {
-            entry.endDateController.text = avail.endDate ?? '';
-          }
+          entry.endDateController.text = DateUtil.formatDisplayDate(avail.endDate);
         } else {
           entry.endDateController.text = '';
         }
-        
+
         availabilityEntries.add(entry);
       }
     }
@@ -358,10 +335,12 @@ class AddNewListingController extends GetxController {
             }
           }
 
-          minPriceControllers[type]?.text =
-              formatPrice(data['min']?.toString());
-          maxPriceControllers[type]?.text =
-              formatPrice(data['max']?.toString());
+          minPriceControllers[type]?.text = formatPrice(
+            data['min']?.toString(),
+          );
+          maxPriceControllers[type]?.text = formatPrice(
+            data['max']?.toString(),
+          );
         }
       });
     }
@@ -371,7 +350,7 @@ class AddNewListingController extends GetxController {
     try {
       if (!validateStep5()) return;
       isPublishing.value = true;
-      
+
       // Reset cancellation state
       isUploadCancelled.value = false;
       uploadCancelToken = dio_lib.CancelToken();
@@ -381,107 +360,118 @@ class AddNewListingController extends GetxController {
 
       // Initial loader
       Get.dialog(
-        Obx(() => WillPopScope(
-          onWillPop: () async => false, // Prevent dismissing by back button
-          child: Center(
-            child: Material(
-              type: MaterialType.transparency,
-              child: Container(
-                width: Get.width * 0.85,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 24,
-                      spreadRadius: 8,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isUploadingVideo.value) ...[
-                      // Premium circular progress UI
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            height: 80,
-                            width: 80,
-                            child: CircularProgressIndicator(
-                              value: uploadProgress.value,
-                              strokeWidth: 6,
-                              backgroundColor: AppColors.borderLight,
-                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                              strokeCap: StrokeCap.round,
+        Obx(
+          () => WillPopScope(
+            onWillPop: () async => false, // Prevent dismissing by back button
+            child: Center(
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  width: Get.width * 0.85,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 32,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 24,
+                        spreadRadius: 8,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isUploadingVideo.value) ...[
+                        // Premium circular progress UI
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              height: 80,
+                              width: 80,
+                              child: CircularProgressIndicator(
+                                value: uploadProgress.value,
+                                strokeWidth: 6,
+                                backgroundColor: AppColors.borderLight,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary,
+                                ),
+                                strokeCap: StrokeCap.round,
+                              ),
                             ),
-                          ),
-                          CommonText(
-                            '${(uploadProgress.value * 100).toStringAsFixed(0)}%',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      const CommonText(
-                        'Uploading Video',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 8),
-                      const CommonText(
-                        'Please do not close the app.',
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton(
-                          onPressed: () => cancelUpload(),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.accentRed),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            CommonText(
+                              '${(uploadProgress.value * 100).toStringAsFixed(0)}%',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
                             ),
-                          ),
-                          child: const CommonText(
-                            'Cancel Upload',
-                            color: AppColors.accentRed,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        const CommonText(
+                          'Uploading Video',
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 8),
+                        const CommonText(
+                          'Please do not close the app.',
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 48,
+                          child: OutlinedButton(
+                            onPressed: () => cancelUpload(),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                color: AppColors.accentRed,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const CommonText(
+                              'Cancel Upload',
+                              color: AppColors.accentRed,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                    ] else ...[
-                      const SizedBox(height: 16),
-                      const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                        strokeWidth: 3,
-                      ),
-                      const SizedBox(height: 24),
-                      const CommonText(
-                        'Publishing Listing...',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(height: 16),
+                      ] else ...[
+                        const SizedBox(height: 16),
+                        const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                          strokeWidth: 3,
+                        ),
+                        const SizedBox(height: 24),
+                        const CommonText(
+                          'Publishing Listing...',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        )),
+        ),
         barrierDismissible: false,
       );
 
@@ -531,8 +521,9 @@ class AddNewListingController extends GetxController {
         }
       }
 
-      if (isUploadCancelled.value) return; // Final check before creating listing
- 
+      if (isUploadCancelled.value)
+        return; // Final check before creating listing
+
       final horseData = {
         'listingTitle': listingTitleController.text,
         'registeredName': horseNameController.text,
@@ -544,10 +535,13 @@ class AddNewListingController extends GetxController {
         'discipline': selectedDisciplines.toList(),
         'description': descriptionController.text,
         'usefNumber': usefNumberController.text,
-        'videoLink': videoLinkControllers.map((c) => c.text.trim()).where((text) => text.isNotEmpty).toList(),
+        'videoLink': videoLinkControllers
+            .map((c) => c.text.trim())
+            .where((text) => text.isNotEmpty)
+            .toList(),
         'availableFrom': _getFormattedDate(availableFromController.text),
         'images': allImages,
-       // 'photo': allImages.isNotEmpty ? allImages.first : null,
+        // 'photo': allImages.isNotEmpty ? allImages.first : null,
         'videoFile': allVideos,
         'listingTypes': selectedListingTypes.toList(),
         'tags': selectedTags.toList(),
@@ -561,17 +555,19 @@ class AddNewListingController extends GetxController {
               'max': maxPriceControllers[type]?.text.replaceAll(',', ''),
             },
         },
-        'showAvailability': availabilityEntries.map(
+        'showAvailability': availabilityEntries
+            .map(
               (e) => {
                 'showId': e.showIdController.text.isEmpty
                     ? null
                     : e.showIdController.text,
                 'cityState': e.cityStateController.text,
                 'showVenue': e.showVenueController.text,
-                'startDate': e.startDateController.text,
-                'endDate': e.endDateController.text,
+                'startDate': _getFormattedDate(e.startDateController.text),
+                'endDate': _getFormattedDate(e.endDateController.text),
               },
-            ).toList(),
+            )
+            .toList(),
       };
 
       final response = isEditMode
@@ -676,17 +672,18 @@ class AddNewListingController extends GetxController {
 
       // --- FLOW FOR VIDEOS: S3 SIGNED URL ---
       if (isVideo) {
-        debugPrint('🎬 VIDEO DETECTED: Using Signed URL flow with Progress Bar');
+        debugPrint(
+          '🎬 VIDEO DETECTED: Using Signed URL flow with Progress Bar',
+        );
         isUploadingVideo.value = true;
         uploadProgress.value = 0.0;
-        
-        final String signUrlEndpoint = "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
-        
+
+        final String signUrlEndpoint =
+            "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
+
         final signResponse = await http.get(
           Uri.parse(signUrlEndpoint),
-          headers: {
-            if (token != null) 'Authorization': 'Bearer $token',
-          },
+          headers: {if (token != null) 'Authorization': 'Bearer $token'},
         );
 
         if (signResponse.statusCode == 200) {
@@ -742,7 +739,7 @@ class AddNewListingController extends GetxController {
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }
-      
+
       request.headers['Connection'] = 'keep-alive';
       request.headers['Accept'] = '*/*';
 
@@ -755,19 +752,22 @@ class AddNewListingController extends GetxController {
         ),
       );
 
-      var streamedResponse = await client.send(request).timeout(
-        const Duration(minutes: 5),
-      );
-      
+      var streamedResponse = await client
+          .send(request)
+          .timeout(const Duration(minutes: 5));
+
       var response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
         return data['data']['url'];
       } else {
-        debugPrint('❌ Upload failed [${response.statusCode}]: ${response.body}');
+        debugPrint(
+          '❌ Upload failed [${response.statusCode}]: ${response.body}',
+        );
         return null;
-    }} catch (e) {
+      }
+    } catch (e) {
       if (e is dio_lib.DioException &&
           e.type == dio_lib.DioExceptionType.cancel) {
         debugPrint('⏹️ Upload cancelled by user');
@@ -800,8 +800,11 @@ class AddNewListingController extends GetxController {
   Future<void> pickImage() async {
     try {
       if (localImages.isEmpty) {
-        final List<XFile> images = await picker.pickMultiImage(imageQuality: 80, maxWidth:  1600, // Profile is smaller, banner can be wider
-          maxHeight:  1600,);
+        final List<XFile> images = await picker.pickMultiImage(
+          imageQuality: 80,
+          maxWidth: 1600, // Profile is smaller, banner can be wider
+          maxHeight: 1600,
+        );
         if (images.isNotEmpty) {
           localImages.addAll(images.map((x) => File(x.path)));
         }
@@ -836,8 +839,11 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Images'),
               onTap: () async {
                 Get.back();
-                final List<XFile> images = await picker.pickMultiImage(imageQuality:80,  maxWidth:  1600, // Profile is smaller, banner can be wider
-                  maxHeight:  1600,);
+                final List<XFile> images = await picker.pickMultiImage(
+                  imageQuality: 80,
+                  maxWidth: 1600, // Profile is smaller, banner can be wider
+                  maxHeight: 1600,
+                );
                 if (images.isNotEmpty) {
                   localImages.addAll(images.map((x) => File(x.path)));
                 }
@@ -848,7 +854,9 @@ class AddNewListingController extends GetxController {
               title: const Text('Add Video'),
               onTap: () async {
                 Get.back();
-                final XFile? video = await picker.pickVideo(source: ImageSource.gallery,);
+                final XFile? video = await picker.pickVideo(
+                  source: ImageSource.gallery,
+                );
                 if (video != null) {
                   final file = File(video.path);
                   if (file.lengthSync() > 200 * 1024 * 1024) {
@@ -1019,9 +1027,9 @@ class AddNewListingController extends GetxController {
 
   bool isValidVideoUrl(String url) {
     final youtubeRegex = RegExp(
-        r"^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$");
-    final vimeoRegex = RegExp(
-        r"^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+$");
+      r"^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$",
+    );
+    final vimeoRegex = RegExp(r"^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+$");
     return youtubeRegex.hasMatch(url) || vimeoRegex.hasMatch(url);
   }
 
