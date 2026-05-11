@@ -16,6 +16,9 @@ class BookingController extends GetxController {
   final RxList<BookingModel> bookings = <BookingModel>[].obs;
   final RxBool isLoading = false.obs;
 
+  /// Received bookings with status pending (for bottom-nav badge across tabs).
+  final RxInt pendingReceivedCount = 0.obs;
+
   int _fetchReceivedRequestId = 0;
   int _fetchSentRequestId = 0;
 
@@ -88,6 +91,26 @@ class BookingController extends GetxController {
     }
   }
 
+  /// Fetches pending received count only; does not mutate [receivedBookings] / [sentBookings].
+  Future<void> refreshPendingBookingCounts() async {
+    try {
+      final response = await _apiService.getRequest(
+        AppUrls.myBookings,
+        query: {
+          'type': 'received',
+          'status': 'pending',
+          'time': 'upcoming',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        pendingReceivedCount.value = data.length;
+      }
+    } catch (e) {
+      _logger.e('Error refreshing pending booking counts: $e');
+    }
+  }
+
   Future<dynamic> createBooking(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
@@ -153,6 +176,7 @@ class BookingController extends GetxController {
           backgroundColor: const Color(0xFF17B26A),
           colorText: Colors.white,
         );
+        refreshPendingBookingCounts();
         // Refresh both lists to move the booking to the correct section
         // fetchBookings(type: 'received');
         // fetchBookings(type: 'sent');

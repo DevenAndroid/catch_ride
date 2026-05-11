@@ -1371,8 +1371,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         end = DateTime.parse(avail.endDate);
       } catch (_) {
         try {
-          end = DateFormat('dd MMM yyyy').parse(avail.endDate);
-        } catch (_) {}
+          end = DateFormat('MMM d, yyyy').parse(avail.endDate);
+        } catch (_) {
+          try {
+            end = DateFormat('dd MMM yyyy').parse(avail.endDate);
+          } catch (_) {}
+        }
       }
       if (end == null) return true;
       return !end.isBefore(today);
@@ -2016,7 +2020,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     const SizedBox(height: 8),
                     _buildDateSelector(
                       startDate != null
-                          ? DateFormat('dd MMM yyyy').format(startDate!)
+                          ? DateFormat('MMM d, yyyy').format(startDate!)
                           : 'Select Date',
                           () async {
                         if (selectedLocation == null) {
@@ -2250,7 +2254,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           fontFamily: 'Outfit',
                         ),
                         children: [
-                          TextSpan(text: 'Message '),
+                          TextSpan(text: 'Notes for trainer '),
                           TextSpan(
                             text: '(optional)',
                             style: TextStyle(
@@ -2380,12 +2384,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   _fetchHorseDetails(showLoader: false);
 
                                   final String? conversationId = (result is Map) ? result["conversationId"] : null;
+                                  final String? hostUserId = (result is Map) ? result["hostUserId"]?.toString() : null;
                                   if (conversationId != null) {
                                     Get.to(() => SingleChatView(
                                       name: horse!.trainerName ?? "Trainer",
                                       image: horse!.trainerAvatar ?? "",
                                       conversationId: conversationId,
-                                      otherId: horse!.trainerId?.toString(),
+                                      otherId: hostUserId ?? horse!.trainerId?.toString(),
                                     ));
                                   }
                                 }                              },
