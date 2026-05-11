@@ -13,6 +13,7 @@ class ChatMessage {
   final String status;
   final String type;
   final String? senderImage;
+  final String? bookingId;
 
   ChatMessage({
     required this.id,
@@ -27,6 +28,7 @@ class ChatMessage {
     this.flagged = false,
     this.status = 'active',
     this.type = 'text',
+    this.bookingId,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,7 @@ class ChatMessage {
       flagged: json['flagged'] ?? false,
       status: json['status'] ?? 'active',
       type: json['type'] ?? 'text',
+      bookingId: json['bookingId'] != null ? '${json['bookingId']}' : null,
     );
   }
 
@@ -64,6 +67,7 @@ class ChatMessage {
       'flagged': flagged,
       'status': status,
       'type': type,
+      'bookingId': bookingId,
     };
   }
 }

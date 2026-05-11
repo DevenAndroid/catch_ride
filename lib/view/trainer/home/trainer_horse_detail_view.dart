@@ -1366,6 +1366,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         return false;
       }
       if (avail.endDate.isEmpty) return true;
+
       DateTime? end = DateUtil.parse(avail.endDate);
       if (end == null) return true;
       return !end.isBefore(today);
@@ -2009,7 +2010,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     const SizedBox(height: 8),
                     _buildDateSelector(
                       startDate != null
-                          ? DateFormat('dd MMM yyyy').format(startDate!)
+                          ? DateFormat('MMM d, yyyy').format(startDate!)
                           : 'Select Date',
                           () async {
                         if (selectedLocation == null) {
@@ -2243,7 +2244,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           fontFamily: 'Outfit',
                         ),
                         children: [
-                          TextSpan(text: 'Message '),
+                          TextSpan(text: 'Notes for trainer '),
                           TextSpan(
                             text: '(optional)',
                             style: TextStyle(
@@ -2373,12 +2374,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   _fetchHorseDetails(showLoader: false);
 
                                   final String? conversationId = (result is Map) ? result["conversationId"] : null;
+                                  final String? hostUserId = (result is Map) ? result["hostUserId"]?.toString() : null;
                                   if (conversationId != null) {
                                     Get.to(() => SingleChatView(
                                       name: horse!.trainerName ?? "Trainer",
                                       image: horse!.trainerAvatar ?? "",
                                       conversationId: conversationId,
-                                      otherId: horse!.trainerId?.toString(),
+                                      otherId: hostUserId ?? horse!.trainerId?.toString(),
                                     ));
                                   }
                                 }                              },

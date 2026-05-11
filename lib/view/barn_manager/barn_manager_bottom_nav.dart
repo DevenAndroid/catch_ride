@@ -42,9 +42,16 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    Get.put(ProfileController());
+    Get.put(HorseController());
+    Get.put(BarnManagerBookingController());
+    Get.find<BarnManagerBookingController>().refreshPendingBookingCounts();
   }
 
   void _onItemTapped(int index) {
+    if (index == 0) {
+      Get.find<BarnManagerBookingController>().refreshPendingBookingCounts();
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -52,9 +59,6 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(ProfileController());
-    Get.put(HorseController());
-    Get.put(BarnManagerBookingController());
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -138,6 +142,56 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
     );
   }
 
+  /// Bookings (0): pending received count. Inbox (3): unread messages.
+  Widget _navLeadingIcon(int index, IconData icon, bool isSelected) {
+    if (index == 0) {
+      return Obx(() {
+        final count =
+            Get.find<BarnManagerBookingController>().pendingReceivedCount.value;
+        final text = count > 99 ? '99+' : '$count';
+        return Badge(
+          label: CommonText(
+            text,
+            color: Colors.white,
+            fontSize: 10,
+          ),
+          isLabelVisible: count > 0,
+          backgroundColor: AppColors.errorPrimary,
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            size: 26,
+          ),
+        );
+      });
+    }
+    if (index == 3) {
+      return Obx(() {
+        final chatController = Get.find<ChatController>();
+        final unreadCount = chatController.totalUnreadCount;
+        return Badge(
+          label: CommonText(
+            '$unreadCount',
+            color: Colors.white,
+            fontSize: 10,
+          ),
+          isLabelVisible: unreadCount > 0,
+          backgroundColor: AppColors.errorPrimary,
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            size: 26,
+          ),
+        );
+      });
+    }
+    return Icon(
+      icon,
+      color: isSelected ? Colors.white : AppColors.textSecondary,
+      size: 26,
+    );
+  }
+
   Widget _buildNavItem(int index, String label, IconData icon) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
@@ -153,30 +207,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            index == 3 
-              ? Obx(() {
-                  final chatController = Get.find<ChatController>();
-                  final unreadCount = chatController.totalUnreadCount;
-                  return Badge(
-                    label: CommonText(
-                      '$unreadCount',
-                      color: Colors.white,
-                      fontSize: 10,
-                    ),
-                    isLabelVisible: unreadCount > 0,
-                    backgroundColor: const Color(0xFFB42318),
-                    child: Icon(
-                      icon,
-                      color: isSelected ? Colors.white : AppColors.textSecondary,
-                      size: 26,
-                    ),
-                  );
-                })
-              : Icon(
-                  icon,
-                  color: isSelected ? Colors.white : AppColors.textSecondary,
-                  size: 26,
-                ),
+            _navLeadingIcon(index, icon, isSelected),
             const SizedBox(height: 4),
             CommonText(
               label,

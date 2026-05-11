@@ -55,6 +55,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     _tabController.addListener(_onTabChanged);
     _loadBookings();
+    bookingController.refreshPendingBookingCounts();
   }
 
   void _onTabChanged() {
@@ -488,7 +489,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                             ),
                           ),
                           const SizedBox(width: 4),
-                          if (booking.status.toLowerCase() == 'pending' && _tabController.index == 1)
+                          if (booking.status.toLowerCase() == 'pending')
                             SizedBox(
                               height: 24,
                               width: 24,
@@ -557,7 +558,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          booking.date,
+                          DateUtil.formatDisplayDate(booking.date),
                           fontSize: 13,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
