@@ -724,7 +724,7 @@ class GroomViewProfileController extends GetxController {
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
-        '/vendors/$vendorId',
+        '/vendors/me',
         payload,
       );
       if (response.statusCode == 200) {
@@ -766,7 +766,7 @@ class GroomViewProfileController extends GetxController {
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
-        '/vendors/$vendorId',
+        '/vendors/me',
         payload,
       );
       if (response.statusCode == 200) {
@@ -816,7 +816,7 @@ class GroomViewProfileController extends GetxController {
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
-        '/vendors/$vendorId',
+        '/vendors/me',
         payload,
       );
       if (response.statusCode == 200) {
@@ -871,7 +871,7 @@ class GroomViewProfileController extends GetxController {
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
-        '/vendors/$vendorId',
+        '/vendors/me',
         payload,
       );
       if (response.statusCode == 200) {
@@ -939,7 +939,7 @@ class GroomViewProfileController extends GetxController {
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
-        '/vendors/$vendorId',
+        '/vendors/me',
         payload,
       );
       if (response.statusCode == 200) {

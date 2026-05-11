@@ -393,7 +393,6 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> with 
   Future<bool> _updateClippingServices(List<Map<String, dynamic>> services) async {
     try {
       controller.isLoading.value = true;
-      final vendorId = controller.vendorData['_id'];
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(controller.vendorData['servicesData'] ?? {});
       existingServicesData['clipping'] = {
         'profileData': {
@@ -408,7 +407,7 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> with 
         'isProfileSetup': true,
       };
 
-      final response = await Get.find<ApiService>().putRequest('/vendors/$vendorId', payload);
+      final response = await Get.find<ApiService>().putRequest('/vendors/me', payload);
       if (response.statusCode == 200) {
         await controller.fetchProfile();
         return true;

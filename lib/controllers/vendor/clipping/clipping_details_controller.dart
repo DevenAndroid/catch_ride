@@ -16,6 +16,12 @@ class ClippingDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.put(ApiService());
 
+  static const List<String> cancellationPolicyOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
+
   // Core Clipping Services
   final clippingServices = <Map<String, dynamic>>[
     {'name': 'Full Body Clip', 'isSelected': false.obs, 'price': TextEditingController()},
@@ -271,12 +277,20 @@ class ClippingDetailsController extends GetxController {
             }
           }
 
-          // 4. Restore Cancellation Policy
+          // 4. Restore Cancellation Policy (empty API policy must be null for DropdownButton)
           final cancelData = servicesData['cancellationPolicy'];
           if (cancelData != null) {
-            cancellationPolicy.value = cancelData['policy'];
             isCustomCancellation.value = cancelData['isCustom'] ?? false;
-            customCancellationController.text = cancelData['customText'] ?? '';
+            customCancellationController.text =
+                cancelData['customText']?.toString() ?? '';
+            final raw = cancelData['policy']?.toString().trim() ?? '';
+            if (!isCustomCancellation.value &&
+                raw.isNotEmpty &&
+                cancellationPolicyOptions.contains(raw)) {
+              cancellationPolicy.value = raw;
+            } else {
+              cancellationPolicy.value = null;
+            }
           }
         }
       }
@@ -344,7 +358,7 @@ class ClippingDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
-      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      final response = await apiService.putRequest('/vendors/me', body);
       if (response.statusCode == 200 && response.body['success'] == true) {
         final authController = Get.put(AuthController());
         await authController.updateUserMetadata();

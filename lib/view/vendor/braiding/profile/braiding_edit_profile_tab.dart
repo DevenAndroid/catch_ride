@@ -393,12 +393,15 @@ class BraidingEditProfileTab extends StatelessWidget {
           const CommonText('Set your cancellation preferences for bookings.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           Obx(() => _buildDropdownTrigger(
-            value: controller.cancellationPolicy.value,
+            value: controller.cancellationPresetForDropdown,
             hint: 'Select Cancellation Policy',
             onTap: () => _showPickerBottomSheet(
-              title: 'Cancellation Policy', 
-              options: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'], 
-              onSelected: (val) => controller.cancellationPolicy.value = val
+              title: 'Cancellation Policy',
+              options: EditVendorProfileController.cancellationPresetOptions,
+              onSelected: (val) {
+                controller.isCustomCancellation.value = false;
+                controller.cancellationPolicy.value = val;
+              },
             ),
           )),
           const SizedBox(height: 12),
@@ -406,7 +409,11 @@ class BraidingEditProfileTab extends StatelessWidget {
             children: [
               Obx(() => Checkbox(
                 value: controller.isCustomCancellation.value,
-                onChanged: (val) => controller.isCustomCancellation.value = val ?? false,
+                onChanged: (val) {
+                  final v = val ?? false;
+                  controller.isCustomCancellation.value = v;
+                  if (v) controller.cancellationPolicy.value = null;
+                },
                 activeColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               )),

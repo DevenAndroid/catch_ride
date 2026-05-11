@@ -15,6 +15,13 @@ class BraidingDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.find<ApiService>();
 
+  /// Must match labels in [BraidingDetailsView] cancellation dropdown.
+  static const List<String> cancellationPolicyOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
+
   // Core Braiding Services
   final braidingServices = <Map<String, dynamic>>[
     {'name': 'Hunter Mane & Tail', 'isSelected': false.obs, 'price': TextEditingController()},
@@ -167,9 +174,19 @@ class BraidingDetailsController extends GetxController {
 
         final cancellationPolicyData = braidingData['cancellationPolicy'];
         if (cancellationPolicyData != null) {
-          cancellationPolicy.value = cancellationPolicyData['policy'];
-          isCustomCancellation.value = cancellationPolicyData['isCustom'] ?? false;
-          customCancellationController.text = cancellationPolicyData['customText'] ?? '';
+          isCustomCancellation.value =
+              cancellationPolicyData['isCustom'] ?? false;
+          customCancellationController.text =
+              cancellationPolicyData['customText']?.toString() ?? '';
+          final raw =
+              cancellationPolicyData['policy']?.toString().trim() ?? '';
+          if (!isCustomCancellation.value &&
+              raw.isNotEmpty &&
+              cancellationPolicyOptions.contains(raw)) {
+            cancellationPolicy.value = raw;
+          } else {
+            cancellationPolicy.value = null;
+          }
         }
       }
     } catch (e) {
@@ -223,7 +240,7 @@ class BraidingDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
-      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      final response = await apiService.putRequest('/vendors/me', body);
       if (response.statusCode == 200 && response.body['success'] == true) {
         final authController = Get.find<AuthController>();
         await authController.updateUserMetadata();

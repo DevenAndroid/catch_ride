@@ -95,6 +95,20 @@ class EditVendorProfileController extends GetxController {
   final RxBool isCustomCancellation = false.obs;
   final customCancellationController = TextEditingController();
 
+  static const List<String> cancellationPresetOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
+
+  /// Preset label for cancellation row; avoids invalid Dropdown/trigger state.
+  String? get cancellationPresetForDropdown {
+    if (isCustomCancellation.value) return null;
+    final v = cancellationPolicy.value?.trim();
+    if (v == null || v.isEmpty) return null;
+    return cancellationPresetOptions.contains(v) ? v : null;
+  }
+
   // Photos
   final RxList<String> existingPhotos = <String>[].obs;
   final RxList<File> newPhotos = <File>[].obs;
@@ -774,14 +788,29 @@ class EditVendorProfileController extends GetxController {
       
       final cp = draft['cancellationPolicy'] ?? profileData['cancellationPolicy'];
       if (cp is Map) {
-        cancellationPolicy.value = cp['policy'];
-        isCustomCancellation.value = cp['isCustom'] ?? false;
-        if (isCustomCancellation.value) {
-          customCancellationController.text = cp['customText'] ?? cancellationPolicy.value ?? '';
+        final isCustom = cp['isCustom'] == true;
+        isCustomCancellation.value = isCustom;
+        final policyRaw = cp['policy']?.toString().trim() ?? '';
+        final customTextRaw = cp['customText']?.toString() ?? '';
+        if (isCustom) {
+          cancellationPolicy.value = null;
+          customCancellationController.text =
+              customTextRaw.isNotEmpty ? customTextRaw : policyRaw;
+        } else {
+          customCancellationController.clear();
+          if (policyRaw.isNotEmpty &&
+              cancellationPresetOptions.contains(policyRaw)) {
+            cancellationPolicy.value = policyRaw;
+          } else {
+            cancellationPolicy.value = null;
+          }
         }
       } else {
-        cancellationPolicy.value = cp?.toString();
+        final s = cp?.toString().trim() ?? '';
         isCustomCancellation.value = false;
+        customCancellationController.clear();
+        cancellationPolicy.value =
+            s.isNotEmpty && cancellationPresetOptions.contains(s) ? s : null;
       }
       
       // Populate service-specific photos
@@ -1213,18 +1242,10 @@ class EditVendorProfileController extends GetxController {
         'isProfileSetup': true,
       };
 
-      // 3. Update Vendor Profile
-      final vendorResponse = await _apiService.putRequest('/vendors/profile', vendorPayload);
-      if (vendorResponse.statusCode != 200) throw 'Failed to update vendor basic profile';
+      final combinedPayload = {...vendorPayload, ...servicesPayload};
+      final vendorResponse = await _apiService.putRequest('/vendors/me', combinedPayload);
 
-      // 4. Update Grooming Service Profile
-      // If vendorId is null, we fetch again or use /vendors/me logic
-      final meResponse = await _apiService.getRequest('/vendors/me');
-      final realVendorId = meResponse.body['data']['_id'];
-
-      final serviceResponse = await _apiService.putRequest('/vendors/$realVendorId', servicesPayload);
-
-      if (serviceResponse.statusCode == 200) {
+      if (vendorResponse.statusCode == 200) {
         // Update local AuthController state for immediate UI reflection in Menu/Personal Info
         if (_authController.currentUser.value != null) {
           final updatedUser = _authController.currentUser.value!.copyWith(
@@ -1255,7 +1276,7 @@ class EditVendorProfileController extends GetxController {
         Get.back();
         Get.snackbar('Success', 'Profile updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);
       } else {
-        throw serviceResponse.body['message'] ?? 'Failed to update grooming details';
+        throw vendorResponse.body['message'] ?? 'Failed to update profile';
       }
     } catch (e) {
       debugPrint('Save error: $e');

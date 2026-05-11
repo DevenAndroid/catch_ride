@@ -650,13 +650,26 @@ class FarrierDetailsView extends StatelessWidget {
             border: Border.all(color: AppColors.borderLight),
           ),
           child: DropdownButtonHideUnderline(
-            child: Obx(() => DropdownButton<String>(
-              value: controller.cancellationPolicy.value,
-              hint: CommonText('Select Cancellation Policy', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-              isExpanded: true,
-              items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
-              onChanged: (val) => controller.cancellationPolicy.value = val,
-            )),
+            child: Obx(() {
+              final raw = controller.cancellationPolicy.value;
+              final allowed = FarrierDetailsController.cancellationPolicyOptions;
+              final ok = raw != null &&
+                  raw.isNotEmpty &&
+                  allowed.contains(raw) &&
+                  !controller.isCustomCancellation.value;
+              return DropdownButton<String>(
+                value: ok ? raw : null,
+                hint: CommonText('Select Cancellation Policy',
+                    color: AppColors.textSecondary,
+                    fontSize: AppTextSizes.size14),
+                isExpanded: true,
+                items: FarrierDetailsController.cancellationPolicyOptions
+                    .map((s) =>
+                        DropdownMenuItem(value: s, child: CommonText(s)))
+                    .toList(),
+                onChanged: (val) => controller.cancellationPolicy.value = val,
+              );
+            }),
           ),
         ),
         const SizedBox(height: 12),
@@ -664,7 +677,11 @@ class FarrierDetailsView extends StatelessWidget {
           children: [
             Obx(() => Checkbox(
               value: controller.isCustomCancellation.value,
-              onChanged: (val) => controller.isCustomCancellation.value = val!,
+              onChanged: (val) {
+                if (val == null) return;
+                controller.isCustomCancellation.value = val;
+                if (val) controller.cancellationPolicy.value = null;
+              },
               activeColor: AppColors.primary,
             )),
             CommonText('Custom', fontSize: AppTextSizes.size14),

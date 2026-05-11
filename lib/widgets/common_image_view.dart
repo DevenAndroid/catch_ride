@@ -69,7 +69,17 @@ class CommonImageView extends StatelessWidget {
             .replaceFirst('10.0.2.2', 'api.catchrideapp.com');
       }
 
-      // Otherwise map to current host constant
+      // Dev / ngrok: replace typical local origins (no trailing /api — media is on root)
+      final devOrigin =
+          AppUrls.socketUrl.endsWith('/')
+              ? AppUrls.socketUrl.substring(0, AppUrls.socketUrl.length - 1)
+              : AppUrls.socketUrl;
+      url = url
+          .replaceFirst('http://localhost:5000', devOrigin)
+          .replaceFirst('http://127.0.0.1:5000', devOrigin)
+          .replaceFirst('http://10.0.2.2:5000', devOrigin)
+          .replaceFirst('https://localhost:5000', devOrigin);
+
       return url
           .replaceFirst('localhost', currentHost)
           .replaceFirst('127.0.0.1', currentHost)

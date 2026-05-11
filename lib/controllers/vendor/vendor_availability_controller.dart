@@ -65,7 +65,7 @@ class VendorAvailabilityController extends GetxController {
     isAcceptingRequests.value = value;
     try {
        // Sync with backend - updating vendor profile
-       await _apiService.putRequest('/vendors/profile', {
+       await _apiService.putRequest('/vendors/me', {
          'compliance': {
            'acceptingRequests': value,
          },

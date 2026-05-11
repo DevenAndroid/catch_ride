@@ -944,16 +944,15 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           const SizedBox(height: 16),
           Obx(
             () => _buildDropdownTrigger(
-              value: controller.cancellationPolicy.value,
+              value: controller.cancellationPresetForDropdown,
               hint: 'Select Cancellation',
               onTap: () => _showPickerBottomSheet(
                 title: 'Cancellation Policy',
-                options: [
-                  'Flexible (24+ hrs)',
-                  'Moderate (48+ hrs)',
-                  'Strict (7 days+)',
-                ],
-                onSelected: (val) => controller.cancellationPolicy.value = val,
+                options: EditVendorProfileController.cancellationPresetOptions,
+                onSelected: (val) {
+                  controller.isCustomCancellation.value = false;
+                  controller.cancellationPolicy.value = val;
+                },
               ),
             ),
           ),
@@ -969,8 +968,11 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                       width: 24,
                       child: Checkbox(
                         value: controller.isCustomCancellation.value,
-                        onChanged: (v) =>
-                            controller.isCustomCancellation.value = v ?? false,
+                        onChanged: (v) {
+                          final on = v ?? false;
+                          controller.isCustomCancellation.value = on;
+                          if (on) controller.cancellationPolicy.value = null;
+                        },
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         activeColor: AppColors.primary,
                         shape: RoundedRectangleBorder(

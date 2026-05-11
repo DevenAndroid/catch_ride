@@ -1,44 +1,28 @@
-
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 
 class AppUrls {
-  static String get host {
-    if (kIsWeb) return 'localhost';
+  /// Public HTTPS tunnel pointing at your local API (same host the backend ngrok exposes).
+  static const String devTunnelOrigin =
+      'https://fremdly-monogenistic-collette.ngrok-free.dev';
 
-     if (Platform.isAndroid) return '10.0.2.2';
-     // if (Platform.isAndroid) return '192.168.1.16';
-     // return "https://fremdly-monogenistic-collette.ngrok-free.dev";
-     // if (Platform.isAndroid) return '10.0.2.2';
-
-    return 'localhost';
-  }
-
+  /// Production vs dev/ngrok — set false to hit [devTunnelOrigin].
   static bool isLive = false;
 
+  /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
+  static String get host {
+    if (kIsWeb) return 'localhost';
+    if (isLive) return 'api.catchrideapp.com';
+    return Uri.parse(devTunnelOrigin).host;
+  }
+
   static String get baseUrl {
-    try {
-      if (isLive) return 'https://api.catchrideapp.com/api';
-    } catch (_) {}
-
-
-    // return 'http://$host:5000/api';
-  // return '$host/api';
-    return 'http://$host:5000/api';
-
+    if (isLive) return 'https://api.catchrideapp.com/api';
+    return '$devTunnelOrigin/api';
   }
 
   static String get socketUrl {
-    try {
-      if (isLive) return 'https://api.catchrideapp.com';
-    } catch (_) {}
-
-    //  return 'http://$host:5000';
-      // return '$host';
-
-    return 'http://$host:5000';
-
+    if (isLive) return 'https://api.catchrideapp.com';
+    return devTunnelOrigin;
   }
 
 

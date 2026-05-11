@@ -114,12 +114,6 @@ class ShippingDetailsView extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildEditableExperience(controller),
                   const SizedBox(height: 16),
-                  _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
-                  const SizedBox(height: 16),
-                  _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
-                  const SizedBox(height: 16),
-                  _buildEditableRegions(controller),
-                  const SizedBox(height: 16),
                   _buildReadOnlyField('USDOT Number', controller.usdotDisplay.value, isRequired: true),
                   const SizedBox(height: 24),
 
@@ -143,6 +137,19 @@ class ShippingDetailsView extends StatelessWidget {
                       _buildChipSelection(
                         options: controller.rigOptions,
                         selectedItems: controller.rigTypes,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 6b. Stall Type
+                  _buildGroupedSection(
+                    'Stall Type',
+                    description: 'Select the types of stalls available',
+                    children: [
+                      _buildChipSelection(
+                        options: controller.stallOptions,
+                        selectedItems: controller.stallTypes,
                       ),
                     ],
                   ),
@@ -264,18 +271,19 @@ class ShippingDetailsView extends StatelessWidget {
                     description: 'Set your cancellation preference for bookings',
                     children: [
                       _buildDropdownTrigger(
-                        value: controller.cancellationPolicy.value,
+                        value: controller.cancellationPresetForDropdown,
                         hint: 'Select Cancellation Policy',
                         onTap: () => _showPolicyBottomSheet(context, controller),
                       ),
                       GestureDetector(
-                        onTap: () => controller.isCustomCancellation.toggle(),
+                        onTap: () => controller.toggleCustomCancellation(),
                         behavior: HitTestBehavior.opaque,
                         child: Row(
                           children: [
                             Checkbox(
                               value: controller.isCustomCancellation.value,
-                              onChanged: (v) => controller.isCustomCancellation.value = v ?? false,
+                              onChanged: (v) =>
+                                  controller.setCustomCancellation(v ?? false),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                             ),
                             const CommonText('Custom', fontSize: 14),
@@ -606,7 +614,11 @@ class ShippingDetailsView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: controller.cancellationOptions.map((opt) => ListTile(
           title: CommonText(opt),
-          onTap: () { controller.cancellationPolicy.value = opt; Navigator.pop(ctx); },
+          onTap: () {
+            controller.setCustomCancellation(false);
+            controller.cancellationPolicy.value = opt;
+            Navigator.pop(ctx);
+          },
         )).toList(),
       ),
     );
@@ -667,102 +679,6 @@ class ShippingDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildEditableChips(String label, String description, RxList<String> selectedItems, RxList<String> allOptions, Function(String) onToggle) {
-    return _buildGroupedSection(
-      label,
-      description: description,
-      children: [
-        Obx(() => Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: allOptions.map((it) {
-            final isSelected = selectedItems.contains(it);
-            return GestureDetector(
-              onTap: () => onToggle(it),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFF3F4FF) : const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
-                ),
-                child: CommonText(
-                  it, 
-                  fontSize: 12, 
-                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                ),
-              ),
-            );
-          }).toList(),
-        )),
-      ],
-    );
-  }
-
-  Widget _buildEditableRegions(ShippingDetailsController controller) {
-    return _buildGroupedSection(
-      'Regions Covered',
-      description: 'Select the regions you regularly service',
-      children: [
-        Obx(() => Column(
-          children: [
-            GestureDetector(
-              onTap: () => _showMultiSelectBottomSheet(
-                title: 'Select Regions',
-                options: controller.regionOptions,
-                selectedItems: controller.regionsCovered,
-                onToggle: controller.toggleRegion,
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
-                    const Icon(Icons.add, color: Color(0xFF001149), size: 20),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: controller.regionsCovered.map((region) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4FF),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF001149)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001149), fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: () => controller.toggleRegion(region),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001149)),
-                    ),
-                  ],
-                ),
-              )).toList(),
-            ),
-          ],
-        )),
-      ],
-    );
-  }
-
   void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
     Get.bottomSheet(
       Container(
@@ -780,33 +696,6 @@ class ShippingDetailsView extends StatelessWidget {
                 Get.back();
               },
             )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showMultiSelectBottomSheet({required String title, required List<String> options, required RxList<String> selectedItems, required Function(String) onToggle}) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView(
-                children: options.map((opt) => Obx(() => CheckboxListTile(
-                  title: CommonText(opt),
-                  value: selectedItems.contains(opt),
-                  onChanged: (val) => onToggle(opt),
-                  activeColor: const Color(0xFF001149),
-                ))).toList(),
-              ),
-            ),
-            CommonButton(text: 'Done', onPressed: () => Get.back()),
           ],
         ),
       ),
