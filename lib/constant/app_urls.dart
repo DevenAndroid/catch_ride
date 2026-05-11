@@ -27,6 +27,7 @@ class AppUrls {
   // return '$host/api';
     return 'http://$host:5000/api';
 
+
   }
 
   static String get socketUrl {
