@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/booking_chat_card.dart';
 import 'package:catch_ride/widgets/chat_bubble.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
@@ -334,6 +335,16 @@ class _SingleChatViewState extends State<SingleChatView> {
                             msg.status == 'request-declined' ||
                             msg.status == 'request-blocked' ||
                             msg.content.startsWith('[System]:');
+
+                        final bookingTile =
+                            BookingChatMessageTileBuilder.tryBuild(
+                          msg: msg,
+                          isMe: isMe,
+                          conversationId: widget.conversationId,
+                          chatController: controller,
+                          messageIndex: index,
+                        );
+                        if (bookingTile != null) return bookingTile;
 
                         if (isSystem) {
                           String displayContent = msg.content;

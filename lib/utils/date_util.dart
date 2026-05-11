@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class DateUtil {
-  static const String displayFormat = 'dd MMM yyyy';
+  static const String displayFormat = 'MMM d, yyyy';
 
   static String formatDisplayDate(dynamic date) {
     if (date == null) return '';
@@ -19,9 +19,13 @@ class DateUtil {
           dateTime = DateFormat('dd MMM yyyy').parse(date);
         } catch (_) {
           try {
-            dateTime = DateFormat('yyyy-MM-dd').parse(date);
+            dateTime = DateFormat('MMM d, yyyy').parse(date);
           } catch (_) {
-            return date; // Return as is if we can't parse
+            try {
+              dateTime = DateFormat('yyyy-MM-dd').parse(date);
+            } catch (_) {
+              return date; // Return as is if we can't parse
+            }
           }
         }
       }
@@ -46,8 +50,12 @@ class DateUtil {
           startDate = DateFormat('dd MMM yyyy').parse(start);
         } catch (_) {
           try {
-            startDate = DateFormat('yyyy-MM-dd').parse(start);
-          } catch (_) {}
+            startDate = DateFormat('MMM d, yyyy').parse(start);
+          } catch (_) {
+            try {
+              startDate = DateFormat('yyyy-MM-dd').parse(start);
+            } catch (_) {}
+          }
         }
       }
     }
@@ -62,8 +70,12 @@ class DateUtil {
           endDate = DateFormat('dd MMM yyyy').parse(end);
         } catch (_) {
           try {
-            endDate = DateFormat('yyyy-MM-dd').parse(end);
-          } catch (_) {}
+            endDate = DateFormat('MMM d, yyyy').parse(end);
+          } catch (_) {
+            try {
+              endDate = DateFormat('yyyy-MM-dd').parse(end);
+            } catch (_) {}
+          }
         }
       }
     }
@@ -73,7 +85,7 @@ class DateUtil {
     if (endDate == null) return DateFormat(displayFormat).format(startDate.toLocal());
 
     if (startDate.year == endDate.year) {
-      return "${DateFormat('dd MMM').format(startDate.toLocal())} - ${DateFormat('dd MMM yyyy').format(endDate.toLocal())}";
+      return "${DateFormat('MMM d').format(startDate.toLocal())} - ${DateFormat('MMM d, yyyy').format(endDate.toLocal())}";
     }
 
     return "${DateFormat(displayFormat).format(startDate.toLocal())} - ${DateFormat(displayFormat).format(endDate.toLocal())}";

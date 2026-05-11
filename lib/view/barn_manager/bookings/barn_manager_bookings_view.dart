@@ -58,6 +58,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     _tabController.addListener(_onTabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadBookings();
+      bookingController.refreshPendingBookingCounts();
     });
   }
 
@@ -472,7 +473,7 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
                             ),
                           ),
                           const SizedBox(width: 4),
-                          if (booking.status.toLowerCase() == 'pending' && _tabController.index == 1)
+                          if (booking.status.toLowerCase() == 'pending')
                             SizedBox(
                               height: 24,
                               width: 24,

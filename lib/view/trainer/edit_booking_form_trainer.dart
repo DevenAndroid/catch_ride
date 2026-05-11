@@ -44,8 +44,24 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
 
   // Date
   DateTime? _selectedDate;
+  String? _dateFieldError;
 
   bool _isLoadingHorse = true;
+
+  static DateTime? _parseFlexibleDate(String raw) {
+    if (raw.isEmpty) return null;
+    final iso = DateTime.tryParse(raw);
+    if (iso != null) return iso;
+    try {
+      return DateFormat('dd MMM yyyy').parse(raw);
+    } catch (_) {}
+    try {
+      return DateFormat('MMM d, yyyy').parse(raw);
+    } catch (_) {}
+    return null;
+  }
+
+  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
   @override
   void initState() {
@@ -130,21 +146,47 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
     } catch (e) {
       debugPrint('Error fetching horse: $e');
     } finally {
-      if (mounted) setState(() => _isLoadingHorse = false);
+      if (mounted) {
+        _syncDateWithLocation();
+        setState(() => _isLoadingHorse = false);
+      }
+    }
+  }
+
+  /// Keeps the chosen date when possible; otherwise moves it to the nearest valid day for the location.
+  void _syncDateWithLocation() {
+    final selected = _selectedDate;
+    if (selected == null) return;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    var d = _dateOnly(selected);
+
+    final isHome = _selectedLocationValue == _homeLocation;
+    if (isHome || _selectedShow == null) {
+      if (d.isBefore(today)) _selectedDate = today;
+      return;
+    }
+
+    final show = _selectedShow!;
+    final sDate = _parseFlexibleDate(show.startDate);
+    final eDate = _parseFlexibleDate(show.endDate);
+    if (sDate == null || eDate == null) return;
+
+    final startOnly = _dateOnly(sDate);
+    final endOnly = _dateOnly(eDate);
+    final effectiveStart = startOnly.isBefore(today) ? today : startOnly;
+
+    if (d.isBefore(effectiveStart)) {
+      _selectedDate = effectiveStart;
+    } else if (d.isAfter(endOnly)) {
+      _selectedDate = endOnly;
     }
   }
 
   bool _validate() {
-    if (_selectedDate == null) {
-      Get.snackbar('Error', 'Please select a date',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.redAccent,
-          colorText: Colors.white,
-          barBlur: 0,
-          margin: const EdgeInsets.all(16));
-      return false;
-    }
     if (_selectedLocationValue == null) {
+      setState(() => _dateFieldError = null);
       Get.snackbar('Error', 'Please select a location',
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.redAccent,
@@ -153,6 +195,19 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
           margin: const EdgeInsets.all(16));
       return false;
     }
+    if (_selectedDate == null) {
+      setState(() =>
+          _dateFieldError = 'Please select a date for this booking.');
+      Get.snackbar(
+          'Error', 'Please select a date for this booking.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          barBlur: 0,
+          margin: const EdgeInsets.all(16));
+      return false;
+    }
+    setState(() => _dateFieldError = null);
     return true;
   }
 
@@ -215,17 +270,34 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
 
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    DateTime initial = _selectedDate ?? today;
-    DateTime first = today;
-
     final isHome = _selectedLocationValue == _homeLocation;
+    final show = _selectedShow;
 
-    if (!isHome && _selectedShow != null) {
-      final sDate = DateTime.tryParse(_selectedShow!.startDate);
-      final eDate = DateTime.tryParse(_selectedShow!.endDate);
+    DateTime firstDate = today;
+    DateTime lastDate = DateTime.now().add(const Duration(days: 365));
+
+    bool daySelectable(DateTime day) {
+      final dateOnly = _dateOnly(day);
+      if (dateOnly.isBefore(today)) return false;
+      if (isHome || show == null) return true;
+
+      final sDate = _parseFlexibleDate(show.startDate);
+      final eDate = _parseFlexibleDate(show.endDate);
+      if (sDate == null || eDate == null) return true;
+
+      final startOnly = _dateOnly(sDate);
+      final endOnly = _dateOnly(eDate);
+      if (endOnly.isBefore(today)) return false;
+      final effectiveStart = startOnly.isBefore(today) ? today : startOnly;
+      return !dateOnly.isBefore(effectiveStart) && !dateOnly.isAfter(endOnly);
+    }
+
+    if (!isHome && show != null) {
+      final sDate = _parseFlexibleDate(show.startDate);
+      final eDate = _parseFlexibleDate(show.endDate);
       if (sDate != null && eDate != null) {
-        final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
-        final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
+        final startOnly = _dateOnly(sDate);
+        final endOnly = _dateOnly(eDate);
 
         if (endOnly.isBefore(today)) {
           Get.snackbar('Show Ended', 'This show has already ended. Please select a different location.',
@@ -235,36 +307,55 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
           return;
         }
 
-        if (initial.isBefore(startOnly)) initial = startOnly;
-        else if (initial.isAfter(endOnly)) initial = startOnly;
-        if (initial.isBefore(today)) initial = today;
+        final effectiveStart = startOnly.isBefore(today) ? today : startOnly;
+        firstDate = effectiveStart;
+        lastDate = endOnly.isBefore(firstDate) ? firstDate : endOnly;
       }
+    }
+
+    DateTime initial = _selectedDate ?? firstDate;
+    var initialDay = _dateOnly(initial);
+    if (initialDay.isBefore(firstDate)) {
+      initial = firstDate;
+    } else if (initialDay.isAfter(lastDate)) {
+      initial = lastDate;
+    }
+    initialDay = _dateOnly(initial);
+
+    if (!daySelectable(initial)) {
+      DateTime? fixed;
+      for (var d = firstDate; !d.isAfter(lastDate); d = d.add(const Duration(days: 1))) {
+        if (daySelectable(d)) {
+          fixed = d;
+          break;
+        }
+      }
+      if (fixed == null) {
+        Get.snackbar(
+            'No dates',
+            'No available dates for this location.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.orange,
+            colorText: Colors.white);
+        return;
+      }
+      initial = fixed;
     }
 
     final date = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: first,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      selectableDayPredicate: (DateTime day) {
-        final dateOnly = DateTime(day.year, day.month, day.day);
-        if (dateOnly.isBefore(today)) return false;
-        if (isHome) return true;
-        if (_selectedShow == null) return false;
-
-        final sDate = DateTime.tryParse(_selectedShow!.startDate);
-        final eDate = DateTime.tryParse(_selectedShow!.endDate);
-        if (sDate != null && eDate != null) {
-          final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
-          final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
-          return (dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
-              (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly));
-        }
-        return false;
-      },
+      firstDate: firstDate,
+      lastDate: lastDate,
+      selectableDayPredicate: daySelectable,
     );
 
-    if (date != null) setState(() => _selectedDate = date);
+    if (date != null && mounted) {
+      setState(() {
+        _selectedDate = date;
+        _dateFieldError = null;
+      });
+    }
   }
 
   @override
@@ -355,7 +446,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                             try {
                               final s = DateTime.parse(show.startDate);
                               final e = DateTime.parse(show.endDate);
-                              dateRange = '${DateFormat('dd MMM').format(s)} - ${DateFormat('dd MMM yyyy').format(e)}';
+                              dateRange = '${DateFormat('MMM d').format(s)} - ${DateFormat('MMM d, yyyy').format(e)}';
                             } catch (_) {}
                             return DropdownMenuItem(
                               value: show.id,
@@ -378,19 +469,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                           setState(() {
                             _selectedLocationValue = val;
                             _selectedShow = _showAvailabilities.firstWhereOrNull((s) => s.id == val);
-
-                            // Reset date if it becomes invalid for the new location
-                            if (_selectedDate != null && _selectedShow != null) {
-                              final sDate = DateTime.tryParse(_selectedShow!.startDate);
-                              final eDate = DateTime.tryParse(_selectedShow!.endDate);
-                              if (sDate != null && eDate != null) {
-                                final d = DateTime(_selectedDate!.year, _selectedDate!.month, _selectedDate!.day);
-                                final s = DateTime(sDate.year, sDate.month, sDate.day);
-                                final e = DateTime(eDate.year, eDate.month, eDate.day);
-                                final valid = (d.isAtSameMomentAs(s) || d.isAfter(s)) && (d.isAtSameMomentAs(e) || d.isBefore(e));
-                                if (!valid) _selectedDate = null;
-                              }
-                            }
+                            _syncDateWithLocation();
                           });
                         },
                       ),
@@ -406,7 +485,11 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(
+                          color: _dateFieldError != null
+                              ? AppColors.errorPrimary
+                              : AppColors.border,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -414,7 +497,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                         children: [
                           CommonText(
                             _selectedDate != null
-                                ? DateFormat('dd MMM yyyy').format(_selectedDate!)
+                                ? DateFormat('MMM d, yyyy').format(_selectedDate!)
                                 : 'Select Date',
                             fontSize: 14,
                             color: _selectedDate != null ? AppColors.textPrimary : AppColors.textSecondary,
@@ -424,6 +507,14 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                       ),
                     ),
                   ),
+                  if (_dateFieldError != null) ...[
+                    const SizedBox(height: 6),
+                    CommonText(
+                      _dateFieldError!,
+                      fontSize: AppTextSizes.size12,
+                      color: AppColors.errorPrimary,
+                    ),
+                  ],
                   const SizedBox(height: 20),
 
                   // Message
