@@ -6,6 +6,7 @@ import 'package:catch_ride/services/notification_service.dart';
 import 'package:catch_ride/services/link_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_options.dart';
 import 'package:get/get.dart';
@@ -16,6 +17,12 @@ import 'my_app.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Lock to portrait orientation
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   
   // Initialize Firebase
   await Firebase.initializeApp(
