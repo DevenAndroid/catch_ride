@@ -202,7 +202,7 @@ class ShippingDetailsView extends StatelessWidget {
                             Checkbox(
                               value: controller.hasCDL.value,
                               onChanged: (val) => controller.hasCDL.value = val ?? false,
-                              activeColor: const Color(0xFF001149),
+                              activeColor: AppColors.primary,
                             ),
                             const Expanded(child: CommonText('I have a valid CDL (if required for my rig size)', fontSize: 13)),
                           ],
@@ -276,6 +276,7 @@ class ShippingDetailsView extends StatelessWidget {
                             Checkbox(
                               value: controller.isCustomCancellation.value,
                               onChanged: (v) => controller.isCustomCancellation.value = v ?? false,
+                              activeColor: AppColors.primary,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                             ),
                             const CommonText('Custom', fontSize: 14),
@@ -316,7 +317,7 @@ class ShippingDetailsView extends StatelessWidget {
                     isLoading: controller.isSubmitting.value,
                     onPressed: controller.submitDetails,
                     height: 56,
-                    backgroundColor: const Color(0xFF001149),
+                    backgroundColor: AppColors.primaryDark,
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -416,8 +417,9 @@ class ShippingDetailsView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
           ),
           child: CommonText(value, fontSize: 14, color: AppColors.textPrimary),
         ),
@@ -622,7 +624,7 @@ class ShippingDetailsView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderLight),
           ),
@@ -641,6 +643,7 @@ class ShippingDetailsView extends StatelessWidget {
         Obx(() => GestureDetector(
           onTap: () => _showPickerBottomSheet(
             title: 'Experience',
+            currentValue: controller.experienceDisplay.value,
             options: controller.experienceOptions,
             onSelected: (val) => controller.experienceDisplay.value = val,
           ),
@@ -648,7 +651,7 @@ class ShippingDetailsView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -656,7 +659,7 @@ class ShippingDetailsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: CommonText(controller.experienceDisplay.value ?? 'Select years of experience', fontSize: 14, color: AppColors.textPrimary),
+                  child: CommonText(controller.experienceDisplay.value ?? 'Select years of experience', fontSize: 14, color: controller.experienceDisplay.value == null ? AppColors.textSecondary : AppColors.textPrimary),
                 ),
                 const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
               ],
@@ -682,14 +685,14 @@ class ShippingDetailsView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFF3F4FF) : const Color(0xFFF3F4F6),
+                  color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
+                  border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
                 ),
                 child: CommonText(
                   it, 
                   fontSize: 12, 
-                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
               ),
@@ -718,15 +721,15 @@ class ShippingDetailsView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4F6),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
-                    const Icon(Icons.add, color: Color(0xFF001149), size: 20),
+                    CommonText('Select regions...', fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                    const Icon(Icons.add, color: AppColors.primary, size: 20),
                   ],
                 ),
               ),
@@ -738,20 +741,20 @@ class ShippingDetailsView extends StatelessWidget {
               children: controller.regionsCovered.map((region) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4FF),
+                  color: const Color(0xFFF9FAFB),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF001149)),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001149), fontWeight: FontWeight.w600),
+                      child: CommonText(region, fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () => controller.toggleRegion(region),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001149)),
+                      child: const Icon(Icons.close, size: 14, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -763,7 +766,7 @@ class ShippingDetailsView extends StatelessWidget {
     );
   }
 
-  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+  void _showPickerBottomSheet({required String title, String? currentValue, required List<String> options, required Function(String) onSelected}) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -773,13 +776,16 @@ class ShippingDetailsView extends StatelessWidget {
           children: [
             CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            ...options.map((opt) => ListTile(
-              title: CommonText(opt),
-              onTap: () {
-                onSelected(opt);
-                Get.back();
-              },
-            )),
+            ...options.map((opt) {
+              final isSelected = opt == currentValue;
+              return ListTile(
+                title: Center(child: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                onTap: () {
+                  onSelected(opt);
+                  Get.back();
+                },
+              );
+            }),
           ],
         ),
       ),

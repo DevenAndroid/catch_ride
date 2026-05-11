@@ -157,10 +157,10 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
-          onPressed: () => Get.back(),
-        ),
+        // leading: IconButton(
+        //   icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
+        //   onPressed: () => Get.back(),
+        // ),
         title: const CommonText('Add Availability Block', fontSize: 18, fontWeight: FontWeight.bold),
         centerTitle: false,
       ),
@@ -187,10 +187,6 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: const Icon(Icons.close, color: Color(0xFF344054), size: 24),
-                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -346,13 +342,14 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
           children: _selectedVenues.map((v) => Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFFF2F4F7),
+              color: const Color(0xFFF5F8FF),
               borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.primaryDark),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Flexible(child: CommonText(v, fontSize: 13, color: const Color(0xFF344054))),
+                Flexible(child: CommonText(v, fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => _selectedVenues.remove(v),
@@ -394,7 +391,6 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
               ],
             ),
             const SizedBox(height: 16),

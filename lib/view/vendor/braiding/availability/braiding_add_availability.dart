@@ -192,10 +192,6 @@ class _BraidingAddAvailabilityViewState extends State<BraidingAddAvailabilityVie
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
               CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-                  GestureDetector(
-                    onTap: () => Get.back(),
-                    child: const Icon(Icons.close, color: Color(0xFF344054), size: 24),
-                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -237,7 +233,7 @@ class _BraidingAddAvailabilityViewState extends State<BraidingAddAvailabilityVie
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primaryDark : Colors.white,
+              color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isSelected ? AppColors.primaryDark : const Color(0xFFD0D5DD), 
@@ -247,8 +243,8 @@ class _BraidingAddAvailabilityViewState extends State<BraidingAddAvailabilityVie
             child: CommonText(
               t,
               fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              color: isSelected ? Colors.white : const Color(0xFF344054),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? AppColors.primaryDark : const Color(0xFF344054),
             ),
           ),
         );
@@ -401,7 +397,6 @@ class _BraidingAddAvailabilityViewState extends State<BraidingAddAvailabilityVie
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Get.back()),
               ],
             ),
             const SizedBox(height: 16),

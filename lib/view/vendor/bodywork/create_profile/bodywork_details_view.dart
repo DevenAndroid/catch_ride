@@ -204,9 +204,8 @@ class BodyworkDetailsView extends StatelessWidget {
                       Checkbox(
                         value: controller.isCustomPolicy.value,
                         onChanged: (val) => controller.isCustomPolicy.value = val ?? false,
-                        activeColor: const Color(0xFF001149),
+                        activeColor: AppColors.primary,
                         side: const BorderSide(color: AppColors.borderMedium, width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       ),
                       const CommonText('Custom', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500),
                     ],
@@ -724,11 +723,11 @@ class BodyworkDetailsView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.lightGray.withOpacity(0.5),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderLight),
           ),
-          child: CommonText(value, fontSize: AppTextSizes.size14),
+          child: CommonText(value, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
         ),
       ],
     );
@@ -743,6 +742,7 @@ class BodyworkDetailsView extends StatelessWidget {
         Obx(() => GestureDetector(
           onTap: () => _showPickerBottomSheet(
             title: 'Experience',
+            currentValue: controller.experience.value,
             options: controller.experienceOptions,
             onSelected: (val) => controller.experience.value = val,
           ),
@@ -750,7 +750,7 @@ class BodyworkDetailsView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.lightGray.withOpacity(0.5),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -758,7 +758,7 @@ class BodyworkDetailsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: controller.experience.value == null ? AppColors.textSecondary : AppColors.textPrimary),
                 ),
                 const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
               ],
@@ -784,14 +784,14 @@ class BodyworkDetailsView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFF3F4FF) : AppColors.lightGray.withOpacity(0.5),
+                  color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSelected ? const Color(0xFF001149) : Colors.transparent),
+                  border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
                 ),
                 child: CommonText(
                   it, 
                   fontSize: 12, 
-                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),
               ),
@@ -820,15 +820,15 @@ class BodyworkDetailsView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.lightGray.withOpacity(0.5),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CommonText('Select Regions...', fontSize: 13, color: const Color(0xFF999999), fontWeight: FontWeight.w500),
-                    const Icon(Icons.add, color: Color(0xFF001149), size: 20),
+                    CommonText('Select regions...', fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                    const Icon(Icons.add, color: AppColors.primary, size: 20),
                   ],
                 ),
               ),
@@ -840,24 +840,24 @@ class BodyworkDetailsView extends StatelessWidget {
               children: controller.regionsCovered.map((region) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4FF),
+                  color: const Color(0xFFF9FAFB),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF001149)),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: CommonText(region, fontSize: 12, color: const Color(0xFF001149), fontWeight: FontWeight.w600),
+                      child: CommonText(region, fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () => controller.toggleRegion(region),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF001149)),
+                      child: const Icon(Icons.close, size: 14, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
-              )).toList(),
+              ),).toList(),
             ),
           ],
         )),
@@ -865,7 +865,7 @@ class BodyworkDetailsView extends StatelessWidget {
     );
   }
 
-  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+  void _showPickerBottomSheet({required String title, String? currentValue, required List<String> options, required Function(String) onSelected}) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -875,13 +875,16 @@ class BodyworkDetailsView extends StatelessWidget {
           children: [
             CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            ...options.map((opt) => ListTile(
-              title: CommonText(opt),
-              onTap: () {
-                onSelected(opt);
-                Get.back();
-              },
-            )),
+            ...options.map((opt) {
+              final isSelected = opt == currentValue;
+              return ListTile(
+                title: Center(child: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                onTap: () {
+                  onSelected(opt);
+                  Get.back();
+                },
+              );
+            }),
           ],
         ),
       ),
@@ -904,7 +907,7 @@ class BodyworkDetailsView extends StatelessWidget {
                   title: CommonText(opt),
                   value: selectedItems.contains(opt),
                   onChanged: (val) => onToggle(opt),
-                  activeColor: const Color(0xFF001149),
+                  activeColor: AppColors.primary,
                 ))).toList(),
               ),
             ),
@@ -974,7 +977,7 @@ class BodyworkDetailsView extends StatelessWidget {
                             padding: const EdgeInsets.all(16),
                             child: Row(
                               children: [
-                                Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? const Color(0xFF001149) : Colors.grey),
+                                Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? AppColors.primary : AppColors.textSecondary),
                                 const SizedBox(width: 12),
                                 CommonText(type, fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
                               ],

@@ -467,14 +467,14 @@ class SetupGroomApplicationView extends StatelessWidget {
       children: options.map((opt) {
         final isSelected = selectedItems.contains(opt);
         return FilterChip(
-          label: CommonText(opt, color: isSelected ? Colors.white : AppColors.textPrimary, fontSize: AppTextSizes.size12),
+          label: CommonText(opt, color: isSelected ? AppColors.primaryDark : AppColors.textPrimary, fontSize: AppTextSizes.size12, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
           selected: isSelected,
           onSelected: (val) => onSelected(opt, val),
-          selectedColor: AppColors.primaryDark,
+          selectedColor: const Color(0xFFF5F8FF),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight),
+            side: BorderSide(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
           ),
           showCheckmark: false,
         );

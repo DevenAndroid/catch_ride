@@ -244,10 +244,6 @@ groomController.fetchProfile();
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-              GestureDetector(
-                onTap: () => Get.back(),
-                child: const Icon(Icons.close, color: Color(0xFF344054), size: 24),
-              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -435,9 +431,9 @@ groomController.fetchProfile();
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF2F4F7),
+                        color: const Color(0xFFF5F8FF),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFEAECF0)),
+                        border: Border.all(color: AppColors.primaryDark),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -446,7 +442,8 @@ groomController.fetchProfile();
                             child: CommonText(
                               v,
                               fontSize: 13,
-                              color: AppColors.textPrimary,
+                              color: AppColors.primaryDark,
+                              fontWeight: FontWeight.bold,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -506,10 +503,6 @@ groomController.fetchProfile();
                   'Select Venues',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Get.back(),
                 ),
               ],
             ),
