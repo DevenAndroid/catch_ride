@@ -33,12 +33,28 @@ class _AddNewListingViewState extends State<AddNewListingView> {
 
   Future<void> _selectDateTime(
     BuildContext context,
-    TextEditingController textController,
-  ) async {
+    TextEditingController textController, {
+    DateTime? firstDate,
+  }) async {
+    final DateTime now = DateTime.now();
+    DateTime initial = now;
+    
+    // If textController already has a date, use it as initial
+    if (textController.text.isNotEmpty) {
+      try {
+        initial = DateFormat('dd MMM yyyy').parse(textController.text);
+      } catch (_) {}
+    }
+
+    // Ensure initial is not before firstDate
+    if (firstDate != null && initial.isBefore(firstDate)) {
+      initial = firstDate;
+    }
+
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: initial,
+      firstDate: firstDate ?? now,
       lastDate: DateTime(2101),
     );
 
@@ -1819,8 +1835,18 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                       }
                                       final query = textEditingValue.text
                                           .toLowerCase();
+                                      
+                                      // Get 'Available From' date if it exists
+                                      DateTime? availableFromDate;
+                                      if (controller.availableFromController.text.isNotEmpty) {
+                                        try {
+                                          availableFromDate = DateFormat('dd MMM yyyy').parse(controller.availableFromController.text);
+                                        } catch (_) {}
+                                      }
+
                                       return profileController.rawHorseShows
                                           .where((show) {
+                                            // 1. Filter by search query
                                             final name = (show['name'] ?? '')
                                                 .toString()
                                                 .toLowerCase();
@@ -1832,9 +1858,25 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                                 (show['circuit'] ?? '')
                                                     .toString()
                                                     .toLowerCase();
-                                            return name.contains(query) ||
+                                            
+                                            final matchesQuery = name.contains(query) ||
                                                 venue.contains(query) ||
                                                 circuit.contains(query);
+                                            
+                                            if (!matchesQuery) return false;
+
+                                            // 2. Filter by 'Available From' date if selected
+                                            if (availableFromDate != null) {
+                                              try {
+                                                if (show['endDate'] != null) {
+                                                  final showEnd = DateTime.parse(show['endDate']);
+                                                  // Show must end on or after the available date to be relevant
+                                                  if (showEnd.isBefore(availableFromDate)) return false;
+                                                }
+                                              } catch (_) {}
+                                            }
+                                            
+                                            return true;
                                           });
                                     },
                                 onSelected: (Map<String, dynamic> selection) {
@@ -2035,10 +2077,19 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
                                 readOnly: true,
-                                onTap: () => _selectDateTime(
-                                  context,
-                                  availabilityEntry.startDateController,
-                                ),
+                                onTap: () {
+                                    DateTime? firstDate;
+                                    if (controller.availableFromController.text.isNotEmpty) {
+                                      try {
+                                        firstDate = DateFormat('dd MMM yyyy').parse(controller.availableFromController.text);
+                                      } catch (_) {}
+                                    }
+                                    _selectDateTime(
+                                      context,
+                                      availabilityEntry.startDateController,
+                                      firstDate: firstDate,
+                                    );
+                                  },
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
                                   size: 20,
@@ -2053,10 +2104,23 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
                                 readOnly: true,
-                                onTap: () => _selectDateTime(
-                                  context,
-                                  availabilityEntry.endDateController,
-                                ),
+                                onTap: () {
+                                  DateTime? firstDate;
+                                  if (availabilityEntry.startDateController.text.isNotEmpty) {
+                                    try {
+                                      firstDate = DateFormat('dd MMM yyyy').parse(availabilityEntry.startDateController.text);
+                                    } catch (_) {}
+                                  } else if (controller.availableFromController.text.isNotEmpty) {
+                                    try {
+                                      firstDate = DateFormat('dd MMM yyyy').parse(controller.availableFromController.text);
+                                    } catch (_) {}
+                                  }
+                                  _selectDateTime(
+                                    context,
+                                    availabilityEntry.endDateController,
+                                    firstDate: firstDate,
+                                  );
+                                },
                                 suffixIcon: const Icon(
                                   Icons.calendar_today_outlined,
                                   size: 20,

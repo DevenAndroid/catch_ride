@@ -1,38 +1,16 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DateUtil {
-  static const String displayFormat = 'MMM d, yyyy';
+  static const String displayFormat = 'dd MMM yyyy';
 
   static String formatDisplayDate(dynamic date) {
     if (date == null) return '';
 
-    DateTime? dateTime;
-    if (date is DateTime) {
-      dateTime = date;
-    } else if (date is String) {
-      if (date.isEmpty) return '';
-      // Try to parse typical formats
-      dateTime = DateTime.tryParse(date);
-      if (dateTime == null) {
-        // Handle custom formats if necessary, e.g., '20 Mar 2026'
-        try {
-          dateTime = DateFormat('dd MMM yyyy').parse(date);
-        } catch (_) {
-          try {
-            dateTime = DateFormat('MMM d, yyyy').parse(date);
-          } catch (_) {
-            try {
-              dateTime = DateFormat('yyyy-MM-dd').parse(date);
-            } catch (_) {
-              return date; // Return as is if we can't parse
-            }
-          }
-        }
-      }
-    }
+    DateTime? dateTime = parse(date);
 
     if (dateTime != null) {
-      return DateFormat(displayFormat).format(dateTime.toLocal());
+      return DateFormat(displayFormat).format(dateTime);
     }
     return date.toString();
   }
@@ -40,55 +18,18 @@ class DateUtil {
   static String formatRange(dynamic start, dynamic end) {
     if (start == null && end == null) return '';
 
-    DateTime? startDate;
-    if (start is DateTime) {
-      startDate = start;
-    } else if (start is String && start.isNotEmpty) {
-      startDate = DateTime.tryParse(start);
-      if (startDate == null) {
-        try {
-          startDate = DateFormat('dd MMM yyyy').parse(start);
-        } catch (_) {
-          try {
-            startDate = DateFormat('MMM d, yyyy').parse(start);
-          } catch (_) {
-            try {
-              startDate = DateFormat('yyyy-MM-dd').parse(start);
-            } catch (_) {}
-          }
-        }
-      }
-    }
-
-    DateTime? endDate;
-    if (end is DateTime) {
-      endDate = end;
-    } else if (end is String && end.isNotEmpty) {
-      endDate = DateTime.tryParse(end);
-      if (endDate == null) {
-        try {
-          endDate = DateFormat('dd MMM yyyy').parse(end);
-        } catch (_) {
-          try {
-            endDate = DateFormat('MMM d, yyyy').parse(end);
-          } catch (_) {
-            try {
-              endDate = DateFormat('yyyy-MM-dd').parse(end);
-            } catch (_) {}
-          }
-        }
-      }
-    }
+    DateTime? startDate = parse(start);
+    DateTime? endDate = parse(end);
 
     if (startDate == null && endDate == null) return '';
-    if (startDate == null) return DateFormat(displayFormat).format(endDate!.toLocal());
-    if (endDate == null) return DateFormat(displayFormat).format(startDate.toLocal());
+    if (startDate == null) return DateFormat(displayFormat).format(endDate!);
+    if (endDate == null) return DateFormat(displayFormat).format(startDate);
 
     if (startDate.year == endDate.year) {
-      return "${DateFormat('MMM d').format(startDate.toLocal())} - ${DateFormat('MMM d, yyyy').format(endDate.toLocal())}";
+      return "${DateFormat('dd MMM').format(startDate)} - ${DateFormat('dd MMM yyyy').format(endDate)}";
     }
 
-    return "${DateFormat(displayFormat).format(startDate.toLocal())} - ${DateFormat(displayFormat).format(endDate.toLocal())}";
+    return "${DateFormat(displayFormat).format(startDate)} - ${DateFormat(displayFormat).format(endDate)}";
   }
 
   static String formatRangeString(String? rangeStr) {
@@ -107,13 +48,7 @@ class DateUtil {
   static String formatDate(dynamic date, {String format = displayFormat}) {
     if (date == null) return '';
 
-    DateTime? dateTime;
-    if (date is DateTime) {
-      dateTime = date;
-    } else if (date is String) {
-      if (date.isEmpty) return '';
-      dateTime = DateTime.tryParse(date);
-    }
+    DateTime? dateTime = parse(date);
 
     if (dateTime != null) {
       return DateFormat(format).format(dateTime);
@@ -138,20 +73,57 @@ class DateUtil {
       return 'Just now';
     }
   }
+
   static String formatDateTime(dynamic date) {
     if (date == null) return '';
 
-    DateTime? dateTime;
-    if (date is DateTime) {
-      dateTime = date.toLocal();
-    } else if (date is String) {
-      if (date.isEmpty) return '';
-      dateTime = DateTime.tryParse(date)!.toLocal();
-    }
+    DateTime? dateTime = parse(date);
 
     if (dateTime != null) {
+      // For full date-time, we might want to keep local/UTC context if it's a real timestamp
+      // but for our calendar dates, we treat them as fixed.
       return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);
     }
     return date.toString();
   }
+
+  /// Public helper to parse any date format encountered in the app
+  static DateTime? parse(dynamic date) {
+    if (date == null) return null;
+    if (date is DateTime) return date;
+    if (date is! String || date.isEmpty) return null;
+
+    // 1. Try ISO 8601
+    DateTime? parsed = DateTime.tryParse(date);
+    if (parsed != null) return parsed;
+
+    // 2. Try common display format
+    try {
+      return DateFormat('dd MMM yyyy').parse(date);
+    } catch (_) {}
+
+    // 3. Try standard ISO-like date only
+    try {
+      return DateFormat('yyyy-MM-dd').parse(date);
+    } catch (_) {}
+
+    // 4. Try JS Date.toString() format
+    // Example: "Thu May 21 2026 05:30:00 GMT+0530 (India Standard Time)"
+    try {
+      // We only really need the first part for the date
+      final parts = date.split(' ');
+      if (parts.length >= 4) {
+        final monthStr = parts[1]; // May
+        final dayStr = parts[2];   // 21
+        final yearStr = parts[3];  // 2026
+        final simplified = "$dayStr $monthStr $yearStr";
+        return DateFormat('dd MMM yyyy').parse(simplified);
+      }
+    } catch (e) {
+      debugPrint('DateUtil: Failed to parse JS date string: $date');
+    }
+
+    return null;
+  }
 }
+ 
