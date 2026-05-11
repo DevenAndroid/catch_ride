@@ -26,7 +26,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
   String _selectedSection = 'location'; // 'location' or 'date'
   late String _selectedCategory;
-  String _locationType = 'City,State or Region'; // 'City or Region' or 'Show Venue'
+  // 'City or Region' or 'Show Venue'
 
   // Dynamic Calendar State
   late DateTime _focusedDate;
@@ -43,10 +43,34 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   void initState() {
     super.initState();
     _selectedCategory = controller.selectedDiscipline.value;
-    _searchController.text = controller.searchQuery.value;
+    
+    // Prefill search controller based on active filter
+    // Prefill search controller based on active filter
+    if (controller.locationType.value == 'City,State, or Region') {
+      if (controller.location.value.isNotEmpty) {
+        _searchController.text = controller.location.value;
+        _showSuggestions = false;
+      } else if (controller.regionsCovered.isNotEmpty) {
+        _searchController.text = controller.regionsCovered.first;
+        _showSuggestions = false;
+      } else {
+        _searchController.text = controller.searchQuery.value;
+      }
+    } else {
+      if (controller.showVenue.value.isNotEmpty) {
+        _searchController.text = controller.showVenue.value;
+        _showSuggestions = false;
+      } else {
+        _searchController.text = controller.searchQuery.value;
+      }
+    }
+    
     _focusedDate = DateTime.now();
     _rangeStart = controller.startDate.value;
     _rangeEnd = controller.endDate.value;
+    if (_rangeStart != null) {
+      _focusedDate = _rangeStart!;
+    }
   }
 
   Future<void> _onSearchPressed() async {
@@ -99,7 +123,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     setState(() {
       _selectedCategory = 'All';
       _searchController.clear();
-      _locationType = 'City,State or Region';
+      controller.locationType.value = 'City,State, or Region';
       _rangeStart = null;
       _rangeEnd = null;
       _showSuggestions = true;
@@ -213,7 +237,17 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           children: _categories.map((cat) {
             final isSelected = _selectedCategory == cat['name'];
             return GestureDetector(
-              onTap: () => setState(() => _selectedCategory = cat['name']),
+              onTap: () {
+                if (_selectedCategory != cat['name']) {
+                  controller.clearAllFilters();
+                  setState(() {
+                    _selectedCategory = cat['name'];
+                    _searchController.clear();
+                    _rangeStart = null;
+                    _rangeEnd = null;
+                  });
+                }
+              },
               child: Container(
                 margin: const EdgeInsets.only(right: 20),
                 child: Column(
@@ -281,7 +315,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   }
 
   Widget _buildLocationSection() {
-    final bool isShowVenue = _locationType == 'Show Venue';
+    final bool isShowVenue = controller.locationType.value == 'Show Venue';
 
     return Column(
       children: [
@@ -342,17 +376,17 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: _buildToggleItem(
-                        'City,State or Region',
-                        _locationType == 'City,State or Region',
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildToggleItem(
-                        'Show Venue',
-                        _locationType == 'Show Venue',
-                      ),
-                    ),
+              child: _buildToggleItem(
+                'City,State, or Region',
+                controller.locationType.value == 'City,State, or Region',
+              ),
+            ),
+            Expanded(
+              child: _buildToggleItem(
+                'Show Venue',
+                controller.locationType.value == 'Show Venue',
+              ),
+            ),
                   ],
                 ),
               ),
@@ -603,7 +637,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText(
-                  'City,State or Region',
+                  'City,State, or Region',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -727,17 +761,29 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   Widget _buildToggleItem(String title, bool isActive) {
     return GestureDetector(
       onTap: () {
-        if (_locationType != title) {
+        if (controller.locationType.value != title) {
           setState(() {
-            _locationType = title;
-            _searchController.clear();
+            controller.locationType.value = title;
             _showSuggestions = true;
-            // Clear current selection when switching types
-            controller.location.value = '';
-            controller.showVenue.value = '';
-            controller.regionsCovered.clear();
-            _venueStartDate = null;
-            _venueEndDate = null;
+            
+            // Switch search controller text based on the tab being switched to
+            if (title == 'City,State, or Region') {
+              if (controller.regionsCovered.isNotEmpty) {
+                _searchController.text = controller.regionsCovered.first;
+              } else {
+                _searchController.text = controller.location.value;
+              }
+            } else {
+              _searchController.text = controller.showVenue.value;
+            }
+            
+            // Note: We are NOT clearing location/showVenue here to allow "pre-filling" 
+            // when switching between them, as requested by the user.
+            // But we DO clear dates if that's what "clear data also in when wali" meant.
+            _rangeStart = null;
+            _rangeEnd = null;
+            controller.startDate.value = null;
+            controller.endDate.value = null;
           });
         }
       },

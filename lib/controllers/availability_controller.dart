@@ -1,6 +1,7 @@
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/utils/date_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -35,19 +36,19 @@ class AvailabilityController extends GetxController {
           entry.showIdController.text = a.showId ?? '';
           
           if (a.startDate.isNotEmpty) {
-            try {
-              final start = DateTime.parse(a.startDate);
+            final start = DateUtil.parse(a.startDate);
+            if (start != null) {
               entry.startDateController.text = formatter.format(start);
-            } catch (_) {
+            } else {
               entry.startDateController.text = a.startDate;
             }
           }
           
           if (a.endDate.isNotEmpty) {
-            try {
-              final end = DateTime.parse(a.endDate);
+            final end = DateUtil.parse(a.endDate);
+            if (end != null) {
               entry.endDateController.text = formatter.format(end);
-            } catch (_) {
+            } else {
               entry.endDateController.text = a.endDate;
             }
           }
@@ -123,21 +124,13 @@ class AvailabilityController extends GetxController {
     }
   }
 
-  String _formatDateForBackend(String dateStr) {
-    if (dateStr.isEmpty) return '';
-    try {
-      // 1. Check if already ISO
-      DateTime.parse(dateStr);
-      return dateStr;
-    } catch (_) {
-      try {
-        // 2. Parse human readable format
-        final date = DateFormat('dd MMM yyyy').parse(dateStr);
-        return date.toIso8601String();
-      } catch (_) {
-        return dateStr;
-      }
+  String? _formatDateForBackend(String dateStr) {
+    if (dateStr.isEmpty) return null;
+    final date = DateUtil.parse(dateStr);
+    if (date != null) {
+      return DateFormat('yyyy-MM-dd').format(date);
     }
+    return dateStr;
   }
 
   @override
