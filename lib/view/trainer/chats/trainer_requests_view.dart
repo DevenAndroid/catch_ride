@@ -397,7 +397,10 @@ class _RequestCardState extends State<RequestCard> {
                                       if (mounted) setState(() => _isRejecting = false);
 
                                       if (success) {
-                                        chatController.fetchConversations();
+                                        await Future.wait([
+                                          chatController.fetchConversations(),
+                                          bookingController.fetchBookings(type: 'received'),
+                                        ]);
                                         Get.snackbar(
                                           'Success',
                                           'Request declined',
@@ -474,8 +477,10 @@ class _RequestCardState extends State<RequestCard> {
                             if (mounted) setState(() => _isAccepting = false);
 
                             if (result != null) {
-                              // Refresh chat list to reflect acceptance
-                              await chatController.fetchConversations();
+                              await Future.wait([
+                                chatController.fetchConversations(),
+                                bookingController.fetchBookings(type: 'received'),
+                              ]);
 
                               // Open the existing chat thread (same conversation) if it already exists.
                               // Falls back to the normalized ID, avoiding a "new chat" redirect.
