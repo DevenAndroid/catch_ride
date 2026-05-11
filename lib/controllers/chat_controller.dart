@@ -752,12 +752,10 @@ class ChatController extends GetxController {
     }
 
     // Refresh bookings to reflect new status (confirmed/rejected)
-    if (Get.isRegistered<BookingController>()) {
-      final bc = Get.find<BookingController>();
-      bc.fetchBookings(type: 'received');
-      bc.fetchBookings(type: 'sent');
-      bc.refreshPendingBookingCounts();
-    }
+    final bc = Get.put(BookingController());
+    bc.fetchBookings(type: 'received');
+    bc.fetchBookings(type: 'sent');
+    bc.refreshPendingBookingCounts();
   }
 }
 

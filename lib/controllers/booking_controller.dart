@@ -177,9 +177,10 @@ class BookingController extends GetxController {
           colorText: Colors.white,
         );
         refreshPendingBookingCounts();
-        // Refresh both lists to move the booking to the correct section
-        // fetchBookings(type: 'received');
-        // fetchBookings(type: 'sent');
+        await Future.wait([
+          fetchBookings(type: 'received'),
+          fetchBookings(type: 'sent'),
+        ]);
         return response
             .body['data']; // Returns the updated booking object including conversationId
       } else {
