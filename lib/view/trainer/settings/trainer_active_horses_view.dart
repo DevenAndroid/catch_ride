@@ -230,6 +230,7 @@ class _TrainerActiveHorsesViewState extends State<TrainerActiveHorsesView> {
                             ),
                             const SizedBox(width: 8),
                             Container(
+                              margin: EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: horse.isActive ? const Color(0xFFECFDF3) : const Color(0xFFFEF3F2),

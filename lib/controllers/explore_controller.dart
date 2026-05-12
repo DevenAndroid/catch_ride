@@ -239,18 +239,15 @@ class ExploreController extends GetxController {
     }
 
     if (isLoadMore) {
-      if (!hasMore.value || isLoadMoreLoading.value) return;
+      if (!hasMore.value || isLoadMoreLoading.value || isLoading.value) return;
       isLoadMoreLoading.value = true;
       currentPage.value++;
     } else {
-      // Only show full-screen loader if we have no data yet
-      if (showLoading && horses.isEmpty && vendors.isEmpty) {
-        isLoading.value = true;
-      }
       currentPage.value = 1;
       hasMore.value = true;
-      // Clear vendors when switching to/refreshing horses
-      // vendors.clear(); // Removing this to prevent flicker when refreshing horses
+      // Removed clearing to prevent flickering. Data will be replaced upon successful fetch.
+      // horses.clear();
+      // vendors.clear();
     }
 
     try {
@@ -378,17 +375,15 @@ class ExploreController extends GetxController {
 
   Future<void> fetchVendors({bool isLoadMore = false, bool showLoading = true}) async {
     if (isLoadMore) {
-      if (!hasMore.value || isLoadMoreLoading.value) return;
+      if (!hasMore.value || isLoadMoreLoading.value || isLoading.value) return;
       isLoadMoreLoading.value = true;
       currentPage.value++;
     } else {
-      if (showLoading && vendors.isEmpty) {
-        isLoading.value = true;
-      }
       currentPage.value = 1;
       hasMore.value = true;
-      // Clear horses when switching to/refreshing vendors
-      // horses.clear(); 
+      // Removed clearing to prevent flickering. Data will be replaced upon successful fetch.
+      // vendors.clear();
+      // horses.clear();
     }
 
     try {
