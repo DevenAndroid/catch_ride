@@ -426,6 +426,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         operationType: controller.shippingOperationType,
         rigCapacity: controller.shippingRigCapacity,
         equipmentSummary: controller.shippingEquipmentSummary,
+        additionalNotes: controller.shippingAdditionalNotes,
         dotNumber: controller.shippingDotNumber,
         hasCDL: controller.shippingHasCDL,
         businessName: controller.businessName,

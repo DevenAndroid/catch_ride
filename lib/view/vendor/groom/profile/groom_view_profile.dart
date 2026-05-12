@@ -462,6 +462,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         operationType: groomController.shippingOperationType,
         rigCapacity: groomController.shippingRigCapacity,
         equipmentSummary: groomController.shippingEquipmentSummary,
+        additionalNotes: groomController.shippingAdditionalNotes,
         dotNumber: groomController.shippingDotNumber,
         hasCDL: groomController.shippingHasCDL,
         businessName: groomController.shippingBusinessName,
