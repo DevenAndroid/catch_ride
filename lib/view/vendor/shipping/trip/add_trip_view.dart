@@ -79,7 +79,7 @@ class AddTripView extends StatelessWidget {
                         readOnly: true,
                         controller: TextEditingController(
                           text: (controller.rxStartDate.value != null && controller.rxEndDate.value != null)
-                              ? '${DateFormat('MMM dd').format(controller.rxStartDate.value!)} - ${DateFormat('MMM dd, yyyy').format(controller.rxEndDate.value!)}'
+                              ? '${DateFormat('MMMM d').format(controller.rxStartDate.value!)} - ${DateFormat('MMMM d, yyyy').format(controller.rxEndDate.value!)}'
                               : '',
                         ),
                         suffixIcon: const Icon(Icons.calendar_today_outlined, size: 20),

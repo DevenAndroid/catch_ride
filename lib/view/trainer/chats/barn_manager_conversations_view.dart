@@ -193,6 +193,6 @@ class _BarnManagerConversationsListViewState extends State<BarnManagerConversati
     final difference = now.difference(date);
     if (difference.inMinutes < 60) return '${difference.inMinutes}m';
     if (difference.inHours < 24) return '${difference.inHours}h';
-    return DateFormat('dd MMM').format(date);
+    return DateFormat('MMMM d').format(date);
   }
 }

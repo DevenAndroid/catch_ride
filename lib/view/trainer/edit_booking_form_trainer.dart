@@ -53,7 +53,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
     final iso = DateTime.tryParse(raw);
     if (iso != null) return iso;
     try {
-      return DateFormat('dd MMM yyyy').parse(raw);
+      return DateFormat('MMMM d, yyyy').parse(raw);
     } catch (_) {}
     try {
       return DateFormat('MMM d, yyyy').parse(raw);
@@ -115,7 +115,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
               end = DateTime.parse(s.endDate);
             } catch (_) {
               try {
-                end = DateFormat('dd MMM yyyy').parse(s.endDate);
+                end = DateFormat('MMMM d, yyyy').parse(s.endDate);
               } catch (_) {}
             }
             if (end == null) return true;
@@ -446,7 +446,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                             try {
                               final s = DateTime.parse(show.startDate);
                               final e = DateTime.parse(show.endDate);
-                              dateRange = '${DateFormat('MMM d').format(s)} - ${DateFormat('MMM d, yyyy').format(e)}';
+                              dateRange = '${DateFormat('MMMM d').format(s)} - ${DateFormat('MMMM d, yyyy').format(e)}';
                             } catch (_) {}
                             return DropdownMenuItem(
                               value: show.id,
@@ -497,7 +497,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
                         children: [
                           CommonText(
                             _selectedDate != null
-                                ? DateFormat('MMM d, yyyy').format(_selectedDate!)
+                                ? DateFormat('MMMM d, yyyy').format(_selectedDate!)
                                 : 'Select Date',
                             fontSize: 14,
                             color: _selectedDate != null ? AppColors.textPrimary : AppColors.textSecondary,

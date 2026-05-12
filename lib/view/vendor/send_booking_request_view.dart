@@ -131,8 +131,8 @@ class SendBookingRequestView extends StatelessWidget {
             // List already added services
             ...controller.bookedServices.map((booking) {
               final duration = (booking['endDate'] as DateTime).difference(booking['startDate'] as DateTime).inDays + 1;
-              final startDateStr = DateFormat('dd MMM').format(booking['startDate']);
-              final endDateStr = DateFormat('dd MMM yyyy').format(booking['endDate']);
+              final startDateStr = DateFormat('MMMM d').format(booking['startDate']);
+              final endDateStr = DateFormat('MMMM d, yyyy').format(booking['endDate']);
               
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -220,8 +220,8 @@ class SendBookingRequestView extends StatelessWidget {
 
   Widget _buildCurrentDraftSnippet(SendBookingRequestController controller, NumberFormat currencyFormat) {
      final duration = controller.endDate.value!.difference(controller.startDate.value!).inDays + 1;
-     final startDateStr = DateFormat('dd MMM').format(controller.startDate.value!);
-     final endDateStr = DateFormat('dd MMM yyyy').format(controller.endDate.value!);
+     final startDateStr = DateFormat('MMMM d').format(controller.startDate.value!);
+     final endDateStr = DateFormat('MMMM d, yyyy').format(controller.endDate.value!);
 
      return Container(
           padding: const EdgeInsets.all(16),
@@ -969,7 +969,7 @@ class SendBookingRequestView extends StatelessWidget {
           final endDate = controller.endDate.value;
           String displayDate = 'Select Date Range';
           if (startDate != null && endDate != null) {
-            displayDate = '${DateFormat('MM/dd/yyyy').format(startDate)} - ${DateFormat('MM/dd/yyyy').format(endDate)}';
+            displayDate = '${DateFormat('MMMM d, yyyy').format(startDate)} - ${DateFormat('MMMM d, yyyy').format(endDate)}';
           }
 
           return GestureDetector(
