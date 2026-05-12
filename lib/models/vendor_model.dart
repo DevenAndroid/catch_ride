@@ -3,14 +3,14 @@ class VendorModel {
   final String firstName;
   final String lastName;
   final String email;
-  final String? phone;
+  final dynamic phone;
   final String? profilePhoto;
   final String? coverImage;
   final String businessName;
   final String serviceType;
   final String? location;
   final String? bio;
-  final int? yearsExperience;
+  final dynamic yearsExperience;
   final double? rating;
   final String status;
   final List<VendorServiceItem> services;
@@ -38,16 +38,24 @@ class VendorModel {
   String get fullName => '$firstName $lastName';
 
   factory VendorModel.fromJson(Map<String, dynamic> json) {
+    // Handle serviceType which can be a String or a List<dynamic>
+    String parsedServiceType = '';
+    if (json['serviceType'] is List) {
+      parsedServiceType = (json['serviceType'] as List).join(', ');
+    } else {
+      parsedServiceType = json['serviceType']?.toString() ?? '';
+    }
+
     return VendorModel(
       id: json['_id'] ?? json['id'] ?? '',
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       email: json['email'] ?? '',
       phone: json['phone'],
-      profilePhoto: json['profilePhoto'],
-      coverImage: json['coverImage'],
+      profilePhoto: json['profilePhoto'] ?? json['profile'],
+      coverImage: json['coverImage'] ?? json['bannerImage'],
       businessName: json['businessName'] ?? '',
-      serviceType: json['serviceType'] ?? '',
+      serviceType: parsedServiceType,
       location:
       (json['location'] != null && json['location'].toString().trim().isNotEmpty)
           ? json['location']
@@ -57,12 +65,17 @@ class VendorModel {
           (json['city'] != null
               ? '${json['city']}${json['state'] != null ? ', ${json['state']}' : ''}'
               : null),
-      bio: json['bio'],
-      yearsExperience: json['yearsExperience'],
+      bio: json['bio'] ?? json['whyJoinOurCommunity'],
+      yearsExperience: json['yearsExperience'] ?? json['experience'],
       rating: (json['rating'] ?? 0).toDouble(),
       status: json['status'] ?? 'pending',
       services: (json['services'] as List? ?? [])
-          .map((e) => VendorServiceItem.fromJson(e))
+          .map((e) {
+            if (e is String) {
+              return VendorServiceItem(name: e);
+            }
+            return VendorServiceItem.fromJson(e as Map<String, dynamic>);
+          })
           .toList(),
       serviceAvailability: (json['serviceAvailability'] as List? ?? [])
           .map((e) => VendorAvailability.fromJson(e))
