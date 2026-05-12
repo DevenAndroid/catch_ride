@@ -2010,7 +2010,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     const SizedBox(height: 8),
                     _buildDateSelector(
                       startDate != null
-                          ? DateFormat('MMM d, yyyy').format(startDate!)
+                          ? DateFormat('MMMM d, yyyy').format(startDate!)
                           : 'Select Date',
                           () async {
                         if (selectedLocation == null) {

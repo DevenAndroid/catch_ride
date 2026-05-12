@@ -233,7 +233,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     
     try {
       parsedDate = DateTime.tryParse(targetDate);
-      parsedDate ??= DateFormat('dd MMM yyyy').parse(targetDate);
+      parsedDate ??= DateFormat('MMMM d, yyyy').parse(targetDate);
     } catch (_) {
       try {
         parsedDate = DateFormat('yyyy-MM-dd').parse(targetDate);
@@ -2241,7 +2241,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
               const SizedBox(height: 8),
               _buildDateSelector(
                 startDate != null
-                    ? DateFormat('dd MMM yyyy').format(startDate!)
+                    ? DateFormat('MMMM d, yyyy').format(startDate!)
                     : 'Select Date',
                 () async {
                   if (selectedLocation == null) {

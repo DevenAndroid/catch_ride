@@ -13,7 +13,7 @@ class ShippingTripCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dates = trip.startDate != null && trip.endDate != null
-        ? '${DateFormat('MMM dd').format(trip.startDate!)} - ${DateFormat('MMM dd, yyyy').format(trip.endDate!)}'
+        ? '${DateFormat('MMMM d').format(trip.startDate!)} - ${DateFormat('MMMM d, yyyy').format(trip.endDate!)}'
         : 'N/A';
 
     return Container(

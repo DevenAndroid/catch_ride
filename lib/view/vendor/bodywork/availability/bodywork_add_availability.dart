@@ -14,13 +14,17 @@ class BodyworkAddAvailabilityView extends StatefulWidget {
   const BodyworkAddAvailabilityView({super.key});
 
   @override
-  State<BodyworkAddAvailabilityView> createState() => _BodyworkAddAvailabilityViewState();
+  State<BodyworkAddAvailabilityView> createState() =>
+      _BodyworkAddAvailabilityViewState();
 }
 
-class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityView> {
+class _BodyworkAddAvailabilityViewState
+    extends State<BodyworkAddAvailabilityView> {
   final controller = Get.put(VendorAvailabilityController());
   final profileController = Get.put(ProfileController());
-  final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
+  final GroomViewProfileController groomController = Get.put(
+    GroomViewProfileController(),
+  );
 
   final RxBool _isSubmitting = false.obs;
   VendorAvailabilityModel? _editingBlock;
@@ -36,7 +40,11 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
   final RxString _bufferTime = '15 min'.obs;
   final _notesController = TextEditingController();
 
-  final List<String> _timeWindowOptions = ['Full Day', 'Morning window', 'Afternoon window'];
+  final List<String> _timeWindowOptions = [
+    'Full Day',
+    'Morning window',
+    'Afternoon window',
+  ];
   final List<String> _locationTypeOptions = ['Both', 'Barn', 'Show Venue'];
   final List<String> _bufferOptions = ['15 min', '30 min', '45 min'];
 
@@ -57,7 +65,7 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     _notesController.text = _editingBlock!.notes ?? '';
     _dailyCapacity.value = _editingBlock!.maxBookings;
     _selectedVenues.assignAll(List<String>.from(_editingBlock!.showVenues));
-    
+
     _timeWindow.value = _editingBlock!.timeBlockType ?? 'Full Day';
     _locationType.value = _editingBlock!.locationType ?? 'Both';
     _bufferTime.value = _editingBlock!.bufferTime ?? '15 min';
@@ -94,12 +102,22 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
 
   void _submit() async {
     if (_startDate == null || _endDate == null) {
-      Get.snackbar('Error', 'Please select start and end dates', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please select start and end dates',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
 
     if (_selectedVenues.isEmpty) {
-      Get.snackbar('Error', 'Please add at least one venue or city', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please add at least one venue or city',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -112,7 +130,12 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
       final String? userId = user.id;
 
       if (vendorId == null || userId == null) {
-        Get.snackbar('Error', 'Vendor profile not found', backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          'Vendor profile not found',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
 
@@ -142,7 +165,14 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
       }
       groomController.fetchProfile();
       Get.back();
-      Get.snackbar('Success', _editingBlock != null ? 'Availability block updated' : 'Availability block created', backgroundColor: Colors.green, colorText: Colors.white);
+      Get.snackbar(
+        'Success',
+        _editingBlock != null
+            ? 'Availability block updated'
+            : 'Availability block created',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
     } catch (e) {
       debugPrint('Error creating/updating availability block: $e');
     } finally {
@@ -161,7 +191,11 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
         //   icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
         //   onPressed: () => Get.back(),
         // ),
-        title: const CommonText('Add Availability Block', fontSize: 18, fontWeight: FontWeight.bold),
+        title: const CommonText(
+          'Add Availability Block',
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
@@ -186,21 +220,37 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-               CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+                  CommonText(
+                    _editingBlock != null ? 'Edit Block' : 'Block 1',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
               _buildDateSection(),
               const SizedBox(height: 24),
-              _buildDropdownField('Time window', _timeWindow, _timeWindowOptions),
+              _buildDropdownField(
+                'Time window',
+                _timeWindow,
+                _timeWindowOptions,
+              ),
               const SizedBox(height: 24),
-              _buildDropdownField('Location Type', _locationType, _locationTypeOptions),
+              _buildDropdownField(
+                'Location Type',
+                _locationType,
+                _locationTypeOptions,
+              ),
               const SizedBox(height: 24),
               _buildVenueSection(),
               const SizedBox(height: 24),
               _buildCounter('Daily Session Capacity', _dailyCapacity),
               const SizedBox(height: 24),
-              _buildDropdownField('Buffer Between Sessions', _bufferTime, _bufferOptions),
+              _buildDropdownField(
+                'Buffer Between Sessions',
+                _bufferTime,
+                _bufferOptions,
+              ),
               const SizedBox(height: 24),
               _buildNotesSection(),
             ],
@@ -215,7 +265,12 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Availability', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF344054)),
+        const CommonText(
+          'Availability',
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF344054),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: () => _selectDate(context),
@@ -231,12 +286,18 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               children: [
                 CommonText(
                   (_startDate != null && _endDate != null)
-                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      ? '${DateFormat('MMMM d').format(_startDate!)} - ${DateFormat('MMMM d, yyyy').format(_endDate!)}'
                       : 'Select Date Range',
                   fontSize: 14,
-                  color: _startDate != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
+                  color: _startDate != null
+                      ? const Color(0xFF344054)
+                      : const Color(0xFF98A2B3),
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: Color(0xFF667085),
+                ),
               ],
             ),
           ),
@@ -245,11 +306,20 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     );
   }
 
-  Widget _buildDatePickerField(String label, DateTime? date, VoidCallback onTap) {
+  Widget _buildDatePickerField(
+    String label,
+    DateTime? date,
+    VoidCallback onTap,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+        CommonText(
+          label,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF344054),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: onTap,
@@ -264,11 +334,19 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CommonText(
-                  date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select date',
+                  date != null
+                      ? DateFormat('MMMM d, yyyy').format(date)
+                      : 'Select date',
                   fontSize: 14,
-                  color: date != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
+                  color: date != null
+                      ? const Color(0xFF344054)
+                      : const Color(0xFF98A2B3),
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: Color(0xFF667085),
+                ),
               ],
             ),
           ),
@@ -277,36 +355,54 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     );
   }
 
-  Widget _buildDropdownField(String label, RxString value, List<String> options) {
+  Widget _buildDropdownField(
+    String label,
+    RxString value,
+    List<String> options,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+        CommonText(
+          label,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF344054),
+        ),
         const SizedBox(height: 8),
-        Obx(() => Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFD0D5DD)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value.value,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF667085)),
-              items: options.map((String opt) {
-                return DropdownMenuItem<String>(
-                  value: opt,
-                  child: CommonText(opt, fontSize: 14, color: const Color(0xFF344054)),
-                );
-              }).toList(),
-              onChanged: (String? newVal) {
-                if (newVal != null) value.value = newVal;
-              },
+        Obx(
+          () => Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFD0D5DD)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value.value,
+                isExpanded: true,
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Color(0xFF667085),
+                ),
+                items: options.map((String opt) {
+                  return DropdownMenuItem<String>(
+                    value: opt,
+                    child: CommonText(
+                      opt,
+                      fontSize: 14,
+                      color: const Color(0xFF344054),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newVal) {
+                  if (newVal != null) value.value = newVal;
+                },
+              ),
             ),
           ),
-        )),
+        ),
       ],
     );
   }
@@ -315,7 +411,12 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Show Venue or City', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF344054)),
+        const CommonText(
+          'Show Venue or City',
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF344054),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: _venueSearchController,
@@ -324,7 +425,10 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
           decoration: InputDecoration(
             hintText: 'Enter Show Venue or City',
             hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
@@ -336,47 +440,71 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
           ),
         ),
         const SizedBox(height: 12),
-        Obx(() => Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _selectedVenues.map((v) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F8FF),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primaryDark),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(child: CommonText(v, fontSize: 13, color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _selectedVenues.remove(v),
-                  child: const Icon(Icons.close, size: 14, color: Color(0xFF667085)),
-                ),
-              ],
-            ),
-          )).toList(),
-        )),
+        Obx(
+          () => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedVenues
+                .map(
+                  (v) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F8FF),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.primaryDark),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: CommonText(
+                            v,
+                            fontSize: 13,
+                            color: AppColors.primaryDark,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () => _selectedVenues.remove(v),
+                          child: const Icon(
+                            Icons.close,
+                            size: 14,
+                            color: Color(0xFF667085),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
       ],
     );
   }
 
   void _showVenueSelectionSheet() {
     final searchController = TextEditingController();
-    
+
     // Deduplicate venues by display name before showing the list
     final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
-      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-      if (seenNames.contains(name)) return false;
-      seenNames.add(name);
-      return true;
-    }).toList();
+    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows
+        .where((v) {
+          final name =
+              v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+          if (seenNames.contains(name)) return false;
+          seenNames.add(name);
+          return true;
+        })
+        .toList();
 
-    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
-    
+    final RxList<Map<String, dynamic>> filteredVenues =
+        RxList<Map<String, dynamic>>(allVenues);
+
     Get.bottomSheet(
       Container(
         height: Get.height * 0.85,
@@ -390,7 +518,11 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
+                const CommonText(
+                  'Select Venues',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -399,46 +531,61 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               decoration: InputDecoration(
                 hintText: 'Search venues or city...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onChanged: (val) {
                 final search = val.toLowerCase();
-                filteredVenues.assignAll(allVenues.where((v) {
-                  final name = v['name']?.toString().toLowerCase() ?? '';
-                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
-                  final city = v['city']?.toString().toLowerCase() ?? '';
-                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
-                }).toList());
+                filteredVenues.assignAll(
+                  allVenues.where((v) {
+                    final name = v['name']?.toString().toLowerCase() ?? '';
+                    final showVenue =
+                        v['showVenue']?.toString().toLowerCase() ?? '';
+                    final city = v['city']?.toString().toLowerCase() ?? '';
+                    return name.contains(search) ||
+                        showVenue.contains(search) ||
+                        city.contains(search);
+                  }).toList(),
+                );
               },
             ),
             const SizedBox(height: 20),
             Expanded(
-              child: Obx(() => ListView.builder(
-                itemCount: filteredVenues.length,
-                itemBuilder: (context, index) {
-                  final venueItem = filteredVenues[index];
-                  // Prioritize 'showVenue' key as requested, then 'name'
-                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
-                  final city = venueItem['city']?.toString() ?? '';
-                  
-                  return Obx(() {
-                    final isSelected = _selectedVenues.contains(venueName);
-                    return CheckboxListTile(
-                      value: isSelected,
-                      onChanged: (selected) {
-                        if (selected == true) {
-                          if (!_selectedVenues.contains(venueName)) _selectedVenues.add(venueName);
-                        } else {
-                          _selectedVenues.remove(venueName);
-                        }
-                      },
-                      title: CommonText(venueName),
-                      subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
-                      activeColor: AppColors.primaryDark,
-                    );
-                  });
-                },
-              )),
+              child: Obx(
+                () => ListView.builder(
+                  itemCount: filteredVenues.length,
+                  itemBuilder: (context, index) {
+                    final venueItem = filteredVenues[index];
+                    // Prioritize 'showVenue' key as requested, then 'name'
+                    final venueName =
+                        venueItem['showVenue']?.toString() ??
+                        venueItem['name']?.toString() ??
+                        'Unknown';
+                    final city = venueItem['city']?.toString() ?? '';
+
+                    return Obx(() {
+                      final isSelected = _selectedVenues.contains(venueName);
+                      return CheckboxListTile(
+                        value: isSelected,
+                        onChanged: (selected) {
+                          if (selected == true) {
+                            if (!_selectedVenues.contains(venueName))
+                              _selectedVenues.add(venueName);
+                          } else {
+                            _selectedVenues.remove(venueName);
+                          }
+                        },
+                        title: CommonText(venueName),
+                        subtitle: city.isNotEmpty
+                            ? CommonText(city, fontSize: 12, color: Colors.grey)
+                            : null,
+                        activeColor: AppColors.primaryDark,
+                      );
+                    });
+                  },
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -448,9 +595,16 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
                 onPressed: () => Get.back(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryDark,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const CommonText('Done', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                child: const CommonText(
+                  'Done',
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -464,7 +618,12 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+        CommonText(
+          label,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF344054),
+        ),
         const SizedBox(height: 12),
         Container(
           height: 52,
@@ -477,7 +636,9 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: () { if (count.value > 0) count.value--; },
+                onTap: () {
+                  if (count.value > 0) count.value--;
+                },
                 child: Container(
                   width: 36,
                   height: 36,
@@ -485,10 +646,20 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
                     color: const Color(0xFFF2F4F7),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.remove, size: 16, color: Color(0xFF667085)),
+                  child: const Icon(
+                    Icons.remove,
+                    size: 16,
+                    color: Color(0xFF667085),
+                  ),
                 ),
               ),
-              Obx(() => CommonText('${count.value}', fontSize: 18, color: const Color(0xFF344054))),
+              Obx(
+                () => CommonText(
+                  '${count.value}',
+                  fontSize: 18,
+                  color: const Color(0xFF344054),
+                ),
+              ),
               GestureDetector(
                 onTap: () => count.value++,
                 child: Container(
@@ -498,7 +669,11 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
                     color: const Color(0xFFF2F4F7),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.add, size: 16, color: Color(0xFF667085)),
+                  child: const Icon(
+                    Icons.add,
+                    size: 16,
+                    color: Color(0xFF667085),
+                  ),
                 ),
               ),
             ],
@@ -512,17 +687,26 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText('Notes For Trainers (optional)', fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF344054)),
+        const CommonText(
+          'Notes For Trainers (optional)',
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF344054),
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _notesController,
           maxLines: 4,
           decoration: InputDecoration(
-            hintText: 'Any specific preference, requirements, or information trainers should know...',
+            hintText:
+                'Any specific preference, requirements, or information trainers should know...',
             hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
             fillColor: const Color(0xFFF9FAFB),
             filled: true,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
@@ -545,25 +729,48 @@ class _BodyworkAddAvailabilityViewState extends State<BodyworkAddAvailabilityVie
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFFEAECF0)),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 backgroundColor: Colors.white,
               ),
-              child: const CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              child: const CommonText(
+                'Cancel',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Obx(() => ElevatedButton(
-              onPressed: _isSubmitting.value ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF000B3D),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Obx(
+              () => ElevatedButton(
+                onPressed: _isSubmitting.value ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF000B3D),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSubmitting.value
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : CommonText(
+                        _editingBlock != null ? 'Save Changes' : 'Add Block',
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
               ),
-              child: _isSubmitting.value
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : CommonText(_editingBlock != null ? 'Save Changes' : 'Add Block', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-            )),
+            ),
           ),
         ],
       ),

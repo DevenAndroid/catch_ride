@@ -124,7 +124,7 @@ class BodyworkDetailsView extends StatelessWidget {
                           _buildSectionHeader('Expiration date', isRequired: true),
                           _buildDatePickerTrigger(
                             value: controller.expirationDate.value != null
-                                ? DateFormat('dd MMM yyyy').format(controller.expirationDate.value!)
+                                ? DateFormat('MMMM d, yyyy').format(controller.expirationDate.value!)
                                 : 'Select date',
                             onTap: () => controller.selectExpirationDate(context),
                           ),

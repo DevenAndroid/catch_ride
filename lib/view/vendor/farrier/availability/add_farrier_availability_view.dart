@@ -229,7 +229,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
               children: [
                 CommonText(
                   (_startDate != null && _endDate != null)
-                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      ? '${DateFormat('MMMM d, yyyy').format(_startDate!)} - ${DateFormat('MMMM d, yyyy').format(_endDate!)}'
                       : 'Select Date Range',
                   fontSize: 14,
                   color: _startDate != null ? AppColors.textPrimary : Colors.grey,
@@ -258,7 +258,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CommonText(date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select date', fontSize: 14, color: date != null ? AppColors.textPrimary : Colors.grey),
+                CommonText(date != null ? DateFormat('MMMM d, yyyy').format(date) : 'Select date', fontSize: 14, color: date != null ? AppColors.textPrimary : Colors.grey),
                 const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
               ],
             ),

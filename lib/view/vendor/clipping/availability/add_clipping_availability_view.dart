@@ -643,7 +643,7 @@ groomController.fetchProfile();
               children: [
                 CommonText(
                   (_startDate != null && _endDate != null)
-                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      ? '${DateFormat('MMMM d, yyyy').format(_startDate!)} - ${DateFormat('MMMM d, yyyy').format(_endDate!)}'
                       : 'Select Date Range',
                   fontSize: 14,
                   color: _startDate != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
@@ -676,7 +676,7 @@ groomController.fetchProfile();
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CommonText(
-                  date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select date',
+                  date != null ? DateFormat('MMMM d, yyyy').format(date) : 'Select date',
                   fontSize: 14,
                   color: date != null ? const Color(0xFF344054) : const Color(0xFF98A2B3),
                 ),

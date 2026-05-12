@@ -1219,7 +1219,7 @@
 //               const SizedBox(height: 8),
 //               _buildDateSelector(
 //                 startDate != null
-//                     ? DateFormat('dd MMM yyyy').format(startDate!)
+//                     ? DateFormat('MMMM d, yyyy').format(startDate!)
 //                     : 'Select Date',
 //                 () async {
 //                   final date = await showDatePicker(

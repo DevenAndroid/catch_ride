@@ -51,7 +51,7 @@ class _OperationsAndComplianceViewState
         if (insurance.expirationDate != null) {
           final date = insurance.expirationDate!;
           _expirationDateController.text =
-              "${date.day}/${date.month}/${date.year}";
+              DateFormat('MMMM d, yyyy').format(date);
         }
         _uploadedDocumentUrl = insurance.documentUrl;
       }
@@ -86,7 +86,7 @@ class _OperationsAndComplianceViewState
       DateTime? expiry;
       if (_expirationDateController.text.isNotEmpty) {
         try {
-          expiry = DateFormat('d/M/y').parse(_expirationDateController.text);
+          expiry = DateFormat('MMMM d, yyyy').parse(_expirationDateController.text);
         } catch (e) {
           _expirationDateController.text = "";
         }
@@ -349,7 +349,7 @@ class _OperationsAndComplianceViewState
                           if (date != null) {
                             setState(() {
                               _expirationDateController.text =
-                                  "${date.day}/${date.month}/${date.year}";
+                                  DateFormat('MMMM d, yyyy').format(date);
                             });
                           }
                         },

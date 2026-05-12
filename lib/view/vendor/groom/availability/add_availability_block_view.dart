@@ -15,14 +15,17 @@ class AddAvailabilityBlockView extends StatefulWidget {
   const AddAvailabilityBlockView({super.key});
 
   @override
-  State<AddAvailabilityBlockView> createState() => _AddAvailabilityBlockViewState();
+  State<AddAvailabilityBlockView> createState() =>
+      _AddAvailabilityBlockViewState();
 }
 
 class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   final controller = Get.put(VendorAvailabilityController());
   final profileController = Get.put(ProfileController());
   final googleApiController = Get.put(GoogleApiController());
-  final GroomViewProfileController groomController = Get.put(GroomViewProfileController());
+  final GroomViewProfileController groomController = Get.put(
+    GroomViewProfileController(),
+  );
 
   late int _categoryIndex;
   late String _categoryName;
@@ -33,21 +36,25 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   void initState() {
     super.initState();
     final args = Get.arguments;
-    
+
     // Initialize category first to prevent LateInitializationError
     if (args is Map) {
       _categoryIndex = args['categoryIndex'] ?? 0;
     } else {
       _categoryIndex = args ?? 0;
     }
-    _categoryName = _categoryIndex == 0 ? 'Grooming' : (_categoryIndex == 1 ? 'Braiding' : (_categoryIndex == 2 ? 'Clipping' : 'Bodywork'));
+    _categoryName = _categoryIndex == 0
+        ? 'Grooming'
+        : (_categoryIndex == 1
+              ? 'Braiding'
+              : (_categoryIndex == 2 ? 'Clipping' : 'Bodywork'));
 
     // Now handle pre-filling if editing
     if (args is Map && args['block'] is VendorAvailabilityModel) {
       _editingBlock = args['block'];
       _preFillForm();
     }
-    
+
     // Auto-select the category itself in serviceTypes if not editing
     if (_editingBlock == null) {
       _selectedServiceTypes.add(_categoryName);
@@ -59,15 +66,15 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     _startDate = _editingBlock!.startDate;
     _endDate = _editingBlock!.endDate;
     _notesController.text = _editingBlock!.notes ?? '';
-    
+
     // Explicitly set non-reactive fields immediately
     _maxHorses.value = _editingBlock!.maxBookings;
-    _maxDays.value = 12; 
+    _maxDays.value = 12;
 
     // Clipping specific pre-filling
     _unStart = _editingBlock!.unavailableStart;
     _unEnd = _editingBlock!.unavailableEnd;
-    
+
     if (_editingBlock!.locationType != null) {
       _locationType.value = _editingBlock!.locationType!;
     }
@@ -84,15 +91,15 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     // Use a slight delay to ensure UI systems are fully hooked up
     Future.delayed(const Duration(milliseconds: 100), () {
       if (!mounted) return;
-      
+
       setState(() {
         _addedVenues.clear();
-        
+
         // 1. Check primary field: showVenues (list)
         if (_editingBlock!.showVenues.isNotEmpty) {
           _addedVenues.assignAll(List<String>.from(_editingBlock!.showVenues));
-        } 
-        
+        }
+
         // 2. Check fallback: location.city (if legacy data)
         if (_addedVenues.isEmpty && _editingBlock!.location != null) {
           final city = _editingBlock!.location!.city;
@@ -103,8 +110,12 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         _selectedWorkTypes.clear();
         _selectedServiceTypes.clear();
         for (var s in _editingBlock!.serviceTypes) {
-          if (s == 'Grooming' || s == 'Braiding' || s == 'Clipping' || s == 'Bodywork') continue;
-          
+          if (s == 'Grooming' ||
+              s == 'Braiding' ||
+              s == 'Clipping' ||
+              s == 'Bodywork')
+            continue;
+
           if (_availableWorkTypes.contains(s)) {
             _selectedWorkTypes.add(s);
           } else {
@@ -112,7 +123,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
           }
         }
       });
-      
+
       _addedVenues.refresh();
       _selectedWorkTypes.refresh();
       _selectedServiceTypes.refresh();
@@ -141,11 +152,23 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   final RxString _bufferTime = '15 min'.obs;
 
   List<String> get _availableWorkTypes {
-    return ['Show week support', 'Daily barn help', 'Fill In/ daily show support', 'Seasonal / Temporary'];
+    return [
+      'Show week support',
+      'Daily barn help',
+      'Fill In/ daily show support',
+      'Seasonal / Temporary',
+    ];
   }
 
   List<String> get _availableServiceTypes {
-    return ['Hunter Mane + Tail', 'Hunter Tail Only',"Fullbody Clip","Hunter Clip","Trace Clip","Custom Clip"];
+    return [
+      'Hunter Mane + Tail',
+      'Hunter Tail Only',
+      "Fullbody Clip",
+      "Hunter Clip",
+      "Trace Clip",
+      "Custom Clip",
+    ];
   }
 
   final RxList<String> _selectedWorkTypes = <String>[].obs;
@@ -182,13 +205,23 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
   void _submit() async {
     if (_startDate == null || _endDate == null) {
-      Get.snackbar('Error', 'Please select start and end dates', backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        'Error',
+        'Please select start and end dates',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return;
     }
 
     if (_addedVenues.isEmpty) {
-       Get.snackbar('Error', 'Please add at least one venue', backgroundColor: Colors.red, colorText: Colors.white);
-       return;
+      Get.snackbar(
+        'Error',
+        'Please add at least one venue',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
     }
 
     _isSubmitting.value = true;
@@ -200,7 +233,12 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       final String? userId = user.id;
 
       if (vendorId == null || userId == null) {
-        Get.snackbar('Error', 'Vendor profile not found', backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          'Error',
+          'Vendor profile not found',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
 
@@ -243,7 +281,14 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       }
       groomController.fetchProfile();
       Get.back();
-      Get.snackbar('Success', _editingBlock != null ? 'Availability block updated' : 'Availability block created', backgroundColor: Colors.green, colorText: Colors.white);
+      Get.snackbar(
+        'Success',
+        _editingBlock != null
+            ? 'Availability block updated'
+            : 'Availability block created',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
     } catch (e) {
       debugPrint('Error creating/updating availability block: $e');
     } finally {
@@ -259,16 +304,26 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.black,
+            size: 20,
+          ),
           onPressed: () => Get.back(),
         ),
         title: _editingBlock != null
-            ? Obx(() => CommonText(
-                'Edit Block (DB:${_editingBlock!.showVenues.length}|UI:${_addedVenues.length})',
+            ? Obx(
+                () => CommonText(
+                  'Edit Block (DB:${_editingBlock!.showVenues.length}|UI:${_addedVenues.length})',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : const CommonText(
+                'Add Availability Block',
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-              ))
-            : const CommonText('Add Availability Block', fontSize: 16, fontWeight: FontWeight.bold),
+              ),
         // actions: [
         //   IconButton(
         //     icon: const Icon(Icons.close, color: AppColors.textPrimary),
@@ -299,7 +354,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+                    CommonText(
+                      _editingBlock != null ? 'Edit Block' : 'Block 1',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -308,11 +367,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 if (_categoryName == 'Bodywork') ...[
                   _buildSectionHeader('Time window'),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning window', 'Afternoon window']),
+                  _buildDropdownField('Full Day', _availabilityType, [
+                    'Full Day',
+                    'Morning window',
+                    'Afternoon window',
+                  ]),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Location Type'),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
+                  _buildDropdownField('Select a Location Type', _locationType, [
+                    'Both',
+                    'Barn',
+                    'Show Venue',
+                  ]),
                   const SizedBox(height: 24),
                   _buildVenueSection(),
                   const SizedBox(height: 24),
@@ -322,11 +389,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   const SizedBox(height: 24),
                   _buildSectionHeader('Buffer Between Sessions'),
                   const SizedBox(height: 8),
-                  _buildDropdownField('15 min', _bufferTime, ['15 min', '30 min', '45 min']),
+                  _buildDropdownField('15 min', _bufferTime, [
+                    '15 min',
+                    '30 min',
+                    '45 min',
+                  ]),
                 ] else if (_categoryName == 'Clipping') ...[
                   _buildSectionHeader('Location Type'),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Select a Location Type', _locationType, ['Both', 'Barn', 'Show Venue']),
+                  _buildDropdownField('Select a Location Type', _locationType, [
+                    'Both',
+                    'Barn',
+                    'Show Venue',
+                  ]),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Black out days'),
                   const SizedBox(height: 12),
@@ -336,16 +411,33 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   const SizedBox(height: 24),
                   _buildSectionHeader('Time Block & Capacity'),
                   const SizedBox(height: 12),
-                  const CommonText('Availability Type', fontSize: 13, fontWeight: FontWeight.bold),
+                  const CommonText(
+                    'Availability Type',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Full Day', _availabilityType, ['Full Day', 'Morning window', 'Afternoon window']),
+                  _buildDropdownField('Full Day', _availabilityType, [
+                    'Full Day',
+                    'Morning window',
+                    'Afternoon window',
+                  ]),
                   const SizedBox(height: 16),
-                  const CommonText('Capacity', fontSize: 13, fontWeight: FontWeight.bold),
+                  const CommonText(
+                    'Capacity',
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                   const SizedBox(height: 8),
-                  _buildDropdownField('Max horses per day', _capacityType, ['No capacity limit', 'Max horses per time block', 'Max horses per day']),
+                  _buildDropdownField('Max horses per day', _capacityType, [
+                    'No capacity limit',
+                    'Max horses per time block',
+                    'Max horses per day',
+                  ]),
                   const SizedBox(height: 16),
                   _buildCapacitySection(),
-                ] else if (_categoryName == 'Grooming' || _categoryName == 'Braiding') ...[
+                ] else if (_categoryName == 'Grooming' ||
+                    _categoryName == 'Braiding') ...[
                   _buildVenueSection(),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Work Type'),
@@ -354,7 +446,10 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   const SizedBox(height: 24),
                   _buildSectionHeader('Additional Services'),
                   const SizedBox(height: 12),
-                  _buildSelectionWrap(_availableServiceTypes, _selectedServiceTypes),
+                  _buildSelectionWrap(
+                    _availableServiceTypes,
+                    _selectedServiceTypes,
+                  ),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Capacity (optional)'),
                   const SizedBox(height: 12),
@@ -379,14 +474,23 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const CommonText('Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+          const CommonText(
+            'Block 1',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ],
       ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
-    return CommonText(title, fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+    return CommonText(
+      title,
+      fontSize: 14,
+      fontWeight: FontWeight.bold,
+      color: AppColors.textPrimary,
+    );
   }
 
   Widget _buildDateSection() {
@@ -409,12 +513,18 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               children: [
                 CommonText(
                   (_startDate != null && _endDate != null)
-                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      ? '${DateFormat('MMMM d, yyyy').format(_startDate!)} - ${DateFormat('MMMM d, yyyy').format(_endDate!)}'
                       : 'Select Date Range',
                   fontSize: 14,
-                  color: _startDate != null ? AppColors.textPrimary : const Color(0xFF667085),
+                  color: _startDate != null
+                      ? AppColors.textPrimary
+                      : const Color(0xFF667085),
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: Color(0xFF667085),
+                ),
               ],
             ),
           ),
@@ -427,7 +537,12 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+        CommonText(
+          label,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF344054),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: onTap,
@@ -442,11 +557,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CommonText(
-                  date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select Date',
+                  date != null
+                      ? DateFormat('MMMM d, yyyy').format(date)
+                      : 'Select Date',
                   fontSize: 14,
-                  color: date != null ? AppColors.textPrimary : const Color(0xFF667085),
+                  color: date != null
+                      ? AppColors.textPrimary
+                      : const Color(0xFF667085),
                 ),
-                const Icon(Icons.calendar_today_outlined, size: 18, color: Color(0xFF667085)),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: Color(0xFF667085),
+                ),
               ],
             ),
           ),
@@ -471,9 +594,16 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
             prefixIcon: null,
             suffixIcon: GestureDetector(
               onTap: _showVenueSelectionSheet,
-              child: const Icon(Icons.search, size: 20, color: Color(0xFF667085)),
+              child: const Icon(
+                Icons.search,
+                size: 20,
+                color: Color(0xFF667085),
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
@@ -495,25 +625,43 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
             child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _addedVenues.map((v) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF2F4F7), 
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFEAECF0)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(child: CommonText(v, fontSize: 13, color: AppColors.textPrimary, overflow: TextOverflow.ellipsis)),
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () => _addedVenues.remove(v),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF98A2B3)),
+              children: _addedVenues
+                  .map(
+                    (v) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F4F7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFEAECF0)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: CommonText(
+                              v,
+                              fontSize: 13,
+                              color: AppColors.textPrimary,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () => _addedVenues.remove(v),
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Color(0xFF98A2B3),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              )).toList(),
+                  )
+                  .toList(),
             ),
           );
         }),
@@ -524,27 +672,39 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   void _showVenueSelectionSheet() {
     final searchController = TextEditingController();
     final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
-      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-      if (seenNames.contains(name)) return false;
-      seenNames.add(name);
-      return true;
-    }).toList();
+    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows
+        .where((v) {
+          final name =
+              v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+          if (seenNames.contains(name)) return false;
+          seenNames.add(name);
+          return true;
+        })
+        .toList();
 
-    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
-    final RxList<dynamic> googleSuggestions = googleApiController.googleSuggestions;
-    
+    final RxList<Map<String, dynamic>> filteredVenues =
+        RxList<Map<String, dynamic>>(allVenues);
+    final RxList<dynamic> googleSuggestions =
+        googleApiController.googleSuggestions;
+
     Get.bottomSheet(
       Container(
         height: Get.height * 0.85,
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText('Select Venue or City', fontSize: 18, fontWeight: FontWeight.bold),
+                const CommonText(
+                  'Select Venue or City',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -553,18 +713,25 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               decoration: InputDecoration(
                 hintText: 'Search venues or city...',
                 prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onChanged: (val) {
                 final search = val.toLowerCase();
-                
+
                 // Search in local venues
-                filteredVenues.assignAll(allVenues.where((v) {
-                  final name = v['name']?.toString().toLowerCase() ?? '';
-                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
-                  final city = v['city']?.toString().toLowerCase() ?? '';
-                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
-                }).toList());
+                filteredVenues.assignAll(
+                  allVenues.where((v) {
+                    final name = v['name']?.toString().toLowerCase() ?? '';
+                    final showVenue =
+                        v['showVenue']?.toString().toLowerCase() ?? '';
+                    final city = v['city']?.toString().toLowerCase() ?? '';
+                    return name.contains(search) ||
+                        showVenue.contains(search) ||
+                        city.contains(search);
+                  }).toList(),
+                );
 
                 // Search in Google Places for cities
                 if (val.length > 2) {
@@ -582,13 +749,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   children: [
                     // Google Suggestions (Cities)
                     Obx(() {
-                      if (googleSuggestions.isEmpty) return const SizedBox.shrink();
+                      if (googleSuggestions.isEmpty)
+                        return const SizedBox.shrink();
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Padding(
                             padding: EdgeInsets.only(left: 16, bottom: 8),
-                            child: CommonText('Cities', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                            child: CommonText(
+                              'Cities',
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
                           ),
                           ...googleSuggestions.map((g) {
                             final name = g['name'] ?? '';
@@ -598,7 +771,8 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                                 value: isSelected,
                                 onChanged: (selected) {
                                   if (selected == true) {
-                                    if (!_addedVenues.contains(name)) _addedVenues.add(name);
+                                    if (!_addedVenues.contains(name))
+                                      _addedVenues.add(name);
                                   } else {
                                     _addedVenues.remove(name);
                                   }
@@ -616,34 +790,53 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                     // Local Venues
                     Obx(() {
                       if (filteredVenues.isEmpty) {
-                        return const Center(child: Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: CommonText('No venues found'),
-                        ));
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: CommonText('No venues found'),
+                          ),
+                        );
                       }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Padding(
                             padding: EdgeInsets.only(left: 16, bottom: 8),
-                            child: CommonText('Venues', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+                            child: CommonText(
+                              'Venues',
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
                           ),
                           ...filteredVenues.map((venueItem) {
-                            final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
+                            final venueName =
+                                venueItem['showVenue']?.toString() ??
+                                venueItem['name']?.toString() ??
+                                'Unknown';
                             final city = venueItem['city']?.toString() ?? '';
                             return Obx(() {
-                              final isSelected = _addedVenues.contains(venueName);
+                              final isSelected = _addedVenues.contains(
+                                venueName,
+                              );
                               return CheckboxListTile(
                                 value: isSelected,
                                 onChanged: (selected) {
                                   if (selected == true) {
-                                    if (!_addedVenues.contains(venueName)) _addedVenues.add(venueName);
+                                    if (!_addedVenues.contains(venueName))
+                                      _addedVenues.add(venueName);
                                   } else {
                                     _addedVenues.remove(venueName);
                                   }
                                 },
                                 title: CommonText(venueName),
-                                subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
+                                subtitle: city.isNotEmpty
+                                    ? CommonText(
+                                        city,
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      )
+                                    : null,
                                 activeColor: const Color(0xFF030D3B),
                               );
                             });
@@ -663,9 +856,16 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 onPressed: () => Get.back(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF030D3B),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: const CommonText('Done', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                child: const CommonText(
+                  'Done',
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -676,35 +876,41 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   }
 
   Widget _buildSelectionWrap(List<String> items, RxList<String> selectionList) {
-    return Obx(() => Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: items.map((t) {
-        final isSelected = selectionList.contains(t);
-        return InkWell(
-          onTap: () {
-            isSelected ? selectionList.remove(t) : selectionList.add(t);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isSelected ? AppColors.primaryDark : const Color(0xFFD0D5DD), 
-                width: 1
+    return Obx(
+      () => Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: items.map((t) {
+          final isSelected = selectionList.contains(t);
+          return InkWell(
+            onTap: () {
+              isSelected ? selectionList.remove(t) : selectionList.add(t);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primaryDark
+                      : const Color(0xFFD0D5DD),
+                  width: 1,
+                ),
+              ),
+              child: CommonText(
+                t,
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? AppColors.primaryDark
+                    : const Color(0xFF344054),
               ),
             ),
-            child: CommonText(
-              t,
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              color: isSelected ? AppColors.primaryDark : const Color(0xFF344054),
-            ),
-          ),
-        );
-      }).toList(),
-    ));
+          );
+        }).toList(),
+      ),
+    );
   }
 
   Widget _buildCapacitySection() {
@@ -721,7 +927,12 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF344054)),
+        CommonText(
+          label,
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: const Color(0xFF344054),
+        ),
         const SizedBox(height: 8),
         Container(
           height: 48,
@@ -733,27 +944,44 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                onPressed: () { if (count.value > 1) count.value--; }, 
+                onPressed: () {
+                  if (count.value > 1) count.value--;
+                },
                 icon: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF2F4F7),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Icon(Icons.remove, size: 16, color: Color(0xFF667085)),
-                )
+                  child: const Icon(
+                    Icons.remove,
+                    size: 16,
+                    color: Color(0xFF667085),
+                  ),
+                ),
               ),
-              Obx(() => CommonText('${count.value}', fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF101828))),
+              Obx(
+                () => CommonText(
+                  '${count.value}',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF101828),
+                ),
+              ),
               IconButton(
-                onPressed: () => count.value++, 
+                onPressed: () => count.value++,
                 icon: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF2F4F7),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Icon(Icons.add, size: 16, color: Color(0xFF667085)),
-                )
+                  child: const Icon(
+                    Icons.add,
+                    size: 16,
+                    color: Color(0xFF667085),
+                  ),
+                ),
               ),
             ],
           ),
@@ -767,12 +995,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       controller: _notesController,
       maxLines: 4,
       decoration: InputDecoration(
-        hintText: 'Any specific preference, requirements, or information trainers should know...',
+        hintText:
+            'Any specific preference, requirements, or information trainers should know...',
         hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
         fillColor: const Color(0xFFF9FAFB),
         filled: true,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFEAECF0))),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFEAECF0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFEAECF0)),
+        ),
         contentPadding: const EdgeInsets.all(16),
       ),
     );
@@ -790,24 +1025,46 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Color(0xFFEAECF0)),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              child: const CommonText('Cancel', fontSize: 16, fontWeight: FontWeight.bold),
+              child: const CommonText(
+                'Cancel',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
-              child: Obx(() => ElevatedButton(
+            child: Obx(
+              () => ElevatedButton(
                 onPressed: _isSubmitting.value ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF030D3B),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: _isSubmitting.value
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : CommonText(_editingBlock != null ? 'Save Changes' : 'Add Block', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-              )),
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : CommonText(
+                        _editingBlock != null ? 'Save Changes' : 'Add Block',
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+              ),
+            ),
           ),
         ],
       ),
@@ -835,7 +1092,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
     }
   }
 
-  Widget _buildDropdownField(String hint, RxString selectedValue, List<String> options) {
+  Widget _buildDropdownField(
+    String hint,
+    RxString selectedValue,
+    List<String> options,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -844,20 +1105,22 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         border: Border.all(color: const Color(0xFFEAECF0)),
       ),
       child: DropdownButtonHideUnderline(
-        child: Obx(() => DropdownButton<String>(
-          value: selectedValue.value,
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-          items: options.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: CommonText(value, fontSize: 14),
-            );
-          }).toList(),
-          onChanged: (val) {
-            if (val != null) selectedValue.value = val;
-          },
-        )),
+        child: Obx(
+          () => DropdownButton<String>(
+            value: selectedValue.value,
+            isExpanded: true,
+            icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+            items: options.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: CommonText(value, fontSize: 14),
+              );
+            }).toList(),
+            onChanged: (val) {
+              if (val != null) selectedValue.value = val;
+            },
+          ),
+        ),
       ),
     );
   }
@@ -873,9 +1136,23 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          IconButton(onPressed: () { if (_maxHorses.value > 1) _maxHorses.value--; }, icon: const Icon(Icons.remove, size: 20)),
-          Obx(() => CommonText('${_maxHorses.value}', fontSize: 18, fontWeight: FontWeight.bold)),
-          IconButton(onPressed: () => _maxHorses.value++, icon: const Icon(Icons.add, size: 20)),
+          IconButton(
+            onPressed: () {
+              if (_maxHorses.value > 1) _maxHorses.value--;
+            },
+            icon: const Icon(Icons.remove, size: 20),
+          ),
+          Obx(
+            () => CommonText(
+              '${_maxHorses.value}',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _maxHorses.value++,
+            icon: const Icon(Icons.add, size: 20),
+          ),
         ],
       ),
     );

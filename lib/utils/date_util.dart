@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DateUtil {
-  static const String displayFormat = 'dd MMM yyyy';
+  static const String displayFormat = 'MMMM d, yyyy';
 
   static String formatDisplayDate(dynamic date) {
     if (date == null) return '';
@@ -26,7 +26,7 @@ class DateUtil {
     if (endDate == null) return DateFormat(displayFormat).format(startDate);
 
     if (startDate.year == endDate.year) {
-      return "${DateFormat('dd MMM').format(startDate)} - ${DateFormat('dd MMM yyyy').format(endDate)}";
+      return "${DateFormat('MMMM d').format(startDate)} - ${DateFormat('MMMM d, yyyy').format(endDate)}";
     }
 
     return "${DateFormat(displayFormat).format(startDate)} - ${DateFormat(displayFormat).format(endDate)}";
@@ -82,7 +82,7 @@ class DateUtil {
     if (dateTime != null) {
       // For full date-time, we might want to keep local/UTC context if it's a real timestamp
       // but for our calendar dates, we treat them as fixed.
-      return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);
+      return DateFormat('MMMM d, yyyy, hh:mm a').format(dateTime);
     }
     return date.toString();
   }

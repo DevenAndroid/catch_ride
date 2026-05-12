@@ -103,7 +103,7 @@ class ShippingTripView extends StatelessWidget {
   Widget _buildTripCard(BuildContext context, ShippingTripController controller, TripModel trip) {
     final statusColor = controller.getStatusColor(trip.status);
     final dates = trip.startDate != null && trip.endDate != null
-        ? '${DateFormat('MMM dd').format(trip.startDate!)} - ${DateFormat('MMM dd, yyyy').format(trip.endDate!)}'
+        ? '${DateFormat('MMMM d').format(trip.startDate!)} - ${DateFormat('MMMM d, yyyy').format(trip.endDate!)}'
         : '';
     
     return Container(
