@@ -1075,8 +1075,11 @@ class AddNewListingController extends GetxController {
   String? _getFormattedDate(String dateStr) {
     if (dateStr.isEmpty) return null;
     try {
-      final date = DateFormat('dd MMM yyyy').parse(dateStr);
-      return DateFormat('yyyy-MM-dd').format(date);
+      final date = DateUtil.parse(dateStr);
+      if (date != null) {
+        return DateFormat('yyyy-MM-dd').format(date);
+      }
+      return dateStr;
     } catch (e) {
       debugPrint('Error formatting date for API: $e');
       return dateStr;

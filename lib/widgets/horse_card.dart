@@ -26,10 +26,12 @@ class HorseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var barnName = horse.trainerBarnName ?? "";
     String dates = "";
+    String  location  = "";
     final ExploreController controller = Get.put(ExploreController());
 
-    if (controller.locationType == "Show Venue") {
+    if (controller.locationType.value == "Show Venue") {
       var searchedVenue = controller.showVenue.value.trim().toLowerCase();
+
       if (searchedVenue.isNotEmpty && horse.showAvailability.isNotEmpty) {
         final show =
             horse.showAvailability.firstWhereOrNull(
@@ -48,13 +50,36 @@ class HorseCard extends StatelessWidget {
               ? 'N/A'
               : datesStr;
           barnName = show.showVenue;
+          location=show.cityState;
+        }
+      }
+    }
+    else {
+      location = (horse.location == null || horse.location!.isEmpty)
+          ? 'N/A'
+          : horse.location!;
+
+      final String searchedLocation = controller.location.value.trim().toLowerCase();
+      if (searchedLocation.isNotEmpty && horse.showAvailability.isNotEmpty) {
+        final show = horse.showAvailability.firstWhereOrNull(
+          (s) => s.cityState.trim().toLowerCase() == searchedLocation,
+        );
+
+        if (show != null) {
+          final String datesStr = DateUtil.formatRange(
+            show.startDate,
+            show.endDate,
+          );
+          dates = (datesStr.isEmpty || datesStr.trim() == '-')
+              ? 'N/A'
+              : datesStr;
+          barnName = show.showVenue;
+          location = show.cityState;
         }
       }
     }
 
-    final String location = (horse.location == null || horse.location!.isEmpty)
-        ? 'N/A'
-        : horse.location!;
+
 
     return GestureDetector(
       onTap: onTap,

@@ -403,6 +403,18 @@ class _ListingPreviewViewState extends State<ListingPreviewView> {
                 'Gender',
                 controller.gender.value.isEmpty ? '' : controller.gender.value,
               ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(height: 1, color: AppColors.borderLight),
+              ),
+              _buildGridRow(
+                'Available From',
+                controller.availableFromController.text.isEmpty
+                    ? ''
+                    : controller.availableFromController.text,
+                '',
+                '',
+              ),
             ],
           ),
         ),
