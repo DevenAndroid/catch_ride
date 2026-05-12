@@ -1,7 +1,6 @@
 import 'package:catch_ride/models/vendor_availability_model.dart';
-import 'package:catch_ride/models/trip_model.dart';
 import 'package:catch_ride/services/api_service.dart';
-import 'package:collection/collection.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -74,15 +73,10 @@ class VendorDetailsController extends GetxController {
     try {
       final response = await _apiService.getRequest('/vendors/$id');
       if (response.statusCode == 200 && response.body['success'] == true) {
-        vendorData.value = response.body['data'] ?? {};
-        
-        // Identify available services
-        final List services = vendorData['assignedServices'] ?? [];
-        availableServices.assignAll(services.map((s) => s['serviceType'].toString()).toList());
-        
-        if (availableServices.isNotEmpty) {
-          selectedTabIndex.value = 0;
-        }
+        final raw = response.body['data'];
+        vendorData.value =
+            raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+        _applyNormalizedAssignedServices();
         
         // Check if user can message (allow messaging all vendors by default now)
         canMessage.value = true;
@@ -91,6 +85,23 @@ class VendorDetailsController extends GetxController {
       debugPrint('Error fetching vendor details: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Aligns payload with VendorService rows (`serviceType`, nested profile/application).
+  void _applyNormalizedAssignedServices() {
+    final map = Map<String, dynamic>.from(vendorData);
+    final normalized = normalizeAssignedServices(map);
+    map['assignedServices'] = normalized;
+    vendorData.value = map;
+
+    availableServices.assignAll(
+      normalized
+          .map((s) => s['serviceType']?.toString() ?? '')
+          .where((t) => t.isNotEmpty),
+    );
+    if (availableServices.isNotEmpty) {
+      selectedTabIndex.value = 0;
     }
   }
 
@@ -178,12 +189,19 @@ class VendorDetailsController extends GetxController {
   String get coverImage => vendorData['coverImage'] ?? '';
   String get bio => vendorData['bio'] ?? 'No bio provided.';
   
-  // Active Service Getters
-  dynamic get _activeService => (vendorData['assignedServices'] as List?)?.firstWhereOrNull(
-      (s) => s['serviceType'] == (availableServices.isNotEmpty ? availableServices[selectedTabIndex.value] : null));
+  // Active Service Getters (VendorService + populated ServiceProfile / ServiceApplication)
+  dynamic get _activeService {
+    final list = vendorData['assignedServices'];
+    if (list is! List || list.isEmpty || availableServices.isEmpty) return null;
+    final selected = availableServices[selectedTabIndex.value].toString();
+    for (final s in list) {
+      if (assignedServiceMatchesTab(s, selected)) return s;
+    }
+    return null;
+  }
 
-  Map<String, dynamic> get _activeProfileData => _activeService?['profile']?['profileData'] ?? {};
-  Map<String, dynamic> get _activeApplicationData => _activeService?['application']?['applicationData'] ?? {};
+  Map<String, dynamic> get _activeProfileData => effectiveProfileData(_activeService);
+  Map<String, dynamic> get _activeApplicationData => effectiveApplicationData(_activeService);
   
   String get location {
     final appData = _activeApplicationData;
