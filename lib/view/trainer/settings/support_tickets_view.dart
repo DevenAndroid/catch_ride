@@ -90,7 +90,7 @@ class _SupportTicketsViewState extends State<SupportTicketsView> {
     try {
       if (ticket['createdAt'] != null) {
         final DateTime dt = DateTime.parse(ticket['createdAt'].toString()).toLocal();
-        formattedDate = DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+        formattedDate = DateFormat('MMMM d, yyyy, hh:mm a').format(dt);
       }
     } catch (e) {
       formattedDate = 'Recently';

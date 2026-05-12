@@ -370,7 +370,7 @@ class FarrierDetailsView extends StatelessWidget {
             CommonText('Emergency support', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500),
             Obx(() => CupertinoSwitch(
               value: controller.emergencySupport.value,
-              activeColor: const Color(0xFF34C759),
+              activeColor: AppColors.primary,
               onChanged: (val) => controller.emergencySupport.value = val,
             )),
           ],
@@ -447,7 +447,7 @@ class FarrierDetailsView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderLight),
           ),
@@ -466,6 +466,7 @@ class FarrierDetailsView extends StatelessWidget {
         Obx(() => GestureDetector(
           onTap: () => _showPickerBottomSheet(
             title: 'Experience',
+            currentValue: controller.experience.value,
             options: controller.experienceOptions,
             onSelected: (val) => controller.experience.value = val,
           ),
@@ -473,7 +474,7 @@ class FarrierDetailsView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.tabBackground,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -481,7 +482,7 @@ class FarrierDetailsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
+                  child: CommonText(controller.experience.value ?? 'Select years of experience', fontSize: AppTextSizes.size14, color: controller.experience.value == null ? AppColors.textSecondary : AppColors.textPrimary),
                 ),
                 const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
               ],
@@ -507,14 +508,14 @@ class FarrierDetailsView extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFF3F4FF) : AppColors.tabBackground,
+                  color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: isSelected ? const Color(0xFF001149) : AppColors.borderLight),
+                  border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
                 ),
                 child: CommonText(
                   it, 
-                  fontSize: AppTextSizes.size12, 
-                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  fontSize: 12, 
+                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
@@ -543,14 +544,14 @@ class FarrierDetailsView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.tabBackground,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CommonText('Select Regions...', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+                    CommonText('Select regions...', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
                     const Icon(Icons.add, color: AppColors.primary),
                   ],
                 ),
@@ -563,20 +564,20 @@ class FarrierDetailsView extends StatelessWidget {
               children: controller.regionsCovered.map((region) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF3F4FF),
+                  color: const Color(0xFFF9FAFB),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFF1E1B4B)),
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: CommonText(region, fontSize: 12, color: const Color(0xFF1E1B4B), fontWeight: FontWeight.w600),
+                      child: CommonText(region, fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
                       onTap: () => controller.toggleRegion(region),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFF1E1B4B)),
+                      child: const Icon(Icons.close, size: 14, color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -588,7 +589,7 @@ class FarrierDetailsView extends StatelessWidget {
     );
   }
 
-  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+  void _showPickerBottomSheet({required String title, String? currentValue, required List<String> options, required Function(String) onSelected}) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -598,13 +599,16 @@ class FarrierDetailsView extends StatelessWidget {
           children: [
             CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            ...options.map((opt) => ListTile(
-              title: CommonText(opt),
-              onTap: () {
-                onSelected(opt);
-                Get.back();
-              },
-            )),
+            ...options.map((opt) {
+              final isSelected = opt == currentValue;
+              return ListTile(
+                title: Center(child: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                onTap: () {
+                  onSelected(opt);
+                  Get.back();
+                },
+              );
+            }),
           ],
         ),
       ),
@@ -1010,7 +1014,7 @@ class FarrierDetailsView extends StatelessWidget {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary),
+                  borderSide: const BorderSide(color: AppColors.primaryDark),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),

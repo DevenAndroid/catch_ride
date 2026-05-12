@@ -392,8 +392,8 @@ class _BarnManagerSearchFilterOverlayState
                 CommonText(
                   _rangeStart != null
                       ? (_rangeEnd != null
-                            ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}'
-                            : DateFormat('dd MMM yyyy').format(_rangeStart!))
+                            ? '${DateFormat('MMMM d').format(_rangeStart!)} - ${DateFormat('MMMM d, yyyy').format(_rangeEnd!)}'
+                            : DateFormat('MMMM d, yyyy').format(_rangeStart!))
                       : 'Add dates',
                   fontSize: 14,
                   color: AppColors.textSecondary.withOpacity(0.8),
@@ -697,7 +697,7 @@ class _BarnManagerSearchFilterOverlayState
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CommonText(
-            date != null ? DateFormat('dd MMM yyyy').format(date) : title,
+            date != null ? DateFormat('MMMM d, yyyy').format(date) : title,
             color: date != null
                 ? AppColors.textPrimary
                 : AppColors.textSecondary.withOpacity(0.6),

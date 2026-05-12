@@ -2010,7 +2010,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     const SizedBox(height: 8),
                     _buildDateSelector(
                       startDate != null
-                          ? DateFormat('MMM d, yyyy').format(startDate!)
+                          ? DateFormat('MMMM d, yyyy').format(startDate!)
                           : 'Select Date',
                           () async {
                         if (selectedLocation == null) {
@@ -2464,7 +2464,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           fontFamily: 'Outfit',
                         ),
                         children: [
-                          TextSpan(text: horse?.listingTitle??horse?.name),
+                          TextSpan(text: horse?.name ??horse?.listingTitle),
                           // TextSpan(
                           //   text:
                           //       ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',

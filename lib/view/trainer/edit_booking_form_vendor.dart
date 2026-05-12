@@ -321,7 +321,7 @@ class _EditBookingFormVendorState extends State<EditBookingFormVendor> {
     String displayDate = 'Select Date Range';
     if (_startDate != null && _endDate != null) {
       displayDate =
-          '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}';
+          '${DateFormat('MMMM d, yyyy').format(_startDate!)} - ${DateFormat('MMMM d, yyyy').format(_endDate!)}';
     }
 
     return Column(

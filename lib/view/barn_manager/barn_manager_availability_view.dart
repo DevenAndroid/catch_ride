@@ -40,7 +40,7 @@ class _BarnManagerAvailabilityViewState
     );
 
     if (pickedDate != null) {
-      textController.text = DateFormat('dd MMM yyyy').format(pickedDate);
+      textController.text = DateFormat('MMMM d, yyyy').format(pickedDate);
     }
   }
 
@@ -340,7 +340,7 @@ class _BarnManagerAvailabilityViewState
               }
 
               // Auto-fill Dates
-              final DateFormat formatter = DateFormat('dd MMM yyyy');
+              final DateFormat formatter = DateFormat('MMMM d, yyyy');
               if (selection['startDate'] != null) {
                 try {
                   final start = DateTime.parse(selection['startDate']);

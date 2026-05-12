@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -30,11 +31,21 @@ class _CommonMediaViewerState extends State<CommonMediaViewer> {
     super.initState();
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: widget.initialIndex);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     super.dispose();
   }
 
@@ -165,6 +176,7 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
   @override
   void initState() {
     super.initState();
+    WakelockPlus.enable();
     _initPlayer();
   }
 
@@ -183,7 +195,7 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
             autoPlay: true,
             mute: false,
           ),
-        );
+        )..addListener(_onYoutubeControllerChange);
         _initialized = true;
       } else {
         _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
@@ -215,7 +227,12 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
           ],
           deviceOrientationsAfterFullScreen: [
             DeviceOrientation.portraitUp,
+            DeviceOrientation.portraitDown,
+            DeviceOrientation.landscapeLeft,
+            DeviceOrientation.landscapeRight,
           ],
+          systemOverlaysOnEnterFullScreen: [], // Hide overlays in full screen
+          systemOverlaysAfterFullScreen: SystemUiOverlay.values, // Restore overlays
           allowFullScreen: true,
         );
         setState(() {
@@ -241,8 +258,23 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
     }
   }
 
+  void _onYoutubeControllerChange() {
+    if (_youtubeController != null && _youtubeController!.value.isFullScreen) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]);
+    }
+  }
+
   @override
   void dispose() {
+    WakelockPlus.disable();
     _videoPlayerController?.dispose();
     _chewieController?.dispose();
     _youtubeController?.dispose();
@@ -276,7 +308,9 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
 
     if (_chewieController != null) {
       return Center(
-        child: Chewie(controller: _chewieController!),
+        child: Chewie(
+          controller: _chewieController!,
+        ),
       );
     }
 

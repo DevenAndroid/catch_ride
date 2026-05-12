@@ -16,6 +16,7 @@ class ChatRequestCard extends StatefulWidget {
 }
 
 class _ChatRequestCardState extends State<ChatRequestCard> {
+  final ChatController controller = Get.put(ChatController());
   bool _isAccepting = false;
   bool _isRejecting = false;
 
@@ -23,7 +24,6 @@ class _ChatRequestCardState extends State<ChatRequestCard> {
 
   @override
   Widget build(BuildContext context) {
-    final ChatController controller = Get.find<ChatController>();
     final String name = (widget.request.otherUser?.name != null && widget.request.otherUser!.name!.isNotEmpty && widget.request.otherUser!.name != 'Unknown')
         ? widget.request.otherUser!.name!
         : (widget.request.booking?.trainerName ?? widget.request.booking?.clientName ?? 'Unknown');
