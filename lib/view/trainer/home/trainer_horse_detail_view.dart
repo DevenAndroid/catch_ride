@@ -2032,8 +2032,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
                         if (selectedLocation != horse!.location &&
                             selectedShow != null) {
-                          final sDate = DateTime.tryParse(selectedShow!.startDate);
-                          final eDate = DateTime.tryParse(selectedShow!.endDate);
+                          final sDate = DateUtil.parse(selectedShow!.startDate);
+                          final eDate = DateUtil.parse(selectedShow!.endDate);
 
                           if (sDate != null && eDate != null) {
                             final startOnly =
@@ -2082,8 +2082,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                             if (selectedLocation == horse!.location) return true;
                             if (selectedShow == null) return false;
 
-                            final sDate = DateTime.tryParse(selectedShow!.startDate);
-                            final eDate = DateTime.tryParse(selectedShow!.endDate);
+                            final sDate = DateUtil.parse(selectedShow!.startDate);
+                            final eDate = DateUtil.parse(selectedShow!.endDate);
                             if (sDate != null && eDate != null) {
                               final startOnly =
                               DateTime(sDate.year, sDate.month, sDate.day);
@@ -2209,8 +2209,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                 if (val == horse!.location) {
                                   // All dates valid for home, no reset needed
                                 } else if (selectedShow != null) {
-                                  final sDate = DateTime.tryParse(selectedShow!.startDate);
-                                  final eDate = DateTime.tryParse(selectedShow!.endDate);
+                                  final sDate = DateUtil.parse(selectedShow!.startDate);
+                                  final eDate = DateUtil.parse(selectedShow!.endDate);
                                   bool isValid = false;
                                   if (sDate != null && eDate != null) {
                                     final dateOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);

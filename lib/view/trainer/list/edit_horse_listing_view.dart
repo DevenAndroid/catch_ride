@@ -63,24 +63,32 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     DateTime? firstDate,
   }) async {
     final DateTime now = DateTime.now();
-    DateTime initial = now;
+    final DateTime today = DateTime(now.year, now.month, now.day);
     
-    // If textController already has a date, use it as initial
+    // Normalize firstDate if provided, otherwise use today
+    final DateTime effectiveFirstDate = firstDate != null 
+        ? DateTime(firstDate.year, firstDate.month, firstDate.day)
+        : today;
+        
+    DateTime initial = today;
+    
     if (textController.text.isNotEmpty) {
       try {
         initial = DateFormat('MMMM d, yyyy').parse(textController.text);
+        // Normalize initial to midnight
+        initial = DateTime(initial.year, initial.month, initial.day);
       } catch (_) {}
     }
 
-    // Ensure initial is not before firstDate
-    if (firstDate != null && initial.isBefore(firstDate)) {
-      initial = firstDate;
+    // Ensure initial is not before effectiveFirstDate
+    if (initial.isBefore(effectiveFirstDate)) {
+      initial = effectiveFirstDate;
     }
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: firstDate ?? now,
+      firstDate: effectiveFirstDate,
       lastDate: DateTime(2101),
     );
 

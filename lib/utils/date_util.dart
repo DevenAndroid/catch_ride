@@ -21,9 +21,21 @@ class DateUtil {
     DateTime? startDate = parse(start);
     DateTime? endDate = parse(end);
 
-    if (startDate == null && endDate == null) return '';
-    if (startDate == null) return DateFormat(displayFormat).format(endDate!);
-    if (endDate == null) return DateFormat(displayFormat).format(startDate);
+    if (startDate == null && endDate == null) {
+      if (start != null && end != null) return "$start - $end";
+      if (start != null) return start.toString();
+      if (end != null) return end.toString();
+      return '';
+    }
+
+    if (startDate == null || endDate == null) {
+      if (startDate == null && start != null) return start.toString();
+      if (endDate == null && end != null) return end.toString();
+      
+      if (startDate != null) return DateFormat(displayFormat).format(startDate);
+      if (endDate != null) return DateFormat(displayFormat).format(endDate);
+      return '';
+    }
 
     if (startDate.year == endDate.year) {
       return "${DateFormat('MMMM d').format(startDate)} - ${DateFormat('MMMM d, yyyy').format(endDate)}";
@@ -97,9 +109,13 @@ class DateUtil {
     DateTime? parsed = DateTime.tryParse(date);
     if (parsed != null) return parsed;
 
-    // 2. Try common display format
+    // 2. Try common display formats
     try {
       return DateFormat('dd MMM yyyy').parse(date);
+    } catch (_) {}
+
+    try {
+      return DateFormat('MMMM d, yyyy').parse(date);
     } catch (_) {}
 
     // 3. Try standard ISO-like date only
