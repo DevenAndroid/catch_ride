@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/vendor_service_payload.dart';
+import 'package:catch_ride/utils/vendor_service_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
@@ -744,7 +745,6 @@ class GroomViewProfileController extends GetxController {
   ) async {
     try {
       isLoading.value = true;
-      final vendorId = vendorData['_id'];
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
@@ -770,6 +770,25 @@ class GroomViewProfileController extends GetxController {
         payload,
       );
       if (response.statusCode == 200) {
+        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
+        dynamic row;
+        for (final s in allAssignedServices) {
+          if (assignedServiceMatchesTab(s, 'Braiding')) {
+            row = s;
+            break;
+          }
+        }
+        final block = existingServicesData['braiding'];
+        if (vid != null && row != null && block is Map) {
+          await syncVendorServiceDocuments(
+            api: _apiService,
+            vendorMongoId: vid,
+            assignedServiceRow: row,
+            profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+            applicationData:
+                Map<String, dynamic>.from(block['applicationData'] ?? {}),
+          );
+        }
         await fetchProfile();
         return true;
       }
@@ -786,7 +805,6 @@ class GroomViewProfileController extends GetxController {
   ) async {
     try {
       isLoading.value = true;
-      final vendorId = vendorData['_id'];
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
@@ -812,6 +830,25 @@ class GroomViewProfileController extends GetxController {
         payload,
       );
       if (response.statusCode == 200) {
+        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
+        dynamic row;
+        for (final s in allAssignedServices) {
+          if (assignedServiceMatchesTab(s, 'Clipping')) {
+            row = s;
+            break;
+          }
+        }
+        final block = existingServicesData['clipping'];
+        if (vid != null && row != null && block is Map) {
+          await syncVendorServiceDocuments(
+            api: _apiService,
+            vendorMongoId: vid,
+            assignedServiceRow: row,
+            profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+            applicationData:
+                Map<String, dynamic>.from(block['applicationData'] ?? {}),
+          );
+        }
         await fetchProfile();
         return true;
       }
@@ -829,7 +866,6 @@ class GroomViewProfileController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      final vendorId = vendorData['_id'];
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
@@ -862,6 +898,25 @@ class GroomViewProfileController extends GetxController {
         payload,
       );
       if (response.statusCode == 200) {
+        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
+        dynamic row;
+        for (final s in allAssignedServices) {
+          if (assignedServiceMatchesTab(s, 'Farrier')) {
+            row = s;
+            break;
+          }
+        }
+        final block = existingServicesData['farrier'];
+        if (vid != null && row != null && block is Map) {
+          await syncVendorServiceDocuments(
+            api: _apiService,
+            vendorMongoId: vid,
+            assignedServiceRow: row,
+            profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+            applicationData:
+                Map<String, dynamic>.from(block['applicationData'] ?? {}),
+          );
+        }
         await fetchProfile();
         return true;
       } else {
@@ -886,7 +941,6 @@ class GroomViewProfileController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      final vendorId = vendorData['_id'];
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
@@ -917,6 +971,25 @@ class GroomViewProfileController extends GetxController {
         payload,
       );
       if (response.statusCode == 200) {
+        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
+        dynamic row;
+        for (final s in allAssignedServices) {
+          if (assignedServiceMatchesTab(s, 'Bodywork')) {
+            row = s;
+            break;
+          }
+        }
+        final block = existingServicesData['bodywork'];
+        if (vid != null && row != null && block is Map) {
+          await syncVendorServiceDocuments(
+            api: _apiService,
+            vendorMongoId: vid,
+            assignedServiceRow: row,
+            profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+            applicationData:
+                Map<String, dynamic>.from(block['applicationData'] ?? {}),
+          );
+        }
         await fetchProfile();
         return true;
       } else {
@@ -947,7 +1020,6 @@ class GroomViewProfileController extends GetxController {
   }) async {
     try {
       isLoading.value = true;
-      final vendorId = vendorData['_id'];
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
@@ -985,6 +1057,25 @@ class GroomViewProfileController extends GetxController {
         payload,
       );
       if (response.statusCode == 200) {
+        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
+        dynamic row;
+        for (final s in allAssignedServices) {
+          if (assignedServiceMatchesTab(s, 'Grooming')) {
+            row = s;
+            break;
+          }
+        }
+        final block = existingServicesData['grooming'];
+        if (vid != null && row != null && block is Map) {
+          await syncVendorServiceDocuments(
+            api: _apiService,
+            vendorMongoId: vid,
+            assignedServiceRow: row,
+            profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+            applicationData:
+                Map<String, dynamic>.from(block['applicationData'] ?? {}),
+          );
+        }
         await fetchProfile();
         return true;
       }

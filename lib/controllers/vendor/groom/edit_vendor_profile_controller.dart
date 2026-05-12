@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/utils/vendor_service_sync.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:get/get.dart';
@@ -105,7 +107,54 @@ class EditVendorProfileController extends GetxController {
     if (isCustomCancellation.value) return null;
     final v = cancellationPolicy.value?.trim();
     if (v == null || v.isEmpty) return null;
-    return cancellationPresetOptions.contains(v) ? v : null;
+    return cancellationPresetMatching(v);
+  }
+
+  /// Returns canonical preset string if [text] matches a dropdown option (trim + case-insensitive).
+  String? cancellationPresetMatching(String text) {
+    final t = text.trim();
+    if (t.isEmpty) return null;
+    for (final p in cancellationPresetOptions) {
+      if (p == t || p.toLowerCase() == t.toLowerCase()) return p;
+    }
+    return null;
+  }
+
+  /// Readable policy/custom text stored in API (map or legacy string).
+  String _effectiveCancellationText(dynamic cp) {
+    if (cp == null) return '';
+    if (cp is Map) {
+      final p = cp['policy']?.toString().trim() ?? '';
+      final c = cp['customText']?.toString().trim() ?? '';
+      final isCustom = cp['isCustom'] == true;
+      if (isCustom) {
+        return c.isNotEmpty ? c : p;
+      }
+      return p.isNotEmpty ? p : c;
+    }
+    return cp.toString().trim();
+  }
+
+  /// Prefill dropdown for presets; use custom textarea only when value is not a preset.
+  /// Ignores misleading `isCustom` when the stored text equals a preset.
+  void hydrateCancellationPolicyFrom(dynamic cp) {
+    final raw = _effectiveCancellationText(cp);
+    if (raw.isEmpty) {
+      isCustomCancellation.value = false;
+      cancellationPolicy.value = null;
+      customCancellationController.clear();
+      return;
+    }
+    final preset = cancellationPresetMatching(raw);
+    if (preset != null) {
+      isCustomCancellation.value = false;
+      cancellationPolicy.value = preset;
+      customCancellationController.clear();
+      return;
+    }
+    isCustomCancellation.value = true;
+    cancellationPolicy.value = null;
+    customCancellationController.text = raw;
   }
 
   // Photos
@@ -389,52 +438,47 @@ class EditVendorProfileController extends GetxController {
     try {
       final response = await _apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
-        final data = response.body['data'];
-        _cachedVendorRootData = data; // Update cache
-        vendorRootData.assignAll(data);
-        
+        final raw = response.body['data'];
+        if (raw is! Map) {
+          isLoading.value = false;
+          return;
+        }
+        final root = Map<String, dynamic>.from(raw);
+        // Match groom view profile: build tabs from VendorService rows OR legacy
+        // vendor.serviceType + servicesData when assignedServices is empty.
+        final normalizedAssigned = normalizeAssignedServices(root);
+        root['assignedServices'] = normalizedAssigned;
+
+        _cachedVendorRootData = root;
+        vendorRootData.assignAll(root);
+
         // Basic Details
-        fullNameController.text = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
-        phoneController.text = data['phone'] ?? '';
-        businessNameController.text = data['businessName'] ?? '';
-        aboutController.text = data['bio'] ?? '';
-        notesForTrainerController.text = data['notesForTrainer'] ?? '';
-        profilePhotoUrl.value = data['profilePhoto'] ?? '';
-        coverImageUrl.value = data['coverImage'] ?? '';
-        otherPaymentController.text=data["otherPaymentDetails"]??"";
-        
-        selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
-        
-        final List<String> loadedHighlights = List<String>.from(data['highlights'] ?? []);
+        fullNameController.text = '${root['firstName'] ?? ''} ${root['lastName'] ?? ''}'.trim();
+        phoneController.text = root['phone']?.toString() ?? '';
+        businessNameController.text = root['businessName'] ?? '';
+        aboutController.text = root['bio'] ?? '';
+        notesForTrainerController.text = root['notesForTrainer'] ?? '';
+        profilePhotoUrl.value = root['profilePhoto'] ?? '';
+        coverImageUrl.value = root['coverImage'] ?? '';
+        otherPaymentController.text = root['otherPaymentDetails'] ?? '';
+
+        selectedPayments.assignAll(List<String>.from(root['paymentMethods'] ?? []));
+
+        final List<String> loadedHighlights = List<String>.from(root['highlights'] ?? []);
         if (loadedHighlights.isEmpty) {
           highlightControllers.assignAll([TextEditingController()]);
         } else {
           highlightControllers.assignAll(loadedHighlights.map((h) => TextEditingController(text: h)).toList());
         }
 
-        // Service level data
-        final List services = data['assignedServices'] ?? [];
-        _cachedAssignedServices = services;
-        
-        // Only update if changed to avoid unnecessary tab resets
-        if (assignedServices.length != services.length) {
-           assignedServices.assignAll(services);
-        } else {
-           // If same length, update contents but don't trigger ever() if possible
-           // (assignedServices is RxList, assignAll always triggers. 
-           // Let's use a more surgical update if needed, but for now just check if they are identical)
-           bool identical = true;
-           for(int i=0; i<services.length; i++) {
-             if (assignedServices[i]['_id'] != services[i]['_id']) {
-               identical = false;
-               break;
-             }
-           }
-           if (!identical) assignedServices.assignAll(services);
-        }
-        
+        // Always replace so nested profile/application from API refresh (same _id, new data).
+        _cachedAssignedServices = normalizedAssigned;
+        assignedServices.assignAll(normalizedAssigned);
+
         // Cache raw services data to preserve unmanaged fields (like rates)
-        final Map<String, dynamic> sData = data['servicesData'] ?? {};
+        final Map<String, dynamic> sData = Map<String, dynamic>.from(
+          root['servicesData'] is Map ? root['servicesData'] : {},
+        );
         _cachedRawServicesData = sData;
         _cachedOriginalServicesData = jsonDecode(jsonEncode(sData));
         _cachedDraftServicesData = jsonDecode(jsonEncode(sData));
@@ -567,10 +611,23 @@ class EditVendorProfileController extends GetxController {
       
       // Photos for each service
       if (serviceExistingPhotos.containsKey(type)) {
-        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty) 
-            ? profileData['media'] 
-            : (appData['media'] ?? []);
-        serviceExistingPhotos[type]!.assignAll(List<String>.from(media));
+        final typeStr = type.toString();
+        final typeKey = typeStr.toLowerCase();
+        final draftB = draftServicesData[typeKey] is Map
+            ? Map<String, dynamic>.from(draftServicesData[typeKey] as Map)
+            : null;
+        final urls = mergeServicePortfolioMediaUrls(
+          serviceType: typeStr,
+          vendorRoot: Map<String, dynamic>.from(vendorRootData),
+          profileData: profileData is Map
+              ? Map<String, dynamic>.from(profileData)
+              : <String, dynamic>{},
+          appData: appData is Map
+              ? Map<String, dynamic>.from(appData)
+              : <String, dynamic>{},
+          draftBlock: draftB,
+        );
+        serviceExistingPhotos[type]!.assignAll(urls);
       }
     }
   }
@@ -594,6 +651,13 @@ class EditVendorProfileController extends GetxController {
       final application = activeService['application'] ?? {};
       final appData = draft['applicationData'] ?? application['applicationData'] ?? application ?? {};
 
+      final profileDataMap = profileData is Map
+          ? Map<String, dynamic>.from(profileData)
+          : <String, dynamic>{};
+      final appDataMap = appData is Map
+          ? Map<String, dynamic>.from(appData)
+          : <String, dynamic>{};
+
       // Home Base Fallbacks
       String? city = appData['homeBase']?['city'] ?? appData['city'];
       String? state = appData['homeBase']?['state'] ?? appData['state'];
@@ -616,16 +680,35 @@ class EditVendorProfileController extends GetxController {
       }
 
       // Experience Fallback
-      dynamic exp = appData['experience'] ?? appData['yearsExperience'] ?? vendorRootData['yearsExperience'] ?? vendorRootData['experience'];
+      dynamic exp = appDataMap['experience'] ?? appDataMap['yearsExperience'] ?? vendorRootData['yearsExperience'] ?? vendorRootData['experience'];
       experience.value = exp?.toString();
 
-      selectedDisciplines.assignAll(List<String>.from(appData['disciplines'] ?? vendorRootData['disciplines'] ?? []));
-      otherDisciplineController.text = appData['otherDiscipline'] ?? '';
-      selectedHorseLevels.assignAll(List<String>.from(appData['horseLevels'] ?? vendorRootData['horseLevels'] ?? []));
-      selectedRegions.assignAll(List<String>.from(appData['regions'] ?? vendorRootData['regions'] ?? []));
+      selectedDisciplines.assignAll(List<String>.from(appDataMap['disciplines'] ?? vendorRootData['disciplines'] ?? []));
+      otherDisciplineController.text = appDataMap['otherDiscipline'] ?? '';
+      selectedHorseLevels.assignAll(List<String>.from(appDataMap['horseLevels'] ?? vendorRootData['horseLevels'] ?? []));
+      selectedRegions.assignAll(List<String>.from(appDataMap['regions'] ?? vendorRootData['regions'] ?? []));
 
-      instagramController.text = profileData['socialMedia']?['instagram'] ?? appData['socialMedia']?['instagram'] ?? '';
-      facebookController.text = profileData['socialMedia']?['facebook'] ?? appData['socialMedia']?['facebook'] ?? '';
+      final activeTypeStr = activeService['serviceType']?.toString() ?? '';
+      if (activeTypeStr == 'Grooming') {
+        final draftGroom = draftServicesData['grooming'] is Map
+            ? Map<String, dynamic>.from(draftServicesData['grooming'] as Map)
+            : null;
+        final vendorRootMap = Map<String, dynamic>.from(vendorRootData);
+        instagramController.text = resolveServiceInstagram(
+          serviceType: 'Grooming',
+          vendorRoot: vendorRootMap,
+          profileData: profileDataMap,
+          appData: appDataMap,
+          draftBlock: draftGroom,
+        );
+        facebookController.text = resolveServiceFacebook(
+          serviceType: 'Grooming',
+          vendorRoot: vendorRootMap,
+          profileData: profileDataMap,
+          appData: appDataMap,
+          draftBlock: draftGroom,
+        );
+      }
       
       _syncLocationNodes();
       // Capabilities based on service type
@@ -790,40 +873,21 @@ class EditVendorProfileController extends GetxController {
       }
       
       final cp = draft['cancellationPolicy'] ?? profileData['cancellationPolicy'];
-      if (cp is Map) {
-        final isCustom = cp['isCustom'] == true;
-        isCustomCancellation.value = isCustom;
-        final policyRaw = cp['policy']?.toString().trim() ?? '';
-        final customTextRaw = cp['customText']?.toString() ?? '';
-        if (isCustom) {
-          cancellationPolicy.value = null;
-          customCancellationController.text =
-              customTextRaw.isNotEmpty ? customTextRaw : policyRaw;
-        } else {
-          customCancellationController.clear();
-          if (policyRaw.isNotEmpty &&
-              cancellationPresetOptions.contains(policyRaw)) {
-            cancellationPolicy.value = policyRaw;
-          } else {
-            cancellationPolicy.value = null;
-          }
-        }
-      } else {
-        final s = cp?.toString().trim() ?? '';
-        isCustomCancellation.value = false;
-        customCancellationController.clear();
-        cancellationPolicy.value =
-            s.isNotEmpty && cancellationPresetOptions.contains(s) ? s : null;
-      }
+      hydrateCancellationPolicyFrom(cp);
       
-      // Populate service-specific photos
-      final serviceType = activeService['serviceType'];
+      // Populate service-specific photos (profile, draft, list application media, VendorModel subdoc)
+      final serviceType = activeService['serviceType']?.toString();
       if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
-        final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty) 
-            ? profileData['media'] 
-            : (appData['media'] ?? []);
-        serviceExistingPhotos[serviceType]!.assignAll(List<String>.from(media));
-        existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
+        final draftBlock = draft is Map ? Map<String, dynamic>.from(draft) : null;
+        final urls = mergeServicePortfolioMediaUrls(
+          serviceType: serviceType,
+          vendorRoot: Map<String, dynamic>.from(vendorRootData),
+          profileData: profileDataMap,
+          appData: appDataMap,
+          draftBlock: draftBlock,
+        );
+        serviceExistingPhotos[serviceType]!.assignAll(urls);
+        existingPhotos.assignAll(urls);
       }
     }
   }
@@ -1249,6 +1313,25 @@ class EditVendorProfileController extends GetxController {
       final vendorResponse = await _apiService.putRequest('/vendors/me', combinedPayload);
 
       if (vendorResponse.statusCode == 200) {
+        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorRootData));
+        if (vid != null) {
+          for (final s in assignedServices) {
+            final type = s['serviceType']?.toString();
+            if (type == null) continue;
+            final typeKey = type.toLowerCase();
+            final block = servicesData[typeKey];
+            if (block is! Map) continue;
+            await syncVendorServiceDocuments(
+              api: _apiService,
+              vendorMongoId: vid,
+              assignedServiceRow: s,
+              profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+              applicationData:
+                  Map<String, dynamic>.from(block['applicationData'] ?? {}),
+            );
+          }
+        }
+
         // Update local AuthController state for immediate UI reflection in Menu/Personal Info
         if (_authController.currentUser.value != null) {
           final updatedUser = _authController.currentUser.value!.copyWith(
@@ -1311,10 +1394,6 @@ class EditVendorProfileController extends GetxController {
     };
 
     final Map<String, dynamic> profData = {
-      'socialMedia': {
-        'facebook': facebookController.text,
-        'instagram': instagramController.text,
-      },
       'cancellationPolicy': {
         'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
         'isCustom': isCustomCancellation.value,
@@ -1322,18 +1401,28 @@ class EditVendorProfileController extends GetxController {
     };
 
     if (type == 'Grooming') {
+      final fb = facebookController.text.trim();
+      final ig = instagramController.text.trim();
+      profData['socialMedia'] = {'facebook': fb, 'instagram': ig};
+
       profData['cancellationPolicy'] = {
         'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
         'isCustom': isCustomCancellation.value,
       };
-      
+
       final existing = Map<String, dynamic>.from(draftServicesData[typeKey] ?? {});
       final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
       final existingProf = Map<String, dynamic>.from(existing['profileData'] ?? {});
 
       draftServicesData[typeKey] = {
         ...existing,
-        'applicationData': { ...existingApp, ...appData },
+        'applicationData': {
+          ...existingApp,
+          ...appData,
+          'socialMedia': {'facebook': fb, 'instagram': ig},
+          'facebookLink': fb,
+          'instagramLink': ig,
+        },
         'profileData': { ...existingProf, ...profData },
         'capabilities': {
           'support': selectedSupport.toList(),

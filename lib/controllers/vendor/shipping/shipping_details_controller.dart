@@ -13,6 +13,8 @@ import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_v
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
+import 'package:catch_ride/utils/vendor_service_sync.dart';
 
 class ShippingDetailsController extends GetxController {
   final apiService = Get.find<ApiService>();
@@ -654,6 +656,30 @@ class ShippingDetailsController extends GetxController {
       final response = await apiService.putRequest('/vendors/me', body);
 
       if (response.statusCode == 200 && response.body['success'] == true) {
+        final dynamic rawMe = vendorResponse.body['data'];
+        if (rawMe is Map) {
+          final me = Map<String, dynamic>.from(rawMe);
+          final vid = vendorMongoIdFromRoot(me);
+          dynamic shippingRow;
+          for (final s in (me['assignedServices'] ?? [])) {
+            if (assignedServiceMatchesTab(s, 'Shipping')) {
+              shippingRow = s;
+              break;
+            }
+          }
+          final syncBlock = existingServicesData['shipping'];
+          if (vid != null && shippingRow != null && syncBlock is Map) {
+            await syncVendorServiceDocuments(
+              api: apiService,
+              vendorMongoId: vid,
+              assignedServiceRow: shippingRow,
+              profileData: Map<String, dynamic>.from(syncBlock['profileData'] ?? {}),
+              applicationData:
+                  Map<String, dynamic>.from(syncBlock['applicationData'] ?? {}),
+            );
+          }
+        }
+
         // Sync local state
         await Get.find<AuthController>().updateUserMetadata();
 
