@@ -26,7 +26,7 @@ class HorseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var barnName = horse.trainerBarnName ?? "";
     String dates = "";
-    String  location  = "";
+    String  location = (horse.location == null || horse.location!.isEmpty) ? 'N/A' : horse.location!;
     final ExploreController controller = Get.put(ExploreController());
 
     if (controller.locationType.value == "Show Venue") {
@@ -55,14 +55,13 @@ class HorseCard extends StatelessWidget {
       }
     }
     else {
-      location = (horse.location == null || horse.location!.isEmpty)
-          ? 'N/A'
-          : horse.location!;
+
 
       final String searchedLocation = controller.location.value.trim().toLowerCase();
       if (searchedLocation.isNotEmpty && horse.showAvailability.isNotEmpty) {
         final show = horse.showAvailability.firstWhereOrNull(
-          (s) => s.cityState.trim().toLowerCase() == searchedLocation,
+          (s) => s.cityState.trim().toLowerCase().contains(searchedLocation) || 
+                 searchedLocation.contains(s.cityState.trim().toLowerCase()),
         );
 
         if (show != null) {
