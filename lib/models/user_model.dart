@@ -14,7 +14,7 @@ class UserModel {
   final String lastName;
   final String email;
   final String role;
-  final String? avatar;
+final String? avatar;
   final String? photo;
   final String? coverImage;
   final String? phone;
@@ -43,6 +43,9 @@ class UserModel {
   final String? yearsInIndustry;
   final List<String> roles;
   final List<String> vendorServices;
+  /// From [VendorModel.serviceType] — services the vendor actually selected (onboarding).
+  /// Use this when [vendorServices] mirrors every [VendorModel.assignedServices] type (can include stale types).
+  final List<String> vendorSelectedServiceTypes;
   final String? notesForTrainer;
   final String? businessName;
   final List<String> paymentMethods;
@@ -59,6 +62,7 @@ class UserModel {
     required this.role,
     this.roles = const [],
     this.vendorServices = const [],
+    this.vendorSelectedServiceTypes = const [],
     this.avatar,
     this.photo,
     this.coverImage,
@@ -97,6 +101,19 @@ class UserModel {
 
   String get fullName => '$firstName $lastName'.trim();
   String get displayAvatar => avatar ?? photo ?? '';
+
+  /// Trips tab / shipping flows: true only if **Shipping** is among selected vendor types
+  /// ([VendorModel.serviceType]), not merely from extra `assignedServices` entries.
+  bool get vendorOffersShippingNav {
+    final types = vendorSelectedServiceTypes.isNotEmpty
+        ? vendorSelectedServiceTypes
+        : vendorServices;
+    for (final s in types) {
+      final k = s.toLowerCase().replaceAll(' ', '');
+      if (k == 'shipping' || k == 'transportation') return true;
+    }
+    return false;
+  }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     // If tags are populated as objects, we want just the IDs
@@ -138,6 +155,32 @@ class UserModel {
         ? json['vendorId'] as Map<String, dynamic>
         : null;
 
+    List<String> vendorSelectedTypes = [];
+    if (vendorData != null) {
+      final st = vendorData['serviceType'];
+      if (st is List) {
+        for (final e in st) {
+          if (e is String && e.trim().isNotEmpty) {
+            vendorSelectedTypes.add(e.trim());
+          }
+        }
+      } else if (st is String && st.trim().isNotEmpty) {
+        vendorSelectedTypes.add(st.trim());
+      }
+    }
+    if (vendorSelectedTypes.isEmpty && json['role'] == 'service_provider') {
+      final st = json['serviceType'];
+      if (st is List) {
+        for (final e in st) {
+          if (e is String && e.trim().isNotEmpty) {
+            vendorSelectedTypes.add(e.trim());
+          }
+        }
+      } else if (st is String && st.trim().isNotEmpty) {
+        vendorSelectedTypes.add(st.trim());
+      }
+    }
+
     List<String> parsedServices = [];
     final rawAssignedServices = json['assignedServices'] ?? (vendorData != null ? vendorData['assignedServices'] : null);
     if (rawAssignedServices is List) {
@@ -149,7 +192,7 @@ class UserModel {
          }
        }
     }
-    // VendorService rows may not exist pre–post-form; fall back to vendor.serviceType / API merge
+    // VendorModel.assignedServices may be empty pre–post-form; fall back to vendor.serviceType / API merge
     if (parsedServices.isEmpty) {
       final rootVs = json['vendorServices'];
       if (rootVs is List) {
@@ -283,6 +326,7 @@ class UserModel {
       trainerProfileId: trainerData != null ? trainerData['_id'] : (json['trainerId'] is String ? json['trainerId'] : null),
       vendorProfileId: vendorData != null ? vendorData['_id'] : (json['vendorId'] is String ? json['vendorId'] : null),
       vendorServices: parsedServices,
+      vendorSelectedServiceTypes: vendorSelectedTypes,
       linkedBarnManager:
           trainerData != null && trainerData['linkedBarnManager'] != null
           ? BarnManager.fromJson(trainerData['linkedBarnManager'])
@@ -360,6 +404,7 @@ class UserModel {
     String? role,
     List<String>? roles,
     List<String>? vendorServices,
+    List<String>? vendorSelectedServiceTypes,
     String? avatar,
     String? photo,
     String? coverImage,
@@ -401,6 +446,8 @@ class UserModel {
       role: role ?? this.role,
       roles: roles ?? this.roles,
       vendorServices: vendorServices ?? this.vendorServices,
+      vendorSelectedServiceTypes:
+          vendorSelectedServiceTypes ?? this.vendorSelectedServiceTypes,
       avatar: avatar ?? this.avatar,
       photo: photo ?? this.photo,
       coverImage: coverImage ?? this.coverImage,

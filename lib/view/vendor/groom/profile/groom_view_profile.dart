@@ -73,6 +73,23 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     }
   }
 
+  /// Prefer [GroomViewProfileController.getProfileDataByType] (VendorModel embed + merged
+  /// `servicesData` + ServiceProfile) so Services & Rates edits match this card; raw `servicesData[svc]`
+  /// alone can lag behind populated profile / sync after `PUT /vendors/me`.
+  Map<String, dynamic> _detailBlockForActiveService(
+    GroomViewProfileController c,
+    Map<dynamic, dynamic> servicesData,
+    List<String> legacyKeys,
+  ) {
+    final merged = c.getProfileDataByType(c.activeServiceType);
+    if (merged.isNotEmpty) return Map<String, dynamic>.from(merged);
+    for (final k in legacyKeys) {
+      final raw = servicesData[k];
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+    }
+    return Map<String, dynamic>.from(c.activeServiceProfile);
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -431,10 +448,14 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
   Widget _buildDetailsCard(GroomViewProfileController groomController) {
     final activeService = groomController.activeServiceType.toLowerCase().replaceAll(' ', '');
     final vendor = groomController.vendorData;
-    final Map servicesData = vendor['servicesData'] ?? {};
+    final Map<dynamic, dynamic> servicesData = vendor['servicesData'] ?? {};
 
     if (activeService.contains('bodywork')) {
-        final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? groomController.activeServiceProfile;
+        final Map bodyworkData = _detailBlockForActiveService(
+          groomController,
+          servicesData,
+          ['bodywork', 'body work'],
+        );
        return BodyworkServiceAndRatesView(
          bodyworkData: bodyworkData,
          location: groomController.locationStr.value,
@@ -448,7 +469,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     }
     
     if (activeService == 'shipping' || activeService == 'transportation') {
-       final Map shippingData = servicesData['shipping'] ?? servicesData['transportation'] ?? groomController.activeServiceProfile;
+       final Map shippingData = _detailBlockForActiveService(
+         groomController,
+         servicesData,
+         ['shipping', 'transportation'],
+       );
       return ShippingServiceAndRatesView(
         shippingData: shippingData,
         location: groomController.locationStr.value,
@@ -471,7 +496,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     }
     
     if (activeService == 'grooming') {
-        final Map groomingData = servicesData['grooming'] ?? groomController.activeServiceProfile;
+        final Map groomingData = _detailBlockForActiveService(
+          groomController,
+          servicesData,
+          ['grooming'],
+        );
        return GroomingServiceAndRatesView(
          groomingData: groomingData,
          location: groomController.locationStr.value,
@@ -487,7 +516,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     }
     
     if (activeService == 'clipping') {
-        final Map clippingData = servicesData['clipping'] ?? groomController.activeServiceProfile;
+        final Map clippingData = _detailBlockForActiveService(
+          groomController,
+          servicesData,
+          ['clipping'],
+        );
        return ClippingServiceAndRatesView(
          clippingData: clippingData,
          location: groomController.locationStr.value,
@@ -500,7 +533,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
     }
     
     if (activeService == 'braiding') {
-        final Map braidingData = servicesData['braiding'] ?? groomController.activeServiceProfile;
+        final Map braidingData = _detailBlockForActiveService(
+          groomController,
+          servicesData,
+          ['braiding'],
+        );
        return BraidingServiceAndRatesView(
          braidingData: braidingData,
          location: groomController.locationStr.value,
@@ -514,7 +551,11 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
 
     if (activeService == 'farrier') {
       return FarrierServiceAndRatesView(
-        farrierData: servicesData['farrier'] ?? groomController.activeServiceProfile,
+        farrierData: _detailBlockForActiveService(
+          groomController,
+          servicesData,
+          ['farrier'],
+        ),
         location: groomController.locationStr.value,
         experience: groomController.experienceStr.value,
         disciplines: groomController.disciplinesSelected,

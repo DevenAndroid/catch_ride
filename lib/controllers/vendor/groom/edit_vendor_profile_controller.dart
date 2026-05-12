@@ -78,7 +78,7 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> supportOptions = <String>['Show Grooming', 'Monthly Jobs', 'Fill in Daily Grooming Support', 'Weekly Jobs', 'Seasonal Jobs', 'Travel Jobs'].obs;
   final RxList<String> selectedSupport = <String>[].obs;
 
-  final RxList<String> handlingOptions = <String>['Lunging', 'Flat Riding (exercise only)'].obs;
+  final RxList<String> handlingOptions = <String>['Lunging', 'Flat Riding (Exercise Only)'].obs;
   final RxList<String> selectedHandling = <String>[].obs;
 
   final RxList<String> additionalSkillsOptions = <String>['Braiding', 'Clipping'].obs;
@@ -323,13 +323,14 @@ class EditVendorProfileController extends GetxController {
 
     final data = vendorRootData;
     fullNameController.text = '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
-    phoneController.text = data['phone'] ?? '';
-    businessNameController.text = data['businessName'] ?? '';
-    aboutController.text = data['bio'] ?? '';
-    notesForTrainerController.text = data['notesForTrainer'] ?? '';
-    profilePhotoUrl.value = data['profilePhoto'] ?? '';
-    coverImageUrl.value = data['coverImage'] ?? '';
-    otherPaymentController.text = data["otherPaymentDetails"] ?? "";
+    // API/cache may decode numeric fields as int; controllers need String.
+    phoneController.text = data['phone']?.toString() ?? '';
+    businessNameController.text = data['businessName']?.toString() ?? '';
+    aboutController.text = data['bio']?.toString() ?? '';
+    notesForTrainerController.text = data['notesForTrainer']?.toString() ?? '';
+    profilePhotoUrl.value = data['profilePhoto']?.toString() ?? '';
+    coverImageUrl.value = data['coverImage']?.toString() ?? '';
+    otherPaymentController.text = data['otherPaymentDetails']?.toString() ?? '';
     selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
 
     final List<String> loadedHighlights = List<String>.from(data['highlights'] ?? []);
@@ -444,7 +445,7 @@ class EditVendorProfileController extends GetxController {
           return;
         }
         final root = Map<String, dynamic>.from(raw);
-        // Match groom view profile: build tabs from VendorService rows OR legacy
+        // Match groom view profile: build tabs from VendorModel.assignedServices OR legacy
         // vendor.serviceType + servicesData when assignedServices is empty.
         final normalizedAssigned = normalizeAssignedServices(root);
         root['assignedServices'] = normalizedAssigned;
@@ -455,12 +456,12 @@ class EditVendorProfileController extends GetxController {
         // Basic Details
         fullNameController.text = '${root['firstName'] ?? ''} ${root['lastName'] ?? ''}'.trim();
         phoneController.text = root['phone']?.toString() ?? '';
-        businessNameController.text = root['businessName'] ?? '';
-        aboutController.text = root['bio'] ?? '';
-        notesForTrainerController.text = root['notesForTrainer'] ?? '';
-        profilePhotoUrl.value = root['profilePhoto'] ?? '';
-        coverImageUrl.value = root['coverImage'] ?? '';
-        otherPaymentController.text = root['otherPaymentDetails'] ?? '';
+        businessNameController.text = root['businessName']?.toString() ?? '';
+        aboutController.text = root['bio']?.toString() ?? '';
+        notesForTrainerController.text = root['notesForTrainer']?.toString() ?? '';
+        profilePhotoUrl.value = root['profilePhoto']?.toString() ?? '';
+        coverImageUrl.value = root['coverImage']?.toString() ?? '';
+        otherPaymentController.text = root['otherPaymentDetails']?.toString() ?? '';
 
         selectedPayments.assignAll(List<String>.from(root['paymentMethods'] ?? []));
 
@@ -486,7 +487,9 @@ class EditVendorProfileController extends GetxController {
         rawServicesData.assignAll(sData);
         originalServicesData.assignAll(_cachedOriginalServicesData!);
         draftServicesData.assignAll(_cachedDraftServicesData!);
-        
+
+        _applyMergedProfileDataToRxServiceMaps(root, normalizedAssigned);
+
         // Populate ALL service data into our reactive fields to prevent overwriting with blanks
         _initializeAllServicesFields();
 
@@ -499,10 +502,50 @@ class EditVendorProfileController extends GetxController {
     }
   }
 
+  /// Aligns `draft` / `raw` / `original` [servicesData] blocks with [mergedVendorServiceDisplayData]
+  /// (VendorModel embed + assigned profile + `servicesData`) so Edit Profile matches groom profile + Services & Rates after GET `/vendors/me`.
+  void _applyMergedProfileDataToRxServiceMaps(
+    Map<String, dynamic> root,
+    List<Map<String, dynamic>> normalizedAssigned,
+  ) {
+    for (final row in normalizedAssigned) {
+      final t = row['serviceType']?.toString() ?? '';
+      if (t.isEmpty) continue;
+      final merged = mergedVendorServiceDisplayData(root, t);
+      final pd = merged['profileData'];
+      if (pd is! Map) continue;
+      final profileData = Map<String, dynamic>.from(pd);
+      if (profileData.isEmpty) continue;
+      final key = vendorPreformSubdocKey(t);
+      void upsert(RxMap target) {
+        final existing = target[key];
+        final Map<String, dynamic> block = existing is Map
+            ? Map<String, dynamic>.from(existing as Map)
+            : <String, dynamic>{};
+        block['profileData'] = profileData;
+        target[key] = block;
+      }
+      upsert(draftServicesData);
+      upsert(rawServicesData);
+      upsert(originalServicesData);
+    }
+    _cachedDraftServicesData = jsonDecode(jsonEncode(Map<String, dynamic>.from(draftServicesData)));
+    _cachedOriginalServicesData =
+        jsonDecode(jsonEncode(Map<String, dynamic>.from(originalServicesData)));
+    _cachedRawServicesData = Map<String, dynamic>.from(rawServicesData);
+  }
+
   void _initializeAllServicesFields() {
     for (var service in assignedServices) {
       final type = service['serviceType'];
-      final profileData = service['profile']?['profileData'] ?? {};
+      final typeStr = type is String ? type : type.toString();
+      final merged = mergedVendorServiceDisplayData(
+        Map<String, dynamic>.from(vendorRootData),
+        typeStr,
+      );
+      final profileData = merged['profileData'] is Map
+          ? Map<String, dynamic>.from(merged['profileData'] as Map)
+          : <String, dynamic>{};
       final application = service['application'] ?? {};
       final appData = application['applicationData'] ?? application ?? {};
       

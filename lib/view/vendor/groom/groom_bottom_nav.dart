@@ -26,53 +26,63 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
   late int _selectedIndex;
   final AuthController _authController = Get.find<AuthController>();
 
-  late final List<Widget> _views;
-
   @override
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
-    
-    final user = _authController.currentUser.value;
-    final isShipping = user?.vendorServices.contains('Shipping') ?? false;
+  }
 
-    _views = [
-      const GroomViewProfile(),
-      const BookingView(),
-      isShipping ? const ShippingTripView() : const AvailabilityView(),
-      GroomChatView(),
-      const MenuView(),
-    ];
+  Widget _bodyForIndex(int index, bool isShipping) {
+    switch (index) {
+      case 0:
+        return const GroomViewProfile();
+      case 1:
+        return const BookingView();
+      case 2:
+        return isShipping ? const ShippingTripView() : const AvailabilityView();
+      case 3:
+        return GroomChatView();
+      case 4:
+        return const MenuView();
+      default:
+        return const GroomViewProfile();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = _authController.currentUser.value;
-    final isShipping = user?.vendorServices.any((s) => s.toLowerCase() == 'shipping') ?? false;
+    return Obx(() {
+      final user = _authController.currentUser.value;
+      final isShipping = user?.vendorOffersShippingNav ?? false;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: _views[_selectedIndex],
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: _bodyForIndex(_selectedIndex, isShipping),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Colors.grey.shade200)),
+          ),
+          child: SafeArea(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, 'Profile', Icons.person, isAvatar: true),
+                _buildNavItem(1, 'Booking', "assets/icons/booking.svg"),
+                _buildNavItem(
+                  2,
+                  isShipping ? 'Trips' : 'Availability',
+                  isShipping ? "assets/icons/route.svg" : "assets/icons/availability.svg",
+                ),
+                _buildNavItem(3, 'Inbox', "assets/icons/message.svg"),
+                _buildNavItem(4, 'Menu', "assets/icons/menu_bottom.svg"),
+              ],
+            ),
+          ),
         ),
-        child: SafeArea(
-          child: Obx(() => Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, 'Profile', Icons.person, isAvatar: true),
-              _buildNavItem(1, 'Booking', "assets/icons/booking.svg"),
-              _buildNavItem(2, isShipping ? 'Trips' : 'Availability', isShipping ? "assets/icons/route.svg" : "assets/icons/availability.svg"),
-              _buildNavItem(3, 'Inbox', "assets/icons/message.svg"),
-              _buildNavItem(4, 'Menu', "assets/icons/menu_bottom.svg"),
-            ],
-          )),
-        ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildNavItem(int index, String label, dynamic icon, {bool isAvatar = false}) {

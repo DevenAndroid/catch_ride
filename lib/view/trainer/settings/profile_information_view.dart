@@ -9,7 +9,9 @@ class ProfileInformationView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ProfileController profileController = Get.find<ProfileController>();
+    final ProfileController profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController());
 
     return Scaffold(
       backgroundColor: AppColors.background,
