@@ -287,7 +287,7 @@ class NotificationsView extends StatelessWidget {
     } else if (difference.inDays < 7) {
       return '${difference.inDays}d ago';
     } else {
-      return DateFormat('dd MMM').format(date);
+      return DateFormat('MMMM d').format(date);
     }
   }
 }

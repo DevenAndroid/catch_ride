@@ -326,6 +326,6 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
     if (difference.inHours < 24) return '${difference.inHours} hours ago';
     if (difference.inDays < 7) return '${difference.inDays} days ago';
 
-    return DateFormat('dd MMM').format(date);
+    return DateFormat('MMMM d').format(date);
   }
 }

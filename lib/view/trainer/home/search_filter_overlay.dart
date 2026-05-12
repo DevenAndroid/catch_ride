@@ -107,8 +107,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     }
     if (_rangeStart != null) {
       final dateStr = _rangeEnd != null
-          ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}'
-          : DateFormat('dd MMM yyyy').format(_rangeStart!);
+          ? '${DateFormat('MMMM d, yyyy').format(_rangeStart!)} - ${DateFormat('MMMM d, yyyy').format(_rangeEnd!)}'
+          : DateFormat('MMMM d, yyyy').format(_rangeStart!);
       controller.addToHistory(dateStr);
     }
 
@@ -600,8 +600,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 CommonText(
                   _rangeStart != null
                       ? (_rangeEnd != null
-                            ? '${DateFormat('dd MMM yyyy').format(_rangeStart!)} - ${DateFormat('dd MMM yyyy').format(_rangeEnd!)}'
-                            : DateFormat('dd MMM yyyy').format(_rangeStart!))
+                            ? '${DateFormat('MMMM d, yyyy').format(_rangeStart!)} - ${DateFormat('MMMM d, yyyy').format(_rangeEnd!)}'
+                            : DateFormat('MMMM d, yyyy').format(_rangeStart!))
                       : 'Add dates',
                   fontSize: 14,
                   color: AppColors.textSecondary.withOpacity(0.8),
@@ -827,7 +827,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       if (show['startDate'] != null && show['endDate'] != null) {
         final start = DateTime.parse(show['startDate']);
         final end = DateTime.parse(show['endDate']);
-        final df = DateFormat('MMM d');
+        final df = DateFormat('MMMM d');
         final dfYear = DateFormat('yyyy');
         dateRange = '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
       }
@@ -995,10 +995,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           try {
             if (isDateRange) {
               final parts = address.split(' - ');
-              _rangeStart = DateFormat('dd MMM yyyy').parse(parts[0]);
-              _rangeEnd = DateFormat('dd MMM yyyy').parse(parts[1]);
+              _rangeStart = DateFormat('MMMM d, yyyy').parse(parts[0]);
+              _rangeEnd = DateFormat('MMMM d, yyyy').parse(parts[1]);
             } else {
-              _rangeStart = DateFormat('dd MMM yyyy').parse(address);
+              _rangeStart = DateFormat('MMMM d, yyyy').parse(address);
               _rangeEnd = null;
             }
             controller.startDate.value = _rangeStart;
@@ -1080,7 +1080,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           CommonText(
-            date != null ? DateFormat('dd MMM yyyy').format(date) : title,
+            date != null ? DateFormat('MMMM d, yyyy').format(date) : title,
             color: date != null
                 ? AppColors.textPrimary
                 : AppColors.textSecondary.withOpacity(0.6),

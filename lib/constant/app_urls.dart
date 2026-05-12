@@ -16,8 +16,15 @@ class AppUrls {
   }
 
   static String get baseUrl {
-    if (isLive) return 'https://api.catchrideapp.com/api';
-    return '$devTunnelOrigin/api';
+    try {
+      if (isLive) return 'https://api.catchrideapp.com/api';
+    } catch (_) {}
+
+
+    // return 'http://$host:5000/api';
+  // return '$host/api';
+    return 'http://$host:5000/api';
+
   }
 
   static String get socketUrl {

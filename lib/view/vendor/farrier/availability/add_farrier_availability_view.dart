@@ -174,7 +174,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
-                  IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close, color: Colors.grey, size: 20)),
+
                 ],
               ),
               const SizedBox(height: 24),
@@ -229,7 +229,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
               children: [
                 CommonText(
                   (_startDate != null && _endDate != null)
-                      ? '${DateFormat('MM/dd/yyyy').format(_startDate!)} - ${DateFormat('MM/dd/yyyy').format(_endDate!)}'
+                      ? '${DateFormat('MMMM d, yyyy').format(_startDate!)} - ${DateFormat('MMMM d, yyyy').format(_endDate!)}'
                       : 'Select Date Range',
                   fontSize: 14,
                   color: _startDate != null ? AppColors.textPrimary : Colors.grey,
@@ -258,7 +258,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CommonText(date != null ? DateFormat('MM/dd/yyyy').format(date) : 'Select date', fontSize: 14, color: date != null ? AppColors.textPrimary : Colors.grey),
+                CommonText(date != null ? DateFormat('MMMM d, yyyy').format(date) : 'Select date', fontSize: 14, color: date != null ? AppColors.textPrimary : Colors.grey),
                 const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
               ],
             ),
@@ -309,9 +309,11 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
           child: Wrap(
             spacing: 8, runSpacing: 8,
             children: _addedVenues.map((v) => Chip(
-              label: CommonText(v, fontSize: 12),
+              label: CommonText(v, fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.bold),
               onDeleted: () => _addedVenues.remove(v),
-              backgroundColor: const Color(0xFFF2F4F7),
+              backgroundColor: const Color(0xFFF5F8FF),
+              side: const BorderSide(color: AppColors.primaryDark),
+              deleteIconColor: AppColors.primaryDark,
             )).toList(),
           ),
         )),
@@ -418,11 +420,15 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
         onTap: () => selected.value = opt,
         child: Obx(() => Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: selected.value == opt ? AppColors.primary : AppColors.borderLight, width: selected.value == opt ? 1.5 : 1)),
+          decoration: BoxDecoration(
+            color: selected.value == opt ? const Color(0xFFF5F8FF) : Colors.white,
+            borderRadius: BorderRadius.circular(12), 
+            border: Border.all(color: selected.value == opt ? AppColors.primaryDark : AppColors.borderLight, width: selected.value == opt ? 1.5 : 1)
+          ),
           child: Row(children: [
-            Icon(selected.value == opt ? Icons.radio_button_checked : Icons.radio_button_off, color: selected.value == opt ? AppColors.primary : Colors.grey, size: 20),
+            Icon(selected.value == opt ? Icons.radio_button_checked : Icons.radio_button_off, color: selected.value == opt ? AppColors.primaryDark : Colors.grey, size: 20),
             const SizedBox(width: 12),
-            CommonText(opt, fontSize: 14, fontWeight: selected.value == opt ? FontWeight.bold : FontWeight.w500),
+            CommonText(opt, fontSize: 14, fontWeight: selected.value == opt ? FontWeight.bold : FontWeight.w500, color: selected.value == opt ? AppColors.primaryDark : AppColors.textPrimary),
           ]),
         )),
       ),

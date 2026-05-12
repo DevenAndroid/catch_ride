@@ -2010,7 +2010,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     const SizedBox(height: 8),
                     _buildDateSelector(
                       startDate != null
-                          ? DateFormat('MMM d, yyyy').format(startDate!)
+                          ? DateFormat('MMMM d, yyyy').format(startDate!)
                           : 'Select Date',
                           () async {
                         if (selectedLocation == null) {
@@ -2032,8 +2032,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
                         if (selectedLocation != horse!.location &&
                             selectedShow != null) {
-                          final sDate = DateTime.tryParse(selectedShow!.startDate);
-                          final eDate = DateTime.tryParse(selectedShow!.endDate);
+                          final sDate = DateUtil.parse(selectedShow!.startDate);
+                          final eDate = DateUtil.parse(selectedShow!.endDate);
 
                           if (sDate != null && eDate != null) {
                             final startOnly =
@@ -2082,8 +2082,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                             if (selectedLocation == horse!.location) return true;
                             if (selectedShow == null) return false;
 
-                            final sDate = DateTime.tryParse(selectedShow!.startDate);
-                            final eDate = DateTime.tryParse(selectedShow!.endDate);
+                            final sDate = DateUtil.parse(selectedShow!.startDate);
+                            final eDate = DateUtil.parse(selectedShow!.endDate);
                             if (sDate != null && eDate != null) {
                               final startOnly =
                               DateTime(sDate.year, sDate.month, sDate.day);
@@ -2209,8 +2209,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                 if (val == horse!.location) {
                                   // All dates valid for home, no reset needed
                                 } else if (selectedShow != null) {
-                                  final sDate = DateTime.tryParse(selectedShow!.startDate);
-                                  final eDate = DateTime.tryParse(selectedShow!.endDate);
+                                  final sDate = DateUtil.parse(selectedShow!.startDate);
+                                  final eDate = DateUtil.parse(selectedShow!.endDate);
                                   bool isValid = false;
                                   if (sDate != null && eDate != null) {
                                     final dateOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);
@@ -2464,7 +2464,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           fontFamily: 'Outfit',
                         ),
                         children: [
-                          TextSpan(text: horse?.listingTitle??horse?.name),
+                          TextSpan(text: horse?.name ??horse?.listingTitle),
                           // TextSpan(
                           //   text:
                           //       ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',

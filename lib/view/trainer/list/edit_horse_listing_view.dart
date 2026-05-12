@@ -63,29 +63,37 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
     DateTime? firstDate,
   }) async {
     final DateTime now = DateTime.now();
-    DateTime initial = now;
+    final DateTime today = DateTime(now.year, now.month, now.day);
     
-    // If textController already has a date, use it as initial
+    // Normalize firstDate if provided, otherwise use today
+    final DateTime effectiveFirstDate = firstDate != null 
+        ? DateTime(firstDate.year, firstDate.month, firstDate.day)
+        : today;
+        
+    DateTime initial = today;
+    
     if (textController.text.isNotEmpty) {
       try {
-        initial = DateFormat('dd MMM yyyy').parse(textController.text);
+        initial = DateFormat('MMMM d, yyyy').parse(textController.text);
+        // Normalize initial to midnight
+        initial = DateTime(initial.year, initial.month, initial.day);
       } catch (_) {}
     }
 
-    // Ensure initial is not before firstDate
-    if (firstDate != null && initial.isBefore(firstDate)) {
-      initial = firstDate;
+    // Ensure initial is not before effectiveFirstDate
+    if (initial.isBefore(effectiveFirstDate)) {
+      initial = effectiveFirstDate;
     }
 
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: firstDate ?? now,
+      firstDate: effectiveFirstDate,
       lastDate: DateTime(2101),
     );
 
     if (pickedDate != null) {
-      textController.text = DateFormat('dd MMM yyyy').format(pickedDate);
+      textController.text = DateFormat('MMMM d, yyyy').format(pickedDate);
     }
   }
 
@@ -1846,7 +1854,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                       DateTime? availableFromDate;
                                       if (controller.availableFromController.text.isNotEmpty) {
                                         try {
-                                          availableFromDate = DateFormat('dd MMM yyyy').parse(controller.availableFromController.text);
+                                          availableFromDate = DateFormat('MMMM d, yyyy').parse(controller.availableFromController.text);
                                         } catch (_) {}
                                       }
 
@@ -1907,7 +1915,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
 
                                   // Auto-fill Dates
                                   final DateFormat formatter = DateFormat(
-                                    'dd MMM yyyy',
+                                    'MMMM d, yyyy',
                                   );
                                   if (selection['startDate'] != null) {
                                     try {
@@ -2018,7 +2026,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                                 final end = DateTime.parse(
                                                   show['endDate'],
                                                 );
-                                                final df = DateFormat('MMM d');
+                                                final df = DateFormat('MMMM d');
                                                 final dfYear = DateFormat(
                                                   'yyyy',
                                                 );
@@ -2087,7 +2095,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                   DateTime? firstDate;
                                   if (controller.availableFromController.text.isNotEmpty) {
                                     try {
-                                      firstDate = DateFormat('dd MMM yyyy').parse(controller.availableFromController.text);
+                                      firstDate = DateFormat('MMMM d, yyyy').parse(controller.availableFromController.text);
                                     } catch (_) {}
                                   }
                                   _selectDateTime(
@@ -2114,11 +2122,11 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                                   DateTime? firstDate;
                                   if (availabilityEntry.startDateController.text.isNotEmpty) {
                                     try {
-                                      firstDate = DateFormat('dd MMM yyyy').parse(availabilityEntry.startDateController.text);
+                                      firstDate = DateFormat('MMMM d, yyyy').parse(availabilityEntry.startDateController.text);
                                     } catch (_) {}
                                   } else if (controller.availableFromController.text.isNotEmpty) {
                                     try {
-                                      firstDate = DateFormat('dd MMM yyyy').parse(controller.availableFromController.text);
+                                      firstDate = DateFormat('MMMM d, yyyy').parse(controller.availableFromController.text);
                                     } catch (_) {}
                                   }
                                   _selectDateTime(

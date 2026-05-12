@@ -209,7 +209,7 @@ class ShippingDetailsView extends StatelessWidget {
                             Checkbox(
                               value: controller.hasCDL.value,
                               onChanged: (val) => controller.hasCDL.value = val ?? false,
-                              activeColor: const Color(0xFF001149),
+                              activeColor: AppColors.primary,
                             ),
                             const Expanded(child: CommonText('I have a valid CDL (if required for my rig size)', fontSize: 13)),
                           ],
@@ -324,7 +324,7 @@ class ShippingDetailsView extends StatelessWidget {
                     isLoading: controller.isSubmitting.value,
                     onPressed: controller.submitDetails,
                     height: 56,
-                    backgroundColor: const Color(0xFF001149),
+                    backgroundColor: AppColors.primaryDark,
                   ),
                   const SizedBox(height: 40),
                 ],
@@ -424,8 +424,9 @@ class ShippingDetailsView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.borderLight),
           ),
           child: CommonText(value, fontSize: 14, color: AppColors.textPrimary),
         ),
@@ -634,7 +635,7 @@ class ShippingDetailsView extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.borderLight),
           ),
@@ -653,6 +654,7 @@ class ShippingDetailsView extends StatelessWidget {
         Obx(() => GestureDetector(
           onTap: () => _showPickerBottomSheet(
             title: 'Experience',
+            currentValue: controller.experienceDisplay.value,
             options: controller.experienceOptions,
             onSelected: (val) => controller.experienceDisplay.value = val,
           ),
@@ -660,7 +662,7 @@ class ShippingDetailsView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.borderLight),
             ),
@@ -668,7 +670,7 @@ class ShippingDetailsView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: CommonText(controller.experienceDisplay.value ?? 'Select years of experience', fontSize: 14, color: AppColors.textPrimary),
+                  child: CommonText(controller.experienceDisplay.value ?? 'Select years of experience', fontSize: 14, color: controller.experienceDisplay.value == null ? AppColors.textSecondary : AppColors.textPrimary),
                 ),
                 const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary, size: 20),
               ],
@@ -679,7 +681,7 @@ class ShippingDetailsView extends StatelessWidget {
     );
   }
 
-  void _showPickerBottomSheet({required String title, required List<String> options, required Function(String) onSelected}) {
+  void _showPickerBottomSheet({required String title, String? currentValue, required List<String> options, required Function(String) onSelected}) {
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(24),
@@ -689,13 +691,16 @@ class ShippingDetailsView extends StatelessWidget {
           children: [
             CommonText(title, fontSize: 20, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            ...options.map((opt) => ListTile(
-              title: CommonText(opt),
-              onTap: () {
-                onSelected(opt);
-                Get.back();
-              },
-            )),
+            ...options.map((opt) {
+              final isSelected = opt == currentValue;
+              return ListTile(
+                title: Center(child: CommonText(opt, color: isSelected ? AppColors.primary : AppColors.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                onTap: () {
+                  onSelected(opt);
+                  Get.back();
+                },
+              );
+            }),
           ],
         ),
       ),

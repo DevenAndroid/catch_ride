@@ -59,6 +59,19 @@ class BookingChatMessageTileBuilder {
       );
     }
 
+    final decline = BookingChatMessageParser.parseDecline(strippedForBooking);
+    if (decline != null) {
+      return _BookingDeclinedChatCard(
+        parsed: decline,
+        msg: msg,
+        isMe: isMe,
+        bookingId: _resolveBookingId(msg, chatController, conversationId),
+        conversationId: conversationId,
+        chatController: chatController,
+        showReadReceipt: isMe && messageIndex == 0 && msg.read,
+      );
+    }
+
     final update = BookingChatMessageParser.parseUpdate(strippedForBooking);
     if (update != null) {
       return _BookingUpdatedChatCard(
@@ -80,14 +93,12 @@ class BookingChatMessageTileBuilder {
     ChatController chatController,
     String conversationId,
   ) {
+    // Only trust the bookingId that was stored on the message itself.
+    // Falling back to the conversation-level booking (which is the LATEST
+    // booking with a bookingId in the thread) would cause every booking
+    // card to open the same booking when a chat has multiple bookings.
     final id = msg.bookingId;
     if (id != null && id.isNotEmpty) return id;
-
-    final convo = chatController.conversations.firstWhereOrNull(
-      (c) => c.conversationId == conversationId,
-    );
-    final bid = convo?.booking?.id;
-    if (bid != null && bid.isNotEmpty) return bid;
     return null;
   }
 }
@@ -279,6 +290,122 @@ class _BookingApprovalChatCard extends StatelessWidget {
       onShowDetails: () => _openBookingDetails(
         bookingId: bookingId,
         fallbackStatus: 'accepted',
+        conversationId: conversationId,
+        chatController: chatController,
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment:
+            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: CommonText(
+              metaLine,
+              fontSize: AppTextSizes.size12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+              textAlign: isMe ? TextAlign.right : TextAlign.left,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (isMe)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Flexible(child: cardBody),
+                const SizedBox(width: 8),
+                CommonImageView(
+                  url: msg.senderImage ?? '',
+                  height: 36,
+                  width: 36,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
+                ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                CommonImageView(
+                  url: msg.senderImage ?? '',
+                  height: 36,
+                  width: 36,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: cardBody),
+              ],
+            ),
+          if (showReadReceipt) ...[
+            const SizedBox(height: 4),
+            SizedBox(
+              width: double.infinity,
+              child: CommonText(
+                'Seen',
+                fontSize: AppTextSizes.size12,
+                color: AppColors.textSecondary,
+                textAlign: isMe ? TextAlign.right : TextAlign.left,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingDeclinedChatCard extends StatelessWidget {
+  final ParsedBookingDeclineMessage parsed;
+  final ChatMessage msg;
+  final bool isMe;
+  final String? bookingId;
+  final String conversationId;
+  final ChatController chatController;
+  final bool showReadReceipt;
+
+  const _BookingDeclinedChatCard({
+    required this.parsed,
+    required this.msg,
+    required this.isMe,
+    required this.bookingId,
+    required this.conversationId,
+    required this.chatController,
+    required this.showReadReceipt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final timeLabel = DateFormat.jm().format(msg.timestamp.toLocal());
+    final metaParts = <String>[
+      msg.senderName,
+      _roleDisplayLabel(msg.senderRole),
+      timeLabel,
+    ];
+    final metaLine = metaParts.join(' · ');
+
+    final dateLine = DateUtil.formatDisplayDate(parsed.dateRaw);
+
+    final cardBody = _BookingCardShell(
+      statusTitle: 'Request declined',
+      headline: parsed.horseName,
+      subtitle: dateLine,
+      footnote: parsed.reason != null && parsed.reason!.isNotEmpty
+          ? 'Reason: ${parsed.reason}'
+          : null,
+      statusAccent: AppColors.errorPrimary,
+      icon: Icons.cancel_outlined,
+      iconBackground: AppColors.errorBg,
+      iconColor: AppColors.errorPrimary,
+      onShowDetails: () => _openBookingDetails(
+        bookingId: bookingId,
+        fallbackStatus: 'rejected',
         conversationId: conversationId,
         chatController: chatController,
       ),
@@ -590,6 +717,11 @@ class _BookingCardShell extends StatelessWidget {
   final String subtitle;
   final String? footnote;
   final VoidCallback onShowDetails;
+  // Optional accent for status-specific cards (e.g. declined uses an error tint).
+  final Color? statusAccent;
+  final IconData? icon;
+  final Color? iconBackground;
+  final Color? iconColor;
 
   const _BookingCardShell({
     required this.statusTitle,
@@ -597,10 +729,18 @@ class _BookingCardShell extends StatelessWidget {
     required this.subtitle,
     this.footnote,
     required this.onShowDetails,
+    this.statusAccent,
+    this.icon,
+    this.iconBackground,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final resolvedIcon = icon ?? Icons.calendar_month_rounded;
+    final resolvedIconBg = iconBackground ?? AppColors.tabBackground;
+    final resolvedIconColor =
+        iconColor ?? AppColors.textPrimary.withValues(alpha: 0.85);
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardColor,
@@ -629,7 +769,7 @@ class _BookingCardShell extends StatelessWidget {
                       statusTitle,
                       fontSize: AppTextSizes.size12,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: statusAccent ?? AppColors.textPrimary,
                     ),
                     const SizedBox(height: 6),
                     CommonText(
@@ -663,13 +803,13 @@ class _BookingCardShell extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.tabBackground,
+                  color: resolvedIconBg,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.calendar_month_rounded,
+                  resolvedIcon,
                   size: 22,
-                  color: AppColors.textPrimary.withValues(alpha: 0.85),
+                  color: resolvedIconColor,
                 ),
               ),
             ],

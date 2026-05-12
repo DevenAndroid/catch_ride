@@ -25,7 +25,7 @@ class TrainerExploreView extends StatefulWidget {
   State<TrainerExploreView> createState() => _TrainerExploreViewState();
 }
 
-class _TrainerExploreViewState extends State<TrainerExploreView> {
+class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticKeepAliveClientMixin {
   final ExploreController controller = Get.put(ExploreController());
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, dynamic>> _categories = [
@@ -40,16 +40,17 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
     },
     {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
+
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
-    controller.fetchHorses();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 200) {
-        controller.fetchHorses(isLoadMore: true);
-      }
-    });
+    // Only fetch if we don't have data already to avoid flickering on tab switch
+    if (controller.horses.isEmpty && controller.vendors.isEmpty) {
+      controller.fetchHorses();
+    }
   }
 
   @override
@@ -60,6 +61,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -72,7 +74,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> {
               child: RefreshIndicator(
                 color: AppColors.primary,
                 onRefresh: () async {
-                  await controller.fetchHorses();
+                  await controller.fetchHorses(showLoading: false);
+                  if (_scrollController.hasClients) {
+                    _scrollController.jumpTo(0);
+                  }
                 },
                 child: Obx(() {
                   final bool isVendors =
