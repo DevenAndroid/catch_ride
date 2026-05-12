@@ -1,5 +1,5 @@
-// Maps VendorService-shaped API payloads (serviceType, profile/application subdocs)
-// and lean vendor roots (services + servicesData) into a consistent structure for controllers.
+// Normalizes [VendorModel]-root payloads from GET /vendors/me (and similar): `serviceType`,
+// `servicesData`, `assignedServices` (each entry may carry nested profile/application maps).
 
 Map<String, dynamic> _asStringKeyedMap(dynamic value) {
   if (value is! Map) return <String, dynamic>{};
@@ -81,8 +81,50 @@ Map<String, dynamic> effectiveProfileData(dynamic assignedService) {
   return <String, dynamic>{};
 }
 
+/// Onboarding / profile selection: [VendorModel.serviceType] (preferred over denormalized `services`).
+List<String> vendorSelectedServiceTypes(Map<String, dynamic> vendor) {
+  final st = vendor['serviceType'];
+  final out = <String>[];
+  if (st is List) {
+    for (final e in st) {
+      final s = e?.toString().trim() ?? '';
+      if (s.isNotEmpty) out.add(s);
+    }
+  } else if (st is String && st.trim().isNotEmpty) {
+    out.add(st.trim());
+  }
+  return out;
+}
+
+String _canonicalServiceTypeKey(String? type) {
+  if (type == null) return '';
+  var k = type.toLowerCase().replaceAll(' ', '');
+  if (k == 'transportation') k = 'shipping';
+  return k;
+}
+
+/// When [selected] is non-empty, keep only types the vendor actually selected (root `serviceType`).
+bool _serviceTypeMatchesVendorSelection(
+  String? assignedType,
+  List<String> selected,
+) {
+  if (selected.isEmpty) return true;
+  final a = _canonicalServiceTypeKey(assignedType);
+  if (a.isEmpty) return false;
+  for (final s in selected) {
+    if (_canonicalServiceTypeKey(s) == a) return true;
+  }
+  return false;
+}
+
 /// Collects service type strings from root vendor fields (VendorModel + GET /vendors/me).
+///
+/// Prefers [vendorSelectedServiceTypes] so tabs reflect onboarding selection, not the
+/// denormalized `services` list on [VendorModel] (which may mirror every assigned-service entry).
 List<String> serviceTypesFromVendorRoot(Map<String, dynamic> vendor) {
+  final preferred = vendorSelectedServiceTypes(vendor);
+  if (preferred.isNotEmpty) return preferred;
+
   final out = <String>[];
 
   void addFrom(dynamic source) {
@@ -103,17 +145,34 @@ List<String> serviceTypesFromVendorRoot(Map<String, dynamic> vendor) {
   return out.toSet().toList();
 }
 
-/// Returns a list of maps shaped like populated VendorService rows for UI/controllers.
+/// Returns a list of maps shaped like [VendorModel.assignedServices] entries for UI/controllers.
+///
+/// Tabs and details only include services the vendor selected ([VendorModel.serviceType]),
+/// not every linked assigned-service entry or legacy `services` mirror on the vendor root.
 List<Map<String, dynamic>> normalizeAssignedServices(Map<String, dynamic> vendor) {
   final raw = vendor['assignedServices'];
-  final parsed = <Map<String, dynamic>>[];
+  final fromApi = <Map<String, dynamic>>[];
 
   if (raw is List) {
     for (final item in raw) {
       if (item is Map && item['serviceType'] != null) {
-        parsed.add(Map<String, dynamic>.from(item));
+        fromApi.add(Map<String, dynamic>.from(item));
       }
     }
+  }
+
+  final selected = vendorSelectedServiceTypes(vendor);
+
+  var parsed = fromApi;
+  if (selected.isNotEmpty) {
+    parsed = fromApi
+        .where(
+          (m) => _serviceTypeMatchesVendorSelection(
+            m['serviceType']?.toString(),
+            selected,
+          ),
+        )
+        .toList();
   }
 
   if (parsed.isNotEmpty) return parsed;
@@ -135,6 +194,29 @@ List<Map<String, dynamic>> normalizeAssignedServices(Map<String, dynamic> vendor
   }
 
   return parsed;
+}
+
+/// Whether normalized assigned rows include **Shipping** ([VendorModel.serviceType] includes `Shipping`;
+/// legacy `Transportation` counts via [_canonicalServiceTypeKey]). Uses [normalizeAssignedServices]
+/// so Trips vs Availability matches profile tabs and [VendorModel.serviceType] selection.
+bool vendorPayloadIncludesShipping(Map<String, dynamic> vendorRoot) {
+  for (final m in normalizeAssignedServices(vendorRoot)) {
+    if (_canonicalServiceTypeKey(m['serviceType']?.toString()) == 'shipping') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/// Same as [vendorPayloadIncludesShipping] when only [UserModel.vendorServices]-style strings exist.
+bool userVendorServicesIncludeShipping(List<String> vendorServices) {
+  if (vendorServices.isEmpty) return false;
+  return vendorPayloadIncludesShipping(<String, dynamic>{
+    'serviceType': List<String>.from(vendorServices),
+    'assignedServices': vendorServices
+        .map((t) => <String, dynamic>{'serviceType': t})
+        .toList(),
+  });
 }
 
 Map<String, dynamic> _profileDataFromServicesDataBlock(Map<String, dynamic> block) {
@@ -163,8 +245,104 @@ bool assignedServiceMatchesTab(
   return a == b;
 }
 
-/// Mongo `_id` of the [VendorService] row (assigned service entry), or null when missing / synthetic fallback rows.
-/// Backend: `VendorServiceModel` — must match `/vendors/:vendorId/services/:serviceId/profile|application`.
+/// Merged profile for one [serviceType]: **[VendorModel]** embedded subdoc (`grooming`, `braiding`, …),
+/// then **VendorModel.assignedServices** → `profile.profileData`, then **VendorModel.servicesData**
+/// (`profileData` from `servicesData` wins on key conflict for edited postform fields).
+///
+/// Single source for groom profile card, **Services & Rates**, and **Edit Profile** hydration.
+Map<String, dynamic> mergedVendorServiceDisplayData(
+  Map<String, dynamic> vendorRoot,
+  String serviceType,
+) {
+  final vendor = Map<String, dynamic>.from(vendorRoot);
+  final assigned = normalizeAssignedServices(vendor);
+
+  dynamic serviceRow;
+  for (final s in assigned) {
+    if (assignedServiceMatchesTab(s, serviceType)) {
+      serviceRow = s;
+      break;
+    }
+  }
+
+  final rawSd = vendor['servicesData'];
+  final Map<String, dynamic> servicesData =
+      rawSd is Map ? Map<String, dynamic>.from(rawSd) : <String, dynamic>{};
+
+  final Map<String, dynamic> directServiceData =
+      servicesDataBlockForType(servicesData, serviceType);
+
+  final profileSource =
+      serviceRow is Map ? serviceRow['profile'] : null;
+  final Map<String, dynamic> profile = profileSource is Map
+      ? Map<String, dynamic>.from(profileSource)
+      : <String, dynamic>{};
+
+  final pNested = profile['profileData'];
+  final Map<String, dynamic> pProfileData = pNested is Map
+      ? Map<String, dynamic>.from(pNested)
+      : <String, dynamic>{};
+
+  final dNestedProf = directServiceData['profileData'];
+  final Map<String, dynamic> dProfileData = dNestedProf is Map
+      ? Map<String, dynamic>.from(dNestedProf)
+      : <String, dynamic>{};
+
+  final vendorSubdoc = _vendorSubdoc(vendor, vendorPreformSubdocKey(serviceType));
+  final Map<String, dynamic> vmBase = vendorSubdoc != null
+      ? Map<String, dynamic>.from(vendorSubdoc)
+      : <String, dynamic>{};
+  _normalizeVendorModelSubdocForDisplay(serviceType, vmBase);
+
+  final Map<String, dynamic> mergedProfileData = {
+    ...vmBase,
+    ...pProfileData,
+    ...dProfileData,
+  };
+
+  final Map<String, dynamic> merged = {
+    ...profile,
+    ...directServiceData,
+    ...mergedProfileData,
+    'profileData': mergedProfileData,
+  };
+
+  void mergeList(String key) {
+    final List<dynamic> list1 = mergedProfileData[key] is List
+        ? List<dynamic>.from(mergedProfileData[key] as List)
+        : <dynamic>[];
+    final List<dynamic> list2 =
+        merged[key] is List ? List<dynamic>.from(merged[key] as List) : <dynamic>[];
+
+    if (list1.isNotEmpty || list2.isNotEmpty) {
+      final uniqueMap = <String, dynamic>{};
+      for (final item in [...list1, ...list2]) {
+        String? name;
+        if (item is Map && item['name'] != null) {
+          name = item['name'].toString().toLowerCase().trim();
+        } else if (item is String && item.toString().isNotEmpty) {
+          name = item.toString().toLowerCase().trim();
+        }
+        if (name != null) {
+          uniqueMap[name] = item;
+        }
+      }
+      final mergedList = uniqueMap.values.toList();
+      merged[key] = mergedList;
+      mergedProfileData[key] = mergedList;
+    }
+  }
+
+  mergeList('services');
+  mergeList('additionalServices');
+  mergeList('addOns');
+
+  merged['profileData'] = mergedProfileData;
+  return merged;
+}
+
+/// Mongo `_id` of one [VendorModel.assignedServices] map (per-service row), or null when missing / synthetic.
+/// Used as `serviceId` in `/vendors/:vendorMongoId/services/:serviceId/profile|application` (backend `VendorModel` aggregate + linked service profile sync).
 String? vendorServiceDocumentId(dynamic assignedServiceRow) {
   if (assignedServiceRow is! Map) return null;
   final m = Map<String, dynamic>.from(assignedServiceRow);
@@ -217,6 +395,102 @@ Map<String, dynamic>? _vendorSubdoc(Map<String, dynamic> vendorRoot, String subK
   final vm = _mapFrom(vendorRoot['vendorModel']);
   if (vm == null) return null;
   return _mapFrom(vm[subKey]);
+}
+
+/// Maps [VendorModel] embedded keys (e.g. `groomingServices`, `braidlingServices`) into the
+/// flattened shapes used by profile tabs (`services`, `capabilities`, `disciplines`).
+void _normalizeVendorModelSubdocForDisplay(String serviceType, Map<String, dynamic> b) {
+  if (b.isEmpty) return;
+  final n = serviceType.toLowerCase().replaceAll(' ', '');
+  if (b.containsKey('desciplines') && !b.containsKey('disciplines')) {
+    b['disciplines'] = b['desciplines'];
+  }
+  if (n == 'grooming') {
+    final gs = b['groomingServices'];
+    if (gs is List &&
+        gs.isNotEmpty &&
+        (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
+      b['services'] = gs
+          .map(
+            (e) => <String, dynamic>{
+              'name': e.toString(),
+              'isSelected': true,
+            },
+          )
+          .toList();
+    }
+    final support = b['showAndBarnSupport'];
+    final handling = b['horseHandling'];
+    final caps = _mapFrom(b['capabilities']) ?? <String, dynamic>{};
+    var changed = false;
+    if (support is List &&
+        support.isNotEmpty &&
+        (caps['support'] == null ||
+            (caps['support'] is List && (caps['support'] as List).isEmpty))) {
+      caps['support'] = List<String>.from(support.map((e) => e.toString()));
+      changed = true;
+    }
+    if (handling is List &&
+        handling.isNotEmpty &&
+        (caps['handling'] == null ||
+            (caps['handling'] is List && (caps['handling'] as List).isEmpty))) {
+      caps['handling'] = List<String>.from(handling.map((e) => e.toString()));
+      changed = true;
+    }
+    if (changed) b['capabilities'] = caps;
+  }
+  if (n == 'braiding' || n == 'clipping') {
+    final raw = n == 'braiding'
+        ? (b['braidlingServices'] ?? b['braidingServices'])
+        : b['clippingServices'];
+    if (raw is List &&
+        raw.isNotEmpty &&
+        (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
+      b['services'] = raw.map((e) {
+        if (e is Map) {
+          return <String, dynamic>{
+            'name': e['label'] ?? e['name'] ?? '',
+            'price': (e['ratePerHour'] ?? e['rate'] ?? e['price'] ?? '').toString(),
+            'isSelected': true,
+          };
+        }
+        return <String, dynamic>{
+          'name': e.toString(),
+          'price': '0',
+          'isSelected': true,
+        };
+      }).toList();
+    }
+  }
+  if (n == 'farrier') {
+    final fs = b['farrierServices'];
+    if (fs is List &&
+        fs.isNotEmpty &&
+        (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
+      b['services'] = fs.map((e) {
+        if (e is Map) {
+          return <String, dynamic>{
+            'name': e['label'] ?? e['name'] ?? '',
+            'price': (e['ratePerHour'] ?? e['rate'] ?? e['price'] ?? '').toString(),
+            'isSelected': true,
+          };
+        }
+        return <String, dynamic>{
+          'name': e.toString(),
+          'price': '0',
+          'isSelected': true,
+        };
+      }).toList();
+    }
+  }
+  if (n == 'bodywork') {
+    final bw = b['bodyworkServices'];
+    if (bw is List &&
+        bw.isNotEmpty &&
+        (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
+      b['services'] = List<dynamic>.from(bw);
+    }
+  }
 }
 
 String _firstNonEmptyStr(List<dynamic> candidates) {

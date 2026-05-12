@@ -88,7 +88,7 @@ class VendorDetailsController extends GetxController {
     }
   }
 
-  /// Aligns payload with VendorService rows (`serviceType`, nested profile/application).
+  /// Aligns payload with [VendorModel.assignedServices] (`serviceType`, nested profile/application).
   void _applyNormalizedAssignedServices() {
     final map = Map<String, dynamic>.from(vendorData);
     final normalized = normalizeAssignedServices(map);
@@ -189,7 +189,7 @@ class VendorDetailsController extends GetxController {
   String get coverImage => vendorData['coverImage'] ?? '';
   String get bio => vendorData['bio'] ?? 'No bio provided.';
   
-  // Active Service Getters (VendorService + populated ServiceProfile / ServiceApplication)
+  // Active Service Getters (VendorModel.assignedServices + nested profile/application maps)
   dynamic get _activeService {
     final list = vendorData['assignedServices'];
     if (list is! List || list.isEmpty || availableServices.isEmpty) return null;

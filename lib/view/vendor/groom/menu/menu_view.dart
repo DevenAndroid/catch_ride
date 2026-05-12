@@ -1,5 +1,6 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/notification_controller.dart';
+import 'package:catch_ride/models/user_model.dart';
 import 'package:catch_ride/view/trainer/settings/notifications_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/past_clients_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/services_rates_view.dart';
@@ -322,17 +323,36 @@ class MenuView extends StatelessWidget {
     );
   }
 
+  /// Same source as profile / availability: [UserModel.vendorSelectedServiceTypes]
+  /// ([VendorModel.serviceType]) when set; else [UserModel.vendorServices].
+  static List<String> _effectiveServiceTypes(UserModel user) {
+    if (user.vendorSelectedServiceTypes.isNotEmpty) {
+      return user.vendorSelectedServiceTypes;
+    }
+    return user.vendorServices;
+  }
+
+  static String _canonicalServiceKey(String raw) {
+    var k = raw.toLowerCase().replaceAll(' ', '');
+    if (k == 'transportation') k = 'shipping';
+    return k;
+  }
+
   bool _hasRole(List<String> targetRoles) {
     final user = Get.find<AuthController>().currentUser.value;
-    if (user == null) return false;
+    if (user == null || targetRoles.isEmpty) return false;
 
-    final targetLower = targetRoles.map((e) => e.toLowerCase()).toList();
+    final services = _effectiveServiceTypes(user);
+    if (services.isEmpty) return false;
 
-    // Return true if any of the assigned services match any of the target roles
-    return user.vendorServices.any((s) {
-      final sLower = s.toLowerCase();
-      return targetLower.any((target) => sLower.contains(target));
-    });
+    final serviceKeys =
+        services.map(_canonicalServiceKey).where((k) => k.isNotEmpty).toSet();
+    final targetKeys = targetRoles
+        .map(_canonicalServiceKey)
+        .where((k) => k.isNotEmpty)
+        .toList();
+
+    return targetKeys.any(serviceKeys.contains);
   }
 
   void _showLogoutDialog(BuildContext context) {

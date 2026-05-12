@@ -6,7 +6,7 @@ class AppUrls {
       'https://fremdly-monogenistic-collette.ngrok-free.dev';
 
   /// Production vs dev/ngrok — set false to hit [devTunnelOrigin].
-  static bool isLive = false;
+  static bool isLive = true;
 
   /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
   static String get host {
