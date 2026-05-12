@@ -90,11 +90,87 @@ class BodyworkDetailsController extends GetxController {
   final selectedTravel = <String, Map<String, dynamic>>{}.obs;
   final travelOptions = ['Local Only', 'Regional'];
 
-  // Cancellation Policy
+  // Cancellation Policy — must match [BodyworkDetailsView] dropdown items.
+  static const List<String> cancellationPolicyOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
+
   final selectedCancellationPolicy = RxnString();
   final isCustomPolicy = false.obs;
   final customCancellationController = TextEditingController();
-  final cancellationOptions = ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'];
+
+  /// Returns the canonical menu label if [raw] matches a preset (case/trim tolerant).
+  static String? canonicalCancellationPreset(String? raw) {
+    if (raw == null) return null;
+    final t = raw.trim();
+    if (t.isEmpty) return null;
+    for (final o in cancellationPolicyOptions) {
+      if (o == t) return o;
+      if (o.toLowerCase() == t.toLowerCase()) return o;
+    }
+    return null;
+  }
+
+  /// Normalizes API shapes (null, String, Map) so the dropdown never sees an orphan value.
+  void applyCancellationPolicyFromServer(dynamic cancelData) {
+    if (cancelData == null) {
+      isCustomPolicy.value = false;
+      selectedCancellationPolicy.value = null;
+      customCancellationController.clear();
+      return;
+    }
+    if (cancelData is String) {
+      final t = cancelData.trim();
+      if (t.isEmpty) {
+        isCustomPolicy.value = false;
+        selectedCancellationPolicy.value = null;
+        customCancellationController.clear();
+        return;
+      }
+      final canon = canonicalCancellationPreset(t);
+      if (canon != null) {
+        isCustomPolicy.value = false;
+        selectedCancellationPolicy.value = canon;
+        customCancellationController.clear();
+      } else {
+        isCustomPolicy.value = true;
+        selectedCancellationPolicy.value = null;
+        customCancellationController.text = t;
+      }
+      return;
+    }
+    if (cancelData is Map) {
+      final cd = Map<String, dynamic>.from(cancelData);
+      final isCustom = cd['isCustom'] == true;
+      final policyRaw = cd['policy']?.toString().trim() ?? '';
+      final customTextRaw = cd['customText']?.toString();
+      final customTrim = customTextRaw?.trim() ?? '';
+
+      if (isCustom) {
+        isCustomPolicy.value = true;
+        selectedCancellationPolicy.value = null;
+        customCancellationController.text =
+            customTrim.isNotEmpty ? customTrim : policyRaw;
+        return;
+      }
+
+      customCancellationController.clear();
+      final canon = canonicalCancellationPreset(policyRaw);
+      if (canon != null) {
+        isCustomPolicy.value = false;
+        selectedCancellationPolicy.value = canon;
+      } else if (policyRaw.isNotEmpty) {
+        isCustomPolicy.value = true;
+        selectedCancellationPolicy.value = null;
+        customCancellationController.text = policyRaw;
+      } else {
+        isCustomPolicy.value = false;
+        selectedCancellationPolicy.value = null;
+      }
+    }
+  }
 
   final isLoading = false.obs;
   final isDataLoading = false.obs;
@@ -156,6 +232,142 @@ class BodyworkDetailsController extends GetxController {
     }).toList());
   }
 
+  /// Aligns VendorModel (`insuranceStatus`) / legacy (`status`) strings with radio [insuranceOptions].
+  String? _coalesceBodyworkInsuranceStatus(dynamic raw) {
+    if (raw == null) return null;
+    final s = raw.toString().trim();
+    if (s.isEmpty) return null;
+    for (final o in insuranceOptions) {
+      if (o == s) return o;
+      if (o.toLowerCase() == s.toLowerCase()) return o;
+    }
+    final lower = s.toLowerCase();
+    if (lower.contains('carries')) return 'Carries Insurance';
+    if (lower.contains('upon request') ||
+        (lower.contains('details') && lower.contains('request')) ||
+        (lower.contains('available') && lower.contains('request'))) {
+      return 'Insurance available upon request';
+    }
+    if (lower.contains('not currently') ||
+        (lower.contains('not') && lower.contains('insured'))) {
+      return 'Not currently insured';
+    }
+    return null;
+  }
+
+  void _applyInsuranceMap(Map<String, dynamic> insMap) {
+    final resolved = _coalesceBodyworkInsuranceStatus(
+      insMap['status'] ?? insMap['insuranceStatus'],
+    );
+    if (resolved != null) {
+      selectedInsurance.value = resolved;
+    }
+
+    final expiry = insMap['expirationDate'] ??
+        insMap['expiryDate'] ??
+        insMap['expiration'];
+    if (expiry != null) {
+      expirationDate.value =
+          expiry is DateTime ? expiry : DateTime.tryParse(expiry.toString());
+    }
+
+    dynamic docRaw = insMap['document'];
+    if (docRaw == null || docRaw.toString().trim().isEmpty) {
+      final files = insMap['file'];
+      if (files is List && files.isNotEmpty) {
+        docRaw = files.first;
+      }
+    }
+    final doc = docRaw?.toString();
+    if (doc != null && doc.isNotEmpty) {
+      insuranceDocumentUrl.value = doc;
+      insuranceDocumentName.value = doc.split(RegExp(r'[/\\]')).last;
+    }
+  }
+
+  /// Hydrate from VendorModel-derived `servicesData.bodywork` (GET /vendors/me).
+  void hydrateBodyworkFromServicesData(Map<String, dynamic> bw) {
+    final applicationData =
+        Map<String, dynamic>.from(bw['applicationData'] ?? {});
+
+    final city = applicationData['homeBase']?['city'] ?? '';
+    final state = applicationData['homeBase']?['state'] ?? '';
+    if (city.isNotEmpty && state.isNotEmpty) {
+      location.value = '$city, $state, USA';
+    }
+
+    experience.value = applicationData['experience']?.toString();
+
+    disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
+    horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
+    regionsCovered.assignAll(List<String>.from(applicationData['regions'] ?? []));
+
+    final List existingServices = List.from(bw['services'] ?? []);
+    if (existingServices.isNotEmpty) {
+      for (final existing in existingServices) {
+        if (existing is! Map) continue;
+        final existingMap = Map<String, dynamic>.from(existing as Map);
+        final index = services.indexWhere((s) => s['name'] == existingMap['name']);
+        if (index != -1) {
+          services[index] = {
+            'name': existingMap['name'],
+            'isSelected': existingMap['isSelected'] ?? true,
+            'rates': Map<String, dynamic>.from(
+                existingMap['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+            'note': existingMap['note'] ?? '',
+            'trainerPresence': existingMap['trainerPresence'],
+            'vetApproval': existingMap['vetApproval'],
+          };
+        } else {
+          services.add({
+            'name': existingMap['name'],
+            'isSelected': existingMap['isSelected'] ?? true,
+            'rates': Map<String, dynamic>.from(
+                existingMap['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+            'note': existingMap['note'] ?? '',
+            'trainerPresence': existingMap['trainerPresence'],
+            'vetApproval': existingMap['vetApproval'],
+          });
+        }
+      }
+      services.refresh();
+    }
+
+    selectedTravel.clear();
+    for (final t in bw['travelPreferences'] ?? []) {
+      if (t is Map) {
+        final m = Map<String, dynamic>.from(t);
+        final key = (m['type'] ?? m['name'] ?? '').toString();
+        if (key.isEmpty) continue;
+        selectedTravel[key] = {
+          'feeType': m['feeType'],
+          'price': m['price'],
+          'disclaimer': m['disclaimer'],
+        };
+      }
+    }
+
+    final nestedIns = applicationData['insurance'];
+    final bwIns = bw['insurance'];
+    final mergedIns = <String, dynamic>{};
+    if (nestedIns is Map) {
+      mergedIns.addAll(Map<String, dynamic>.from(nestedIns as Map));
+    }
+    if (bwIns is Map) {
+      mergedIns.addAll(Map<String, dynamic>.from(bwIns as Map));
+    }
+    if (mergedIns.isNotEmpty) {
+      _applyInsuranceMap(mergedIns);
+    }
+
+    final certs = bw['certifications'];
+    if (certs is List && certs.isNotEmpty) {
+      certificationUrls.assignAll(List<String>.from(certs.map((e) => e.toString())));
+    }
+
+    applyCancellationPolicyFromServer(bw['cancellationPolicy']);
+  }
+
   Future<void> fetchBodyworkData() async {
     isDataLoading.value = true;
     try {
@@ -200,12 +412,22 @@ class BodyworkDetailsController extends GetxController {
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
-        final List assignedServices = vendor['assignedServices'] ?? [];
-        final bodyworkService = assignedServices.firstWhere((s) => s['serviceType'] == 'Bodywork', orElse: () => null);
+        final bwRaw = vendor['servicesData']?['bodywork'];
+
+        if (bwRaw is Map && (bwRaw as Map).isNotEmpty) {
+          hydrateBodyworkFromServicesData(
+              Map<String, dynamic>.from(bwRaw as Map));
+        } else {
+          final List assignedServices = vendor['assignedServices'] ?? [];
+          final bodyworkService = assignedServices.firstWhere(
+              (s) => s['serviceType'] == 'Bodywork',
+              orElse: () => null);
 
           if (bodyworkService != null) {
-            final applicationData = bodyworkService['application']?['applicationData'] ?? {};
-            final profileData = bodyworkService['profile']?['profileData'] ?? {};
+            final applicationData =
+                bodyworkService['application']?['applicationData'] ?? {};
+            final profileData =
+                bodyworkService['profile']?['profileData'] ?? {};
 
             // Application data
             final city = applicationData['homeBase']?['city'] ?? '';
@@ -216,30 +438,34 @@ class BodyworkDetailsController extends GetxController {
 
             experience.value = applicationData['experience']?.toString();
 
-            disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
-            horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-            regionsCovered.assignAll(List<String>.from(applicationData['regions'] ?? []));
+            disciplines.assignAll(
+                List<String>.from(applicationData['disciplines'] ?? []));
+            horseLevels
+                .assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
+            regionsCovered
+                .assignAll(List<String>.from(applicationData['regions'] ?? []));
 
-            // Load/Merge Services & Rates
             final List existingServices = profileData['services'] ?? [];
             if (existingServices.isNotEmpty) {
               for (var existing in existingServices) {
-                final index = services.indexWhere((s) => s['name'] == existing['name']);
+                final index =
+                    services.indexWhere((s) => s['name'] == existing['name']);
                 if (index != -1) {
                   services[index] = {
                     'name': existing['name'],
                     'isSelected': existing['isSelected'] ?? true,
-                    'rates': Map<String, dynamic>.from(existing['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+                    'rates': Map<String, dynamic>.from(existing['rates'] ??
+                        {'30': '', '45': '', '60': '', '90': ''}),
                     'note': existing['note'] ?? '',
                     'trainerPresence': existing['trainerPresence'],
                     'vetApproval': existing['vetApproval'],
                   };
                 } else {
-                  // If it's a custom service not in the dynamic list, add it
                   services.add({
                     'name': existing['name'],
                     'isSelected': existing['isSelected'] ?? true,
-                    'rates': Map<String, dynamic>.from(existing['rates'] ?? {'30': '', '45': '', '60': '', '90': ''}),
+                    'rates': Map<String, dynamic>.from(existing['rates'] ??
+                        {'30': '', '45': '', '60': '', '90': ''}),
                     'note': existing['note'] ?? '',
                     'trainerPresence': existing['trainerPresence'],
                     'vetApproval': existing['vetApproval'],
@@ -249,8 +475,8 @@ class BodyworkDetailsController extends GetxController {
               services.refresh();
             }
 
-            // Travel Preferences
             final List travel = profileData['travelPreferences'] ?? [];
+            selectedTravel.clear();
             for (var t in travel) {
               if (t is Map) {
                 selectedTravel[t['type'] ?? t['name'] ?? ''] = {
@@ -261,25 +487,29 @@ class BodyworkDetailsController extends GetxController {
               }
             }
 
-            // Insurance
-            final Map<String, dynamic> appInsurance = applicationData['insurance'] is Map ? Map<String, dynamic>.from(applicationData['insurance']) : {};
-            final Map<String, dynamic> profInsurance = profileData['insurance'] is Map ? Map<String, dynamic>.from(profileData['insurance']) : {};
-            
-            final insuranceData = profInsurance.isNotEmpty ? profInsurance : appInsurance;
-            
-            if (insuranceData.isNotEmpty) {
-              selectedInsurance.value = insuranceData['status'] ?? 'Not currently insured';
-              final expiry = insuranceData['expirationDate'] ?? insuranceData['expiryDate'];
-              if (expiry != null) {
-                expirationDate.value = DateTime.tryParse(expiry);
-              }
-              if (insuranceData['document'] != null) {
-                insuranceDocumentUrl.value = insuranceData['document'];
-                insuranceDocumentName.value = (insuranceData['document'] as String).split('/').last;
-              }
+            final Map<String, dynamic> appInsurance =
+                applicationData['insurance'] is Map
+                    ? Map<String, dynamic>.from(applicationData['insurance'])
+                    : {};
+            final Map<String, dynamic> profInsurance =
+                profileData['insurance'] is Map
+                    ? Map<String, dynamic>.from(profileData['insurance'])
+                    : {};
+
+            Map<String, dynamic> insuranceData;
+            if (profInsurance.isNotEmpty && appInsurance.isNotEmpty) {
+              insuranceData = Map<String, dynamic>.from(appInsurance);
+              insuranceData.addAll(profInsurance);
+            } else if (profInsurance.isNotEmpty) {
+              insuranceData = profInsurance;
+            } else {
+              insuranceData = appInsurance;
             }
 
-            // Certifications
+            if (insuranceData.isNotEmpty) {
+              _applyInsuranceMap(insuranceData);
+            }
+
             final List appCerts = applicationData['certifications'] ?? [];
             final List profCerts = profileData['certifications'] ?? [];
             if (profCerts.isNotEmpty) {
@@ -288,13 +518,9 @@ class BodyworkDetailsController extends GetxController {
               certificationUrls.assignAll(List<String>.from(appCerts));
             }
 
-            // Policy
-            if (profileData['cancellationPolicy'] != null) {
-              selectedCancellationPolicy.value = profileData['cancellationPolicy']['policy'];
-              isCustomPolicy.value = profileData['cancellationPolicy']['isCustom'] ?? false;
-              customCancellationController.text = profileData['cancellationPolicy']['customText'] ?? '';
-            }
+            applyCancellationPolicyFromServer(profileData['cancellationPolicy']);
           }
+        }
       }
     } catch (e) {
       debugPrint('Error fetching bodywork data: $e');
@@ -427,7 +653,7 @@ class BodyworkDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
-      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      final response = await apiService.putRequest('/vendors/me', body);
       
       if (response.statusCode == 200 && response.body['success'] == true) {
         final authController = Get.find<AuthController>();

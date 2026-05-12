@@ -654,32 +654,40 @@ class FarrierDetailsView extends StatelessWidget {
             border: Border.all(color: AppColors.borderLight),
           ),
           child: DropdownButtonHideUnderline(
-            child: Obx(() => DropdownButton<String>(
-              value: controller.cancellationPolicy.value,
-              hint: CommonText('Select Cancellation Policy', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-              isExpanded: true,
-              items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
-              onChanged: (val) => controller.cancellationPolicy.value = val,
-            )),
+            child: Obx(() {
+              final raw = controller.cancellationPolicy.value;
+              final allowed = FarrierDetailsController.cancellationPolicyOptions;
+              final ok = raw != null &&
+                  raw.isNotEmpty &&
+                  allowed.contains(raw) &&
+                  !controller.isCustomCancellation.value;
+              return DropdownButton<String>(
+                value: ok ? raw : null,
+                hint: CommonText('Select Cancellation Policy',
+                    color: AppColors.textSecondary,
+                    fontSize: AppTextSizes.size14),
+                isExpanded: true,
+                items: FarrierDetailsController.cancellationPolicyOptions
+                    .map((s) =>
+                        DropdownMenuItem(value: s, child: CommonText(s)))
+                    .toList(),
+                onChanged: (val) => controller.cancellationPolicy.value = val,
+              );
+            }),
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Obx(() => GestureDetector(
-              onTap: () => controller.isCustomCancellation.value = !controller.isCustomCancellation.value,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: controller.isCustomCancellation.value ? AppColors.primaryDark : Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: controller.isCustomCancellation.value ? AppColors.primaryDark : AppColors.borderLight),
-                ),
-                child: Icon(Icons.check, size: 16, color: controller.isCustomCancellation.value ? Colors.white : Colors.transparent),
-              ),
+            Obx(() => Checkbox(
+              value: controller.isCustomCancellation.value,
+              onChanged: (val) {
+                if (val == null) return;
+                controller.isCustomCancellation.value = val;
+                if (val) controller.cancellationPolicy.value = null;
+              },
+              activeColor: AppColors.primary,
             )),
-            const SizedBox(width: 8),
             CommonText('Custom', fontSize: AppTextSizes.size14),
           ],
         ),

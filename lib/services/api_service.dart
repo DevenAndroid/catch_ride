@@ -17,6 +17,9 @@ class ApiService extends GetConnect implements GetxService {
     // Request interceptor (for headers/auth)
     httpClient.addRequestModifier<dynamic>((request) async {
       httpClient.timeout = const Duration(seconds: 300);
+      if (request.url.toString().toLowerCase().contains('ngrok')) {
+        request.headers['ngrok-skip-browser-warning'] = 'true';
+      }
       return request;
     });
 

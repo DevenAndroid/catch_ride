@@ -8,8 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/utils/price_formatter.dart';
 
-import '../../../../services/api_service.dart';
-
 class ClippingServiceRatesTab extends StatefulWidget {
   final String serviceType;
   const ClippingServiceRatesTab({super.key, this.serviceType = 'Clipping'});
@@ -391,36 +389,14 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> with 
   }
   
   Future<bool> _updateClippingServices(List<Map<String, dynamic>> services) async {
-    try {
-      controller.isLoading.value = true;
-      final vendorId = controller.vendorData['_id'];
-      final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(controller.vendorData['servicesData'] ?? {});
-      existingServicesData['clipping'] = {
-        'profileData': {
-          'services': services,
-        },
-        'isProfileCompleted': true,
-      };
-      
-      final payload = {
-        'servicesData': existingServicesData,
-        'isProfileCompleted': true,
-        'isProfileSetup': true,
-      };
-
-      final response = await Get.find<ApiService>().putRequest('/vendors/$vendorId', payload);
-      if (response.statusCode == 200) {
-        await controller.fetchProfile();
-        return true;
-      } else {
-        Get.snackbar('Error', response.body['message'] ?? 'Failed to update services', backgroundColor: Colors.red, colorText: Colors.white);
-        return false;
-      }
-    } catch (e) {
-      debugPrint('Update clipping services error: $e');
-      return false;
-    } finally {
-      controller.isLoading.value = false;
-    }
+    final list = services
+        .map(
+          (e) => {
+            'name': e['name'],
+            'price': e['price']?.toString() ?? '0',
+          },
+        )
+        .toList();
+    return controller.updateClippingServices(list);
   }
 }

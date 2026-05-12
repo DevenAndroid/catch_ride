@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,6 +13,8 @@ import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_v
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
+import 'package:catch_ride/utils/vendor_service_sync.dart';
 
 class ShippingDetailsController extends GetxController {
   final apiService = Get.find<ApiService>();
@@ -27,6 +30,7 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> selectedServices = <String>[].obs;
   final RxList<String> travelScope = <String>[].obs;
   final RxList<String> rigTypes = <String>[].obs;
+  final RxList<String> stallTypes = <String>[].obs;
   final RxList<String> regionsCovered = <String>[].obs;
   final RxString operationType = ''.obs;
   final RxList<String> operationOptions = <String>[].obs;
@@ -95,12 +99,30 @@ class ShippingDetailsController extends GetxController {
   final RxList<String> serviceOptions = <String>[].obs;
   final RxList<String> travelOptions = <String>[].obs;
   final RxList<String> rigOptions = <String>[].obs;
+  final RxList<String> stallOptions = <String>[].obs;
  // final RxList<String> regionOptions = <String>[].obs;
   final List<String> cancellationOptions = [
     'Flexible (24+ hrs)',
     'Moderate (48+ hrs)',
     'Strict (72+ hrs)',
   ];
+
+  /// Label for preset row; invalid/empty while not in custom mode shows hint.
+  String? get cancellationPresetForDropdown {
+    if (isCustomCancellation.value) return null;
+    final v = cancellationPolicy.value?.trim();
+    if (v == null || v.isEmpty) return null;
+    return cancellationOptions.contains(v) ? v : null;
+  }
+
+  void setCustomCancellation(bool enabled) {
+    isCustomCancellation.value = enabled;
+    if (enabled) cancellationPolicy.value = null;
+  }
+
+  void toggleCustomCancellation() {
+    setCustomCancellation(!isCustomCancellation.value);
+  }
 
   @override
   void onInit() {
@@ -139,6 +161,9 @@ class ShippingDetailsController extends GetxController {
     final List<String> appRigs = List<String>.from(
       applicationData['rigTypes'] ?? [],
     );
+    final List<String> appStalls = List<String>.from(
+      applicationData['stallTypes'] ?? applicationData['stallType'] ?? [],
+    );
     final List<String> appRegions = List<String>.from(
       applicationData['regions'] ?? [],
     );
@@ -151,6 +176,11 @@ class ShippingDetailsController extends GetxController {
     if (appRigs.isNotEmpty) {
       rigOptions.assignAll(
         rigOptions.where((opt) => appRigs.contains(opt)).toList(),
+      );
+    }
+    if (appStalls.isNotEmpty) {
+      stallOptions.assignAll(
+        stallOptions.where((opt) => appStalls.contains(opt)).toList(),
       );
     }
     if (appRegions.isNotEmpty) {
@@ -180,8 +210,10 @@ class ShippingDetailsController extends GetxController {
             serviceOptions.assignAll(values);
           } else if (name == 'Travel Scope') {
             travelOptions.assignAll(values);
-          } else if (name == 'Rig Types') {
+          } else if (name == 'Rig Types' || name == 'Rig Type') {
             rigOptions.assignAll(values);
+          } else if (name == 'Stall Type' || name == 'Stall Types') {
+            stallOptions.assignAll(values);
           } else if (name == 'Regions Covered') {
             regionOptions.assignAll(values);
           } else if (name == 'Operation Type') {
@@ -198,12 +230,120 @@ class ShippingDetailsController extends GetxController {
     }
   }
 
+  void _hydrateCancellationFromShippingProfile(dynamic savedPolicy) {
+    if (savedPolicy == null) return;
+    if (savedPolicy is List) {
+      if (savedPolicy.isEmpty) {
+        cancellationPolicy.value = null;
+        isCustomCancellation.value = false;
+        customCancellationController.clear();
+        return;
+      }
+      final presets = savedPolicy
+          .map((e) => e.toString())
+          .where((e) => cancellationOptions.contains(e))
+          .toList();
+      if (presets.length == 1) {
+        cancellationPolicy.value = presets.first;
+        isCustomCancellation.value = false;
+        customCancellationController.clear();
+        return;
+      }
+      isCustomCancellation.value = true;
+      cancellationPolicy.value = null;
+      customCancellationController.text =
+          savedPolicy.map((e) => e.toString()).join('; ');
+      return;
+    }
+    final str = savedPolicy.toString();
+    if (str.isEmpty) {
+      cancellationPolicy.value = null;
+      isCustomCancellation.value = false;
+      customCancellationController.clear();
+      return;
+    }
+    if (cancellationOptions.contains(str)) {
+      cancellationPolicy.value = str;
+      isCustomCancellation.value = false;
+      customCancellationController.clear();
+      return;
+    }
+    isCustomCancellation.value = true;
+    cancellationPolicy.value = null;
+    customCancellationController.text = str;
+  }
+
+  void _setLocationDisplayFromVendor(
+    Map<String, dynamic> vendor,
+    Map<String, dynamic> profileData,
+    Map<String, dynamic> applicationData,
+  ) {
+    Map<String, dynamic>? homeBaseMap;
+
+    final appHb = applicationData['homeBase'];
+    if (appHb is Map) {
+      homeBaseMap = Map<String, dynamic>.from(appHb as Map);
+    } else if (profileData['homeBase'] is Map) {
+      homeBaseMap = Map<String, dynamic>.from(profileData['homeBase'] as Map);
+    } else {
+      final rootHb = vendor['homeBaseLocation'];
+      if (rootHb is Map) {
+        homeBaseMap = Map<String, dynamic>.from(rootHb as Map);
+      }
+    }
+
+    if (homeBaseMap != null) {
+      final line = _formatLocationFromHomeBase(homeBaseMap);
+      if (line.isNotEmpty) {
+        locationDisplay.value = line;
+        return;
+      }
+    }
+
+    final rootLoc = vendor['location']?.toString().trim() ?? '';
+    if (rootLoc.isNotEmpty) {
+      locationDisplay.value = rootLoc;
+      return;
+    }
+
+    locationDisplay.value = 'N/A';
+  }
+
+  String _formatLocationFromHomeBase(Map<String, dynamic> m) {
+    final c = (m['city'] ?? '').toString().trim();
+    final s = (m['state'] ?? '').toString().trim();
+    var co = (m['country'] ?? '').toString().trim();
+    final lower = co.toLowerCase();
+    if (lower == 'usa' || lower == 'us') {
+      co = 'USA';
+    } else if (lower == 'canada') {
+      co = 'Canada';
+    }
+    final parts = <String>[];
+    if (c.isNotEmpty) parts.add(c);
+    if (s.isNotEmpty) parts.add(s);
+    if (co.isNotEmpty) parts.add(co);
+    return parts.join(', ');
+  }
+
   Future<void> fetchCurrentDetails({bool isInitializing = false}) async {
     if (!isInitializing) isLoading.value = true;
     try {
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
+        Map<String, dynamic> profileData = {};
+        Map<String, dynamic> applicationData = {};
+
+        final sdRaw = vendor['servicesData']?['shipping'];
+        if (sdRaw is Map) {
+          final sd = Map<String, dynamic>.from(sdRaw as Map);
+          profileData =
+              Map<String, dynamic>.from(sd['profileData'] ?? {});
+          applicationData =
+              Map<String, dynamic>.from(sd['applicationData'] ?? {});
+        }
+
         final List assignedServices = vendor['assignedServices'] ?? [];
         final shippingService = assignedServices.firstWhereOrNull(
           (s) => s['serviceType'] == 'Shipping',
@@ -211,14 +351,31 @@ class ShippingDetailsController extends GetxController {
 
         if (shippingService != null) {
           _shippingService = shippingService;
-          final profileData = shippingService['profile']?['profileData'] ?? {};
-          final applicationData =
-              shippingService['application']?['applicationData'] ?? {};
+          if (profileData.isEmpty) {
+            profileData = Map<String, dynamic>.from(
+                shippingService['profile']?['profileData'] ?? {});
+          }
+          if (applicationData.isEmpty) {
+            applicationData = Map<String, dynamic>.from(
+                shippingService['application']?['applicationData'] ?? {});
+          }
+        }
 
-          // Populate Pricing
+        final hasAnything = profileData.isNotEmpty ||
+            applicationData.isNotEmpty ||
+            shippingService != null;
+
+        _setLocationDisplayFromVendor(
+          Map<String, dynamic>.from(vendor as Map),
+          profileData,
+          applicationData,
+        );
+
+        if (hasAnything) {
           final pricing =
               profileData['pricing'] ?? applicationData['pricing'] ?? {};
-          inquiryPrice.value = pricing['inquiryPrice'] ?? false;
+          inquiryPrice.value = pricing['inquiryPrice'] == true ||
+              pricing['inquiryPrice'] == 'true';
           baseRateController.text =
               (pricing['baseRate'] ?? profileData['rates']?['baseRate'] ?? '')
                   .toString();
@@ -228,9 +385,10 @@ class ShippingDetailsController extends GetxController {
                       '')
                   .toString();
 
-          // Populate Selections (Pre-fill from application if profile is empty)
           selectedServices.assignAll(
-            List<String>.from(profileData['services'] ?? []),
+            List<String>.from(profileData['servicesOffered'] ??
+                profileData['services'] ??
+                []),
           );
 
           final List<String> appTravel = List<String>.from(
@@ -247,6 +405,17 @@ class ShippingDetailsController extends GetxController {
             List<String>.from(profileData['rigTypes'] ?? appRigs),
           );
 
+          final List<String> appStalls = List<String>.from(
+            applicationData['stallTypes'] ?? applicationData['stallType'] ?? [],
+          );
+          stallTypes.assignAll(
+            List<String>.from(
+              profileData['stallTypes'] ??
+                  profileData['stallType'] ??
+                  appStalls,
+            ),
+          );
+
           final List<String> appRegions = List<String>.from(
             applicationData['regions'] ?? [],
           );
@@ -254,68 +423,78 @@ class ShippingDetailsController extends GetxController {
             List<String>.from(profileData['regionsCovered'] ?? appRegions),
           );
 
-          disciplines.assignAll(
-            List<String>.from(profileData['disciplines'] ?? applicationData['disciplines'] ?? []),
-          );
-          horseLevels.assignAll(
-            List<String>.from(profileData['horseLevels'] ?? applicationData['horseLevels'] ?? []),
-          );
+          disciplines.assignAll(List<String>.from(
+              profileData['disciplines'] ??
+                  applicationData['disciplines'] ??
+                  []));
+          horseLevels.assignAll(List<String>.from(
+              profileData['horseLevels'] ??
+                  applicationData['horseLevels'] ??
+                  []));
 
-          operationType.value =
-              profileData['operationType'] ??
-              applicationData['operationType'] ??
-              'Independent Small Operation';
+          final opProf = profileData['operationType']?.toString().trim() ?? '';
+          final opApp =
+              applicationData['operationType']?.toString().trim() ?? '';
+          operationType.value = opProf.isNotEmpty
+              ? opProf
+              : (opApp.isNotEmpty
+                  ? opApp
+                  : 'Independent Small Operation');
 
-          // Note: Filtering is now handled in _applyApplicationFilters() called from _initializeData()
-
-          // Populate Content
           equipmentSummaryController.text =
               profileData['equipmentSummary'] ?? '';
-          additionalNotesController.text = profileData['additionalNotes'] ?? '';
+          additionalNotesController.text =
+              profileData['additionalNotes'] ?? '';
 
-          // Populate Read-only (from application)
-          final city = applicationData['homeBase']?['city'] ?? '';
-          final state = applicationData['homeBase']?['state'] ?? '';
-          if (city.isNotEmpty && state.isNotEmpty) {
-            locationDisplay.value = '$city, $state, USA';
+          experienceDisplay.value =
+              (profileData['experience'] ??
+                      applicationData['experience'])
+                  ?.toString();
+
+          final bi = applicationData['businessInfo'];
+          if (bi is Map &&
+              bi['dotNumber'] != null &&
+              bi['dotNumber'].toString().isNotEmpty) {
+            usdotDisplay.value = 'USDOT ${bi['dotNumber']}';
+          } else if (bi is Map &&
+              bi['usdotNumber'] != null &&
+              bi['usdotNumber'].toString().isNotEmpty) {
+            usdotDisplay.value = 'USDOT ${bi['usdotNumber']}';
           }
-          experienceDisplay.value = applicationData['experience']?.toString();
-          if (applicationData['businessInfo']?['dotNumber'] != null) {
-            usdotDisplay.value =
-                'USDOT ${applicationData['businessInfo']['dotNumber']}';
-          }
 
-          // Credentials
-          hasCDL.value =
-              profileData['hasCDL'] ??
-              applicationData['confirmLicense'] ??
-              false;
+          hasCDL.value = profileData['hasCDL'] ==
+                  true ||
+              applicationData['confirmLicense'] == true;
 
-          // Documentation URLs from application media
-          final appMedia = applicationData['media'] ?? {};
-          currentCdlUrl.value =
-              profileData['cdlFile'] ?? applicationData['cdlDoc'] ?? appMedia['licensePhoto'] ?? appMedia['cdlDoc'];
-          currentCdlFileName.value = profileData['cdlFileName'] ?? applicationData['cdlDocName'] ?? appMedia['cdlDocName'] ?? 'CDL Document';
-          
-          currentInsuranceUrl.value =
-              profileData['insuranceFile'] ??
+          final appMedia = Map<String, dynamic>.from(
+              applicationData['media'] is Map
+                  ? applicationData['media'] as Map
+                  : {});
+          currentCdlUrl.value = profileData['cdlFile'] ??
+              applicationData['cdlDoc'] ??
+              appMedia['licensePhoto'] ??
+              appMedia['cdlDoc'];
+          currentCdlFileName.value =
+              profileData['cdlFileName'] ??
+                  applicationData['cdlDocName'] ??
+                  appMedia['cdlDocName'] ??
+                  'CDL Document';
+
+          currentInsuranceUrl.value = profileData['insuranceFile'] ??
               applicationData['insuranceFile'] ??
               appMedia['insurance'] ??
               appMedia['dotCopy'];
-          currentInsuranceFileName.value = profileData['insuranceFileName'] ?? applicationData['insuranceFileName'] ?? appMedia['insuranceFileName'] ?? 'Insurance Document';
+          currentInsuranceFileName.value =
+              profileData['insuranceFileName'] ??
+                  applicationData['insuranceFileName'] ??
+                  appMedia['insuranceFileName'] ??
+                  'Insurance Document';
 
-          insuranceExpiryController.text = profileData['insuranceExpiry'] ?? '';
-          final savedPolicy = profileData['cancellationPolicy'];
-          if (savedPolicy != null) {
-            if (cancellationOptions.contains(savedPolicy)) {
-              cancellationPolicy.value = savedPolicy;
-              isCustomCancellation.value = false;
-            } else {
-              isCustomCancellation.value = true;
-              customCancellationController.text = savedPolicy;
-              cancellationPolicy.value = null;
-            }
-          }
+          insuranceExpiryController.text =
+              (profileData['insuranceExpiry'] ?? '').toString();
+
+          _hydrateCancellationFromShippingProfile(
+              profileData['cancellationPolicy']);
         }
       }
     } catch (e) {
@@ -444,6 +623,8 @@ class ShippingDetailsController extends GetxController {
       profileData['equipmentSummary'] = equipmentSummaryController.text;
       profileData['travelScope'] = travelScope.toList();
       profileData['rigTypes'] = rigTypes.toList();
+      profileData['stallTypes'] = stallTypes.toList();
+      profileData['stallType'] = stallTypes.toList();
       profileData['regionsCovered'] = regionsCovered.toList();
       profileData['operationType'] = operationType.value;
       profileData['hasCDL'] = hasCDL.value;
@@ -472,9 +653,33 @@ class ShippingDetailsController extends GetxController {
       };
 
       // 3. API Call
-      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      final response = await apiService.putRequest('/vendors/me', body);
 
       if (response.statusCode == 200 && response.body['success'] == true) {
+        final dynamic rawMe = vendorResponse.body['data'];
+        if (rawMe is Map) {
+          final me = Map<String, dynamic>.from(rawMe);
+          final vid = vendorMongoIdFromRoot(me);
+          dynamic shippingRow;
+          for (final s in (me['assignedServices'] ?? [])) {
+            if (assignedServiceMatchesTab(s, 'Shipping')) {
+              shippingRow = s;
+              break;
+            }
+          }
+          final syncBlock = existingServicesData['shipping'];
+          if (vid != null && shippingRow != null && syncBlock is Map) {
+            await syncVendorServiceDocuments(
+              api: apiService,
+              vendorMongoId: vid,
+              assignedServiceRow: shippingRow,
+              profileData: Map<String, dynamic>.from(syncBlock['profileData'] ?? {}),
+              applicationData:
+                  Map<String, dynamic>.from(syncBlock['applicationData'] ?? {}),
+            );
+          }
+        }
+
         // Sync local state
         await Get.find<AuthController>().updateUserMetadata();
 

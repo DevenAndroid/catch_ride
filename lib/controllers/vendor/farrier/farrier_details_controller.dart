@@ -16,6 +16,12 @@ class FarrierDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.find<ApiService>();
 
+  static const List<String> cancellationPolicyOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
+
   final addServiceInputController = TextEditingController();
   final addServicePriceController = TextEditingController();
 
@@ -202,6 +208,118 @@ class FarrierDetailsController extends GetxController {
     fetchFarrierData();
   }
 
+  /// Prefill post-form fields from VendorModel-derived `servicesData.farrier` (GET /vendors/me).
+  void applyFarrierFromServicesData(Map<String, dynamic>? farrierData) {
+    if (farrierData == null || farrierData.isEmpty) return;
+
+    final applicationData =
+        Map<String, dynamic>.from(farrierData['applicationData'] ?? {});
+
+    final city = applicationData['homeBase']?['city'] ?? '';
+    final state = applicationData['homeBase']?['state'] ?? '';
+    final country = applicationData['homeBase']?['country'] ?? 'USA';
+    if (city.isNotEmpty && state.isNotEmpty) {
+      location.value = '$city, $state, $country';
+    }
+
+    if (applicationData['experience'] != null) {
+      experience.value = applicationData['experience'].toString();
+    }
+    disciplines.assignAll(
+      List<String>.from(applicationData['disciplines'] ?? []),
+    );
+    horseLevels.assignAll(
+      List<String>.from(applicationData['horseLevels'] ?? []),
+    );
+    regionsCovered.assignAll(
+      List<String>.from(applicationData['regions'] ?? []),
+    );
+
+    for (final s in farrierData['services'] ?? []) {
+      final name = s['name']?.toString();
+      if (name == null || name.isEmpty) continue;
+      final price = s['price']?.toString() ?? '';
+      final idx = farrierServices.indexWhere((x) => x['name'] == name);
+      if (idx >= 0) {
+        farrierServices[idx]['isSelected'].value = true;
+        (farrierServices[idx]['price'] as TextEditingController).text = price;
+      } else {
+        farrierServices.add({
+          'name': name,
+          'price': TextEditingController(text: price),
+          'isSelected': true.obs,
+        });
+      }
+    }
+
+    for (final s in farrierData['addOns'] ?? []) {
+      final name = s['name']?.toString();
+      if (name == null || name.isEmpty) continue;
+      final price = s['price']?.toString() ?? '';
+      final idx = addOns.indexWhere((x) => x['name'] == name);
+      if (idx >= 0) {
+        addOns[idx]['isSelected'].value = true;
+        (addOns[idx]['price'] as TextEditingController).text = price;
+      } else {
+        addOns.add({
+          'name': name,
+          'price': TextEditingController(text: price),
+          'isSelected': true.obs,
+        });
+      }
+    }
+
+    for (final row in farrierData['travelPreferences'] ?? []) {
+      if (row is! Map) continue;
+      final cat = row['category']?.toString();
+      if (cat == null || cat.isEmpty) continue;
+      travelConfigurations[cat] = {
+        'type': row['type']?.toString() ?? 'No travel fee',
+        'price': row['price']?.toString() ?? '',
+        'disclaimer': row['disclaimer']?.toString() ?? '',
+      };
+    }
+
+    final ci = Map<String, dynamic>.from(farrierData['clientIntake'] ?? {});
+    final policyStr = ci['policy']?.toString();
+    if (policyStr != null &&
+        policyStr.isNotEmpty &&
+        clientPolicies.contains(policyStr)) {
+      selectedPolicy.value = policyStr;
+    }
+    final mh = ci['minHorses'];
+    if (mh != null && mh.toString().isNotEmpty) {
+      final n = int.tryParse(mh.toString());
+      if (n != null) minHorsesPerStop.value = n;
+    }
+    if (ci['emergencySupport'] != null) {
+      emergencySupport.value = ci['emergencySupport'] == true ||
+          ci['emergencySupport'] == 'true';
+    }
+
+    final ins = farrierData['insuranceStatus']?.toString();
+    if (ins != null &&
+        ins.isNotEmpty &&
+        insuranceOptions.contains(ins)) {
+      selectedInsurance.value = ins;
+    }
+
+    final cancelData = farrierData['cancellationPolicy'];
+    if (cancelData != null) {
+      isCustomCancellation.value = cancelData['isCustom'] ?? false;
+      customCancellationController.text =
+          cancelData['customText']?.toString() ?? '';
+      final raw = cancelData['policy']?.toString().trim() ?? '';
+      if (!isCustomCancellation.value &&
+          raw.isNotEmpty &&
+          cancellationPolicyOptions.contains(raw)) {
+        cancellationPolicy.value = raw;
+      } else {
+        cancellationPolicy.value = null;
+      }
+    }
+  }
+
   Future<void> fetchFarrierData() async {
     isLoading.value = true;
     try {
@@ -277,31 +395,12 @@ class FarrierDetailsController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
         final servicesData = vendor['servicesData'] ?? {};
-        final groomingData = servicesData['farrier'];
+        final farrierDataRaw = servicesData['farrier'];
+        final farrierData = farrierDataRaw is Map
+            ? Map<String, dynamic>.from(farrierDataRaw as Map)
+            : null;
 
-        if (groomingData != null) {
-          final applicationData = groomingData['applicationData'] ?? {};
-
-          final city = applicationData['homeBase']?['city'] ?? '';
-          final state = applicationData['homeBase']?['state'] ?? '';
-          if (city.isNotEmpty && state.isNotEmpty) {
-            location.value = '$city, $state, USA';
-          }
-
-          if (applicationData['experience'] != null) {
-            experience.value = applicationData['experience'].toString();
-          }
-
-          disciplines.assignAll(
-            List<String>.from(applicationData['disciplines'] ?? []),
-          );
-          horseLevels.assignAll(
-            List<String>.from(applicationData['horseLevels'] ?? []),
-          );
-          regionsCovered.assignAll(
-            List<String>.from(applicationData['regions'] ?? []),
-          );
-        }
+        applyFarrierFromServicesData(farrierData);
       }
     } catch (e) {
       debugPrint('Error fetching farrier data: $e');
@@ -394,7 +493,7 @@ class FarrierDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
-      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      final response = await apiService.putRequest('/vendors/me', body);
       if (response.statusCode == 200 && response.body['success'] == true) {
         final authController = Get.find<AuthController>();
         await authController.updateUserMetadata();

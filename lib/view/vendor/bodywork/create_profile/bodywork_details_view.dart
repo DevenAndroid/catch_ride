@@ -182,29 +182,53 @@ class BodyworkDetailsView extends StatelessWidget {
                 'Cancellation Policy',
                 description: 'Set your cancellation preference for bookings.',
                 children: [
-                  Obx(() => Container(
+                  Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.borderLight),
                     ),
                     child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: controller.selectedCancellationPolicy.value,
-                        hint: const CommonText('Select Cancellation Policy', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-                        isExpanded: true,
-                        items: controller.cancellationOptions.map((v) => DropdownMenuItem(value: v, child: CommonText(v))).toList(),
-                        onChanged: (val) => controller.selectedCancellationPolicy.value = val,
-                      ),
+                      child: Obx(() {
+                        final raw = controller.selectedCancellationPolicy.value;
+                        final canonical = BodyworkDetailsController
+                            .canonicalCancellationPreset(raw);
+                        final ok =
+                            canonical != null && !controller.isCustomPolicy.value;
+                        return DropdownButton<String>(
+                          value: ok ? canonical : null,
+                          hint: const CommonText('Select Cancellation Policy',
+                              color: AppColors.textSecondary,
+                              fontSize: AppTextSizes.size14),
+                          isExpanded: true,
+                          icon: const Icon(Icons.keyboard_arrow_down,
+                              color: AppColors.textSecondary),
+                          items: BodyworkDetailsController.cancellationPolicyOptions
+                              .map((v) => DropdownMenuItem(
+                                  value: v, child: CommonText(v)))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val == null) return;
+                            controller.isCustomPolicy.value = false;
+                            controller.selectedCancellationPolicy.value = val;
+                          },
+                        );
+                      }),
                     ),
-                  )),
+                  ),
                   const SizedBox(height: 12),
                   Obx(() => Row(
                     children: [
                       Checkbox(
                         value: controller.isCustomPolicy.value,
-                        onChanged: (val) => controller.isCustomPolicy.value = val ?? false,
-                        activeColor: AppColors.primary,
+                        onChanged: (val) {
+                          if (val == null) return;
+                          controller.isCustomPolicy.value = val;
+                          if (val) {
+                            controller.selectedCancellationPolicy.value = null;
+                          }
+                        },
+                        activeColor: const Color(0xFF001149),
                         side: const BorderSide(color: AppColors.borderMedium, width: 1.5),
                       ),
                       const CommonText('Custom', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500),
@@ -532,7 +556,8 @@ class BodyworkDetailsView extends StatelessWidget {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: value,
+          value:
+              value != null && options.contains(value) ? value : null,
           hint: CommonText(hint, color: AppColors.textSecondary, fontSize: 14),
           isExpanded: true,
           items: options.map((v) => DropdownMenuItem(value: v, child: CommonText(v))).toList(),

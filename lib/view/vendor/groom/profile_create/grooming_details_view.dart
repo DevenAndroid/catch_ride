@@ -562,8 +562,15 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
           ),
           child: DropdownButtonHideUnderline(
             child: Obx(
-              () => DropdownButton<String>(
-                value: controller.cancellationPolicy.value,
+              () {
+                final raw = controller.cancellationPolicy.value;
+                final allowed = GroomingDetailsController.cancellationPolicyOptions;
+                final valueOk = raw != null &&
+                    raw.isNotEmpty &&
+                    allowed.contains(raw) &&
+                    !controller.isCustomCancellation.value;
+                return DropdownButton<String>(
+                value: valueOk ? raw : null,
                 hint: const CommonText(
                   'Select Cancellation Policy',
                   color: AppColors.textSecondary,
@@ -575,12 +582,7 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                   Icons.keyboard_arrow_down,
                   color: AppColors.textSecondary,
                 ),
-                items:
-                    [
-                          'Flexible (24+ hrs)',
-                          'Moderate (48+ hrs)',
-                          'Strict (72+ hrs)',
-                        ]
+                items: GroomingDetailsController.cancellationPolicyOptions
                         .map(
                           (s) => DropdownMenuItem(
                             value: s,
@@ -594,7 +596,8 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
                         )
                         .toList(),
                 onChanged: (val) => controller.cancellationPolicy.value = val,
-              ),
+              );
+              },
             ),
           ),
         ),
@@ -604,8 +607,11 @@ class _GroomingDetailsViewState extends State<GroomingDetailsView> {
             Obx(
               () => Checkbox(
                 value: controller.isCustomCancellation.value,
-                onChanged: (val) =>
-                    controller.isCustomCancellation.value = val!,
+                onChanged: (val) {
+                  if (val == null) return;
+                  controller.isCustomCancellation.value = val;
+                  if (val) controller.cancellationPolicy.value = null;
+                },
                 activeColor: const Color(0xFF001144),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),

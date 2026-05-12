@@ -1,5 +1,13 @@
 import 'package:flutter/foundation.dart';
 
+/// Null / empty / whitespace-only — so populated `vendorId` can supply real values on GET /profile.
+String? _nonEmptyStr(dynamic v) {
+  if (v == null) return null;
+  final s = v is String ? v : v.toString();
+  final t = s.trim();
+  return t.isEmpty ? null : t;
+}
+
 class UserModel {
   final String? id;
   final String firstName;
@@ -141,6 +149,23 @@ class UserModel {
          }
        }
     }
+    // VendorService rows may not exist pre–post-form; fall back to vendor.serviceType / API merge
+    if (parsedServices.isEmpty) {
+      final rootVs = json['vendorServices'];
+      if (rootVs is List) {
+        for (final e in rootVs) {
+          if (e is String && e.trim().isNotEmpty) parsedServices.add(e);
+        }
+      }
+    }
+    if (parsedServices.isEmpty && vendorData != null) {
+      final st = vendorData['serviceType'];
+      if (st is List) {
+        for (final e in st) {
+          if (e is String && e.trim().isNotEmpty) parsedServices.add(e);
+        }
+      }
+    }
 
     // Determine professional/fallback data based on role
     Map<String, dynamic>? proData;
@@ -153,18 +178,33 @@ class UserModel {
     }
 
     List<String> parsedPaymentMethods = [];
-    if (proData != null && proData['paymentMethods'] is List) {
+    final rootPayment = json['paymentMethods'];
+    if (rootPayment is List) {
+      for (final pm in rootPayment) {
+        if (pm is String) parsedPaymentMethods.add(pm);
+      }
+    }
+    if (parsedPaymentMethods.isEmpty &&
+        proData != null &&
+        proData['paymentMethods'] is List) {
       for (var pm in proData['paymentMethods']) {
         if (pm is String) parsedPaymentMethods.add(pm);
       }
     }
 
     List<String> parsedHighlights = [];
-    if (proData != null && proData['highlights'] is List) {
+    final rootHighlights = json['highlights'];
+    if (rootHighlights is List) {
+      for (final h in rootHighlights) {
+        if (h is String) parsedHighlights.add(h);
+      }
+    }
+    if (parsedHighlights.isEmpty &&
+        proData != null &&
+        proData['highlights'] is List) {
       for (var h in proData['highlights']) {
         if (h is String) parsedHighlights.add(h);
       }
-
     }
     if (parsedHighlights.isEmpty) {
       final services = proData?["servicesData"];
@@ -180,22 +220,44 @@ class UserModel {
       }
     }
 
+    final String? svcKeyForNested =
+        parsedServices.isNotEmpty ? parsedServices.first : null;
+    final nestedServiceBusinessName = (svcKeyForNested != null &&
+            proData != null &&
+            proData['servicesData'] is Map<String, dynamic>)
+        ? _nonEmptyStr(
+            (proData['servicesData'] as Map<String, dynamic>)[svcKeyForNested]
+                ?['businessName'],
+          )
+        : null;
+
     return UserModel(
       id: json['_id'] ?? json['id'],
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
+      firstName:
+          _nonEmptyStr(json['firstName']) ?? _nonEmptyStr(proData?['firstName']) ?? '',
+      lastName:
+          _nonEmptyStr(json['lastName']) ?? _nonEmptyStr(proData?['lastName']) ?? '',
       email: json['email'] ?? '',
       role: json['role'] ?? 'user',
       roles: json['roles'] != null ? List<String>.from(json['roles']) : ['user'],
-      avatar: json['avatar'] ??
-          (proData != null ? proData['profilePhoto'] ?? proData['avatar'] : null),
-      photo: json['photo'] ??
-          (proData != null ? proData['profilePhoto'] ?? proData['avatar'] : null),
-      coverImage: json['coverImage'] ?? (proData != null ? proData['coverImage'] : null),
-      phone: json['phone'] ?? (proData != null ? proData['phone'] : null),
+      avatar: _nonEmptyStr(json['avatar']) ??
+          _nonEmptyStr(proData?['profilePhoto']) ??
+          _nonEmptyStr(proData?['profile']) ??
+          _nonEmptyStr(proData?['avatar']),
+      photo: _nonEmptyStr(json['photo']) ??
+          _nonEmptyStr(proData?['profilePhoto']) ??
+          _nonEmptyStr(proData?['profile']) ??
+          _nonEmptyStr(proData?['avatar']),
+      coverImage: _nonEmptyStr(json['coverImage']) ??
+          _nonEmptyStr(proData?['coverImage']) ??
+          _nonEmptyStr(proData?['bannerImage']),
+      phone: _nonEmptyStr(json['phone']) ?? _nonEmptyStr(proData?['phone']),
       location: json['location'] ?? (proData != null ? proData['location'] : null),
       location2: json['location2'] ?? (proData != null ? proData['location2'] : null),
-      bio: json['bio'] ?? (proData != null ? proData['bio'] ?? proData['description'] : null),
+      bio: _nonEmptyStr(json['bio']) ??
+          _nonEmptyStr(proData?['bio']) ??
+          _nonEmptyStr(proData?['about']) ??
+          _nonEmptyStr(proData?['description']),
       barnName: json['barnName'] ??
           (proData != null ? proData['barnName'] : null) ??
           (json['role'] == 'barn_manager' && trainerData != null ? trainerData['barnName'] : null),
@@ -228,15 +290,15 @@ class UserModel {
       linkedTrainer: json['role'] == 'barn_manager' && json['trainerId'] is Map
           ? TrainerLinkedModel.fromJson(json['trainerId'])
           : null,
-      notesForTrainer: json['notesForTrainer'] ?? (proData != null ? proData['notesForTrainer'] : null),
-      businessName: json['businessName'] ??
-          (proData?['servicesData'] != null &&
-              parsedServices.isNotEmpty &&
-              proData!['servicesData'][parsedServices.firstOrNull] != null
-              ? proData['servicesData'][parsedServices.firstOrNull]['businessName']
-              : proData?['businessName'] ?? ""),
+      notesForTrainer: _nonEmptyStr(json['notesForTrainer']) ??
+          _nonEmptyStr(proData?['notesForTrainer']) ??
+          _nonEmptyStr(proData?['noteForTrainer']),
+      businessName: _nonEmptyStr(json['businessName']) ??
+          _nonEmptyStr(proData?['businessName']) ??
+          nestedServiceBusinessName,
       paymentMethods: parsedPaymentMethods,
-      otherPaymentDetails: json['otherPaymentDetails'] ?? (proData != null ? proData['otherPaymentDetails'] : null),
+      otherPaymentDetails: _nonEmptyStr(json['otherPaymentDetails']) ??
+          _nonEmptyStr(proData?['otherPaymentDetails']),
       highlights: parsedHighlights,
       compliance: (json['compliance'] != null || (proData != null && proData['compliance'] != null))
           ? VendorCompliance.fromJson(json['compliance'] ?? proData!['compliance'])

@@ -15,6 +15,13 @@ class GroomingDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.find<ApiService>();
 
+  /// Must match labels in [GroomingDetailsView] cancellation dropdown.
+  static const List<String> cancellationPolicyOptions = [
+    'Flexible (24+ hrs)',
+    'Moderate (48+ hrs)',
+    'Strict (72+ hrs)',
+  ];
+
   // Grooming Services
   final groomingServicesList = <String>[
     'Grooming & Turnout',
@@ -266,9 +273,18 @@ class GroomingDetailsController extends GetxController {
           
           if (groomingData['cancellationPolicy'] != null) {
             final cp = groomingData['cancellationPolicy'];
-            cancellationPolicy.value = cp['policy'];
             isCustomCancellation.value = cp['isCustom'] ?? false;
-            customCancellationController.text = cp['customText'] ?? '';
+            customCancellationController.text =
+                cp['customText']?.toString() ?? '';
+            final raw = cp['policy']?.toString().trim() ?? '';
+            // API often sends policy: "" — DropdownButton requires null or an exact items[] value
+            if (!isCustomCancellation.value &&
+                raw.isNotEmpty &&
+                cancellationPolicyOptions.contains(raw)) {
+              cancellationPolicy.value = raw;
+            } else {
+              cancellationPolicy.value = null;
+            }
           }
         } else {
           location.value = vendor['city'] != null ? '${vendor['city']}, ${vendor['state']}, USA' : 'N/A';
@@ -346,7 +362,7 @@ class GroomingDetailsController extends GetxController {
         'isProfileCompleted': true,
       };
 
-      final response = await apiService.putRequest('/vendors/$vendorId', body);
+      final response = await apiService.putRequest('/vendors/me', body);
       if (response.statusCode == 200 && response.body['success'] == true) {
         final authController = Get.find<AuthController>();
         await authController.updateUserMetadata();

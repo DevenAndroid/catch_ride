@@ -1,21 +1,19 @@
-
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 
 class AppUrls {
+  /// Public HTTPS tunnel pointing at your local API (same host the backend ngrok exposes).
+  static const String devTunnelOrigin =
+      'https://fremdly-monogenistic-collette.ngrok-free.dev';
+
+  /// Production vs dev/ngrok — set false to hit [devTunnelOrigin].
+  static bool isLive = false;
+
+  /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
   static String get host {
     if (kIsWeb) return 'localhost';
-
-     if (Platform.isAndroid) return '10.0.2.2';
-     // if (Platform.isAndroid) return '192.168.1.16';
-     // return "https://fremdly-monogenistic-collette.ngrok-free.dev";
-     // if (Platform.isAndroid) return '10.0.2.2';
-
-    return 'localhost';
+    if (isLive) return 'api.catchrideapp.com';
+    return Uri.parse(devTunnelOrigin).host;
   }
-
-  static bool isLive = true;
 
   static String get baseUrl {
     try {
@@ -27,19 +25,11 @@ class AppUrls {
   // return '$host/api';
     return 'http://$host:5000/api';
 
-
   }
 
   static String get socketUrl {
-    try {
-      if (isLive) return 'https://api.catchrideapp.com';
-    } catch (_) {}
-
-    //  return 'http://$host:5000';
-      // return '$host';
-
-    return 'http://$host:5000';
-
+    if (isLive) return 'https://api.catchrideapp.com';
+    return devTunnelOrigin;
   }
 
 
@@ -80,8 +70,7 @@ class AppUrls {
   static const String opportunityTags = '$systemConfig/opportunity-tags';
   static const String experienceLevels = '$systemConfig/experience-levels';
   static const String personalityTags = '$systemConfig/personality-tags';
-  static const String tagTypesWithValues =
-      '$systemConfig/tag-types/with-values';
+  static const String tagTypesWithValues = '$systemConfig/tag-types/with-values';
 
   // Settings
   static const String settings = '/settings';
@@ -103,12 +92,9 @@ class AppUrls {
   static const String faqs = '/faq';
   static const String supportTickets = '/support-tickets';
   static const String conversations = '/messages/conversations';
-  static const String messagesByConversation =
-      '/messages/conversation/'; // + id + '/messages'
-  static const String acceptChatRequest =
-      '/messages/conversation/'; // + id + '/accept'
-  static const String declineChatRequest =
-      '/messages/conversation/'; // + id + '/decline'
+  static const String messagesByConversation = '/messages/conversation/'; // + id + '/messages'
+  static const String acceptChatRequest = '/messages/conversation/'; // + id + '/accept'
+  static const String declineChatRequest = '/messages/conversation/'; // + id + '/decline'
   static const String blockUser = '/messages/user/'; // + userId + '/block'
 
   // Notifications

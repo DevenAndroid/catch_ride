@@ -702,12 +702,15 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
           const CommonText('Set your cancellation preferences.', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
           const SizedBox(height: 16),
           Obx(() => _buildDropdownTrigger(
-            value: widget.controller.cancellationPolicy.value,
+            value: widget.controller.cancellationPresetForDropdown,
             hint: 'Select Cancellation Policy',
             onTap: () => _showPickerBottomSheet(
               title: 'Cancellation Policy',
-              options: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'],
-              onSelected: (val) => widget.controller.cancellationPolicy.value = val
+              options: EditVendorProfileController.cancellationPresetOptions,
+              onSelected: (val) {
+                widget.controller.isCustomCancellation.value = false;
+                widget.controller.cancellationPolicy.value = val;
+              },
             ),
           )),
           const SizedBox(height: 12),
@@ -715,7 +718,11 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
             children: [
               Obx(() => Checkbox(
                 value: widget.controller.isCustomCancellation.value,
-                onChanged: (val) => widget.controller.isCustomCancellation.value = val ?? false,
+                onChanged: (val) {
+                  final v = val ?? false;
+                  widget.controller.isCustomCancellation.value = v;
+                  if (v) widget.controller.cancellationPolicy.value = null;
+                },
                 activeColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
               )),

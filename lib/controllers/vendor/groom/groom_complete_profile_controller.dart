@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/models/user_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
@@ -19,7 +20,7 @@ class GroomCompleteProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
 
   // Basic Details
-  final fullNameController = TextEditingController(text: 'Thomas Martin');
+  final fullNameController = TextEditingController();
   final countryCode = '+1'.obs;
   final phoneNumberController = TextEditingController();
   final businessNameController = TextEditingController();
@@ -42,30 +43,44 @@ class GroomCompleteProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final user = Get.find<AuthController>().currentUser.value;
+    _hydrateFromServer();
+    fetchPaymentMethods();
+  }
+
+  /// GET /profile includes vendor merges (about, profile keys, payment, etc.).
+  Future<void> _hydrateFromServer() async {
+    await Get.find<AuthController>().updateUserMetadata();
+    _applyUserToForm(Get.find<AuthController>().currentUser.value);
+  }
+
+  void _applyUserToForm(UserModel? user) {
     fullNameController.text = user?.fullName ?? '';
-    phoneNumberController.text = user?.phone ?? '';
+    phoneNumberController.text = user?.phone?.toString() ?? '';
     businessNameController.text = user?.businessName ?? '';
     aboutController.text = user?.bio ?? '';
     notesForTrainerController.text = user?.notesForTrainer ?? '';
     existingProfilePhoto.value = user?.photo ?? user?.avatar ?? '';
     existingCoverImage.value = user?.coverImage ?? '';
-    
-    if (user?.paymentMethods != null) {
-      selectedPaymentMethods.addAll(user!.paymentMethods);
+
+    selectedPaymentMethods.clear();
+    if (user != null && user.paymentMethods.isNotEmpty) {
+      selectedPaymentMethods.addAll(user.paymentMethods);
     }
     otherPaymentController.text = user?.otherPaymentDetails ?? '';
 
-    if (user?.highlights != null && user!.highlights.isNotEmpty) {
-      highlightControllers.clear();
-      for (var highlight in user.highlights) {
+    for (final c in highlightControllers) {
+      c.dispose();
+    }
+    highlightControllers.clear();
+    if (user != null && user.highlights.isNotEmpty) {
+      for (final highlight in user.highlights) {
         highlightControllers.add(TextEditingController(text: highlight));
       }
+    } else {
+      highlightControllers.add(TextEditingController());
     }
 
-    print("Name----:${fullNameController.text}");
-    print("Phone----:${phoneNumberController.text}");
-    fetchPaymentMethods();
+    debugPrint('Hydrate vendor complete profile: name=${fullNameController.text}, phone=${phoneNumberController.text}');
   }
 
   Future<void> pickProfileImage() async {
@@ -226,7 +241,7 @@ class GroomCompleteProfileController extends GetxController {
       if (profilePhotoKey != null) profileData['profilePhoto'] = profilePhotoKey;
       if (bannerImageKey != null) profileData['coverImage'] = bannerImageKey;
 
-      final response = await apiService.putRequest('/vendors/profile', profileData);
+      final response = await apiService.putRequest('/vendors/me', profileData);
 
       if (response.statusCode == 200 && response.body['success'] == true) {
         Get.snackbar('Success', 'Profile updated successfully!', backgroundColor: Colors.green, colorText: Colors.white);

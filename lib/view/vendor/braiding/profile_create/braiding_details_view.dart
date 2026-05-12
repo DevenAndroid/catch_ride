@@ -424,21 +424,39 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
             border: Border.all(color: AppColors.borderLight),
           ),
           child: DropdownButtonHideUnderline(
-            child: Obx(() => DropdownButton<String>(
-                  value: controller.cancellationPolicy.value,
-                  hint: const CommonText('Select cancellation policy', color: AppColors.textSecondary, fontSize: AppTextSizes.size14),
-                  isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textSecondary),
-                  items: ['Flexible (24+ hrs)', 'Moderate (48+ hrs)', 'Strict (72+ hrs)'].map((s) => DropdownMenuItem(value: s, child: CommonText(s))).toList(),
-                  onChanged: (val) => controller.cancellationPolicy.value = val,
-                )),
+            child: Obx(() {
+              final raw = controller.cancellationPolicy.value;
+              final allowed = BraidingDetailsController.cancellationPolicyOptions;
+              final valueOk = raw != null &&
+                  raw.isNotEmpty &&
+                  allowed.contains(raw) &&
+                  !controller.isCustomCancellation.value;
+              return DropdownButton<String>(
+                value: valueOk ? raw : null,
+                hint: const CommonText('Select cancellation policy',
+                    color: AppColors.textSecondary,
+                    fontSize: AppTextSizes.size14),
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down,
+                    color: AppColors.textSecondary),
+                items: BraidingDetailsController.cancellationPolicyOptions
+                    .map((s) =>
+                        DropdownMenuItem(value: s, child: CommonText(s)))
+                    .toList(),
+                onChanged: (val) => controller.cancellationPolicy.value = val,
+              );
+            }),
           ),
         ),
         const SizedBox(height: 12),
         Row(
           children: [
             Obx(() => GestureDetector(
-                  onTap: () => controller.isCustomCancellation.value = !controller.isCustomCancellation.value,
+                  onTap: () {
+                    final next = !controller.isCustomCancellation.value;
+                    controller.isCustomCancellation.value = next;
+                    if (next) controller.cancellationPolicy.value = null;
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
