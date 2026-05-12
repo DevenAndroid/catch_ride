@@ -105,6 +105,39 @@ class VendorDetailsController extends GetxController {
     }
   }
 
+  /// Same merge as [GroomViewProfileController.getProfileDataByType]: root VendorModel
+  /// subdoc + `assignedServices` profile + `servicesData` so public details match own profile.
+  Map<String, dynamic> getProfileDataByType(String serviceType) {
+    if (serviceType.trim().isEmpty) return {};
+    return mergedVendorServiceDisplayData(
+      Map<String, dynamic>.from(vendorData),
+      serviceType,
+    );
+  }
+
+  /// Normalized match for tab label (e.g. `Grooming` vs stored casing).
+  dynamic assignedServiceRowFor(String selectedServiceType) {
+    final list = vendorData['assignedServices'];
+    if (list is! List) return null;
+    for (final s in list) {
+      if (assignedServiceMatchesTab(s, selectedServiceType)) return s;
+    }
+    return null;
+  }
+
+  /// Flat merged profile for the selected tab (VendorModel subdoc + profileData + servicesData).
+  Map<String, dynamic> get _mergedActiveDisplay {
+    if (availableServices.isEmpty) return {};
+    return getProfileDataByType(availableServices[selectedTabIndex.value].toString());
+  }
+
+  Map<String, dynamic> get _mergedProfileFlat {
+    final m = _mergedActiveDisplay;
+    final pd = m['profileData'];
+    if (pd is Map) return Map<String, dynamic>.from(pd as Map);
+    return Map<String, dynamic>.from(m);
+  }
+
   void navigateToChat() {
     final chatController = Get.put(ChatController());
     chatController.openBookingChat(
@@ -182,12 +215,39 @@ class VendorDetailsController extends GetxController {
     }
   }
 
-  // Getters for display
+  // Getters for display (aligned with catch-ride-backend/models/VendorModel.js root fields)
   String get fullName => '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
-  String get businessName => vendorData['businessName'] ?? '';
-  String get profilePhoto => vendorData['profilePhoto'] ?? '';
-  String get coverImage => vendorData['coverImage'] ?? '';
-  String get bio => vendorData['bio'] ?? 'No bio provided.';
+  String get businessName => vendorData['businessName']?.toString() ?? '';
+  /// API may expose `profilePhoto` / `coverImage`; VendorModel uses `profile` / `bannerImage` strings.
+  String get profilePhoto =>
+      (vendorData['profilePhoto'] ?? vendorData['profile'])?.toString() ?? '';
+  String get coverImage =>
+      (vendorData['coverImage'] ?? vendorData['bannerImage'])?.toString() ?? '';
+  /// VendorModel: `about`. Legacy / mobile may use `bio`.
+  String get bio {
+    final about = vendorData['about']?.toString().trim();
+    if (about != null && about.isNotEmpty) return about;
+    final legacy = vendorData['bio']?.toString().trim();
+    if (legacy != null && legacy.isNotEmpty) return legacy;
+    return 'N/A';
+  }
+
+  String get noteForTrainer => vendorData['noteForTrainer']?.toString().trim() ?? '';
+
+  /// VendorModel service preform `experienceHighlights`; GET /vendors/:id may add `userHighlights` from User.
+  List<String> get displayHighlights {
+    final fromMerged = List<String>.from(
+      _mergedProfileFlat['experienceHighlights'] ?? [],
+    );
+    if (fromMerged.isNotEmpty) {
+      return fromMerged.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+    }
+    final uh = vendorData['userHighlights'];
+    if (uh is List && uh.isNotEmpty) {
+      return uh.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+    }
+    return List<String>.from(vendorData['highlights'] ?? []);
+  }
   
   // Active Service Getters (VendorModel.assignedServices + nested profile/application maps)
   dynamic get _activeService {
@@ -204,10 +264,32 @@ class VendorDetailsController extends GetxController {
   Map<String, dynamic> get _activeApplicationData => effectiveApplicationData(_activeService);
   
   String get location {
+    // VendorModel root: homeBaseLocation { city, state, country }
+    final hbl = vendorData['homeBaseLocation'];
+    String? city;
+    String? state;
+    String? country;
+    if (hbl is Map) {
+      city = hbl['city']?.toString();
+      state = hbl['state']?.toString();
+      country = hbl['country']?.toString();
+    }
+
+    final merged = _mergedProfileFlat;
+    if (!_isValid(city)) city = merged['city']?.toString();
+    if (!_isValid(state)) state = merged['state']?.toString();
+    if (!_isValid(country)) country = merged['country']?.toString();
+    final hbMerged = merged['homeBase'];
+    if (hbMerged is Map) {
+      if (!_isValid(city)) city = hbMerged['city']?.toString();
+      if (!_isValid(state)) state = hbMerged['state']?.toString();
+      if (!_isValid(country)) country = hbMerged['country']?.toString();
+    }
+
     final appData = _activeApplicationData;
-    String? city = appData['homeBase']?['city'] ?? appData['city'];
-    String? state = appData['homeBase']?['state'] ?? appData['state'];
-    String? country = appData['homeBase']?['country'] ?? appData['country'];
+    if (!_isValid(city)) city = appData['homeBase']?['city'] ?? appData['city'];
+    if (!_isValid(state)) state = appData['homeBase']?['state'] ?? appData['state'];
+    if (!_isValid(country)) country = appData['homeBase']?['country'] ?? appData['country'];
 
     if (!_isValid(city) || !_isValid(state)) {
       final topAppData = _activeService?['application'] ?? {};
@@ -217,16 +299,14 @@ class VendorDetailsController extends GetxController {
     }
 
     if (_isValid(city) || _isValid(state) || _isValid(country)) {
-      List<String> parts = [];
+      final parts = <String>[];
       if (_isValid(city)) parts.add(city!);
       if (_isValid(state)) parts.add(state!);
       if (_isValid(country)) parts.add(country!);
       return parts.join(', ');
     }
 
-    // Fallback to vendor level
     final loc = vendorData['location'] ?? vendorData['homeBase'];
-
     if (loc is Map) {
       city = loc['city']?.toString();
       state = loc['state']?.toString();
@@ -238,13 +318,15 @@ class VendorDetailsController extends GetxController {
   }
 
   String get experienceStr {
-    final exp = _activeApplicationData['experience'] ?? 
-                _activeApplicationData['yearsExperience'] ?? 
-                vendorData['yearsExperience'] ?? 
-                vendorData['experience'] ?? 
-                '';
+    final exp = _mergedProfileFlat['experience'] ??
+        _mergedProfileFlat['yearsExperience'] ??
+        _activeApplicationData['experience'] ??
+        _activeApplicationData['yearsExperience'] ??
+        vendorData['yearsExperience'] ??
+        vendorData['experience'] ??
+        '';
     if (exp == '' || exp == 'N/A') return '';
-    String val = exp.toString();
+    final val = exp.toString();
     return val.toLowerCase().contains('year') ? val : '$val Years';
   }
 
@@ -252,58 +334,125 @@ class VendorDetailsController extends GetxController {
 
   List<String> get paymentMethods => List<String>.from(vendorData['paymentMethods'] ?? []);
   String get otherPaymentDetails => vendorData['otherPaymentDetails']?.toString() ?? '';
-  String get instagramUrl => _activeProfileData['socialMedia']?['instagram'] ?? '';
-  String get facebookUrl => _activeProfileData['socialMedia']?['facebook'] ?? '';
+  /// VendorModel preform uses `instagramLink` / `facebookLink` on service subdocs; profiles may use nested socialMedia.
+  String get instagramUrl =>
+      _activeProfileData['socialMedia']?['instagram']?.toString().trim() ??
+      _mergedProfileFlat['socialMedia']?['instagram']?.toString().trim() ??
+      _mergedProfileFlat['instagramLink']?.toString().trim() ??
+      _activeApplicationData['instagramLink']?.toString().trim() ??
+      '';
+  String get facebookUrl =>
+      _activeProfileData['socialMedia']?['facebook']?.toString().trim() ??
+      _mergedProfileFlat['socialMedia']?['facebook']?.toString().trim() ??
+      _mergedProfileFlat['facebookLink']?.toString().trim() ??
+      _activeApplicationData['facebookLink']?.toString().trim() ??
+      '';
 
   // Service specific getters
-  String get dailyRate => _activeProfileData['rates']?['daily'] ?? '';
-  String get weeklyRate => _activeProfileData['rates']?['weekly']?['price']?.toString() ?? '';
-  String get weeklyDays => _activeProfileData['rates']?['weekly']?['days']?.toString() ?? '5';
-  String get monthlyRate => _activeProfileData['rates']?['monthly']?['price']?.toString() ?? '';
-  String get monthlyDays => _activeProfileData['rates']?['monthly']?['days']?.toString() ?? '5';
+  String get dailyRate =>
+      _mergedProfileFlat['rates']?['daily']?.toString() ??
+      _activeProfileData['rates']?['daily']?.toString() ??
+      '';
+  String get weeklyRate =>
+      _mergedProfileFlat['rates']?['weekly']?['price']?.toString() ??
+      _activeProfileData['rates']?['weekly']?['price']?.toString() ??
+      '';
+  String get weeklyDays =>
+      _mergedProfileFlat['rates']?['weekly']?['days']?.toString() ??
+      _activeProfileData['rates']?['weekly']?['days']?.toString() ??
+      '5';
+  String get monthlyRate =>
+      _mergedProfileFlat['rates']?['monthly']?['price']?.toString() ??
+      _activeProfileData['rates']?['monthly']?['price']?.toString() ??
+      '';
+  String get monthlyDays =>
+      _mergedProfileFlat['rates']?['monthly']?['days']?.toString() ??
+      _activeProfileData['rates']?['monthly']?['days']?.toString() ??
+      '5';
 
   // Shipping Specific Getters
   String get shippingBaseRate {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final pricing = _activeProfileData['pricing'] ?? flatData['pricing'] ?? _activeApplicationData['pricing'] ?? {};
-    if (pricing['inquiryPrice'] == true) return "Inquire for price";
-    final rate = pricing['baseRate'] ?? _activeProfileData['rates']?['baseRate'] ?? _activeProfileData['rates']?['base'] ?? '';
+    final pricing = _mergedProfileFlat['pricing'] ??
+        _activeProfileData['pricing'] ??
+        flatData['pricing'] ??
+        _activeApplicationData['pricing'] ??
+        {};
+    if (pricing['inquiryPrice'] == true || pricing['inquireForPrice'] == true) {
+      return 'Inquire for price';
+    }
+    final rate = pricing['baseRate'] ??
+        pricing['basePrice'] ??
+        _activeProfileData['rates']?['baseRate'] ??
+        _activeProfileData['rates']?['base'] ??
+        '';
     return rate.toString();
   }
 
   String get shippingLoadedRate {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final pricing = _activeProfileData['pricing'] ?? flatData['pricing'] ?? _activeApplicationData['pricing'] ?? {};
-    if (pricing['inquiryPrice'] == true) return "Inquire for price";
-    final rate = pricing['loadedRate'] ?? _activeProfileData['rates']?['fullyLoaded'] ?? _activeProfileData['rates']?['loaded'] ?? '';
+    final pricing = _mergedProfileFlat['pricing'] ??
+        _activeProfileData['pricing'] ??
+        flatData['pricing'] ??
+        _activeApplicationData['pricing'] ??
+        {};
+    if (pricing['inquiryPrice'] == true || pricing['inquireForPrice'] == true) {
+      return 'Inquire for price';
+    }
+    final rate = pricing['loadedRate'] ??
+        pricing['fullyLoadedRate'] ??
+        _activeProfileData['rates']?['fullyLoaded'] ??
+        _activeProfileData['rates']?['loaded'] ??
+        '';
     return rate.toString();
   }
 
   String get shippingOperationType {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['operationType'] ?? _activeProfileData['operationType'] ?? _activeApplicationData['operationType'] ?? '';
+    return flatData['operationType'] ??
+        _mergedProfileFlat['operationType'] ??
+        _activeProfileData['operationType'] ??
+        _activeApplicationData['operationType'] ??
+        '';
   }
 
   List<String> get shippingRigTypes {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['rigTypes'] ?? _activeProfileData['rigTypes'] ?? _activeApplicationData['rigTypes'] ?? [];
+    final list = flatData['rigTypes'] ??
+        flatData['rigType'] ??
+        _mergedProfileFlat['rigTypes'] ??
+        _mergedProfileFlat['rigType'] ??
+        _activeProfileData['rigTypes'] ??
+        _activeApplicationData['rigTypes'] ??
+        [];
     return List<String>.from(list);
   }
 
   String get shippingRigCapacity {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return (flatData['rigCapacity'] ?? _activeProfileData['rigCapacity'] ?? _activeApplicationData['rigCapacity'] ?? '').toString();
+    return (flatData['rigCapacity'] ??
+            _mergedProfileFlat['rigCapacity'] ??
+            _mergedProfileFlat['horseCapacity'] ??
+            _activeProfileData['rigCapacity'] ??
+            _activeApplicationData['rigCapacity'] ??
+            '')
+        .toString();
   }
 
   String get shippingEquipmentSummary {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? '';
+    return flatData['equipmentSummary'] ??
+        _mergedProfileFlat['equipmentSummary'] ??
+        _mergedProfileFlat['equipmentsSummary'] ??
+        _activeProfileData['equipmentSummary'] ??
+        _activeProfileData['equipmentsSummary'] ??
+        '';
   }
 
   String get shippingAdditionalNotes {
@@ -315,6 +464,7 @@ class VendorDetailsController extends GetxController {
     for (final v in <dynamic>[
       flatData['additionalNotes'],
       pd['additionalNotes'],
+      _mergedProfileFlat['additionalNotes'],
       _activeProfileData['additionalNotes'],
       flatData['notes'],
       pd['notes'],
@@ -326,7 +476,13 @@ class VendorDetailsController extends GetxController {
     return '';
   }
 
-  String get shippingDotNumber => (_activeApplicationData['businessInfo']?['dotNumber'] ?? '').toString();
+  String get shippingDotNumber =>
+      (_activeApplicationData['businessInfo']?['dotNumber'] ??
+              _activeApplicationData['businessInfo']?['usdotNumber'] ??
+              _mergedProfileFlat['businessInformation']?['usdotNumber'] ??
+              _mergedProfileFlat['businessInfo']?['usdotNumber'] ??
+              '')
+          .toString();
       
   bool get shippingHasCDL {
     final servicesData = vendorData['servicesData'] ?? {};
@@ -337,56 +493,140 @@ class VendorDetailsController extends GetxController {
   List<String> get shippingServicesOffered {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['services'] ?? _activeProfileData['services'] ?? _activeProfileData['servicesOffered'] ?? [];
+    final list = flatData['services'] ??
+        flatData['serviceOffered'] ??
+        _mergedProfileFlat['services'] ??
+        _mergedProfileFlat['serviceOffered'] ??
+        _activeProfileData['services'] ??
+        _activeProfileData['servicesOffered'] ??
+        [];
     return List<String>.from(list);
   }
 
   List<String> get shippingRegionsCovered {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['regionsCovered'] ?? _activeProfileData['regionsCovered'] ?? _activeApplicationData['regions'] ?? [];
+    final list = flatData['regionsCovered'] ??
+        _mergedProfileFlat['regionsCovered'] ??
+        _activeProfileData['regionsCovered'] ??
+        _activeApplicationData['regions'] ??
+        [];
     return List<String>.from(list);
   }
 
   List<String> get shippingTravelScope {
     final servicesData = vendorData['servicesData'] ?? {};
     final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-    final list = flatData['travelScope'] ?? _activeProfileData['travelScope'] ?? _activeApplicationData['travelScope'] ?? [];
+    final list = flatData['travelScope'] ??
+        _mergedProfileFlat['travelScope'] ??
+        _activeProfileData['travelScope'] ??
+        _activeApplicationData['travelScope'] ??
+        [];
     return List<String>.from(list);
   }
 
-  List<dynamic> get coreServices => List<dynamic>.from(_activeProfileData['services'] ?? []);
-  List<String> get supportOptions => List<String>.from(_activeProfileData['capabilities']?['support'] ?? []);
-  List<String> get handlingOptions => List<String>.from(_activeProfileData['capabilities']?['handling'] ?? []);
-  List<String> get disciplinesSelected => List<String>.from(_activeApplicationData['disciplines'] ?? []);
-  List<String> get horseLevels => List<String>.from(_activeApplicationData['horseLevels'] ?? []);
-  List<String> get operatingRegions => List<String>.from(_activeApplicationData['regions'] ?? []);
-  
+  List<dynamic> get coreServices =>
+      List<dynamic>.from(_mergedProfileFlat['services'] ?? _activeProfileData['services'] ?? []);
+  List<String> get supportOptions => List<String>.from(
+        _mergedProfileFlat['capabilities']?['support'] ??
+            _activeProfileData['capabilities']?['support'] ??
+            [],
+      );
+  List<String> get handlingOptions => List<String>.from(
+        _mergedProfileFlat['capabilities']?['handling'] ??
+            _activeProfileData['capabilities']?['handling'] ??
+            [],
+      );
+  List<String> get disciplinesSelected {
+    final fromApp = List<String>.from(_activeApplicationData['disciplines'] ?? []);
+    if (fromApp.isNotEmpty) return fromApp;
+    final m = _mergedProfileFlat;
+    final d = List<String>.from(m['disciplines'] ?? m['desciplines'] ?? []);
+    return d;
+  }
+
+  List<String> get horseLevels {
+    final fromApp = List<String>.from(_activeApplicationData['horseLevels'] ?? []);
+    if (fromApp.isNotEmpty) return fromApp;
+    final m = _mergedProfileFlat;
+    return List<String>.from(
+      m['horseLevels'] ?? m['typicalLevelOfHorses'] ?? [],
+    );
+  }
+
+  List<String> get operatingRegions {
+    final fromApp = List<String>.from(_activeApplicationData['regions'] ?? []);
+    if (fromApp.isNotEmpty) return fromApp;
+    final m = _mergedProfileFlat;
+    return List<String>.from(
+      m['regions'] ?? m['regionsCovered'] ?? [],
+    );
+  }
+
   List<String> get travelPreferences {
-    final raw = _activeProfileData['travelPreferences'] ?? [];
+    final raw = _mergedProfileFlat['travelPreferences'] ??
+        _activeProfileData['travelPreferences'] ??
+        [];
     if (raw is! List) return [];
     return raw.map((item) {
-      if (item is Map) return item['region']?.toString() ?? item['name']?.toString() ?? '';
+      if (item is Map) {
+        final label = item['label']?.toString().trim();
+        final note = item['note']?.toString().trim();
+        final region = item['region']?.toString() ?? item['name']?.toString();
+        if (label != null && label.isNotEmpty) {
+          if (note != null && note.isNotEmpty) return '$label — $note';
+          return label;
+        }
+        return region ?? '';
+      }
       return item.toString();
     }).where((s) => s.isNotEmpty).toList();
   }
 
-  List get additionalServices => _activeProfileData['additionalServices'] ?? [];
+  /// VendorModel `farrier.scopeOfWork` + application wizard data.
+  List<String> get farrierScopeOfWork {
+    final fromApp = List<String>.from(
+      _activeApplicationData['scopeOfWork'] ?? [],
+    );
+    if (fromApp.isNotEmpty) return fromApp;
+    return List<String>.from(_mergedProfileFlat['scopeOfWork'] ?? []);
+  }
+
+  List get additionalServices =>
+      _mergedProfileFlat['additionalServices'] ?? _activeProfileData['additionalServices'] ?? [];
 
   List<String> get photos {
-    return {
-      ..._safeList(_activeProfileData['media']),
-      ..._safeList(_activeApplicationData['media']),
-    }.toList();
-  }
-  List<String> _safeList(dynamic data) {
-    if (data is List) return data.map((e) => e.toString()).toList();
-    return [];
+    final vendorRoot = Map<String, dynamic>.from(vendorData);
+    String? type;
+    if (availableServices.isNotEmpty) {
+      type = availableServices[selectedTabIndex.value].toString();
+    } else {
+      final types = serviceTypesFromVendorRoot(vendorRoot);
+      if (types.isEmpty) {
+        final urls = <String>[];
+        for (final u in [profilePhoto, coverImage]) {
+          if (u.trim().isNotEmpty) urls.add(u);
+        }
+        return urls;
+      }
+      type = types.first;
+    }
+    final merged = getProfileDataByType(type!);
+    final pd = merged['profileData'] is Map
+        ? Map<String, dynamic>.from(merged['profileData'] as Map)
+        : <String, dynamic>{};
+    final app = effectiveApplicationData(assignedServiceRowFor(type));
+    return mergeServicePortfolioMediaUrls(
+      serviceType: type,
+      vendorRoot: vendorRoot,
+      profileData: pd,
+      appData: app,
+    );
   }
 
   dynamic get cancellationPolicy {
-    final data = _activeProfileData['cancellationPolicy'];
-    if (data is String) return data;
+    final data = _mergedProfileFlat['cancellationPolicy'] ?? _activeProfileData['cancellationPolicy'];
+    if (data is String && data.trim().isNotEmpty) return data.trim();
     if (data is Map) return data['policy'] ?? 'Flexible (24+ hrs)';
     return 'Flexible (24+ hrs)';
   }

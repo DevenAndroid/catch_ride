@@ -29,6 +29,7 @@ import 'braiding/profile/braiding_service_and_rates_view.dart';
 import 'farrier/profile/farrier_service_and_rates_view.dart';
 import 'groom/profile/general_service_and_rates_view.dart';
 import 'package:catch_ride/view/vendor/groom/profile/payment_methods.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
 
 class VendorDetailsView extends StatefulWidget {
   const VendorDetailsView({super.key});
@@ -88,6 +89,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
+                          _buildNoteForTrainer(),
                           _buildBio(),
                           const SizedBox(height: 16),
                           _buildSocials(),
@@ -103,7 +105,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                           const SizedBox(height: 20),
                           Obx(() => _buildDetailsCard()),
                           const SizedBox(height: 24),
-                          _buildPhotosSection(),
+                          Obx(() => _buildPhotosSection()),
                           const SizedBox(height: 24),
                           _buildAvailabilitySection(),
                           const SizedBox(height: 24),
@@ -213,7 +215,14 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                     child: const Icon(Icons.location_on, color: Color(0xFFE11D48), size: 14),
                   ),
                   const SizedBox(width: 4),
-                  Expanded(child: CommonText(controller.location, fontSize: AppTextSizes.size14, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+                  Obx(() => Expanded(
+                        child: CommonText(
+                          controller.location,
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )),
                 ],
               ),
               const SizedBox(height: 4),
@@ -246,7 +255,43 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     );
   }
 
+  Widget _buildNoteForTrainer() {
+    final note = controller.noteForTrainer;
+    if (note.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.lightGray,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const CommonText(
+              'Note for trainer',
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+            const SizedBox(height: 8),
+            CommonText(
+              note,
+              fontSize: AppTextSizes.size14,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBio() {
+    if (controller.bio == 'N/A') return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: CommonText(
@@ -384,20 +429,37 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     );
   }
 
+  /// Align with [GroomViewProfile._detailBlockForActiveService]: merged display map first,
+  /// then raw `servicesData` keys, then [effectiveProfileData] from the assigned row.
+  Map<String, dynamic> _detailBlockForActiveService(
+    String activeService,
+    Map<dynamic, dynamic> servicesData,
+    List<String> legacyKeys,
+  ) {
+    final merged = controller.getProfileDataByType(activeService);
+    if (merged.isNotEmpty) return Map<String, dynamic>.from(merged);
+    for (final k in legacyKeys) {
+      final raw = servicesData[k];
+      if (raw is Map) return Map<String, dynamic>.from(raw);
+    }
+    final row = controller.assignedServiceRowFor(activeService);
+    return Map<String, dynamic>.from(effectiveProfileData(row));
+  }
+
   Widget _buildDetailsCard() {
     final String activeService = controller.availableServices.isNotEmpty 
         ? controller.availableServices[controller.selectedTabIndex.value] 
         : '';
     final String activeServiceKey = activeService.toLowerCase().replaceAll(' ', '');
-    final Map servicesData = controller.vendorData.value?['servicesData'] ?? {};
-
-    // Bridging logic to find the correct data from controller and vendorData
-    final dynamic assignedService = (controller.vendorData['assignedServices'] as List?)?.firstWhereOrNull(
-      (s) => s['serviceType'] == activeService);
-    final platformProfile = assignedService?['profile'] ?? {};
+    final Map<dynamic, dynamic> servicesData =
+        controller.vendorData['servicesData'] ?? <dynamic, dynamic>{};
 
     if (activeServiceKey.contains('bodywork')) {
-       final Map bodyworkData = servicesData['bodywork'] ?? servicesData['body work'] ?? platformProfile;
+       final Map bodyworkData = _detailBlockForActiveService(
+         activeService,
+         servicesData,
+         ['bodywork', 'body work'],
+       );
        return BodyworkServiceAndRatesView(
          bodyworkData: bodyworkData,
          location: controller.location,
@@ -411,7 +473,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     }
     
     if (activeServiceKey == 'shipping' || activeServiceKey == 'transportation') {
-      final Map shippingData = servicesData['shipping'] ?? servicesData['transportation'] ?? platformProfile;
+      final Map shippingData = _detailBlockForActiveService(
+        activeService,
+        servicesData,
+        ['shipping', 'transportation'],
+      );
       
       return ShippingServiceAndRatesView(
         shippingData: shippingData,
@@ -430,12 +496,16 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         dotNumber: controller.shippingDotNumber,
         hasCDL: controller.shippingHasCDL,
         businessName: controller.businessName,
-        highlights: List<String>.from(controller.vendorData['highlights'] ?? []),
+        highlights: controller.displayHighlights,
       );
     }
     
     if (activeServiceKey == 'grooming') {
-       final Map groomingData = servicesData['grooming'] ?? platformProfile;
+       final Map groomingData = _detailBlockForActiveService(
+         activeService,
+         servicesData,
+         ['grooming'],
+       );
        return GroomingServiceAndRatesView(
          groomingData: groomingData,
          location: controller.location,
@@ -446,12 +516,16 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
          travelPreferences: controller.travelPreferences,
          supportOptions: controller.supportOptions,
          handlingOptions: controller.handlingOptions,
-         additionalSkills: List<String>.from(controller.vendorData['highlights'] ?? []),
+         additionalSkills: controller.displayHighlights,
        );
     }
     
     if (activeServiceKey == 'clipping') {
-       final Map clippingData = servicesData['clipping'] ?? platformProfile;
+       final Map clippingData = _detailBlockForActiveService(
+         activeService,
+         servicesData,
+         ['clipping'],
+       );
        return ClippingServiceAndRatesView(
          clippingData: clippingData,
          location: controller.location,
@@ -464,7 +538,11 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     }
     
     if (activeServiceKey == 'braiding') {
-       final Map braidingData = servicesData['braiding'] ?? platformProfile;
+       final Map braidingData = _detailBlockForActiveService(
+         activeService,
+         servicesData,
+         ['braiding'],
+       );
        return BraidingServiceAndRatesView(
          braidingData: braidingData,
          location: controller.location,
@@ -478,12 +556,16 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
 
     if (activeServiceKey == 'farrier') {
       return FarrierServiceAndRatesView(
-        farrierData: servicesData['farrier'] ?? platformProfile,
+        farrierData: _detailBlockForActiveService(
+          activeService,
+          servicesData,
+          ['farrier'],
+        ),
         location: controller.location,
         experience: controller.experienceStr,
         disciplines: controller.disciplinesSelected,
         horseLevels: controller.horseLevels,
-        scopeOfWork: List<String>.from(assignedService?['application']?['applicationData']?['scopeOfWork'] ?? []),
+        scopeOfWork: controller.farrierScopeOfWork,
         regionsCovered: controller.operatingRegions,
         travelPreferences: controller.travelPreferences,
         services: controller.coreServices,
