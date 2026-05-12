@@ -1,4 +1,3 @@
-import 'package:catch_ride/view/vendor/shipping/profile/service_price_view.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
@@ -19,6 +18,8 @@ class ShippingServiceAndRatesView extends StatefulWidget {
   final String operationType;
   final String rigCapacity;
   final String equipmentSummary;
+  /// Vendor shipping postform additional notes (`additionalNotes` / legacy `notes`).
+  final String additionalNotes;
   final String? dotNumber;
   final bool? hasCDL;
   final String? businessName;
@@ -38,6 +39,7 @@ class ShippingServiceAndRatesView extends StatefulWidget {
     required this.operationType,
     required this.rigCapacity,
     required this.equipmentSummary,
+    this.additionalNotes = '',
     this.dotNumber,
     this.hasCDL,
     this.businessName,
@@ -158,6 +160,11 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
               // ── Equipment & CDL ──────────────────────────────────────────────
               _buildDetailItem('Equipment summary', widget.equipmentSummary),
               const SizedBox(height: 12),
+
+              if (widget.additionalNotes.trim().isNotEmpty) ...[
+                _buildDetailItem('Additional notes', widget.additionalNotes.trim()),
+                const SizedBox(height: 12),
+              ],
 
               // ── Highlights ──────────────────────────────────────────────────
               if (widget.highlights.isNotEmpty) ...[

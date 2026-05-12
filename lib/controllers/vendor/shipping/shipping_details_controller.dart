@@ -271,6 +271,59 @@ class ShippingDetailsController extends GetxController {
     customCancellationController.text = str;
   }
 
+  void _setLocationDisplayFromVendor(
+    Map<String, dynamic> vendor,
+    Map<String, dynamic> profileData,
+    Map<String, dynamic> applicationData,
+  ) {
+    Map<String, dynamic>? homeBaseMap;
+
+    final appHb = applicationData['homeBase'];
+    if (appHb is Map) {
+      homeBaseMap = Map<String, dynamic>.from(appHb as Map);
+    } else if (profileData['homeBase'] is Map) {
+      homeBaseMap = Map<String, dynamic>.from(profileData['homeBase'] as Map);
+    } else {
+      final rootHb = vendor['homeBaseLocation'];
+      if (rootHb is Map) {
+        homeBaseMap = Map<String, dynamic>.from(rootHb as Map);
+      }
+    }
+
+    if (homeBaseMap != null) {
+      final line = _formatLocationFromHomeBase(homeBaseMap);
+      if (line.isNotEmpty) {
+        locationDisplay.value = line;
+        return;
+      }
+    }
+
+    final rootLoc = vendor['location']?.toString().trim() ?? '';
+    if (rootLoc.isNotEmpty) {
+      locationDisplay.value = rootLoc;
+      return;
+    }
+
+    locationDisplay.value = 'N/A';
+  }
+
+  String _formatLocationFromHomeBase(Map<String, dynamic> m) {
+    final c = (m['city'] ?? '').toString().trim();
+    final s = (m['state'] ?? '').toString().trim();
+    var co = (m['country'] ?? '').toString().trim();
+    final lower = co.toLowerCase();
+    if (lower == 'usa' || lower == 'us') {
+      co = 'USA';
+    } else if (lower == 'canada') {
+      co = 'Canada';
+    }
+    final parts = <String>[];
+    if (c.isNotEmpty) parts.add(c);
+    if (s.isNotEmpty) parts.add(s);
+    if (co.isNotEmpty) parts.add(co);
+    return parts.join(', ');
+  }
+
   Future<void> fetchCurrentDetails({bool isInitializing = false}) async {
     if (!isInitializing) isLoading.value = true;
     try {
@@ -309,6 +362,12 @@ class ShippingDetailsController extends GetxController {
         final hasAnything = profileData.isNotEmpty ||
             applicationData.isNotEmpty ||
             shippingService != null;
+
+        _setLocationDisplayFromVendor(
+          Map<String, dynamic>.from(vendor as Map),
+          profileData,
+          applicationData,
+        );
 
         if (hasAnything) {
           final pricing =
@@ -384,13 +443,6 @@ class ShippingDetailsController extends GetxController {
               profileData['equipmentSummary'] ?? '';
           additionalNotesController.text =
               profileData['additionalNotes'] ?? '';
-
-          final city = applicationData['homeBase']?['city'] ?? '';
-          final state = applicationData['homeBase']?['state'] ?? '';
-          if (city.toString().isNotEmpty &&
-              state.toString().isNotEmpty) {
-            locationDisplay.value = '$city, $state, USA';
-          }
 
           experienceDisplay.value =
               (profileData['experience'] ??

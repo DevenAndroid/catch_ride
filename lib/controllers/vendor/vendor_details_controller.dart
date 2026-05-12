@@ -288,6 +288,26 @@ class VendorDetailsController extends GetxController {
     return flatData['equipmentSummary'] ?? _activeProfileData['equipmentSummary'] ?? _activeProfileData['equipmentsSummary'] ?? '';
   }
 
+  String get shippingAdditionalNotes {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final pd = flatData['profileData'] is Map
+        ? Map<String, dynamic>.from(flatData['profileData'] as Map)
+        : <String, dynamic>{};
+    for (final v in <dynamic>[
+      flatData['additionalNotes'],
+      pd['additionalNotes'],
+      _activeProfileData['additionalNotes'],
+      flatData['notes'],
+      pd['notes'],
+      _activeProfileData['notes'],
+    ]) {
+      final s = v?.toString().trim() ?? '';
+      if (s.isNotEmpty) return s;
+    }
+    return '';
+  }
+
   String get shippingDotNumber => (_activeApplicationData['businessInfo']?['dotNumber'] ?? '').toString();
       
   bool get shippingHasCDL {

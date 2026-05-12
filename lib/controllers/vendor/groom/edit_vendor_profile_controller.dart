@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:get/get.dart';
@@ -554,7 +553,9 @@ class EditVendorProfileController extends GetxController {
         shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []).map((s) => s == 'Long-Distance Transport' ? 'Long distance transport' : s).toList());
         shippingHasCDL.value = profileData['hasCDL'] ?? appData['hasCDL'] ?? false;
         shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
-        shippingNotesController.text = profileData['notes'] ?? '';
+        final addNotesFirst = profileData['additionalNotes']?.toString().trim() ?? '';
+        shippingNotesController.text =
+            addNotesFirst.isNotEmpty ? addNotesFirst : (profileData['notes']?.toString() ?? '');
         shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
         shippingExistingCDLUrl.value = profileData['cdlFile'] ?? appData['cdlDoc'] ?? appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
         shippingCdlFileName.value = profileData['cdlFileName'] ?? appData['cdlDocName'] ?? appData['media']?['cdlDocName'] ?? 'CDL Document';
@@ -745,7 +746,9 @@ class EditVendorProfileController extends GetxController {
           shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []).map((s) => s == 'Long-Distance Transport' ? 'Long distance transport' : s).toList());
           shippingHasCDL.value = profileData['hasCDL'] ?? appData['hasCDL'] ?? false;
           shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
-          shippingNotesController.text = profileData['notes'] ?? '';
+          final addNotes = profileData['additionalNotes']?.toString().trim() ?? '';
+          shippingNotesController.text =
+              addNotes.isNotEmpty ? addNotes : (profileData['notes']?.toString() ?? '');
           shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
           shippingExistingCDLUrl.value = profileData['cdlFile'] ?? appData['cdlDoc'] ?? appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
           shippingCdlFileName.value = profileData['cdlFileName'] ?? appData['cdlDocName'] ?? appData['media']?['cdlDocName'] ?? 'CDL Document';
@@ -814,7 +817,7 @@ class EditVendorProfileController extends GetxController {
       }
       
       // Populate service-specific photos
-      final serviceType = activeService?['serviceType'];
+      final serviceType = activeService['serviceType'];
       if (serviceType != null && serviceExistingPhotos.containsKey(serviceType)) {
         final List media = (profileData['media'] is List && (profileData['media'] as List).isNotEmpty) 
             ? profileData['media'] 
@@ -1268,7 +1271,9 @@ class EditVendorProfileController extends GetxController {
           Get.find<GroomViewProfileController>().fetchProfile();
         }
 
-        serviceNewPhotos.values.forEach((list) => list.clear());
+        for (final list in serviceNewPhotos.values) {
+          list.clear();
+        }
         newShippingRigPhotos.clear();
         newProfileImage.value = null;
         newCoverImage.value = null;
@@ -1417,6 +1422,7 @@ class EditVendorProfileController extends GetxController {
       appData['cdlDocName'] = shippingCdlFileName.value;
       
       profData['servicesOffered'] = shippingServicesOffered.toList();
+      profData['additionalNotes'] = shippingNotesController.text;
       profData['notes'] = shippingNotesController.text;
       profData['insuranceExpiry'] = insuranceExpiryController.text;
     }

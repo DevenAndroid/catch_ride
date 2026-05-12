@@ -204,6 +204,27 @@ class GroomViewProfileController extends GetxController {
     return flatData['equipmentSummary'] ?? activeProfileData['equipmentSummary'] ?? activeProfileData['equipmentsSummary'] ?? 'N/A';
   }
 
+  /// VendorModel `shipping.additionalNotes` (+ legacy `notes` / nested profileData).
+  String get shippingAdditionalNotes {
+    final servicesData = vendorData['servicesData'] ?? {};
+    final flatData = servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+    final pd = flatData['profileData'] is Map
+        ? Map<String, dynamic>.from(flatData['profileData'] as Map)
+        : <String, dynamic>{};
+    for (final v in <dynamic>[
+      flatData['additionalNotes'],
+      pd['additionalNotes'],
+      activeProfileData['additionalNotes'],
+      flatData['notes'],
+      pd['notes'],
+      activeProfileData['notes'],
+    ]) {
+      final s = v?.toString().trim() ?? '';
+      if (s.isNotEmpty) return s;
+    }
+    return '';
+  }
+
   String get shippingEquipmentsSummary => shippingEquipmentSummary;
   
   String get shippingDotNumber =>
