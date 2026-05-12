@@ -63,8 +63,7 @@ class AppUrls {
   static const String opportunityTags = '$systemConfig/opportunity-tags';
   static const String experienceLevels = '$systemConfig/experience-levels';
   static const String personalityTags = '$systemConfig/personality-tags';
-  static const String tagTypesWithValues =
-      '$systemConfig/tag-types/with-values';
+  static const String tagTypesWithValues = '$systemConfig/tag-types/with-values';
 
   // Settings
   static const String settings = '/settings';
@@ -86,12 +85,9 @@ class AppUrls {
   static const String faqs = '/faq';
   static const String supportTickets = '/support-tickets';
   static const String conversations = '/messages/conversations';
-  static const String messagesByConversation =
-      '/messages/conversation/'; // + id + '/messages'
-  static const String acceptChatRequest =
-      '/messages/conversation/'; // + id + '/accept'
-  static const String declineChatRequest =
-      '/messages/conversation/'; // + id + '/decline'
+  static const String messagesByConversation = '/messages/conversation/'; // + id + '/messages'
+  static const String acceptChatRequest = '/messages/conversation/'; // + id + '/accept'
+  static const String declineChatRequest = '/messages/conversation/'; // + id + '/decline'
   static const String blockUser = '/messages/user/'; // + userId + '/block'
 
   // Notifications

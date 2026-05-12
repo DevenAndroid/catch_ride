@@ -2,6 +2,7 @@
 import 'dart:developer';
 
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
@@ -51,35 +52,46 @@ class GroomViewProfileController extends GetxController {
   final RxString experienceStr = 'N/A'.obs;
 
   Map<String, dynamic> getProfileDataByType(String type) {
-    final serviceTypeKey = type.toLowerCase().replaceAll(' ', '');
-    final _activeService = allAssignedServices.firstWhereOrNull(
-      (s) => s['serviceType'].toString().toLowerCase() == type.toLowerCase()
-    );
-    
-    final servicesData = vendorData['servicesData'] ?? {};
-    
-    // Data from specific service block in vendorData (usually most up-to-date)
-    final Map<String, dynamic> directServiceData = servicesData[serviceTypeKey] is Map 
-        ? Map<String, dynamic>.from(servicesData[serviceTypeKey]) 
-        : {};
+    dynamic serviceRow;
+    for (final s in allAssignedServices) {
+      if (assignedServiceMatchesTab(s, type)) {
+        serviceRow = s;
+        break;
+      }
+    }
 
-    // Base profile data from assignedServices
-    final profile = _activeService?['profile'] ?? {};
-    final pProfileData = profile['profileData'] ?? {};
-    
-    // Profile data from direct services block
-    final dProfileData = directServiceData['profileData'] ?? {};
+    final rawSd = vendorData['servicesData'];
+    final Map<String, dynamic> servicesData =
+        rawSd is Map ? Map<String, dynamic>.from(rawSd) : {};
 
-    // Merge the profileData maps together first
+    final Map<String, dynamic> directServiceData =
+        servicesDataBlockForType(servicesData, type);
+
+    final profileSource =
+        serviceRow is Map ? serviceRow['profile'] : null;
+    final Map<String, dynamic> profile = profileSource is Map
+        ? Map<String, dynamic>.from(profileSource)
+        : <String, dynamic>{};
+
+    final pNested = profile['profileData'];
+    final Map<String, dynamic> pProfileData = pNested is Map
+        ? Map<String, dynamic>.from(pNested)
+        : <String, dynamic>{};
+    
+    final dNestedProf = directServiceData['profileData'];
+    final Map<String, dynamic> dProfileData = dNestedProf is Map
+        ? Map<String, dynamic>.from(dNestedProf)
+        : <String, dynamic>{};
+
     final Map<String, dynamic> mergedProfileData = {
-      if (pProfileData is Map) ...pProfileData,
-      if (dProfileData is Map) ...dProfileData,
+      ...pProfileData,
+      ...dProfileData,
     };
 
     // Construct the final merged map
     final Map<String, dynamic> merged = {
-      if (profile is Map) ...profile,
-      if (directServiceData is Map) ...directServiceData,
+      ...profile,
+      ...directServiceData,
       ...mergedProfileData, // Spread merged profile data at top level for convenience
       'profileData': mergedProfileData, // Keep nested for compatibility
     };
@@ -124,7 +136,7 @@ class GroomViewProfileController extends GetxController {
       : null;
 
   Map<String, dynamic> get _activeApplicationData =>
-      _activeService?['application']?['applicationData'] ?? _activeService?['application'] ?? {};
+      effectiveApplicationData(_activeService);
 
   Map<String, dynamic> get activeServiceProfile => activeProfileData;
   Map<String, dynamic> get activeServiceApplication =>
@@ -262,20 +274,29 @@ class GroomViewProfileController extends GetxController {
 
       if (response.statusCode == 200 && response.body['success'] == true) {
         final data = response.body['data'];
-        vendorData.value = data;
+        final map =
+            data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
+        vendorData.value = map;
+        _applyNormalizedAssignedServices();
         paymentMethods.assignAll(
-          List<String>.from(data['paymentMethods'] ?? []),
+          List<String>.from(map['paymentMethods'] ?? []),
         );
-        final List assignedServices = data['assignedServices'] ?? [];
-        allAssignedServices.assignAll(assignedServices);
         _updateActiveServiceData();
-        fetchAvailability(data['_id']??["id"]);
+        fetchAvailability(map['_id']?.toString() ?? map['id']?.toString() ?? '');
       }
     } catch (e) {
       debugPrint('Error fetching vendor profile: $e');
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void _applyNormalizedAssignedServices() {
+    final map = Map<String, dynamic>.from(vendorData);
+    final normalized = normalizeAssignedServices(map);
+    map['assignedServices'] = normalized;
+    vendorData.value = map;
+    allAssignedServices.assignAll(normalized);
   }
 
   void _updateActiveServiceData() {
