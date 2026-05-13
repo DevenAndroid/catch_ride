@@ -167,11 +167,14 @@ class ExploreController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Start fetching horses immediately to show data as soon as possible
+    fetchHorses();
+    
+    // Other metadata can be fetched in parallel
     _loadRecentSearches();
     fetchDefaultSearchMetadata();
     fetchTags();
     fetchServiceTags('Grooming');
-    // fetchHorses(); // Removed to prevent fetching without profile exclusion filters
   }
 
   Future<void> fetchTags() async {
@@ -245,17 +248,16 @@ class ExploreController extends GetxController {
     } else {
       currentPage.value = 1;
       hasMore.value = true;
-      // Removed clearing to prevent flickering. Data will be replaced upon successful fetch.
-      // horses.clear();
-      // vendors.clear();
+      if (showLoading) isLoading.value = true;
     }
 
     try {
-      // Wait for profile data to load to ensure excludeTrainerId is populated
-      if (_profileController.user.value == null) {
+      // Check for profile data to load to ensure excludeTrainerId is populated
+      // but don't wait too long if it's already there
+      if (_profileController.user.value == null && _profileController.isLoading.value) {
         int retries = 0;
-        // Wait up to 3 seconds for profile data
-        while (_profileController.user.value == null && retries < 30) {
+        // Wait up to 2 seconds for profile data
+        while (_profileController.user.value == null && retries < 20) {
           await Future.delayed(const Duration(milliseconds: 100));
           retries++;
         }
@@ -381,9 +383,7 @@ class ExploreController extends GetxController {
     } else {
       currentPage.value = 1;
       hasMore.value = true;
-      // Removed clearing to prevent flickering. Data will be replaced upon successful fetch.
-      // vendors.clear();
-      // horses.clear();
+      if (showLoading) isLoading.value = true;
     }
 
     try {
