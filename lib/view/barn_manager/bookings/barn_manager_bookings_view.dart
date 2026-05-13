@@ -13,7 +13,7 @@ import 'package:get/get.dart';
 
 import '../../../constant/app_constants.dart';
 import '../../../widgets/common_button.dart';
-import '../../vendor/vendor_details_view.dart';
+import '../../vendor/booking_details_view.dart';
 import 'package:catch_ride/view/trainer/edit_booking_form_trainer.dart';
 import 'package:catch_ride/view/trainer/edit_booking_form_vendor.dart';
 
@@ -335,16 +335,9 @@ class _BarnManagerBookingsViewState extends State<BarnManagerBookingsView>
     return GestureDetector(
       onTap: () {
         if (isVendorBooking) {
-          final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
           Get.to(
-            () => const VendorDetailsView(),
-            arguments: {
-              'id': targetId,
-              'fromBooking': true,
-              'bookingId': booking.id,
-              'bookingStatus': booking.status,
-            },
-          );
+            () => BookingDetailsView(booking: booking),
+          )?.then((_) => _loadBookings());
         } else {
           final bool isReceived = _tabController.index == 0;
           final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');

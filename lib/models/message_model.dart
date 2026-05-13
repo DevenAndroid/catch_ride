@@ -1,5 +1,16 @@
 import 'booking_model.dart';
 
+/// Removes leading `[System]:` from automated chat snippets (inbox / list previews).
+String stripChatSystemPrefix(String text) {
+  final trimmed = text.trimLeft();
+  if (trimmed.isEmpty) return text;
+  final match = RegExp(r'^\[System\]\s*:\s*', caseSensitive: false).firstMatch(trimmed);
+  if (match != null) {
+    return trimmed.substring(match.end).trimLeft();
+  }
+  return text;
+}
+
 class ChatMessage {
   final String id;
   final String conversationId;
@@ -98,6 +109,13 @@ class ChatConversation {
     this.pinned = false,
     this.label,
   });
+
+  /// [lastMessage] without `[System]:` for inbox and conversation list previews.
+  String? get inboxPreviewText {
+    final m = lastMessage;
+    if (m == null || m.isEmpty) return m;
+    return stripChatSystemPrefix(m);
+  }
 
   factory ChatConversation.fromJson(Map<String, dynamic> json) {
     return ChatConversation(

@@ -7,6 +7,7 @@ import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 import 'package:catch_ride/view/barn_manager/chats/barn_manager_single_chat_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:app_badge_plus/app_badge_plus.dart';
 import 'package:get/get.dart';
@@ -29,8 +30,8 @@ class NotificationService extends GetxService {
       sound: true,
     );
 
-    // Set foreground notification options for iOS
-    if (Platform.isIOS) {
+    // Set foreground notification options for iOS (not applicable on web).
+    if (!kIsWeb && Platform.isIOS) {
       await _fcm.setForegroundNotificationPresentationOptions(
         alert: true,  // Use native system banner for iOS
         badge: false, // Ensure no badge is shown
@@ -91,7 +92,9 @@ class NotificationService extends GetxService {
     // 3. Listen for Messages
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    if (!kIsWeb) {
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    }
 
     // 4. Get FCM Token and Update Backend
     await updateToken();
@@ -107,7 +110,7 @@ class NotificationService extends GetxService {
     try {
       // On iOS, we must have an APNS token before requesting the FCM token.
       // This is often null on simulators or before the user has fully registered.
-      if (Platform.isIOS) {
+      if (!kIsWeb && Platform.isIOS) {
         final apnsToken = await _fcm.getAPNSToken();
         if (apnsToken == null) {
           _logger.w('APNS token not yet available. Skipping FCM token update.');
@@ -121,9 +124,12 @@ class NotificationService extends GetxService {
         
         final authController = Get.find<AuthController>();
         if (authController.isLoggedIn.value) {
+          final String platformName = kIsWeb
+              ? 'web'
+              : (Platform.isAndroid ? 'android' : 'ios');
            await Get.find<ApiService>().putRequest('/users/update-token', {
             'fcmToken': token,
-            'platform': Platform.isAndroid ? 'android' : 'ios'
+            'platform': platformName,
           });
           _logger.i('FCM Token updated on backend');
         }
@@ -163,8 +169,8 @@ class NotificationService extends GetxService {
       return;
     }
 
-    // Only show manual local notification on Android
-    if (Platform.isAndroid && title != null) {
+    // Only show manual local notification on Android (not on web).
+    if (!kIsWeb && Platform.isAndroid && title != null) {
       final int badgeFromPayload = int.tryParse(data['badge']?.toString() ?? '') ?? 0;
 
       _localNotifications.show(
@@ -234,7 +240,7 @@ class NotificationService extends GetxService {
 
   Future<void> clearBadge() async {
     try {
-      if (Platform.isIOS) {
+      if (!kIsWeb && Platform.isIOS) {
         await _localNotifications
             .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
             ?.getNotificationAppLaunchDetails();
@@ -253,7 +259,7 @@ class NotificationService extends GetxService {
               ),
             );
         _logger.i('iOS Notification badge cleared');
-      } else if (Platform.isAndroid) {
+      } else if (!kIsWeb && Platform.isAndroid) {
         try {
           await AppBadgePlus.updateBadge(0);
           _logger.i('Android app badge cleared');
@@ -273,7 +279,7 @@ class NotificationService extends GetxService {
         return;
       }
 
-      if (Platform.isIOS) {
+      if (!kIsWeb && Platform.isIOS) {
         await _localNotifications
             .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
             ?.getNotificationAppLaunchDetails();
@@ -292,7 +298,7 @@ class NotificationService extends GetxService {
               ),
             );
         _logger.i('iOS Notification badge updated to $count');
-      } else if (Platform.isAndroid) {
+      } else if (!kIsWeb && Platform.isAndroid) {
         try {
           await AppBadgePlus.updateBadge(count);
           _logger.i('Android app badge updated to $count');

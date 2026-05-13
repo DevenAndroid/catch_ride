@@ -41,6 +41,8 @@ class BookingModel {
   final List<dynamic> coreServices;
   final List<dynamic> additionalServices;
   final String? rateType;
+  /// Vendor multi-service bundle (one booking, multiple lines). Empty for legacy bookings.
+  final List<Map<String, dynamic>> vendorBundleLines;
 
   BookingModel({
     this.id,
@@ -83,7 +85,19 @@ class BookingModel {
     this.coreServices = const [],
     this.additionalServices = const [],
     this.rateType,
+    this.vendorBundleLines = const [],
   });
+
+  static List<Map<String, dynamic>> _parseVendorBundleLines(dynamic raw) {
+    if (raw is! List) return [];
+    final out = <Map<String, dynamic>>[];
+    for (final e in raw) {
+      if (e is Map) {
+        out.add(Map<String, dynamic>.from(e));
+      }
+    }
+    return out;
+  }
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     // ... rest of the code ...
@@ -263,6 +277,9 @@ class BookingModel {
       coreServices: json['coreServices'] is List ? json['coreServices'] : [],
       additionalServices: json['additionalServices'] is List ? json['additionalServices'] : [],
       rateType: json['rateType'],
+      vendorBundleLines: _parseVendorBundleLines(
+        json['vendorBundleLines'] ?? json['serviceLines'],
+      ),
     );
   }
 
@@ -312,6 +329,7 @@ class BookingModel {
       'coreServices': coreServices,
       'additionalServices': additionalServices,
       'rateType': rateType,
+      'vendorBundleLines': vendorBundleLines,
     };
   }
 }

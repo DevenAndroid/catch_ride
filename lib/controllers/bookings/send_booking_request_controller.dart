@@ -927,20 +927,20 @@ class SendBookingRequestController extends GetxController {
         });
       }
 
+      if (!Get.isRegistered<BookingController>()) {
+        Get.put(BookingController());
+      }
       final bookingController = Get.find<BookingController>();
 
-      // We send them as an array or multiple requests
-      bool allSuccess = true;
-      String? lastConversationId;
-
+      final serviceLines = <Map<String, dynamic>>[];
       for (var booking in allBookings) {
-        final Map<String, dynamic> payload = {
-          'vendorId': vendorData['_id'] ?? vendorData['id'],
+        final start = booking['startDate'] as DateTime;
+        final end = booking['endDate'] as DateTime;
+        serviceLines.add({
           'serviceType': booking['serviceType'],
           'type': booking['serviceType'],
-          'startDate': DateFormat('yyyy-MM-dd').format(booking['startDate']),
-          'endDate': DateFormat('yyyy-MM-dd').format(booking['endDate']),
-          'date': DateFormat('yyyy-MM-dd').format(booking['startDate']),
+          'startDate': DateFormat('yyyy-MM-dd').format(start),
+          'endDate': DateFormat('yyyy-MM-dd').format(end),
           'rateType': booking['rateType'],
           'numberOfHorses': booking['horses'],
           'location': booking['location'],
@@ -950,16 +950,19 @@ class SendBookingRequestController extends GetxController {
           'additionalServices': booking['additionalIds'],
           'coreServices': booking['coreIds'],
           'price': booking['totalPrice'],
-        };
+        });
+      }
 
-        final result = await bookingController.createBooking(payload);
-        if (result == null) {
-          allSuccess = false;
-        } else {
-          if (result is Map && result['conversationId'] != null) {
-            lastConversationId = result['conversationId'];
-          }
-        }
+      final payload = <String, dynamic>{
+        'vendorId': vendorData['_id'] ?? vendorData['id'],
+        'vendorBundleLines': serviceLines,
+      };
+
+      final result = await bookingController.createBooking(payload);
+      final allSuccess = result != null;
+      String? lastConversationId;
+      if (result is Map && result['conversationId'] != null) {
+        lastConversationId = result['conversationId'] as String?;
       }
 
       if (allSuccess) {
@@ -971,7 +974,7 @@ class SendBookingRequestController extends GetxController {
         Get.back();
         Get.snackbar(
           'Success',
-          'Booking requests sent successfully!',
+          'Booking request sent successfully!',
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );

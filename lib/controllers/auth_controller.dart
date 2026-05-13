@@ -8,6 +8,7 @@ import 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart'
 import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 import 'package:catch_ride/view/barn_manager/barn_manager_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -36,11 +37,16 @@ import '../view/vendor/vendor_application_submit_view.dart';
 import '../view/vendor/complete_profile_view.dart';
 import '../view/force_change_password_view.dart';
 
+/// Android/iOS: OAuth **server** client for Google Sign-In id tokens. Not used on web.
+const String _kGoogleOAuthServerClientId =
+    '804782276759-ngr7onn8cmdlrok2fvgjo8ciac6rog81.apps.googleusercontent.com';
+
 class AuthController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final Logger _logger = Logger();
   final box = GetStorage();
-  late final gsi.GoogleSignIn _googleSignIn;
+  /// Null on web — Google Sign-In is mobile-only in this app.
+  gsi.GoogleSignIn? _googleSignIn;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   final emailController = TextEditingController();
@@ -59,9 +65,11 @@ class AuthController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _googleSignIn = gsi.GoogleSignIn(
-      serverClientId: '804782276759-ngr7onn8cmdlrok2fvgjo8ciac6rog81.apps.googleusercontent.com',
-    );
+    if (!kIsWeb) {
+      _googleSignIn = gsi.GoogleSignIn(
+        serverClientId: _kGoogleOAuthServerClientId,
+      );
+    }
     loadUserFromStorage();
   }
 
@@ -249,7 +257,9 @@ class AuthController extends GetxController {
       String deviceName = 'Unknown';
       try {
         final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-        if (Platform.isAndroid) {
+        if (kIsWeb) {
+          deviceName = 'Web';
+        } else if (Platform.isAndroid) {
           final androidInfo = await deviceInfo.androidInfo;
           deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
         } else if (Platform.isIOS) {
@@ -421,15 +431,28 @@ class AuthController extends GetxController {
 
   // ─── GOOGLE LOGIN ────────────────────────────────────────────────────────────
   Future<void> signInWithGoogle() async {
+    if (kIsWeb) {
+      Get.snackbar(
+        'Please use email',
+        'Google sign-in is not available on web. Please sign in with email and password.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    final google = _googleSignIn;
+    if (google == null) return;
+
     try {
       isLoading.value = true;
       
       // 1. Google Account Selection (Force account picker by signing out first)
       try {
-        await _googleSignIn.signOut();
+        await google.signOut();
       } catch (_) {}
       
-      final gsi.GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final gsi.GoogleSignInAccount? googleUser = await google.signIn();
       if (googleUser == null) {
         isLoading.value = false;
         return; // User canceled
@@ -456,7 +479,9 @@ class AuthController extends GetxController {
         String deviceName = 'Unknown';
         try {
           final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-          if (Platform.isAndroid) {
+          if (kIsWeb) {
+            deviceName = 'Web';
+          } else if (Platform.isAndroid) {
             final androidInfo = await deviceInfo.androidInfo;
             deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
           } else if (Platform.isIOS) {
@@ -558,6 +583,16 @@ class AuthController extends GetxController {
 
   // ─── APPLE LOGIN ─────────────────────────────────────────────────────────────
   Future<void> signInWithApple() async {
+    if (kIsWeb) {
+      Get.snackbar(
+        'Please use email',
+        'Sign in with Apple is not available on web.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
     try {
       isLoading.value = true;
 
@@ -588,7 +623,9 @@ class AuthController extends GetxController {
         String deviceName = 'Unknown';
         try {
           final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-          if (Platform.isAndroid) {
+          if (kIsWeb) {
+            deviceName = 'Web';
+          } else if (Platform.isAndroid) {
             final androidInfo = await deviceInfo.androidInfo;
             deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
           } else if (Platform.isIOS) {
@@ -1060,8 +1097,9 @@ class AuthController extends GetxController {
 
       // 1. Google Sign Out (Forces account selection next time)
       try {
-        if (await _googleSignIn.isSignedIn()) {
-          await _googleSignIn.signOut();
+        final google = _googleSignIn;
+        if (google != null && await google.isSignedIn()) {
+          await google.signOut();
           debugPrint('Google signed out');
         }
       } catch (e) {

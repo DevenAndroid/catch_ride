@@ -1,7 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
-import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 import 'package:catch_ride/view/vendor/groom/chat/requests_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -168,7 +167,7 @@ class GroomChatView extends StatelessWidget {
                     children: [
                       Expanded(
                         child: CommonText(
-                          chat.lastMessage ?? 'No messages yet',
+                          chat.inboxPreviewText ?? 'No messages yet',
                           fontSize: AppTextSizes.size14,
                           color: AppColors.textSecondary,
                           maxLines: 1,

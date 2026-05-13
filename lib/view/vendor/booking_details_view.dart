@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:catch_ride/constant/app_colors.dart';
-import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../controllers/booking_controller.dart';
 import '../../controllers/chat_controller.dart';
+import '../../controllers/profile_controller.dart';
 
 class BookingDetailsView extends StatelessWidget {
   final BookingModel booking;
@@ -14,6 +16,9 @@ class BookingDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!Get.isRegistered<BookingController>()) {
+      Get.put(BookingController());
+    }
     final controller = Get.find<BookingController>();
 
     return Obx(() {
@@ -33,7 +38,7 @@ class BookingDetailsView extends StatelessWidget {
             onPressed: () => Get.back(),
           ),
           title: CommonText(
-            'Booking #${liveBooking.bookingNumber}',
+            'Booking Details',
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -52,7 +57,14 @@ class BookingDetailsView extends StatelessWidget {
                     const SizedBox(height: 24),
                     _buildServiceInfoSection(liveBooking),
                     const SizedBox(height: 24),
-                    if (liveBooking.coreServices.isNotEmpty || liveBooking.additionalServices.isNotEmpty) ...[
+                    if (liveBooking.vendorBundleLines.isNotEmpty) ...[
+                      _buildBundledServiceLinesSection(liveBooking),
+                      const SizedBox(height: 24),
+                      _buildSummarySection(liveBooking),
+                      const SizedBox(height: 24),
+                    ],
+                    if (liveBooking.coreServices.isNotEmpty ||
+                        liveBooking.additionalServices.isNotEmpty) ...[
                       _buildBookedServicesSection(liveBooking),
                  //     const SizedBox(height: 24),
                     ],
@@ -207,6 +219,8 @@ class BookingDetailsView extends StatelessWidget {
 
   Widget _buildServiceInfoSection(BookingModel booking) {
     final bool isShipping = booking.type.toLowerCase().contains('ship') || booking.type.toLowerCase().contains('transport');
+    final bool isMulti = booking.type.toLowerCase() == 'multi-service';
+    final included = _includedServicesFromLines(booking);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -232,7 +246,8 @@ class BookingDetailsView extends StatelessWidget {
           ),
           const Divider(height: 24, thickness: 1, color: Color(0xFFF2F4F7)),
           _buildInfoRow('Service Type', booking.type),
-          if (booking.rateType != null) _buildInfoRow('Category', booking.rateType!),
+          if (isMulti && included.isNotEmpty) _buildInfoRow('Includes', included),
+          if (booking.rateType != null && booking.rateType!.isNotEmpty) _buildInfoRow('Category', booking.rateType!),
           _buildInfoRow('Dates', booking.date),
           if (isShipping && booking.origin != null && booking.destination != null) ...[
              _buildInfoRow('Route', '${booking.origin} → ${booking.destination}'),
@@ -243,6 +258,162 @@ class BookingDetailsView extends StatelessWidget {
             _buildInfoRow('Number of Horses', '${booking.numberOfHorses}'),
           if (booking.horseName != null)
             _buildInfoRow('Horse Name', booking.horseName!),
+        ],
+      ),
+    );
+  }
+
+  String _includedServicesFromLines(BookingModel booking) {
+    if (booking.vendorBundleLines.isEmpty) return '';
+    final names = booking.vendorBundleLines
+        .map((l) => (l['serviceType'] ?? l['type'] ?? '').toString().trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+    return names.join(' + ');
+  }
+
+  String _formatServiceLineDateRange(Map<String, dynamic> line) {
+    DateTime? parse(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString());
+    }
+
+    final s = parse(line['startDate']);
+    final e = parse(line['endDate']);
+    if (s != null && e != null) {
+      final sameDay =
+          s.year == e.year && s.month == e.month && s.day == e.day;
+      if (sameDay) return DateFormat('dd MMM yyyy').format(s);
+      return '${DateFormat('dd MMM').format(s)} - ${DateFormat('dd MMM yyyy').format(e)}';
+    }
+    return '—';
+  }
+
+  Widget _buildBundledServiceLinesSection(BookingModel booking) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE4E7EC)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.layers_outlined, size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              const CommonText(
+                'Requested services',
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ],
+          ),
+          const Divider(height: 24, thickness: 1, color: Color(0xFFF2F4F7)),
+          ...booking.vendorBundleLines.asMap().entries.map((entry) {
+            final index = entry.key + 1;
+            final line = entry.value;
+            final st = (line['serviceType'] ?? line['type'] ?? 'Service').toString();
+            final rt = line['rateType']?.toString();
+            final horses = line['numberOfHorses']?.toString();
+            final loc = line['location']?.toString();
+            final o = line['origin']?.toString();
+            final d = line['destination']?.toString();
+            final ship = st.toLowerCase().contains('ship') || st.toLowerCase().contains('transport');
+            final lineNotes = line['notes']?.toString().trim();
+            final linePrice = line['price'];
+            String priceStr = '';
+            if (linePrice is num) {
+              priceStr = '\$${linePrice.toStringAsFixed(2)}';
+            } else if (linePrice != null && linePrice.toString().isNotEmpty) {
+              priceStr = '\$$linePrice';
+            }
+
+            final core = line['coreServices'];
+            final addl = line['additionalServices'];
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: index < booking.vendorBundleLines.length ? 20 : 0),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE4E7EC)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: CommonText(
+                            '#$index',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: CommonText(
+                            st,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (priceStr.isNotEmpty)
+                          CommonText(
+                            priceStr,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    _buildInfoRow('Dates', _formatServiceLineDateRange(line)),
+                    if (rt != null && rt.isNotEmpty) _buildInfoRow('Category', rt),
+                    if (horses != null && horses.isNotEmpty) _buildInfoRow('Horses', horses),
+                    if (ship && o != null && o.isNotEmpty && d != null && d.isNotEmpty)
+                      _buildInfoRow('Route', '$o → $d')
+                    else if (loc != null && loc.isNotEmpty)
+                      _buildInfoRow('Location', loc),
+                    if (lineNotes != null && lineNotes.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      const CommonText('Notes', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      const SizedBox(height: 4),
+                      CommonText(lineNotes, fontSize: 13, color: AppColors.textPrimary, height: 1.4),
+                    ],
+                    if (core is List && core.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      const CommonText('Core services', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      const SizedBox(height: 6),
+                      ...core.map((s) => _buildServiceItem(s)),
+                    ],
+                    if (addl is List && addl.isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      const CommonText('Additional services', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      const SizedBox(height: 6),
+                      ...addl.map((s) => _buildServiceItem(s)),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -414,9 +585,37 @@ class BookingDetailsView extends StatelessWidget {
     );
   }
 
+  /// Accept / decline / complete actions only for the service provider on this booking.
+  bool _viewerIsAssignedVendor(BookingModel booking) {
+    final profileUser = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>().user.value
+        : null;
+    if (profileUser != null && profileUser.role == 'service_provider') {
+      final vId = profileUser.vendorProfileId;
+      if (vId != null &&
+          vId.isNotEmpty &&
+          booking.vendorId != null &&
+          booking.vendorId == vId) {
+        return true;
+      }
+    }
+    final me = Get.find<AuthController>().currentUser.value?.id;
+    if (me != null &&
+        booking.acceptedById != null &&
+        booking.acceptedById!.isNotEmpty &&
+        me == booking.acceptedById) {
+      return true;
+    }
+    return false;
+  }
+
   Widget _buildBottomActions(BuildContext context, BookingController controller, BookingModel booking) {
     final String status = booking.status.toLowerCase();
-    
+
+    if (!_viewerIsAssignedVendor(booking)) {
+      return const SizedBox.shrink();
+    }
+
     // Actions for provider (Received bookings)
     if (status == 'pending') {
       return Container(
