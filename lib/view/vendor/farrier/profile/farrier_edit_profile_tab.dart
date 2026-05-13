@@ -652,43 +652,159 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
           const SizedBox(height: 20),
           Obx(() => Column(
             children: options.map((opt) {
-              final isSelected = widget.controller.farrierInsuranceStatus.value == opt;
-              return GestureDetector(
+              return _buildRadioItem(
+                title: opt,
+                isSelected: widget.controller.farrierInsuranceStatus.value == opt,
                 onTap: () => widget.controller.farrierInsuranceStatus.value = opt,
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                        color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CommonText(
-                          opt,
-                          fontSize: AppTextSizes.size14,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               );
             }).toList(),
           )),
+          const SizedBox(height: 16),
+          Obx(() {
+            if (widget.controller.farrierInsuranceStatus.value == 'Carries Insurance') {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader('Current Insurance Document'),
+                  if (widget.controller.farrierInsuranceFile.value == null && 
+                      widget.controller.farrierExistingInsuranceUrl.value == null)
+                    _buildUploadBox(onTap: widget.controller.pickFarrierInsuranceDoc)
+                  else
+                    _buildFileItem(
+                      file: widget.controller.farrierInsuranceFile.value,
+                      url: widget.controller.farrierExistingInsuranceUrl.value,
+                      fileName: widget.controller.farrierInsuranceFileName.value,
+                      onRemove: () {
+                        widget.controller.farrierInsuranceFile.value = null;
+                        widget.controller.farrierExistingInsuranceUrl.value = null;
+                        widget.controller.farrierInsuranceFileName.value = null;
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                  _buildSectionHeader('Expiration date', isRequired: true),
+                  _buildDatePickerTrigger(
+                    value: widget.controller.farrierInsuranceExpiry.value != null
+                        ? widget.controller.farrierInsuranceExpiry.value!.toString().split(' ').first
+                        : 'Select date',
+                    onTap: () => widget.controller.selectFarrierInsuranceExpiry(context),
+                  ),
+                ],
+              );
+            }
+            return const SizedBox.shrink();
+          }),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRadioItem({required String title, required bool isSelected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.primary : AppColors.borderLight, width: isSelected ? 1.5 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, 
+                 color: isSelected ? AppColors.primary : AppColors.borderMedium, size: 20),
+            const SizedBox(width: 12),
+            CommonText(title, fontSize: AppTextSizes.size14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadBox({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderLight, style: BorderStyle.solid),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.cloud_upload_outlined, color: AppColors.primary, size: 32),
+            SizedBox(height: 8),
+            CommonText('Tap to upload document', fontSize: 14, color: AppColors.textSecondary),
+            CommonText('PDF, JPG, PNG (Max 5MB)', fontSize: 12, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileItem({File? file, String? url, String? fileName, required VoidCallback onRemove}) {
+    String displayFileName = fileName ?? 'Document';
+    if (file != null) {
+      displayFileName = file.path.split('/').last;
+    } else if (url != null && (fileName == null || fileName.isEmpty)) {
+      displayFileName = url.split('?').first.split('/').last;
+    }
+    if (displayFileName.isEmpty) displayFileName = 'Document';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F8FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.description_outlined, color: AppColors.primary, size: 24),
+          const SizedBox(width: 12),
+          Expanded(child: CommonText(displayFileName, fontSize: 14, maxLines: 1)),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+            onPressed: onRemove,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          CommonText(title, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+          if (isRequired) const CommonText(' *', color: Colors.red),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePickerTrigger({required String value, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CommonText(value, fontSize: 14, color: value == 'Select date' ? Colors.grey : AppColors.textPrimary),
+            const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }

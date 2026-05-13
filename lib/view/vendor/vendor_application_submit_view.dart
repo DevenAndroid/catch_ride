@@ -81,7 +81,7 @@ class VendorApplicationSubmitView extends StatelessWidget {
                               border: Border.all(color: AppColors.secondary.withOpacity(0.3), width: 1),
                             ),
                             child: const CommonText(
-                              'You\'ll receive access details once your account has been approved.',
+                              'If approved, you’ll receive a notification to activate your account.',
                               fontSize: AppTextSizes.size14,
                               color: AppColors.textSecondary,
                               height: 1.4,

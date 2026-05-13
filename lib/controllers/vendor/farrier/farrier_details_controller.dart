@@ -1,9 +1,13 @@
+import 'dart:developer';
+import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:collection/collection.dart';
+import 'package:intl/intl.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_details_view.dart';
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
@@ -148,12 +152,16 @@ class FarrierDetailsController extends GetxController {
   final emergencySupport = true.obs;
 
   // Insurance Status
+  final selectedInsurance = 'Not currently insured'.obs;
+  final insuranceDocument = Rxn<File>();
+  final insuranceDocumentUrl = RxnString();
+  final insuranceDocumentName = RxnString();
+  final expirationDate = Rxn<DateTime>();
   final insuranceOptions = [
     'Carries Insurance',
-    'Insurance details upon request',
-    'Not currently insured',
+    'Insurance available upon request',
+    'Not currently insured'
   ];
-  final selectedInsurance = 'Carries Insurance'.obs;
 
   // Summary Data (Read-only -> Editable)
   final location = 'N/A'.obs;
@@ -191,6 +199,60 @@ class FarrierDetailsController extends GetxController {
     } else {
       regionsCovered.add(region);
     }
+  }
+
+  Future<void> pickInsuranceDoc() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null && result.files.single.path != null) {
+      insuranceDocument.value = File(result.files.single.path!);
+      insuranceDocumentName.value = result.files.single.name;
+    }
+  }
+
+  Future<void> selectExpirationDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: expirationDate.value ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF001149),
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) expirationDate.value = picked;
+  }
+
+  String? _coalesceFarrierInsuranceStatus(dynamic raw) {
+    if (raw == null) return null;
+    final s = raw.toString().trim();
+    if (s.isEmpty) return null;
+    for (final o in insuranceOptions) {
+      if (o == s) return o;
+      if (o.toLowerCase() == s.toLowerCase()) return o;
+    }
+    final lower = s.toLowerCase();
+    if (lower.contains('carries')) return 'Carries Insurance';
+    if (lower.contains('upon request') ||
+        (lower.contains('details') && lower.contains('request')) ||
+        (lower.contains('available') && lower.contains('request'))) {
+      return 'Insurance available upon request';
+    }
+    if (lower.contains('not') && lower.contains('insured')) {
+      return 'Not currently insured';
+    }
+    return null;
   }
 
 
@@ -297,11 +359,61 @@ class FarrierDetailsController extends GetxController {
           ci['emergencySupport'] == 'true';
     }
 
-    final ins = farrierData['insuranceStatus']?.toString();
-    if (ins != null &&
-        ins.isNotEmpty &&
-        insuranceOptions.contains(ins)) {
-      selectedInsurance.value = ins;
+    final insuranceData = farrierData['insurance'];
+    if (insuranceData != null && insuranceData is Map) {
+      final rawStatus = insuranceData['status'] ?? insuranceData['insuranceStatus'];
+      final status = _coalesceFarrierInsuranceStatus(rawStatus);
+      if (status != null) {
+        selectedInsurance.value = status;
+      }
+      var doc = insuranceData['document'] ?? insuranceData['file'];
+      // If document is an empty string but file is available, use file
+      if (doc is String && doc.isEmpty && insuranceData['file'] != null) {
+        doc = insuranceData['file'];
+      }
+
+      if (doc is String && doc.isNotEmpty) {
+        insuranceDocumentUrl.value = doc;
+      } else if (doc is List && doc.isNotEmpty) {
+        insuranceDocumentUrl.value = doc.first.toString();
+      } else {
+        insuranceDocumentUrl.value = null;
+      }
+      
+      final fName = insuranceData['fileName'];
+      insuranceDocumentName.value = (fName is String) ? fName : null;
+
+      final expStr = insuranceData['expirationDate'] ?? insuranceData['expiry'];
+      if (expStr != null && expStr.toString().isNotEmpty) {
+        try {
+          expirationDate.value = DateTime.parse(expStr.toString());
+        } catch (_) {}
+      }
+    } else {
+      // Backward compatibility
+      final rawInsuranceStatus = farrierData['insuranceStatus'];
+      final ins = _coalesceFarrierInsuranceStatus(rawInsuranceStatus);
+      if (ins != null) {
+        selectedInsurance.value = ins;
+      }
+      var doc = farrierData['insuranceFile'] ?? farrierData['media']?['insurance'];
+      if (doc is String && doc.isNotEmpty) {
+        insuranceDocumentUrl.value = doc;
+      } else if (doc is List && doc.isNotEmpty) {
+        insuranceDocumentUrl.value = doc.first.toString();
+      } else {
+        insuranceDocumentUrl.value = null;
+      }
+      
+      final fName = farrierData['insuranceFileName'];
+      insuranceDocumentName.value = (fName is String) ? fName : null;
+
+      final expStr = farrierData['insuranceExpiry'] ?? farrierData['insuranceExpiration'];
+      if (expStr != null && expStr.toString().isNotEmpty) {
+        try {
+          expirationDate.value = DateTime.parse(expStr.toString());
+        } catch (_) {}
+      }
     }
 
     final cancelData = farrierData['cancellationPolicy'];
@@ -423,7 +535,34 @@ class FarrierDetailsController extends GetxController {
         );
         return;
       }
-      final vendorId = vendorResponse.body['data']['_id']?? vendorResponse.body['data']['id'];
+      
+      String? insuranceUrl = insuranceDocumentUrl.value;
+      if (insuranceDocument.value != null) {
+
+        final formData = FormData({
+          'media': MultipartFile(insuranceDocument.value!, filename: insuranceDocument.value!.path.split('/').last),
+          'type': 'farrier_docs',
+        });
+
+        debugPrint('🚀 Starting insurance document upload...');
+        final uploadResponse = await apiService.postRequest('/upload?type=farrier_docs', formData);
+        
+        if (uploadResponse.statusCode == 200 && uploadResponse.body['success'] == true) {
+          debugPrint('✅ Upload successful: ${uploadResponse.body['data']['filename']}');
+          insuranceUrl = uploadResponse.body['data']['filename'];
+        } else {
+          debugPrint('❌ Upload failed: ${uploadResponse.statusCode} - ${uploadResponse.statusText}');
+          debugPrint('📦 Error body: ${uploadResponse.body}');
+          Get.snackbar(
+            'Upload Error',
+            'Failed to upload insurance document. ${uploadResponse.body?['message'] ?? ""}',
+            backgroundColor: AppColors.accentRed,
+            colorText: AppColors.cardColor,
+          );
+          isSubmitting.value = false;
+          return;
+        }
+      }
 
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData =
@@ -478,7 +617,12 @@ class FarrierDetailsController extends GetxController {
           'minHorses': minHorsesPerStop.value,
           'emergencySupport': emergencySupport.value,
         },
-        'insuranceStatus': selectedInsurance.value,
+        'insurance': {
+          'status': selectedInsurance.value,
+          'document': insuranceUrl,
+          'fileName': insuranceDocumentName.value,
+          'expirationDate': expirationDate.value?.toIso8601String(),
+        },
         'cancellationPolicy': {
           'policy': cancellationPolicy.value,
           'isCustom': isCustomCancellation.value,
