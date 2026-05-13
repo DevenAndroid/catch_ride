@@ -130,9 +130,14 @@ class SendBookingRequestView extends StatelessWidget {
           children: [
             // List already added services
             ...controller.bookedServices.map((booking) {
-              final duration = (booking['endDate'] as DateTime).difference(booking['startDate'] as DateTime).inDays + 1;
-              final startDateStr = DateFormat('MMMM d').format(booking['startDate']);
-              final endDateStr = DateFormat('MMMM d, yyyy').format(booking['endDate']);
+              final startDt = booking['startDate'] as DateTime;
+              final endDt = booking['endDate'] as DateTime;
+              final duration = endDt.difference(startDt).inDays + 1;
+              final sameCalendarDay =
+                  startDt.year == endDt.year && startDt.month == endDt.month && startDt.day == endDt.day;
+              final dateLabel = sameCalendarDay
+                  ? DateFormat('MMMM d, yyyy').format(startDt)
+                  : '${DateFormat('MMMM d').format(startDt)} - ${DateFormat('MMMM d, yyyy').format(endDt)}';
               
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -180,7 +185,7 @@ class SendBookingRequestView extends StatelessWidget {
                       children: [
                         const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
                         const SizedBox(width: 6),
-                        CommonText('$startDateStr - $endDateStr', fontSize: 12, color: AppColors.textSecondary),
+                        CommonText(dateLabel, fontSize: 12, color: AppColors.textSecondary),
                       ],
                     ),
                     if ((booking['additionalIds'] as List).isNotEmpty) ...[
@@ -209,8 +214,11 @@ class SendBookingRequestView extends StatelessWidget {
             }),
             
             // Current Draft Service (only if partially filled)
-            if (controller.selectedRateType.value != null && controller.startDate.value != null && controller.endDate.value != null) ...[
-               _buildCurrentDraftSnippet(controller, currencyFormat),
+            if (controller.startDate.value != null &&
+                controller.endDate.value != null &&
+                (controller.selectedRateType.value != null ||
+                    controller.selectedCoreServiceIds.isNotEmpty)) ...[
+              _buildCurrentDraftSnippet(controller, currencyFormat),
             ]
           ],
         )),
@@ -219,11 +227,16 @@ class SendBookingRequestView extends StatelessWidget {
   }
 
   Widget _buildCurrentDraftSnippet(SendBookingRequestController controller, NumberFormat currencyFormat) {
-     final duration = controller.endDate.value!.difference(controller.startDate.value!).inDays + 1;
-     final startDateStr = DateFormat('MMMM d').format(controller.startDate.value!);
-     final endDateStr = DateFormat('MMMM d, yyyy').format(controller.endDate.value!);
+    final startDt = controller.startDate.value!;
+    final endDt = controller.endDate.value!;
+    final duration = endDt.difference(startDt).inDays + 1;
+    final sameCalendarDay =
+        startDt.year == endDt.year && startDt.month == endDt.month && startDt.day == endDt.day;
+    final dateLine = sameCalendarDay
+        ? '${DateFormat('MMMM d, yyyy').format(startDt)} (${duration == 1 ? '1 Day' : '$duration Days'})'
+        : '${DateFormat('MMMM d').format(startDt)} - ${DateFormat('MMMM d, yyyy').format(endDt)} ($duration ${duration > 1 ? 'Days' : 'Day'})';
 
-     return Container(
+    return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: const Color(0xFFF8F9FB),
@@ -247,7 +260,7 @@ class SendBookingRequestView extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              CommonText('$startDateStr - $endDateStr ($duration Days)', fontSize: 12, color: AppColors.textSecondary),
+              CommonText(dateLine, fontSize: 12, color: AppColors.textSecondary),
             ],
           ),
         );
@@ -340,8 +353,7 @@ class SendBookingRequestView extends StatelessWidget {
           }
         )),
         const SizedBox(height: 20),
-        // Date Range
-        _buildDateRangeField(controller),
+        _buildSingleDateField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Braider', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
@@ -1033,6 +1045,104 @@ class SendBookingRequestView extends StatelessWidget {
                     displayDate,
                     fontSize: 14,
                     color: (startDate != null && endDate != null) ? AppColors.textPrimary : const Color(0xFF98A2B3),
+                  ),
+                  const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  /// Braiding is booked for a single day; [startDate] and [endDate] are both set to that day.
+  Widget _buildSingleDateField(SendBookingRequestController controller, {RxnString? locationObs}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CommonText(
+          'Select Date',
+          fontSize: AppTextSizes.size14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        const SizedBox(height: 8),
+        Obx(() {
+          final startDate = controller.startDate.value;
+          final endDate = controller.endDate.value;
+          final hasSingleDay = startDate != null &&
+              endDate != null &&
+              startDate.year == endDate.year &&
+              startDate.month == endDate.month &&
+              startDate.day == endDate.day;
+          final displayDate =
+              hasSingleDay ? DateFormat('MMMM d, yyyy').format(startDate) : 'Select Date';
+
+          return GestureDetector(
+            onTap: () async {
+              final allowedDates =
+                  controller.getAllowedDatesForLocation(locationObs?.value ?? controller.selectedLocation.value);
+              final DateTime now = DateTime.now();
+              final DateTime today = DateTime(now.year, now.month, now.day);
+
+              DateTime first = allowedDates['start'] ?? today;
+              DateTime last = allowedDates['end'] ?? today.add(const Duration(days: 365));
+
+              if (first.isBefore(today)) {
+                first = today;
+              }
+
+              DateTime initialDate = first;
+              if (hasSingleDay) {
+                final d = DateTime(startDate.year, startDate.month, startDate.day);
+                if (!d.isBefore(first) && !d.isAfter(last)) {
+                  initialDate = d;
+                }
+              }
+
+              final DateTime? picked = await showDatePicker(
+                context: Get.context!,
+                initialDate: initialDate.isBefore(first)
+                    ? first
+                    : (initialDate.isAfter(last) ? last : initialDate),
+                firstDate: first,
+                lastDate: last.isBefore(first) ? first.add(const Duration(days: 1)) : last,
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: const ColorScheme.light(
+                        primary: AppColors.primary,
+                        onPrimary: Colors.white,
+                        surface: Colors.white,
+                        onSurface: AppColors.textPrimary,
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+
+              if (picked != null) {
+                final d = DateTime(picked.year, picked.month, picked.day);
+                controller.startDate.value = d;
+                controller.endDate.value = d;
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE4E7EC)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CommonText(
+                    displayDate,
+                    fontSize: 14,
+                    color: hasSingleDay ? AppColors.textPrimary : const Color(0xFF98A2B3),
                   ),
                   const Icon(Icons.calendar_today_outlined, size: 16, color: Color(0xFF98A2B3)),
                 ],

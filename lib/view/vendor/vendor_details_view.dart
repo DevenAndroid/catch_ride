@@ -406,6 +406,12 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
       );
     }
 
+    // [_setupTabController] resizes the controller in a post-frame callback; avoid
+    // building [TabBar] until lengths match or Flutter asserts (tabs vs controller).
+    if (_tabController.length != services.length) {
+      return const SizedBox(height: 48);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

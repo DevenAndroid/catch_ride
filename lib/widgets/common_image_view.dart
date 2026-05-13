@@ -70,10 +70,9 @@ class CommonImageView extends StatelessWidget {
       }
 
       // Dev / ngrok: replace typical local origins (no trailing /api — media is on root)
-      final devOrigin =
-          AppUrls.socketUrl.endsWith('/')
-              ? AppUrls.socketUrl.substring(0, AppUrls.socketUrl.length - 1)
-              : AppUrls.socketUrl;
+      final devOrigin = AppUrls.socketUrl.endsWith('/')
+          ? AppUrls.socketUrl.substring(0, AppUrls.socketUrl.length - 1)
+          : AppUrls.socketUrl;
       url = url
           .replaceFirst('http://localhost:5000', devOrigin)
           .replaceFirst('http://127.0.0.1:5000', devOrigin)
@@ -301,31 +300,57 @@ class CommonImageView extends StatelessWidget {
             ? null
             : BorderRadius.circular(radius),
       ),
-      child: Center(
-        child: (width != null && width! < 40)
-            ? Icon(
-                isUserImage ? Icons.person_rounded : Icons.pets_rounded,
-                size: width! * 0.6, // Scale icon to 60% of width
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final effectiveWidth = constraints.hasBoundedWidth
+              ? constraints.maxWidth
+              : width;
+          final effectiveHeight = constraints.hasBoundedHeight
+              ? constraints.maxHeight
+              : height;
+          final shortestSide =
+              [
+                if (effectiveWidth != null) effectiveWidth,
+                if (effectiveHeight != null) effectiveHeight,
+              ].fold<double?>(null, (current, value) {
+                if (current == null || value < current) return value;
+                return current;
+              });
+          final isTiny = shortestSide != null && shortestSide < 40;
+          final isCompact = shortestSide != null && shortestSide < 96;
+          final icon =
+              fallbackIcon ??
+              (isUserImage ? Icons.person_rounded : Icons.pets_rounded);
+
+          if (isTiny) {
+            return Center(
+              child: Icon(
+                icon,
+                size: shortestSide * 0.6,
                 color: AppColors.primary.withOpacity(0.4),
-              )
-            : Column(
+              ),
+            );
+          }
+
+          return Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(
-                      (width != null && width! < 50) ? 8 : 12,
-                    ),
+                    padding: EdgeInsets.all(isCompact ? 8 : 12),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withOpacity(0.05),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                       Icons.person_rounded ,
-                      size: (width != null && width! < 100) ? 20 : 28,
+                      icon,
+                      size: isCompact ? 20 : 28,
                       color: AppColors.primary.withOpacity(0.4),
                     ),
                   ),
-                  if (width == null || width! >= 120) ...[
+                  if (!isCompact) ...[
                     const SizedBox(height: 8),
                     Text(
                       isUserImage ? 'Profile Not Set' : 'No Photo Available',
@@ -341,6 +366,9 @@ class CommonImageView extends StatelessWidget {
                   ],
                 ],
               ),
+            ),
+          );
+        },
       ),
     );
   }

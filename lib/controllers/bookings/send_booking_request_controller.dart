@@ -1,6 +1,7 @@
 import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -43,10 +44,325 @@ class SendBookingRequestController extends GetxController {
   final RxList<Map<String, dynamic>> bookedServices =
       <Map<String, dynamic>>[].obs;
 
+  /// Hydrated merge of [VendorModel] subdoc + `assignedServices.profile` + `servicesData` (vendor details parity).
+  Map<String, dynamic> mergedProfileForSelectedType = {};
+
   double _parsePrice(dynamic v) {
     if (v == null) return 0.0;
     String s = v.toString().replaceAll(RegExp(r'[^0-9.]'), '');
     return double.tryParse(s) ?? 0.0;
+  }
+
+  /// VendorModel `grooming.rates` is `[{ label, rate, daysofweek }]`; legacy profile used a single object.
+  Map<String, dynamic> _groomRatesAsLegacyMap(Map<String, dynamic> pd) {
+    final r = pd['rates'];
+    if (r is Map) return Map<String, dynamic>.from(r);
+    if (r is List) {
+      final out = <String, dynamic>{};
+      for (final row in r) {
+        if (row is! Map) continue;
+        final label = row['label']?.toString().toLowerCase() ?? '';
+        final rateStr = row['rate'];
+        final dow = row['daysofweek'];
+        if (label.contains('daily') || label == 'day') {
+          out['daily'] = rateStr;
+        } else if (label.contains('week')) {
+          out['weekly'] = {
+            'price': rateStr,
+            'days': dow is num ? dow.toInt() : int.tryParse('$dow') ?? 6,
+          };
+        } else if (label.contains('month')) {
+          out['monthly'] = {
+            'price': rateStr,
+            'days': dow is num ? dow.toInt() : int.tryParse('$dow') ?? 30,
+          };
+        }
+      }
+      return out;
+    }
+    return {};
+  }
+
+  List<Map<String, dynamic>> _labelRateItemsToCore(
+    List? raw,
+    String idPrefix,
+  ) {
+    if (raw == null) return [];
+    final out = <Map<String, dynamic>>[];
+    for (var i = 0; i < raw.length; i++) {
+      final e = raw[i];
+      if (e is! Map) continue;
+      final label = e['label'] ?? e['name'];
+      final name = label?.toString().trim() ?? '';
+      if (name.isEmpty) continue;
+      out.add({
+        'id': '$idPrefix$i',
+        'name': name,
+        'price':
+            _parsePrice(e['ratePerHour'] ?? e['rate'] ?? e['price']),
+        'rates': <String, dynamic>{},
+      });
+    }
+    return out;
+  }
+
+  List<Map<String, dynamic>> _mapSelectableCoreRows({
+    required Map<String, dynamic> pd,
+    required Map<String, dynamic> flatShippingBlock,
+    required Map<String, dynamic> appData,
+  }) {
+    final svc = selectedService.value;
+    final List coreRaw = pd['services'] is List ? List.from(pd['services']!) : [];
+    final List<Map<String, dynamic>> mapped = [];
+
+    for (var i = 0; i < coreRaw.length; i++) {
+      final row = coreRaw[i];
+      if (row is! Map) continue;
+      final s = Map<String, dynamic>.from(row);
+      final name =
+          (s['name'] ?? s['label'])?.toString().trim() ?? '';
+      if (name.isEmpty) continue;
+
+      if (s['session'] is List) {
+        final Map<String, dynamic> rates = {};
+        for (final sess in s['session'] as List) {
+          if (sess is! Map) continue;
+          final min = sess['min'];
+          final price = sess['price'];
+          if (min != null && price != null) {
+            rates['$min'] = price;
+          }
+        }
+        final activeRates = rates.entries
+            .where((e) => e.value != null && e.value.toString().isNotEmpty)
+            .toList();
+        final rawId = (s['id'] ?? '').toString().trim();
+        final rowId =
+            (rawId.isNotEmpty && !rawId.contains('_')) ? rawId : 'bw$i';
+        mapped.add({
+          'id': rowId,
+          'name': name,
+          'price': activeRates.length == 1
+              ? _parsePrice(activeRates.first.value)
+              : _parsePrice(s['price']),
+          'rates': rates,
+          if (activeRates.length == 1) 'session': activeRates.first.key,
+        });
+        continue;
+      }
+
+      final Map rates = {};
+      final rawRates = s['rates'];
+      if (rawRates is Map) {
+        rates.addAll(Map<String, dynamic>.from(rawRates));
+      }
+
+      final activeRates = rates.entries
+          .where((e) => e.value != null && e.value.toString().isNotEmpty)
+          .toList();
+
+      final rawId = (s['id'] ?? name).toString().trim();
+      final rowId =
+          (rawId.isNotEmpty && !rawId.contains('_')) ? rawId : 'r$i';
+      mapped.add({
+        'id': rowId,
+        'name': name,
+        'price': activeRates.length == 1
+            ? _parsePrice(activeRates.first.value)
+            : _parsePrice(
+                s['price'] ?? s['ratePerHour'] ?? s['rate'],
+              ),
+        'rates': rates,
+        if (activeRates.length == 1) 'session': activeRates.first.key,
+      });
+    }
+
+    bool isShip() =>
+        svc.toLowerCase().contains('ship') ||
+        svc.toLowerCase().contains('transport');
+    bool braid() => svc.toLowerCase().contains('braid');
+    bool clip() => svc.toLowerCase().contains('clip');
+    bool far() => svc.toLowerCase().contains('farrier');
+
+    if (mapped.isEmpty && braid()) {
+      final br =
+          pd['braidlingServices'] ?? pd['braidingServices'];
+      mapped.addAll(_labelRateItemsToCore(br is List ? br : null, 'braid'));
+    }
+    if (mapped.isEmpty && clip()) {
+      mapped.addAll(
+        _labelRateItemsToCore(
+          pd['clippingServices'] is List ? pd['clippingServices'] as List : null,
+          'clip',
+        ),
+      );
+      mapped.addAll(
+        _labelRateItemsToCore(
+          pd['addOns'] is List ? pd['addOns'] as List : null,
+          'clipaddon',
+        ),
+      );
+    }
+    if (mapped.isEmpty && far()) {
+      mapped.addAll(
+        _labelRateItemsToCore(
+          pd['farrierServices'] is List ? pd['farrierServices'] as List : null,
+          'farrier',
+        ),
+      );
+      mapped.addAll(
+        _labelRateItemsToCore(
+          pd['addOns'] is List ? pd['addOns'] as List : null,
+          'farrieraddon',
+        ),
+      );
+    }
+
+    // Shipping — [VendorModel.shipping.pricing] uses basePrice / fullyLoadedRate (+ legacy aliases).
+    if (isShip() && mapped.isEmpty) {
+      final pricing = _asMap(pd['pricing']) ??
+          _asMap(flatShippingBlock['pricing']) ??
+          _asMap(appData['pricing']);
+      final ratesFallback = _asMap(pd['rates']) ??
+          _asMap(flatShippingBlock['rates']) ??
+          _asMap(appData['rates']);
+
+      final baseCandidates = [
+        pricing?['basePrice'],
+        pricing?['baseRate'],
+        ratesFallback?['baseRate'],
+        ratesFallback?['base'],
+        pricing?['base'],
+        flatShippingBlock['baseRate'],
+        appData['baseRate'],
+      ];
+      final loadedCandidates = [
+        pricing?['fullyLoadedRate'],
+        pricing?['loadedRate'],
+        ratesFallback?['loadedRate'],
+        ratesFallback?['loaded'],
+        pricing?['loaded'],
+        flatShippingBlock['loadedRate'],
+        appData['loadedRate'],
+      ];
+
+      dynamic pickFirstNonEmpty(List<dynamic> cands) {
+        for (final v in cands) {
+          if (v == null) continue;
+          final t = v.toString().trim().toLowerCase();
+          if (t.isEmpty || t == 'n/a' || t == '0') continue;
+          return v;
+        }
+        return null;
+      }
+
+      final basePrice = pickFirstNonEmpty(baseCandidates);
+      final loadedPrice = pickFirstNonEmpty(loadedCandidates);
+
+      if (basePrice != null) {
+        mapped.add({
+          'id': 'shippingBase',
+          'name': 'Base Rate',
+          'price': _parsePrice(basePrice),
+          'rates': <String, dynamic>{},
+        });
+      }
+      if (loadedPrice != null) {
+        mapped.add({
+          'id': 'shippingLoaded',
+          'name': 'Fully Loaded Rate',
+          'price': _parsePrice(loadedPrice),
+          'rates': <String, dynamic>{},
+        });
+      }
+    }
+
+    return mapped;
+  }
+
+  Map<String, dynamic>? _asMap(dynamic v) {
+    if (v is Map) return Map<String, dynamic>.from(v);
+    return null;
+  }
+
+  List<String> _migrateLegacyCoreIds(List<String> ids) {
+    return ids.map((id) {
+      switch (id) {
+        case 'base_rate':
+          return 'shippingBase';
+        case 'loaded_rate':
+          return 'shippingLoaded';
+        default:
+          return id;
+      }
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _mapAdditionalServicesFromProfile(
+    Map<String, dynamic> pd,
+  ) {
+    final List additional =
+        pd['additionalServices'] is List ? List.from(pd['additionalServices']!) : [];
+    final out = <Map<String, dynamic>>[];
+    for (final item in additional) {
+      if (item is! Map) continue;
+      final s = Map<String, dynamic>.from(item);
+      final name =
+          (s['name'] ?? s['label'])?.toString().trim() ?? '';
+      if (name.isEmpty) continue;
+      final id = (s['id'] ?? name).toString();
+      out.add({
+        'id': id,
+        'name': name,
+        'price':
+            _parsePrice(s['price'] ?? s['ratePerHour'] ?? s['rate']),
+      });
+    }
+    return out;
+  }
+
+  void loadCatalogForSelectedServiceType() {
+    final svcLabel = selectedService.value.trim();
+    if (svcLabel.isEmpty) {
+      mergedProfileForSelectedType = {};
+      additionalServicesList.clear();
+      coreServicesList.clear();
+      return;
+    }
+
+    final vendorMap = Map<String, dynamic>.from(vendorData);
+    final merged = mergedVendorServiceDisplayData(vendorMap, svcLabel);
+    final rawPd = merged['profileData'];
+
+    final Map<String, dynamic> pd =
+        rawPd is Map<String, dynamic>
+            ? Map<String, dynamic>.from(rawPd)
+            : <String, dynamic>{};
+
+    mergedProfileForSelectedType = pd;
+
+    final rawSd = vendorData['servicesData'];
+    final servicesData =
+        rawSd is Map ? Map<String, dynamic>.from(rawSd) : <String, dynamic>{};
+    final flatData =
+        servicesData['shipping'] ?? servicesData['transportation'] ?? {};
+
+    final List servicesList = vendorData['assignedServices'] ?? [];
+    final activeService = servicesList.firstWhereOrNull(
+      (s) => s['serviceType']?.toString() == selectedService.value,
+    );
+    final appData = effectiveApplicationData(activeService);
+
+    additionalServicesList.assignAll(_mapAdditionalServicesFromProfile(pd));
+
+    coreServicesList.assignAll(
+      _mapSelectableCoreRows(
+        pd: pd,
+        flatShippingBlock:
+            flatData is Map ? Map<String, dynamic>.from(flatData) : {},
+        appData: appData,
+      ),
+    );
   }
 
   @override
@@ -57,101 +373,7 @@ class SendBookingRequestController extends GetxController {
       vendorData.value = args['vendorData'] ?? {};
       selectedService.value = args['service'] ?? '';
 
-      // Load additional services and rates
-      final List services = vendorData['assignedServices'] ?? [];
-      final activeService = services.firstWhere(
-        (s) => s['serviceType'] == selectedService.value,
-        orElse: () => null,
-      );
-      if (activeService != null) {
-        final profileData = activeService['profile']?['profileData'] ?? {};
-        final appData = activeService['application']?['applicationData'] ?? {};
-        final servicesData = vendorData['servicesData'] ?? {};
-        final flatData =
-            servicesData['shipping'] ?? servicesData['transportation'] ?? {};
-
-        final List additional = profileData['additionalServices'] ?? [];
-        additionalServicesList.assignAll(
-          additional.map((s) {
-            final id = s['id'] ?? s['name'];
-            return {
-              'id': id,
-              'name': s['name'],
-              'price': _parsePrice(s['price']),
-            };
-          }).toList(),
-        );
-
-        final List core = profileData['services'] ?? [];
-        final List<Map<String, dynamic>>
-        mappedCore = core.whereType<Map<dynamic, dynamic>>().map((s) {
-          final Map rates = s['rates'] ?? {};
-          final activeRates = rates.entries
-              .where((e) => e.value != null && e.value.toString().isNotEmpty)
-              .toList();
-
-          return {
-            'id': s['id'] ?? s['name'],
-            'name': s['name'],
-            'price': activeRates.length == 1
-                ? _parsePrice(activeRates.first.value)
-                : _parsePrice(s['price']),
-            'rates': rates,
-            'session': activeRates.length == 1 ? activeRates.first.key : null,
-          };
-        }).toList();
-
-        // For Shipping, if core services list is empty, try to pull from pricing/rates
-        if (isShipping && mappedCore.isEmpty) {
-          // Robust pricing resolution (mirrors VendorDetailsController)
-          final pricing =
-              profileData['pricing'] ??
-              flatData['pricing'] ??
-              appData['pricing'] ??
-              {};
-          final rates =
-              profileData['rates'] ??
-              flatData['rates'] ??
-              appData['rates'] ??
-              {};
-
-          final basePrice =
-              pricing['baseRate'] ??
-              rates['baseRate'] ??
-              rates['base'] ??
-              pricing['base'] ??
-              flatData['baseRate'] ??
-              appData['baseRate'];
-          final loadedPrice =
-              pricing['loadedRate'] ??
-              rates['loadedRate'] ??
-              rates['loaded'] ??
-              pricing['loaded'] ??
-              flatData['loadedRate'] ??
-              appData['loadedRate'];
-
-          if (basePrice != null &&
-              basePrice.toString().toLowerCase() != 'n/a' &&
-              basePrice.toString() != '0') {
-            mappedCore.add({
-              'id': 'base_rate',
-              'name': 'Base Rate',
-              'price': _parsePrice(basePrice),
-            });
-          }
-          if (loadedPrice != null &&
-              loadedPrice.toString().toLowerCase() != 'n/a' &&
-              loadedPrice.toString() != '0') {
-            mappedCore.add({
-              'id': 'loaded_rate',
-              'name': 'Fully Loaded Rate',
-              'price': _parsePrice(loadedPrice),
-            });
-          }
-        }
-
-        coreServicesList.assignAll(mappedCore);
-      }
+      loadCatalogForSelectedServiceType();
 
       // Auto-recalculate price when fields change
       everAll([
@@ -432,13 +654,7 @@ class SendBookingRequestController extends GetxController {
     final duration = endDate.value!.difference(startDate.value!).inDays + 1;
     final numHorses = int.tryParse(selectedNumHorses.value!) ?? 1;
 
-    // Get rates from active search (mocking rates for now based on vendor data)
-    final List services = vendorData['assignedServices'] ?? [];
-    final activeService = services.firstWhere(
-      (s) => s['serviceType'] == selectedService.value,
-      orElse: () => null,
-    );
-    final rates = activeService?['profile']?['profileData']?['rates'] ?? {};
+    final rates = _effectiveGroomRatesForPricing;
 
     if (isMultiService) {
       double coreTotal = 0.0;
@@ -502,6 +718,8 @@ class SendBookingRequestController extends GetxController {
     final booking = bookedServices[index];
 
     selectedService.value = booking['serviceType'] ?? '';
+    loadCatalogForSelectedServiceType();
+
     selectedRateType.value = booking['rateType']?.toString().isEmpty == true
         ? null
         : booking['rateType'];
@@ -516,7 +734,7 @@ class SendBookingRequestController extends GetxController {
       List<String>.from(booking['additionalIds'] ?? []),
     );
     selectedCoreServiceIds.assignAll(
-      List<String>.from(booking['coreIds'] ?? []),
+      _migrateLegacyCoreIds(List<String>.from(booking['coreIds'] ?? [])),
     );
 
     bookedServices.removeAt(index);
@@ -825,10 +1043,35 @@ class SendBookingRequestController extends GetxController {
 
   dynamic get _activeServiceData {
     final List services = vendorData['assignedServices'] ?? [];
-    return services.firstWhere(
-      (s) => s['serviceType'] == selectedService.value,
-      orElse: () => null,
+    return services.firstWhereOrNull(
+      (s) => s['serviceType']?.toString() == selectedService.value,
     );
+  }
+
+  /// Single assigned-service row matching [selectedService].
+  Map<String, dynamic> assignedServiceRowMap() {
+    final List services = vendorData['assignedServices'] ?? [];
+    final raw = services.firstWhereOrNull(
+      (s) => s['serviceType']?.toString() == selectedService.value,
+    );
+    return raw is Map ? Map<String, dynamic>.from(raw) : <String, dynamic>{};
+  }
+
+  /// Profile merged for the selected service (falls back when merge was skipped).
+  Map<String, dynamic> get _effectiveProfileData {
+    if (mergedProfileForSelectedType.isNotEmpty) {
+      return mergedProfileForSelectedType;
+    }
+    final svc = assignedServiceRowMap();
+    final nested = svc['profile'];
+    if (nested is Map && nested['profileData'] is Map) {
+      return Map<String, dynamic>.from(nested['profileData'] as Map);
+    }
+    return {};
+  }
+
+  Map<String, dynamic> get _effectiveGroomRatesForPricing {
+    return _groomRatesAsLegacyMap(_effectiveProfileData);
   }
 
   String get locationStr {
@@ -845,12 +1088,7 @@ class SendBookingRequestController extends GetxController {
   }
 
   List<Map<String, dynamic>> get rateOptions {
-    final List services = vendorData['assignedServices'] ?? [];
-    final activeService = services.firstWhere(
-      (s) => s['serviceType'] == selectedService.value,
-      orElse: () => null,
-    );
-    final rates = activeService?['profile']?['profileData']?['rates'] ?? {};
+    final rates = _effectiveGroomRatesForPricing;
 
     final List<Map<String, dynamic>> options = [];
     if (rates['daily'] != null)
@@ -877,14 +1115,8 @@ class SendBookingRequestController extends GetxController {
   }
 
   List<String> get includedServices {
-    final List services = vendorData['assignedServices'] ?? [];
-    final activeService = services.firstWhere(
-      (s) => s['serviceType'] == selectedService.value,
-      orElse: () => null,
-    );
-    if (activeService == null) return [];
-
-    final profile = activeService['profile']?['profileData'] ?? {};
+    final profile = _effectiveProfileData;
+    if (profile.isEmpty) return [];
     final List<String> items = [];
     if (profile['capabilities']?['support'] != null)
       items.addAll(List<String>.from(profile['capabilities']['support']));
