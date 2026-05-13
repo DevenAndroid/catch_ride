@@ -239,7 +239,7 @@ class _ChatRequestCardState extends State<ChatRequestCard> {
                 const SizedBox(height: 4),
                 CommonText(
                   widget.request.booking?.notes ??
-                      widget.request.lastMessage ??
+                      widget.request.inboxPreviewText ??
                       'No message provided',
                   fontSize: 14,
                   color: AppColors.textPrimary,

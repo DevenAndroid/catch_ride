@@ -173,7 +173,7 @@ class _BarnManagerConversationsListViewState extends State<BarnManagerConversati
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    convo.lastMessage ?? 'No messages yet',
+                    convo.inboxPreviewText ?? 'No messages yet',
                     fontSize: 15,
                     color: const Color(0xFF535862),
                     maxLines: 1,

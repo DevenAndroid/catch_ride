@@ -11,7 +11,7 @@ import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/widgets/common_button.dart';
-import 'package:catch_ride/view/vendor/vendor_details_view.dart';
+import 'package:catch_ride/view/vendor/booking_details_view.dart';
 import 'package:catch_ride/view/trainer/booking_request_view.dart';
 import 'package:catch_ride/view/trainer/edit_booking_form_trainer.dart';
 import 'package:catch_ride/view/trainer/edit_booking_form_vendor.dart';
@@ -351,15 +351,8 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
     return GestureDetector(
       onTap: () {
         if (isVendorBooking) {
-          final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
           Get.to(
-            () => const VendorDetailsView(),
-            arguments: {
-              'id': targetId,
-              'fromBooking': true,
-              'bookingId': booking.id,
-              'bookingStatus': booking.status,
-            },
+            () => BookingDetailsView(booking: booking),
           )?.then((_) => _loadBookings());
         } else {
           final bool isReceived = _tabController.index == 0;

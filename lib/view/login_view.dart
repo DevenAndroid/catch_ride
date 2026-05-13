@@ -12,8 +12,9 @@ import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:catch_ride/view/forget_password_flow/forgot_password_request_view.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:get/get.dart';
-import 'dart:io';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -146,36 +147,38 @@ class _LoginViewState extends State<LoginView> {
                                 },
                         ),
                       ),
-                      const SizedBox(height: 20),
-
-                      const Center(
-                        child: CommonText(
-                          AppStrings.orLogInWith,
-                          fontSize: AppTextSizes.size14,
-                          color: AppColors.textSecondary,
+                      if (!kIsWeb) ...[
+                        const SizedBox(height: 20),
+                        const Center(
+                          child: CommonText(
+                            AppStrings.orLogInWith,
+                            fontSize: AppTextSizes.size14,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      Obx(
-                        () => SocialButton(
-                          text: AppStrings.continueWithGoogle,
-                          icon:
-                              SvgPicture.asset("assets/icons/google_icon.svg"),
-                          onPressed: _authController.isLoading.value
-                              ? () {}
-                              : () => _authController.signInWithGoogle(),
+                        const SizedBox(height: 20),
+                        Obx(
+                          () => SocialButton(
+                            text: AppStrings.continueWithGoogle,
+                            icon: SvgPicture.asset(
+                              'assets/icons/google_icon.svg',
+                            ),
+                            onPressed: _authController.isLoading.value
+                                ? () {}
+                                : () => _authController.signInWithGoogle(),
+                          ),
                         ),
-                      ),
-                      if (Platform.isIOS) ...[
-                        const SizedBox(height: 12),
-                        SocialButton(
-                          text: AppStrings.continueWithAppleId,
-                          icon: SvgPicture.asset("assets/icons/apple_logo.svg"),
-                          onPressed: _authController.isLoading.value
-                              ? () {}
-                              : () => _authController.signInWithApple(),
-                        ),
+                        if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                          const SizedBox(height: 12),
+                          SocialButton(
+                            text: AppStrings.continueWithAppleId,
+                            icon:
+                                SvgPicture.asset('assets/icons/apple_logo.svg'),
+                            onPressed: _authController.isLoading.value
+                                ? () {}
+                                : () => _authController.signInWithApple(),
+                          ),
+                        ],
                       ],
                     ],
                   ),

@@ -300,9 +300,7 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    (convo.lastMessage ?? 'No messages yet')
-                        .replaceFirst('[System]:', '')
-                        .trim(),
+                    convo.inboxPreviewText ?? 'No messages yet',
                     fontSize: 15,
                     color: const Color(0xFF535862),
                     maxLines: 1,

@@ -2,15 +2,14 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
-import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/booking_chat_message_parser.dart';
 import 'package:catch_ride/utils/date_util.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/view/trainer/booking_request_view.dart';
-import 'package:catch_ride/view/trainer/edit_booking_form_vendor.dart';
-import 'package:catch_ride/view/vendor/vendor_details_view.dart';
+import 'package:catch_ride/view/vendor/booking_details_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
@@ -28,10 +27,7 @@ class BookingChatMessageTileBuilder {
     required ChatController chatController,
     required int messageIndex,
   }) {
-    final strippedForBooking =
-        msg.content.startsWith('[System]:')
-            ? msg.content.replaceFirst('[System]:', '').trim()
-            : msg.content;
+    final strippedForBooking = stripChatSystemPrefix(msg.content);
 
     final pending = BookingChatMessageParser.parsePending(strippedForBooking);
     if (pending != null) {
@@ -116,8 +112,15 @@ String _roleDisplayLabel(String? role) {
   }
 }
 
-bool _isVendorServiceBooking(BookingModel booking) {
-  const vendorTypes = [
+bool _isServiceProviderBooking(BookingModel booking) {
+  final vendorId = booking.vendorId?.trim();
+  if (vendorId != null && vendorId.isNotEmpty) return true;
+  if (booking.vendorBundleLines.isNotEmpty) return true;
+
+  final t = booking.type.toLowerCase();
+  if (t == 'multi-service' || t == 'vendor') return true;
+
+  const vendorTypes = {
     'grooming',
     'braiding',
     'clipping',
@@ -125,8 +128,10 @@ bool _isVendorServiceBooking(BookingModel booking) {
     'bodywork',
     'shipping',
     'transportation',
-  ];
-  return vendorTypes.contains(booking.type.toLowerCase());
+  };
+  if (vendorTypes.contains(t)) return true;
+  if (t.contains('farrier')) return true;
+  return false;
 }
 
 Future<void> _openBookingDetails({
@@ -162,37 +167,12 @@ Future<void> _openBookingDetails({
 
     final booking = BookingModel.fromJson(response.body['data']);
 
-    if (_isVendorServiceBooking(booking)) {
-      final vendorProfileId =
-          booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
-      if (vendorProfileId == null || vendorProfileId.isEmpty) {
-        Get.snackbar(
-          'Booking',
-          'Please open this booking from the Bookings tab.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.errorBg,
-          colorText: AppColors.errorPrimary,
-        );
-        return;
+    // Horse / barn bookings → trainer flow. Service provider (vendor) bookings → vendor details.
+    if (_isServiceProviderBooking(booking)) {
+      if (!Get.isRegistered<BookingController>()) {
+        Get.put(BookingController());
       }
-
-      final role = Get.find<ProfileController>().user.value?.role;
-      if (role == 'service_provider') {
-        Get.to(() => EditBookingFormVendor(booking: booking));
-        return;
-      }
-
-      Get.to(
-        () => const VendorDetailsView(),
-        arguments: {
-          'id': vendorProfileId,
-          'vendorId': vendorProfileId,
-          'fromBooking': true,
-          'bookingId': booking.id ?? bookingId,
-          'bookingStatus':
-              booking.status.isNotEmpty ? booking.status : fallbackStatus,
-        },
-      );
+      Get.to(() => BookingDetailsView(booking: booking));
       return;
     }
 

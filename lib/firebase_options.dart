@@ -15,11 +15,49 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
+  /// After you register a **Web** app in Firebase (same project as Android/iOS),
+  /// paste its `appId` from the `firebaseConfig` snippet here, or pass
+  /// `--dart-define=FIREBASE_WEB_APP_ID=1:804782276759:web:xxxx` when running
+  /// `flutter run -d chrome`. You can also run:
+  /// `flutterfire configure --project=catch-ride95 --platforms=android,ios,web`
+  /// (requires the [Firebase CLI](https://firebase.google.com/docs/cli)).
+  static const String _kCommittedWebAppId =
+      '1:804782276759:web:6cd6c0d34285b66f5ae9d2';
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by manual configuration or running the FlutterFire CLI.',
+      const envWebAppId = String.fromEnvironment(
+        'FIREBASE_WEB_APP_ID',
+        defaultValue: '',
+      );
+      final webAppId =
+          _kCommittedWebAppId.isNotEmpty ? _kCommittedWebAppId : envWebAppId;
+      if (webAppId.isEmpty) {
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for web.\n\n'
+          '1. Open Firebase Console → Project "catch-ride95" → Project settings → '
+          'Your apps → Add app → Web.\n'
+          '2. Copy the Web `appId` from the config (format '
+          '`1:804782276759:web:...`).\n'
+          '3. Either paste it into `_kCommittedWebAppId` in lib/firebase_options.dart, '
+          'or run:\n'
+          '   flutter run -d chrome '
+          '--dart-define=FIREBASE_WEB_APP_ID=<your-web-app-id>\n\n'
+          'Or install Firebase CLI and run '
+          '`flutterfire configure --platforms=android,ios,web`.',
+        );
+      }
+      const webApiKey = String.fromEnvironment(
+        'FIREBASE_WEB_API_KEY',
+        defaultValue: 'AIzaSyCi1DoXvdJSa7Cv-Nj-4Jr0Vs3HBHXWYK0',
+      );
+      return FirebaseOptions(
+        apiKey: webApiKey,
+        appId: webAppId,
+        messagingSenderId: '804782276759',
+        projectId: 'catch-ride95',
+        authDomain: 'catch-ride95.firebaseapp.com',
+        storageBucket: 'catch-ride95.firebasestorage.app',
       );
     }
     switch (defaultTargetPlatform) {
