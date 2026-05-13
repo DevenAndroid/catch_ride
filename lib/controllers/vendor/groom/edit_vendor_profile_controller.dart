@@ -1235,7 +1235,6 @@ class EditVendorProfileController extends GetxController {
         'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
 
@@ -1305,7 +1304,6 @@ class EditVendorProfileController extends GetxController {
 
       final servicesPayload = {
         'servicesData': servicesData,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
 
