@@ -56,6 +56,9 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     final List<dynamic> additionalServices = coerceDynamicList(
       profileData['additionalServices'] ?? groomingRoot['additionalServices'],
     );
+    final List<dynamic> highlights = coerceDynamicList(
+      profileData['experienceHighlights'] ?? groomingRoot['experienceHighlights'],
+    );
     
     // Core services are usually simple boolean checks or priced
     final List coreServices = services;
@@ -104,7 +107,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                     spacing: 12,
                     runSpacing: 12,
                     children: coreServices.map((s) {
-                      final name = s is Map ? (s['name'] ?? 'Service') : s.toString();
+                      final name = s is Map ? (s['name'] ?? s['label'] ?? 'Service') : s.toString();
                       return SizedBox(
                      //   width: (MediaQuery.of(context).size.width - 100) / 2,
                         child: _buildCheckItem(name),
@@ -117,6 +120,11 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                 const Divider(height: 1, color: AppColors.dividerColor),
                 const SizedBox(height: 20),
 
+                if (highlights.isNotEmpty) ...[
+                  _buildDetailItem('Experience Highlights', highlights.join(', ')),
+                  const SizedBox(height: 12),
+                ],
+
                 // ── Additional Services ───────────────────────────────────────
                 if (additionalServices.isNotEmpty) ...[
                   const CommonText(
@@ -127,7 +135,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                   ),
                   const SizedBox(height: 16),
                   ...additionalServices.map((s) {
-                    final name = s is Map ? (s['name'] ?? 'Service') : s.toString();
+                    final name = s is Map ? (s['name'] ?? s['label'] ?? 'Service') : s.toString();
                     final price = s is Map ? (s['price']?.toString() ?? '0') : '0';
                     final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
                     return _buildPricedServiceItem(name, formattedPrice);

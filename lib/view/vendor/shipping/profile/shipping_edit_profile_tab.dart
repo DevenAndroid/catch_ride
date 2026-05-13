@@ -25,8 +25,6 @@ class ShippingEditProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildHomeBaseLocation(),
-        const SizedBox(height: 20),
         _buildBusinessInformation(),
         const SizedBox(height: 20),
         _buildExperienceSection(),
@@ -52,6 +50,8 @@ class ShippingEditProfileTab extends StatelessWidget {
         _buildSocialMediaSection(),
         const SizedBox(height: 20),
         _buildAddPhotosSection(),
+        const SizedBox(height: 20),
+        _buildExperienceHighlights(),
         const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 20),
@@ -997,6 +997,87 @@ class ShippingEditProfileTab extends StatelessWidget {
             CommonButton(text: 'Done', onPressed: () => Get.back(), backgroundColor: AppColors.primary),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel1(String label, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          CommonText(
+            label,
+            fontSize: AppTextSizes.size14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+          if (isRequired)
+            const CommonText(
+              ' *',
+              color: Colors.red,
+              fontSize: AppTextSizes.size14,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExperienceHighlights() {
+    return _buildCard(
+      title: 'Experience Highlights',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            "Share key experience, programs, or specialties you’d like clients to know",
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 16),
+          Obx(
+            () => Column(
+              children: controller.highlightControllers.asMap().entries.map((
+                entry,
+              ) {
+                final index = entry.key;
+                final ctrl = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CommonTextField(
+                          label: '',
+                          hintText: 'Write here...',
+                          controller: ctrl,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () => controller.removeHighlight(index),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: controller.addHighlight,
+            child: const CommonText(
+              '+ Add More',
+              color: AppColors.linkBlue,
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }

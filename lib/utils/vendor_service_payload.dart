@@ -318,12 +318,12 @@ Map<String, dynamic> mergedVendorServiceDisplayData(
       final uniqueMap = <String, dynamic>{};
       for (final item in [...list1, ...list2]) {
         String? name;
-        if (item is Map && item['name'] != null) {
-          name = item['name'].toString().toLowerCase().trim();
+        if (item is Map) {
+          name = (item['name'] ?? item['label'])?.toString().toLowerCase().trim();
         } else if (item is String && item.toString().isNotEmpty) {
           name = item.toString().toLowerCase().trim();
         }
-        if (name != null) {
+        if (name != null && name.isNotEmpty) {
           uniqueMap[name] = item;
         }
       }
@@ -488,7 +488,26 @@ void _normalizeVendorModelSubdocForDisplay(String serviceType, Map<String, dynam
     if (bw is List &&
         bw.isNotEmpty &&
         (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
-      b['services'] = List<dynamic>.from(bw);
+      b['services'] = bw.map((e) {
+        if (e is Map) {
+          final ratesMap = <String, dynamic>{};
+          final session = e['session'];
+          if (session is List) {
+            for (final s in session) {
+              if (s is Map && s['min'] != null && s['price'] != null) {
+                ratesMap[s['min'].toString()] = s['price'];
+              }
+            }
+          }
+          return <String, dynamic>{
+            'name': e['label'] ?? e['name'] ?? '',
+            'rates': ratesMap,
+            'session': session, // Keep for fallback
+            'isSelected': true,
+          };
+        }
+        return e;
+      }).toList();
     }
   }
 }

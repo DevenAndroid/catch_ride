@@ -33,8 +33,6 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildHomeBaseLocation(),
-        const SizedBox(height: 20),
         _buildExperienceSection(),
         const SizedBox(height: 20),
         _buildDisciplinesSection(),
@@ -56,6 +54,8 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
         _buildClientIntakeSection(),
         const SizedBox(height: 20),
         _buildInsuranceSection(),
+        const SizedBox(height: 20),
+        _buildExperienceHighlights(),
         const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 40),
@@ -1228,6 +1228,65 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
               color: Colors.red,
               fontSize: AppTextSizes.size14,
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExperienceHighlights() {
+    return _buildCard(
+      title: 'Experience Highlights',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            "Share key experience, programs, or specialties you’d like clients to know",
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 16),
+          Obx(
+            () => Column(
+              children: widget.controller.highlightControllers.asMap().entries.map((
+                entry,
+              ) {
+                final index = entry.key;
+                final ctrl = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CommonTextField(
+                          label: '',
+                          hintText: 'Write here...',
+                          controller: ctrl,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () => widget.controller.removeHighlight(index),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: widget.controller.addHighlight,
+            child: const CommonText(
+              '+ Add More',
+              color: AppColors.linkBlue,
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

@@ -36,6 +36,7 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
   Widget build(BuildContext context) {
     final profileData = widget.clippingData['profileData'] ?? widget.clippingData;
     final List services = widget.clippingData['services'] ?? profileData['services'] ?? [];
+    final List highlights = widget.clippingData['experienceHighlights'] ?? profileData['experienceHighlights'] ?? [];
     
     return Container(
       width: double.infinity,
@@ -71,7 +72,7 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
               ...services.map((s) {
                 final String price = s['price']?.toString() ?? '0';
                 final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                return _buildServiceItem(s['name'] ?? 'Service', '\$ $formattedPrice / horse');
+                return _buildServiceItem(s['name'] ?? s['label'] ?? 'Service', '\$ $formattedPrice / horse');
               }),
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
@@ -82,6 +83,11 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
               'Experience',
               widget.experience ?? 'N/A',
             ),
+
+            if (highlights.isNotEmpty) ...[
+              _buildDetailItem('Experience Highlights', highlights.join(', ')),
+              const SizedBox(height: 4),
+            ],
 
             if (showMore) ...[
               const SizedBox(height: 20),

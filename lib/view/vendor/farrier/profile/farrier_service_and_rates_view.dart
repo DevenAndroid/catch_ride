@@ -42,6 +42,8 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
   Widget build(BuildContext context) {
     final List services = widget.services ?? widget.farrierData['services'] ?? [];
     final List addOns = widget.addOns ?? widget.farrierData['addOns'] ?? [];
+    final profileData = widget.farrierData['profileData'] ?? widget.farrierData;
+    final List highlights = widget.farrierData['experienceHighlights'] ?? profileData['experienceHighlights'] ?? [];
 
     return Container(
       width: double.infinity,
@@ -105,6 +107,11 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               'Years of Experience',
               widget.experience ?? 'N/A',
             ),
+
+            if (highlights.isNotEmpty) ...[
+              _buildDetailItem('Experience Highlights', highlights.join(', ')),
+              const SizedBox(height: 4),
+            ],
 
             if (showMore) ...[
               const SizedBox(height: 20),

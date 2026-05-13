@@ -26,8 +26,6 @@ class BodyworkEditProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildHomeBaseLocation(),
-        const SizedBox(height: 20),
         _buildExperienceSection(),
         const SizedBox(height: 20),
         _buildDisciplinesSection(),
@@ -47,6 +45,8 @@ class BodyworkEditProfileTab extends StatelessWidget {
         _buildTravelPreferencesSection(),
         const SizedBox(height: 20),
         _buildProfessionalStandardsSection(),
+        const SizedBox(height: 20),
+        _buildExperienceHighlights(),
         const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 40),
@@ -80,48 +80,6 @@ class BodyworkEditProfileTab extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHomeBaseLocation() {
-    return _buildCard(
-      title: 'Home Base / Location',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildFieldLabel('Country', isRequired: true),
-          Obx(() {
-            final _ = controller.selectedCountryCode.value;
-            return
-            CommonDropdown(
-              value: controller.countryController.text,
-              hint: 'Select Country',
-              options: controller.countries,
-              onSelected: (val) => controller.onCountrySelected(val),
-            );
-          }),
-          const SizedBox(height: 16),
-          
-          _buildFieldLabel('State / Province', isRequired: true),
-          Obx(() => CommonSuggestionField(
-            controller: controller.stateController,
-            hint: 'Select State/Province',
-            suggestions: controller.states,
-            isLoading: controller.isLoadingStates.value,
-            onSelected: (val) => controller.onStateSelected(val),
-          )),
-          const SizedBox(height: 16),
-          
-          _buildFieldLabel('City', isRequired: true),
-          Obx(() => CommonSuggestionField(
-            controller: controller.cityController,
-            hint: controller.stateController.text.isEmpty ? 'Select state first' : 'Select City',
-            suggestions: controller.cities,
-            isLoading: controller.isLoadingCities.value,
-            onSelected: (val) => controller.onCitySelected(val),
-          )),
         ],
       ),
     );
@@ -231,8 +189,6 @@ class BodyworkEditProfileTab extends StatelessWidget {
       ),
     );
   }
-
-
 
   void _showServicePriceBottomSheet(Map service) {
     final Map rates = service['rates'];
@@ -599,16 +555,6 @@ class BodyworkEditProfileTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CommonText(fileName, fontSize: 14, fontWeight: FontWeight.w600, maxLines: 1),
-/*                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    CommonText(file != null ? _getFileSize(file) : 'Uploaded', fontSize: 12, color: AppColors.textSecondary),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.cloud_upload_outlined, size: 14, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    const CommonText('70%', fontSize: 11, color: AppColors.textSecondary), // Progress placeholder as seen in UI
-                  ],
-                ),*/
               ],
             ),
           ),
@@ -920,6 +866,11 @@ class BodyworkEditProfileTab extends StatelessWidget {
     );
   }
 
+  Future<void> _selectDate(Rxn<DateTime> dateRx) async {
+    final DateTime? picked = await showDatePicker(context: Get.context!, initialDate: dateRx.value ?? DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2100));
+    if (picked != null) dateRx.value = picked;
+  }
+
   Widget _buildFieldLabel(String label, {bool isRequired = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -942,8 +893,62 @@ class BodyworkEditProfileTab extends StatelessWidget {
     );
   }
 
-  Future<void> _selectDate(Rxn<DateTime> dateRx) async {
-    final DateTime? picked = await showDatePicker(context: Get.context!, initialDate: dateRx.value ?? DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime(2100));
-    if (picked != null) dateRx.value = picked;
+  Widget _buildExperienceHighlights() {
+    return _buildCard(
+      title: 'Experience Highlights',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CommonText(
+            "Share key experience, programs, or specialties you’d like clients to know",
+            fontSize: AppTextSizes.size12,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 16),
+          Obx(
+            () => Column(
+              children: controller.highlightControllers.asMap().entries.map((
+                entry,
+              ) {
+                final index = entry.key;
+                final ctrl = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CommonTextField(
+                          label: '',
+                          hintText: 'Write here...',
+                          controller: ctrl,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () => controller.removeHighlight(index),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: controller.addHighlight,
+            child: const CommonText(
+              '+ Add More',
+              color: AppColors.linkBlue,
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

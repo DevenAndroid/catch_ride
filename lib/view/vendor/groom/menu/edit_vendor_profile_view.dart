@@ -139,9 +139,9 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                         children: [
                           _buildBasicDetails(),
                           const SizedBox(height: 20),
-                          _buildPaymentMethods(),
+                          _buildHomeBaseLocation(),
                           const SizedBox(height: 20),
-                          _buildExperienceHighlights(),
+                          _buildPaymentMethods(),
                           const SizedBox(height: 20),
                           _buildNotesSection(),
                           const SizedBox(height: 40),
@@ -567,8 +567,6 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
   Widget _buildGroomingTab() {
     return Column(
       children: [
-        _buildHomeBaseLocation(),
-        const SizedBox(height: 20),
         _buildExperienceSection(),
         const SizedBox(height: 20),
         _buildDisciplinesSection(),
@@ -588,6 +586,8 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         _buildAdditionalSkillsSection(),
         const SizedBox(height: 20),
         _buildTravelPreferencesSection(),
+        const SizedBox(height: 20),
+        _buildExperienceHighlights(),
         const SizedBox(height: 20),
         _buildCancellationPolicySection(),
         const SizedBox(height: 40),

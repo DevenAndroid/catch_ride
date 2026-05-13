@@ -15,6 +15,8 @@ import 'package:catch_ride/utils/form_utils.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
+import '../../bodywork/create_profile/bodywork_details_view.dart';
+
 class ClippingApplicationView extends StatelessWidget {
   const ClippingApplicationView({super.key});
 
@@ -458,17 +460,22 @@ class ClippingApplicationView extends StatelessWidget {
       runSpacing: 8,
       children: options.map((opt) {
         final isSelected = selectedItems.contains(opt);
-        return FilterChip(
-          label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-          selected: isSelected,
-          onSelected: (val) => onSelected(opt, val),
-          selectedColor: AppColors.primary,
-          backgroundColor: AppColors.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight),
+        return GestureDetector(
+          onTap: () => onSelected(opt, !isSelected),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
+            ),
+            child: CommonText(
+              opt,
+              fontSize: 12,
+              color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            ),
           ),
-          showCheckmark: false,
         );
       }).toList(),
     );
