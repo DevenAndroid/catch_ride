@@ -337,6 +337,26 @@ Map<String, dynamic> mergedVendorServiceDisplayData(
   mergeList('additionalServices');
   mergeList('addOns');
 
+  // Per-service wizard fields (disciplines, homeBase, modalities, …) live on
+  // `assignedServices[].application` and/or `servicesData.<type>.applicationData`.
+  // Include them on [merged] so profile cards read one map without losing data when
+  // the legacy vendor embed has stale partial lists.
+  final Map<String, dynamic> appFromBlock =
+      _applicationDataFromServicesDataBlock(directServiceData);
+  final Map<String, dynamic> appFromRow = serviceRow is Map
+      ? effectiveApplicationData(serviceRow)
+      : <String, dynamic>{};
+  final Map<String, dynamic> mergedApplicationData = {
+    ...appFromBlock,
+    ...appFromRow,
+  };
+  if (mergedApplicationData.isNotEmpty) {
+    merged['applicationData'] = mergedApplicationData;
+    merged['application'] = <String, dynamic>{
+      'applicationData': mergedApplicationData,
+    };
+  }
+
   merged['profileData'] = mergedProfileData;
   return merged;
 }

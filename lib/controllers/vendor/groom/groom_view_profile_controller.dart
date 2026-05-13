@@ -288,25 +288,31 @@ class GroomViewProfileController extends GetxController {
   void _updateTags(Map appData) {
     final merged = getProfileDataByType(activeServiceType);
 
-    List<String> d = List<String>.from(merged['disciplines'] ?? []);
-    if (d.isEmpty) d = List<String>.from(appData['disciplines'] ?? []);
+    // Prefer **applicationData** (what Edit Profile / wizard persist on the service row).
+    // Legacy [VendorModel] embeds can hold a short or stale `disciplines` list that would
+    // otherwise win over the full multi-select saved on the application.
+    List<String> d = List<String>.from(appData['disciplines'] ?? []);
+    if (d.isEmpty) {
+      d = List<String>.from(appData['desciplines'] ?? merged['disciplines'] ?? []);
+    }
+    if (d.isEmpty) d = List<String>.from(merged['disciplines'] ?? []);
     if (d.contains('Other') && appData['otherDiscipline'] != null && appData['otherDiscipline'].toString().isNotEmpty) {
       d = d.map((e) => e == 'Other' ? "${appData['otherDiscipline']}" : e).toList();
     }
 
-    List<String> h = List<String>.from(merged['horseLevels'] ?? []);
+    List<String> h = List<String>.from(appData['horseLevels'] ?? []);
     if (h.isEmpty) {
       h = List<String>.from(
-        merged['typicalLevelOfHorses'] ?? appData['horseLevels'] ?? [],
+        merged['horseLevels'] ?? merged['typicalLevelOfHorses'] ?? [],
       );
     }
     if (h.contains('Other') && appData['otherHorseLevel'] != null && appData['otherHorseLevel'].toString().isNotEmpty) {
       h = h.map((e) => e == 'Other' ? "${appData['otherHorseLevel']}" : e).toList();
     }
 
-    List<String> r = List<String>.from(merged['regions'] ?? []);
+    List<String> r = List<String>.from(appData['regions'] ?? []);
     if (r.isEmpty) {
-      r = List<String>.from(merged['regionsCovered'] ?? appData['regions'] ?? []);
+      r = List<String>.from(merged['regions'] ?? merged['regionsCovered'] ?? []);
     }
 
     if (d.isNotEmpty) {
@@ -902,6 +908,12 @@ class GroomViewProfileController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  /// Bodywork **Services & Rates** tab (same persistence path as [updateGroomingRates]).
+  Future<bool> updateBodyworkServiceRates({
+    required List<Map<String, dynamic>> services,
+  }) =>
+      updateBodyworkServices(services: services);
 
   Future<bool> updateBodyworkServices({
     required List<Map<String, dynamic>> services,

@@ -7,6 +7,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:catch_ride/view/vendor/braiding/profile/braiding_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/clipping/profile/clipping_edit_profile_tab.dart';
 import 'package:catch_ride/view/vendor/farrier/profile/farrier_edit_profile_tab.dart';
@@ -160,7 +161,7 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
                           return ClippingEditProfileTab(controller: controller);
                         } else if (service['serviceType'] == 'Farrier') {
                           return FarrierEditProfileTab(controller: controller);
-                        } else if (service['serviceType'] == 'Bodywork') {
+                        } else if (assignedServiceMatchesTab(service, 'Bodywork')) {
                           return BodyworkEditProfileTab(controller: controller);
                         } else if (service['serviceType'] == 'Shipping') {
                           return ShippingEditProfileTab(controller: controller);
