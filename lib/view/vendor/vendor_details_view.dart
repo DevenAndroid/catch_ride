@@ -398,12 +398,22 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
     final isSingle = services.length == 1;
 
     if (isSingle) {
+      if (_tabController.length != 1) {
+        _setupTabController(1);
+      }
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const CommonText('Details', fontSize: 18, fontWeight: FontWeight.bold),
         ],
       );
+    }
+
+    // TabBar requires controller.length == tabs.length in the same frame;
+    // [_setupTabController] resizes on the next frame — avoid building TabBar until then.
+    if (_tabController.length != services.length) {
+      _setupTabController(services.length);
+      return const SizedBox(height: 48);
     }
 
     return Column(
