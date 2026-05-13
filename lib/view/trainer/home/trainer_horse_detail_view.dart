@@ -1354,27 +1354,30 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     );
   }
 
-  /// Returns only shows whose endDate is today or in the future.
-  List<AvailabilityModel> get _upcomingShows {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return horse!.showAvailability.where((avail) {
+  /// Returns all shows, sorted by startDate.
+  List<AvailabilityModel> get _allAvailableShows {
+    final shows = horse!.showAvailability.where((avail) {
       if (avail.showVenue.trim().isEmpty &&
           avail.cityState.trim().isEmpty &&
           avail.startDate.trim().isEmpty &&
           avail.endDate.trim().isEmpty) {
         return false;
       }
-      if (avail.endDate.isEmpty) return true;
-
-      DateTime? end = DateUtil.parse(avail.endDate);
-      if (end == null) return true;
-      return !end.isBefore(today);
+      return true;
     }).toList();
+
+    // Sort by startDate
+    shows.sort((a, b) {
+      final dateA = DateUtil.parse(a.startDate) ?? DateTime(1900);
+      final dateB = DateUtil.parse(b.startDate) ?? DateTime(1900);
+      return dateA.compareTo(dateB);
+    });
+
+    return shows;
   }
 
   Widget _buildAvailabilitySection() {
-    final upcoming = _upcomingShows;
+    final shows = _allAvailableShows;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -1396,17 +1399,17 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
             ),
-            child: upcoming.isEmpty
+            child: shows.isEmpty
                 ? const CommonText(
-              'No Upcoming Shows Currently',
+              'No availability information listed.',
               fontSize: 14,
               color: AppColors.textSecondary,
             )
                 : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: upcoming.asMap().entries.map((entry) {
+              children: shows.asMap().entries.map((entry) {
                 final index = entry.key;
                 final show = entry.value;
+                final isLast = index == shows.length - 1;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -2163,7 +2166,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   ),
                                 ),
                               ),
-                            ..._upcomingShows.map((show) {
+                            ..._allAvailableShows.map((show) {
                               final dateRange = DateUtil.formatRange(
                                   show.startDate, show.endDate);
                               final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
@@ -2200,7 +2203,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           onChanged: (val) {
                             setSheetState(() {
                               selectedLocation = val;
-                              selectedShow = _upcomingShows.firstWhereOrNull(
+                              selectedShow = _allAvailableShows.firstWhereOrNull(
                                     (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
                               );
 

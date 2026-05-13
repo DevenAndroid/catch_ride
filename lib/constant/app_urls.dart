@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 
 class AppUrls {
   /// Public HTTPS tunnel pointing at your local API (same host the backend ngrok exposes).
-  static const String devTunnelOrigin =
-      'https://fremdly-monogenistic-collette.ngrok-free.dev';
+ // static const String devTunnelOrigin = 'https://fremdly-monogenistic-collette.ngrok-free.dev';
+  static const String devTunnelOrigin = 'https://10.0.2.2';
 
   /// Production vs dev/ngrok — set false to hit [devTunnelOrigin].
-  static bool isLive = false;
+  static bool isLive = true;
 
   /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
   static String get host {

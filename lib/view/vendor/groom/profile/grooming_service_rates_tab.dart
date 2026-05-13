@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../../constant/app_colors.dart';
 import '../../../../constant/app_text_sizes.dart';
 import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
+import '../../../../utils/grooming_rates_util.dart';
 import '../../../../utils/price_formatter.dart';
 import '../../../../widgets/common_text.dart';
 import '../../../../widgets/common_textfield.dart';
@@ -47,18 +48,33 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
   void _loadInitialData() {
     // Fetch data specifically for THIS service type
     final rawData = controller.getProfileDataByType(widget.serviceType);
-    
-    // Support both nested and flattened data structures
-    final rates = rawData['rates'] ?? rawData['profileData']?['rates'] ?? {};
-    
+    final dynamic profileData = rawData['profileData'];
+
+    final dynamic ratesRaw = rawData['rates'] ??
+        (profileData is Map ? (profileData as Map)['rates'] : null);
+    final Map<String, dynamic> rates = normalizeGroomingRatesMap(ratesRaw);
+
     dailyController.text = (rates['daily'] ?? '').toString();
-    weeklyController.text = (rates['weekly']?['price'] ?? '').toString();
-    monthlyController.text = (rates['monthly']?['price'] ?? '').toString();
-    weeklyDays.value = (rates['weekly']?['days'] ?? '5').toString();
-    monthlyDays.value = (rates['monthly']?['days'] ?? '5').toString();
+
+    final weekly = rates['weekly'];
+    weeklyController.text = weekly is Map
+        ? (weekly['price'] ?? '').toString()
+        : (weekly ?? '').toString();
+    weeklyDays.value =
+        weekly is Map ? (weekly['days'] ?? '5').toString() : '5';
+
+    final monthly = rates['monthly'];
+    monthlyController.text = monthly is Map
+        ? (monthly['price'] ?? '').toString()
+        : (monthly ?? '').toString();
+    monthlyDays.value =
+        monthly is Map ? (monthly['days'] ?? '5').toString() : '5';
 
     // Sync grooming skills
-    final List<dynamic> servicesList = rawData['services'] ?? rawData['profileData']?['services'] ?? [];
+    final List<dynamic> servicesList = coerceDynamicList(
+      rawData['services'] ??
+          (profileData is Map ? (profileData as Map)['services'] : null),
+    );
     final currentSkills = servicesList.map((e) {
       if (e is Map) return e['name']?.toString() ?? '';
       return e.toString();
@@ -73,7 +89,12 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
     selectedGroomingSkills.assignAll(currentSkills);
 
     // Sync additional services
-    final savedAddServices = rawData['additionalServices'] ?? rawData['profileData']?['additionalServices'] ?? [];
+    final savedAddServices = coerceDynamicList(
+      rawData['additionalServices'] ??
+          (profileData is Map
+              ? (profileData as Map)['additionalServices']
+              : null),
+    );
     final List<Map<String, dynamic>> defaultAddServices = [
       {'name': 'Hunter Mane + Tail', 'price': '0', 'description': 'Per horse'},
       {'name': 'Hunter Tail Only', 'price': '0', 'description': 'Per horse'},

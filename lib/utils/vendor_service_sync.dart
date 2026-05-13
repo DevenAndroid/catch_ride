@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'vendor_service_payload.dart';
 
 /// Writes [profileData] and [applicationData] to `ServiceProfile` / `ServiceApplication`
-/// for the given [VendorService] row (must include `_id`), matching the backend
-/// `VendorServiceModel` + `ServiceProfileModel` flow.
+/// for one entry in [VendorModel.assignedServices] (map must include `_id`; see [vendorServiceDocumentId]).
+/// `vendorMongoId` is the [VendorModel] document id; `serviceId` in the path is that entry’s `_id`.
 Future<bool> syncVendorServiceDocuments({
   required ApiService api,
   required String vendorMongoId,

@@ -53,80 +53,10 @@ class GroomViewProfileController extends GetxController {
   final RxString experienceStr = 'N/A'.obs;
 
   Map<String, dynamic> getProfileDataByType(String type) {
-    dynamic serviceRow;
-    for (final s in allAssignedServices) {
-      if (assignedServiceMatchesTab(s, type)) {
-        serviceRow = s;
-        break;
-      }
-    }
-
-    final rawSd = vendorData['servicesData'];
-    final Map<String, dynamic> servicesData =
-        rawSd is Map ? Map<String, dynamic>.from(rawSd) : {};
-
-    final Map<String, dynamic> directServiceData =
-        servicesDataBlockForType(servicesData, type);
-
-    final profileSource =
-        serviceRow is Map ? serviceRow['profile'] : null;
-    final Map<String, dynamic> profile = profileSource is Map
-        ? Map<String, dynamic>.from(profileSource)
-        : <String, dynamic>{};
-
-    final pNested = profile['profileData'];
-    final Map<String, dynamic> pProfileData = pNested is Map
-        ? Map<String, dynamic>.from(pNested)
-        : <String, dynamic>{};
-    
-    final dNestedProf = directServiceData['profileData'];
-    final Map<String, dynamic> dProfileData = dNestedProf is Map
-        ? Map<String, dynamic>.from(dNestedProf)
-        : <String, dynamic>{};
-
-    final Map<String, dynamic> mergedProfileData = {
-      ...pProfileData,
-      ...dProfileData,
-    };
-
-    // Construct the final merged map
-    final Map<String, dynamic> merged = {
-      ...profile,
-      ...directServiceData,
-      ...mergedProfileData, // Spread merged profile data at top level for convenience
-      'profileData': mergedProfileData, // Keep nested for compatibility
-    };
-
-    // Special handling for lists that should be merged and deduplicated
-    void mergeList(String key) {
-      final List<dynamic> list1 = mergedProfileData[key] is List ? mergedProfileData[key] : [];
-      final List<dynamic> list2 = merged[key] is List ? merged[key] : [];
-      
-      if (list1.isNotEmpty || list2.isNotEmpty) {
-        final Map<String, dynamic> uniqueMap = {};
-        for (var item in [...list1, ...list2]) {
-          String? name;
-          if (item is Map && item['name'] != null) {
-            name = item['name'].toString().toLowerCase().trim();
-          } else if (item is String && item.isNotEmpty) {
-            name = item.toLowerCase().trim();
-          }
-          
-          if (name != null) {
-            uniqueMap[name] = item;
-          }
-        }
-        final mergedList = uniqueMap.values.toList();
-        merged[key] = mergedList;
-        mergedProfileData[key] = mergedList;
-      }
-    }
-
-    mergeList('services');
-    mergeList('additionalServices');
-    mergeList('addOns');
-
-    return merged;
+    return mergedVendorServiceDisplayData(
+      Map<String, dynamic>.from(vendorData),
+      type,
+    );
   }
 
   dynamic get _activeService => allAssignedServices.isNotEmpty
@@ -346,29 +276,42 @@ class GroomViewProfileController extends GetxController {
 
     _updateLocationAndExperience(appDataMap, _activeService);
     _updateTags(appDataMap);
+    final mergedScope = getProfileDataByType(activeServiceType);
     travelScopeList.assignAll(
-      List<String>.from(appDataMap['travelScope'] ?? []),
+      List<String>.from(
+        mergedScope['travelScope'] ?? appDataMap['travelScope'] ?? [],
+      ),
     );
   }
 
   void _updateTags(Map appData) {
-    // 1. Try Service Application Data
-    List<String> d = List<String>.from(appData['disciplines'] ?? []);
+    final merged = getProfileDataByType(activeServiceType);
+
+    List<String> d = List<String>.from(merged['disciplines'] ?? []);
+    if (d.isEmpty) d = List<String>.from(appData['disciplines'] ?? []);
     if (d.contains('Other') && appData['otherDiscipline'] != null && appData['otherDiscipline'].toString().isNotEmpty) {
       d = d.map((e) => e == 'Other' ? "${appData['otherDiscipline']}" : e).toList();
     }
 
-    List<String> h = List<String>.from(appData['horseLevels'] ?? []);
+    List<String> h = List<String>.from(merged['horseLevels'] ?? []);
+    if (h.isEmpty) {
+      h = List<String>.from(
+        merged['typicalLevelOfHorses'] ?? appData['horseLevels'] ?? [],
+      );
+    }
     if (h.contains('Other') && appData['otherHorseLevel'] != null && appData['otherHorseLevel'].toString().isNotEmpty) {
       h = h.map((e) => e == 'Other' ? "${appData['otherHorseLevel']}" : e).toList();
     }
 
-    List<String> r = List<String>.from(appData['regions'] ?? []);
+    List<String> r = List<String>.from(merged['regions'] ?? []);
+    if (r.isEmpty) {
+      r = List<String>.from(merged['regionsCovered'] ?? appData['regions'] ?? []);
+    }
 
     if (d.isNotEmpty) {
       disciplinesSelected.assignAll(d);
     } else {
-      // Fallback: Vendor Level or AuthController
+      // Fallback: VendorModel root or AuthController
       final vendorDisciplines = List<String>.from(
         vendorData['disciplines'] ?? [],
       );
@@ -400,10 +343,35 @@ class GroomViewProfileController extends GetxController {
   }
 
   void _updateLocationAndExperience(Map appData, dynamic activeService) {
-    // 1. Try Current Service Application Data
-    String? city = appData['homeBase']?['city'] ?? appData['city'];
-    String? state = appData['homeBase']?['state'] ?? appData['state'];
-    String? country = appData['homeBase']?['country'] ?? appData['country'];
+    final merged = getProfileDataByType(activeServiceType);
+
+    // 1. VendorModel root homeBaseLocation, then merged profile (embed + servicesData + ServiceProfile)
+    String? city;
+    String? state;
+    String? country;
+
+    final hbl = vendorData['homeBaseLocation'];
+    if (hbl is Map) {
+      city = hbl['city']?.toString();
+      state = hbl['state']?.toString();
+      country = hbl['country']?.toString();
+    }
+
+    if (!_isValid(city)) city = merged['city']?.toString();
+    if (!_isValid(state)) state = merged['state']?.toString();
+    if (!_isValid(country)) country = merged['country']?.toString();
+
+    final hbMerged = merged['homeBase'];
+    if (hbMerged is Map) {
+      if (!_isValid(city)) city = hbMerged['city']?.toString();
+      if (!_isValid(state)) state = hbMerged['state']?.toString();
+      if (!_isValid(country)) country = hbMerged['country']?.toString();
+    }
+
+    // 2. Service application (legacy / wizard) when vendor + merged lack home base
+    if (!_isValid(city)) city = appData['homeBase']?['city'] ?? appData['city'];
+    if (!_isValid(state)) state = appData['homeBase']?['state'] ?? appData['state'];
+    if (!_isValid(country)) country = appData['homeBase']?['country'] ?? appData['country'];
 
     if (!_isValid(city) || !_isValid(state)) {
       // Try one level up if applicationData was flat
@@ -480,8 +448,12 @@ class GroomViewProfileController extends GetxController {
       }
     }
 
-    // Experience Deep Search
-    dynamic exp = appData['experience'] ?? appData['yearsExperience'];
+    // Experience: VendorModel merged profile first, then application, then vendor root / user
+    dynamic exp = merged['experience'] ?? merged['yearsExperience'];
+
+    if (!_isValid(exp)) {
+      exp = appData['experience'] ?? appData['yearsExperience'];
+    }
 
     if (!_isValid(exp)) {
       final topAppData = activeService['application'] ?? {};

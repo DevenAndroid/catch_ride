@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
+import 'package:catch_ride/utils/grooming_rates_util.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -40,10 +41,21 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
 
   @override
   Widget build(BuildContext context) {
-    final profileData = widget.groomingData['profileData'] ?? widget.groomingData;
-    final Map rates =  profileData['rates'] ??widget.groomingData['rates'] ?? {};
-    final List services = profileData['services'] ?? widget.groomingData['services'] ?? [];
-    final List additionalServices =  profileData['additionalServices'] ??widget.groomingData['additionalServices'] ?? [];
+    final Map<String, dynamic> groomingRoot =
+        Map<String, dynamic>.from(widget.groomingData as Map);
+    final dynamic profileDataRaw = groomingRoot['profileData'];
+    final Map<String, dynamic> profileData = profileDataRaw is Map
+        ? Map<String, dynamic>.from(profileDataRaw as Map)
+        : groomingRoot;
+
+    final Map<String, dynamic> rates = normalizeGroomingRatesMap(
+      profileData['rates'] ?? groomingRoot['rates'],
+    );
+    final List<dynamic> services =
+        coerceDynamicList(profileData['services'] ?? groomingRoot['services']);
+    final List<dynamic> additionalServices = coerceDynamicList(
+      profileData['additionalServices'] ?? groomingRoot['additionalServices'],
+    );
     
     // Core services are usually simple boolean checks or priced
     final List coreServices = services;
@@ -180,7 +192,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     );
   }
 
-  Widget _buildBaseRatesRow(Map rates) {
+  Widget _buildBaseRatesRow(Map<String, dynamic> rates) {
     final daily = rates['daily']?.toString() ?? '';
     final weekly = rates['weekly']?['price']?.toString() ?? '';
     final weeklyDays = rates['weekly']?['days']?.toString() ?? '6';
