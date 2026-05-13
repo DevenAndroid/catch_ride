@@ -66,6 +66,7 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
     final List regionsCovered =
         widget.regionsCovered ?? applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
     final String? scopeOfWork = applicationData['scopeOfWork']?.toString();
+    final List highlights = applicationData['experienceHighlights'] ?? profileData['experienceHighlights'] ?? [];
 
     return Container(
       width: double.infinity,
@@ -118,6 +119,14 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
               'Years of Experience',
               displayExperience,
             ),
+
+            if (highlights.isNotEmpty) ...[
+              _buildDetailItem(
+                'Experience Highlights',
+                highlights.join(', '),
+              ),
+              const SizedBox(height: 4),
+            ],
 
             // ── View More / View Less ──────────────────────────────────────
             if (showMore) ...[
@@ -193,20 +202,32 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
     );
   }
 
-  // ── Service block: name row + rate price-boxes ─────────────────────────
   Widget _buildServiceBlock(Map service) {
-    final String name = service['name'] ?? 'Service';
-    final Map rates = service['rates'] ?? {};
+    final String name = service['name'] ?? service['label'] ?? 'Service';
+    final Map ratesMap = service['rates'] ?? {};
+    final List? sessionsList = service['session'];
 
-    // Collect non-empty rate entries sorted by duration value
-    final activeRates = rates.entries
-        .where((e) => e.value != null && e.value.toString().isNotEmpty)
-        .toList()
-      ..sort((a, b) {
-        final aVal = int.tryParse(a.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-        final bVal = int.tryParse(b.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-        return aVal.compareTo(bVal);
-      });
+    // Collect rate entries
+    List<MapEntry<String, dynamic>> activeRates = [];
+
+    if (ratesMap.isNotEmpty) {
+      activeRates = ratesMap.entries
+          .where((e) => e.value != null && e.value.toString().isNotEmpty)
+          .map((e) => MapEntry(e.key.toString(), e.value))
+          .toList();
+    } else if (sessionsList != null && sessionsList.isNotEmpty) {
+      // Handle the "session" list format: [{min: 30, price: 50}, ...]
+      activeRates = sessionsList.map((s) {
+        return MapEntry(s['min'].toString(), s['price']);
+      }).toList();
+    }
+
+    // Sort by duration value
+    activeRates.sort((a, b) {
+      final aVal = int.tryParse(a.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      final bVal = int.tryParse(b.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      return aVal.compareTo(bVal);
+    });
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),

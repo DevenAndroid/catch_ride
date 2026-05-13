@@ -36,6 +36,7 @@ class _BraidingServiceAndRatesViewState extends State<BraidingServiceAndRatesVie
   Widget build(BuildContext context) {
     final profileData = widget.braidingData['profileData'] ?? widget.braidingData;
     final List services =profileData['services'] ??  widget.braidingData['services'] ??  [];
+    final List highlights = widget.braidingData['experienceHighlights'] ?? profileData['experienceHighlights'] ?? [];
     
     return Container(
       width: double.infinity,
@@ -82,6 +83,11 @@ class _BraidingServiceAndRatesViewState extends State<BraidingServiceAndRatesVie
               'Experience',
               widget.experience ?? 'N/A',
             ),
+
+            if (highlights.isNotEmpty) ...[
+              _buildDetailItem('Experience Highlights', highlights.join(', ')),
+              const SizedBox(height: 4),
+            ],
 
             if (showMore) ...[
               const SizedBox(height: 20),

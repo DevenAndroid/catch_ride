@@ -103,27 +103,16 @@ class BodyworkApplicationView extends StatelessWidget {
                           builder: (state) => Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: controller.modalityOptions.map((opt) {
-                                  final isSelected = controller.selectedModalities.contains(opt);
-                                  return FilterChip(
-                                    label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                                    selected: isSelected,
-                                    onSelected: (val) {
-                                      if (val) {
-                                        controller.selectedModalities.add(opt);
-                                      } else {
-                                        controller.selectedModalities.remove(opt);
-                                      }
-                                    },
-                                    selectedColor: AppColors.primary,
-                                    backgroundColor: AppColors.tabBackground,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                                    showCheckmark: false,
-                                  );
-                                }).toList(),
+                              _buildChipsList(
+                                options: controller.modalityOptions,
+                                selectedItems: controller.selectedModalities,
+                                onSelected: (opt, val) {
+                                  if (val) {
+                                    controller.selectedModalities.add(opt);
+                                  } else {
+                                    controller.selectedModalities.remove(opt);
+                                  }
+                                },
                               ),
                               if (state.hasError)
                                 Padding(
@@ -242,27 +231,16 @@ class BodyworkApplicationView extends StatelessWidget {
                         builder: (state) => Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: controller.disciplineOptions.map((opt) {
-                                final isSelected = controller.selectedDisciplines.contains(opt);
-                                return FilterChip(
-                                  label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                                  selected: isSelected,
-                                  onSelected: (val) {
-                                    if (val) {
-                                      controller.selectedDisciplines.add(opt);
-                                    } else {
-                                      controller.selectedDisciplines.remove(opt);
-                                    }
-                                  },
-                                  selectedColor: AppColors.primary,
-                                  backgroundColor: AppColors.tabBackground,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                                  showCheckmark: false,
-                                );
-                              }).toList(),
+                            _buildChipsList(
+                              options: controller.disciplineOptions,
+                              selectedItems: controller.selectedDisciplines,
+                              onSelected: (opt, val) {
+                                if (val) {
+                                  controller.selectedDisciplines.add(opt);
+                                } else {
+                                  controller.selectedDisciplines.remove(opt);
+                                }
+                              },
                             ),
                             if (state.hasError)
                               Padding(
@@ -303,27 +281,16 @@ class BodyworkApplicationView extends StatelessWidget {
                         builder: (state) => Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                             Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: controller.horseLevelOptions.map((opt) {
-                                final isSelected = controller.selectedHorseLevels.contains(opt);
-                                return FilterChip(
-                                  label: CommonText(opt, color: isSelected ? AppColors.cardColor : AppColors.textPrimary, fontSize: AppTextSizes.size12),
-                                  selected: isSelected,
-                                  onSelected: (val) {
-                                    if (val) {
-                                      controller.selectedHorseLevels.add(opt);
-                                    } else {
-                                      controller.selectedHorseLevels.remove(opt);
-                                    }
-                                  },
-                                  selectedColor: AppColors.primary,
-                                  backgroundColor: AppColors.tabBackground,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: isSelected ? Colors.transparent : AppColors.borderLight)),
-                                  showCheckmark: false,
-                                );
-                              }).toList(),
+                             _buildChipsList(
+                              options: controller.horseLevelOptions,
+                              selectedItems: controller.selectedHorseLevels,
+                              onSelected: (opt, val) {
+                                if (val) {
+                                  controller.selectedHorseLevels.add(opt);
+                                } else {
+                                  controller.selectedHorseLevels.remove(opt);
+                                }
+                              },
                             ),
                             if (state.hasError)
                               Padding(
@@ -1071,5 +1038,32 @@ class BodyworkApplicationView extends StatelessWidget {
       debugPrint('Error getting file size: $e');
     }
     return '...';
+  }
+
+  Widget _buildChipsList({required List<String> options, required List<String> selectedItems, required Function(String, bool) onSelected}) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((opt) {
+        final isSelected = selectedItems.contains(opt);
+        return GestureDetector(
+          onTap: () => onSelected(opt, !isSelected),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
+            ),
+            child: CommonText(
+              opt,
+              fontSize: 12,
+              color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 }

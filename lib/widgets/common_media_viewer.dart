@@ -259,17 +259,10 @@ class _CommonVideoPlayerWidgetState extends State<CommonVideoPlayerWidget> with 
   }
 
   void _onYoutubeControllerChange() {
-    if (_youtubeController != null && _youtubeController!.value.isFullScreen) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    } else {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-      ]);
-    }
+    if (!mounted) return;
+    // Removed the aggressive portrait forcing logic that was blocking sensor rotation.
+    // The CommonMediaViewer already handles preferred orientations in its initState/dispose.
+    setState(() {}); 
   }
 
   @override

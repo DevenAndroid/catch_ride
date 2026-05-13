@@ -115,6 +115,14 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
               widget.experience,
             ),
 
+            if (widget.highlights.isNotEmpty) ...[
+              _buildDetailItem(
+                'Experience Highlights',
+                widget.highlights.join(' • '),
+              ),
+              const SizedBox(height: 4),
+            ],
+
             const SizedBox(height: 20),
 
             // ── Travel Scope ──────────────────────────────────────────────
@@ -166,15 +174,6 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
                 const SizedBox(height: 12),
               ],
 
-              // ── Highlights ──────────────────────────────────────────────────
-              if (widget.highlights.isNotEmpty) ...[
-                const SizedBox(height: 20),
-                _buildDetailItem(
-                  'Experience Highlights',
-                  widget.highlights.join(' • '),
-                  showDivider: false,
-                ),
-              ],
 
               const SizedBox(height: 16),
               GestureDetector(

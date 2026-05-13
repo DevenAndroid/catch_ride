@@ -148,8 +148,6 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                       ],
 
 
-    /*                  _buildHighlights(groomController),
-                      const SizedBox(height: 16),*/
                       _buildSocials(groomController),
                       const SizedBox(height: 16),
                       _buildPaymentMethods(groomController),
@@ -167,6 +165,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                       const SizedBox(height: 24),
                       _buildAvailabilitySection(groomController),
                       const SizedBox(height: 24),
+                      _buildHighlights(groomController),
+                      const SizedBox(height: 16),
                       if(groomController.cancellationPolicy != "")
                       Obx(() => _buildCancellationPolicy(groomController)),
                       const SizedBox(height: 40),

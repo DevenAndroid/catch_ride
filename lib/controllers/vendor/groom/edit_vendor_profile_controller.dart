@@ -687,24 +687,30 @@ class EditVendorProfileController extends GetxController {
     }
 
     if (activeService != null) {
-      final type = activeService['serviceType']?.toString().toLowerCase();
-      final draft = type != null ? draftServicesData[type] ?? {} : {};
+      final String typeStr = activeService['serviceType']?.toString() ?? '';
+      final typeKey = typeStr.toLowerCase();
+      final draft = draftServicesData[typeKey] ?? {};
 
-      final profileData = draft['profileData'] ?? activeService['profile']?['profileData'] ?? {};
-      final application = activeService['application'] ?? {};
-      final appData = draft['applicationData'] ?? application['applicationData'] ?? application ?? {};
+      // Use the unified merge logic for robust fallback (VendorModel subdoc -> Profile -> servicesData)
+      final merged = mergedVendorServiceDisplayData(
+        Map<String, dynamic>.from(vendorRootData),
+        typeStr,
+      );
 
-      final profileDataMap = profileData is Map
-          ? Map<String, dynamic>.from(profileData)
-          : <String, dynamic>{};
-      final appDataMap = appData is Map
-          ? Map<String, dynamic>.from(appData)
-          : <String, dynamic>{};
+      final Map<String, dynamic> profileDataMap = {
+        ...Map<String, dynamic>.from(merged['profileData'] ?? {}),
+        ...Map<String, dynamic>.from(draft['profileData'] ?? {}),
+      };
+      
+      final Map<String, dynamic> appDataMap = {
+        ...Map<String, dynamic>.from(merged['applicationData'] ?? {}),
+        ...Map<String, dynamic>.from(draft['applicationData'] ?? {}),
+      };
 
       // Home Base Fallbacks
-      String? city = appData['homeBase']?['city'] ?? appData['city'];
-      String? state = appData['homeBase']?['state'] ?? appData['state'];
-      String? country = appData['homeBase']?['country'] ?? appData['country'];
+      String? city = appDataMap['homeBase']?['city'] ?? appDataMap['city'];
+      String? state = appDataMap['homeBase']?['state'] ?? appDataMap['state'];
+      String? country = appDataMap['homeBase']?['country'] ?? appDataMap['country'];
 
       if (city == null || city.isEmpty) city = vendorRootData['city']?.toString();
       if (state == null || state.isEmpty) state = vendorRootData['state']?.toString();
@@ -731,6 +737,19 @@ class EditVendorProfileController extends GetxController {
       selectedHorseLevels.assignAll(List<String>.from(appDataMap['horseLevels'] ?? vendorRootData['horseLevels'] ?? []));
       selectedRegions.assignAll(List<String>.from(appDataMap['regions'] ?? vendorRootData['regions'] ?? []));
 
+      // Migration: Load service-specific highlights
+      final List<String> loadedHighlights = List<String>.from(
+        appDataMap['experienceHighlights'] ?? 
+        profileDataMap['experienceHighlights'] ?? 
+        vendorRootData['highlights'] ?? 
+        []
+      );
+      if (loadedHighlights.isEmpty) {
+        highlightControllers.assignAll([TextEditingController()]);
+      } else {
+        highlightControllers.assignAll(loadedHighlights.map((h) => TextEditingController(text: h)).toList());
+      }
+
       final activeTypeStr = activeService['serviceType']?.toString() ?? '';
       if (activeTypeStr == 'Grooming') {
         final draftGroom = draftServicesData['grooming'] is Map
@@ -756,13 +775,13 @@ class EditVendorProfileController extends GetxController {
       _syncLocationNodes();
       // Capabilities based on service type
       if (activeService['serviceType'] == 'Grooming') {
-        final caps = draft['capabilities'] ?? profileData['capabilities'] ?? {};
+        final caps = draft['capabilities'] ?? profileDataMap['capabilities'] ?? {};
         selectedSupport.assignAll(List<String>.from(caps['support'] ?? []));
         selectedHandling.assignAll(List<String>.from(caps['handling'] ?? []));
-        selectedAdditionalSkills.assignAll(List<String>.from(draft['additionalSkills'] ?? profileData['additionalSkills'] ?? []));
+        selectedAdditionalSkills.assignAll(List<String>.from(draft['additionalSkills'] ?? profileDataMap['additionalSkills'] ?? []));
       } else if (activeService['serviceType'] == 'Braiding' || activeService['serviceType'] == 'Clipping') {
         final serviceType = activeService['serviceType'];
-        final List bServices = profileData['services'] ?? [];
+        final List bServices = profileDataMap['services'] ?? [];
         final targetList = serviceType == 'Braiding' ? braidingServices : clippingServices;
         targetList.assignAll(bServices.map((s) {
           if (s is Map) {
@@ -779,7 +798,7 @@ class EditVendorProfileController extends GetxController {
           };
         }).toList());
       } else if (activeService['serviceType'] == 'Farrier') {
-        final List fServices = profileData['services'] ?? [];
+        final List fServices = profileDataMap['services'] ?? [];
         farrierServices.assignAll(fServices.map((s) {
           if (s is Map) {
             return {
@@ -795,7 +814,7 @@ class EditVendorProfileController extends GetxController {
           };
         }).toList());
 
-        final List aServices = profileData['addOns'] ?? [];
+        final List aServices = profileDataMap['addOns'] ?? [];
         farrierAddOns.assignAll(aServices.map((s) {
           if (s is Map) {
             return {
@@ -811,12 +830,12 @@ class EditVendorProfileController extends GetxController {
           };
         }).toList());
 
-        selectedCertifications.assignAll(List<String>.from(appData['certifications'] ?? []));
-        otherCertificationController.text = (appData['otherCertification'] ?? '').toString().replaceFirst('Other:', '').trim();
-        selectedFarrierScope.assignAll(List<String>.from(appData['scopeOfWork'] ?? []));
-        otherFarrierScopeController.text = (appData['otherScopeOfWork'] ?? appData['otherScope'] ?? '').toString().replaceFirst('Other:', '').trim();
+        selectedCertifications.assignAll(List<String>.from(appDataMap['certifications'] ?? []));
+        otherCertificationController.text = (appDataMap['otherCertification'] ?? '').toString().replaceFirst('Other:', '').trim();
+        selectedFarrierScope.assignAll(List<String>.from(appDataMap['scopeOfWork'] ?? []));
+        otherFarrierScopeController.text = (appDataMap['otherScopeOfWork'] ?? appDataMap['otherScope'] ?? '').toString().replaceFirst('Other:', '').trim();
 
-        final List travelFees = profileData['travelPreferences'] ?? [];
+        final List travelFees = profileDataMap['travelPreferences'] ?? [];
         farrierTravelFees.assignAll(travelFees.map((t) => Map<String, dynamic>.from(t)).toList());
         
         // Populate selectedTravelData for UI lookup
@@ -829,10 +848,10 @@ class EditVendorProfileController extends GetxController {
           }
         }
 
-        farrierNewClientPolicy.value = appData['clientIntake']?['policy'];
-        farrierMinHorses.value = int.tryParse(appData['clientIntake']?['minHorses']?.toString() ?? '1') ?? 1;
-        farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? false;
-        final rawInsuranceStatus = appData['insuranceStatus'];
+        farrierNewClientPolicy.value = appDataMap['clientIntake']?['policy'];
+        farrierMinHorses.value = int.tryParse(appDataMap['clientIntake']?['minHorses']?.toString() ?? '1') ?? 1;
+        farrierEmergencySupport.value = appDataMap['clientIntake']?['emergencySupport'] ?? false;
+        final rawInsuranceStatus = appDataMap['insuranceStatus'];
         if (rawInsuranceStatus == 'I have professional liability insurance') {
           farrierInsuranceStatus.value = 'Carries Insurance';
         } else if (rawInsuranceStatus == 'I do not have professional liability insurance') {
@@ -845,49 +864,49 @@ class EditVendorProfileController extends GetxController {
       } else if (activeService['serviceType'] == 'Bodywork') {
           _mergeBodyworkModalities();
 
-          otherModalityController.text = appData['otherModality'] ?? profileData['otherModality'] ?? '';
+          otherModalityController.text = appDataMap['otherModality'] ?? profileDataMap['otherModality'] ?? '';
           
-          final List<String> standards = List<String>.from(profileData['professionalStandards'] ?? []);
+          final List<String> standards = List<String>.from(profileDataMap['professionalStandards'] ?? []);
           if (standards.isNotEmpty) {
             selectedBodyworkStandards.assignAll(standards);
-          } else if (appData['standards'] != null) {
-            final Map stdMap = appData['standards'] ?? {};
+          } else if (appDataMap['standards'] != null) {
+            final Map stdMap = appDataMap['standards'] ?? {};
             if (stdMap['provideSupportiveBodywork'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[0]);
             if (stdMap['refertoVet'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[1]);
             if (stdMap['vetApprovalRequired'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[2]);
             if (stdMap['operateWithinScope'] == true) selectedBodyworkStandards.add(bodyworkProfessionalStandards[3]);
           }
 
-          final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
+          final certs = List<String>.from(profileDataMap['certifications'] ?? appDataMap['certifications'] ?? []);
           bodyworkExistingCertUrls.assignAll(certs);
         } else if (activeService['serviceType'] == 'Shipping') {
-          dotNumberController.text = (profileData['usdotNumber'] ?? appData['usdotNumber'] ?? appData['businessInfo']?['dotNumber'] ?? '').toString();
-          shippingOperationType.value = profileData['operationType'] ?? appData['operationType'];
+          dotNumberController.text = (profileDataMap['usdotNumber'] ?? appDataMap['usdotNumber'] ?? appDataMap['businessInfo']?['dotNumber'] ?? '').toString();
+          shippingOperationType.value = profileDataMap['operationType'] ?? appDataMap['operationType'];
           if (shippingOperationType.value == 'Independent Small Operation') {
             shippingOperationType.value = 'Independent / Small Operation';
           }
-          shippingTravelScope.assignAll(List<String>.from(appData['travelScope'] ?? profileData['travelScope'] ?? []));
-          shippingRigTypes.assignAll(List<String>.from(appData['rigTypes'] ?? profileData['rigTypes'] ?? []));
-          shippingStallTypes.assignAll(List<String>.from(appData['stallTypes'] ?? appData['stallType'] ?? profileData['stallTypes'] ?? profileData['stallType'] ?? []));
-          shippingServicesOffered.assignAll(List<String>.from(profileData['servicesOffered'] ?? []).map((s) => s == 'Long-Distance Transport' ? 'Long distance transport' : s).toList());
-          shippingHasCDL.value = profileData['hasCDL'] ?? appData['hasCDL'] ?? false;
-          shippingRigCapacity.value = appData['rigCapacity'] ?? profileData['rigCapacity'] ?? 1;
-          final addNotes = profileData['additionalNotes']?.toString().trim() ?? '';
+          shippingTravelScope.assignAll(List<String>.from(appDataMap['travelScope'] ?? profileDataMap['travelScope'] ?? []));
+          shippingRigTypes.assignAll(List<String>.from(appDataMap['rigTypes'] ?? profileDataMap['rigTypes'] ?? []));
+          shippingStallTypes.assignAll(List<String>.from(appDataMap['stallTypes'] ?? appDataMap['stallType'] ?? profileDataMap['stallTypes'] ?? profileDataMap['stallType'] ?? []));
+          shippingServicesOffered.assignAll(List<String>.from(profileDataMap['servicesOffered'] ?? []).map((s) => s == 'Long-Distance Transport' ? 'Long distance transport' : s).toList());
+          shippingHasCDL.value = profileDataMap['hasCDL'] ?? appDataMap['hasCDL'] ?? false;
+          shippingRigCapacity.value = appDataMap['rigCapacity'] ?? profileDataMap['rigCapacity'] ?? 1;
+          final addNotes = profileDataMap['additionalNotes']?.toString().trim() ?? '';
           shippingNotesController.text =
-              addNotes.isNotEmpty ? addNotes : (profileData['notes']?.toString() ?? '');
-          shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
-          shippingExistingCDLUrl.value = profileData['cdlFile'] ?? appData['cdlDoc'] ?? appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
-          shippingCdlFileName.value = profileData['cdlFileName'] ?? appData['cdlDocName'] ?? appData['media']?['cdlDocName'] ?? 'CDL Document';
+              addNotes.isNotEmpty ? addNotes : (profileDataMap['notes']?.toString() ?? '');
+          shippingRigPhotos.assignAll(List<String>.from(profileDataMap['media']?['rigPhotos'] ?? appDataMap['media']?['rigPhotos'] ?? []));
+          shippingExistingCDLUrl.value = profileDataMap['cdlFile'] ?? appDataMap['cdlDoc'] ?? appDataMap['media']?['cdlPhoto'] ?? appDataMap['media']?['licensePhoto'] ?? profileDataMap['media']?['cdlPhoto'] ?? profileDataMap['media']?['licensePhoto'];
+          shippingCdlFileName.value = profileDataMap['cdlFileName'] ?? appDataMap['cdlDocName'] ?? appDataMap['media']?['cdlDocName'] ?? 'CDL Document';
           
-          shippingExistingInsuranceUrl.value = profileData['insuranceFile'] ?? appData['insuranceFile'] ?? appData['media']?['insurance'] ?? appData['media']?['dotCopy'];
-          shippingInsuranceFileName.value = profileData['insuranceFileName'] ?? appData['insuranceFileName'] ?? appData['media']?['insuranceFileName'] ?? 'Insurance Document';
-          insuranceExpiryController.text = profileData['insuranceExpiry'] ?? appData['insuranceExpiry'] ?? '';
+          shippingExistingInsuranceUrl.value = profileDataMap['insuranceFile'] ?? appDataMap['insuranceFile'] ?? appDataMap['media']?['insurance'] ?? appDataMap['media']?['dotCopy'];
+          shippingInsuranceFileName.value = profileDataMap['insuranceFileName'] ?? appDataMap['insuranceFileName'] ?? appDataMap['media']?['insuranceFileName'] ?? 'Insurance Document';
+          insuranceExpiryController.text = profileDataMap['insuranceExpiry'] ?? appDataMap['insuranceExpiry'] ?? '';
           
-          experience.value = appData['experience']?.toString();
-          selectedRegions.assignAll(List<String>.from(appData['regions'] ?? []));
+          experience.value = appDataMap['experience']?.toString();
+          selectedRegions.assignAll(List<String>.from(appDataMap['regions'] ?? []));
         }
 
-      final travelPrefRaw = draft['travelPreferences'] ?? profileData['travelPreferences'] ?? [];
+      final travelPrefRaw = draft['travelPreferences'] ?? profileDataMap['travelPreferences'] ?? [];
       if (travelPrefRaw is List) {
         if (activeService['serviceType'] == 'Bodywork') {
           final Map<String, Map<String, dynamic>> travelMap = {};
@@ -915,7 +934,7 @@ class EditVendorProfileController extends GetxController {
         }
       }
       
-      final cp = draft['cancellationPolicy'] ?? profileData['cancellationPolicy'];
+      final cp = draft['cancellationPolicy'] ?? profileDataMap['cancellationPolicy'];
       hydrateCancellationPolicyFrom(cp);
       
       // Populate service-specific photos (profile, draft, list application media, VendorModel subdoc)
@@ -1432,6 +1451,7 @@ class EditVendorProfileController extends GetxController {
       'otherDiscipline': otherDisciplineController.text,
       'horseLevels': selectedHorseLevels.toList(),
       'regions': selectedRegions.toList(),
+      'experienceHighlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
     };
 
     final Map<String, dynamic> profData = {

@@ -79,6 +79,7 @@ class GroomViewProfileController extends GetxController {
   String get businessNameDisplay => vendorData['businessName'] ?? 'N/A';
   String get bioDisplay => vendorData['bio'] ?? 'No bio provided.';
   String get activeServiceType => _activeService?['serviceType'] ?? 'N/A';
+  List<String> get highlights => List<String>.from(vendorData['highlights'] ?? []);
 
   // Shipping Getters
   String get shippingBaseRate {
@@ -640,24 +641,24 @@ class GroomViewProfileController extends GetxController {
   }
 
   // Experience Highlights
-  List<String> get highlights {
-    final List<String> vh = List<String>.from(vendorData['highlights'] ?? []);
-    if (vh.isNotEmpty) return vh;
-
-    final List<String> ah = List<String>.from(
-      _activeApplicationData['highlights'] ??
-          _activeApplicationData['additionalSkills'] ??
-          [],
-    );
-    if (ah.isNotEmpty) return ah;
-
-    final List<String> ph = List<String>.from(
-      activeProfileData['highlights'] ??
-          activeProfileData['additionalSkills'] ??
-          [],
-    );
-    return ph;
-  }
+  // List<String> get highlights {
+  //   final List<String> vh = List<String>.from(vendorData['highlights'] ?? []);
+  //   if (vh.isNotEmpty) return vh;
+  //
+  //   final List<String> ah = List<String>.from(
+  //     _activeApplicationData['highlights'] ??
+  //         _activeApplicationData['additionalSkills'] ??
+  //         [],
+  //   );
+  //   if (ah.isNotEmpty) return ah;
+  //
+  //   final List<String> ph = List<String>.from(
+  //     activeProfileData['highlights'] ??
+  //         activeProfileData['additionalSkills'] ??
+  //         [],
+  //   );
+  //   return ph;
+  // }
 
   // Combined Media
   List<String> get allMedia => {

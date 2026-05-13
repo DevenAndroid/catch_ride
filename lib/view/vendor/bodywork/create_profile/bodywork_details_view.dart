@@ -38,228 +38,233 @@ class BodyworkDetailsView extends StatelessWidget {
             onPressed: () => Get.back(),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGroupedSection(
-                'Bodywork Services',
-                description: 'Select all services you provide and are qualified to provide.',
-                children: [
-                  Obx(() {
-                    if (controller.isLoadingServices.value) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    return Column(
-                      children: controller.services.map((service) => _buildServiceItem(service)).toList(),
-                    );
-                  }),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              _buildGroupedSection(
-                'Certification',
-                description: 'Upload any relevant certifications or licenses for your services.',
-                children: [
-                  const CommonText('Upload Certificate', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                  const SizedBox(height: 12),
-                  _buildUploadBox(
-                    onTap: controller.pickCertification,
-                  ),
-                  Obx(() => Column(
-                    children: [
-                      ...controller.certificationUrls.asMap().entries.map((entry) => _buildFileItem(
-                        url: entry.value,
-                        onRemove: () => controller.certificationUrls.removeAt(entry.key),
-                      )),
-                      ...controller.certifications.asMap().entries.map((entry) => _buildFileItem(
-                        file: entry.value,
-                        onRemove: () => controller.removeCertification(entry.key),
-                      )),
-                    ],
-                  )),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              _buildGroupedSection(
-                'Insurance Status',
-                description: 'Insurance may be required for certain services or venues. Documentation may be reviewed as part of approval',
-                children: [
-                  Obx(() => Column(
-                    children: controller.insuranceOptions.map((opt) => _buildRadioItem(
-                      title: opt,
-                      isSelected: controller.selectedInsurance.value == opt,
-                      onTap: () => controller.selectedInsurance.value = opt,
-                    )).toList(),
-                  )),
-                  const SizedBox(height: 16),
-                  Obx(() {
-                    if (controller.selectedInsurance.value == 'Carries Insurance') {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const CommonText('Current Insurance Document', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                          const SizedBox(height: 12),
-                          if (controller.insuranceDocument.value == null && controller.insuranceDocumentUrl.value == null)
-                            _buildUploadBox(onTap: controller.pickInsuranceDoc)
-                          else
-                            _buildFileItem(
-                              file: controller.insuranceDocument.value,
-                              url: controller.insuranceDocumentUrl.value,
-                              onRemove: () {
-                                controller.insuranceDocument.value = null;
-                                controller.insuranceDocumentUrl.value = null;
-                                controller.insuranceDocumentName.value = null;
-                              },
-                            ),
-                          const SizedBox(height: 16),
-                          _buildSectionHeader('Expiration date', isRequired: true),
-                          _buildDatePickerTrigger(
-                            value: controller.expirationDate.value != null
-                                ? DateFormat('MMMM d, yyyy').format(controller.expirationDate.value!)
-                                : 'Select date',
-                            onTap: () => controller.selectExpirationDate(context),
+        body: RefreshIndicator(
+          onRefresh: ()async{
+            controller.fetchBodyworkData();
+          },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildGroupedSection(
+                  'Bodywork Services',
+                  description: 'Select all services you provide and are qualified to provide.',
+                  children: [
+                    Obx(() {
+                      if (controller.isLoadingServices.value) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: CircularProgressIndicator(),
                           ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              _buildGroupedSection(
-                'Travel Preferences',
-                description: 'Select how far you are willing to travel for services.',
-                children: [
-                  Obx(() => Column(
-                    children: controller.travelOptions.map((opt) {
-                      final details = controller.selectedTravel[opt];
-                      String? summary;
-                      if (details != null) {
-                        summary = '${details['feeType']}';
-                        if (details['price'].toString().isNotEmpty) summary += ': \$${details['price']}';
+                        );
                       }
-                      return _buildCheckItem(
-                        title: opt,
-                        isSelected: controller.selectedTravel.containsKey(opt),
-                        subTitle: summary,
-                        onTap: () {
-                          if (controller.selectedTravel.containsKey(opt)) {
-                            controller.selectedTravel.remove(opt);
-                          } else {
-                            _showTravelPreferenceBottomSheet(opt);
-                          }
-                        },
+                      return Column(
+                        children: controller.services.map((service) => _buildServiceItem(service)).toList(),
                       );
-                    }).toList(),
-                  )),
-                ],
-              ),
-              const SizedBox(height: 24),
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
-              _buildSummaryItem('Location', controller.location.value),
-              const SizedBox(height: 24),
-              _buildEditableExperience(controller),
-              const SizedBox(height: 24),
-              _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
-              const SizedBox(height: 24),
-              _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
-              const SizedBox(height: 24),
-              _buildEditableRegions(controller),
-              const SizedBox(height: 24),
-
-              _buildGroupedSection(
-                'Cancellation Policy',
-                description: 'Set your cancellation preference for bookings.',
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.borderLight),
+                _buildGroupedSection(
+                  'Certification',
+                  description: 'Upload any relevant certifications or licenses for your services.',
+                  children: [
+                    const CommonText('Upload Certificate', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 12),
+                    _buildUploadBox(
+                      onTap: controller.pickCertification,
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: Obx(() {
-                        final raw = controller.selectedCancellationPolicy.value;
-                        final canonical = BodyworkDetailsController
-                            .canonicalCancellationPreset(raw);
-                        final ok =
-                            canonical != null && !controller.isCustomPolicy.value;
-                        return DropdownButton<String>(
-                          value: ok ? canonical : null,
-                          hint: const CommonText('Select Cancellation Policy',
-                              color: AppColors.textSecondary,
-                              fontSize: AppTextSizes.size14),
-                          isExpanded: true,
-                          icon: const Icon(Icons.keyboard_arrow_down,
-                              color: AppColors.textSecondary),
-                          items: BodyworkDetailsController.cancellationPolicyOptions
-                              .map((v) => DropdownMenuItem(
-                                  value: v, child: CommonText(v)))
-                              .toList(),
-                          onChanged: (val) {
-                            if (val == null) return;
-                            controller.isCustomPolicy.value = false;
-                            controller.selectedCancellationPolicy.value = val;
+                    Obx(() => Column(
+                      children: [
+                        ...controller.certificationUrls.asMap().entries.map((entry) => _buildFileItem(
+                          url: entry.value,
+                          onRemove: () => controller.certificationUrls.removeAt(entry.key),
+                        )),
+                        ...controller.certifications.asMap().entries.map((entry) => _buildFileItem(
+                          file: entry.value,
+                          onRemove: () => controller.removeCertification(entry.key),
+                        )),
+                      ],
+                    )),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                _buildGroupedSection(
+                  'Insurance Status',
+                  description: 'Insurance may be required for certain services or venues. Documentation may be reviewed as part of approval',
+                  children: [
+                    Obx(() => Column(
+                      children: controller.insuranceOptions.map((opt) => _buildRadioItem(
+                        title: opt,
+                        isSelected: controller.selectedInsurance.value == opt,
+                        onTap: () => controller.selectedInsurance.value = opt,
+                      )).toList(),
+                    )),
+                    const SizedBox(height: 16),
+                    Obx(() {
+                      if (controller.selectedInsurance.value == 'Carries Insurance') {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const CommonText('Current Insurance Document', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                            const SizedBox(height: 12),
+                            if (controller.insuranceDocument.value == null && controller.insuranceDocumentUrl.value == null)
+                              _buildUploadBox(onTap: controller.pickInsuranceDoc)
+                            else
+                              _buildFileItem(
+                                file: controller.insuranceDocument.value,
+                                url: controller.insuranceDocumentUrl.value,
+                                onRemove: () {
+                                  controller.insuranceDocument.value = null;
+                                  controller.insuranceDocumentUrl.value = null;
+                                  controller.insuranceDocumentName.value = null;
+                                },
+                              ),
+                            const SizedBox(height: 16),
+                            _buildSectionHeader('Expiration date', isRequired: true),
+                            _buildDatePickerTrigger(
+                              value: controller.expirationDate.value != null
+                                  ? DateFormat('MMMM d, yyyy').format(controller.expirationDate.value!)
+                                  : 'Select date',
+                              onTap: () => controller.selectExpirationDate(context),
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                _buildGroupedSection(
+                  'Travel Preferences',
+                  description: 'Select how far you are willing to travel for services.',
+                  children: [
+                    Obx(() => Column(
+                      children: controller.travelOptions.map((opt) {
+                        final details = controller.selectedTravel[opt];
+                        String? summary;
+                        if (details != null) {
+                          summary = '${details['feeType']}';
+                          if (details['price'].toString().isNotEmpty) summary += ': \$${details['price']}';
+                        }
+                        return _buildCheckItem(
+                          title: opt,
+                          isSelected: controller.selectedTravel.containsKey(opt),
+                          subTitle: summary,
+                          onTap: () {
+                            if (controller.selectedTravel.containsKey(opt)) {
+                              controller.selectedTravel.remove(opt);
+                            } else {
+                              _showTravelPreferenceBottomSheet(opt);
+                            }
                           },
                         );
-                      }),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Obx(() => Row(
-                    children: [
-                      Checkbox(
-                        value: controller.isCustomPolicy.value,
-                        onChanged: (val) {
-                          if (val == null) return;
-                          controller.isCustomPolicy.value = val;
-                          if (val) {
-                            controller.selectedCancellationPolicy.value = null;
-                          }
-                        },
-                        activeColor: const Color(0xFF001149),
-                        side: const BorderSide(color: AppColors.borderMedium, width: 1.5),
-                      ),
-                      const CommonText('Custom', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500),
-                    ],
-                  )),
-                  Obx(() {
-                    if (controller.isCustomPolicy.value) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: CommonTextField(
-                          label: '',
-                          controller: controller.customCancellationController,
-                          hintText: 'Enter your custom cancellation policy details...',
-                          maxLines: 3,
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
-              ),
-              const SizedBox(height: 32),
+                      }).toList(),
+                    )),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
-              Obx(() => CommonButton(
-                text: 'Continue',
-                isLoading: controller.isLoading.value,
-                onPressed: controller.submitDetails,
-                backgroundColor: const Color(0xFF001149),
-              )),
-              const SizedBox(height: 24),
-            ],
+                Obx(() => _buildSummaryItem('Location', controller.location.value)),
+                const SizedBox(height: 24),
+                _buildEditableExperience(controller),
+                const SizedBox(height: 24),
+                _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
+                const SizedBox(height: 24),
+                _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
+                const SizedBox(height: 24),
+                _buildEditableRegions(controller),
+                const SizedBox(height: 24),
+
+                _buildGroupedSection(
+                  'Cancellation Policy',
+                  description: 'Set your cancellation preference for bookings.',
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.borderLight),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: Obx(() {
+                          final raw = controller.selectedCancellationPolicy.value;
+                          final canonical = BodyworkDetailsController
+                              .canonicalCancellationPreset(raw);
+                          final ok =
+                              canonical != null && !controller.isCustomPolicy.value;
+                          return DropdownButton<String>(
+                            value: ok ? canonical : null,
+                            hint: const CommonText('Select Cancellation Policy',
+                                color: AppColors.textSecondary,
+                                fontSize: AppTextSizes.size14),
+                            isExpanded: true,
+                            icon: const Icon(Icons.keyboard_arrow_down,
+                                color: AppColors.textSecondary),
+                            items: BodyworkDetailsController.cancellationPolicyOptions
+                                .map((v) => DropdownMenuItem(
+                                    value: v, child: CommonText(v)))
+                                .toList(),
+                            onChanged: (val) {
+                              if (val == null) return;
+                              controller.isCustomPolicy.value = false;
+                              controller.selectedCancellationPolicy.value = val;
+                            },
+                          );
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Obx(() => Row(
+                      children: [
+                        Checkbox(
+                          value: controller.isCustomPolicy.value,
+                          onChanged: (val) {
+                            if (val == null) return;
+                            controller.isCustomPolicy.value = val;
+                            if (val) {
+                              controller.selectedCancellationPolicy.value = null;
+                            }
+                          },
+                          activeColor: const Color(0xFF001149),
+                          side: const BorderSide(color: AppColors.borderMedium, width: 1.5),
+                        ),
+                        const CommonText('Custom', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w500),
+                      ],
+                    )),
+                    Obx(() {
+                      if (controller.isCustomPolicy.value) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: CommonTextField(
+                            label: '',
+                            controller: controller.customCancellationController,
+                            hintText: 'Enter your custom cancellation policy details...',
+                            maxLines: 3,
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                Obx(() => CommonButton(
+                  text: 'Continue',
+                  isLoading: controller.isLoading.value,
+                  onPressed: controller.submitDetails,
+                  backgroundColor: const Color(0xFF001149),
+                )),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
