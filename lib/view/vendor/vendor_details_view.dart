@@ -409,8 +409,6 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
       );
     }
 
-    // TabBar requires controller.length == tabs.length in the same frame;
-    // [_setupTabController] resizes on the next frame — avoid building TabBar until then.
     if (_tabController.length != services.length) {
       _setupTabController(services.length);
       return const SizedBox(height: 48);

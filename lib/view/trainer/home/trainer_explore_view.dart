@@ -47,10 +47,6 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
   @override
   void initState() {
     super.initState();
-    // Only fetch if we don't have data already to avoid flickering on tab switch
-    if (controller.horses.isEmpty && controller.vendors.isEmpty) {
-      controller.fetchHorses();
-    }
   }
 
   @override
