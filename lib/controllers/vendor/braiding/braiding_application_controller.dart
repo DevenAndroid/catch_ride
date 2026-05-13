@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:collection/collection.dart';
+import 'package:catch_ride/utils/vendor_setup_application_payload.dart';
 
 class BraidingApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -193,39 +194,22 @@ class BraidingApplicationController extends GetxController {
       final authController = Get.put(AuthController());
       final commonCtrl = Get.find<CommonApplicationController>();
       
-      // Prepare Data
       final applicationData = {
         'fullName': commonCtrl.fullNameController.text,
-        'phone': authController.currentUser.value?.phone ?? '', 
+        'phone': authController.currentUser.value?.phone ?? '',
         'whyJoin': commonCtrl.joinCommunityController.text,
-        'homeBase': {
-          'country': commonCtrl.countryController.text,
-          'state': commonCtrl.selectedState.value?['name'],
-          'city': commonCtrl.selectedCity.value?['name'],
-        },
+        'homeBase': vendorHomeBaseFromCommon(commonCtrl),
         'experience': experience.value,
-        'disciplines': selectedDisciplines.toList(),
+        'desciplines': selectedDisciplines.toList(),
         'otherDiscipline': otherDisciplineController.text,
-        'horseLevels': selectedHorseLevels.toList(),
-        'regions': selectedRegions.toList(),
-        'references': [
-          {
-            'fullName': commonCtrl.ref1FullNameController.text,
-            'businessName': commonCtrl.ref1BusinessNameController.text,
-            'relationship': commonCtrl.ref1RelationshipController.text,
-            'phone': commonCtrl.ref1PhoneController.text,
-          },
-          {
-            'fullName': commonCtrl.ref2FullNameController.text,
-            'businessName': commonCtrl.ref2BusinessNameController.text,
-            'relationship': commonCtrl.ref2RelationshipController.text,
-            'phone': commonCtrl.ref2PhoneController.text,
-          }
-        ],
-        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'typicalLevelOfHorses': selectedHorseLevels.toList(),
+        'regionsCovered': selectedRegions.toList(),
+        'professionalReferences': vendorProfessionalReferencesFromCommon(commonCtrl),
+        'experienceHighlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'facebookLink': facebookController.text,
+        'instagramLink': instagramController.text,
       };
 
-      // 3. Upload Photos
       final List<String> photoKeys = [];
       for (var photo in photos) {
         final key = await _uploadPhoto(photo);
@@ -233,12 +217,7 @@ class BraidingApplicationController extends GetxController {
       }
       applicationData['media'] = photoKeys;
 
-      final profileData = {
-        'socialMedia': {
-          'facebook': facebookController.text,
-          'instagram': instagramController.text,
-        }
-      };
+      final profileData = <String, dynamic>{};
 
       final response = await apiService.postRequest('/vendors/setup-service', {
         'serviceType': 'Braiding',

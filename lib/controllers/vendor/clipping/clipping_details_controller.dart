@@ -349,13 +349,11 @@ class ClippingDetailsController extends GetxController {
           'isCustom': isCustomCancellation.value,
           'customText': customCancellationController.text,
         },
-        'isProfileCompleted': true,
       };
 
       final body = {
         'servicesData': existingServicesData,
         'isProfileSetup': true,
-        'isProfileCompleted': true,
       };
 
       final response = await apiService.putRequest('/vendors/me', body);

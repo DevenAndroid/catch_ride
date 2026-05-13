@@ -16,15 +16,16 @@ class AppUrls {
   }
 
   static String get baseUrl {
-    try {
-      if (isLive) return 'https://api.catchrideapp.com/api';
-    } catch (_) {}
+    if (isLive) return 'https://api.catchrideapp.com/api';
 
-
-    // return 'http://$host:5000/api';
-  // return '$host/api';
-    return 'http://$host:5000/api';
-
+    // Ngrok terminates TLS on 443 and forwards to your local :5000 — the public URL
+    // must not include :5000 on the tunnel hostname or requests can hang until timeout.
+    // For a device hitting a machine-only API, use e.g. `http://$host:5000/api` instead.
+    final String origin =
+        devTunnelOrigin.endsWith('/')
+            ? devTunnelOrigin.substring(0, devTunnelOrigin.length - 1)
+            : devTunnelOrigin;
+    return '$origin/api';
   }
 
   static String get socketUrl {

@@ -69,7 +69,6 @@ class VendorAvailabilityController extends GetxController {
          'compliance': {
            'acceptingRequests': value,
          },
-         'isProfileCompleted': true,
          'isProfileSetup': true,
        });
     } catch (e) {

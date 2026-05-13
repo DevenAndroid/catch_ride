@@ -629,7 +629,6 @@ class BodyworkDetailsController extends GetxController {
           'isCustom': isCustomPolicy.value,
           'customText': customCancellationController.text,
         },
-        'isProfileCompleted': true,
       };
 
       // Update applicationData with new selections
@@ -650,7 +649,6 @@ class BodyworkDetailsController extends GetxController {
       final body = {
         'servicesData': existingServicesData,
         'isProfileSetup': true,
-        'isProfileCompleted': true,
       };
 
       final response = await apiService.putRequest('/vendors/me', body);

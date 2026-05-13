@@ -13,6 +13,7 @@ import 'package:catch_ride/view/vendor/braiding/profile_create/braiding_applicat
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_application_view.dart';
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_application_view.dart';
+import 'package:catch_ride/utils/vendor_setup_application_payload.dart';
 
 class ShippingApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -181,57 +182,42 @@ class ShippingApplicationController extends GetxController {
       }
 
       final commonCtrl = Get.find<CommonApplicationController>();
-      // 2. Build Payload
-      final applicationData = {
+      final applicationData = <String, dynamic>{
         'fullName': commonCtrl.fullNameController.text,
         'bio': commonCtrl.joinCommunityController.text,
-        'homeBase': {
-          'country': commonCtrl.countryController.text,
-          'state': commonCtrl.selectedState.value?['name'],
-          'city': commonCtrl.selectedCity.value?['name'],
-        },
-        'businessInfo': {
+        'whyJoin': commonCtrl.joinCommunityController.text,
+        'homeBase': vendorHomeBaseFromCommon(commonCtrl),
+        'businessInformation': {
           'legalName': legalNameController.text,
           'usdotNumber': dotNumberController.text,
         },
         'experience': experience.value,
         'operationType': operationType.value,
         'travelScope': selectedTravelScope.toList(),
-        'regions': selectedRegions.toList(),
-        'rigTypes': selectedRigTypes.toList(),
-        'stallTypes': selectedStallTypes.toList(),
-        'rigCapacity': rigCapacity.value,
-        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
-        'references': [
-          {
-            'fullName': commonCtrl.ref1FullNameController.text,
-            'businessName': commonCtrl.ref1BusinessNameController.text,
-            'relationship': commonCtrl.ref1RelationshipController.text,
-            'phone': commonCtrl.ref1PhoneController.text,
-          },
-          {
-            'fullName': commonCtrl.ref2FullNameController.text,
-            'businessName': commonCtrl.ref2BusinessNameController.text,
-            'relationship': commonCtrl.ref2RelationshipController.text,
-            'phone': commonCtrl.ref2PhoneController.text,
-          }
-        ],
-        'media': {
-          'insurance': insuranceUrl,
-          'licensePhoto': licenseUrl,
-          'rigPhotos': rigPhotoUrls,
+        'regionsCovered': selectedRegions.toList(),
+        'rigType': selectedRigTypes.toList(),
+        'stallType': selectedStallTypes.toList(),
+        'horseCapacity': rigCapacity.value,
+        'experienceHighlights':
+            highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'professionalReferences': vendorProfessionalReferencesFromCommon(commonCtrl),
+        'facebookLink': facebookController.text,
+        'instagramLink': instagramController.text,
+        'media': rigPhotoUrls,
+        'insurance': {
+          'file': insuranceUrl != null ? [insuranceUrl] : <String>[],
+          'insuranceStatus': '',
+          'expirationDate': null,
         },
-        'socialMedia': {
-          'facebook': facebookController.text,
-          'instagram': instagramController.text,
-        }
+        'driverCredentials': {
+          'file': licenseUrl != null ? [licenseUrl] : <String>[],
+        },
       };
 
-      // 3. API Call
       final response = await apiService.postRequest('/vendors/setup-service', {
         'serviceType': 'Shipping',
         'applicationData': applicationData,
-        'profileData': {
+        'profileData': <String, dynamic>{
           'bio': commonCtrl.joinCommunityController.text,
           'isProfileSetup': true,
         },

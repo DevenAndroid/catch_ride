@@ -642,14 +642,12 @@ class ShippingDetailsController extends GetxController {
       profileData['regionsCovered'] = regionsCovered.toList();
 
       currentShipping['profileData'] = profileData;
-      currentShipping['isProfileCompleted'] = true;
 
       existingServicesData['shipping'] = currentShipping;
 
       final body = {
         'servicesData': existingServicesData,
         'isProfileSetup': true,
-        'isProfileCompleted': true,
       };
 
       // 3. API Call

@@ -729,12 +729,10 @@ class GroomViewProfileController extends GetxController {
             ...existingProfile,
             'services': services
         },
-        'isProfileCompleted': true,
       };
 
       final payload = {
         'servicesData': existingServicesData,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
@@ -789,12 +787,10 @@ class GroomViewProfileController extends GetxController {
             ...existingProfile,
             'services': services
         },
-        'isProfileCompleted': true,
       };
 
       final payload = {
         'servicesData': existingServicesData,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
@@ -857,12 +853,10 @@ class GroomViewProfileController extends GetxController {
                 'price': s['price']?.toString().replaceAll(',', '') ?? '0'
             }).toList()
         },
-        'isProfileCompleted': true,
       };
 
       final payload = {
         'servicesData': existingServicesData,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
@@ -930,12 +924,10 @@ class GroomViewProfileController extends GetxController {
                   'rates': (s['rates'] as Map).map((key, value) => MapEntry(key, value?.toString().replaceAll(',', '') ?? '0'))
             }).toList()
         },
-        'isProfileCompleted': true,
       };
 
       final payload = {
         'servicesData': existingServicesData,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(
@@ -1016,12 +1008,10 @@ class GroomViewProfileController extends GetxController {
           },
           'additionalServices': additional,
         },
-        'isProfileCompleted': true,
       };
 
       final payload = {
         'servicesData': existingServicesData,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
       final response = await _apiService.putRequest(

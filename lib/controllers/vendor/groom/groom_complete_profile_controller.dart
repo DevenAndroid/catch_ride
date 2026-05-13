@@ -233,7 +233,6 @@ class GroomCompleteProfileController extends GetxController {
         'otherPaymentDetails': otherPaymentController.text,
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'notesForTrainer': notesForTrainerController.text,
-        'isProfileCompleted': true,
         'isProfileSetup': true,
       };
 

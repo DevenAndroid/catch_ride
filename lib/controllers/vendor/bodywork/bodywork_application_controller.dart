@@ -13,6 +13,7 @@ import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_applicat
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_application_view.dart';
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_application_view.dart';
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/utils/vendor_setup_application_payload.dart';
 
 class BodyworkApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -295,77 +296,57 @@ class BodyworkApplicationController extends GetxController {
     isSubmitting.value = true;
     try {
       final commonCtrl = Get.find<CommonApplicationController>();
-      final applicationData = {
-        'fullName': commonCtrl.fullNameController.text,
-        'phone': authController.currentUser.value?.phone ?? '', 
-        'whyJoin': commonCtrl.joinCommunityController.text,
-        'homeBase': {
-          'country': commonCtrl.countryController.text,
-          'state': commonCtrl.selectedState.value?['name'],
-          'city': commonCtrl.selectedCity.value?['name'],
-        },
-        'experience': experience.value,
-        'modalities': selectedModalities.toList(),
-        'otherModality': otherModalityController.text,
-        'insurance': {
-          'status': selectedInsurance.value,
-          'expiryDate': insuranceExpiry.value,
-        },
-        'disciplines': selectedDisciplines.toList(),
-        'otherDiscipline': otherDisciplineController.text,
-        'horseLevels': selectedHorseLevels.toList(),
-        'regions': selectedRegions.toList(),
-        'references': [
-          {
-            'fullName': commonCtrl.ref1FullNameController.text,
-            'businessName': commonCtrl.ref1BusinessNameController.text,
-            'relationship': commonCtrl.ref1RelationshipController.text,
-            'phone': commonCtrl.ref1PhoneController.text,
-          },
-          {
-            'fullName': commonCtrl.ref2FullNameController.text,
-            'businessName': commonCtrl.ref2BusinessNameController.text,
-            'relationship': commonCtrl.ref2RelationshipController.text,
-            'phone': commonCtrl.ref2PhoneController.text,
-          }
-        ],
-        'highlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
-        'standards': {
-           'provideSupportiveBodywork': confirmSupportiveBodywork.value,
-           'refertoVet': confirmReferToVet.value,
-           'vetApprovalRequired': confirmVetApproval.value,
-           'operateWithinScope': confirmWithinScope.value,
-        }
-      };
 
       final List<String> photoKeys = [];
       for (var photo in photos) {
         final key = await _uploadPhoto(photo);
         if (key != null) photoKeys.add(key);
       }
-      applicationData['media'] = photoKeys;
 
       final List<String> certificateKeys = [];
       for (var cert in certificates) {
         final key = await _uploadCertificate(cert);
         if (key != null) certificateKeys.add(key);
       }
-      applicationData['certifications'] = certificateKeys;
 
+      final List<String> insuranceFileKeys = [];
       if (insuranceFile.value != null) {
         final key = await _uploadCertificate(insuranceFile.value!);
-        if (key != null) {
-          final insuranceData = applicationData['insurance'] as Map<String, dynamic>;
-          insuranceData['document'] = key;
-        }
+        if (key != null) insuranceFileKeys.add(key);
       }
 
-      final profileData = {
-        'socialMedia': {
-          'facebook': facebookController.text,
-          'instagram': instagramController.text,
-        }
+      final applicationData = <String, dynamic>{
+        'fullName': commonCtrl.fullNameController.text,
+        'phone': authController.currentUser.value?.phone ?? '',
+        'whyJoin': commonCtrl.joinCommunityController.text,
+        'homeBase': vendorHomeBaseFromCommon(commonCtrl),
+        'experience': experience.value,
+        'modalityOffered': selectedModalities.toList(),
+        'otherModality': otherModalityController.text,
+        'desciplines': selectedDisciplines.toList(),
+        'otherDiscipline': otherDisciplineController.text,
+        'typicalLevelOfHorses': selectedHorseLevels.toList(),
+        'regionsCovered': selectedRegions.toList(),
+        'professionalReferences': vendorProfessionalReferencesFromCommon(commonCtrl),
+        'experienceHighlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'facebookLink': facebookController.text,
+        'instagramLink': instagramController.text,
+        'certification': certificateKeys,
+        'insurance': {
+          'file': insuranceFileKeys,
+          'insuranceStatus': selectedInsurance.value ?? '',
+          'expirationDate': insuranceExpiry.value ?? '',
+        },
+        'media': photoKeys,
+        'standards': {
+          'provideSupportiveBodywork': confirmSupportiveBodywork.value,
+          'refertoVet': confirmReferToVet.value,
+          'vetApprovalRequired': confirmVetApproval.value,
+          'operateWithinScope': confirmWithinScope.value,
+        },
       };
+
+      final profileData = <String, dynamic>{};
 
       final response = await apiService.postRequest('/vendors/setup-service', {
         'serviceType': 'Bodywork',
