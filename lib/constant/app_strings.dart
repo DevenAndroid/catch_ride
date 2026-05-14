@@ -112,6 +112,8 @@ class AppStrings {
   static const String selectYourRole = 'Select your role';
   static const String sellingLeasing = 'Selling / Leasing';
   static const String sendBookingRequest = 'Send booking request';
+  static const String availabilityFullyBookedHorses =
+      'All horse spaces are already booked for this location and date. Please choose different dates or another location.';
   static const String serviceProvider = 'Service Provider';
   static const String sent = 'Sent';
   static const String sentBookings = 'Sent Bookings';

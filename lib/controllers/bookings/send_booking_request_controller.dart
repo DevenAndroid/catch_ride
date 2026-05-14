@@ -1,3 +1,4 @@
+import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/controllers/booking_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
@@ -13,6 +14,8 @@ class SendBookingRequestController extends GetxController {
   final RxMap vendorData = {}.obs;
   final RxString selectedService = ''.obs;
   final RxList availabilityList = [].obs;
+  final RxList<Map<String, dynamic>> acceptedBookingWindows =
+      <Map<String, dynamic>>[].obs;
   final RxBool isLoadingAvailability = false.obs;
   final RxBool isSending = false.obs;
 
@@ -387,7 +390,156 @@ class SendBookingRequestController extends GetxController {
 
       // Fetch availability to populate locations
       fetchAvailability();
+
+      ever<String?>(selectedLocation, (_) => _clampHorseSelectionToCapacity());
+      ever<String?>(selectedOrigin, (_) => _clampHorseSelectionToCapacity());
+      ever<DateTime?>(startDate, (_) => _clampHorseSelectionToCapacity());
+      ever<DateTime?>(endDate, (_) => _clampHorseSelectionToCapacity());
     }
+  }
+
+  void _clampHorseSelectionToCapacity() {
+    final loc = isShipping ? selectedOrigin.value : selectedLocation.value;
+    final opts = getHorseOptionsForLocation(loc);
+    final cur = selectedNumHorses.value;
+    if (cur != null && !opts.contains(cur)) {
+      selectedNumHorses.value = null;
+    }
+  }
+
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// Mongo `dayOfWeek`: 0 = Sunday … 6 = Saturday (matches JS `Date#getDay`).
+  int _mongoDayOfWeek(DateTime d) => d.weekday == DateTime.sunday ? 0 : d.weekday;
+
+  bool _iterCalendarDaysInRange(DateTime start, DateTime end, bool Function(DateTime day) test) {
+    var cur = _dateOnly(start);
+    final last = _dateOnly(end);
+    while (!cur.isAfter(last)) {
+      if (test(cur)) return true;
+      cur = cur.add(const Duration(days: 1));
+    }
+    return false;
+  }
+
+  bool _dayWithinSlotWindow(DateTime day, Map avail) {
+    DateTime? p(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString());
+    }
+
+    final slotStart = p(avail['startDate']) ?? p(avail['specificDate']);
+    final slotEnd = p(avail['endDate']) ?? slotStart;
+    if (slotStart == null) return true;
+    final d = _dateOnly(day);
+    final s = _dateOnly(slotStart);
+    final e = slotEnd != null ? _dateOnly(slotEnd) : s;
+    return !d.isBefore(s) && !d.isAfter(e);
+  }
+
+  /// Whether [avail] overlaps the selected booking range (inclusive calendar days).
+  bool _availabilityOverlapsSelectedDates(dynamic avail) {
+    if (avail is! Map) return false;
+    if (startDate.value == null || endDate.value == null) return true;
+
+    final ls = _dateOnly(startDate.value!);
+    final le = _dateOnly(endDate.value!);
+
+    final type = (avail['availabilityType'] ?? '').toString();
+    final specific = avail['specificDate'];
+    if (type == 'one-time' && specific != null) {
+      final sd = DateTime.tryParse(specific.toString());
+      if (sd == null) return false;
+      final one = _dateOnly(sd);
+      return !one.isBefore(ls) && !one.isAfter(le);
+    }
+
+    if (type == 'recurring' && avail['dayOfWeek'] != null) {
+      final dow = int.tryParse(avail['dayOfWeek'].toString());
+      if (dow == null) return false;
+      return _iterCalendarDaysInRange(ls, le, (d) {
+        if (_mongoDayOfWeek(d) != dow) return false;
+        return _dayWithinSlotWindow(d, avail);
+      });
+    }
+
+    final s0 = avail['startDate'] != null ? DateTime.tryParse(avail['startDate'].toString()) : null;
+    final s1 = avail['endDate'] != null ? DateTime.tryParse(avail['endDate'].toString()) : null;
+    if (s0 == null) return true;
+    final slotA = _dateOnly(s0);
+    final slotB = s1 != null ? _dateOnly(s1) : slotA;
+    return !ls.isAfter(slotB) && !le.isBefore(slotA);
+  }
+
+  List<dynamic> _availabilityRowsForLocationAndDates(String? locationName) {
+    if (locationName == null ||
+        locationName.contains('(Home)') ||
+        locationName == 'Other') {
+      return const [];
+    }
+
+    return availabilityList.where((avail) {
+      if (avail is! Map) return false;
+      if (avail['isTrip'] == true) return false;
+      if (!_isLocationMatch(avail, locationName)) return false;
+      return _availabilityOverlapsSelectedDates(avail);
+    }).toList();
+  }
+
+  int _parseMaxHorses(Map avail) {
+    final raw = avail['maxBookings'] ?? avail['maxHorses'];
+    final v = int.tryParse(raw?.toString() ?? '1') ?? 1;
+    return v < 1 ? 1 : v;
+  }
+
+  int _parseCurrentBookings(Map avail) {
+    return int.tryParse(avail['currentBookings']?.toString() ?? '0') ?? 0;
+  }
+
+  DateTime? _parseBookingWindowYmd(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    if (s.length >= 10) return DateTime.tryParse(s.substring(0, 10));
+    return DateTime.tryParse(s);
+  }
+
+  bool _acceptedBlockMatchesLocation(Map<String, dynamic> w, String? locationName) {
+    if (locationName == null ||
+        locationName.contains('(Home)') ||
+        locationName == 'Other') {
+      return false;
+    }
+    final bloc = (w['location'] ?? '').toString().trim();
+    if (bloc.isEmpty) return false;
+    final sel = locationName.toLowerCase();
+    final b = bloc.toLowerCase();
+    return b.contains(sel) || sel.contains(b);
+  }
+
+  bool _acceptedBlockMatchesService(Map<String, dynamic> w) {
+    final bt = (w['serviceType'] ?? '').toString().trim().toLowerCase();
+    if (bt.isEmpty) return true;
+    final st = selectedService.value.trim().toLowerCase();
+    if (st.isEmpty) return true;
+    return st.contains(bt) || bt.contains(st);
+  }
+
+  /// Calendar days covered by an accepted booking for the same venue + service (not selectable).
+  bool isDateBlockedByAcceptedBooking(DateTime day, String? locationName) {
+    final d = DateTime(day.year, day.month, day.day);
+    for (final raw in acceptedBookingWindows) {
+      final w = Map<String, dynamic>.from(raw);
+      if (!_acceptedBlockMatchesLocation(w, locationName)) continue;
+      if (!_acceptedBlockMatchesService(w)) continue;
+      final s = _parseBookingWindowYmd(w['startDate']);
+      if (s == null) continue;
+      final end = _parseBookingWindowYmd(w['endDate']) ?? s;
+      final s0 = DateTime(s.year, s.month, s.day);
+      final e0 = DateTime(end.year, end.month, end.day);
+      if (!d.isBefore(s0) && !d.isAfter(e0)) return true;
+    }
+    return false;
   }
 
   Future<void> fetchAvailability() async {
@@ -403,10 +555,31 @@ class SendBookingRequestController extends GetxController {
 
       final List combinedData = [];
 
-      // 1. Regular availability
+      // 1. Regular availability + accepted booking windows (blocked dates in picker)
       if (responses[0].statusCode == 200 &&
           responses[0].body['success'] == true) {
-        combinedData.addAll(responses[0].body['data'] ?? []);
+        final body = responses[0].body;
+        final rawData = body['data'];
+        if (rawData is List) {
+          combinedData.addAll(rawData);
+        } else if (rawData is Map) {
+          final inner = rawData['availability'];
+          if (inner is List) {
+            combinedData.addAll(inner);
+          }
+        }
+        List? wins = body['acceptedBookingWindows'] as List?;
+        wins ??= (rawData is Map) ? rawData['acceptedBookingWindows'] as List? : null;
+        if (wins != null) {
+          acceptedBookingWindows.assignAll(
+            wins
+                .map((e) => e is Map ? Map<String, dynamic>.from(e) : null)
+                .whereType<Map<String, dynamic>>()
+                .toList(),
+          );
+        } else {
+          acceptedBookingWindows.clear();
+        }
       }
 
       // 2. Trips
@@ -423,6 +596,7 @@ class SendBookingRequestController extends GetxController {
       }
 
       availabilityList.assignAll(combinedData);
+      _clampHorseSelectionToCapacity();
 
       // Initialize selection with first available after fetch
       final locations = availableLocations;
@@ -591,21 +765,62 @@ class SendBookingRequestController extends GetxController {
       return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
     }
 
-    for (var avail in availabilityList) {
-      if (_isLocationMatch(avail, locationName)) {
-        final max =
-            int.tryParse(
-              avail['maxBookings']?.toString() ??
-                  avail['maxHorses']?.toString() ??
-                  '1',
-            ) ??
-            1;
-        // Ensure at least 1 is shown
-        final count = max < 1 ? 1 : (max > 20 ? 20 : max);
-        return List.generate(count, (i) => (i + 1).toString());
-      }
+    var rows = _availabilityRowsForLocationAndDates(locationName);
+    if (rows.isEmpty) {
+      rows = availabilityList.where((avail) {
+        if (avail is! Map || avail['isTrip'] == true) return false;
+        return _isLocationMatch(avail, locationName);
+      }).toList();
     }
-    return ['1', '2', '3', '4', '5'];
+
+    if (rows.isEmpty) {
+      return ['1', '2', '3', '4', '5'];
+    }
+
+    final hasDates = startDate.value != null && endDate.value != null;
+    var anyUnlimited = false;
+    final finiteRemainings = <int>[];
+
+    for (final raw in rows) {
+      if (raw is! Map) continue;
+      final m = Map<String, dynamic>.from(raw);
+      final maxCap = _parseMaxHorses(m);
+      final used = _parseCurrentBookings(m);
+      if (maxCap <= 0) {
+        anyUnlimited = true;
+        continue;
+      }
+      final rem = (maxCap - used).clamp(0, 10000);
+      finiteRemainings.add(rem);
+    }
+
+    if (finiteRemainings.isEmpty) {
+      if (anyUnlimited) {
+        return List.generate(10, (i) => '${i + 1}');
+      }
+      return ['1', '2', '3', '4', '5'];
+    }
+
+    final capDisplay = hasDates
+        ? finiteRemainings.reduce((a, b) => a < b ? a : b)
+        : finiteRemainings.reduce((a, b) => a > b ? a : b);
+
+    if (capDisplay <= 0) {
+      return const [];
+    }
+
+    final count = capDisplay > 20 ? 20 : capDisplay;
+    return List.generate(count, (i) => '${i + 1}');
+  }
+
+  /// True when venue availability applies but every overlapping slot has no remaining horse capacity.
+  bool isHorseCapacityExhaustedFor(String? locationName) {
+    if (locationName == null ||
+        locationName.contains('(Home)') ||
+        locationName == 'Other') {
+      return false;
+    }
+    return getHorseOptionsForLocation(locationName).isEmpty;
   }
 
   bool get isBraiding => selectedService.value.toLowerCase().contains('braid');
@@ -759,15 +974,6 @@ class SendBookingRequestController extends GetxController {
       );
       return false;
     }
-    if (selectedNumHorses.value == null) {
-      Get.snackbar(
-        'Validation Error',
-        'Please select number of horses',
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
-      return false;
-    }
 
     if (isBraiding || isClipping || isFarrier || isBodywork || isShipping) {
       if (selectedCoreServiceIds.isEmpty) {
@@ -822,6 +1028,31 @@ class SendBookingRequestController extends GetxController {
         return false;
       }
     }
+
+    final horseLoc = isShipping ? selectedOrigin.value : selectedLocation.value;
+    if (getHorseOptionsForLocation(horseLoc).isEmpty &&
+        horseLoc != null &&
+        !horseLoc.contains('(Home)') &&
+        horseLoc != 'Other') {
+      Get.snackbar(
+        'Scheduling',
+        AppStrings.availabilityFullyBookedHorses,
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    if (selectedNumHorses.value == null) {
+      Get.snackbar(
+        'Validation Error',
+        'Please select number of horses',
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
     return true;
   }
 
