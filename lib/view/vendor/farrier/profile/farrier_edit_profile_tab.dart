@@ -11,7 +11,6 @@ import 'package:catch_ride/utils/price_formatter.dart';
 
 import 'package:catch_ride/widgets/common_dropdown.dart';
 import 'package:catch_ride/widgets/common_suggestion_field.dart';
-import 'package:flutter/material.dart';
 
 import '../../../../widgets/common_button.dart';
 import '../../../../widgets/common_image_view.dart';
@@ -437,10 +436,10 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
 
   Widget _buildTravelPreferencesSection() {
     final options = [
-      {'title': 'Local Only', 'subtitle': 'Varies by location'},
-      {'title': 'Regional', 'subtitle': null},
-      {'title': 'Nationwide', 'subtitle': null},
-      {'title': 'International', 'subtitle': null},
+      'Local Only',
+      'Regional',
+      'Nationwide',
+      'International',
     ];
 
     return _buildCard(
@@ -456,62 +455,31 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
           const SizedBox(height: 20),
           Obx(() => Column(
                 children: options.map((opt) {
-                  final title = opt['title'] as String;
-                  final subtitle = opt['subtitle'] as String?;
-                  final isSelected = widget.controller.selectedTravel.contains(title);
+                  final isSelected = widget.controller.selectedTravelData.containsKey(opt);
+                  final details = widget.controller.selectedTravelData[opt];
 
-                  final feeType = widget.controller.selectedTravelData[title]?['type'] ?? 'No travel fee';
+                  String? summary;
+                  if (isSelected && details != null) {
+                    summary = details['feeType'] ??'No travel fee';
 
-                  return GestureDetector(
-                    onTap: () => _showTravelFeeBottomSheet(context, title),
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
-                          width: isSelected ? 1.5 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              color: isSelected ? const Color(0xFF001149) : Colors.white,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
-                              ),
-                            ),
-                            child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CommonText(
-                                  title,
-                                  fontSize: AppTextSizes.size14,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                  color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
-                                ),
-                                const SizedBox(height: 2),
-                                CommonText(
-                                  feeType,
-                                  fontSize: AppTextSizes.size12,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    print("adsfasddf::::$summary");
+                    if (details['price'].toString().isNotEmpty) {
+                      summary = '$summary: \$${details['price']}';
+                    }
+                  }
+
+                  return _buildCheckItem(
+                    title: opt,
+                    isSelected: isSelected,
+                    subTitle: summary,
+                    onTap: () {
+                      if (isSelected) {
+                        widget.controller.selectedTravelData.remove(opt);
+                        widget.controller.selectedTravel.remove(opt);
+                      } else {
+                        _showTravelFeeBottomSheet(context, opt);
+                      }
+                    },
                   );
                 }).toList(),
               )),
@@ -1055,211 +1023,141 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
     );
   }
 
-  void _showTravelFeeBottomSheet(BuildContext context, String category) {
-    final config = widget.controller.selectedTravelData[category] ?? {'type': 'No travel fee', 'price': '', 'disclaimer': ''};
-    widget.controller.tempSelectedFeeType.value = config['type'] ?? 'No travel fee';
-    widget.controller.travelFeePriceController.text = config['price']?.toString() ?? '';
-    widget.controller.travelFeeDisclaimerController.text = config['disclaimer'] ?? '';
+  void _showTravelFeeBottomSheet(BuildContext context, String option) {
+    final existing = widget.controller.selectedTravelData[option] ?? {
+      'feeType': 'No travel fee',
+      'price': '',
+      'disclaimer': '',
+    };
 
-    final feeOptions = ['No travel fee', 'Flat fee', 'Per-mile', 'Varies by location'];
+    final RxString selectedFeeType = (existing['feeType'] as String).obs;
+    final priceController = TextEditingController(text: existing['price']?.toString() ?? '');
+    final disclaimerController = TextEditingController(text: existing['disclaimer']?.toString() ?? '');
 
     Get.bottomSheet(
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
       Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        padding: EdgeInsets.only(
-          top: 12,
-          left: 24,
-          right: 24,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-        ),
+        padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 60,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.borderLight,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              CommonText(category, fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              const CommonText(
-                'Set pricing based on travel distance or location',
-                fontSize: AppTextSizes.size14,
-                color: AppColors.textSecondary,
-              ),
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 24),
-              Obx(() => Column(
-                children: feeOptions.map((type) {
-                  final isTypeSelected = widget.controller.tempSelectedFeeType.value == type;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: GestureDetector(
-                      onTap: () {
-                        if (widget.controller.tempSelectedFeeType.value != type) {
-                          widget.controller.travelFeePriceController.clear();
-                          widget.controller.travelFeeDisclaimerController.clear();
-                        }
-                        widget.controller.tempSelectedFeeType.value = type;
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: isTypeSelected ? AppColors.tabBackground : AppColors.tabBackground.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isTypeSelected ? AppColors.primary : Colors.transparent,
-                            width: 1,
+              CommonText(option, fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
+              const SizedBox(height: 24),
+
+              ...['No travel fee', 'Flat fee', 'Per-mile', 'Varies by location'].map((type) {
+                return Obx(() {
+                  bool isSelected = selectedFeeType.value == type;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected && type == 'Varies by location' ? const Color(0xFFF9FAFB) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: isSelected ? const Color(0xFF001149) : AppColors.borderLight),
+                    ),
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () => selectedFeeType.value = type,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Icon(isSelected ? Icons.radio_button_checked : Icons.radio_button_off, color: isSelected ? const Color(0xFF001149) : Colors.grey),
+                                const SizedBox(width: 12),
+                                CommonText(type, fontSize: 14, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    isTypeSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                                    color: isTypeSelected ? const Color(0xFF001149) : AppColors.borderLight,
-                                    size: 20,
+                        if (isSelected && (type == 'Flat fee' || type == 'Per-mile' || type == 'Varies by location')) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: Column(
+                              children: [
+                                if (type != 'Varies by location')
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppColors.borderLight),
                                   ),
-                                  const SizedBox(width: 12),
-                                  CommonText(type, fontSize: AppTextSizes.size14, fontWeight: isTypeSelected ? FontWeight.bold : FontWeight.normal, color: AppColors.textPrimary),
-                                ],
-                              ),
-                            ),
-                            if (isTypeSelected && type != 'No travel fee')
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      height: 54,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: AppColors.borderLight),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 45,
-                                            child: const Center(
-                                              child: Text(
-                                                '\$',
-                                                style: TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            decoration: const BoxDecoration(
-                                              border: Border(right: BorderSide(color: AppColors.borderLight)),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: TextField(
-                                              controller: widget.controller.travelFeePriceController,
-                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                inputFormatters: [PriceInputFormatter()],
-                                              decoration: const InputDecoration(
-                                                hintText: 'Enter price',
-                                                hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                                                border: InputBorder.none,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    TextField(
-                                      controller: widget.controller.travelFeeDisclaimerController,
-                                      maxLines: 4,
-                                      decoration: InputDecoration(
-                                        hintText: 'Disclaimer',
-                                        hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.borderLight),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                          borderSide: const BorderSide(color: AppColors.borderLight),
+                                  child: Row(
+                                    children: [
+                                      const CommonText('\$', fontSize: 14, color: AppColors.textSecondary),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: priceController,
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          inputFormatters: [PriceInputFormatter()],
+                                          decoration: const InputDecoration(hintText: 'Enter price', border: InputBorder.none, hintStyle: TextStyle(fontSize: 14)),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      ),
+                                if (type == 'Varies by location') ...[
+                                  const SizedBox(height: 12),
+                                  CommonTextField(label: '', hintText: 'Disclaimer', controller: disclaimerController, maxLines: 3),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   );
-                }).toList(),
-              )),
+                });
+              }).toList(),
+
               const SizedBox(height: 32),
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: CommonButton(
+                      text: 'Cancel',
                       onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        side: const BorderSide(color: AppColors.borderLight),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        backgroundColor: Colors.white,
-                      ),
-                      child: const CommonText('Cancel', fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+                      backgroundColor: Colors.white,
+                      textColor: AppColors.textPrimary,
+                      borderColor: AppColors.borderLight,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: CommonButton(
                       text: 'Save',
-                      backgroundColor: const Color(0xFF001149),
                       onPressed: () {
-                        widget.controller.saveFarrierTravelConfig(category);
-                        if (widget.controller.tempSelectedFeeType.value != 'No travel fee') {
-                          if (!widget.controller.selectedTravel.contains(category)) {
-                            widget.controller.selectedTravel.add(category);
-                          }
-                        } else {
-                          widget.controller.selectedTravel.remove(category);
+                        widget.controller.selectedTravelData[option] = {
+                          'type': option,
+                          'feeType': selectedFeeType.value,
+                          'price': priceController.text,
+                          'disclaimer': disclaimerController.text,
+                        };
+                        if (!widget.controller.selectedTravel.contains(option)) {
+                          widget.controller.selectedTravel.add(option);
                         }
+                        widget.controller.selectedTravelData.refresh();
                         Get.back();
                       },
+                      backgroundColor: const Color(0xFF001149),
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
+      isScrollControlled: true,
     );
   }
 
@@ -1289,36 +1187,49 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
       ),
     );
   }
-  void _showLocationBottomSheet({
-    required String title,
-    required List<Map<String, dynamic>> options,
-    required Function(Map<String, dynamic>) onSelected,
-  }) {
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
+
+  Widget _buildCheckItem({required String title, required bool isSelected, String? subTitle, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+            width: isSelected ? 1.5 : 1,
+          ),
         ),
-        child: Column(
+        child: Row(
           children: [
-            CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
-            const SizedBox(height: 20),
-            const Divider(),
+            Icon(
+              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+              color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
             Expanded(
-              child: ListView.builder(
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final item = options[index];
-                  return ListTile(
-                    title: CommonText(item['name'] ?? ''),
-                    onTap: () {
-                      onSelected(item);
-                      Get.back();
-                    },
-                  );
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonText(
+                    title,
+                    fontSize: AppTextSizes.size14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? const Color(0xFF001149) : AppColors.textPrimary,
+                  ),
+                  if (isSelected && subTitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: CommonText(
+                        subTitle,
+                        fontSize: AppTextSizes.size12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
