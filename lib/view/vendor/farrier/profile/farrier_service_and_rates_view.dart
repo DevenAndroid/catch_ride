@@ -84,7 +84,7 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               ...services.map((s) {
                 final String price = s['price']?.toString() ?? '0';
                 final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice');
+                return _buildPricedItem(s['name'] ?? '', '\$ $formattedPrice');
               }),
               if (addOns.isNotEmpty) ...[
                 const SizedBox(height: 20),
@@ -93,7 +93,7 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
                 ...addOns.map((s) {
                   final String price = s['price']?.toString() ?? '0';
                   final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                  return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice');
+                  return _buildPricedItem(s['name'] ?? '', '\$ $formattedPrice');
                 }),
               ],
             ],
@@ -103,9 +103,9 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
             // ── Location & Experience ──────────────────────────────────────
             _buildTwoColumnDetails(
               'Location',
-              widget.location ?? 'N/A',
+              widget.location ?? '',
               'Years of Experience',
-              widget.experience ?? 'N/A',
+              widget.experience ?? '',
             ),
 
             if (highlights.isNotEmpty) ...[
@@ -117,8 +117,8 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               const SizedBox(height: 20),
               if ((widget.disciplines?.isNotEmpty ?? false) || (widget.horseLevels?.isNotEmpty ?? false))
                 _buildTwoColumnDetails(
-                  'Disciplines', widget.disciplines?.join(', ') ?? 'N/A',
-                  'Typical Level of Horses', widget.horseLevels?.join(', ') ?? 'N/A',
+                  'Disciplines', widget.disciplines?.join(', ') ?? '',
+                  'Typical Level of Horses', widget.horseLevels?.join(', ') ?? '',
                 ),
               if (widget.scopeOfWork?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
@@ -143,7 +143,7 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               if (widget.farrierData['newClientPolicy'] != null || widget.farrierData['minHorses'] != null) ...[
                 _buildTwoColumnDetails(
                   'Client Policy',
-                  widget.farrierData['newClientPolicy']?.toString() ?? 'N/A',
+                  widget.farrierData['newClientPolicy']?.toString() ?? '',
                   'Min Horses per Stop',
                   widget.farrierData['minHorses']?.toString() ?? '1',
                 ),

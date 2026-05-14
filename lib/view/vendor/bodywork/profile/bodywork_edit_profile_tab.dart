@@ -383,7 +383,12 @@ class BodyworkEditProfileTab extends StatelessWidget {
               }).toList(),
               const SizedBox(height: 32),
               Row(children: [Expanded(child: CommonButton(text: 'Cancel', onPressed: () => Get.back(), backgroundColor: Colors.white, textColor: AppColors.textPrimary, borderColor: AppColors.borderLight)), const SizedBox(width: 16), Expanded(child: CommonButton(text: 'Save', onPressed: () {
-                controller.selectedTravelData[option] = {'feeType': selectedFeeType.value, 'price': priceController.text, 'disclaimer': disclaimerController.text};
+                controller.selectedTravelData[option] = {
+                  'type': option,
+                  'feeType': selectedFeeType.value,
+                  'price': priceController.text,
+                  'disclaimer': disclaimerController.text
+                };
                 controller.selectedTravelData.refresh();
                 Get.back();
               }, backgroundColor: const Color(0xFF001149)))]),
