@@ -5,6 +5,15 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+/// Read-only card: bodywork **services, session rates, travel, disciplines**, etc.
+///
+/// [bodyworkData] should be the **merged** service map from
+/// [mergedVendorServiceDisplayData] / `getProfileDataByType('Bodywork')` (same as groom profile
+/// card): `servicesData` + assigned profile + optional [VendorModel] `bodywork` embed.
+/// Shapes supported:
+/// - Postform: `profileData.services[]` with `name`, `rates` (`"30"` → price), `session`, `isSelected`
+/// - Legacy embed: `bodyworkServices[]` with `label` + `session[{min,price}]`
+/// - Preform: `applicationData` / root `disciplines`, `modalities` / `modalityOffered`, `homeBase`, …
 class BodyworkServiceAndRatesView extends StatefulWidget {
   final Map bodyworkData;
   final String? location;
@@ -13,7 +22,8 @@ class BodyworkServiceAndRatesView extends StatefulWidget {
   final List<String>? horseLevels;
   final List<String>? regionsCovered;
   final List<dynamic>? travelPreferences;
-  final List<Map<String, dynamic>>? services;
+  /// Optional override; if **null** or **empty**, services are read from [bodyworkData] (merged profile).
+  final List<dynamic>? services;
 
   const BodyworkServiceAndRatesView({
     super.key,
@@ -34,39 +44,151 @@ class BodyworkServiceAndRatesView extends StatefulWidget {
 class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesView> {
   final _showMoreDetails = false.obs;
 
+  static Map<String, dynamic> _asMap(dynamic v) {
+    if (v is! Map) return <String, dynamic>{};
+    return Map<String, dynamic>.from(v);
+  }
+
+  static bool _meaningfulRate(dynamic v) {
+    if (v == null) return false;
+    final s = v.toString().trim().replaceAll(',', '');
+    if (s.isEmpty) return false;
+    final n = double.tryParse(s);
+    if (n != null && n <= 0) return false;
+    return true;
+  }
+
+  static bool _hasDisplayableRatesOrSession(Map<String, dynamic> m) {
+    final r = m['rates'];
+    if (r is Map) {
+      for (final v in r.values) {
+        if (_meaningfulRate(v)) return true;
+      }
+    }
+    final sess = m['session'];
+    return sess is List && sess.isNotEmpty;
+  }
+
+  /// Resolves [VendorModel]-style + `servicesData` service rows into a uniform map list.
+  static List<Map<String, dynamic>> _normalizeServiceRows(List<dynamic> raw) {
+    final out = <Map<String, dynamic>>[];
+    for (final e in raw) {
+      if (e is! Map) {
+        out.add({'name': e.toString(), 'rates': <String, dynamic>{}, 'isSelected': true});
+        continue;
+      }
+      final m = Map<String, dynamic>.from(e);
+      final name = (m['name'] ?? m['label'])?.toString() ?? '';
+      if (name.isEmpty) continue;
+      m['name'] = name;
+      if (m['rates'] == null && m['session'] != null) {
+        m['rates'] = <String, dynamic>{};
+      }
+      out.add(m);
+    }
+    return out;
+  }
+
+  /// Picks services list: explicit [widget.services] only if non-empty; else merged [bodyworkData].
+  static List<Map<String, dynamic>> _resolveServicesList({
+    required Map<String, dynamic> root,
+    required Map<String, dynamic> profileLike,
+    required List<dynamic>? widgetServices,
+  }) {
+    if (widgetServices != null && widgetServices.isNotEmpty) {
+      return _normalizeServiceRows(widgetServices);
+    }
+    for (final bucket in <List<dynamic>?>[
+      root['services'] is List ? List<dynamic>.from(root['services'] as List) : null,
+      profileLike['services'] is List ? List<dynamic>.from(profileLike['services'] as List) : null,
+      root['bodyworkServices'] is List ? List<dynamic>.from(root['bodyworkServices'] as List) : null,
+      profileLike['bodyworkServices'] is List ? List<dynamic>.from(profileLike['bodyworkServices'] as List) : null,
+    ]) {
+      if (bucket != null && bucket.isNotEmpty) {
+        return _normalizeServiceRows(bucket);
+      }
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Handle both flat and nested structures
-    final profileData = widget.bodyworkData['profile']?['profileData'] ??
-        widget.bodyworkData['profileData'] ??
-        widget.bodyworkData;
-    final applicationData = widget.bodyworkData['application']?['applicationData'] ??
-        widget.bodyworkData['applicationData'] ??
-        widget.bodyworkData;
+    final root = _asMap(widget.bodyworkData);
 
-    final List services = widget.services ?? profileData['services'] ?? [];
-    final selectedServices = services
-        .where((s) => s['isSelected'] == true || s['isSelected'] == null)
-        .toList();
+    // Nested assigned-service row vs flat merged map from getProfileDataByType
+    final profileNested = _asMap(root['profile']?['profileData']);
+    final profileData = profileNested.isNotEmpty ? profileNested : _asMap(root['profileData']);
+    final profileLike = profileData.isNotEmpty ? profileData : root;
 
-    // Location / experience
+    final applicationNested = _asMap(root['application']?['applicationData']);
+    final applicationData = applicationNested.isNotEmpty
+        ? applicationNested
+        : _asMap(root['applicationData']);
+
+    final services = _resolveServicesList(
+      root: root,
+      profileLike: profileLike,
+      widgetServices: widget.services,
+    );
+
+    final selectedServices = services.where((m) {
+      if (m['isSelected'] == false) {
+        return _hasDisplayableRatesOrSession(m);
+      }
+      return m['isSelected'] == true || m['isSelected'] == null || _hasDisplayableRatesOrSession(m);
+    }).toList();
+
+    // Location / experience — VendorModel preform + applicationData + overrides
     final displayLocation = widget.location ??
-        (applicationData['homeBase']?['city'] != null
-            ? '${applicationData['homeBase']['city']}, ${applicationData['homeBase']['state'] ?? ''}'
-            : 'N/A');
-    final displayExperience = widget.experience ??
-        (applicationData['experience'] != null
-            ? '${applicationData['experience']} Years'
-            : 'N/A');
+        _locationFromApplication(applicationData, root);
+    final displayExperience = widget.experience ?? _experienceFromApplication(applicationData, root);
 
-    // Extra detail fields
-    final List disciplines = widget.disciplines ?? applicationData['disciplines'] ?? [];
-    final List horseLevels = widget.horseLevels ?? applicationData['horseLevels'] ?? [];
-    final List travelPreferences = widget.travelPreferences ?? profileData['travelPreferences'] ?? [];
-    final List regionsCovered =
-        widget.regionsCovered ?? applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
+    // Disciplines / levels / regions — commonPreform + applicationData (typo desciplines)
+    final List<dynamic> disciplines = widget.disciplines ??
+        _coerceStringList(
+          applicationData['disciplines'] ??
+              applicationData['desciplines'] ??
+              root['disciplines'] ??
+              root['desciplines'],
+        );
+    final List<dynamic> horseLevels = widget.horseLevels ??
+        _coerceStringList(
+          applicationData['horseLevels'] ??
+              applicationData['typicalLevelOfHorses'] ??
+              root['horseLevels'] ??
+              root['typicalLevelOfHorses'],
+        );
+    final List<dynamic> travelPreferences = widget.travelPreferences ??
+        (profileLike['travelPreferences'] is List
+            ? List<dynamic>.from(profileLike['travelPreferences'] as List)
+            : root['travelPreferences'] is List
+                ? List<dynamic>.from(root['travelPreferences'] as List)
+                : <dynamic>[]);
+
+    final List<dynamic> regionsCovered = widget.regionsCovered ??
+        _coerceStringList(
+          applicationData['regions'] ??
+              applicationData['regionsCovered'] ??
+              root['regions'] ??
+              root['regionsCovered'],
+        );
+
     final String? scopeOfWork = applicationData['scopeOfWork']?.toString();
-    final List highlights = applicationData['experienceHighlights'] ?? profileData['experienceHighlights'] ?? [];
+
+    final List<dynamic> highlights = applicationData['experienceHighlights'] is List
+        ? List<dynamic>.from(applicationData['experienceHighlights'] as List)
+        : profileLike['experienceHighlights'] is List
+            ? List<dynamic>.from(profileLike['experienceHighlights'] as List)
+            : root['experienceHighlights'] is List
+                ? List<dynamic>.from(root['experienceHighlights'] as List)
+                : widget.bodyworkData['experienceHighlights'] is List
+                    ? List<dynamic>.from(widget.bodyworkData['experienceHighlights'] as List)
+                    : <dynamic>[];
+
+    // VendorModel preform: modalityOffered / application modalities
+    final List<dynamic> modalities = _coerceStringList(
+      applicationData['modalities'] ?? applicationData['modalityOffered'] ?? root['modalityOffered'],
+    );
 
     return Container(
       width: double.infinity,
@@ -96,7 +218,6 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
             ),
             const SizedBox(height: 16),
 
-            // ── Service cards ──────────────────────────────────────────────
             if (selectedServices.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(bottom: 16),
@@ -112,7 +233,6 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
 
-            // ── Location & Experience ──────────────────────────────────────
             _buildTwoColumnDetails(
               'Location',
               displayLocation,
@@ -123,44 +243,56 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
             if (highlights.isNotEmpty) ...[
               _buildDetailItem(
                 'Experience Highlights',
-                highlights.join(', '),
+                highlights.map((e) => e.toString()).join(', '),
               ),
               const SizedBox(height: 4),
             ],
 
-            // ── View More / View Less ──────────────────────────────────────
+            if (disciplines.isNotEmpty) ...[
+              _buildDetailItem(
+                'Disciplines',
+                disciplines.map((e) => e.toString()).join(', '),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (horseLevels.isNotEmpty) ...[
+              _buildDetailItem(
+                'Typical Level of Horses',
+                horseLevels.map((e) => e.toString()).join(', '),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (regionsCovered.isNotEmpty) ...[
+              _buildDetailItem(
+                'Regions Covered',
+                regionsCovered.map((e) => e.toString()).join(', '),
+              ),
+              const SizedBox(height: 16),
+            ],
+
             if (showMore) ...[
-              const SizedBox(height: 20),
-              if (disciplines.isNotEmpty)
+              const SizedBox(height: 4),
+              if (modalities.isNotEmpty)
                 _buildDetailItem(
-                  'Disciplines',
-                  disciplines.join(', '),
+                  'Modalities offered',
+                  modalities.map((e) => e.toString()).join(', '),
                 ),
-              if (horseLevels.isNotEmpty) ...[
+              if (modalities.isNotEmpty &&
+                  ((scopeOfWork != null && scopeOfWork.isNotEmpty) ||
+                      travelPreferences.isNotEmpty))
                 const SizedBox(height: 16),
-                _buildDetailItem(
-                  'Typical Level of Horses',
-                  horseLevels.join(', '),
-                ),
-              ],
               if (scopeOfWork != null && scopeOfWork.isNotEmpty) ...[
-                const SizedBox(height: 16),
                 _buildDetailItem('Scope of Work', scopeOfWork),
+                const SizedBox(height: 16),
               ],
               if (travelPreferences.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 _buildDetailItem(
                   'Travel Preferences',
                   travelPreferences
-                      .map((t) => t is Map ? (t['type'] ?? '') : t.toString())
+                      .map((t) => t is Map ? (t['type'] ?? t['label'] ?? '') : t.toString())
+                      .where((s) => s.toString().trim().isNotEmpty)
                       .join(', '),
-                ),
-              ],
-              if (regionsCovered.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _buildDetailItem(
-                  'Regions Covered',
-                  regionsCovered.join(', '),
                 ),
               ],
               const SizedBox(height: 16),
@@ -185,44 +317,71 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
                 ),
               ),
             ],
-            
+
             const SizedBox(height: 20),
-            // const Divider(height: 1, color: AppColors.dividerColor),
-            // const SizedBox(height: 12),
-            // const CommonText(
-            //   'All services are provided within the scope of the provider\'s certifications and are not a substitute for veterinary care.',
-            //   fontSize: 11,
-            //   color: AppColors.textSecondary,
-            //   fontStyle: FontStyle.italic,
-            //   textAlign: TextAlign.center,
-            // ),
           ],
         );
       }),
     );
   }
 
-  Widget _buildServiceBlock(Map service) {
-    final String name = service['name'] ?? service['label'] ?? 'Service';
-    final Map ratesMap = service['rates'] ?? {};
-    final List? sessionsList = service['session'];
+  static List<dynamic> _coerceStringList(dynamic v) {
+    if (v == null) return <dynamic>[];
+    if (v is List) return List<dynamic>.from(v);
+    if (v is String && v.trim().isNotEmpty) return [v];
+    return <dynamic>[];
+  }
 
-    // Collect rate entries
+  static String _locationFromApplication(Map<String, dynamic> app, Map<String, dynamic> root) {
+    final hb = app['homeBase'];
+    if (hb is Map) {
+      final city = hb['city']?.toString() ?? '';
+      final state = hb['state']?.toString() ?? '';
+      if (city.isNotEmpty) {
+        return state.isNotEmpty ? '$city, $state' : city;
+      }
+    }
+    final hbl = root['homeBaseLocation'];
+    if (hbl is Map) {
+      final city = hbl['city']?.toString() ?? '';
+      final state = hbl['state']?.toString() ?? '';
+      if (city.isNotEmpty) {
+        return state.isNotEmpty ? '$city, $state' : city;
+      }
+    }
+    return 'N/A';
+  }
+
+  static String _experienceFromApplication(Map<String, dynamic> app, Map<String, dynamic> root) {
+    final exp = app['experience'] ?? app['yearsExperience'] ?? root['yearsExperience'] ?? root['experience'];
+    if (exp == null) return 'N/A';
+    final t = exp.toString().trim();
+    if (t.isEmpty) return 'N/A';
+    return t.toLowerCase().contains('year') ? t : '$t Years';
+  }
+
+  Widget _buildServiceBlock(Map<String, dynamic> service) {
+    final String name = service['name'] ?? service['label'] ?? 'Service';
+    final Map<String, dynamic> ratesMap = service['rates'] is Map
+        ? Map<String, dynamic>.from(service['rates'] as Map)
+        : <String, dynamic>{};
+    final List? sessionsList = service['session'] is List ? service['session'] as List : null;
+
     List<MapEntry<String, dynamic>> activeRates = [];
 
     if (ratesMap.isNotEmpty) {
       activeRates = ratesMap.entries
-          .where((e) => e.value != null && e.value.toString().isNotEmpty)
+          .where((e) => _meaningfulRate(e.value))
           .map((e) => MapEntry(e.key.toString(), e.value))
           .toList();
     } else if (sessionsList != null && sessionsList.isNotEmpty) {
-      // Handle the "session" list format: [{min: 30, price: 50}, ...]
-      activeRates = sessionsList.map((s) {
-        return MapEntry(s['min'].toString(), s['price']);
-      }).toList();
+      activeRates = sessionsList
+          .whereType<Map>()
+          .where((s) => s['min'] != null && _meaningfulRate(s['price']))
+          .map((s) => MapEntry(s['min'].toString(), s['price']))
+          .toList();
     }
 
-    // Sort by duration value
     activeRates.sort((a, b) {
       final aVal = int.tryParse(a.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
       final bVal = int.tryParse(b.key.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
@@ -302,7 +461,6 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
     );
   }
 
-  // ── Two column row ──────────────────────────────────────────────────────
   Widget _buildTwoColumnDetails(
     String label1,
     String value1,

@@ -11,6 +11,13 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 
+String _editProfileBodyworkNameKey(dynamic name) =>
+    (name?.toString() ?? '').toLowerCase().trim();
+
+/// Matches [assignedServiceMatchesTab] for a bare `serviceType` string from [assignedServices].
+bool _editProfileIsBodyworkServiceType(dynamic serviceType) =>
+    assignedServiceMatchesTab(<String, dynamic>{'serviceType': serviceType}, 'Bodywork');
+
 class EditVendorProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
   final AuthController _authController = Get.find<AuthController>();
@@ -616,7 +623,7 @@ class EditVendorProfileController extends GetxController {
         farrierMinHorses.value = int.tryParse(appData['clientIntake']?['minHorses']?.toString() ?? profileData['clientIntake']?['minHorses']?.toString() ?? '1') ?? 1;
         farrierEmergencySupport.value = appData['clientIntake']?['emergencySupport'] ?? profileData['clientIntake']?['emergencySupport'] ?? false;
         farrierInsuranceStatus.value = appData['insuranceStatus'] ?? profileData['insuranceStatus'];
-      } else if (type == 'Bodywork') {
+      } else if (_editProfileIsBodyworkServiceType(type)) {
         _mergeBodyworkModalities();
         otherModalityController.text = appData['otherModality'] ?? profileData['otherModality'] ?? '';
         final certs = List<String>.from(profileData['certifications'] ?? appData['certifications'] ?? []);
@@ -928,7 +935,7 @@ class EditVendorProfileController extends GetxController {
             } catch (_) {}
           }
         }
-      } else if (activeService['serviceType'] == 'Bodywork') {
+      } else if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
           _mergeBodyworkModalities();
 
           otherModalityController.text = appDataMap['otherModality'] ?? profileDataMap['otherModality'] ?? '';
@@ -975,7 +982,7 @@ class EditVendorProfileController extends GetxController {
 
       final travelPrefRaw = draft['travelPreferences'] ?? profileDataMap['travelPreferences'] ?? [];
       if (travelPrefRaw is List) {
-        if (activeService['serviceType'] == 'Bodywork') {
+        if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
           final Map<String, Map<String, dynamic>> travelMap = {};
           for (var item in travelPrefRaw) {
             if (item is Map) {
@@ -1108,38 +1115,79 @@ class EditVendorProfileController extends GetxController {
 
   void _mergeBodyworkModalities() {
     final services = assignedServices;
-    final activeService = services.firstWhereOrNull((s) => s['serviceType'] == 'Bodywork');
+    final activeService = services.firstWhereOrNull(
+      (s) => assignedServiceMatchesTab(s, 'Bodywork'),
+    );
     if (activeService == null) return;
 
-    final profileData = activeService['profile']?['profileData'] ?? {};
+    // Prefer draft + merged GET payload (VendorModel.servicesData + assigned profile)
+    // so we stay aligned with Groom profile / Services & Rates — not only embedded
+    // `assignedServices[].profile.profileData`, which can lag or omit rates.
+    final draftBw = draftServicesData['bodywork'];
+    Map<String, dynamic> mergedProfilePd = {};
+    if (vendorRootData.isNotEmpty) {
+      final merged = mergedVendorServiceDisplayData(
+        Map<String, dynamic>.from(vendorRootData),
+        'Bodywork',
+      );
+      final m = merged['profileData'];
+      if (m is Map) mergedProfilePd = Map<String, dynamic>.from(m);
+    }
+    Map<String, dynamic> draftPd = {};
+    if (draftBw is Map) {
+      draftPd = Map<String, dynamic>.from(draftBw['profileData'] ?? {});
+    }
+
     final application = activeService['application'] ?? {};
     final appData = application['applicationData'] ?? application ?? {};
 
-    final List existingServices = profileData['services'] ?? [];
-    final List appModalities = List<String>.from(appData['modalities'] ?? []);
+    final List existingServices = List.from(
+      draftPd['services'] ??
+          mergedProfilePd['services'] ??
+          activeService['profile']?['profileData']?['services'] ??
+          [],
+    );
 
-    // Use system tags if available, else fallback to user's selections
-    List<String> baseModalities = bodyworkModalityOptions.isNotEmpty 
-        ? bodyworkModalityOptions.toList() 
-        : (existingServices.map((s) => s['name'].toString()).toList() + appModalities.map((m) => m.toString()).toList()).toSet().toList();
+    final List<String> appModalities = List<String>.from(appData['modalities'] ?? []);
+
+    List<String> baseModalities = bodyworkModalityOptions.isNotEmpty
+        ? bodyworkModalityOptions.toList()
+        : (existingServices.map((s) => s is Map ? s['name'].toString() : s.toString()).toList() +
+                appModalities.map((m) => m.toString()).toList())
+            .toSet()
+            .toList();
 
     if (baseModalities.isEmpty) {
-       baseModalities = ['Sports Massage', 'Myofascial Release', 'PEMF', 'Chiropractic', 'Acupuncture', 'Other'];
+      baseModalities = [
+        'Sports Massage',
+        'Myofascial Release',
+        'PEMF',
+        'Chiropractic',
+        'Acupuncture',
+        'Other',
+      ];
     }
     if (!baseModalities.contains('Other')) baseModalities.add('Other');
 
-    bodyworkServices.assignAll(baseModalities.map((name) {
-      final existing = existingServices.firstWhereOrNull((s) => s is Map && s['name'] == name);
-      final inApp = appModalities.contains(name);
+    final baseKeys = baseModalities.map(_editProfileBodyworkNameKey).toSet();
+
+    Map<String, dynamic> rowForCatalogName(String name) {
+      final existing = existingServices.firstWhereOrNull(
+        (s) => s is Map && _editProfileBodyworkNameKey(s['name']) == _editProfileBodyworkNameKey(name),
+      );
+      final inApp = appModalities.any((m) => _editProfileBodyworkNameKey(m) == _editProfileBodyworkNameKey(name));
 
       if (existing != null) {
+        final em = Map<String, dynamic>.from(existing!);
         return {
           'name': name,
-          'rates': existing['rates'] != null ? Map<String, dynamic>.from(existing['rates']) : {'30': '', '45': '', '60': '', '90': ''},
-          'isSelected': RxBool(existing['isSelected'] == null || existing['isSelected'] == true),
-          'note': existing['note'] ?? '',
-          'trainerPresence': existing['trainerPresence'],
-          'vetApproval': existing['vetApproval'],
+          'rates': em['rates'] != null
+              ? Map<String, dynamic>.from(em['rates'] as Map)
+              : {'30': '', '45': '', '60': '', '90': ''},
+          'isSelected': RxBool(em['isSelected'] == null || em['isSelected'] == true),
+          'note': em['note'] ?? '',
+          'trainerPresence': em['trainerPresence'],
+          'vetApproval': em['vetApproval'],
         };
       }
       return {
@@ -1147,7 +1195,29 @@ class EditVendorProfileController extends GetxController {
         'rates': {'30': '', '45': '', '60': '', '90': ''},
         'isSelected': RxBool(inApp),
       };
-    }).toList());
+    }
+
+    final rows = baseModalities.map(rowForCatalogName).toList();
+
+    for (final es in existingServices) {
+      if (es is! Map) continue;
+      final em = Map<String, dynamic>.from(es);
+      final n = em['name']?.toString() ?? '';
+      if (n.isEmpty) continue;
+      if (baseKeys.contains(_editProfileBodyworkNameKey(n))) continue;
+      rows.add({
+        'name': n,
+        'rates': em['rates'] != null
+            ? Map<String, dynamic>.from(em['rates'] as Map)
+            : {'30': '', '45': '', '60': '', '90': ''},
+        'isSelected': RxBool(em['isSelected'] == null || em['isSelected'] == true),
+        'note': em['note'] ?? '',
+        'trainerPresence': em['trainerPresence'],
+        'vetApproval': em['vetApproval'],
+      });
+    }
+
+    bodyworkServices.assignAll(rows);
   }
 
   // Actions
@@ -1624,6 +1694,23 @@ class EditVendorProfileController extends GetxController {
       profData['newClientPolicy'] = farrierNewClientPolicy.value;
       profData['minHorses'] = farrierMinHorses.value;
       profData['emergencySupport'] = farrierEmergencySupport.value;
+
+//       profData['insuranceStatus'] = farrierInsuranceStatus.value;
+//     } else if (_editProfileIsBodyworkServiceType(type)) {
+//       final selectedModalities = bodyworkServices
+//           .where((raw) {
+//             if (raw is! Map) return false;
+//             final m = Map<String, dynamic>.from(raw);
+//             final sel = m['isSelected'];
+//             if (sel is RxBool) return sel.value;
+//             if (sel is bool) return sel;
+//             return true;
+//           })
+//           .map((raw) => Map<String, dynamic>.from(raw as Map)['name']?.toString() ?? '')
+//           .where((n) => n.isNotEmpty)
+//           .toList();
+//       appData['modalities'] = selectedModalities;
+
       profData['insurance'] = {
         'status': farrierInsuranceStatus.value,
         'document': farrierExistingInsuranceUrl.value,
@@ -1632,16 +1719,32 @@ class EditVendorProfileController extends GetxController {
       };
     } else if (type == 'Bodywork') {
       appData['modalities'] = bodyworkModalityOptions.toList(); 
+
       appData['otherModality'] = otherModalityController.text;
       appData['professionalStandards'] = selectedBodyworkStandards.toList();
-      profData['services'] = bodyworkServices.map((s) => {
-        'name': s['name'],
-        'rates': s['rates'],
-        'isSelected': s['isSelected'].value,
-        'note': s['note'],
-        'trainerPresence': s['trainerPresence'],
-        'vetApproval': s['vetApproval'],
-      }).toList();
+      final serialized = bodyworkServices
+          .map((s) => {
+                'name': s['name'],
+                'rates': s['rates'],
+                'isSelected': s['isSelected'].value,
+                'note': s['note'],
+                'trainerPresence': s['trainerPresence'],
+                'vetApproval': s['vetApproval'],
+              })
+          .toList();
+
+      // Never replace saved rates with [] when the Rx list was never hydrated (e.g. serviceType casing).
+      final draftBlock = draftServicesData[typeKey];
+      final prevServices = draftBlock is Map
+          ? (Map<String, dynamic>.from(draftBlock['profileData'] ?? {})['services'])
+          : null;
+      if (serialized.isNotEmpty) {
+        profData['services'] = serialized;
+      } else if (prevServices is List && prevServices.isNotEmpty) {
+        // omit profData['services'] — merge keeps existing profile services
+      } else {
+        profData['services'] = serialized;
+      }
       profData['travelPreferences'] = selectedTravelData.values.toList();
     } else if (type == 'Shipping') {
       appData['businessInfo'] = {

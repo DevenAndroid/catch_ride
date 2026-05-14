@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 import 'profile/groom_view_profile.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
 
 class GroomBottomNav extends StatefulWidget {
   final int initialIndex;
@@ -30,6 +31,8 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
   void initState() {
     super.initState();
     _selectedIndex = widget.initialIndex;
+    Get.put(BookingController());
+    Get.find<BookingController>().refreshPendingBookingCounts();
   }
 
   Widget _bodyForIndex(int index, bool isShipping) {
@@ -91,7 +94,14 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
     final avatarUrl = user?.displayAvatar ?? '';
 
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        if (index == 1) {
+          if (Get.isRegistered<BookingController>()) {
+            Get.find<BookingController>().refreshPendingBookingCounts();
+          }
+        }
+        setState(() => _selectedIndex = index);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
@@ -101,7 +111,27 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (index == 3)
+            if (index == 1)
+              Obx(() {
+                final count = Get.find<BookingController>().pendingReceivedCount.value;
+                final text = count > 99 ? '99+' : '$count';
+                return Badge(
+                  label: CommonText(
+                    text,
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                  isLabelVisible: count > 0,
+                  backgroundColor: const Color(0xFFB42318),
+                  child: SvgPicture.asset(
+                    icon as String,
+                    width: 24,
+                    height: 24,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                );
+              })
+            else if (index == 3)
               Obx(() {
                 final chatController = Get.find<ChatController>();
                 final unreadCount = chatController.totalUnreadCount;

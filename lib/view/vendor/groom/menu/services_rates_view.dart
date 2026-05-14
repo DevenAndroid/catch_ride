@@ -100,7 +100,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
             } else if (type.contains('farrier')) {
               return FarrierServiceRatesTab(serviceType: s['serviceType'].toString());
             } else if (type.contains('bodywork') || type.contains('body work')) {
-              return const BodyworkServiceRatesTab();
+              return BodyworkServiceRatesTab(serviceType: s['serviceType'].toString());
             } else if (type.contains('shipping')) {
               return const ServicePriceView();
             } else if (type.contains('groom')) {

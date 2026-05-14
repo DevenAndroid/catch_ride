@@ -33,8 +33,6 @@ class BraidingEditProfileTab extends StatelessWidget {
         const SizedBox(height: 20),
         _buildHorseLevelSection(),
         const SizedBox(height: 20),
-        _buildBraidingServicesSection(),
-        const SizedBox(height: 20),
         _buildRegionsCoveredSection(),
         const SizedBox(height: 20),
         _buildSocialMediaSection(),
@@ -191,95 +189,7 @@ class BraidingEditProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildBraidingServicesSection() {
-    return _buildCard(
-      title: 'Braiding Services',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CommonText('Select your braiding skills and set prices', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-          const SizedBox(height: 16),
-          Obx(() => Column(
-            children: controller.braidingServices.asMap().entries.map((entry) {
-              final index = entry.key;
-              final service = entry.value;
-              final isSelected = service['isSelected'].value;
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected ? const Color(0xFF001149) : AppColors.borderLight,
-                      width: isSelected ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: isSelected,
-                        onChanged: (val) => controller.toggleBraidingService(index),
-                        activeColor: const Color(0xFF001149),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CommonText(service['name'], fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-                            const CommonText('Per horse', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: 100,
-                        height: 44,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F4F6),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const CommonText('\$ ', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
-                            Expanded(
-                              child: TextField(
-                                controller: service['price'],
-                                decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero, hintText: '0'),
-                                style: const TextStyle(fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                inputFormatters: [PriceInputFormatter()],
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
-          )),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () => _showAddBraidingServiceBottomSheet(),
-            child: Row(
-              children: const [
-                Icon(Icons.add, size: 18, color: AppColors.linkBlue),
-                SizedBox(width: 4),
-                CommonText('Add Skills', color: AppColors.linkBlue, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildRegionsCoveredSection() {
     return _buildCard(

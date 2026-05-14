@@ -472,7 +472,6 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
          horseLevels: groomController.horseLevels,
          regionsCovered: groomController.operatingRegions,
          travelPreferences: groomController.travelPreferences,
-         services: groomController.bodyworkServices,
        );
     }
     

@@ -476,7 +476,6 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
          travelPreferences: controller.travelPreferences,
-         services: controller.coreServices.map((s) => s is Map ? s.cast<String, dynamic>() : {'name': s.toString(), 'price': '0', 'isSelected': true}).toList(),
        );
     }
     

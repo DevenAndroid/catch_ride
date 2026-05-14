@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -183,7 +184,7 @@ class BookingDetailsView extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Row(
                       children: [
-                        const Icon(Icons.pets_outlined, size: 14, color: AppColors.textSecondary),
+                        SvgPicture.asset('assets/icons/horse_icon.svg', height: 13, width: 13,),
                         const SizedBox(width: 4),
                         CommonText(
                           '${booking.numberOfHorses} ${booking.numberOfHorses == 1 ? 'Horse' : 'Horses'}',
