@@ -772,11 +772,22 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 },
               ),
               const SizedBox(height: 16),
-              const CommonText(
-                'Gender',
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+              RichText(
+                text: const TextSpan(
+                  text: 'Gender',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontFamily: 'Inter',
+                  ),
+                  children: [
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Color(0xFFD92D20)),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 8),
               Obx(() => Wrap(
@@ -804,10 +815,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        // TextSpan(
-                        //   text: ' *',
-                        //   style: TextStyle(color: Color(0xFFD92D20)),
-                        // ),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Color(0xFFD92D20)),
+                        ),
                       ],
                     ),
                   ),
@@ -979,7 +990,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             controller: controller.ageController,
                             hintText: 'Enter year foaled',
                             keyboardType: TextInputType.number,
-                           // isRequired: true,
+                            isRequired: true,
                            //  validator: (val) {
                            //    if (val == null || val.trim().isEmpty)
                            //      return 'Required';
@@ -1044,10 +1055,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        // TextSpan(
-                        //   text: ' *',
-                        //   style: TextStyle(color: Color(0xFFD92D20)),
-                        // ),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Color(0xFFD92D20)),
+                        ),
                       ],
                     ),
                   ),
@@ -1164,7 +1175,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                 controller: controller.descriptionController,
                // textCapitalization: TextCapitalization.sentences,
                 hintText: 'Write here...',
-              //  isRequired: true,
+                isRequired: false,
                 maxLines: 4,
                 // validator: (val) {
                 //   if (val == null || val.trim().isEmpty)
@@ -1398,11 +1409,23 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const CommonText(
-                                'Min Price',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF344054),
+                              RichText(
+                                text: const TextSpan(
+                                  text: 'Min Price',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF344054),
+                                    fontFamily: 'Inter',
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: ' *',
+                                      style:
+                                          TextStyle(color: Color(0xFFD92D20)),
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 8),
                               _buildPriceTextField(
@@ -1418,11 +1441,23 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const CommonText(
-                                'Max Price',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF344054),
+                              RichText(
+                                text: const TextSpan(
+                                  text: 'Max Price',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF344054),
+                                    fontFamily: 'Inter',
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: ' *',
+                                      style:
+                                          TextStyle(color: Color(0xFFD92D20)),
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 8),
                               _buildPriceTextField(
@@ -1563,11 +1598,22 @@ class _AddNewListingViewState extends State<AddNewListingView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText(
-          'Discipline',
-          fontSize: AppTextSizes.size14,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
+        RichText(
+          text: const TextSpan(
+            text: 'Discipline',
+            style: TextStyle(
+              fontSize: AppTextSizes.size14,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+              fontFamily: 'Inter',
+            ),
+            children: [
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: Color(0xFFD92D20)),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         Obx(
@@ -2066,6 +2112,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                           controller: availabilityEntry.cityStateController,
                           hintText: 'e.g., Welling.',
                           readOnly: true, // Locked as per requirement
+                          isRequired: true,
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -2073,6 +2120,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'Start Date',
+                                isRequired: true,
                                 controller:
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
@@ -2101,6 +2149,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'End Date',
+                                isRequired: true,
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
                                 readOnly: true,

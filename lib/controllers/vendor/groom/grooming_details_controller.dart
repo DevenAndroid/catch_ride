@@ -96,6 +96,22 @@ class GroomingDetailsController extends GetxController {
   }
 
   final additionalServices = <Map<String, dynamic>>[
+
+    {
+      'name': 'Hunter Braiding Mane',
+      'price': TextEditingController(), // Default empty as in image placeholder
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Jumper Braiding',
+      'price': TextEditingController(), // Default empty as in image placeholder
+      'isSelected': false.obs,
+    },
+    {
+      'name': 'Dressage Braiding',
+      'price': TextEditingController(), // Default empty as in image placeholder
+      'isSelected': false.obs,
+    },
     {
       'name': 'Hunter Mane + Tail',
       'price': TextEditingController(), // Default empty as in image placeholder

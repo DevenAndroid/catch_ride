@@ -22,6 +22,8 @@ class GeneralServiceAndRatesView extends StatefulWidget {
   final List<String> horseLevels;
   final List<String> travelPreferences;
   final List<String> operatingRegions;
+  final String? noteForTrainer;
+  final List<String>? additionalSkills;
   final bool isClipping;
 
   const GeneralServiceAndRatesView({
@@ -42,6 +44,8 @@ class GeneralServiceAndRatesView extends StatefulWidget {
     required this.horseLevels,
     required this.travelPreferences,
     required this.operatingRegions,
+    this.noteForTrainer,
+    this.additionalSkills,
     this.isClipping = false,
   });
 
@@ -206,8 +210,16 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
               _buildSingleColumnDetail('Travel Preferences', widget.travelPreferences.isEmpty ? '' : widget.travelPreferences.join(', ')),
             ],
             const SizedBox(height: 20),
+            if (widget.additionalSkills?.isNotEmpty ?? false) ...[
+              _buildSingleColumnDetail('Additional Skills', widget.additionalSkills!.join(', ')),
+              const SizedBox(height: 20),
+            ],
             _buildSingleColumnDetail('Regions Covered', widget.operatingRegions.isEmpty ? '' : widget.operatingRegions.join(', ')),
             const SizedBox(height: 20),
+            if (widget.noteForTrainer != null && widget.noteForTrainer!.isNotEmpty) ...[
+              _buildSingleColumnDetail('Note for trainer', widget.noteForTrainer!),
+              const SizedBox(height: 20),
+            ],
             GestureDetector(
               onTap: () => _showMoreDetails.value = false,
               child: const CommonText('View less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
@@ -270,4 +282,6 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
       ],
     );
   }
+
+
 }

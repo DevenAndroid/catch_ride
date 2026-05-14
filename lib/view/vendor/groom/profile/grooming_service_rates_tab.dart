@@ -8,6 +8,16 @@ import '../../../../utils/price_formatter.dart';
 import '../../../../widgets/common_text.dart';
 import '../../../../widgets/common_textfield.dart';
 import '../../../../widgets/common_button.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../../../../constant/app_colors.dart';
+import '../../../../constant/app_text_sizes.dart';
+import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
+import '../../../../utils/grooming_rates_util.dart';
+import '../../../../utils/price_formatter.dart';
+import '../../../../widgets/common_text.dart';
+import '../../../../widgets/common_textfield.dart';
+import '../../../../widgets/common_button.dart';
 
 class GroomingServiceRatesTab extends StatefulWidget {
   final String serviceType;
@@ -96,12 +106,16 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
               : null),
     );
     final List<Map<String, dynamic>> defaultAddServices = [
+      {'name': 'Hunter Braiding Mane', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Jumper Braiding', 'price': '0', 'description': 'Per horse'},
+      {'name': 'Dressage Braiding', 'price': '0', 'description': 'Per horse'},
       {'name': 'Hunter Mane + Tail', 'price': '0', 'description': 'Per horse'},
       {'name': 'Hunter Tail Only', 'price': '0', 'description': 'Per horse'},
       {'name': 'Fullbody Clip', 'price': '0', 'description': 'Per horse'},
       {'name': 'Hunter Clip', 'price': '0', 'description': 'Per horse'},
       {'name': 'Trace Clip', 'price': '0', 'description': 'Per horse'},
       {'name': 'Custom Clip', 'price': '0', 'description': 'Per horse'},
+
     ];
 
     final List<Map<String, dynamic>> mergedList = [];

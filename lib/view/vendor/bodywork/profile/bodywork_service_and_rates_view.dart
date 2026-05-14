@@ -24,6 +24,8 @@ class BodyworkServiceAndRatesView extends StatefulWidget {
   final List<dynamic>? travelPreferences;
   /// Optional override; if **null** or **empty**, services are read from [bodyworkData] (merged profile).
   final List<dynamic>? services;
+  final String? noteForTrainer;
+  final List<String>? additionalSkills;
 
   const BodyworkServiceAndRatesView({
     super.key,
@@ -35,6 +37,8 @@ class BodyworkServiceAndRatesView extends StatefulWidget {
     this.regionsCovered,
     this.travelPreferences,
     this.services,
+    this.noteForTrainer,
+    this.additionalSkills,
   });
 
   @override
@@ -240,13 +244,7 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
               displayExperience,
             ),
 
-            if (highlights.isNotEmpty) ...[
-              _buildDetailItem(
-                'Experience Highlights',
-                highlights.map((e) => e.toString()).join(', '),
-              ),
-              const SizedBox(height: 4),
-            ],
+
 
             if (disciplines.isNotEmpty) ...[
               _buildDetailItem(
@@ -262,11 +260,23 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
               ),
               const SizedBox(height: 16),
             ],
+            if (widget.additionalSkills?.isNotEmpty ?? false) ...[
+              _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
+              const SizedBox(height: 16),
+            ],
             if (regionsCovered.isNotEmpty) ...[
               _buildDetailItem(
                 'Regions Covered',
                 regionsCovered.map((e) => e.toString()).join(', '),
               ),
+              const SizedBox(height: 16),
+            ],
+            if (highlights.isNotEmpty) ...[
+              _buildDetailItem('Experience Highlights', highlights.map((e) => e.toString()).join(', ')),
+              const SizedBox(height: 16),
+            ],
+            if (widget.noteForTrainer != null && widget.noteForTrainer!.isNotEmpty) ...[
+              _buildDetailItem('Note for trainer', widget.noteForTrainer!),
               const SizedBox(height: 16),
             ],
 
@@ -503,4 +513,6 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
       ],
     );
   }
-}
+
+  }
+
