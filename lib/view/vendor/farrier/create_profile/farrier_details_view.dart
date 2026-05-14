@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/farrier/farrier_details_controller.dart';
@@ -6,6 +7,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../widgets/common_textfield.dart';
 import '../../../../utils/price_formatter.dart';
@@ -47,49 +49,54 @@ class FarrierDetailsView extends StatelessWidget {
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
-          return SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildServiceSection(
-                    context,
-                    title: 'Farrier Services',
-                    description: 'Select the services you offer and set your pricing.',
-                   // subtitle: 'Prices listed are for baseline labor/materials.',
-                    services: controller.farrierServices,
-                    onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: false),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildServiceSection(
-                    context,
-                    title: 'Add - Ons',
+          return RefreshIndicator(
+            onRefresh: ()async{
+              controller.fetchFarrierData();
+            },
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildServiceSection(
+                      context,
+                      title: 'Farrier Services',
+                      description: 'Select the services you offer and set your pricing.',
+                     // subtitle: 'Prices listed are for baseline labor/materials.',
+                      services: controller.farrierServices,
+                      onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: false),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildServiceSection(
+                      context,
+                      title: 'Add - Ons',
 
-                    description: 'Optional services or materials offered in addition to your standard work',
-                    services: controller.addOns,
-                    onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: true),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildTravelPreferences(context, controller),
-                  const SizedBox(height: 24),
-                  _buildClientIntake(controller),
-                  const SizedBox(height: 24),
-                  _buildInsuranceStatus(controller),
-                  const SizedBox(height: 24),
-                  _buildSummaryInfo(controller),
-                  const SizedBox(height: 24),
-                  _buildCancellationPolicy(controller),
-                  const SizedBox(height: 40),
-                  CommonButton(
-                    text: 'Continue',
-                    isLoading: controller.isSubmitting.value,
-                    backgroundColor: AppColors.primaryDark,
-                    onPressed: controller.submit,
-                    height: 56,
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                      description: 'Optional services or materials offered in addition to your standard work',
+                      services: controller.addOns,
+                      onAdd: () => _showAddServiceBottomSheet(context, controller, isAddOn: true),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildTravelPreferences(context, controller),
+                    const SizedBox(height: 24),
+                    _buildClientIntake(controller),
+                    const SizedBox(height: 24),
+                    _buildInsuranceStatus(controller),
+                    const SizedBox(height: 24),
+                    _buildSummaryInfo(controller),
+                    const SizedBox(height: 24),
+                    _buildCancellationPolicy(controller),
+                    const SizedBox(height: 40),
+                    CommonButton(
+                      text: 'Continue',
+                      isLoading: controller.isSubmitting.value,
+                      backgroundColor: AppColors.primaryDark,
+                      onPressed: controller.submit,
+                      height: 56,
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           );
@@ -386,38 +393,45 @@ class FarrierDetailsView extends StatelessWidget {
       children: [
         Column(
           children: controller.insuranceOptions.map((opt) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Obx(() {
-                final isSelected = controller.selectedInsurance.value == opt;
-                return GestureDetector(
-                  onTap: () => controller.selectedInsurance.value = opt,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : AppColors.borderLight,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                          color: isSelected ? AppColors.primary : AppColors.borderLight,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        CommonText(opt, fontSize: AppTextSizes.size14, color: AppColors.textPrimary),
-                      ],
-                    ),
-                  ),
-                );
-              }),
+            return _buildRadioItem(
+              title: opt,
+              isSelected: controller.selectedInsurance.value == opt,
+              onTap: () => controller.selectedInsurance.value = opt,
             );
           }).toList(),
         ),
+        const SizedBox(height: 16),
+        Obx(() {
+          if (controller.selectedInsurance.value == 'Carries Insurance') {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader('Current Insurance Document'),
+                if (controller.insuranceDocument.value == null && controller.insuranceDocumentUrl.value == null)
+                  _buildUploadBox(onTap: controller.pickInsuranceDoc)
+                else
+                  _buildFileItem(
+                    file: controller.insuranceDocument.value,
+                    url: controller.insuranceDocumentUrl.value,
+                    onRemove: () {
+                      controller.insuranceDocument.value = null;
+                      controller.insuranceDocumentUrl.value = null;
+                      controller.insuranceDocumentName.value = null;
+                    },
+                  ),
+                const SizedBox(height: 16),
+                _buildSectionHeader('Expiration date', isRequired: true),
+                _buildDatePickerTrigger(
+                  value: controller.expirationDate.value != null
+                      ? DateFormat('MMMM d, yyyy').format(controller.expirationDate.value!)
+                      : 'Select date',
+                  onTap: () => controller.selectExpirationDate(Get.context!),
+                ),
+              ],
+            );
+          }
+          return const SizedBox.shrink();
+        }),
       ],
     );
   }
@@ -1121,6 +1135,136 @@ class FarrierDetailsView extends StatelessWidget {
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildRadioItem(
+      {required String title,
+      required bool isSelected,
+      required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: isSelected ? AppColors.primary : AppColors.borderLight,
+              width: isSelected ? 1.5 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                color: isSelected ? AppColors.primary : AppColors.borderMedium,
+                size: 20),
+            const SizedBox(width: 12),
+            CommonText(title,
+                fontSize: AppTextSizes.size14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUploadBox({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: AppColors.borderLight, style: BorderStyle.solid),
+        ),
+        child: const Column(
+          children: [
+            Icon(Icons.cloud_upload_outlined, color: AppColors.primary, size: 32),
+            const SizedBox(height: 8),
+            CommonText('Tap to upload document',
+                fontSize: 14, color: AppColors.textSecondary),
+            CommonText('PDF, JPG, PNG (Max 5MB)',
+                fontSize: 12, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFileItem(
+      {File? file, String? url, required VoidCallback onRemove}) {
+    String fileName = 'Document';
+    if (file != null) {
+      fileName = file.path.split('/').last;
+    } else if (url != null) {
+      fileName = url.split('/').last;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F8FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.description_outlined,
+              color: AppColors.primary, size: 24),
+          const SizedBox(width: 12),
+          Expanded(child: CommonText(fileName, fontSize: 14, maxLines: 1)),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18, color: Colors.grey),
+            onPressed: onRemove,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          CommonText(title,
+              fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+          if (isRequired) const CommonText(' *', color: Colors.red),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePickerTrigger(
+      {required String value, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CommonText(value,
+                fontSize: 14,
+                color: value == 'Select date' ? Colors.grey : AppColors.textPrimary),
+            const Icon(Icons.calendar_today_outlined,
+                size: 18, color: Colors.grey),
           ],
         ),
       ),

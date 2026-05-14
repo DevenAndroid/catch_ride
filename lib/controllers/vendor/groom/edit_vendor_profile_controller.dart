@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
 import 'package:catch_ride/controllers/auth_controller.dart';
@@ -207,6 +208,10 @@ class EditVendorProfileController extends GetxController {
   final RxInt farrierMinHorses = 1.obs;
   final RxBool farrierEmergencySupport = false.obs;
   final RxnString farrierInsuranceStatus = RxnString();
+  final RxnString farrierExistingInsuranceUrl = RxnString();
+  final RxnString farrierInsuranceFileName = RxnString();
+  final Rxn<File> farrierInsuranceFile = Rxn<File>();
+  final Rxn<DateTime> farrierInsuranceExpiry = Rxn<DateTime>();
   
   // Bodywork Tab Specifics
   final RxList bodyworkServices = [].obs;
@@ -650,7 +655,7 @@ class EditVendorProfileController extends GetxController {
         final addNotesFirst = profileData['additionalNotes']?.toString().trim() ?? '';
         shippingNotesController.text =
             addNotesFirst.isNotEmpty ? addNotesFirst : (profileData['notes']?.toString() ?? '');
-        shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
+      //  shippingRigPhotos.assignAll(List<String>.from(profileData['media']?['rigPhotos'] ?? appData['media']?['rigPhotos'] ?? []));
         shippingExistingCDLUrl.value = profileData['cdlFile'] ?? appData['cdlDoc'] ?? appData['media']?['cdlPhoto'] ?? appData['media']?['licensePhoto'] ?? profileData['media']?['cdlPhoto'] ?? profileData['media']?['licensePhoto'];
         shippingCdlFileName.value = profileData['cdlFileName'] ?? appData['cdlDocName'] ?? appData['media']?['cdlDocName'] ?? 'CDL Document';
         
@@ -858,15 +863,77 @@ class EditVendorProfileController extends GetxController {
         farrierNewClientPolicy.value = appDataMap['clientIntake']?['policy'];
         farrierMinHorses.value = int.tryParse(appDataMap['clientIntake']?['minHorses']?.toString() ?? '1') ?? 1;
         farrierEmergencySupport.value = appDataMap['clientIntake']?['emergencySupport'] ?? false;
-        final rawInsuranceStatus = appDataMap['insuranceStatus'];
-        if (rawInsuranceStatus == 'I have professional liability insurance') {
-          farrierInsuranceStatus.value = 'Carries Insurance';
-        } else if (rawInsuranceStatus == 'I do not have professional liability insurance') {
-          farrierInsuranceStatus.value = 'Not currently insured';
-        } else if (rawInsuranceStatus == 'Not applicable') {
-          farrierInsuranceStatus.value = 'Insurance available upon request';
+        final insData = appDataMap['insurance'] ?? profileDataMap['insurance'];
+        if (insData != null && insData is Map) {
+          final rawStatus = insData['status'] ?? insData['insuranceStatus'];
+          if (rawStatus == 'I have professional liability insurance') {
+            farrierInsuranceStatus.value = 'Carries Insurance';
+          } else if (rawStatus == 'I do not have professional liability insurance') {
+            farrierInsuranceStatus.value = 'Not currently insured';
+          } else if (rawStatus == 'Not applicable') {
+            farrierInsuranceStatus.value = 'Insurance available upon request';
+          } else if (rawStatus is String) {
+            farrierInsuranceStatus.value = rawStatus;
+          }
+
+          var doc = insData['document'] ?? insData['file'];
+
+          log("asdfsad$doc");
+          // If document is an empty string but file is available, use file
+          // if (doc is String && doc.isEmpty && insData['file'] != null) {
+          //   doc = insData['file'];
+          // }
+
+          if (doc is String && doc.isNotEmpty) {
+            farrierExistingInsuranceUrl.value = doc;
+          } else if (doc is List && doc.isNotEmpty) {
+            farrierExistingInsuranceUrl.value = doc.first.toString();
+          } else {
+            farrierExistingInsuranceUrl.value = null;
+          }
+          
+          final fName = insData['fileName'];
+          farrierInsuranceFileName.value = (fName is String) ? fName : null;
+
+          final expStr = insData['expirationDate'] ?? insData['expiry'];
+
+          log("asdfsad:::$expStr");
+          if (expStr != null && expStr.toString().isNotEmpty) {
+            try {
+              farrierInsuranceExpiry.value = DateTime.parse(expStr.toString());
+            } catch (_) {}
+          }
         } else {
-          farrierInsuranceStatus.value = rawInsuranceStatus;
+          // Backward compatibility
+          final rawInsuranceStatus = appDataMap['insuranceStatus'];
+          if (rawInsuranceStatus == 'I have professional liability insurance') {
+            farrierInsuranceStatus.value = 'Carries Insurance';
+          } else if (rawInsuranceStatus == 'I do not have professional liability insurance') {
+            farrierInsuranceStatus.value = 'Not currently insured';
+          } else if (rawInsuranceStatus == 'Not applicable') {
+            farrierInsuranceStatus.value = 'Insurance available upon request';
+          } else if (rawInsuranceStatus is String) {
+            farrierInsuranceStatus.value = rawInsuranceStatus;
+          }
+
+          var doc = appDataMap['insuranceFile'] ?? profileDataMap['insuranceFile'];
+          if (doc is String && doc.isNotEmpty) {
+            farrierExistingInsuranceUrl.value = doc;
+          } else if (doc is List && doc.isNotEmpty) {
+            farrierExistingInsuranceUrl.value = doc.first.toString();
+          } else {
+            farrierExistingInsuranceUrl.value = null;
+          }
+          
+          final fName = appDataMap['insuranceFileName'] ?? profileDataMap['insuranceFileName'];
+          farrierInsuranceFileName.value = (fName is String) ? fName : null;
+
+          final expStr = appDataMap['insuranceExpiry'] ?? profileDataMap['insuranceExpiry'];
+          if (expStr != null && expStr.toString().isNotEmpty) {
+            try {
+              farrierInsuranceExpiry.value = DateTime.parse(expStr.toString());
+            } catch (_) {}
+          }
         }
       } else if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
           _mergeBodyworkModalities();
@@ -901,7 +968,7 @@ class EditVendorProfileController extends GetxController {
           final addNotes = profileDataMap['additionalNotes']?.toString().trim() ?? '';
           shippingNotesController.text =
               addNotes.isNotEmpty ? addNotes : (profileDataMap['notes']?.toString() ?? '');
-          shippingRigPhotos.assignAll(List<String>.from(profileDataMap['media']?['rigPhotos'] ?? appDataMap['media']?['rigPhotos'] ?? []));
+         // shippingRigPhotos.assignAll(List<String>.from(profileDataMap['media']?['rigPhotos'] ?? appDataMap['media']?['rigPhotos'] ?? []));
           shippingExistingCDLUrl.value = profileDataMap['cdlFile'] ?? appDataMap['cdlDoc'] ?? appDataMap['media']?['cdlPhoto'] ?? appDataMap['media']?['licensePhoto'] ?? profileDataMap['media']?['cdlPhoto'] ?? profileDataMap['media']?['licensePhoto'];
           shippingCdlFileName.value = profileDataMap['cdlFileName'] ?? appDataMap['cdlDocName'] ?? appDataMap['media']?['cdlDocName'] ?? 'CDL Document';
           
@@ -1420,6 +1487,22 @@ class EditVendorProfileController extends GetxController {
           newProf['media'] = {
             'rigPhotos': shippingMedia,
           };
+        } else if (type == 'Farrier') {
+          String? insUrl = farrierExistingInsuranceUrl.value;
+          if (farrierInsuranceFile.value != null) {
+            insUrl = await _uploadFile(farrierInsuranceFile.value!, 'farrier_docs');
+          }
+          newApp['insurance'] = {
+            'status': farrierInsuranceStatus.value,
+            'document': insUrl,
+            'fileName': farrierInsuranceFileName.value,
+            'expirationDate': farrierInsuranceExpiry.value?.toIso8601String(),
+          };
+          
+          if (serviceMediaKeys.containsKey(type)) {
+            newApp['media'] = serviceMediaKeys[type] ?? [];
+            newProf['media'] = serviceMediaKeys[type] ?? [];
+          }
         } else {
           if (serviceMediaKeys.containsKey(type)) {
             newApp['media'] = serviceMediaKeys[type] ?? [];
@@ -1611,21 +1694,32 @@ class EditVendorProfileController extends GetxController {
       profData['newClientPolicy'] = farrierNewClientPolicy.value;
       profData['minHorses'] = farrierMinHorses.value;
       profData['emergencySupport'] = farrierEmergencySupport.value;
-      profData['insuranceStatus'] = farrierInsuranceStatus.value;
-    } else if (_editProfileIsBodyworkServiceType(type)) {
-      final selectedModalities = bodyworkServices
-          .where((raw) {
-            if (raw is! Map) return false;
-            final m = Map<String, dynamic>.from(raw);
-            final sel = m['isSelected'];
-            if (sel is RxBool) return sel.value;
-            if (sel is bool) return sel;
-            return true;
-          })
-          .map((raw) => Map<String, dynamic>.from(raw as Map)['name']?.toString() ?? '')
-          .where((n) => n.isNotEmpty)
-          .toList();
-      appData['modalities'] = selectedModalities;
+
+//       profData['insuranceStatus'] = farrierInsuranceStatus.value;
+//     } else if (_editProfileIsBodyworkServiceType(type)) {
+//       final selectedModalities = bodyworkServices
+//           .where((raw) {
+//             if (raw is! Map) return false;
+//             final m = Map<String, dynamic>.from(raw);
+//             final sel = m['isSelected'];
+//             if (sel is RxBool) return sel.value;
+//             if (sel is bool) return sel;
+//             return true;
+//           })
+//           .map((raw) => Map<String, dynamic>.from(raw as Map)['name']?.toString() ?? '')
+//           .where((n) => n.isNotEmpty)
+//           .toList();
+//       appData['modalities'] = selectedModalities;
+
+      profData['insurance'] = {
+        'status': farrierInsuranceStatus.value,
+        'document': farrierExistingInsuranceUrl.value,
+        'fileName': farrierInsuranceFileName.value,
+        'expirationDate': farrierInsuranceExpiry.value?.toIso8601String(),
+      };
+    } else if (type == 'Bodywork') {
+      appData['modalities'] = bodyworkModalityOptions.toList(); 
+
       appData['otherModality'] = otherModalityController.text;
       appData['professionalStandards'] = selectedBodyworkStandards.toList();
       final serialized = bodyworkServices
@@ -1682,5 +1776,35 @@ class EditVendorProfileController extends GetxController {
       'applicationData': { ...existingApp, ...appData },
       'profileData': { ...existingProf, ...profData }
     };
+  }
+
+  Future<void> pickFarrierInsuranceDoc() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        farrierInsuranceFile.value = File(result.files.single.path!);
+        farrierInsuranceFileName.value = result.files.single.name;
+        farrierExistingInsuranceUrl.value = null; // Clear existing if new one picked
+      }
+    } catch (e) {
+      debugPrint('Error picking farrier insurance document: $e');
+    }
+  }
+
+  Future<void> selectFarrierInsuranceExpiry(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: farrierInsuranceExpiry.value ??
+          DateTime.now().add(const Duration(days: 365)),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+    );
+    if (picked != null) {
+      farrierInsuranceExpiry.value = picked;
+    }
   }
 }
