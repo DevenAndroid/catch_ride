@@ -763,27 +763,24 @@ class EditVendorProfileController extends GetxController {
       }
 
       final activeTypeStr = activeService['serviceType']?.toString() ?? '';
-      if (activeTypeStr == 'Grooming') {
-        final draftGroom = draftServicesData['grooming'] is Map
-            ? Map<String, dynamic>.from(draftServicesData['grooming'] as Map)
-            : null;
-        final vendorRootMap = Map<String, dynamic>.from(vendorRootData);
-        instagramController.text = resolveServiceInstagram(
-          serviceType: 'Grooming',
-          vendorRoot: vendorRootMap,
-          profileData: profileDataMap,
-          appData: appDataMap,
-          draftBlock: draftGroom,
-        );
-        facebookController.text = resolveServiceFacebook(
-          serviceType: 'Grooming',
-          vendorRoot: vendorRootMap,
-          profileData: profileDataMap,
-          appData: appDataMap,
-          draftBlock: draftGroom,
-        );
-      }
+      final vendorRootMap = Map<String, dynamic>.from(vendorRootData);
+      final draftServicesMap = Map<String, dynamic>.from(draftServicesData[activeTypeStr.toLowerCase()] ?? {});
       
+      instagramController.text = resolveServiceInstagram(
+        serviceType: activeTypeStr,
+        vendorRoot: vendorRootMap,
+        profileData: profileDataMap,
+        appData: appDataMap,
+        draftBlock: draftServicesMap.isNotEmpty ? draftServicesMap : null,
+      );
+      facebookController.text = resolveServiceFacebook(
+        serviceType: activeTypeStr,
+        vendorRoot: vendorRootMap,
+        profileData: profileDataMap,
+        appData: appDataMap,
+        draftBlock: draftServicesMap.isNotEmpty ? draftServicesMap : null,
+      );
+
       _syncLocationNodes();
       // Capabilities based on service type
       if (activeService['serviceType'] == 'Grooming') {
@@ -847,20 +844,21 @@ class EditVendorProfileController extends GetxController {
         selectedFarrierScope.assignAll(List<String>.from(appDataMap['scopeOfWork'] ?? []));
         otherFarrierScopeController.text = (appDataMap['otherScopeOfWork'] ?? appDataMap['otherScope'] ?? '').toString().replaceFirst('Other:', '').trim();
 
-        final List travelFees = profileDataMap['travelPreferences'] ?? [];
-        farrierTravelFees.assignAll(travelFees.map((t) => Map<String, dynamic>.from(t)).toList());
-        
-        // Populate selectedTravelData for UI lookup
-        for (var t in farrierTravelFees) {
-          if (t['category'] != null) {
-            selectedTravelData[t['category']] = Map<String, dynamic>.from(t);
-            if (!selectedTravel.contains(t['category'])) {
-              selectedTravel.add(t['category']);
-            }
-          }
-        }
+        // Travel preferences are handled by the unified block at the end of this method
 
-        farrierNewClientPolicy.value = appDataMap['clientIntake']?['policy'];
+
+        final rawPolicy = (appDataMap['clientIntake']?['policy'] ?? '').toString().toLowerCase();
+        if (rawPolicy.contains('not accepting')) {
+          farrierNewClientPolicy.value = 'Not accepting new clients';
+        } else if (rawPolicy.contains('referral')) {
+          farrierNewClientPolicy.value = 'Referral only';
+        } else if (rawPolicy.contains('limited')) {
+          farrierNewClientPolicy.value = 'Limited availability';
+        } else if (rawPolicy.contains('accepting')) {
+          farrierNewClientPolicy.value = 'Accepting new clients';
+        } else {
+          farrierNewClientPolicy.value = appDataMap['clientIntake']?['policy'];
+        }
         farrierMinHorses.value = int.tryParse(appDataMap['clientIntake']?['minHorses']?.toString() ?? '1') ?? 1;
         farrierEmergencySupport.value = appDataMap['clientIntake']?['emergencySupport'] ?? false;
         final insData = appDataMap['insurance'] ?? profileDataMap['insurance'];
@@ -980,24 +978,63 @@ class EditVendorProfileController extends GetxController {
           selectedRegions.assignAll(List<String>.from(appDataMap['regions'] ?? []));
         }
 
-      final travelPrefRaw = draft['travelPreferences'] ?? profileDataMap['travelPreferences'] ?? [];
+      final travelPrefRaw = draft['travelPreferences'] ?? profileDataMap['travelPreferences'] ?? merged['travelPreferences'] ?? [];
       if (travelPrefRaw is List) {
-        if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
+        if (assignedServiceMatchesTab(activeService, 'Bodywork') || assignedServiceMatchesTab(activeService, 'Farrier')) {
           final Map<String, Map<String, dynamic>> travelMap = {};
+          selectedTravel.clear(); // Clear to avoid duplicates from other tabs
           for (var item in travelPrefRaw) {
             if (item is Map) {
-              final type = item['type'] ?? item['category'] ?? '';
-              if (type.isNotEmpty) {
-                travelMap[type] = Map<String, dynamic>.from(item);
-                if (!selectedTravel.contains(type)) {
-                  selectedTravel.add(type);
-                }
+              final Map<String, dynamic> itemMap = Map<String, dynamic>.from(item);
+              
+              // 1. Identify Category Name (Region)
+              String? categoryName;
+              
+              // Priority 1: type (if not a fee model string)
+              if (itemMap['type'] != null && 
+                  !['No travel fee', 'Flat fee', 'Per-mile', 'Varies by location', 'Travel fee', 'none', 'flat'].contains(itemMap['type'])) {
+                categoryName = itemMap['type'].toString();
+              } 
+              // Priority 2: category or label
+              else {
+                categoryName = itemMap['category']?.toString() ?? itemMap['label']?.toString();
+              }
+
+              if (categoryName == null || categoryName.isEmpty) continue;
+
+              // 2. Map Details & Handle Legacy Conversion
+              String feeType = itemMap['feeType']?.toString() ?? 'No travel fee';
+              String price = itemMap['price']?.toString() ?? '';
+              String disclaimer = itemMap['disclaimer']?.toString() ?? '';
+
+              // Handle legacy map structure (fees, flatFee, etc.) from VendorModel
+              if (itemMap.containsKey('fees') || itemMap.containsKey('flatFee')) {
+                 final isFees = itemMap['fees'] == true;
+                 price = (itemMap['flatFee'] ?? itemMap['perMile'] ?? '').toString();
+                 feeType = itemMap['variesByLocation'] == true ? 'Varies by location' : (isFees ? 'Flat fee' : 'No travel fee');
+                 disclaimer = itemMap['note']?.toString() ?? '';
+              } 
+              // Normalize fee labels
+              if (feeType == 'Travel fee' || feeType == 'flat') feeType = 'Flat fee';
+              if (feeType == 'none') feeType = 'No travel fee';
+
+              travelMap[categoryName] = {
+                'type': categoryName,
+                'feeType': feeType,
+                'price': price,
+                'disclaimer': disclaimer,
+              };
+
+              if (!selectedTravel.contains(categoryName)) {
+                selectedTravel.add(categoryName);
               }
             } else {
               final name = item.toString();
-              travelMap[name] = {'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
-              if (name.isNotEmpty && !selectedTravel.contains(name)) {
-                selectedTravel.add(name);
+              if (name.isNotEmpty) {
+                travelMap[name] = {'type': name, 'feeType': 'No travel fee', 'price': '', 'disclaimer': ''};
+                if (!selectedTravel.contains(name)) {
+                  selectedTravel.add(name);
+                }
               }
             }
           }
@@ -1593,6 +1630,9 @@ class EditVendorProfileController extends GetxController {
     if (type == null) return;
     final typeKey = type.toLowerCase();
 
+    final fb = facebookController.text.trim();
+    final ig = instagramController.text.trim();
+
     final Map<String, dynamic> appData = {
       'homeBase': {
         'city': cityController.text,
@@ -1605,9 +1645,12 @@ class EditVendorProfileController extends GetxController {
       'horseLevels': selectedHorseLevels.toList(),
       'regions': selectedRegions.toList(),
       'experienceHighlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+      'facebookLink': fb,
+      'instagramLink': ig,
     };
 
     final Map<String, dynamic> profData = {
+      'socialMedia': {'facebook': fb, 'instagram': ig},
       'cancellationPolicy': {
         'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
         'isCustom': isCustomCancellation.value,
@@ -1615,15 +1658,6 @@ class EditVendorProfileController extends GetxController {
     };
 
     if (type == 'Grooming') {
-      final fb = facebookController.text.trim();
-      final ig = instagramController.text.trim();
-      profData['socialMedia'] = {'facebook': fb, 'instagram': ig};
-
-      profData['cancellationPolicy'] = {
-        'policy': isCustomCancellation.value ? customCancellationController.text : cancellationPolicy.value,
-        'isCustom': isCustomCancellation.value,
-      };
-
       final existing = Map<String, dynamic>.from(draftServicesData[typeKey] ?? {});
       final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
       final existingProf = Map<String, dynamic>.from(existing['profileData'] ?? {});
@@ -1690,13 +1724,21 @@ class EditVendorProfileController extends GetxController {
       appData['otherCertification'] = otherCertificationController.text;
       appData['scopeOfWork'] = selectedFarrierScope.toList();
       appData['otherScope'] = otherFarrierScopeController.text;
-      profData['travelFees'] = farrierTravelFees.toList();
-      profData['newClientPolicy'] = farrierNewClientPolicy.value;
-      profData['minHorses'] = farrierMinHorses.value;
-      profData['emergencySupport'] = farrierEmergencySupport.value;
+      profData['travelPreferences'] = selectedTravelData.values.toList();
+      
+      profData['clientIntake'] = {
+        'policy': farrierNewClientPolicy.value,
+        'minHorses': farrierMinHorses.value,
+        'emergencySupport': farrierEmergencySupport.value,
+      };
+      
+      // Also sync to applicationData for legacy reasons
+      appData['facebookLink'] = fb;
+      appData['instagramLink'] = ig;
+      appData['clientIntake'] = profData['clientIntake'];
 
-//       profData['insuranceStatus'] = farrierInsuranceStatus.value;
-//     } else if (_editProfileIsBodyworkServiceType(type)) {
+      profData['insuranceStatus'] = farrierInsuranceStatus.value;
+    } else if (_editProfileIsBodyworkServiceType(type)) {
 //       final selectedModalities = bodyworkServices
 //           .where((raw) {
 //             if (raw is! Map) return false;
@@ -1774,7 +1816,8 @@ class EditVendorProfileController extends GetxController {
 
     draftServicesData[typeKey] = {
       'applicationData': { ...existingApp, ...appData },
-      'profileData': { ...existingProf, ...profData }
+      'profileData': { ...existingProf, ...profData },
+      if (profData['travelPreferences'] != null) 'travelPreferences': profData['travelPreferences'],
     };
   }
 

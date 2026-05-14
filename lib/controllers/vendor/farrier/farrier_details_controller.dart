@@ -109,34 +109,14 @@ class FarrierDetailsController extends GetxController {
   ].obs;
 
   // Travel Preferences
-  final travelCategories = [
-    'Local Only',
-    'Regional',
-    // 'Nationwide',
-    // 'International',
-  ];
-  final selectedTravel = 'Local Only'.obs;
+  final selectedTravel = <String, Map<String, dynamic>>{}.obs;
+  final travelOptions = ['Local Only', 'Regional', 'Nationwide', 'International'];
 
-  // Detailed fee config per category
-  final travelConfigurations = <String, Map<String, dynamic>>{
-    'Local Only': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
-    'Regional': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
-    // 'Nationwide': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
-    // 'International': {'type': 'No travel fee', 'price': '', 'disclaimer': ''},
-  }.obs;
+  // Detailed fee config per category (Removed travelConfigurations as it's now in selectedTravel)
 
-  // Temp variables for UI
-  final tempSelectedFeeType = 'No travel fee'.obs;
-  final travelFeePriceController = TextEditingController();
-  final travelFeeDisclaimerController = TextEditingController();
-
-  void saveTravelConfig(String category) {
-    travelConfigurations[category] = {
-      'type': tempSelectedFeeType.value,
-      'price': travelFeePriceController.text,
-      'disclaimer': travelFeeDisclaimerController.text,
-    };
-    selectedTravel.value = category;
+  void saveTravelConfig(String category, Map<String, dynamic> config) {
+    selectedTravel[category] = config;
+    selectedTravel.refresh();
   }
 
   // Client Intake
@@ -331,12 +311,13 @@ class FarrierDetailsController extends GetxController {
       }
     }
 
+    selectedTravel.clear();
     for (final row in farrierData['travelPreferences'] ?? []) {
       if (row is! Map) continue;
-      final cat = row['category']?.toString();
+      final cat = row['category']?.toString() ?? row['type']?.toString();
       if (cat == null || cat.isEmpty) continue;
-      travelConfigurations[cat] = {
-        'type': row['type']?.toString() ?? 'No travel fee',
+      selectedTravel[cat] = {
+        'feeType': row['feeType'] ?? row['type'] ?? 'No travel fee',
         'price': row['price']?.toString() ?? '',
         'disclaimer': row['disclaimer']?.toString() ?? '',
       };
@@ -597,19 +578,15 @@ class FarrierDetailsController extends GetxController {
               },
             )
             .toList(),
-        'travelPreferences': travelConfigurations.entries
+        'travelPreferences': selectedTravel.entries
             .map(
               (e) => {
                 'category': e.key,
-                'type': e.value['type'],
+                'feeType': e.value['feeType'],
                 'price': e.value['price']?.toString().replaceAll(',', ''),
                 'disclaimer': e.value['disclaimer'],
+                'type': e.key, // Keep both for compatibility
               },
-            )
-            .where(
-              (e) =>
-                  e['type'] != 'No travel fee' ||
-                  (selectedTravel.value == e['category']),
             )
             .toList(),
         'clientIntake': {
