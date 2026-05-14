@@ -13,6 +13,8 @@ class ClippingServiceAndRatesView extends StatefulWidget {
   final List<String>? horseLevels;
   final List<String>? regionsCovered;
   final List<String>? travelPreferences;
+  final String? noteForTrainer;
+  final List<String>? additionalSkills;
 
   const ClippingServiceAndRatesView({
     super.key,
@@ -23,6 +25,8 @@ class ClippingServiceAndRatesView extends StatefulWidget {
     this.horseLevels,
     this.regionsCovered,
     this.travelPreferences,
+    this.noteForTrainer,
+    this.additionalSkills,
   });
 
   @override
@@ -84,10 +88,7 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
               widget.experience ?? 'N/A',
             ),
 
-            if (highlights.isNotEmpty) ...[
-              _buildDetailItem('Experience Highlights', highlights.join(', ')),
-              const SizedBox(height: 4),
-            ],
+
 
             if (showMore) ...[
               const SizedBox(height: 20),
@@ -101,9 +102,21 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
                 const SizedBox(height: 16),
                 _buildDetailItem('Travel Preferences', widget.travelPreferences!.join(', ')),
               ],
+              if (widget.additionalSkills?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
+              ],
               if (widget.regionsCovered?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
                 _buildDetailItem('Regions Covered', widget.regionsCovered!.join(', ')),
+              ],
+              if (highlights.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Experience Highlights', highlights.join(', ')),
+              ],
+              if (widget.noteForTrainer?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Note for trainer', widget.noteForTrainer!),
               ],
               const SizedBox(height: 16),
               GestureDetector(
@@ -164,4 +177,6 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
       ],
     );
   }
-}
+
+  }
+

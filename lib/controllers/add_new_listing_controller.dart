@@ -963,10 +963,6 @@ class AddNewListingController extends GetxController {
       _showError('Please enter the breed');
       return false;
     }
-    if (descriptionController.text.trim().isEmpty) {
-      _showError('Please enter a description');
-      return false;
-    }
     return true;
   }
 

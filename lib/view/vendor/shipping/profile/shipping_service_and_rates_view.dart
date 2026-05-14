@@ -24,6 +24,8 @@ class ShippingServiceAndRatesView extends StatefulWidget {
   final bool? hasCDL;
   final String? businessName;
   final List<String> highlights;
+  final String? noteForTrainer;
+  final List<String>? additionalSkills;
 
   const ShippingServiceAndRatesView({
     super.key,
@@ -44,6 +46,8 @@ class ShippingServiceAndRatesView extends StatefulWidget {
     this.hasCDL,
     this.businessName,
     this.highlights = const [],
+    this.noteForTrainer,
+    this.additionalSkills,
   });
 
   @override
@@ -115,13 +119,7 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
               widget.experience,
             ),
 
-            if (widget.highlights.isNotEmpty) ...[
-              _buildDetailItem(
-                'Experience Highlights',
-                widget.highlights.join(' • '),
-              ),
-              const SizedBox(height: 4),
-            ],
+
 
             const SizedBox(height: 20),
 
@@ -134,10 +132,21 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
 
             // ── View More Content ──────────────────────────────────────────
             if (showMore) ...[
-              const SizedBox(height: 12),
+              if (widget.additionalSkills != null && widget.additionalSkills!.isNotEmpty) ...[
+                _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
+                const SizedBox(height: 12),
+              ],
               // ── Regions Covered ──────────────────────────────────────────────
               if (widget.regionsCovered.isNotEmpty) ...[
                 _buildDetailItem('Regions Covered', widget.regionsCovered.join(', ')),
+                const SizedBox(height: 12),
+              ],
+              if (widget.highlights.isNotEmpty) ...[
+                _buildDetailItem('Experience Highlights', widget.highlights.join(' • ')),
+                const SizedBox(height: 12),
+              ],
+              if (widget.noteForTrainer != null && widget.noteForTrainer!.isNotEmpty) ...[
+                _buildDetailItem('Note for trainer', widget.noteForTrainer!),
                 const SizedBox(height: 12),
               ],
 
@@ -276,4 +285,6 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
       ],
     );
   }
-}
+
+  }
+

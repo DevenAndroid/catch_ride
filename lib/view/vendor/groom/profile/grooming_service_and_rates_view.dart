@@ -17,6 +17,7 @@ class GroomingServiceAndRatesView extends StatefulWidget {
   final List<String>? supportOptions;
   final List<String>? handlingOptions;
   final List<String>? additionalSkills;
+  final String? noteForTrainer;
 
   const GroomingServiceAndRatesView({
     super.key,
@@ -30,6 +31,7 @@ class GroomingServiceAndRatesView extends StatefulWidget {
     this.supportOptions,
     this.handlingOptions,
     this.additionalSkills,
+    this.noteForTrainer,
   });
 
   @override
@@ -120,10 +122,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                 const Divider(height: 1, color: AppColors.dividerColor),
                 const SizedBox(height: 20),
 
-                if (highlights.isNotEmpty) ...[
-                  _buildDetailItem('Experience Highlights', highlights.join(', ')),
-                  const SizedBox(height: 12),
-                ],
+
 
                 // ── Additional Services ───────────────────────────────────────
                 if (additionalServices.isNotEmpty) ...[
@@ -160,13 +159,25 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                   const SizedBox(height: 20),
                   _buildTwoColumnDetails(
                     'Horse Handling', (widget.handlingOptions?.isEmpty ?? true) ? '' : widget.handlingOptions!.join(', '),
-                    'Additional Skills', (widget.additionalSkills?.isEmpty ?? true) ? '' : widget.additionalSkills!.join(', '),
+                    '', '',
                   ),
                   const SizedBox(height: 20),
                   _buildDetailItem('Travel Preferences', (widget.travelPreferences?.isEmpty ?? true) ? '' : widget.travelPreferences!.join(', ')),
                   const SizedBox(height: 20),
+                  if (widget.additionalSkills != null && widget.additionalSkills!.isNotEmpty) ...[
+                    _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
+                    const SizedBox(height: 20),
+                  ],
                   _buildDetailItem('Regions Covered', (widget.regionsCovered?.isEmpty ?? true) ? '' : widget.regionsCovered!.join(', ')),
                   const SizedBox(height: 20),
+                  if (highlights.isNotEmpty) ...[
+                    _buildDetailItem('Experience Highlights', highlights.join(', ')),
+                    const SizedBox(height: 20),
+                  ],
+                  if (widget.noteForTrainer != null && widget.noteForTrainer!.isNotEmpty) ...[
+                    _buildDetailItem('Note for trainer', widget.noteForTrainer!),
+                    const SizedBox(height: 20),
+                  ],
                   InkWell(
                     onTap: () => _showMoreDetails.value = false,
                     highlightColor: Colors.transparent,
@@ -370,4 +381,6 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
       ],
     );
   }
+
+
 }

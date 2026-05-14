@@ -16,6 +16,8 @@ class FarrierServiceAndRatesView extends StatefulWidget {
   final List<String>? travelPreferences;
   final List<dynamic>? services;
   final List<dynamic>? addOns;
+  final String? noteForTrainer;
+  final List<String>? additionalSkills;
 
   const FarrierServiceAndRatesView({
     super.key,
@@ -29,6 +31,8 @@ class FarrierServiceAndRatesView extends StatefulWidget {
     this.travelPreferences,
     this.services,
     this.addOns,
+    this.noteForTrainer,
+    this.additionalSkills,
   });
 
   @override
@@ -108,10 +112,7 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               widget.experience ?? '',
             ),
 
-            if (highlights.isNotEmpty) ...[
-              _buildDetailItem('Experience Highlights', highlights.join(', ')),
-              const SizedBox(height: 4),
-            ],
+
 
             if (showMore) ...[
               const SizedBox(height: 20),
@@ -155,9 +156,21 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
                   widget.farrierData['emergencySupport'] == true ? 'Available' : 'Not Available',
                 ),
               ],
+              if (widget.additionalSkills?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
+              ],
               if (widget.regionsCovered?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
                 _buildDetailItem('Regions Covered', widget.regionsCovered!.join(', ')),
+              ],
+              if (highlights.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Experience Highlights', highlights.join(', ')),
+              ],
+              if (widget.noteForTrainer?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 16),
+                _buildDetailItem('Note for trainer', widget.noteForTrainer!),
               ],
               const SizedBox(height: 16),
               GestureDetector(
@@ -218,4 +231,6 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
       ],
     );
   }
-}
+
+  }
+
