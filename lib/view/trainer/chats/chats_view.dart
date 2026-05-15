@@ -43,26 +43,26 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
             color: AppColors.textPrimary,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton(
-              onPressed: () => Get.to(() => const TrainerRequestsView()),
-              child: const Row(
-                children: [
-                  Icon(Icons.circle, color: Colors.blue, size: 8),
-                  SizedBox(width: 6),
-                  CommonText(
-                    'Requests',
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 8),
+        //     child: TextButton(
+        //       onPressed: () => Get.to(() => const TrainerRequestsView()),
+        //       child: const Row(
+        //         children: [
+        //           Icon(Icons.circle, color: Colors.blue, size: 8),
+        //           SizedBox(width: 6),
+        //           CommonText(
+        //             'Requests',
+        //             color: Colors.blue,
+        //             fontWeight: FontWeight.bold,
+        //             fontSize: 15,
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //   ),
+        // ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(80),
           child: Column(

@@ -19,6 +19,7 @@ class ProfileController extends GetxController {
   final RxList<HorseModel> trainerHorses = <HorseModel>[].obs;
   final RxList<HorseModel> viewedUserHorses = <HorseModel>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isLoadingMetadata = false.obs;
 
   // App Links & Settings
   final RxString playStoreUrl = ''.obs;
@@ -74,6 +75,7 @@ class ProfileController extends GetxController {
   }
 
   Future<void> fetchMetadata() async {
+    isLoadingMetadata.value = true;
     try {
       final results = await Future.wait([
         _apiService.getRequest(AppUrls.programTags),
@@ -155,6 +157,8 @@ class ProfileController extends GetxController {
       });
     } catch (e) {
       _logger.e('Error fetching metadata: $e');
+    } finally {
+      isLoadingMetadata.value = false;
     }
   }
 

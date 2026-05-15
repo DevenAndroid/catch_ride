@@ -671,22 +671,12 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
   }
 
   void _showVenueSelectionSheet() {
+    // Refresh or fetch if empty when opening
+    if (profileController.rawHorseShows.isEmpty) {
+      profileController.fetchMetadata();
+    }
     final searchController = TextEditingController();
-    final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows
-        .where((v) {
-          final name =
-              v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-          if (seenNames.contains(name)) return false;
-          seenNames.add(name);
-          return true;
-        })
-        .toList();
-
-    final RxList<Map<String, dynamic>> filteredVenues =
-        RxList<Map<String, dynamic>>(allVenues);
-    final RxList<dynamic> googleSuggestions =
-        googleApiController.googleSuggestions;
+    final RxString searchText = ''.obs;
 
     Get.bottomSheet(
       Container(
@@ -698,10 +688,10 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CommonText(
+                CommonText(
                   'Select Venue or City',
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -719,22 +709,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                 ),
               ),
               onChanged: (val) {
-                final search = val.toLowerCase();
-
-                // Search in local venues
-                filteredVenues.assignAll(
-                  allVenues.where((v) {
-                    final name = v['name']?.toString().toLowerCase() ?? '';
-                    final showVenue =
-                        v['showVenue']?.toString().toLowerCase() ?? '';
-                    final city = v['city']?.toString().toLowerCase() ?? '';
-                    return name.contains(search) ||
-                        showVenue.contains(search) ||
-                        city.contains(search);
-                  }).toList(),
-                );
-
-                // Search in Google Places for cities
+                searchText.value = val;
                 if (val.length > 2) {
                   googleApiController.searchGooglePlaces(val);
                 } else {
@@ -743,6 +718,18 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               },
             ),
             const SizedBox(height: 20),
+            Obx(() {
+              if (profileController.isLoadingMetadata.value &&
+                  profileController.rawHorseShows.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -750,8 +737,8 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   children: [
                     // Google Suggestions (Cities)
                     Obx(() {
-                      if (googleSuggestions.isEmpty)
-                        return const SizedBox.shrink();
+                      final suggestions = googleApiController.googleSuggestions;
+                      if (suggestions.isEmpty) return const SizedBox.shrink();
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -764,7 +751,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                               color: Colors.grey,
                             ),
                           ),
-                          ...googleSuggestions.map((g) {
+                          ...suggestions.map((g) {
                             final name = g['name'] ?? '';
                             return Obx(() {
                               final isSelected = _addedVenues.contains(name);
@@ -772,8 +759,9 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                                 value: isSelected,
                                 onChanged: (selected) {
                                   if (selected == true) {
-                                    if (!_addedVenues.contains(name))
+                                    if (!_addedVenues.contains(name)) {
                                       _addedVenues.add(name);
+                                    }
                                   } else {
                                     _addedVenues.remove(name);
                                   }
@@ -790,7 +778,19 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
                     // Local Venues
                     Obx(() {
-                      if (filteredVenues.isEmpty) {
+                      final search = searchText.value.toLowerCase();
+                      final seenNames = <String>{};
+                      final allVenues = profileController.rawHorseShows.where((v) {
+                        final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
+                        if (seenNames.contains(name)) return false;
+                        seenNames.add(name);
+
+                        if (search.isEmpty) return true;
+                        final city = v['city']?.toString().toLowerCase() ?? '';
+                        return name.toLowerCase().contains(search) || city.contains(search);
+                      }).toList();
+
+                      if (allVenues.isEmpty) {
                         return const Center(
                           child: Padding(
                             padding: EdgeInsets.all(20.0),
@@ -810,30 +810,27 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                               color: Colors.grey,
                             ),
                           ),
-                          ...filteredVenues.map((venueItem) {
-                            final venueName =
-                                venueItem['showVenue']?.toString() ??
+                          ...allVenues.map((venueItem) {
+                            final venueName = venueItem['showVenue']?.toString() ??
                                 venueItem['name']?.toString() ??
                                 'Unknown';
-                            final city = venueItem['city']?.toString() ?? '';
                             return Obx(() {
-                              final isSelected = _addedVenues.contains(
-                                venueName,
-                              );
+                              final isSelected = _addedVenues.contains(venueName);
                               return CheckboxListTile(
                                 value: isSelected,
                                 onChanged: (selected) {
                                   if (selected == true) {
-                                    if (!_addedVenues.contains(venueName))
+                                    if (!_addedVenues.contains(venueName)) {
                                       _addedVenues.add(venueName);
+                                    }
                                   } else {
                                     _addedVenues.remove(venueName);
                                   }
                                 },
                                 title: CommonText(venueName),
-                                subtitle: city.isNotEmpty
+                                subtitle: venueItem['city'] != null
                                     ? CommonText(
-                                        city,
+                                        '${venueItem['city']}, ${venueItem['state'] ?? ""}',
                                         fontSize: 12,
                                         color: Colors.grey,
                                       )
@@ -847,27 +844,49 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                     }),
                   ],
                 ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF030D3B),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              )),
+             SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.back(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      side: const BorderSide(color: Color(0xFFD0D5DD)),
+                    ),
+                    child: const CommonText(
+                      'Close',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF344054),
+                    ),
                   ),
                 ),
-                child: const CommonText(
-                  'Done',
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Get.back(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF030D3B),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const CommonText(
+                      'Save',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
