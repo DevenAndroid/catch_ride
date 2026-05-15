@@ -181,7 +181,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   void _initVideo() {
     final String? videoLink = horse!.videoLink.isNotEmpty ? horse!.videoLink.first : null;
-    if (videoLink == null || videoLink.isEmpty || videoLink == 'N/A') {
+    if (videoLink == null || videoLink.isEmpty || videoLink == '') {
       _hasVideo = false;
       return;
     }
@@ -481,7 +481,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     Expanded(
                       child: CommonText(
                         (horse!.location == null || horse!.location!.isEmpty)
-                            ? 'N/A'
+                            ? ''
                             : horse!.location!,
                         fontSize: 11,
                         color: Colors.white,
@@ -670,9 +670,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
     final String trainerName =
         (isOwnHorse &&
-            (horse!.trainerName == null || horse!.trainerName == 'N/A'))
+            (horse!.trainerName == null || horse!.trainerName == ''))
         ? profileController.fullName
-        : (horse!.trainerName ?? 'N/A');
+        : (horse!.trainerName ?? '');
 
     final String barnName =
         (isOwnHorse &&
@@ -825,8 +825,8 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   Widget _buildRequesterInfoCard() {
     final String bName = booking?.clientName ?? widget.otherName ?? 'Client';
     final String? bAvatar = booking?.clientImage ?? widget.otherImage;
-    final String bLocation = booking?.location ?? 'N/A';
-    final String bDate = booking?.date ?? 'N/A';
+    final String bLocation = booking?.location ?? '';
+    final String bDate = booking?.date ?? '';
     final String? bNotes = booking?.notes;
 
     return Padding(
@@ -1028,7 +1028,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CommonText(
-                  horse!.trainerName ?? 'N/A',
+                  horse!.trainerName ?? '',
                   fontSize: AppTextSizes.size14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
@@ -1066,7 +1066,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       ...horse!.videoFile,
       ...horse!.videoLink.where((link) =>
           link.isNotEmpty &&
-          link != 'N/A' &&
+          link != '' &&
           !horse!.images.contains(link) &&
           horse!.photo != link &&
           !horse!.videoFile.contains(link)),
@@ -1160,7 +1160,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   Widget _buildUsefNumberBanner() {
     final usef = horse!.usefNumber;
-    if (usef == null || usef.toString().isEmpty || usef == 'N/A') {
+    if (usef == null || usef.toString().isEmpty || usef == '') {
       return const SizedBox.shrink();
     }
     return Container(
@@ -1211,11 +1211,11 @@ class _BookingRequestViewState extends State<BookingRequestView> {
               children: [
                 _buildDetailRow(
                   'Horse name',
-                  horse!.name.isEmpty ? 'N/A' : horse!.name,
+                  horse!.name.isEmpty ? '' : horse!.name,
                   'USEF',
                   (horse!.usefNumber == null ||
                           horse!.usefNumber.toString().isEmpty)
-                      ? 'N/A'
+                      ? ''
                       : horse!.usefNumber.toString(),
                   onLabelTap2: () async {
                     final Uri url =
@@ -1228,26 +1228,26 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Age',
-                  horse!.age.toString().isEmpty ? 'N/A' : '${horse!.age} Years',
+                  horse!.age.toString().isEmpty ? '' : '${horse!.age} Years',
                   'Height',
                   (horse!.height == null || horse!.height!.isEmpty)
-                      ? 'N/A'
+                      ? ''
                       : horse!.height!,
                 ),
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Breed',
-                  horse!.breed.isEmpty ? 'N/A' : horse!.breed,
+                  horse!.breed.isEmpty ? '' : horse!.breed,
                   'Color',
                   (horse!.color == null || horse!.color!.isEmpty)
-                      ? 'N/A'
+                      ? ''
                       : horse!.color!,
                 ),
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   'Discipline',
                   horse!.displayDiscipline.isEmpty
-                      ? 'N/A'
+                      ? ''
                       : horse!.displayDiscipline,
                   '',
                   '',
@@ -1453,7 +1453,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                         children: [
                           if (index > 0) const SizedBox(height: 20),
                           _buildPremiumAvailabilityItem(
-                            show.showVenue.isEmpty ? 'N/A' : show.showVenue,
+                            show.showVenue.isEmpty ? '' : show.showVenue,
                             show.cityState,
                             DateUtil.formatRange(show.startDate, show.endDate),
                           ),
@@ -1493,7 +1493,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
             const SizedBox(width: 8),
             Expanded(
               child: CommonText(
-                dates.trim() == '-' || dates.isEmpty ? 'N/A' : dates,
+                dates.trim() == '-' || dates.isEmpty ? '' : dates,
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -1514,7 +1514,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
             const SizedBox(width: 8),
             Expanded(
               child: CommonText(
-                cityState.isEmpty ? 'N/A' : cityState,
+                cityState.isEmpty ? '' : cityState,
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -2580,7 +2580,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                                       ).format(startDate!),
                                       'location': selectedShow?.cityState ??
                                           horse!.location ??
-                                          'N/A',
+                                          '',
                                       'notes': messageController.text,
                                       'service': selectedType,
                                       'price': horse!.price ?? 0,
@@ -2653,8 +2653,8 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     final photoUrl = horse?.photo ?? (hasImages ? horse!.images.first : '');
 
     // Extract dynamic venue and dates
-    String venueText = 'Venue - N/A';
-    String dateRangeText = 'N/A';
+    String venueText = 'Venue - ';
+    String dateRangeText = '';
     if (horse != null && horse!.showAvailability.isNotEmpty) {
       final firstShow = horse!.showAvailability.first;
       if (firstShow.showVenue.isNotEmpty) {
@@ -2735,7 +2735,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: CommonText(
-                        horse?.location ?? 'N/A',
+                        horse?.location ?? '',
                         fontSize: 12,
                         color: AppColors.textSecondary,
                         overflow: TextOverflow.ellipsis,

@@ -1081,8 +1081,16 @@ class AuthController extends GetxController {
 
   // ─── LOGOUT ──────────────────────────────────────────────────────────────────
   Future<void> logout({bool sessionExpired = false}) async {
-
     try {
+      isLoading.value = true;
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        ),
+        barrierDismissible: false,
+      );
       debugPrint('Logging out user...');
 
       // Notify backend if it's a manual logout
@@ -1163,6 +1171,11 @@ class AuthController extends GetxController {
     } catch (e) {
       debugPrint('Error during logout: $e');
       Get.offAll(() => const LoginView());
+    } finally {
+      isLoading.value = false;
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
     }
   }
 
