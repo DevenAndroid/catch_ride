@@ -598,6 +598,45 @@ String resolveServiceFacebook({
   ]);
 }
 
+/// Reduces signed URLs / full paths to storage keys (`uploads/...`) for PUT payloads.
+String portfolioMediaStorageKeyForSave(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return '';
+  if (trimmed.startsWith('data:')) return trimmed;
+
+  var path = trimmed.replaceAll('\\', '/');
+  if (path.startsWith('//')) path = 'https:$path';
+
+  final uploadsIdx = path.indexOf('uploads/');
+  if (uploadsIdx >= 0) {
+    return path.substring(uploadsIdx).split('?').first;
+  }
+
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    try {
+      final uri = Uri.parse(path);
+      final segment = uri.pathSegments
+          .skipWhile((s) => s != 'uploads')
+          .join('/');
+      if (segment.startsWith('uploads/')) return segment;
+    } catch (_) {}
+  }
+
+  return path.split('?').first;
+}
+
+/// Existing + new portfolio entries as storage keys for [VendorModel] `media` arrays.
+List<String> portfolioMediaStorageKeysForSave(Iterable<String> values) {
+  final seen = <String>{};
+  final out = <String>[];
+  for (final value in values) {
+    final key = portfolioMediaStorageKeyForSave(value);
+    if (key.isEmpty) continue;
+    if (seen.add(key)) out.add(key);
+  }
+  return out;
+}
+
 /// Portfolio image keys/URLs from API (strings or `{ url, filename, key, ... }`).
 List<String> normalizeProfileMediaUrls(dynamic raw) {
   if (raw == null) return [];

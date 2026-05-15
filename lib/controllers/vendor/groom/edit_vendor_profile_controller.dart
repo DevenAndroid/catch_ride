@@ -224,6 +224,13 @@ class EditVendorProfileController extends GetxController {
     'Bodywork': <File>[].obs,
   };
 
+  /// Bumps when any service gallery or profile/banner pickers change (Obx refresh).
+  final RxInt photoGalleryRevision = 0.obs;
+
+  void _notifyPhotoGalleryChanged() {
+    photoGalleryRevision.value++;
+  }
+
   // Separate lists for Braiding and Clipping to prevent overwriting
   final RxList clippingServices = [].obs;
   final clippingServiceInputController = TextEditingController();
@@ -1781,7 +1788,11 @@ class EditVendorProfileController extends GetxController {
       source: ImageSource.gallery,
       imageQuality: 85,
     );
-    if (image != null) newProfileImage.value = File(image.path);
+    if (image != null) {
+      newProfileImage.value = File(image.path);
+      newProfileImage.refresh();
+      _notifyPhotoGalleryChanged();
+    }
   }
 
   Future<void> pickCoverImage() async {
@@ -1789,39 +1800,77 @@ class EditVendorProfileController extends GetxController {
       source: ImageSource.gallery,
       imageQuality: 85,
     );
-    if (image != null) newCoverImage.value = File(image.path);
+    if (image != null) {
+      newCoverImage.value = File(image.path);
+      newCoverImage.refresh();
+      _notifyPhotoGalleryChanged();
+    }
   }
 
   Future<void> addServicePhoto(String serviceType) async {
-    final List<XFile> images = await _picker.pickMultiImage();
-    if (images.isNotEmpty && serviceNewPhotos.containsKey(serviceType)) {
-      serviceNewPhotos[serviceType]!.addAll(
-        images.map((image) => File(image.path)),
+    if (!serviceNewPhotos.containsKey(serviceType)) return;
+
+    try {
+      final List<XFile> images = await _picker.pickMultiImage(
+        imageQuality: 85,
       );
-      // Also sync to legacy newPhotos if on that tab
-      newPhotos.addAll(images.map((image) => File(image.path)));
+      if (images.isEmpty) return;
+
+      final files = images.map((image) => File(image.path)).toList();
+      serviceNewPhotos[serviceType]!.addAll(files);
+      serviceNewPhotos[serviceType]!.refresh();
+
+      // Legacy list used by some save paths
+      newPhotos.addAll(files);
+      newPhotos.refresh();
+      _notifyPhotoGalleryChanged();
+    } catch (e) {
+      debugPrint('Error picking service photos: $e');
+      Get.snackbar(
+        'Photos',
+        'Could not open your photo library. Please try again.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
   void removeServiceExistingPhoto(String serviceType, int index) {
     if (serviceExistingPhotos.containsKey(serviceType)) {
       serviceExistingPhotos[serviceType]!.removeAt(index);
+      serviceExistingPhotos[serviceType]!.refresh();
       existingPhotos.assignAll(serviceExistingPhotos[serviceType]!);
+      _notifyPhotoGalleryChanged();
     }
   }
 
   void removeServiceNewPhoto(String serviceType, int index) {
     if (serviceNewPhotos.containsKey(serviceType)) {
       serviceNewPhotos[serviceType]!.removeAt(index);
-      // We don't easily sync back to legacy newPhotos because it's shared,
-      // but UI will use service-specific ones.
+      serviceNewPhotos[serviceType]!.refresh();
+      _notifyPhotoGalleryChanged();
     }
   }
 
   Future<void> addShippingRigPhoto() async {
-    final List<XFile> images = await _picker.pickMultiImage();
-    if (images.isNotEmpty) {
-      newShippingRigPhotos.addAll(images.map((image) => File(image.path)));
+    try {
+      final List<XFile> images = await _picker.pickMultiImage(
+        imageQuality: 85,
+      );
+      if (images.isEmpty) return;
+
+      newShippingRigPhotos.addAll(
+        images.map((image) => File(image.path)),
+      );
+      newShippingRigPhotos.refresh();
+    } catch (e) {
+      debugPrint('Error picking rig photos: $e');
+      Get.snackbar(
+        'Photos',
+        'Could not open your photo library. Please try again.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -1899,6 +1948,24 @@ class EditVendorProfileController extends GetxController {
     service['isSelected'].value = !service['isSelected'].value;
   }
 
+  String? _storageKeyFromUploadResponse(dynamic body) {
+    if (body is! Map) return null;
+    if (body['success'] != true) return null;
+    final data = body['data'];
+    if (data is Map) {
+      for (final key in ['filename', 'key', 'path', 'url']) {
+        final v = data[key];
+        if (v != null && v.toString().trim().isNotEmpty) {
+          return portfolioMediaStorageKeyForSave(v.toString());
+        }
+      }
+    }
+    if (data is String && data.trim().isNotEmpty) {
+      return portfolioMediaStorageKeyForSave(data);
+    }
+    return null;
+  }
+
   Future<String?> _uploadFile(File file, String type) async {
     try {
       final formData = FormData({
@@ -1909,44 +1976,86 @@ class EditVendorProfileController extends GetxController {
         '/upload?type=$type',
         formData,
       );
-      if (response.statusCode == 200 && response.body['success'] == true) {
-        return response.body['data']['filename'];
-      }
+      final key = _storageKeyFromUploadResponse(response.body);
+      if (key != null && key.isNotEmpty) return key;
+      debugPrint(
+        'Upload failed for $type: ${response.statusCode} ${response.body}',
+      );
     } catch (e) {
       debugPrint('Error uploading $type: $e');
     }
     return null;
   }
 
+  void _applyUploadedMediaToExistingLists(
+    Map<String, List<String>> serviceMediaKeys,
+  ) {
+    for (final entry in serviceMediaKeys.entries) {
+      final type = entry.key;
+      if (!serviceExistingPhotos.containsKey(type)) continue;
+      serviceExistingPhotos[type]!.assignAll(entry.value);
+      serviceExistingPhotos[type]!.refresh();
+    }
+    final grooming = serviceExistingPhotos['Grooming'];
+    if (grooming != null) {
+      existingPhotos.assignAll(grooming);
+    }
+    _notifyPhotoGalleryChanged();
+  }
+
   Future<void> saveProfile() async {
     isSaving.value = true;
     try {
       // 1. Upload All Files
-      String? profile = profilePhotoUrl.value;
+      final previousProfile = profilePhotoUrl.value.trim();
+      String? profile = previousProfile.isNotEmpty ? previousProfile : null;
       if (newProfileImage.value != null) {
-        profile = await _uploadFile(newProfileImage.value!, 'profile');
+        final uploaded = await _uploadFile(newProfileImage.value!, 'profile');
+        if (uploaded == null || uploaded.isEmpty) {
+          throw Exception(
+            'Profile photo could not be uploaded. Please try again.',
+          );
+        }
+        profile = uploaded;
       }
 
-      String? bannerImage = coverImageUrl.value;
+      final previousBanner = coverImageUrl.value.trim();
+      String? bannerImage =
+          previousBanner.isNotEmpty ? previousBanner : null;
       if (newCoverImage.value != null) {
-        bannerImage = await _uploadFile(newCoverImage.value!, 'profile');
+        final uploaded = await _uploadFile(newCoverImage.value!, 'profile');
+        if (uploaded == null || uploaded.isEmpty) {
+          throw Exception(
+            'Banner image could not be uploaded. Please try again.',
+          );
+        }
+        bannerImage = uploaded;
       }
 
-      // Upload media for each service
+      // Upload media for each service → [VendorModel].grooming.media (via servicesData sync)
       final Map<String, List<String>> serviceMediaKeys = {};
-      for (var serviceType in serviceNewPhotos.keys) {
-        final List<String> mediaKeys = [
-          ...(serviceExistingPhotos[serviceType] ?? []),
-        ];
+      for (final serviceType in serviceNewPhotos.keys) {
         final List<File> newFiles = serviceNewPhotos[serviceType] ?? [];
+        final List<String> uploadedKeys = [];
 
         if (newFiles.isNotEmpty) {
-          final uploads = await Future.wait(
-            newFiles.map((f) => _uploadFile(f, serviceType.toLowerCase())),
-          );
-          mediaKeys.addAll(uploads.whereType<String>());
+          for (final file in newFiles) {
+            final key = await _uploadFile(file, serviceType.toLowerCase());
+            if (key != null && key.trim().isNotEmpty) {
+              uploadedKeys.add(key);
+            }
+          }
+          if (uploadedKeys.length < newFiles.length) {
+            throw Exception(
+              'Some photos could not be uploaded. Please try again.',
+            );
+          }
         }
-        serviceMediaKeys[serviceType] = mediaKeys;
+
+        serviceMediaKeys[serviceType] = portfolioMediaStorageKeysForSave([
+          ...(serviceExistingPhotos[serviceType] ?? []),
+          ...uploadedKeys,
+        ]);
       }
 
       // Handle Shipping specifically if needed (it uses shippingMedia currently)
@@ -1959,7 +2068,7 @@ class EditVendorProfileController extends GetxController {
       }
 
       // 2. Prepare Payload
-      final vendorPayload = {
+      final vendorPayload = <String, dynamic>{
         'firstName': fullNameController.text.split(' ').first,
         'lastName': fullNameController.text.contains(' ')
             ? fullNameController.text.split(' ').skip(1).join(' ')
@@ -1968,8 +2077,6 @@ class EditVendorProfileController extends GetxController {
         'businessName': businessNameController.text,
         'bio': aboutController.text,
         'notesForTrainer': notesForTrainerController.text,
-        'profile': profile,
-        'bannerImage': bannerImage,
         'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
 
@@ -1982,6 +2089,14 @@ class EditVendorProfileController extends GetxController {
 
         'isProfileSetup': true,
       };
+      if (profile != null && profile.isNotEmpty) {
+        vendorPayload['profile'] = profile;
+        vendorPayload['profilePhoto'] = profile;
+      }
+      if (bannerImage != null && bannerImage.isNotEmpty) {
+        vendorPayload['bannerImage'] = bannerImage;
+        vendorPayload['coverImage'] = bannerImage;
+      }
 
       // Start with cached data to preserve fields we don't manage
       final servicesData = Map<String, dynamic>.from(rawServicesData);
@@ -2084,7 +2199,42 @@ class EditVendorProfileController extends GetxController {
         combinedPayload,
       );
 
-      if (vendorResponse.statusCode == 200) {
+      final vendorBody = vendorResponse.body;
+      final vendorOk = vendorResponse.statusCode == 200 &&
+          vendorBody is Map &&
+          vendorBody['success'] == true;
+
+      if (vendorOk) {
+        final responseData = vendorBody['data'];
+        if (responseData is Map) {
+          final root = Map<String, dynamic>.from(responseData);
+          root['assignedServices'] = normalizeAssignedServices(root);
+          _cachedVendorRootData = root;
+          vendorRootData.assignAll(root);
+          profilePhotoUrl.value = _resolvedProfileImage(root);
+          coverImageUrl.value = _resolvedBannerImage(root);
+          final sData = Map<String, dynamic>.from(
+            root['servicesData'] is Map ? root['servicesData'] : {},
+          );
+          _cachedRawServicesData = sData;
+          _cachedOriginalServicesData = jsonDecode(jsonEncode(sData));
+          _cachedDraftServicesData = jsonDecode(jsonEncode(sData));
+          rawServicesData.assignAll(sData);
+          originalServicesData.assignAll(_cachedOriginalServicesData!);
+          draftServicesData.assignAll(_cachedDraftServicesData!);
+          _applyMergedProfileDataToRxServiceMaps(
+            root,
+            List<Map<String, dynamic>>.from(root['assignedServices'] ?? []),
+          );
+        } else {
+          if (profile != null && profile.isNotEmpty) {
+            profilePhotoUrl.value = profile;
+          }
+          if (bannerImage != null && bannerImage.isNotEmpty) {
+            coverImageUrl.value = bannerImage;
+          }
+        }
+
         final vid = vendorMongoIdFromRoot(
           Map<String, dynamic>.from(vendorRootData),
         );
@@ -2128,17 +2278,18 @@ class EditVendorProfileController extends GetxController {
 
         _authController.currentUser.refresh();
 
-        // Refresh the view profile controller if it's active
         if (Get.isRegistered<GroomViewProfileController>()) {
-          Get.find<GroomViewProfileController>().fetchProfile();
+          await Get.find<GroomViewProfileController>().fetchProfile();
         }
 
+        _applyUploadedMediaToExistingLists(serviceMediaKeys);
         for (final list in serviceNewPhotos.values) {
           list.clear();
         }
         newShippingRigPhotos.clear();
         newProfileImage.value = null;
         newCoverImage.value = null;
+        _notifyPhotoGalleryChanged();
 
         Get.back();
         Get.snackbar(
@@ -2148,7 +2299,10 @@ class EditVendorProfileController extends GetxController {
           colorText: Colors.white,
         );
       } else {
-        throw vendorResponse.body['message'] ?? 'Failed to update profile';
+        final message = vendorBody is Map
+            ? vendorBody['message']?.toString()
+            : null;
+        throw message ?? 'Failed to update profile';
       }
     } catch (e) {
       debugPrint('Save error: $e');
