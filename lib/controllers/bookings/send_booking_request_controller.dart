@@ -1318,7 +1318,9 @@ class SendBookingRequestController extends GetxController {
     final state = homeBase['state'] ?? '';
 
     if (city.isEmpty || state.isEmpty) return 'N/A';
-    return '$city, $state, ${homeBase['country'] ?? 'USA'}';
+    final country = homeBase['country']?.toString() ?? 'USA';
+    final co = country.toUpperCase() == 'USA' ? 'USA' : country;
+    return '$city, $state, $co';
   }
 
   List<Map<String, dynamic>> get rateOptions {

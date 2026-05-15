@@ -69,7 +69,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
     // Explicitly set non-reactive fields immediately
     _maxHorses.value = _editingBlock!.maxBookings;
-    _maxDays.value = 12;
+    _maxDays.value = _editingBlock!.maxDays;
 
     // Clipping specific pre-filling
     _unStart = _editingBlock!.unavailableStart;
@@ -162,6 +162,9 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
   List<String> get _availableServiceTypes {
     return [
+      "Hunter Braiding Mane",
+      "Jumper Braiding",
+      "Dressage Braiding",
       'Hunter Mane + Tail',
       'Hunter Tail Only',
       "Fullbody Clip",
@@ -312,13 +315,11 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
           onPressed: () => Get.back(),
         ),
         title: _editingBlock != null
-            ? Obx(
-                () => CommonText(
-                  'Edit Block (DB:${_editingBlock!.showVenues.length}|UI:${_addedVenues.length})',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
+            ? CommonText(
+          'Edit Block',
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        )
             : const CommonText(
                 'Add Availability Block',
                 fontSize: 16,

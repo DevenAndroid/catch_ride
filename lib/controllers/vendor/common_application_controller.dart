@@ -94,7 +94,8 @@ class CommonApplicationController extends GetxController {
   void onCountrySelected(Map<String, dynamic> country) {
     if (selectedCountryCode.value != country['code']) {
       selectedCountryCode.value = country['code'] ?? 'US';
-      countryController.text = country['name'] ?? 'USA';
+      final name = country['name']?.toString() ?? 'USA';
+      countryController.text = name.toUpperCase() == 'USA' ? 'USA' : name;
       
       selectedState.value = null;
       selectedCity.value = null;
