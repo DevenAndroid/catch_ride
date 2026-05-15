@@ -14,6 +14,8 @@ class GroomViewProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
 
   final RxBool isLoading = false.obs;
+  /// True while Services & Rates save is in flight (avoids swapping TabBarView for full-screen loader).
+  final RxBool isSavingRates = false.obs;
   final RxMap<String, dynamic> vendorData = <String, dynamic>{}.obs;
 
   // Multi-service support
@@ -997,34 +999,57 @@ class GroomViewProfileController extends GetxController {
     required List<Map<String, dynamic>> additional,
   }) async {
     try {
-      isLoading.value = true;
+      isSavingRates.value = true;
       final Map<String, dynamic> existingServicesData =
           Map<String, dynamic>.from(vendorData['servicesData'] ?? {});
 
       final existing = Map<String, dynamic>.from(existingServicesData['grooming'] ?? {});
       final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
 
-      existingServicesData['grooming'] = {
-        ...existing,
-        'profileData': {
-          ...existingProfile,
-          'services': services,
-          'rates': {
-            'daily': daily.replaceAll(',', ''),
-            'weekly': {
-              'price': weekly.replaceAll(',', ''),
-              'days': int.tryParse(weeklyDays) ?? 5,
-            },
-            'monthly': {
-              'price': monthly.replaceAll(',', ''),
-              'days': int.tryParse(monthlyDays) ?? 5,
-            },
-          },
-          'additionalServices': additional,
+      final ratesPayload = <String, dynamic>{
+        'daily': daily.replaceAll(',', ''),
+        'weekly': <String, dynamic>{
+          'price': weekly.replaceAll(',', ''),
+          'days': int.tryParse(weeklyDays) ?? 5,
+        },
+        'monthly': <String, dynamic>{
+          'price': monthly.replaceAll(',', ''),
+          'days': int.tryParse(monthlyDays) ?? 5,
         },
       };
 
-      final payload = {
+      final normalizedAdditional = additional
+          .map(
+            (s) => <String, dynamic>{
+              'name': s['name'],
+              'label': s['name'],
+              'price': s['price']?.toString().replaceAll(',', '') ?? '0',
+              'ratePerHour': s['price']?.toString().replaceAll(',', '') ?? '0',
+              if (s['description'] != null) 'description': s['description'],
+            },
+          )
+          .toList();
+
+      final profilePayload = <String, dynamic>{
+        ...existingProfile,
+        'services': services,
+        'groomingServices': services,
+        'rates': ratesPayload,
+        'additionalServices': normalizedAdditional,
+      };
+
+      // Mirror [GroomingDetailsController.submit]: root-level fields on the grooming block
+      // (backend / GET /vendors/me often read here), plus nested profileData for service sync.
+      existingServicesData['grooming'] = <String, dynamic>{
+        ...existing,
+        'profileData': profilePayload,
+        'rates': ratesPayload,
+        'services': services,
+        'groomingServices': services,
+        'additionalServices': normalizedAdditional,
+      };
+
+      final payload = <String, dynamic>{
         'servicesData': existingServicesData,
         'isProfileSetup': true,
       };
@@ -1032,34 +1057,56 @@ class GroomViewProfileController extends GetxController {
         '/vendors/me',
         payload,
       );
-      if (response.statusCode == 200) {
-        final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
-        dynamic row;
-        for (final s in allAssignedServices) {
-          if (assignedServiceMatchesTab(s, 'Grooming')) {
-            row = s;
-            break;
-          }
-        }
-        final block = existingServicesData['grooming'];
-        if (vid != null && row != null && block is Map) {
-          await syncVendorServiceDocuments(
-            api: _apiService,
-            vendorMongoId: vid,
-            assignedServiceRow: row,
-            profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
-            applicationData:
-                Map<String, dynamic>.from(block['applicationData'] ?? {}),
-          );
-        }
-        await fetchProfile();
-        return true;
+      final body = response.body;
+      final ok = response.statusCode == 200 &&
+          body is Map &&
+          body['success'] == true;
+
+      if (!ok) {
+        final msg = body is Map
+            ? (body['message']?.toString() ?? 'Failed to save grooming rates')
+            : 'Failed to save grooming rates';
+        Get.snackbar(
+          'Error',
+          msg,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
       }
-      return false;
+
+      final vid = vendorMongoIdFromRoot(Map<String, dynamic>.from(vendorData));
+      dynamic row;
+      for (final s in allAssignedServices) {
+        if (assignedServiceMatchesTab(s, 'Grooming')) {
+          row = s;
+          break;
+        }
+      }
+      final block = existingServicesData['grooming'];
+      if (vid != null && row != null && block is Map) {
+        await syncVendorServiceDocuments(
+          api: _apiService,
+          vendorMongoId: vid,
+          assignedServiceRow: row,
+          profileData: Map<String, dynamic>.from(block['profileData'] ?? {}),
+          applicationData:
+              Map<String, dynamic>.from(block['applicationData'] ?? {}),
+        );
+      }
+      await fetchProfile();
+      return true;
     } catch (e) {
+      debugPrint('updateGroomingRates error: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to save grooming rates',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       return false;
     } finally {
-      isLoading.value = false;
+      isSavingRates.value = false;
     }
   }
 }

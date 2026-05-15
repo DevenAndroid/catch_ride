@@ -8,16 +8,6 @@ import '../../../../utils/price_formatter.dart';
 import '../../../../widgets/common_text.dart';
 import '../../../../widgets/common_textfield.dart';
 import '../../../../widgets/common_button.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import '../../../../constant/app_colors.dart';
-import '../../../../constant/app_text_sizes.dart';
-import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
-import '../../../../utils/grooming_rates_util.dart';
-import '../../../../utils/price_formatter.dart';
-import '../../../../widgets/common_text.dart';
-import '../../../../widgets/common_textfield.dart';
-import '../../../../widgets/common_button.dart';
 
 class GroomingServiceRatesTab extends StatefulWidget {
   final String serviceType;
@@ -31,7 +21,7 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
   @override
   bool get wantKeepAlive => true;
 
-  final controller = Get.find<GroomViewProfileController>();
+  final controller = Get.put(GroomViewProfileController());
   
   // Local variables as requested
   final dailyController = TextEditingController();
@@ -265,8 +255,17 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
         Expanded(
           child: Obx(() => CommonButton(
             text: 'Save',
-            isLoading: controller.isLoading.value,
+            isLoading: controller.isSavingRates.value,
             onPressed: () async {
+              if (selectedGroomingSkills.isEmpty) {
+                Get.snackbar(
+                  'Missing Info',
+                  'Please select at least one grooming service',
+                  backgroundColor: AppColors.accentRed,
+                  colorText: Colors.white,
+                );
+                return;
+              }
               final success = await controller.updateGroomingRates(
                 services: selectedGroomingSkills.toList(),
                 daily: dailyController.text,
@@ -284,6 +283,7 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
                     .toList(),
               );
               if (success) {
+                _loadInitialData();
                 Get.back();
                 Get.snackbar('Success', 'Grooming rates saved successfully',
                     backgroundColor: Colors.green, colorText: Colors.white);
