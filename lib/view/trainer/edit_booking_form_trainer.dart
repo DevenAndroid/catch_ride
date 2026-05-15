@@ -8,6 +8,7 @@ import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/date_util.dart';
 
 class _ShowAvailability {
   final String cityState;
@@ -50,14 +51,21 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
 
   static DateTime? _parseFlexibleDate(String raw) {
     if (raw.isEmpty) return null;
-    final iso = DateTime.tryParse(raw);
-    if (iso != null) return iso;
-    try {
-      return DateFormat('MMMM d, yyyy').parse(raw);
-    } catch (_) {}
-    try {
-      return DateFormat('MMM d, yyyy').parse(raw);
-    } catch (_) {}
+
+    final parsed = DateUtil.parse(raw);
+    if (parsed != null) return parsed;
+
+    if (raw.contains(' - ')) {
+      final parts = raw.split(' - ');
+      final lastPart = parts.last;
+      final yearMatch = RegExp(r'\d{4}').firstMatch(lastPart);
+      if (yearMatch != null) {
+        final year = yearMatch.group(0);
+        final firstPart = parts.first;
+        return DateUtil.parse("$firstPart $year") ??
+            DateUtil.parse("$firstPart, $year");
+      }
+    }
     return null;
   }
 
@@ -68,11 +76,7 @@ class _EditBookingFormTrainerState extends State<EditBookingFormTrainer> {
     super.initState();
     _notesController.text = widget.booking.notes ?? '';
     // Pre-fill date
-    try {
-      _selectedDate = DateTime.parse(widget.booking.date);
-    } catch (_) {
-      _selectedDate = DateTime.now();
-    }
+    _selectedDate = _parseFlexibleDate(widget.booking.date) ?? DateTime.now();
     _fetchHorseData();
   }
 
