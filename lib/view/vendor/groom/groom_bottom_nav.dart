@@ -1,6 +1,5 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
-import 'package:catch_ride/view/vendor/groom/booking/booking_view.dart';
 import 'package:catch_ride/view/vendor/groom/availability/availability_view.dart';
 import 'package:catch_ride/view/vendor/groom/chat/groom_chat_view.dart';
 import 'package:catch_ride/view/vendor/groom/menu/menu_view.dart';
@@ -10,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
+import 'booking/vendor_bookings.dart';
 import 'profile/groom_view_profile.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -40,7 +40,7 @@ class _GroomBottomNavState extends State<GroomBottomNav> {
       case 0:
         return const GroomViewProfile();
       case 1:
-        return const BookingView();
+        return  VendorBookings();
       case 2:
         return isShipping ? const ShippingTripView() : const AvailabilityView();
       case 3:

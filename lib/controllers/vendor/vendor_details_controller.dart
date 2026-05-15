@@ -1,6 +1,7 @@
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/vendor_service_payload.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/controllers/system_config_controller.dart';
@@ -569,19 +570,10 @@ class VendorDetailsController extends GetxController {
         _activeProfileData['travelPreferences'] ??
         [];
     if (raw is! List) return [];
-    return raw.map((item) {
-      if (item is Map) {
-        final label = item['label']?.toString().trim();
-        final note = item['note']?.toString().trim();
-        final region = item['region']?.toString() ?? item['name']?.toString();
-        if (label != null && label.isNotEmpty) {
-          if (note != null && note.isNotEmpty) return '$label — $note';
-          return label;
-        }
-        return region ?? '';
-      }
-      return item.toString();
-    }).where((s) => s.isNotEmpty).toList();
+    return raw
+        .map((item) => VendorTravelPreferencePayload.summaryForListItem(item))
+        .where((s) => s.isNotEmpty)
+        .toList();
   }
 
   /// VendorModel `farrier.scopeOfWork` + application wizard data.

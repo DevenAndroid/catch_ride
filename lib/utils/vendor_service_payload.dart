@@ -483,15 +483,13 @@ void _normalizeVendorModelSubdocForDisplay(String serviceType, Map<String, dynam
     }
   }
   if (n == 'farrier') {
-    final fs = b['farrierServices'];
-    if (fs is List &&
-        fs.isNotEmpty &&
-        (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
-      b['services'] = fs.map((e) {
+    List<Map<String, dynamic>> mapRateItems(List<dynamic> raw) {
+      return raw.map((e) {
         if (e is Map) {
           return <String, dynamic>{
             'name': e['label'] ?? e['name'] ?? '',
-            'price': (e['ratePerHour'] ?? e['rate'] ?? e['price'] ?? '').toString(),
+            'price': (e['ratePerHour'] ?? e['rate'] ?? e['price'] ?? '')
+                .toString(),
             'isSelected': true,
           };
         }
@@ -501,6 +499,43 @@ void _normalizeVendorModelSubdocForDisplay(String serviceType, Map<String, dynam
           'isSelected': true,
         };
       }).toList();
+    }
+
+    final fs = b['farrierServices'];
+    if (fs is List &&
+        fs.isNotEmpty &&
+        (!(b['services'] is List) || (b['services'] as List).isEmpty)) {
+      b['services'] = mapRateItems(fs);
+    }
+    final addons = b['addOns'];
+    if (addons is List &&
+        addons.isNotEmpty &&
+        addons.every((e) => e is Map && (e['label'] != null || e['ratePerHour'] != null))) {
+      b['addOns'] = mapRateItems(addons);
+    }
+    final cis = b['clientIntakePlusScheduling'];
+    if (cis is Map && b['clientIntake'] == null) {
+      final m = Map<String, dynamic>.from(cis);
+      String policy = '';
+      if (m['notAcceptingNewClients'] == true) {
+        policy = 'not accepting';
+      } else if (m['referralOnly'] == true) {
+        policy = 'referral';
+      } else if (m['limitedAvailability'] == true) {
+        policy = 'limited';
+      } else if (m['acceptingNewClients'] == true) {
+        policy = 'accepting';
+      }
+      b['clientIntake'] = {
+        'policy': policy,
+        'minHorses': m['minHorsesPerStop'] ?? m['minHorses'],
+        'emergencySupport': m['emergencySupport'],
+      };
+    }
+    if (b['relevantCertifications'] is List &&
+        (!(b['certifications'] is List) ||
+            (b['certifications'] as List).isEmpty)) {
+      b['certifications'] = List<String>.from(b['relevantCertifications'] as List);
     }
   }
   if (n == 'bodywork') {
@@ -596,6 +631,45 @@ String resolveServiceFacebook({
     sub?['facebookLink'],
     vendorRoot['facebook'],
   ]);
+}
+
+/// Reduces signed URLs / full paths to storage keys (`uploads/...`) for PUT payloads.
+String portfolioMediaStorageKeyForSave(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return '';
+  if (trimmed.startsWith('data:')) return trimmed;
+
+  var path = trimmed.replaceAll('\\', '/');
+  if (path.startsWith('//')) path = 'https:$path';
+
+  final uploadsIdx = path.indexOf('uploads/');
+  if (uploadsIdx >= 0) {
+    return path.substring(uploadsIdx).split('?').first;
+  }
+
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    try {
+      final uri = Uri.parse(path);
+      final segment = uri.pathSegments
+          .skipWhile((s) => s != 'uploads')
+          .join('/');
+      if (segment.startsWith('uploads/')) return segment;
+    } catch (_) {}
+  }
+
+  return path.split('?').first;
+}
+
+/// Existing + new portfolio entries as storage keys for [VendorModel] `media` arrays.
+List<String> portfolioMediaStorageKeysForSave(Iterable<String> values) {
+  final seen = <String>{};
+  final out = <String>[];
+  for (final value in values) {
+    final key = portfolioMediaStorageKeyForSave(value);
+    if (key.isEmpty) continue;
+    if (seen.add(key)) out.add(key);
+  }
+  return out;
 }
 
 /// Portfolio image keys/URLs from API (strings or `{ url, filename, key, ... }`).

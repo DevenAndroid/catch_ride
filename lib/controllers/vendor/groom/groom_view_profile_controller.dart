@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:catch_ride/utils/vendor_service_sync.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
@@ -617,23 +618,7 @@ class GroomViewProfileController extends GetxController {
     final raw = activeProfileData['travelPreferences'] ?? activeProfileData['travelFees'] ?? [];
     if (raw is! List) return [];
     return raw
-        .map((item) {
-          if (item is Map) {
-            final category = item['category']?.toString() ?? item['region']?.toString() ?? item['name']?.toString() ?? item['type']?.toString();
-            final type = item['type']?.toString();
-            final price = item['price']?.toString();
-            
-            if (category != null && type != null && type != 'No travel fee' && type.isNotEmpty) {
-              String str = "$category: $type";
-              if (price != null && price.isNotEmpty && price != '0') {
-                str += " (\$ $price)";
-              }
-              return str;
-            }
-            return category ?? '';
-          }
-          return item.toString();
-        })
+        .map((item) => VendorTravelPreferencePayload.summaryForListItem(item))
         .where((s) => s.isNotEmpty)
         .toList();
   }

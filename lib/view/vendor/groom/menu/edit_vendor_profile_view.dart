@@ -284,14 +284,19 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           child: Stack(
             children: [
               Obx(
-                () => CommonImageView(
-                  width: 100,
-                  height: 100,
-                  shape: BoxShape.circle,
-                  file: controller.newProfileImage.value,
-                  url: controller.profilePhotoUrl.value,
-                  isUserImage: true,
-                ),
+                () {
+                  final _ = controller.photoGalleryRevision.value;
+                  return CommonImageView(
+                    width: 100,
+                    height: 100,
+                    shape: BoxShape.circle,
+                    file: controller.newProfileImage.value,
+                    url: controller.newProfileImage.value == null
+                        ? controller.profilePhotoUrl.value
+                        : null,
+                    isUserImage: true,
+                  );
+                },
               ),
               Positioned(
                 bottom: 0,
@@ -344,14 +349,19 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         ),
         const SizedBox(height: 12),
         Obx(
-          () => CommonImageView(
-            height: 120,
-            width: double.infinity,
-            radius: 12,
-            file: controller.newCoverImage.value,
-            url: controller.coverImageUrl.value,
-            isUserImage: false,
-          ),
+          () {
+            final _ = controller.photoGalleryRevision.value;
+            return CommonImageView(
+              height: 120,
+              width: double.infinity,
+              radius: 12,
+              file: controller.newCoverImage.value,
+              url: controller.newCoverImage.value == null
+                  ? controller.coverImageUrl.value
+                  : null,
+              isUserImage: false,
+            );
+          },
         ),
       ],
     );
@@ -820,25 +830,38 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           ),
           const SizedBox(height: 16),
           Obx(
-            () => Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                ...controller.serviceExistingPhotos['Grooming']!.asMap().entries.map(
-                  (entry) => _buildPhotoUploadBox(
-                    imageUrl: entry.value,
-                    onRemove: () => controller.removeServiceExistingPhoto('Grooming', entry.key),
+            () {
+              final _ = controller.photoGalleryRevision.value;
+              final existing = controller.serviceExistingPhotos['Grooming']!;
+              final pending = controller.serviceNewPhotos['Grooming']!;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  ...existing.asMap().entries.map(
+                    (entry) => _buildPhotoUploadBox(
+                      imageUrl: entry.value,
+                      onRemove: () => controller.removeServiceExistingPhoto(
+                        'Grooming',
+                        entry.key,
+                      ),
+                    ),
                   ),
-                ),
-                ...controller.serviceNewPhotos['Grooming']!.asMap().entries.map(
-                  (entry) => _buildPhotoUploadBox(
-                    imageFile: entry.value,
-                    onRemove: () => controller.removeServiceNewPhoto('Grooming', entry.key),
+                  ...pending.asMap().entries.map(
+                    (entry) => _buildPhotoUploadBox(
+                      imageFile: entry.value,
+                      onRemove: () => controller.removeServiceNewPhoto(
+                        'Grooming',
+                        entry.key,
+                      ),
+                    ),
                   ),
-                ),
-                _buildPhotoUploadBox(onTap: () => controller.addServicePhoto('Grooming')),
-              ],
-            ),
+                  _buildAddPhotoBox(
+                    onTap: () => controller.addServicePhoto('Grooming'),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -1094,42 +1117,57 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
     );
   }
 
+  Widget _buildAddPhotoBox({required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80,
+        height: 80,
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.borderLight),
+        ),
+        child: const Icon(
+          Icons.add_photo_alternate_outlined,
+          color: AppColors.textSecondary,
+          size: 28,
+        ),
+      ),
+    );
+  }
+
   Widget _buildPhotoUploadBox({
     String? imageUrl,
     File? imageFile,
-    VoidCallback? onTap,
     VoidCallback? onRemove,
   }) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
-        GestureDetector(
-          onTap: onTap,
-          child: CommonImageView(
-            width: 80,
-            height: 80,
-            radius: 12,
-            file: imageFile,
-            url: imageUrl,
-            isUserImage: true,
-
-          ),
+        CommonImageView(
+          width: 80,
+          height: 80,
+          radius: 12,
+          file: imageFile,
+          url: imageUrl,
+          isUserImage: true,
         ),
-        if (imageUrl != null || imageFile != null)
-          Positioned(
-            right: -2,
-            top: -2,
-            child: GestureDetector(
-              onTap: onRemove,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 10),
+        Positioned(
+          right: -2,
+          top: -2,
+          child: GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
               ),
+              child: const Icon(Icons.close, color: Colors.white, size: 10),
             ),
           ),
+        ),
       ],
     );
   }
