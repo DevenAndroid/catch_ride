@@ -189,7 +189,7 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
                 }).toList(),
               )),
           const SizedBox(height: 16),
-          _buildAddServiceLink('Add Skills', () => _showAddServicePopup()),
+          _buildAddServiceLink('Add Service', () => _showAddServicePopup()),
         ],
       ),
     );
@@ -243,7 +243,7 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
                   }).toList(),
                 )),
           const SizedBox(height: 12),
-          _buildAddServiceLink('Add Skills', () => _showAddSkillBS()),
+          _buildAddServiceLink('Add Service', () => _showAddSkillBS()),
         ],
       ),
     );
@@ -546,28 +546,30 @@ class _GroomingServiceRatesTabState extends State<GroomingServiceRatesTab> with 
       Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CommonTextField(label: 'Skill', controller: nameController, hintText: 'Enter skill'),
-            const SizedBox(height: 20),
-            CommonTextField(label: 'Price', controller: priceController, hintText: 'Enter price', keyboardType: TextInputType.number),
-            const SizedBox(height: 24),
-            CommonButton(
-              text: 'Save',
-              onPressed: () {
-                if (nameController.text.isNotEmpty) {
-                  additionalServices.add({
-                    'name': nameController.text,
-                    'priceController': TextEditingController(text: priceController.text),
-                    'description': 'Per horse',
-                    'isSelected': true.obs,
-                  });
-                }
-                Get.back();
-              },
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CommonTextField(label: 'Service', controller: nameController, hintText: 'Enter service'),
+              const SizedBox(height: 20),
+              CommonTextField(label: 'Price', controller: priceController, hintText: 'Enter price', keyboardType: TextInputType.number),
+              const SizedBox(height: 24),
+              CommonButton(
+                text: 'Save',
+                onPressed: () {
+                  if (nameController.text.isNotEmpty) {
+                    additionalServices.add({
+                      'name': nameController.text,
+                      'priceController': TextEditingController(text: priceController.text),
+                      'description': 'Per horse',
+                      'isSelected': true.obs,
+                    });
+                  }
+                  Get.back();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

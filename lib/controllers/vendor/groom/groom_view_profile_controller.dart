@@ -567,13 +567,13 @@ class GroomViewProfileController extends GetxController {
   }
 
   String get profilePhoto {
-    final vp = vendorData['profilePhoto']?.toString() ?? '';
+    final vp = vendorProfileImageFromRoot(vendorData);
     if (vp.isNotEmpty) return vp;
     return Get.find<AuthController>().currentUser.value?.displayAvatar ?? '';
   }
 
   String get coverImage {
-    final vc = vendorData['coverImage']?.toString() ?? '';
+    final vc = vendorBannerImageFromRoot(vendorData);
     if (vc.isNotEmpty) return vc;
     return Get.find<AuthController>().currentUser.value?.coverImage ?? '';
   }
