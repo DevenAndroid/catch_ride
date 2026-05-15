@@ -460,11 +460,10 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
 
                   String? summary;
                   if (isSelected && details != null) {
-                    summary = details['feeType'] ??'No travel fee';
-
-                    print("adsfasddf::::$summary");
-                    if (details['price'].toString().isNotEmpty) {
-                      summary = '$summary: \$${details['price']}';
+                    summary = details['feeType']?.toString() ?? 'No travel fee';
+                    final price = details['price']?.toString() ?? '';
+                    if (price.isNotEmpty) {
+                      summary = '$summary: \$$price';
                     }
                   }
 
@@ -472,14 +471,7 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
                     title: opt,
                     isSelected: isSelected,
                     subTitle: summary,
-                    onTap: () {
-                      if (isSelected) {
-                        widget.controller.selectedTravelData.remove(opt);
-                        widget.controller.selectedTravel.remove(opt);
-                      } else {
-                        _showTravelFeeBottomSheet(context, opt);
-                      }
-                    },
+                    onTap: () => _showTravelFeeBottomSheet(context, opt),
                   );
                 }).toList(),
               )),
@@ -489,12 +481,7 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
   }
 
   Widget _buildClientIntakeSection() {
-    final policyOptions = [
-      'Accepting new clients',
-      'Limited availability',
-      'Referral-only',
-      'Not accepting new clients'
-    ];
+    final policyOptions = EditVendorProfileController.farrierClientPolicyOptions;
 
     return _buildCard(
       title: 'Client Intake + Scheduling',
@@ -1135,14 +1122,20 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
                     child: CommonButton(
                       text: 'Save',
                       onPressed: () {
-                        widget.controller.selectedTravelData[option] = {
-                          'type': option,
-                          'feeType': selectedFeeType.value,
-                          'price': priceController.text,
-                          'disclaimer': disclaimerController.text,
-                        };
-                        if (!widget.controller.selectedTravel.contains(option)) {
-                          widget.controller.selectedTravel.add(option);
+                        final feeType = selectedFeeType.value;
+                        if (feeType == 'No travel fee') {
+                          widget.controller.selectedTravelData.remove(option);
+                          widget.controller.selectedTravel.remove(option);
+                        } else {
+                          widget.controller.selectedTravelData[option] = {
+                            'type': option,
+                            'feeType': feeType,
+                            'price': priceController.text,
+                            'disclaimer': disclaimerController.text,
+                          };
+                          if (!widget.controller.selectedTravel.contains(option)) {
+                            widget.controller.selectedTravel.add(option);
+                          }
                         }
                         widget.controller.selectedTravelData.refresh();
                         Get.back();

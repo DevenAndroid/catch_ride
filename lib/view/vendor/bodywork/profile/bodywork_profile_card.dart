@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 
@@ -23,7 +24,11 @@ class BodyworkProfileCard extends StatelessWidget {
     // Extract data from the bodywork service object
     final List services = bodyworkData['services'] ?? [];
     final Map? insurance = bodyworkData['insurance'];
-    final List travelPreferences = bodyworkData['travelPreferences'] ?? [];
+    final List travelPreferencesRaw = bodyworkData['travelPreferences'] ?? [];
+    final List<String> travelPreferences = travelPreferencesRaw
+        .map((e) => VendorTravelPreferencePayload.summaryForListItem(e))
+        .where((s) => s.isNotEmpty)
+        .toList();
     final Map? cancellationPolicy = bodyworkData['cancellationPolicy'];
 
     // Application level data (should be available in the main vendor object usually, but passed here)

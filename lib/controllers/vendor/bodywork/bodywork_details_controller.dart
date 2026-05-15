@@ -14,8 +14,8 @@ import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_v
 import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart';
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:collection/collection.dart';
-import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 
 class BodyworkDetailsController extends GetxController {
@@ -338,12 +338,13 @@ class BodyworkDetailsController extends GetxController {
     for (final t in bw['travelPreferences'] ?? []) {
       if (t is Map) {
         final m = Map<String, dynamic>.from(t);
-        final key = (m['type'] ?? m['name'] ?? '').toString();
+        final key = VendorTravelPreferencePayload.labelFromRow(m);
         if (key.isEmpty) continue;
+        final ui = VendorTravelPreferencePayload.toUiEditingState(m);
         selectedTravel[key] = {
-          'feeType': m['feeType'],
-          'price': m['price'],
-          'disclaimer': m['disclaimer'],
+          'feeType': ui['feeType'],
+          'price': ui['price'],
+          'disclaimer': ui['disclaimer'],
         };
       }
     }
@@ -484,10 +485,14 @@ class BodyworkDetailsController extends GetxController {
             selectedTravel.clear();
             for (var t in travel) {
               if (t is Map) {
-                selectedTravel[t['type'] ?? t['name'] ?? ''] = {
-                  'feeType': t['feeType'],
-                  'price': t['price'],
-                  'disclaimer': t['disclaimer'],
+                final m = Map<String, dynamic>.from(t);
+                final key = VendorTravelPreferencePayload.labelFromRow(m);
+                if (key.isEmpty) continue;
+                final ui = VendorTravelPreferencePayload.toUiEditingState(m);
+                selectedTravel[key] = {
+                  'feeType': ui['feeType'],
+                  'price': ui['price'],
+                  'disclaimer': ui['disclaimer'],
                 };
               }
             }
@@ -623,12 +628,18 @@ class BodyworkDetailsController extends GetxController {
           'document': insuranceKey,
           'expirationDate': expirationDate.value?.toIso8601String(),
         },
-        'travelPreferences': selectedTravel.entries.map((e) => {
-          'type': e.key,
-          'feeType': e.value['feeType'],
-          'price': e.value['price']?.toString().replaceAll(',', ''),
-          'disclaimer': e.value['disclaimer'],
-        }).toList(),
+        'travelPreferences': selectedTravel.entries
+            .map(
+              (e) => VendorTravelPreferencePayload.fromUiZone(
+                label: e.key,
+                feeType:
+                    e.value['feeType']?.toString() ?? 'No travel fee',
+                price:
+                    e.value['price']?.toString().replaceAll(',', '') ?? '',
+                disclaimer: e.value['disclaimer']?.toString() ?? '',
+              ),
+            )
+            .toList(),
         'cancellationPolicy': {
           'policy': selectedCancellationPolicy.value,
           'isCustom': isCustomPolicy.value,

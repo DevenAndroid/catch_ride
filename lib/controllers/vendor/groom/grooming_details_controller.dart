@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:flutter/material.dart';
@@ -289,7 +290,11 @@ class GroomingDetailsController extends GetxController {
           operatingRegions.assignAll(regionNames);
 
           if (groomingData['travelPreferences'] != null) {
-            selectedTravel.assignAll(List<String>.from(groomingData['travelPreferences']));
+            selectedTravel.assignAll(
+              VendorTravelPreferencePayload.groomBraidLabelsFromApiList(
+                List<dynamic>.from(groomingData['travelPreferences']),
+              ),
+            );
           }
           
           if (groomingData['cancellationPolicy'] != null) {
@@ -378,7 +383,8 @@ class GroomingDetailsController extends GetxController {
           'isCustom': isCustomCancellation.value,
           'customText': customCancellationController.text,
         },
-        'travelPreferences': selectedTravel.toList(),
+        'travelPreferences':
+            VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList()),
       };
 
       final body = {

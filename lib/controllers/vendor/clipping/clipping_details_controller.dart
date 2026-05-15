@@ -1,4 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
@@ -283,12 +284,14 @@ class ClippingDetailsController extends GetxController {
 
           // 3. Restore Travel Preferences
           final List travelPrefs = servicesData['travelPreferences'] ?? [];
+          travelFees.clear();
           for (var pref in travelPrefs) {
-            final region = pref['region'];
-            final feeStructure = pref['feeStructure'];
-            if (region != null && feeStructure != null) {
-              travelFees[region] = Map<String, dynamic>.from(feeStructure);
-            }
+            if (pref is! Map) continue;
+            final m = Map<String, dynamic>.from(pref);
+            final region = VendorTravelPreferencePayload.labelFromRow(m);
+            if (region.isEmpty) continue;
+            travelFees[region] =
+                VendorTravelPreferencePayload.clippingFeeStructureFromRow(m);
           }
 
           // 4. Restore Cancellation Policy (empty API policy must be null for DropdownButton)
@@ -356,13 +359,14 @@ class ClippingDetailsController extends GetxController {
                   'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 })
         ],
-        'travelPreferences': travelFees.entries.map((e) => {
-          'region': e.key,
-          'feeStructure': {
-            ...e.value,
-            'price': e.value['price']?.toString().replaceAll(',', ''),
-          },
-        }).toList(),
+        'travelPreferences': travelFees.entries
+            .map(
+              (e) => VendorTravelPreferencePayload.fromClippingRegionEntry(
+                e.key,
+                Map<String, dynamic>.from(e.value),
+              ),
+            )
+            .toList(),
         'cancellationPolicy': {
           'policy': cancellationPolicy.value,
           'isCustom': isCustomCancellation.value,
