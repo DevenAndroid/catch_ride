@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/vendor/common_application_controller.dart
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
@@ -72,6 +73,8 @@ class ShippingApplicationController extends GetxController {
 
   Future<void> fetchDynamicTags() async {
     try {
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
       final response = await apiService.getRequest('/system-config/tag-types/with-values?category=Shipping');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final List types = response.body['data'];
@@ -90,11 +93,11 @@ class ShippingApplicationController extends GetxController {
             rigTypeOptions.assignAll(values);
           } else if (name == 'Stall Type' || name == 'Stall Types') {
             stallTypeOptions.assignAll(values);
-          } else if (name == 'Regions Covered') {
-            regionOptions.assignAll(values);
           }
         }
       }
+      // Use Global Regions API
+      regionOptions.assignAll(systemConfig.regionNames);
     } catch (e) {
       debugPrint('Error fetching dynamic tags: $e');
     } finally {
@@ -150,6 +153,7 @@ class ShippingApplicationController extends GetxController {
       if (response.statusCode == 200 && response.body['success'] == true) {
         return response.body['data']['filename'];
       }
+
     } catch (e) {
       debugPrint('Error uploading $type: $e');
     }
@@ -194,7 +198,12 @@ class ShippingApplicationController extends GetxController {
         'experience': experience.value,
         'operationType': operationType.value,
         'travelScope': selectedTravelScope.toList(),
-        'regionsCovered': selectedRegions.toList(),
+        'regionsCovered': selectedRegions.map((regionName) {
+        final systemConfig = Get.find<SystemConfigController>();
+        final regionObj = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == regionName);
+        return regionObj != null ? regionObj['_id'].toString() : regionName;
+      }).toList(),
         'rigType': selectedRigTypes.toList(),
         'stallType': selectedStallTypes.toList(),
         'horseCapacity': rigCapacity.value,
@@ -254,6 +263,7 @@ class ShippingApplicationController extends GetxController {
       } else {
         Get.snackbar('Error', response.body['message'] ?? 'Failed to submit application', backgroundColor: Colors.red, colorText: Colors.white);
       }
+
     } catch (e) {
       Get.snackbar('Error', 'An unexpected error occurred: $e', backgroundColor: Colors.red, colorText: Colors.white);
     } finally {

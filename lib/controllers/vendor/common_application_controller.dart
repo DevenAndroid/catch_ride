@@ -8,6 +8,7 @@ import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_applicat
 import 'package:flutter/material.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 
 class CommonApplicationController extends GetxController {
   final formKey = GlobalKey<FormState>();

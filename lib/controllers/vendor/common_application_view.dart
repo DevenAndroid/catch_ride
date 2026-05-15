@@ -9,6 +9,7 @@ import 'package:catch_ride/widgets/common_suggestion_field.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:catch_ride/utils/form_utils.dart';
 
 class CommonApplicationView extends StatelessWidget {

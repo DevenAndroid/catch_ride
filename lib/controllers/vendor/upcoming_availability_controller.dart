@@ -3,6 +3,7 @@ import 'package:catch_ride/models/trip_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 
 class UpcomingAvailabilityController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();

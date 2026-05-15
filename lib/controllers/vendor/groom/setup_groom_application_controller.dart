@@ -9,6 +9,7 @@ import 'package:catch_ride/controllers/vendor/common_application_controller.dart
 import 'package:flutter/material.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:collection/collection.dart';
 
@@ -48,11 +49,10 @@ class SetupGroomApplicationController extends GetxController {
         if (horseLevelType != null) {
           horseLevelOptions.value = List<String>.from(horseLevelType['values'].map((v) => v['name']));
         }
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
-        if (regionType != null) {
-          regionOptions.value = List<String>.from(regionType['values'].map((v) => v['name']));
-        }
+        // Use Global Regions API
+        final systemConfig = Get.find<SystemConfigController>();
+        if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+        regionOptions.assignAll(systemConfig.regionNames);
       }
     } catch (e) {
       debugPrint('Error fetching tags: $e');
@@ -185,7 +185,12 @@ class SetupGroomApplicationController extends GetxController {
         'desciplines': selectedDisciplines.toList(),
         'otherDiscipline': otherDisciplineController.text,
         'typicalLevelOfHorses': selectedHorseLevels.toList(),
-        'regionsCovered': selectedRegions.toList(),
+        'regionsCovered': selectedRegions.map((regionName) {
+        final systemConfig = Get.find<SystemConfigController>();
+        final regionObj = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == regionName);
+        return regionObj != null ? regionObj['_id'].toString() : regionName;
+      }).toList(),
         'professionalReferences': vendorProfessionalReferencesFromCommon(commonCtrl),
         'experienceHighlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'facebookLink': facebookController.text,

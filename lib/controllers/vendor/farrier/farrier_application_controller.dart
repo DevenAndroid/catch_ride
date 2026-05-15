@@ -8,6 +8,7 @@ import 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_applicat
 import 'package:catch_ride/controllers/vendor/common_application_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:collection/collection.dart';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -78,11 +79,10 @@ class FarrierApplicationController extends GetxController {
         if (horseLevelType != null) {
           horseLevelOptions.assignAll(List<String>.from(horseLevelType['values'].map((v) => v['name'])));
         }
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
-        if (regionType != null) {
-          regionOptions.assignAll(List<String>.from(regionType['values'].map((v) => v['name'])));
-        }
+        // Use Global Regions API
+        final systemConfig = Get.find<SystemConfigController>();
+        if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+        regionOptions.assignAll(systemConfig.regionNames);
       } else {
         _setFallbackOptions();
       }
@@ -114,14 +114,7 @@ class FarrierApplicationController extends GetxController {
     if (horseLevelOptions.isEmpty) {
       horseLevelOptions.assignAll(['Grand Prix', 'Young Horses', 'School Horses', 'Pony / Minis']);
     }
-    if (regionOptions.isEmpty) {
-      regionOptions.assignAll([
-        'Texas (Split Rock / Texas Circuits)',
-        'Florida (Wellington / Ocala / Gulf coast)',
-        'Southwest (Thermal / AZ winter circuits)',
-        'Southeast (Aiken / Tryon / Wills Park / Chatt Hills)',
-      ]);
-    }
+    
   }
 
   // Experience
@@ -256,7 +249,12 @@ class FarrierApplicationController extends GetxController {
         'desciplines': selectedDisciplines.toList(),
         'otherDiscipline': otherDisciplineController.text,
         'typicalLevelOfHorses': selectedHorseLevels.toList(),
-        'regionsCovered': selectedRegions.toList(),
+        'regionsCovered': selectedRegions.map((regionName) {
+        final systemConfig = Get.find<SystemConfigController>();
+        final regionObj = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == regionName);
+        return regionObj != null ? regionObj['_id'].toString() : regionName;
+      }).toList(),
         'professionalReferences': vendorProfessionalReferencesFromCommon(commonCtrl),
         'experienceHighlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'facebookLink': facebookController.text,

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/services/api_service.dart';
@@ -399,16 +400,11 @@ class BodyworkDetailsController extends GetxController {
           );
         }
 
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull(
-          (t) => t['name'] == 'Regions Covered',
-        );
-        if (regionType != null) {
-          regionOptions.value = List<String>.from(
-            regionType['values'].map((v) => v['name']),
-          );
-        }
       }
+      // Use SystemConfigController for regions (single source of truth)
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+      regionOptions.assignAll(systemConfig.regionNames);
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -442,8 +438,17 @@ class BodyworkDetailsController extends GetxController {
                 List<String>.from(applicationData['disciplines'] ?? []));
             horseLevels
                 .assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-            regionsCovered
-                .assignAll(List<String>.from(applicationData['regions'] ?? []));
+
+            final List rawRegions = applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
+            final List<String> regionNames = rawRegions.map((r) {
+              final rStr = r.toString();
+              final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+              if (regionObj != null) {
+                return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+              }
+              return rStr;
+            }).toList();
+            regionsCovered.assignAll(regionNames);
 
             final List existingServices = profileData['services'] ?? [];
             if (existingServices.isNotEmpty) {
@@ -636,7 +641,12 @@ class BodyworkDetailsController extends GetxController {
       updatedApplicationData['experience'] = experience.value;
       updatedApplicationData['disciplines'] = disciplines.toList();
       updatedApplicationData['horseLevels'] = horseLevels.toList();
-      updatedApplicationData['regions'] = regionsCovered.toList();
+      final systemConfig = Get.find<SystemConfigController>();
+      updatedApplicationData['regions'] = regionsCovered.map((name) {
+        final r = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == name);
+        return r != null ? r['_id'].toString() : name;
+      }).toList();
 
       // Merge with existing servicesData
       final Map<String, dynamic> existingServicesData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData'] ?? {});
