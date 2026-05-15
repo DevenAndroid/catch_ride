@@ -297,11 +297,11 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                         'Lunging', 'Flat Riding (Exercise Only)', 'Stallion'
                       ], _localHandling),
                       
-                      const SizedBox(height: 24),
-                      _buildChipSection('Additional Services', [
-                        'Hunter Braiding', 'Jumper Braiding', 
-                        'Dressage Braiding', 'Clipping'
-                      ], _localAdditional),
+                      // const SizedBox(height: 24),
+                      // _buildChipSection('Additional Services', [
+                      //   'Hunter Braiding', 'Jumper Braiding',
+                      //   'Dressage Braiding', 'Clipping'
+                      // ], _localAdditional),
                     ] else if (_selectedTab == 'Braider') ...[
                       _buildChipSection('Braiding Services', [
                         'Hunter Mane & Tail', 'Hunter Mane Only', 'Hunter Tail Only', 
@@ -353,7 +353,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
 
                     if (_selectedTab != 'Shipping') ...[
                       const SizedBox(height: 24),
-                      _buildChipSection('Travel Preferences',['Local Only', 'Regional'], _localTravel),
+                      _buildChipSection('Travel Preferences',['Local Only', 'Regional',"Nationwide","International"], _localTravel),
                     ],
 
                     if (_selectedTab == 'Groom' || _selectedTab == 'Braider' || _selectedTab == 'Farrier' || _selectedTab == 'Bodywork' || _selectedTab=="Clipping") ...[
@@ -436,7 +436,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
   }
 
   Widget _buildServiceTabs() {
-    final List<String> tabs = ['Groom', 'Braider', 'Clipping', 'Farrier', 'Bodywork', 'Shipping'];
+    final List<String> tabs = ['Groom', 'Braider', 'Clipping', 'Farrier', 'Bodywork',];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -456,9 +456,10 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                 controller.fetchServiceTags('Farrier');
               } else if (tab == 'Bodywork') {
                 controller.fetchServiceTags('Bodywork');
-              } else if (tab == 'Shipping') {
-                controller.fetchServiceTags('Shipping');
               }
+              // else if (tab == 'Shipping') {
+              //   controller.fetchServiceTags('Shipping');
+              // }
             },
             child: Container(
               margin: const EdgeInsets.only(right: 8),

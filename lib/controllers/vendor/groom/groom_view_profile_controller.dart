@@ -608,10 +608,18 @@ class GroomViewProfileController extends GetxController {
       List<String>.from(activeProfileData['capabilities']?['handling'] ?? []);
 
   // Social Media
-  String get instagramUrl =>
-      activeProfileData['socialMedia']?['instagram'] ?? '';
-  String get facebookUrl =>
-      activeProfileData['socialMedia']?['facebook'] ?? '';
+  String get instagramUrl => resolveServiceInstagram(
+        serviceType: activeServiceType,
+        vendorRoot: Map<String, dynamic>.from(vendorData),
+        profileData: activeProfileData,
+        appData: _activeApplicationData,
+      );
+  String get facebookUrl => resolveServiceFacebook(
+        serviceType: activeServiceType,
+        vendorRoot: Map<String, dynamic>.from(vendorData),
+        profileData: activeProfileData,
+        appData: _activeApplicationData,
+      );
 
   // Travel & Policy
   List<String> get travelPreferences {

@@ -9,6 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'controllers/profile_controller.dart';
 import 'firebase_options.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -42,6 +43,7 @@ Future<void> main() async {
   Get.put(SystemConfigController());
   Get.put(SocketService());
   Get.put(AuthController(), permanent: true);
+  Get.put(ProfileController(), permanent: true);
   Get.put(ChatController(), permanent: true);
   
   // Initialize Push Notifications

@@ -100,6 +100,10 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> regionOptions = <String>[].obs;
   final RxList<String> selectedRegions = <String>[].obs;
 
+  // Category-specific tag storage to avoid mixing (e.g. Grooming vs Farrier)
+  final Map<String, List<String>> _categoryDisciplines = {};
+  final Map<String, List<String>> _categoryHorseLevels = {};
+
   // Social Media
   final facebookController = TextEditingController();
   final instagramController = TextEditingController();
@@ -118,6 +122,7 @@ class EditVendorProfileController extends GetxController {
   final RxList<String> handlingOptions = <String>[
     'Lunging',
     'Flat Riding (Exercise Only)',
+    "Stallion"
   ].obs;
   final RxList<String> selectedHandling = <String>[].obs;
 
@@ -530,14 +535,10 @@ class EditVendorProfileController extends GetxController {
       for (final t in types) {
         if (t['name'] == 'Disciplines') {
           final values = List<String>.from(t['values'].map((v) => v['name']));
-          for (final v in values) {
-            if (!disciplineOptions.contains(v)) disciplineOptions.add(v);
-          }
+          _categoryDisciplines['Farrier'] = values;
         } else if (t['name'] == 'Typical Level of Horses') {
           final values = List<String>.from(t['values'].map((v) => v['name']));
-          for (final v in values) {
-            if (!horseLevelOptions.contains(v)) horseLevelOptions.add(v);
-          }
+          _categoryHorseLevels['Farrier'] = values;
         }
       }
 
@@ -1430,6 +1431,9 @@ class EditVendorProfileController extends GetxController {
       }).toList();
       selectedRegions.assignAll(regionNames);
 
+      // Update available options based on category
+      _updateAvailableOptionsForCategory(typeStr);
+
       // Migration: Load service-specific highlights
       final List<String> loadedHighlights = List<String>.from(
         appDataMap['experienceHighlights'] ??
@@ -1749,22 +1753,17 @@ class EditVendorProfileController extends GetxController {
           (t) => t['name'] == 'Disciplines',
         );
         if (disciplineType != null) {
-          disciplineOptions.assignAll(
-            List<String>.from(disciplineType['values'].map((v) => v['name'])),
-          );
-          if (!disciplineOptions.contains('Other'))
-            disciplineOptions.add('Other');
-          _cachedDisciplineOptions = List<String>.from(disciplineOptions);
+          final values = List<String>.from(disciplineType['values'].map((v) => v['name']));
+          if (!values.contains('Other')) values.add('Other');
+          _categoryDisciplines['Grooming'] = values;
         }
 
         final horseLevelType = types.firstWhereOrNull(
           (t) => t['name'] == 'Typical Level of Horses',
         );
         if (horseLevelType != null) {
-          horseLevelOptions.assignAll(
-            List<String>.from(horseLevelType['values'].map((v) => v['name'])),
-          );
-          _cachedHorseLevelOptions = List<String>.from(horseLevelOptions);
+          final values = List<String>.from(horseLevelType['values'].map((v) => v['name']));
+          _categoryHorseLevels['Grooming'] = values;
         }
 
       }
@@ -1821,12 +1820,9 @@ class EditVendorProfileController extends GetxController {
             if (!bodyworkModalityOptions.contains('Other'))
               bodyworkModalityOptions.add('Other');
           } else if (name == 'Disciplines') {
-            // Append or set if empty
-            for (var v in values) {
-              if (!disciplineOptions.contains(v)) disciplineOptions.add(v);
-            }
+             _categoryDisciplines['Bodywork'] = values;
           } else if (name == 'Typical Level of Horses') {
-             for(var v in values) { if(!horseLevelOptions.contains(v)) horseLevelOptions.add(v); }
+             _categoryHorseLevels['Bodywork'] = values;
           }
         }
         // Trigger re-population of services if we already have profile data
@@ -1836,6 +1832,17 @@ class EditVendorProfileController extends GetxController {
       }
 
       await _fetchFarrierTagsAndHydrate();
+
+      // Final sync with current tab after all tags are loaded
+      final services = assignedServices;
+      if (services.isNotEmpty) {
+        int idx = selectedServiceIndex.value;
+        String currentType = 'Grooming';
+        if (idx > 0 && idx <= services.length) {
+          currentType = services[idx - 1]['serviceType']?.toString() ?? 'Grooming';
+        }
+        _updateAvailableOptionsForCategory(currentType);
+      }
 
       // Use SystemConfigController for regions (single source of truth)
       final systemConfig = Get.find<SystemConfigController>();
@@ -2004,6 +2011,44 @@ class EditVendorProfileController extends GetxController {
     } else {
       selectedRegions.add(region);
     }
+  }
+
+  void _updateAvailableOptionsForCategory(String typeStr) {
+    String category = typeStr;
+    if (_editProfileIsBodyworkServiceType(typeStr)) {
+      category = 'Bodywork';
+    }
+
+    final disciplines = _categoryDisciplines[category] ?? [];
+    if (disciplines.isNotEmpty) {
+      disciplineOptions.assignAll(disciplines);
+      if (!disciplineOptions.contains('Other')) {
+        disciplineOptions.add('Other');
+      }
+    } else if (category == 'Grooming') {
+      // Keep defaults for Grooming if fetch failed or returned empty
+      if (disciplineOptions.isEmpty) {
+        disciplineOptions.assignAll(['Eventing', 'Hunter/Jumper', 'Dressage', 'Other']);
+      }
+    } else {
+       // For other categories with no specific tags, maybe clear or keep default?
+       // The user wants ONLY according to category.
+       disciplineOptions.clear();
+    }
+
+    final horseLevels = _categoryHorseLevels[category] ?? [];
+    if (horseLevels.isNotEmpty) {
+      horseLevelOptions.assignAll(horseLevels);
+    } else if (category == 'Grooming') {
+       if (horseLevelOptions.isEmpty) {
+         horseLevelOptions.assignAll(['A/AA Circuit', 'FEI', 'Grand Prix', 'Young horses']);
+       }
+    } else {
+      horseLevelOptions.clear();
+    }
+
+    _cachedDisciplineOptions = List<String>.from(disciplineOptions);
+    _cachedHorseLevelOptions = List<String>.from(horseLevelOptions);
   }
 
   Future<void> pickProfileImage() async {
