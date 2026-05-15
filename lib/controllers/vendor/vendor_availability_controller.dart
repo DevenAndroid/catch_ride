@@ -4,6 +4,7 @@ import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 
 class VendorAvailabilityController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();

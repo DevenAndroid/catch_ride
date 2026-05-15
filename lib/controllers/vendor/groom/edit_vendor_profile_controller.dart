@@ -8,6 +8,7 @@ import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 
@@ -617,6 +618,9 @@ class EditVendorProfileController extends GetxController {
         // Populate ALL service data into our reactive fields to prevent overwriting with blanks
         _initializeAllServicesFields();
 
+        final systemConfig = Get.find<SystemConfigController>();
+        if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+
         populateServiceData();
       }
     } catch (e) {
@@ -1009,16 +1013,19 @@ class EditVendorProfileController extends GetxController {
         ),
       );
       otherDisciplineController.text = appDataMap['otherDiscipline'] ?? '';
-      selectedHorseLevels.assignAll(
-        List<String>.from(
-          appDataMap['horseLevels'] ?? vendorRootData['horseLevels'] ?? [],
-        ),
-      );
-      selectedRegions.assignAll(
-        List<String>.from(
-          appDataMap['regions'] ?? vendorRootData['regions'] ?? [],
-        ),
-      );
+      selectedHorseLevels.assignAll(List<String>.from(appDataMap['horseLevels'] ?? vendorRootData['horseLevels'] ?? []));
+      
+      final List rawRegions = appDataMap['regions'] ?? appDataMap['regionsCovered'] ?? vendorRootData['regions'] ?? vendorRootData['regionsCovered'] ?? [];
+      final systemConfig = Get.find<SystemConfigController>();
+      final List<String> regionNames = rawRegions.map((r) {
+        final rStr = r.toString();
+        final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+        if (regionObj != null) {
+          return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+        }
+        return rStr;
+      }).toList();
+      selectedRegions.assignAll(regionNames);
 
       // Migration: Load service-specific highlights
       final List<String> loadedHighlights = List<String>.from(
@@ -1532,15 +1539,6 @@ class EditVendorProfileController extends GetxController {
           _cachedHorseLevelOptions = List<String>.from(horseLevelOptions);
         }
 
-        final regionType = types.firstWhereOrNull(
-          (t) => t['name'] == 'Regions Covered',
-        );
-        if (regionType != null) {
-          regionOptions.assignAll(
-            List<String>.from(regionType['values'].map((v) => v['name'])),
-          );
-          _cachedRegionOptions = List<String>.from(regionOptions);
-        }
       }
 
       // Fetch Shipping specific tags
@@ -1600,13 +1598,7 @@ class EditVendorProfileController extends GetxController {
               if (!disciplineOptions.contains(v)) disciplineOptions.add(v);
             }
           } else if (name == 'Typical Level of Horses') {
-            for (var v in values) {
-              if (!horseLevelOptions.contains(v)) horseLevelOptions.add(v);
-            }
-          } else if (name == 'Regions Covered') {
-            for (var v in values) {
-              if (!regionOptions.contains(v)) regionOptions.add(v);
-            }
+             for(var v in values) { if(!horseLevelOptions.contains(v)) horseLevelOptions.add(v); }
           }
         }
         // Trigger re-population of services if we already have profile data
@@ -1614,6 +1606,12 @@ class EditVendorProfileController extends GetxController {
           _mergeBodyworkModalities();
         }
       }
+
+      // Use SystemConfigController for regions (single source of truth)
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+      regionOptions.assignAll(systemConfig.regionNames);
+      _cachedRegionOptions = List<String>.from(regionOptions);
     } catch (e) {
       debugPrint('Error fetching tags: $e');
     }
@@ -2218,11 +2216,13 @@ class EditVendorProfileController extends GetxController {
       'disciplines': selectedDisciplines.toList(),
       'otherDiscipline': otherDisciplineController.text,
       'horseLevels': selectedHorseLevels.toList(),
-      'regions': selectedRegions.toList(),
-      'experienceHighlights': highlightControllers
-          .map((c) => c.text)
-          .where((t) => t.isNotEmpty)
-          .toList(),
+      'regions': selectedRegions.map((regionName) {
+        final systemConfig = Get.find<SystemConfigController>();
+        final regionObj = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == regionName);
+        return regionObj != null ? regionObj['_id'].toString() : regionName;
+      }).toList(),
+      'experienceHighlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
       'facebookLink': fb,
       'instagramLink': ig,
     };

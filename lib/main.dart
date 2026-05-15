@@ -1,4 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
 
   // Initialize Services
   Get.put(ApiService());
+  Get.put(SystemConfigController());
   Get.put(SocketService());
   Get.put(AuthController(), permanent: true);
   Get.put(ChatController(), permanent: true);

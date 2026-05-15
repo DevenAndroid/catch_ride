@@ -3,6 +3,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/vendor_service_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 
 import '../chat_controller.dart';
 

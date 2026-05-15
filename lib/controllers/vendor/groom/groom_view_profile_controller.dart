@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 
 class GroomViewProfileController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
