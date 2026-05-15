@@ -617,6 +617,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   }
 
   bool _isServiceProviderBooking(BookingModel booking) {
+    if (booking.vendorBundleLines.isNotEmpty) return true;
     final vendorTypes = [
       'grooming',
       'braiding',
@@ -624,7 +625,8 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
       'farrier',
       'bodywork',
       'shipping',
-      'transportation'
+      'transportation',
+      'multi-service',
     ];
     return vendorTypes.contains(booking.type.toLowerCase());
   }

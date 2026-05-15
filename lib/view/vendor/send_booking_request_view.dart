@@ -1,4 +1,5 @@
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/bookings/send_booking_request_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -62,6 +63,36 @@ class SendBookingRequestView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _horseCapacityBannerIfNeeded(SendBookingRequestController controller) {
+    return Obx(() {
+      controller.startDate.value;
+      controller.endDate.value;
+      final loc =
+          controller.isShipping ? controller.selectedOrigin.value : controller.selectedLocation.value;
+      if (!controller.isHorseCapacityExhaustedFor(loc)) {
+        return const SizedBox.shrink();
+      }
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.errorBg,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.errorBorder),
+          ),
+          child: const CommonText(
+            AppStrings.availabilityFullyBookedHorses,
+            fontSize: AppTextSizes.size12,
+            color: AppColors.errorPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildVendorSummary(SendBookingRequestController controller) {
@@ -332,12 +363,22 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        Obx(() => _buildDropdownField(
-          'Number of Horses', 
-          'Select Number of Horses', 
-          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
-          controller.selectedNumHorses
-        )),
+        Obx(() {
+          controller.startDate.value;
+          controller.endDate.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDropdownField(
+                'Number of Horses',
+                'Select Number of Horses',
+                controller.getHorseOptionsForLocation(controller.selectedLocation.value),
+                controller.selectedNumHorses,
+              ),
+              _horseCapacityBannerIfNeeded(controller),
+            ],
+          );
+        }),
         const SizedBox(height: 20),
         // Location
         Obx(() => _buildDropdownField(
@@ -414,12 +455,22 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        Obx(() => _buildDropdownField(
-          'Number of Horses', 
-          'Select Number of Horses', 
-          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
-          controller.selectedNumHorses
-        )),
+        Obx(() {
+          controller.startDate.value;
+          controller.endDate.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDropdownField(
+                'Number of Horses',
+                'Select Number of Horses',
+                controller.getHorseOptionsForLocation(controller.selectedLocation.value),
+                controller.selectedNumHorses,
+              ),
+              _horseCapacityBannerIfNeeded(controller),
+            ],
+          );
+        }),
         const SizedBox(height: 20),
         // Location
         Obx(() => _buildDropdownField(
@@ -497,12 +548,22 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        Obx(() => _buildDropdownField(
-          'Number of Horses', 
-          'Select Number of Horses', 
-          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
-          controller.selectedNumHorses
-        )),
+        Obx(() {
+          controller.startDate.value;
+          controller.endDate.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDropdownField(
+                'Number of Horses',
+                'Select Number of Horses',
+                controller.getHorseOptionsForLocation(controller.selectedLocation.value),
+                controller.selectedNumHorses,
+              ),
+              _horseCapacityBannerIfNeeded(controller),
+            ],
+          );
+        }),
         const SizedBox(height: 20),
         // Location
         Obx(() => _buildDropdownField(
@@ -614,12 +675,22 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        Obx(() => _buildDropdownField(
-          'Number of Horses', 
-          'Select Number of Horses', 
-          controller.getHorseOptionsForLocation(controller.selectedLocation.value), 
-          controller.selectedNumHorses
-        )),
+        Obx(() {
+          controller.startDate.value;
+          controller.endDate.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDropdownField(
+                'Number of Horses',
+                'Select Number of Horses',
+                controller.getHorseOptionsForLocation(controller.selectedLocation.value),
+                controller.selectedNumHorses,
+              ),
+              _horseCapacityBannerIfNeeded(controller),
+            ],
+          );
+        }),
         const SizedBox(height: 20),
         // Location
         Obx(() => _buildDropdownField(
@@ -763,12 +834,22 @@ class SendBookingRequestView extends StatelessWidget {
         )),
         const SizedBox(height: 12),
         // Number of Horses
-        Obx(() => _buildDropdownField(
-          'Number of Horses', 
-          'Select Number of Horses', 
-          controller.getHorseOptionsForLocation(controller.selectedOrigin.value), 
-          controller.selectedNumHorses
-        )),
+        Obx(() {
+          controller.startDate.value;
+          controller.endDate.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDropdownField(
+                'Number of Horses',
+                'Select Number of Horses',
+                controller.getHorseOptionsForLocation(controller.selectedOrigin.value),
+                controller.selectedNumHorses,
+              ),
+              _horseCapacityBannerIfNeeded(controller),
+            ],
+          );
+        }),
         const SizedBox(height: 20),
         
         // Origin Location
@@ -776,6 +857,7 @@ class SendBookingRequestView extends StatelessWidget {
           label: 'Origin Location',
           hint: 'Search Origin',
           selectedValue: controller.selectedOrigin,
+          bookingRequestController: controller,
           isOrigin: true,
         ),
         const SizedBox(height: 16),
@@ -843,6 +925,7 @@ class SendBookingRequestView extends StatelessWidget {
           label: 'Destination Location',
           hint: 'Search Destination',
           selectedValue: controller.selectedDestination,
+          bookingRequestController: controller,
           isDestination: true,
         ),
         const SizedBox(height: 16),
@@ -868,12 +951,22 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 20),
         _buildDateRangeField(controller),
         const SizedBox(height: 20),
-        Obx(() => _buildDropdownField(
-          'Number Of Horses', 
-          'Select', 
-          controller.getHorseOptionsForLocation(controller.selectedLocation.value),
-          controller.selectedNumHorses,
-        )),
+        Obx(() {
+          controller.startDate.value;
+          controller.endDate.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDropdownField(
+                'Number Of Horses',
+                'Select',
+                controller.getHorseOptionsForLocation(controller.selectedLocation.value),
+                controller.selectedNumHorses,
+              ),
+              _horseCapacityBannerIfNeeded(controller),
+            ],
+          );
+        }),
         const SizedBox(height: 20),
         Obx(() => _buildDropdownField(
           'Location', 
@@ -970,6 +1063,16 @@ class SendBookingRequestView extends StatelessWidget {
     );
   }
 
+  String? _locationForAcceptedDateBlocking(
+    SendBookingRequestController controller,
+    RxnString? locationObs,
+  ) {
+    if (locationObs != null) return locationObs.value;
+    return controller.isShipping
+        ? controller.selectedOrigin.value
+        : controller.selectedLocation.value;
+  }
+
   Widget _buildDateRangeField(SendBookingRequestController controller, {RxnString? locationObs}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -977,6 +1080,12 @@ class SendBookingRequestView extends StatelessWidget {
         const CommonText('Select Date Range', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         const SizedBox(height: 8),
         Obx(() {
+          controller.acceptedBookingWindows.length;
+          controller.selectedService.value;
+          controller.selectedLocation.value;
+          controller.selectedOrigin.value;
+          if (locationObs != null) locationObs.value;
+
           final startDate = controller.startDate.value;
           final endDate = controller.endDate.value;
           String displayDate = 'Select Date Range';
@@ -1006,11 +1115,15 @@ class SendBookingRequestView extends StatelessWidget {
                 }
               }
 
+              final locBlock = _locationForAcceptedDateBlocking(controller, locationObs);
+
               final DateTimeRange? picked = await showDateRangePicker(
                 context: Get.context!,
                 firstDate: first,
                 lastDate: last.isBefore(first) ? first.add(const Duration(days: 1)) : last,
                 initialDateRange: initialRange,
+                selectableDayPredicate: (DateTime day, DateTime? rangeStart, DateTime? rangeEnd) =>
+                    !controller.isDateBlockedByAcceptedBooking(day, locBlock),
                 builder: (context, child) {
                   return Theme(
                     data: Theme.of(context).copyWith(
@@ -1069,6 +1182,12 @@ class SendBookingRequestView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Obx(() {
+          controller.acceptedBookingWindows.length;
+          controller.selectedService.value;
+          controller.selectedLocation.value;
+          controller.selectedOrigin.value;
+          if (locationObs != null) locationObs.value;
+
           final startDate = controller.startDate.value;
           final endDate = controller.endDate.value;
           final hasSingleDay = startDate != null &&
@@ -1101,6 +1220,8 @@ class SendBookingRequestView extends StatelessWidget {
                 }
               }
 
+              final locBlock = _locationForAcceptedDateBlocking(controller, locationObs);
+
               final DateTime? picked = await showDatePicker(
                 context: Get.context!,
                 initialDate: initialDate.isBefore(first)
@@ -1108,6 +1229,8 @@ class SendBookingRequestView extends StatelessWidget {
                     : (initialDate.isAfter(last) ? last : initialDate),
                 firstDate: first,
                 lastDate: last.isBefore(first) ? first.add(const Duration(days: 1)) : last,
+                selectableDayPredicate: (dt) =>
+                    !controller.isDateBlockedByAcceptedBooking(dt, locBlock),
                 builder: (context, child) {
                   return Theme(
                     data: Theme.of(context).copyWith(
@@ -1304,12 +1427,14 @@ class LocationSearchField extends StatefulWidget {
   final void Function(String?)? onChanged;
   final bool isOrigin;
   final bool isDestination;
+  final SendBookingRequestController bookingRequestController;
 
   const LocationSearchField({
     super.key,
     required this.label,
     required this.hint,
     required this.selectedValue,
+    required this.bookingRequestController,
     this.anchorLocation,
     this.onChanged,
     this.isOrigin = false,
@@ -1322,7 +1447,6 @@ class LocationSearchField extends StatefulWidget {
 
 class _LocationSearchFieldState extends State<LocationSearchField> {
   final googleController = Get.put(GoogleApiController());
-  final controller = Get.find<SendBookingRequestController>();
   late final TextEditingController textController;
   final focusNode = FocusNode();
   final isFocused = false.obs;
@@ -1394,7 +1518,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
             // Fetch coords for radius search
             String? coords;
             if (widget.isOrigin) {
-               for (var avail in controller.availabilityList) {
+               for (var avail in widget.bookingRequestController.availabilityList) {
                   if (avail['originCoords'] != null) {
                      final c = avail['originCoords']['coordinates'];
                      coords = '${c[1]},${c[0]}';
@@ -1402,7 +1526,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
                   }
                }
             } else if (widget.isDestination) {
-               for (var avail in controller.availabilityList) {
+               for (var avail in widget.bookingRequestController.availabilityList) {
                   if (avail['destinationCoords'] != null) {
                      final c = avail['destinationCoords']['coordinates'];
                      coords = '${c[1]},${c[0]}';
@@ -1410,7 +1534,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
                   }
                }
             } else {
-               coords = controller.getCoordsForLocation(widget.anchorLocation);
+               coords = widget.bookingRequestController.getCoordsForLocation(widget.anchorLocation);
             }
 
             googleController.searchGooglePlaces(
@@ -1424,7 +1548,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
           if (!isFocused.value) return const SizedBox.shrink();
           
           final suggestions = googleController.googleSuggestions;
-          final available = controller.availableLocations.where((l) => 
+          final available = widget.bookingRequestController.availableLocations.where((l) =>
             l.toLowerCase().contains(textController.text.toLowerCase())).toList();
 
           if (suggestions.isEmpty && available.isEmpty) return const SizedBox.shrink();
@@ -1432,7 +1556,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
           // Get coords to check if we should show Google suggestions
           String? coords;
           if (widget.isOrigin) {
-             for (var avail in controller.availabilityList) {
+             for (var avail in widget.bookingRequestController.availabilityList) {
                 if (avail['originCoords'] != null) {
                    final c = avail['originCoords']['coordinates'];
                    coords = '${c[1]},${c[0]}';
@@ -1440,7 +1564,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
                 }
              }
           } else if (widget.isDestination) {
-             for (var avail in controller.availabilityList) {
+             for (var avail in widget.bookingRequestController.availabilityList) {
                 if (avail['destinationCoords'] != null) {
                    final c = avail['destinationCoords']['coordinates'];
                    coords = '${c[1]},${c[0]}';
@@ -1448,7 +1572,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
                 }
              }
           } else {
-             coords = controller.getCoordsForLocation(widget.anchorLocation);
+             coords = widget.bookingRequestController.getCoordsForLocation(widget.anchorLocation);
           }
 
           final showGoogle = coords != null;

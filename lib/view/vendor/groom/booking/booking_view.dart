@@ -8,7 +8,7 @@ import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../vendor_details_view.dart';
+import 'package:catch_ride/view/trainer/edit_booking_form_vendor.dart';
 import '../../booking_details_view.dart';
 
 class BookingView extends StatefulWidget {
@@ -197,20 +197,53 @@ class _BookingViewState extends State<BookingView> {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.lightGray,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.borderLight),
-                ),
-                child: CommonText(
-                  booking.type,
-                  fontSize: AppTextSizes.size12,
-                  color: AppColors.textSecondary,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.lightGray,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppColors.borderLight),
+                    ),
+                    child: CommonText(
+                      booking.type,
+                      fontSize: AppTextSizes.size12,
+                      color: AppColors.textSecondary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (_isServiceProviderBooking(booking) &&
+                      booking.status.toLowerCase() == 'pending') ...[
+                    const SizedBox(width: 4),
+                    SizedBox(
+                      height: 28,
+                      width: 28,
+                      child: PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textSecondary),
+                        padding: EdgeInsets.zero,
+                        onSelected: (value) {
+                          if (value == 'update') {
+                            Get.to(
+                              () => EditBookingFormVendor(
+                                booking: booking,
+                                refreshBookingsType: 'received',
+                              ),
+                            );
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: 'update',
+                            child: Text('Update Booking'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),
@@ -268,5 +301,19 @@ class _BookingViewState extends State<BookingView> {
       ),
     ),
     );
+  }
+
+  bool _isServiceProviderBooking(BookingModel booking) {
+    final vendorTypes = [
+      'grooming',
+      'braiding',
+      'clipping',
+      'farrier',
+      'bodywork',
+      'shipping',
+      'transportation',
+      'multi-service',
+    ];
+    return vendorTypes.contains(booking.type.toLowerCase());
   }
 }

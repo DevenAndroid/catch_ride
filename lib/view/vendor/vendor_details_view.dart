@@ -89,7 +89,6 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 16),
-                          _buildNoteForTrainer(),
                           _buildBio(),
                           const SizedBox(height: 16),
                           _buildSocials(),
@@ -252,41 +251,6 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildNoteForTrainer() {
-    final note = controller.noteForTrainer;
-    if (note.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.lightGray,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.borderLight),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const CommonText(
-              'Note for trainer',
-              fontSize: AppTextSizes.size14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-            const SizedBox(height: 8),
-            CommonText(
-              note,
-              fontSize: AppTextSizes.size14,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -476,6 +440,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
          travelPreferences: controller.travelPreferences,
+         noteForTrainer: controller.noteForTrainer,
+         additionalSkills: controller.displayHighlights,
        );
     }
     
@@ -504,6 +470,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         hasCDL: controller.shippingHasCDL,
         businessName: controller.businessName,
         highlights: controller.displayHighlights,
+        noteForTrainer: controller.noteForTrainer,
+        additionalSkills: controller.displayHighlights,
       );
     }
     
@@ -524,6 +492,7 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
          supportOptions: controller.supportOptions,
          handlingOptions: controller.handlingOptions,
          additionalSkills: controller.displayHighlights,
+         noteForTrainer: controller.noteForTrainer,
        );
     }
     
@@ -541,6 +510,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
          travelPreferences: controller.travelPreferences,
+         noteForTrainer: controller.noteForTrainer,
+         additionalSkills: controller.displayHighlights,
        );
     }
     
@@ -558,6 +529,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
          horseLevels: controller.horseLevels,
          regionsCovered: controller.operatingRegions,
          travelPreferences: controller.travelPreferences,
+         noteForTrainer: controller.noteForTrainer,
+         additionalSkills: controller.displayHighlights,
        );
     }
 
@@ -577,6 +550,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
         travelPreferences: controller.travelPreferences,
         services: controller.coreServices,
         addOns: controller.additionalServices,
+        noteForTrainer: controller.noteForTrainer,
+        additionalSkills: controller.displayHighlights,
       );
     }
 
@@ -597,6 +572,8 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
       horseLevels: controller.horseLevels,
       travelPreferences: controller.travelPreferences,
       operatingRegions: controller.operatingRegions,
+      noteForTrainer: controller.noteForTrainer,
+      additionalSkills: controller.displayHighlights,
       isClipping: activeServiceKey.contains('clip'),
     );
   }

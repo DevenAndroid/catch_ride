@@ -810,11 +810,22 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 },
               ),
               const SizedBox(height: 16),
-              const CommonText(
-                'Gender',
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+              RichText(
+                text: const TextSpan(
+                  text: 'Gender',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontFamily: 'Inter',
+                  ),
+                  children: [
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Color(0xFFD92D20)),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 8),
               Obx(() => Wrap(
@@ -839,10 +850,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                     fontFamily: 'Inter',
                   ),
                   children: [
-                    // TextSpan(
-                    //   text: ' *',
-                    //   style: TextStyle(color: Color(0xFFD92D20)),
-                    // ),
+                    TextSpan(
+                      text: ' *',
+                      style: TextStyle(color: Color(0xFFD92D20)),
+                    ),
                   ],
                 ),
               ),
@@ -1003,7 +1014,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                             controller: controller.ageController,
                             hintText: 'Enter year foaled',
                             keyboardType: TextInputType.number,
-                            // isRequired: true,
+                            isRequired: true,
                             //  validator: (val) {
                             //    if (val == null || val.trim().isEmpty)
                             //      return 'Required';
@@ -1068,10 +1079,10 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        // TextSpan(
-                        //   text: ' *',
-                        //   style: TextStyle(color: Color(0xFFD92D20)),
-                        // ),
+                        TextSpan(
+                          text: ' *',
+                          style: TextStyle(color: Color(0xFFD92D20)),
+                        ),
                       ],
                     ),
                   ),
@@ -1177,11 +1188,22 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
               // Discipline Dropdown Stub
               Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
-                child: const CommonText(
-                  'Discipline',
-                  fontSize: AppTextSizes.size14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                child: RichText(
+                  text: const TextSpan(
+                    text: 'Discipline',
+                    style: TextStyle(
+                      fontSize: AppTextSizes.size14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      fontFamily: 'Inter',
+                    ),
+                    children: [
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: Color(0xFFD92D20)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Obx(
@@ -1216,7 +1238,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                 controller: controller.descriptionController,
                 hintText: 'Write here...',
                 //textCapitalization: TextCapitalization.sentences,
-              //  isRequired: true,
+                isRequired: false,
                 maxLines: 4,
                 // validator: (val) {
                 //   if (val == null || val.trim().isEmpty)
@@ -1450,11 +1472,23 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const CommonText(
-                                'Min Price',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF344054),
+                              RichText(
+                                text: const TextSpan(
+                                  text: 'Min Price',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF344054),
+                                    fontFamily: 'Inter',
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: ' *',
+                                      style:
+                                          TextStyle(color: Color(0xFFD92D20)),
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 8),
                               _buildPriceTextField(
@@ -1470,11 +1504,23 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const CommonText(
-                                'Max Price',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF344054),
+                              RichText(
+                                text: const TextSpan(
+                                  text: 'Max Price',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF344054),
+                                    fontFamily: 'Inter',
+                                  ),
+                                  children: [
+                                    TextSpan(
+                                      text: ' *',
+                                      style:
+                                          TextStyle(color: Color(0xFFD92D20)),
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 8),
                               _buildPriceTextField(
@@ -2080,6 +2126,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                           controller: availabilityEntry.cityStateController,
                           hintText: 'e.g., Welling.',
                           readOnly: true, // Locked as per requirement
+                          isRequired: true,
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -2087,6 +2134,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'Start Date',
+                                isRequired: true,
                                 controller:
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
@@ -2115,6 +2163,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'End Date',
+                                isRequired: true,
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
                                 readOnly: true,
