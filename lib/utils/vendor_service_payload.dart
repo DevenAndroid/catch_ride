@@ -659,3 +659,17 @@ List<String> mergeServicePortfolioMediaUrls({
   }
   return out;
 }
+
+/// [VendorModel.js] `profile` — falls back to legacy `profilePhoto` from older API payloads.
+String vendorProfileImageFromRoot(Map<dynamic, dynamic> data) {
+  final profile = data['profile']?.toString();
+  if (profile != null && profile.isNotEmpty) return profile;
+  return data['profilePhoto']?.toString() ?? '';
+}
+
+/// [VendorModel.js] `bannerImage` — falls back to legacy `coverImage` from older API payloads.
+String vendorBannerImageFromRoot(Map<dynamic, dynamic> data) {
+  final banner = data['bannerImage']?.toString();
+  if (banner != null && banner.isNotEmpty) return banner;
+  return data['coverImage']?.toString() ?? '';
+}

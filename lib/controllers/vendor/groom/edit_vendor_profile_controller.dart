@@ -330,6 +330,18 @@ class EditVendorProfileController extends GetxController {
     fetchStates();
   }
 
+  String _resolvedProfileImage(Map<dynamic, dynamic> data) {
+    final fromVendor = vendorProfileImageFromRoot(data);
+    if (fromVendor.isNotEmpty) return fromVendor;
+    return _authController.currentUser.value?.displayAvatar ?? '';
+  }
+
+  String _resolvedBannerImage(Map<dynamic, dynamic> data) {
+    final fromVendor = vendorBannerImageFromRoot(data);
+    if (fromVendor.isNotEmpty) return fromVendor;
+    return _authController.currentUser.value?.coverImage ?? '';
+  }
+
   void _populateAllFieldsFromCache() {
     if (vendorRootData.isEmpty) return;
 
@@ -340,8 +352,8 @@ class EditVendorProfileController extends GetxController {
     businessNameController.text = data['businessName']?.toString() ?? '';
     aboutController.text = data['bio']?.toString() ?? '';
     notesForTrainerController.text = data['notesForTrainer']?.toString() ?? '';
-    profilePhotoUrl.value = data['profilePhoto']?.toString() ?? '';
-    coverImageUrl.value = data['coverImage']?.toString() ?? '';
+    profilePhotoUrl.value = _resolvedProfileImage(data);
+    coverImageUrl.value = _resolvedBannerImage(data);
     otherPaymentController.text = data['otherPaymentDetails']?.toString() ?? '';
     selectedPayments.assignAll(List<String>.from(data['paymentMethods'] ?? []));
 
@@ -471,8 +483,8 @@ class EditVendorProfileController extends GetxController {
         businessNameController.text = root['businessName']?.toString() ?? '';
         aboutController.text = root['bio']?.toString() ?? '';
         notesForTrainerController.text = root['notesForTrainer']?.toString() ?? '';
-        profilePhotoUrl.value = root['profilePhoto']?.toString() ?? '';
-        coverImageUrl.value = root['coverImage']?.toString() ?? '';
+        profilePhotoUrl.value = _resolvedProfileImage(root);
+        coverImageUrl.value = _resolvedBannerImage(root);
         otherPaymentController.text = root['otherPaymentDetails']?.toString() ?? '';
 
         selectedPayments.assignAll(List<String>.from(root['paymentMethods'] ?? []));
@@ -719,14 +731,32 @@ class EditVendorProfileController extends GetxController {
         ...Map<String, dynamic>.from(draft['applicationData'] ?? {}),
       };
 
-      // Home Base Fallbacks
-      String? city = appDataMap['homeBase']?['city'] ?? appDataMap['city'];
-      String? state = appDataMap['homeBase']?['state'] ?? appDataMap['state'];
-      String? country = appDataMap['homeBase']?['country'] ?? appDataMap['country'];
+      // Home Base Fallbacks (application → profile → vendor root / homeBaseLocation from GET /vendors/me)
+      Map<String, dynamic>? mapOrNull(dynamic v) =>
+          v is Map ? Map<String, dynamic>.from(v as Map) : null;
+      final appHb = mapOrNull(appDataMap['homeBase']);
+      final profHb = mapOrNull(profileDataMap['homeBase']);
+      final rootHb = mapOrNull(vendorRootData['homeBaseLocation']);
 
-      if (city == null || city.isEmpty) city = vendorRootData['city']?.toString();
-      if (state == null || state.isEmpty) state = vendorRootData['state']?.toString();
-      if (country == null || country.isEmpty) country = vendorRootData['country']?.toString();
+      String? city = appHb?['city']?.toString() ??
+          profHb?['city']?.toString() ??
+          appDataMap['city']?.toString();
+      String? state = appHb?['state']?.toString() ??
+          profHb?['state']?.toString() ??
+          appDataMap['state']?.toString();
+      String? country = appHb?['country']?.toString() ??
+          profHb?['country']?.toString() ??
+          appDataMap['country']?.toString();
+
+      if (city == null || city.trim().isEmpty) city = vendorRootData['city']?.toString();
+      if (state == null || state.trim().isEmpty) state = vendorRootData['state']?.toString();
+      if (country == null || country.trim().isEmpty) country = vendorRootData['country']?.toString();
+
+      if (rootHb != null) {
+        if (city == null || city.trim().isEmpty) city = rootHb['city']?.toString();
+        if (state == null || state.trim().isEmpty) state = rootHb['state']?.toString();
+        if (country == null || country.trim().isEmpty) country = rootHb['country']?.toString();
+      }
 
       cityController.text = city ?? '';
       stateController.text = state ?? '';
@@ -1426,14 +1456,14 @@ class EditVendorProfileController extends GetxController {
     isSaving.value = true;
     try {
       // 1. Upload All Files
-      String? profilePhoto = profilePhotoUrl.value;
+      String? profile = profilePhotoUrl.value;
       if (newProfileImage.value != null) {
-        profilePhoto = await _uploadFile(newProfileImage.value!, 'profile');
+        profile = await _uploadFile(newProfileImage.value!, 'profile');
       }
 
-      String? coverImage = coverImageUrl.value;
+      String? bannerImage = coverImageUrl.value;
       if (newCoverImage.value != null) {
-        coverImage = await _uploadFile(newCoverImage.value!, 'profile');
+        bannerImage = await _uploadFile(newCoverImage.value!, 'profile');
       }
 
       // Upload media for each service
@@ -1466,11 +1496,16 @@ class EditVendorProfileController extends GetxController {
         'businessName': businessNameController.text,
         'bio': aboutController.text,
         'notesForTrainer': notesForTrainerController.text,
-        'profilePhoto': profilePhoto,
-        'coverImage': coverImage,
+        'profile': profile,
+        'bannerImage': bannerImage,
         'otherPaymentDetails': otherPaymentController.text.trim(),
         'paymentMethods': selectedPayments.toList(),
         'highlights': highlightControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
+        'homeBaseLocation': {
+          'city': cityController.text.trim(),
+          'state': stateController.text.trim(),
+          'country': countryController.text.trim(),
+        },
         'isProfileSetup': true,
       };
 
@@ -1589,9 +1624,9 @@ class EditVendorProfileController extends GetxController {
             lastName: fullNameController.text.contains(' ') ? fullNameController.text.split(' ').skip(1).join(' ') : '',
             phone: phoneController.text,
             bio: aboutController.text,
-            avatar: profilePhoto,
-            photo: profilePhoto,
-            coverImage: coverImage,
+            avatar: profile,
+            photo: profile,
+            coverImage: bannerImage,
           );
           _authController.currentUser.value = updatedUser;
           _authController.currentUser.refresh();
@@ -1624,7 +1659,37 @@ class EditVendorProfileController extends GetxController {
     }
   }
 
+  /// Home base is edited on the Details tab (index 0). [saveCurrentTabToCache] used to
+  /// return immediately for index 0, so `applicationData.homeBase` never reached PUT
+  /// `/vendors/me` (backend merges this in `_applyServicesDataToVendorServiceProfiles`).
+  void _mergeHomeBaseIntoAllServiceDrafts() {
+    final hb = {
+      'city': cityController.text.trim(),
+      'state': stateController.text.trim(),
+      'country': countryController.text.trim(),
+    };
+    for (final s in assignedServices) {
+      final type = s['serviceType']?.toString();
+      if (type == null) continue;
+      final typeKey = type.toLowerCase();
+      final existing = Map<String, dynamic>.from(draftServicesData[typeKey] ?? {});
+      final existingApp = Map<String, dynamic>.from(existing['applicationData'] ?? {});
+      final existingProf = Map<String, dynamic>.from(existing['profileData'] ?? {});
+      draftServicesData[typeKey] = {
+        ...existing,
+        'applicationData': {
+          ...existingApp,
+          'homeBase': hb,
+        },
+        'profileData': existingProf,
+      };
+    }
+  }
+
   void saveCurrentTabToCache(int index) {
+    if (index == 0 && assignedServices.isNotEmpty) {
+      _mergeHomeBaseIntoAllServiceDrafts();
+    }
     if (index == 0 || assignedServices.isEmpty || index > assignedServices.length) return;
     final type = assignedServices[index - 1]['serviceType']?.toString();
     if (type == null) return;
