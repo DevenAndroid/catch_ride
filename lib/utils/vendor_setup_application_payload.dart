@@ -3,7 +3,7 @@ import 'package:catch_ride/controllers/vendor/common_application_controller.dart
 /// Shared maps for POST /vendors/setup-service payloads aligned with [VendorModel] preform keys.
 Map<String, dynamic> vendorHomeBaseFromCommon(CommonApplicationController c) {
   return {
-    'country': c.countryController.text,
+    'country': c.countryController.text.trim().toUpperCase() == 'USA' ? 'USA' : c.countryController.text.trim(),
     'state': c.selectedState.value?['name'],
     'city': c.selectedCity.value?['name'],
   };

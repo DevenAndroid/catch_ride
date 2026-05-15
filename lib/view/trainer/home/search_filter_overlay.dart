@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../controllers/explore_controller.dart';
 import '../../../controllers/google_api_controller.dart';
 import '../../../controllers/profile_controller.dart';
+import '../../../controllers/system_config_controller.dart';
 
 class SearchFilterOverlay extends StatefulWidget {
   const SearchFilterOverlay({super.key});
@@ -70,6 +71,11 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     _rangeEnd = controller.endDate.value;
     if (_rangeStart != null) {
       _focusedDate = _rangeStart!;
+    }
+
+    final systemConfig = Get.find<SystemConfigController>();
+    if (systemConfig.regions.isEmpty && !systemConfig.isLoadingRegions.value) {
+      systemConfig.fetchRegions();
     }
   }
 
@@ -480,21 +486,15 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     children: [
                       if (isSearching) ...[
                         Obx(() {
-                          final regionType = controller.serviceTagTypes.firstWhereOrNull(
-                            (t) => t['name'] == 'Regions Covered'
-                          );
-                          final List<String> regionOptions = regionType != null
-                              ? List<String>.from(regionType['values'].map((v) => v['name']))
-                              : [
-                                  'Florida (Wellington • Ocala • Gulf Coast)',
-                                  'Southwest (Thermal • AZ winter circuit)',
-                                  'Southeast (Aiken • Tryon • Wills Park • Chatt Hills)'
-                                ];
+                          final systemConfig = Get.find<SystemConfigController>();
+                          final q = _searchController.text.toLowerCase();
+                          final regionOptions = systemConfig.regionNames
+                              .where((r) => r.toLowerCase().contains(q))
+                              .toList();
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: regionOptions
-                                .where((r) => r.toLowerCase().contains(_searchController.text.toLowerCase()))
                                 .map((r) => _buildLocationItem(r, isRegion: true))
                                 .toList(),
                           );

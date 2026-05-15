@@ -6,6 +6,7 @@ import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_vie
 import 'package:catch_ride/view/vendor/clipping/profile_create/clipping_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../view/vendor/braiding/profile_create/braiding_application_view.dart';
@@ -108,6 +109,8 @@ class GroomCompleteProfileController extends GetxController {
   Future<void> fetchPaymentMethods() async {
     isPaymentLoading.value = true;
     try {
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
       final response = await apiService.getRequest('/payment-methods?isActive=true');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final List data = response.body['data'];

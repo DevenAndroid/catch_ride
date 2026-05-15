@@ -1,0 +1,543 @@
+import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/constant/app_strings.dart';
+import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/models/booking_model.dart';
+import 'package:catch_ride/utils/date_util.dart';
+import 'package:catch_ride/view/trainer/edit_booking_form_vendor.dart';
+import 'package:catch_ride/view/vendor/booking_details_view.dart';
+import 'package:catch_ride/widgets/common_image_view.dart';
+import 'package:catch_ride/widgets/common_text.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+class VendorBookings extends StatefulWidget {
+  const VendorBookings({super.key});
+
+  @override
+  State<VendorBookings> createState() => _VendorBookingsState();
+}
+
+class _VendorBookingsState extends State<VendorBookings> {
+  int _selectedFilterIndex = 0;
+
+  final BookingController bookingController = Get.put(BookingController());
+
+  final List<String> _filters = [
+    'Accepted',
+    'Rejected',
+    'Pending',
+    'Cancelled',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBookings();
+    bookingController.refreshPendingBookingCounts();
+  }
+
+  void _loadBookings() {
+    if (_selectedFilterIndex >= _filters.length) {
+      _selectedFilterIndex = 0;
+    }
+    final filterStr = _filters[_selectedFilterIndex];
+
+    String apiStatus = '';
+    String apiTime = 'upcoming';
+
+    apiStatus = filterStr.toLowerCase();
+    if (filterStr == 'Accepted') apiStatus = 'confirmed';
+    apiTime = (apiStatus == 'pending') ? 'upcoming' : 'upcoming';
+
+    if (['rejected', 'cancelled'].contains(apiStatus)) {
+      apiTime = 'past';
+    }
+
+    bookingController.fetchBookings(
+      type: 'received',
+      status: apiStatus,
+      time: apiTime,
+    );
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        automaticallyImplyLeading: false,
+        title: const Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: CommonText(
+            AppStrings.bookings,
+            color: AppColors.textPrimary,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: AppColors.border.withValues(alpha: 0.5),
+            height: 1,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          _buildFilterSection(),
+          Expanded(
+            child: Obx(() {
+              if (bookingController.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final bookings = _getFilteredBookings(
+                bookingController.receivedBookings,
+              );
+
+              if (bookingController.receivedBookings.isEmpty) {
+                return _buildEmptyState(
+                  message: 'No bookings found',
+                  iconSize: 64,
+                );
+              }
+
+              return _buildBookingsList(bookings);
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterSection() {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(35),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(_filters.length, (index) {
+            final isSelected = _selectedFilterIndex == index;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedFilterIndex = index;
+                  });
+                  _loadBookings();
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.secondary
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.secondary.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: CommonText(
+                      _filters[index],
+                      fontSize: 14,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({
+    required String message,
+    double iconSize = 48,
+  }) {
+    return RefreshIndicator(
+      onRefresh: () async => _loadBookings(),
+      color: AppColors.primary,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: iconSize,
+                    color: AppColors.textSecondary.withValues(alpha: 0.3),
+                  ),
+                  const SizedBox(height: 16),
+                  CommonText(
+                    message,
+                    fontSize: iconSize > 48 ? 16 : 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingsList(List<BookingModel> bookings) {
+    if (bookings.isEmpty) {
+      return _buildEmptyState(message: 'No received bookings found');
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async => _loadBookings(),
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: bookings.length + 1,
+        itemBuilder: (context, index) {
+          if (index == bookings.length) {
+            return const SizedBox(height: 120);
+          }
+
+          final booking = bookings[index];
+          String displayStatus =
+              booking.status.capitalizeFirst ?? booking.status;
+          if (booking.status == 'confirmed' || booking.status == 'accepted') {
+            displayStatus = 'Accepted';
+          }
+          if (booking.status == 'cancelled') displayStatus = 'Cancelled';
+
+          return _buildBookingCard(booking: booking, status: displayStatus);
+        },
+      ),
+    );
+  }
+
+  Widget _buildBookingCard({
+    required BookingModel booking,
+    required String status,
+  }) {
+    final requesterName =
+        booking.clientName ?? booking.trainerName ?? 'Client';
+
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => BookingDetailsView(booking: booking))
+            ?.then((_) => _loadBookings());
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 100,
+                width: 100,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CommonImageView(
+                      url: booking.clientImage ?? booking.horseImage,
+                      isUserImage: true,
+                    ),
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusBgColor(booking.status),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: _getStatusTextColor(booking.status)
+                                .withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: CommonText(
+                          status,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _getStatusTextColor(booking.status),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: CommonText(
+                          requesterName,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.lightGray,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: CommonText(
+                              booking.type.capitalizeFirst ?? 'Service',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          if (booking.status.toLowerCase() == 'pending')
+                            SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: PopupMenuButton<String>(
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  size: 20,
+                                  color: AppColors.textSecondary,
+                                ),
+                                padding: EdgeInsets.zero,
+                                onSelected: (value) {
+                                  if (value == 'update') {
+                                    Get.to(
+                                      () => EditBookingFormVendor(
+                                        booking: booking,
+                                        refreshBookingsType: 'received',
+                                      ),
+                                    )?.then((_) => _loadBookings());
+                                  }
+                                },
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(
+                                    value: 'update',
+                                    child: Text('Update Booking'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  if (booking.trainerName != null &&
+                      booking.trainerName!.isNotEmpty)
+                    CommonText(
+                      'Trainer : ${booking.trainerName}',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (booking.horseName != null &&
+                      booking.horseName!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    CommonText(
+                      'Horse : ${booking.horseName}',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: AppColors.textSecondary.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: CommonText(
+                          booking.location ?? '',
+                          fontSize: 13,
+                          color: AppColors.textSecondary.withValues(alpha: 0.8),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 14,
+                        color: AppColors.textSecondary.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: CommonText(
+                          DateUtil.formatDisplayDate(booking.date),
+                          fontSize: 13,
+                          color: AppColors.textSecondary.withValues(alpha: 0.8),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (booking.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: booking.tags
+                            .map(
+                              (tag) => Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.08,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: CommonText(
+                                  tag,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<BookingModel> _getFilteredBookings(List<BookingModel> bookings) {
+    if (_selectedFilterIndex >= _filters.length) return bookings;
+
+    final filter = _filters[_selectedFilterIndex].toLowerCase();
+
+    return bookings.where((b) {
+      final status = b.status.toLowerCase();
+
+      if (filter == 'accepted') {
+        return status == 'confirmed' || status == 'accepted';
+      }
+
+      if (filter == 'cancelled' || filter == 'canceled') {
+        return status == 'cancelled' || status == 'canceled';
+      }
+
+      return status == filter;
+    }).toList();
+  }
+
+  Color _getStatusBgColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFFECFDF3);
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFFEF3F2);
+      case 'pending':
+        return const Color(0xFFFFFAEB);
+      default:
+        return const Color(0xFFF2F4F7);
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFF067647);
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFB42318);
+      case 'pending':
+        return const Color(0xFFB54708);
+      default:
+        return const Color(0xFF344054);
+    }
+  }
+}

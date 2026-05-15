@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 
 /// Read-only card: bodywork **services, session rates, travel, disciplines**, etc.
 ///
@@ -300,8 +301,9 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
                 _buildDetailItem(
                   'Travel Preferences',
                   travelPreferences
-                      .map((t) => t is Map ? (t['type'] ?? t['label'] ?? '') : t.toString())
-                      .where((s) => s.toString().trim().isNotEmpty)
+                      .map((t) =>
+                          VendorTravelPreferencePayload.summaryForListItem(t))
+                      .where((s) => s.trim().isNotEmpty)
                       .join(', '),
                 ),
               ],

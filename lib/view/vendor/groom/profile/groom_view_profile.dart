@@ -34,8 +34,13 @@ import 'package:catch_ride/view/vendor/groom/availability/grooming_availability_
 import 'package:catch_ride/models/trip_model.dart';
 import 'package:catch_ride/view/vendor/shipping/availability/shipping_trip_card.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../../../controllers/vendor/common_application_view.dart';
+import '../../complete_profile_view.dart';
+import '../../profile_completed_view.dart';
 import '../../shipping/trip/shipping_trip_view.dart';
+import '../../vendor_details_view.dart';
 import '../menu/edit_vendor_profile_view.dart';
+import '../profile_create/setup_groom_application_view.dart';
 
 class GroomViewProfile extends StatefulWidget {
   const GroomViewProfile({super.key});
@@ -182,6 +187,8 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
   }
 
   Widget _buildHeader(GroomViewProfileController groomController) {
+
+    print("sasdfdfas${groomController.locationStr.value}");
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

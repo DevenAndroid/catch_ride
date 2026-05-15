@@ -4,6 +4,7 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:catch_ride/controllers/vendor/common_application_controller.dart';
 import 'package:catch_ride/view/vendor/vendor_application_submit_view.dart';
@@ -116,26 +117,10 @@ class BodyworkApplicationController extends GetxController {
               List<String>.from(horseLevelType['values'].map((v) => v['name'])));
         }
 
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull(
-            (t) => t['name'] == 'Regions Covered' || t['name'] == 'Region Covered');
-        if (regionType != null) {
-          regionOptions.assignAll(
-              List<String>.from(regionType['values'].map((v) => v['name'])));
-        }
-
-        // Populate Modality Offered
-        final modalityType = types.firstWhereOrNull(
-            (t) => t['name'] == 'Modality Offered' || t['name'] == 'Modalities Offered');
-        if (modalityType != null) {
-          modalityOptions.assignAll(List<String>.from(
-              modalityType['values'].map((v) => v['name'])));
-          if (!modalityOptions.contains('Other')) modalityOptions.add('Other');
-        }
-
-        debugPrint('Bodywork tags loaded: Disciplines(${disciplineOptions.length}), '
-            'Levels(${horseLevelOptions.length}), Regions(${regionOptions.length}), '
-            'Modalities(${modalityOptions.length})');
+        // Use Global Regions API
+        final systemConfig = Get.find<SystemConfigController>();
+        if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+        regionOptions.assignAll(systemConfig.regionNames);
       } else {
         _setFallbackOptions();
       }
@@ -154,14 +139,7 @@ class BodyworkApplicationController extends GetxController {
     if (horseLevelOptions.isEmpty) {
       horseLevelOptions.assignAll(['Grand Prix', 'Young Horses', 'School Horses', 'Pony / Minis']);
     }
-    if (regionOptions.isEmpty) {
-      regionOptions.assignAll([
-        'Texas (Split Rock / Texas Circuits)',
-        'Florida (Wellington / Ocala / Gulf coast)',
-        'Southwest (Thermal / AZ winter circuits)',
-        'Southeast (Aiken / Tryon / Wills Park / Chatt Hills)',
-      ]);
-    }
+    
     if (modalityOptions.isEmpty) {
       modalityOptions.assignAll(['Sports Massage', 'Myofascial Release', 'PEMF', 'Chiropractic', 'Acupuncture', 'Other']);
     }
@@ -326,7 +304,12 @@ class BodyworkApplicationController extends GetxController {
         'desciplines': selectedDisciplines.toList(),
         'otherDiscipline': otherDisciplineController.text,
         'typicalLevelOfHorses': selectedHorseLevels.toList(),
-        'regionsCovered': selectedRegions.toList(),
+        'regionsCovered': selectedRegions.map((regionName) {
+        final systemConfig = Get.find<SystemConfigController>();
+        final regionObj = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == regionName);
+        return regionObj != null ? regionObj['_id'].toString() : regionName;
+      }).toList(),
         'professionalReferences': vendorProfessionalReferencesFromCommon(commonCtrl),
         'experienceHighlights': highlightsControllers.map((c) => c.text).where((t) => t.isNotEmpty).toList(),
         'facebookLink': facebookController.text,

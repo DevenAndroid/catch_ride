@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
@@ -194,6 +195,8 @@ class ShippingDetailsController extends GetxController {
 
   Future<void> fetchDynamicTags() async {
     try {
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
       final response = await apiService.getRequest(
         '/system-config/tag-types/with-values?category=Shipping',
       );
@@ -214,8 +217,6 @@ class ShippingDetailsController extends GetxController {
             rigOptions.assignAll(values);
           } else if (name == 'Stall Type' || name == 'Stall Types') {
             stallOptions.assignAll(values);
-          } else if (name == 'Regions Covered') {
-            regionOptions.assignAll(values);
           } else if (name == 'Operation Type') {
             operationOptions.assignAll(values);
           } else if (name == 'Disciplines') {
@@ -225,6 +226,8 @@ class ShippingDetailsController extends GetxController {
           }
         }
       }
+      // Use SystemConfigController for regions (single source of truth)
+      regionOptions.assignAll(systemConfig.regionNames);
     } catch (e) {
       debugPrint('Error fetching dynamic tags: $e');
     }
@@ -329,6 +332,8 @@ class ShippingDetailsController extends GetxController {
   Future<void> fetchCurrentDetails({bool isInitializing = false}) async {
     if (!isInitializing) isLoading.value = true;
     try {
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -419,9 +424,19 @@ class ShippingDetailsController extends GetxController {
           final List<String> appRegions = List<String>.from(
             applicationData['regions'] ?? [],
           );
-          regionsCovered.assignAll(
-            List<String>.from(profileData['regionsCovered'] ?? appRegions),
-          );
+          final systemConfig = Get.find<SystemConfigController>();
+          final List rawRegions = profileData['regionsCovered'] ?? appRegions;
+          final List<String> regionNames = rawRegions.map((r) {
+            final rStr = r.toString();
+            final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+            if (regionObj != null) {
+              return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+            }
+            return rStr;
+          }).toList();
+          regionsCovered.assignAll(regionNames);
+
+
 
           disciplines.assignAll(List<String>.from(
               profileData['disciplines'] ??
@@ -625,7 +640,13 @@ class ShippingDetailsController extends GetxController {
       profileData['rigTypes'] = rigTypes.toList();
       profileData['stallTypes'] = stallTypes.toList();
       profileData['stallType'] = stallTypes.toList();
-      profileData['regionsCovered'] = regionsCovered.toList();
+      final systemConfig = Get.find<SystemConfigController>();
+      final resolvedRegions = regionsCovered.map((name) {
+        final r = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == name);
+        return r != null ? r['_id'].toString() : name;
+      }).toList();
+      profileData['regionsCovered'] = resolvedRegions;
       profileData['operationType'] = operationType.value;
       profileData['hasCDL'] = hasCDL.value;
       if (cdlUrl != null) profileData['cdlFile'] = cdlUrl;
@@ -639,7 +660,7 @@ class ShippingDetailsController extends GetxController {
       profileData['experience'] = experienceDisplay.value;
       profileData['disciplines'] = disciplines.toList();
       profileData['horseLevels'] = horseLevels.toList();
-      profileData['regionsCovered'] = regionsCovered.toList();
+      profileData['regionsCovered'] = resolvedRegions;
 
       currentShipping['profileData'] = profileData;
 

@@ -66,7 +66,6 @@ class AppStrings {
   static const String
   helpOtherTrustedProfessionalsConnectWithYouByCompletingYourApplicationBelow =
       'Help other trusted professionals connect with you by completing your application below.';
-  static const String horseDetail = 'Horse Detail';
   static const String horseShowsCircuitsFrequented =
       'Horse Shows & Circuits Frequented';
   static const String horseUsefNumber = 'Horse USEF number';

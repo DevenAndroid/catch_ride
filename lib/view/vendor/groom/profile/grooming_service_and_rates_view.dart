@@ -215,6 +215,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
     final daily = rates['daily']?.toString() ?? '';
     final weekly = rates['weekly']?['price']?.toString() ?? '';
     final weeklyDays = rates['weekly']?['days']?.toString() ?? '6';
+    final monthlyDays = rates['monthly']?['days']?.toString() ?? '';
     final monthly = rates['monthly']?['price']?.toString() ?? '';
     final String formattedDaily = (daily.isNotEmpty && daily != 'N/A') ? NumberFormat('#,###').format(double.tryParse(daily.replaceAll(',', '')) ?? 0) : '';
     final String formattedWeekly = (weekly.isNotEmpty && weekly != 'N/A') ? NumberFormat('#,###').format(double.tryParse(weekly.replaceAll(',', '')) ?? 0) : '';
@@ -239,7 +240,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
             if (formattedMonthly.isNotEmpty) _buildSeparator(),
           ],
           if (formattedMonthly.isNotEmpty) ...[
-            _buildRateItem('\$ $formattedMonthly', 'Month Rate'),
+            _buildRateItem('\$ $formattedMonthly', 'Month Rate (${monthlyDays}d)'),
           ],
         ],
       ),

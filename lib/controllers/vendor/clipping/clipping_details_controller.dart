@@ -1,4 +1,5 @@
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
@@ -9,6 +10,7 @@ import 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_vi
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 
 import '../../../constant/app_colors.dart';
 
@@ -160,16 +162,11 @@ class ClippingDetailsController extends GetxController {
           );
         }
 
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull(
-          (t) => t['name'] == 'Regions Covered',
-        );
-        if (regionType != null) {
-          regionOptions.value = List<String>.from(
-            regionType['values'].map((v) => v['name']),
-          );
-        }
       }
+      // Use SystemConfigController for regions (single source of truth)
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+      regionOptions.assignAll(systemConfig.regionNames);
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -189,7 +186,16 @@ class ClippingDetailsController extends GetxController {
           experience.value = applicationData['experience']?.toString();
           disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-          operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+          final List rawRegions = applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
+          final List<String> regionNames = rawRegions.map((r) {
+            final rStr = r.toString();
+            final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+            if (regionObj != null) {
+              return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+            }
+            return rStr;
+          }).toList();
+          operatingRegions.assignAll(regionNames);
         }
 
         // 2. Restore saved Services & Rates from servicesData
@@ -207,7 +213,16 @@ class ClippingDetailsController extends GetxController {
           experience.value = applicationData['experience']?.toString();
           disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-          operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+          final List rawRegions = applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
+          final List<String> regionNames = rawRegions.map((r) {
+            final rStr = r.toString();
+            final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+            if (regionObj != null) {
+              return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+            }
+            return rStr;
+          }).toList();
+          operatingRegions.assignAll(regionNames);
 
           final List savedServices = servicesData['services'] ?? [];
           
@@ -269,12 +284,14 @@ class ClippingDetailsController extends GetxController {
 
           // 3. Restore Travel Preferences
           final List travelPrefs = servicesData['travelPreferences'] ?? [];
+          travelFees.clear();
           for (var pref in travelPrefs) {
-            final region = pref['region'];
-            final feeStructure = pref['feeStructure'];
-            if (region != null && feeStructure != null) {
-              travelFees[region] = Map<String, dynamic>.from(feeStructure);
-            }
+            if (pref is! Map) continue;
+            final m = Map<String, dynamic>.from(pref);
+            final region = VendorTravelPreferencePayload.labelFromRow(m);
+            if (region.isEmpty) continue;
+            travelFees[region] =
+                VendorTravelPreferencePayload.clippingFeeStructureFromRow(m);
           }
 
           // 4. Restore Cancellation Policy (empty API policy must be null for DropdownButton)
@@ -319,7 +336,12 @@ class ClippingDetailsController extends GetxController {
       updatedApplicationData['experience'] = experience.value;
       updatedApplicationData['disciplines'] = disciplines.toList();
       updatedApplicationData['horseLevels'] = horseLevels.toList();
-      updatedApplicationData['regions'] = operatingRegions.toList();
+      final systemConfig = Get.find<SystemConfigController>();
+      updatedApplicationData['regions'] = operatingRegions.map((name) {
+        final r = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == name);
+        return r != null ? r['_id'].toString() : name;
+      }).toList();
 
       existingServicesData['clipping'] = {
         'applicationData': updatedApplicationData,
@@ -337,13 +359,14 @@ class ClippingDetailsController extends GetxController {
                   'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 })
         ],
-        'travelPreferences': travelFees.entries.map((e) => {
-          'region': e.key,
-          'feeStructure': {
-            ...e.value,
-            'price': e.value['price']?.toString().replaceAll(',', ''),
-          },
-        }).toList(),
+        'travelPreferences': travelFees.entries
+            .map(
+              (e) => VendorTravelPreferencePayload.fromClippingRegionEntry(
+                e.key,
+                Map<String, dynamic>.from(e.value),
+              ),
+            )
+            .toList(),
         'cancellationPolicy': {
           'policy': cancellationPolicy.value,
           'isCustom': isCustomCancellation.value,

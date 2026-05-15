@@ -32,20 +32,80 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
 
   Future<void> _initData() async {
     await controller.fetchProfile();
-    final services = controller.allAssignedServices;
-    if (services.isNotEmpty) {
-      _tabController = TabController(length: services.length, vsync: this);
-      _tabController!.addListener(() {
-        controller.selectService(_tabController!.index);
-      });
-      isTabReady.value = true;
+    if (!mounted) return;
+    _syncTabController(controller.allAssignedServices);
+  }
+
+  void _onTabIndexChanged() {
+    if (_tabController == null) return;
+    if (_tabController!.indexIsChanging) return;
+    controller.selectService(_tabController!.index);
+  }
+
+  void _syncTabController(List<dynamic> services) {
+    if (services.isEmpty) {
+      _tabController?.removeListener(_onTabIndexChanged);
+      _tabController?.dispose();
+      _tabController = null;
+      isTabReady.value = false;
+      return;
     }
+
+    // Single service: no TabController needed.
+    if (services.length == 1) {
+      _tabController?.removeListener(_onTabIndexChanged);
+      _tabController?.dispose();
+      _tabController = null;
+      isTabReady.value = true;
+      return;
+    }
+
+    if (_tabController != null && _tabController!.length == services.length) {
+      isTabReady.value = true;
+      return;
+    }
+
+    _tabController?.removeListener(_onTabIndexChanged);
+    _tabController?.dispose();
+    _tabController = TabController(length: services.length, vsync: this);
+    _tabController!.addListener(_onTabIndexChanged);
+    isTabReady.value = true;
   }
 
   @override
   void dispose() {
+    _tabController?.removeListener(_onTabIndexChanged);
     _tabController?.dispose();
     super.dispose();
+  }
+
+  Widget _buildServiceTab(Map<String, dynamic> service) {
+    final type = service['serviceType']?.toString().toLowerCase() ?? '';
+    if (type.contains('braid')) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: BraidingServiceRatesTab(serviceType: service['serviceType'].toString()),
+      );
+    }
+    if (type.contains('clip')) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: ClippingServiceRatesTab(serviceType: service['serviceType'].toString()),
+      );
+    }
+    if (type.contains('farrier')) {
+      return FarrierServiceRatesTab(serviceType: service['serviceType'].toString());
+    }
+    if (type.contains('bodywork') || type.contains('body work')) {
+      return BodyworkServiceRatesTab(serviceType: service['serviceType'].toString());
+    }
+    if (type.contains('shipping')) {
+      return const ServicePriceView();
+    }
+    if (type.contains('groom')) {
+      return GroomingServiceRatesTab(serviceType: service['serviceType'].toString());
+    }
+    return const Center(child: CommonText('Service details not available'));
   }
 
   @override
@@ -63,50 +123,54 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(controller.allAssignedServices.length <= 1 ? 0 : 48),
           child: Obx(() {
-            if (!isTabReady.value || controller.allAssignedServices.length <= 1) return const SizedBox.shrink();
+            if (!isTabReady.value || controller.allAssignedServices.length <= 1) {
+              return const SizedBox.shrink();
+            }
+            final tabCtrl = _tabController;
+            if (tabCtrl == null) return const SizedBox.shrink();
             return TabBar(
-              controller: _tabController,
+              controller: tabCtrl,
               labelColor: AppColors.primary,
               unselectedLabelColor: Colors.grey,
               indicatorColor: AppColors.primary,
-              tabs: controller.allAssignedServices.map((s) => Tab(text: s['serviceType'].toString().capitalizeFirst)).toList(),
+              tabs: controller.allAssignedServices
+                  .map((s) => Tab(text: s['serviceType'].toString().capitalizeFirst))
+                  .toList(),
             );
           }),
         ),
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
+        if (controller.isLoading.value && controller.vendorData.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         final assigned = controller.allAssignedServices;
-        if (assigned.isEmpty) return const Center(child: CommonText('No services assigned'));
-        if (assigned.length > 1 && !isTabReady.value) return const SizedBox.shrink();
+        if (assigned.isEmpty) {
+          return const Center(child: CommonText('No services assigned'));
+        }
+
+        // One service: render directly (no TabController).
+        if (assigned.length == 1) {
+          final row = assigned.first;
+          if (row is Map<String, dynamic>) {
+            return _buildServiceTab(row);
+          }
+          return _buildServiceTab(Map<String, dynamic>.from(row as Map));
+        }
+
+        // Multiple services: wait until TabController exists.
+        if (!isTabReady.value || _tabController == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
         return TabBarView(
           controller: _tabController,
           children: assigned.map((s) {
-            final type = s['serviceType'].toString().toLowerCase();
-            if (type.contains('braid')) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: BraidingServiceRatesTab(serviceType: s['serviceType'].toString()),
-              );
-            } else if (type.contains('clip')) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: ClippingServiceRatesTab(serviceType: s['serviceType'].toString()),
-              );
-            } else if (type.contains('farrier')) {
-              return FarrierServiceRatesTab(serviceType: s['serviceType'].toString());
-            } else if (type.contains('bodywork') || type.contains('body work')) {
-              return BodyworkServiceRatesTab(serviceType: s['serviceType'].toString());
-            } else if (type.contains('shipping')) {
-              return const ServicePriceView();
-            } else if (type.contains('groom')) {
-              return GroomingServiceRatesTab(serviceType: s['serviceType'].toString());
-            }
-            return const Center(child: CommonText('Service details not available'));
+            final map = s is Map<String, dynamic>
+                ? s
+                : Map<String, dynamic>.from(s as Map);
+            return _buildServiceTab(map);
           }).toList(),
         );
       }),

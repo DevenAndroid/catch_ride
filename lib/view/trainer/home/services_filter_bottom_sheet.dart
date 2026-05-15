@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../../constant/app_colors.dart';
 import '../../../../controllers/explore_controller.dart';
 import '../../../../controllers/google_api_controller.dart';
+import '../../../../controllers/system_config_controller.dart';
 import '../../../../widgets/common_text.dart';
 import 'package:collection/collection.dart';
 
@@ -270,14 +271,10 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                     ? List<String>.from(horseLevelType['values'].map((v) => v['name']))
                     : ['A/AA Circuit', 'Grand Prix', 'Young Horses', 'FEI'];
 
-                final regionType = dynamicTypes.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
-                final List<String> regionOptions = regionType != null
-                    ? List<String>.from(regionType['values'].map((v) => v['name']))
-                    : [
-                        'Florida (Wellington • Ocala • Gulf Coast)',
-                        'Southwest (Thermal • AZ winter circuit)',
-                        'Southeast (Aiken • Tryon • Wills Park • Chatt Hills)'
-                      ];
+                // Use SystemConfigController for regions (single source of truth)
+                final systemConfig = Get.find<SystemConfigController>();
+                final List<String> regionOptions = systemConfig.regionNames;
+                if (systemConfig.regions.isEmpty) systemConfig.fetchRegions();
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,9 +1,11 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import '../../../view/vendor/braiding/profile_create/braiding_details_view.dart';
 import '../../../view/vendor/clipping/profile_create/clipping_detail_view.dart';
 import '../../../view/vendor/bodywork/create_profile/bodywork_details_view.dart';
@@ -254,16 +256,11 @@ class GroomingDetailsController extends GetxController {
           );
         }
 
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull(
-          (t) => t['name'] == 'Regions Covered',
-        );
-        if (regionType != null) {
-          regionOptions.value = List<String>.from(
-            regionType['values'].map((v) => v['name']),
-          );
-        }
       }
+      // Use SystemConfigController for regions (single source of truth)
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+      regionOptions.assignAll(systemConfig.regionNames);
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -281,10 +278,23 @@ class GroomingDetailsController extends GetxController {
           experience.value = applicationData['experience']?.toString();
           disciplinesSelected.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
           horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
-          operatingRegions.assignAll(List<String>.from(applicationData['regions'] ?? []));
+          final List rawRegions = applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
+          final List<String> regionNames = rawRegions.map((r) {
+            final rStr = r.toString();
+            final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+            if (regionObj != null) {
+              return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+            }
+            return rStr;
+          }).toList();
+          operatingRegions.assignAll(regionNames);
 
           if (groomingData['travelPreferences'] != null) {
-            selectedTravel.assignAll(List<String>.from(groomingData['travelPreferences']));
+            selectedTravel.assignAll(
+              VendorTravelPreferencePayload.groomBraidLabelsFromApiList(
+                List<dynamic>.from(groomingData['travelPreferences']),
+              ),
+            );
           }
           
           if (groomingData['cancellationPolicy'] != null) {
@@ -333,7 +343,12 @@ class GroomingDetailsController extends GetxController {
       updatedApplicationData['experience'] = experience.value;
       updatedApplicationData['disciplines'] = disciplinesSelected.toList();
       updatedApplicationData['horseLevels'] = horseLevels.toList();
-      updatedApplicationData['regions'] = operatingRegions.toList();
+      final systemConfig = Get.find<SystemConfigController>();
+      updatedApplicationData['regions'] = operatingRegions.map((name) {
+        final r = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == name);
+        return r != null ? r['_id'].toString() : name;
+      }).toList();
 
       // Update ONLY the grooming part of servicesData
       final Map<String, dynamic> existingGroomingData = Map<String, dynamic>.from(existingServicesData['grooming'] ?? {});
@@ -368,7 +383,8 @@ class GroomingDetailsController extends GetxController {
           'isCustom': isCustomCancellation.value,
           'customText': customCancellationController.text,
         },
-        'travelPreferences': selectedTravel.toList(),
+        'travelPreferences':
+            VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList()),
       };
 
       final body = {

@@ -6,6 +6,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:catch_ride/controllers/system_config_controller.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
@@ -15,6 +16,7 @@ import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_vie
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 
 class FarrierDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -273,9 +275,19 @@ class FarrierDetailsController extends GetxController {
     horseLevels.assignAll(
       List<String>.from(applicationData['horseLevels'] ?? []),
     );
-    regionsCovered.assignAll(
-      List<String>.from(applicationData['regions'] ?? []),
-    );
+    final systemConfig = Get.find<SystemConfigController>();
+    final List rawRegions = applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
+    final List<String> regionNames = rawRegions.map((r) {
+      final rStr = r.toString();
+      final regionObj = systemConfig.regions.firstWhereOrNull((reg) => reg['_id'].toString() == rStr);
+      if (regionObj != null) {
+        return (regionObj['region'] ?? regionObj['label'] ?? regionObj['name'] ?? rStr).toString();
+      }
+      return rStr;
+    }).toList();
+    regionsCovered.assignAll(regionNames);
+
+
 
     for (final s in farrierData['services'] ?? []) {
       final name = s['name']?.toString();
@@ -314,12 +326,14 @@ class FarrierDetailsController extends GetxController {
     selectedTravel.clear();
     for (final row in farrierData['travelPreferences'] ?? []) {
       if (row is! Map) continue;
-      final cat = row['category']?.toString() ?? row['type']?.toString();
-      if (cat == null || cat.isEmpty) continue;
+      final m = Map<String, dynamic>.from(row);
+      final cat = VendorTravelPreferencePayload.labelFromRow(m);
+      if (cat.isEmpty) continue;
+      final ui = VendorTravelPreferencePayload.toUiEditingState(m);
       selectedTravel[cat] = {
-        'feeType': row['feeType'] ?? row['type'] ?? 'No travel fee',
-        'price': row['price']?.toString() ?? '',
-        'disclaimer': row['disclaimer']?.toString() ?? '',
+        'feeType': ui['feeType'],
+        'price': ui['price'],
+        'disclaimer': ui['disclaimer'],
       };
     }
 
@@ -476,14 +490,13 @@ class FarrierDetailsController extends GetxController {
           horseLevelOptions.value = List<String>.from(horseLevelType['values'].map((v) => v['name']));
         }
 
-        // Populate Regions Covered
-        final regionType = types.firstWhereOrNull((t) => t['name'] == 'Regions Covered');
-        if (regionType != null) {
-          regionOptions.value = List<String>.from(regionType['values'].map((v) => v['name']));
-        }
       }
 
+      // Use SystemConfigController for regions (single source of truth)
       // 2. Fetch vendor profile data
+      final systemConfig = Get.find<SystemConfigController>();
+      if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
+      regionOptions.assignAll(systemConfig.regionNames);
       final response = await apiService.getRequest('/vendors/me');
       if (response.statusCode == 200 && response.body['success'] == true) {
         final vendor = response.body['data'];
@@ -556,7 +569,12 @@ class FarrierDetailsController extends GetxController {
       updatedApplicationData['experience'] = experience.value;
       updatedApplicationData['disciplines'] = disciplines.toList();
       updatedApplicationData['horseLevels'] = horseLevels.toList();
-      updatedApplicationData['regions'] = regionsCovered.toList();
+      final systemConfig = Get.find<SystemConfigController>();
+      updatedApplicationData['regions'] = regionsCovered.map((name) {
+        final r = systemConfig.regions.firstWhereOrNull(
+            (r) => (r['region'] ?? r['label'] ?? r['name'] ?? '').toString() == name);
+        return r != null ? r['_id'].toString() : name;
+      }).toList();
 
       existingServicesData['farrier'] = {
         'applicationData': updatedApplicationData,
@@ -580,13 +598,13 @@ class FarrierDetailsController extends GetxController {
             .toList(),
         'travelPreferences': selectedTravel.entries
             .map(
-              (e) => {
-                'category': e.key,
-                'feeType': e.value['feeType'],
-                'price': e.value['price']?.toString().replaceAll(',', ''),
-                'disclaimer': e.value['disclaimer'],
-                'type': e.key, // Keep both for compatibility
-              },
+              (e) => VendorTravelPreferencePayload.fromUiZone(
+                label: e.key,
+                feeType:
+                    e.value['feeType']?.toString() ?? 'No travel fee',
+                price: e.value['price']?.toString().replaceAll(',', '') ?? '',
+                disclaimer: e.value['disclaimer']?.toString() ?? '',
+              ),
             )
             .toList(),
         'clientIntake': {
