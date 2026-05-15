@@ -1273,7 +1273,7 @@ class SendBookingRequestController extends GetxController {
   String get vendorFullName =>
       '${vendorData['firstName'] ?? ''} ${vendorData['lastName'] ?? ''}'.trim();
   String get businessName => vendorData['businessName'] ?? 'Independent';
-  String get profilePhoto => vendorData['profilePhoto'] ?? '';
+  String get profilePhoto => vendorData['profilePhoto'] ??  vendorData['profile'];
 
   dynamic get _activeServiceData {
     final List services = vendorData['assignedServices'] ?? [];
@@ -1336,7 +1336,7 @@ class SendBookingRequestController extends GetxController {
       });
     if (rates['monthly']?['price'] != null)
       options.add({
-        'label': 'Month Rate',
+        'label': 'Month Rate (${rates['monthly']?['days'] ?? 6}d)',
         'price': '\$${rates['monthly']['price']}',
       });
 

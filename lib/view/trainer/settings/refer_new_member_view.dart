@@ -134,60 +134,74 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                               color: AppColors.border.withValues(alpha: 0.8),
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: CommonText(
-                                  'catchride.com/r/yourusername',
-                                  fontSize: 14,
-                                  color: AppColors.textSecondary.withValues(alpha: 0.7),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  final controller = Get.find<ProfileController>();
-                                  String urlToCopy = '';
-                                  if (Theme.of(context).platform == TargetPlatform.iOS) {
-                                    urlToCopy = controller.appStoreUrl.value;
-                                  } else {
-                                    urlToCopy = controller.playStoreUrl.value;
-                                  }
+                          child: Builder(
+                            builder: (context) {
+                              final controller = Get.find<ProfileController>();
+                              String urlToCopy = '';
+                              if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                urlToCopy = controller.appStoreUrl.value;
+                              } else {
+                                urlToCopy = controller.playStoreUrl.value;
+                              }
 
-                                  if (urlToCopy.isNotEmpty) {
-                                    Clipboard.setData(ClipboardData(text: urlToCopy)).then((_) {
-                                      Get.snackbar(
-                                        'Success',
-                                        'Link copied to clipboard',
-                                        snackPosition: SnackPosition.BOTTOM,
-                                        margin: const EdgeInsets.all(20),
-                                        backgroundColor: Colors.green,
-                                        colorText: Colors.white,
-                                      );
-                                    });
-                                  } else {
-                                     Get.snackbar(
-                                        'Error',
-                                        'App link not configured',
-                                        snackPosition: SnackPosition.BOTTOM,
-                                        margin: const EdgeInsets.all(20),
-                                        backgroundColor: Colors.red,
-                                        colorText: Colors.white,
-                                      );
-                                  }
-                                },
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const CommonText(
-                                  'Copy Link',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: CommonText(
+                                      urlToCopy,
+                                      fontSize: 14,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      color: AppColors.textSecondary.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      final controller = Get.find<ProfileController>();
+                                      String urlToCopy = '';
+                                      if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                        urlToCopy = controller.appStoreUrl.value;
+                                      } else {
+                                        urlToCopy = controller.playStoreUrl.value;
+                                      }
+
+                                      if (urlToCopy.isNotEmpty) {
+                                        Clipboard.setData(ClipboardData(text: urlToCopy)).then((_) {
+                                          Get.snackbar(
+                                            'Success',
+                                            'Link copied to clipboard',
+                                            snackPosition: SnackPosition.BOTTOM,
+                                            margin: const EdgeInsets.all(20),
+                                            backgroundColor: Colors.green,
+                                            colorText: Colors.white,
+                                          );
+                                        });
+                                      } else {
+                                         Get.snackbar(
+                                            'Error',
+                                            'App link not configured',
+                                            snackPosition: SnackPosition.BOTTOM,
+                                            margin: const EdgeInsets.all(20),
+                                            backgroundColor: Colors.red,
+                                            colorText: Colors.white,
+                                          );
+                                      }
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    child: const CommonText(
+                                      'Copy Link',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
                           ),
                         ),
                       ],

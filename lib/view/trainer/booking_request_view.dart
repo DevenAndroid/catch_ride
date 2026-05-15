@@ -1572,7 +1572,6 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     if (!widget.fromBooking) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -1595,160 +1594,166 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     // Professionals (Trainer/Barn Manager) actions for Received bookings
     if (isHorseOwner) {
       if (status == 'pending') {
-        return Row(
-          children: [
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isAnyLoading ? null : () => _handleRejectBooking(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.red,
-                  elevation: 0,
-                  side: const BorderSide(color: Colors.red),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isAnyLoading ? null : () => _handleRejectBooking(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.red,
+                    elevation: 0,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: _isRejecting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.red),
+                        )
+                      : const CommonText(
+                          'Decline',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
                 ),
-                child: _isRejecting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.red),
-                      )
-                    : const CommonText(
-                        'Decline',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: isAnyLoading ? null : () => _handleAcceptBooking(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: isAnyLoading ? null : () => _handleAcceptBooking(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: _isAccepting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const CommonText(
+                          'Accept',
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                 ),
-                child: _isAccepting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white),
-                      )
-                    : const CommonText(
-                        'Accept',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       }
       
       if (status == 'accepted' || status == 'confirmed') {
         final bool showComplete = _isDatePassed();
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.textPrimary,
-                      elevation: 0,
-                      side: const BorderSide(color: AppColors.border),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.textPrimary,
+                        elevation: 0,
+                        side: const BorderSide(color: AppColors.border),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      child: _isCancelling
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: AppColors.textPrimary),
+                            )
+                          : const CommonText(
+                              'Cancel',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
                     ),
-                    child: _isCancelling
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: AppColors.textPrimary),
-                          )
-                        : const CommonText(
-                            'Cancel',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: (isAnyLoading || !showComplete) ? null : () => _showCompleteConfirmation(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: showComplete 
-                          ? AppColors.successPrimary 
-                          : AppColors.textSecondary.withValues(alpha: 0.1),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: (isAnyLoading || !showComplete) ? null : () => _showCompleteConfirmation(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: showComplete
+                            ? AppColors.successPrimary
+                            : AppColors.textSecondary.withValues(alpha: 0.1),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      child: _isCompleting
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : CommonText(
+                              'Complete',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: showComplete ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.5),
+                            ),
                     ),
-                    child: _isCompleting
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
-                          )
-                        : CommonText(
-                            'Complete',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: showComplete ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.5),
-                          ),
+                  ),
+                ],
+              ),
+              if (!showComplete) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: CommonText(
+                          'You can complete this booking after the booking date',
+                          fontSize: 12,
+                          color: Colors.orange,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-            if (!showComplete) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline, size: 16, color: Colors.orange),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: CommonText(
-                        'You can complete this booking after the booking date',
-                        fontSize: 12,
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
-          ],
+          ),
         );
       }
     }
@@ -1756,33 +1761,36 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     // Default Cancel action (for clients or already confirmed bookings)
     final bool canCancel = status == 'pending' || status == 'confirmed' || status == 'accepted';
     if (canCancel) {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
-            foregroundColor: AppColors.textPrimary,
-            elevation: 0,
-            side: const BorderSide(color: AppColors.border),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: AppColors.textPrimary,
+              elevation: 0,
+              side: const BorderSide(color: AppColors.border),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
+            child: _isCancelling
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.textPrimary),
+                  )
+                : const CommonText(
+                    'Cancel Booking',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
           ),
-          child: _isCancelling
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: AppColors.textPrimary),
-                )
-              : const CommonText(
-                  'Cancel Booking',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
         ),
       );
     }

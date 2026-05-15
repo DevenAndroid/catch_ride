@@ -628,7 +628,7 @@ class VendorDetailsController extends GetxController {
   dynamic get cancellationPolicy {
     final data = _mergedProfileFlat['cancellationPolicy'] ?? _activeProfileData['cancellationPolicy'];
     if (data is String && data.trim().isNotEmpty) return data.trim();
-    if (data is Map) return data['policy'] ?? 'Flexible (24+ hrs)';
+    if (data is Map) return data['policy'] != ""? data['policy']  ?? 'Flexible (24+ hrs)':data['customText'];
     return 'Flexible (24+ hrs)';
   }
 
