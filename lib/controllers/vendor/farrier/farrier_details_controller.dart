@@ -16,6 +16,7 @@ import 'package:catch_ride/view/vendor/groom/profile_create/grooming_details_vie
 import 'package:catch_ride/view/vendor/bodywork/create_profile/bodywork_details_view.dart';
 import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_view.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 
 class FarrierDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -325,12 +326,14 @@ class FarrierDetailsController extends GetxController {
     selectedTravel.clear();
     for (final row in farrierData['travelPreferences'] ?? []) {
       if (row is! Map) continue;
-      final cat = row['category']?.toString() ?? row['type']?.toString();
-      if (cat == null || cat.isEmpty) continue;
+      final m = Map<String, dynamic>.from(row);
+      final cat = VendorTravelPreferencePayload.labelFromRow(m);
+      if (cat.isEmpty) continue;
+      final ui = VendorTravelPreferencePayload.toUiEditingState(m);
       selectedTravel[cat] = {
-        'feeType': row['feeType'] ?? row['type'] ?? 'No travel fee',
-        'price': row['price']?.toString() ?? '',
-        'disclaimer': row['disclaimer']?.toString() ?? '',
+        'feeType': ui['feeType'],
+        'price': ui['price'],
+        'disclaimer': ui['disclaimer'],
       };
     }
 
@@ -595,13 +598,13 @@ class FarrierDetailsController extends GetxController {
             .toList(),
         'travelPreferences': selectedTravel.entries
             .map(
-              (e) => {
-                'category': e.key,
-                'feeType': e.value['feeType'],
-                'price': e.value['price']?.toString().replaceAll(',', ''),
-                'disclaimer': e.value['disclaimer'],
-                'type': e.key, // Keep both for compatibility
-              },
+              (e) => VendorTravelPreferencePayload.fromUiZone(
+                label: e.key,
+                feeType:
+                    e.value['feeType']?.toString() ?? 'No travel fee',
+                price: e.value['price']?.toString().replaceAll(',', '') ?? '',
+                disclaimer: e.value['disclaimer']?.toString() ?? '',
+              ),
             )
             .toList(),
         'clientIntake': {

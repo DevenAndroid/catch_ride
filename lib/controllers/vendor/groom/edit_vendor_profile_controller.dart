@@ -5,6 +5,7 @@ import 'package:catch_ride/controllers/auth_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/vendor_service_sync.dart';
 import 'package:catch_ride/utils/vendor_service_payload.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/controllers/vendor/groom/groom_view_profile_controller.dart';
 import 'package:get/get.dart';
@@ -778,9 +779,17 @@ class EditVendorProfileController extends GetxController {
         farrierTravelFees.assignAll(
           travelFees.map((t) => Map<String, dynamic>.from(t)).toList(),
         );
+        selectedTravelData.clear();
         for (var t in farrierTravelFees) {
-          if (t['category'] != null)
-            selectedTravelData[t['category']] = Map<String, dynamic>.from(t);
+          final label = VendorTravelPreferencePayload.labelFromRow(t);
+          if (label.isEmpty) continue;
+          final ui = VendorTravelPreferencePayload.toUiEditingState(t);
+          selectedTravelData[label] = {
+            'type': label,
+            'feeType': ui['feeType'],
+            'price': ui['price'],
+            'disclaimer': ui['disclaimer'],
+          };
         }
 
         farrierNewClientPolicy.value =
@@ -812,7 +821,16 @@ class EditVendorProfileController extends GetxController {
         final Map<String, Map<String, dynamic>> travelMap = {};
         for (var item in travelFees) {
           if (item is Map) {
-            travelMap[item['type'] ?? ''] = Map<String, dynamic>.from(item);
+            final m = Map<String, dynamic>.from(item);
+            final label = VendorTravelPreferencePayload.labelFromRow(m);
+            if (label.isEmpty) continue;
+            final ui = VendorTravelPreferencePayload.toUiEditingState(m);
+            travelMap[label] = {
+              'type': label,
+              'feeType': ui['feeType'],
+              'price': ui['price'],
+              'disclaimer': ui['disclaimer'],
+            };
           }
         }
         selectedTravelData.assignAll(travelMap);
@@ -1392,72 +1410,27 @@ class EditVendorProfileController extends GetxController {
         if (assignedServiceMatchesTab(activeService, 'Bodywork') ||
             assignedServiceMatchesTab(activeService, 'Farrier')) {
           final Map<String, Map<String, dynamic>> travelMap = {};
-          selectedTravel.clear(); // Clear to avoid duplicates from other tabs
+          selectedTravel.clear();
           for (var item in travelPrefRaw) {
             if (item is Map) {
-              final Map<String, dynamic> itemMap = Map<String, dynamic>.from(
-                item,
-              );
-
-              // 1. Identify Category Name (Region)
-              String? categoryName;
-
-              // Priority 1: type (if not a fee model string)
-              if (itemMap['type'] != null &&
-                  ![
-                    'No travel fee',
-                    'Flat fee',
-                    'Per-mile',
-                    'Varies by location',
-                    'Travel fee',
-                    'none',
-                    'flat',
-                  ].contains(itemMap['type'])) {
-                categoryName = itemMap['type'].toString();
-              }
-              // Priority 2: category or label
-              else {
-                categoryName =
-                    itemMap['category']?.toString() ??
-                    itemMap['label']?.toString();
-              }
-
-              if (categoryName == null || categoryName.isEmpty) continue;
-
-              // 2. Map Details & Handle Legacy Conversion
-              String feeType =
-                  itemMap['feeType']?.toString() ?? 'No travel fee';
-              String price = itemMap['price']?.toString() ?? '';
-              String disclaimer = itemMap['disclaimer']?.toString() ?? '';
-
-              // Handle legacy map structure (fees, flatFee, etc.) from VendorModel
-              if (itemMap.containsKey('fees') ||
-                  itemMap.containsKey('flatFee')) {
-                final isFees = itemMap['fees'] == true;
-                price = (itemMap['flatFee'] ?? itemMap['perMile'] ?? '')
-                    .toString();
-                feeType = itemMap['variesByLocation'] == true
-                    ? 'Varies by location'
-                    : (isFees ? 'Flat fee' : 'No travel fee');
-                disclaimer = itemMap['note']?.toString() ?? '';
-              }
-              // Normalize fee labels
-              if (feeType == 'Travel fee' || feeType == 'flat')
-                feeType = 'Flat fee';
-              if (feeType == 'none') feeType = 'No travel fee';
-
+              final Map<String, dynamic> itemMap =
+                  Map<String, dynamic>.from(item);
+              final categoryName =
+                  VendorTravelPreferencePayload.labelFromRow(itemMap);
+              if (categoryName.isEmpty) continue;
+              final ui =
+                  VendorTravelPreferencePayload.toUiEditingState(itemMap);
               travelMap[categoryName] = {
                 'type': categoryName,
-                'feeType': feeType,
-                'price': price,
-                'disclaimer': disclaimer,
+                'feeType': ui['feeType']!,
+                'price': ui['price']!,
+                'disclaimer': ui['disclaimer']!,
               };
-
               if (!selectedTravel.contains(categoryName)) {
                 selectedTravel.add(categoryName);
               }
             } else {
-              final name = item.toString();
+              final name = item.toString().trim();
               if (name.isNotEmpty) {
                 travelMap[name] = {
                   'type': name,
@@ -1475,9 +1448,11 @@ class EditVendorProfileController extends GetxController {
         } else {
           final List<String> cats = travelPrefRaw
               .map(
-                (e) => (e is Map)
-                    ? (e['category']?.toString() ?? e['type']?.toString() ?? '')
-                    : e.toString(),
+                (e) => e is Map
+                    ? VendorTravelPreferencePayload.labelFromRow(
+                        Map<String, dynamic>.from(e),
+                      )
+                    : e.toString().trim(),
               )
               .where((s) => s.isNotEmpty)
               .toList();
@@ -2263,7 +2238,8 @@ class EditVendorProfileController extends GetxController {
           'handling': selectedHandling.toList(),
         },
         'additionalSkills': selectedAdditionalSkills.toList(),
-        'travelPreferences': selectedTravel.toList(),
+        'travelPreferences':
+            VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList()),
         'cancellationPolicy':
             profData['cancellationPolicy'], // Keep at root too
       };
@@ -2280,7 +2256,8 @@ class EditVendorProfileController extends GetxController {
         };
       }).toList();
       profData['additionalSkills'] = selectedAdditionalSkills.toList();
-      profData['travelPreferences'] = selectedTravel.toList();
+      profData['travelPreferences'] =
+          VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList());
     } else if (type == 'Clipping') {
       profData['services'] = clippingServices.map((s) {
         final ctrl = s['price'];
@@ -2293,7 +2270,8 @@ class EditVendorProfileController extends GetxController {
         };
       }).toList();
       profData['additionalSkills'] = selectedAdditionalSkills.toList();
-      profData['travelPreferences'] = selectedTravel.toList();
+      profData['travelPreferences'] =
+          VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList());
     } else if (type == 'Farrier') {
       profData['services'] = farrierServices.map((s) {
         final ctrl = s['price'];
@@ -2319,7 +2297,17 @@ class EditVendorProfileController extends GetxController {
       appData['otherCertification'] = otherCertificationController.text;
       appData['scopeOfWork'] = selectedFarrierScope.toList();
       appData['otherScope'] = otherFarrierScopeController.text;
-      profData['travelPreferences'] = selectedTravelData.values.toList();
+      profData['travelPreferences'] = selectedTravelData.entries
+          .map(
+            (e) => VendorTravelPreferencePayload.fromUiZone(
+              label: e.key,
+              feeType:
+                  e.value['feeType']?.toString() ?? 'No travel fee',
+              price: e.value['price']?.toString().replaceAll(',', '') ?? '',
+              disclaimer: e.value['disclaimer']?.toString() ?? '',
+            ),
+          )
+          .toList();
 
       profData['clientIntake'] = {
         'policy': farrierNewClientPolicy.value,
@@ -2386,7 +2374,17 @@ class EditVendorProfileController extends GetxController {
       } else {
         profData['services'] = serialized;
       }
-      profData['travelPreferences'] = selectedTravelData.values.toList();
+      profData['travelPreferences'] = selectedTravelData.entries
+          .map(
+            (e) => VendorTravelPreferencePayload.fromUiZone(
+              label: e.key,
+              feeType:
+                  e.value['feeType']?.toString() ?? 'No travel fee',
+              price: e.value['price']?.toString().replaceAll(',', '') ?? '',
+              disclaimer: e.value['disclaimer']?.toString() ?? '',
+            ),
+          )
+          .toList();
     } else if (type == 'Shipping') {
       appData['businessInfo'] = {
         'legalName': businessNameController.text,

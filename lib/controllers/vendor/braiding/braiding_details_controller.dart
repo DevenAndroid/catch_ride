@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/view/vendor/groom/groom_bottom_nav.dart';
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
@@ -174,7 +175,11 @@ class BraidingDetailsController extends GetxController {
         
         final braidingData = servicesData['braiding'] ?? {};
         if (braidingData['travelPreferences'] != null) {
-          selectedTravel.assignAll(List<String>.from(braidingData['travelPreferences']));
+          selectedTravel.assignAll(
+            VendorTravelPreferencePayload.groomBraidLabelsFromApiList(
+              List<dynamic>.from(braidingData['travelPreferences']),
+            ),
+          );
         }
 
         final cancellationPolicyData = braidingData['cancellationPolicy'];
@@ -235,7 +240,8 @@ class BraidingDetailsController extends GetxController {
                   'price': (s['price'] as TextEditingController).text.replaceAll(',', ''),
                 })
             .toList(),
-        'travelPreferences': selectedTravel.toList(),
+        'travelPreferences':
+            VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList()),
         'cancellationPolicy': {
           'policy': cancellationPolicy.value,
           'isCustom': isCustomCancellation.value,
