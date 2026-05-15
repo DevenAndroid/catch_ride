@@ -211,8 +211,13 @@ class NotificationService extends GetxService {
   }
 
   void _navigateToChat(Map<String, dynamic> data) {
-    if (data['type'] == 'message' && data['conversationId'] != null) {
-      final String conversationId = data['conversationId'];
+    final String? conversationId = data['conversationId']?.toString();
+    final bool isChatPayload =
+        conversationId != null &&
+        conversationId.isNotEmpty &&
+        (data['type'] == 'message' || data['type'] == 'booking');
+
+    if (isChatPayload) {
       final String senderId = data['senderId'] ?? '';
       final String senderName = data['senderName'] ?? 'Chat';
       final String senderImage = data['senderImage'] ?? '';

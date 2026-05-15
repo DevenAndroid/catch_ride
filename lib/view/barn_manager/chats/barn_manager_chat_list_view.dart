@@ -115,8 +115,10 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
             // 2. Tab filtering
             bool belongsToTab = false;
             if (_selectedTab == 0) {
-              belongsToTab = c.otherUser?.role == 'trainer' ||
-                  c.otherUser?.role == 'barn_manager';
+              // All non-vendor chats (clients, trainer team) — backend gates by accepted booking
+              final role = c.otherUser?.role ?? '';
+              belongsToTab =
+                  role != 'service_provider' && role != 'vendor';
             } else {
               belongsToTab = c.otherUser?.role == 'service_provider' ||
                   c.otherUser?.role == 'vendor';

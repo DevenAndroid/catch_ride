@@ -42,7 +42,8 @@ class BookingChatMessageTileBuilder {
       );
     }
 
-    final approval = BookingChatMessageParser.parseApproval(strippedForBooking);
+    final approval = BookingChatMessageParser.parseApproval(strippedForBooking) ??
+        BookingChatMessageParser.parseConfirmed(strippedForBooking);
     if (approval != null) {
       return _BookingApprovalChatCard(
         parsed: approval,
@@ -89,12 +90,22 @@ class BookingChatMessageTileBuilder {
     ChatController chatController,
     String conversationId,
   ) {
-    // Only trust the bookingId that was stored on the message itself.
-    // Falling back to the conversation-level booking (which is the LATEST
-    // booking with a bookingId in the thread) would cause every booking
-    // card to open the same booking when a chat has multiple bookings.
     final id = msg.bookingId;
     if (id != null && id.isNotEmpty) return id;
+
+    final stripped = stripChatSystemPrefix(msg.content);
+    final isBookingRelated = BookingChatMessageParser.parsePending(stripped) != null ||
+        BookingChatMessageParser.parseApproval(stripped) != null ||
+        BookingChatMessageParser.parseConfirmed(stripped) != null ||
+        BookingChatMessageParser.parseDecline(stripped) != null ||
+        BookingChatMessageParser.parseUpdate(stripped) != null;
+    if (!isBookingRelated) return null;
+
+    final convo = chatController.conversations.firstWhereOrNull(
+      (c) => c.conversationId == conversationId,
+    );
+    final fromConvo = convo?.booking?.id;
+    if (fromConvo != null && fromConvo.isNotEmpty) return fromConvo;
     return null;
   }
 }
@@ -176,9 +187,13 @@ Future<void> _openBookingDetails({
       return;
     }
 
-    final me = Get.find<AuthController>().currentUser.value?.id ?? '';
+    final auth = Get.find<AuthController>();
+    final me = auth.currentUser.value?.id ?? '';
+    final role = auth.currentUser.value?.role ?? '';
     final imClient =
         booking.clientId != null && booking.clientId!.isNotEmpty && booking.clientId == me;
+    final bool isProfessional =
+        role == 'trainer' || role == 'barn_manager' || role == 'admin';
 
     final convo = chatController.conversations.firstWhereOrNull(
       (c) => c.conversationId == conversationId,
@@ -201,9 +216,11 @@ Future<void> _openBookingDetails({
       if (otherImage.isEmpty) otherImage = booking.clientImage ?? '';
     }
 
-    final myTeamId = imClient
-        ? (booking.trainerUserId ?? booking.trainerId ?? '')
-        : (booking.clientId ?? '');
+    final String trainerTeamUserId =
+        booking.trainerUserId ?? booking.trainerId ?? me;
+    final String myTeamId = imClient
+        ? trainerTeamUserId
+        : (isProfessional ? trainerTeamUserId : (booking.clientId ?? ''));
 
     Get.to(
       () => BookingRequestView(

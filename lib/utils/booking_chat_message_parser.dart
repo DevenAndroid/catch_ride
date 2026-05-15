@@ -54,6 +54,35 @@ class ParsedBookingUpdateMessage {
 }
 
 class BookingChatMessageParser {
+  /// "Booking confirmed for {horse} on {date}." (barn access grant / team confirm)
+  static ParsedBookingApprovalMessage? parseConfirmed(String content) {
+    const prefix = 'Booking confirmed for ';
+    if (!content.startsWith(prefix)) return null;
+
+    var remainder = content.substring(prefix.length).trim();
+    final accessIdx = remainder.indexOf('. ');
+    if (accessIdx >= 0) {
+      remainder = remainder.substring(0, accessIdx + 1);
+    } else if (remainder.endsWith('.')) {
+      // keep trailing period for marker match below
+    }
+
+    const marker = ' on ';
+    final onIdx = remainder.lastIndexOf(marker);
+    if (onIdx < 0) return null;
+
+    var horseName = remainder.substring(0, onIdx).trim();
+    var dateRaw = remainder.substring(onIdx + marker.length).trim();
+    if (dateRaw.endsWith('.')) dateRaw = dateRaw.substring(0, dateRaw.length - 1).trim();
+    if (horseName.isEmpty || dateRaw.isEmpty) return null;
+
+    return ParsedBookingApprovalMessage(
+      horseName: horseName,
+      dateRaw: dateRaw,
+      notes: null,
+    );
+  }
+
   static ParsedBookingApprovalMessage? parseApproval(String content) {
     const prefix = 'Your booking request for ';
     const marker = ' has been approved.';
