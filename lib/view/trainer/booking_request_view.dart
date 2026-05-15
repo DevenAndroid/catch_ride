@@ -113,6 +113,10 @@ class _BookingRequestViewState extends State<BookingRequestView> {
             booking = BookingModel.fromJson(data);
             _currentBookingStatus = booking?.status;
           });
+          final horseIdToLoad = booking?.horseId ?? widget.horseId;
+          if (horse == null && horseIdToLoad != null && horseIdToLoad.isNotEmpty) {
+            await _fetchHorseDetailsForId(horseIdToLoad);
+          }
         }
       }
     } catch (e) {
@@ -120,12 +124,10 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     }
   }
 
-  Future<void> _fetchHorseDetails() async {
-    final id = horse?.id ?? widget.horseId;
-    if (id == null) return;
+  Future<void> _fetchHorseDetailsForId(String id) async {
     try {
       setState(() => _isLoading = true);
-      final ApiService api = Get.put(ApiService());
+      final ApiService api = Get.find<ApiService>();
       final response = await api.getRequest('/horses/$id');
       if (response.statusCode == 200) {
         final data = response.body['data'];
@@ -133,17 +135,21 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           setState(() {
             horse = HorseModel.fromJson(data);
             _initVideo();
-            _checkIfRequested();
           });
         }
-      } else {
-        Get.snackbar('Error', 'Failed to load horse details');
       }
     } catch (e) {
-      debugPrint('Error fetching horse: $e');
+      debugPrint('Error fetching horse for booking: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _fetchHorseDetails() async {
+    final id = horse?.id ?? widget.horseId;
+    if (id == null) return;
+    await _fetchHorseDetailsForId(id);
+    if (mounted) await _checkIfRequested();
   }
 
   Future<void> _checkIfRequested() async {
@@ -205,15 +211,27 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     }
   }
 
+  /// True when the current user is the trainer or linked barn manager for this horse.
   bool get isHorseOwner {
     final profileController = Get.find<ProfileController>();
     final horseTrainerId = horse?.trainerId;
+    if (horseTrainerId == null || horseTrainerId.isEmpty) return false;
+
     final profileTrainerId = profileController.trainerId;
+    if (profileTrainerId.isNotEmpty && horseTrainerId == profileTrainerId) {
+      return true;
+    }
 
-    debugPrint('DEBUG: Horse Trainer ID: $horseTrainerId');
-    debugPrint('DEBUG: Profile Trainer ID: $profileTrainerId');
-
-    return horseTrainerId != null && horseTrainerId == profileTrainerId;
+    final role = profileController.user.value?.role;
+    if (role == 'barn_manager') {
+      final linkedTrainerId = profileController.user.value?.linkedTrainer?.id;
+      if (linkedTrainerId != null &&
+          linkedTrainerId.isNotEmpty &&
+          horseTrainerId == linkedTrainerId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _isTrainerOwnHorse() => isHorseOwner;

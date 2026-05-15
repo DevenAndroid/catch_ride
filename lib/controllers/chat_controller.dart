@@ -73,6 +73,7 @@ class ChatController extends GetxController {
     _socketService.socket.off('message:received');
     _socketService.socket.off('message:sent');
     _socketService.socket.off('conversation:status:updated');
+    _socketService.socket.off('conversations:refresh');
 
     // 1. Message Received
     _socketService.socket.on('message:received', (data) {
@@ -93,7 +94,12 @@ class ChatController extends GetxController {
       _handleStatusUpdate(data);
     });
 
-    // 4. Refresh conversations list (Sync inbox for new user session)
+    // 4. Barn manager granted access to a booking chat (refresh inbox)
+    _socketService.socket.on('conversations:refresh', (_) {
+      fetchConversations(quiet: true);
+    });
+
+    // 5. Refresh conversations list (Sync inbox for new user session)
     fetchConversations(quiet: true);
   }
 
