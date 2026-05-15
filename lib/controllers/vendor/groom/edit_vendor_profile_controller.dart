@@ -135,6 +135,434 @@ class EditVendorProfileController extends GetxController {
   ].obs;
   final RxList<String> selectedTravel = <String>[].obs;
 
+  /// Same zones as [ClippingDetailsController.travelOptions] — fee structure per zone.
+  static const List<String> clippingTravelZoneOptions = ['Local Only', 'Regional'];
+  final clippingTravelFees = <String, Map<String, dynamic>>{}.obs;
+  final clippingTravelFeePriceController = TextEditingController();
+  final clippingTravelFeeNotesController = TextEditingController();
+  final clippingSelectedTravelFeeType = 'No travel fee'.obs;
+
+  void updateClippingTravelFee(
+    String option,
+    String type,
+    String price,
+    String notes,
+  ) {
+    if (type == 'No travel fee') {
+      clippingTravelFees.remove(option);
+    } else {
+      clippingTravelFees[option] = {
+        'type': type,
+        'price': price,
+        'notes': notes,
+      };
+    }
+    clippingTravelFees.refresh();
+  }
+
+  void removeClippingTravelPreference(String option) => clippingTravelFees.remove(option);
+
+  static const List<String> farrierClientPolicyOptions = [
+    'Accepting new clients',
+    'Limited availability',
+    'Referral only',
+    'Not accepting new clients',
+  ];
+
+  String? _coalesceFarrierInsuranceStatus(dynamic raw) {
+    if (raw == null) return null;
+    final s = raw.toString().trim();
+    if (s.isEmpty) return null;
+    const options = [
+      'Carries Insurance',
+      'Insurance available upon request',
+      'Not currently insured',
+    ];
+    for (final o in options) {
+      if (o == s || o.toLowerCase() == s.toLowerCase()) return o;
+    }
+    final lower = s.toLowerCase();
+    if (lower.contains('carries')) return 'Carries Insurance';
+    if (lower.contains('upon request') ||
+        (lower.contains('available') && lower.contains('request'))) {
+      return 'Insurance available upon request';
+    }
+    if (lower.contains('not') && lower.contains('insured')) {
+      return 'Not currently insured';
+    }
+    if (lower == 'i have professional liability insurance') {
+      return 'Carries Insurance';
+    }
+    if (lower == 'i do not have professional liability insurance') {
+      return 'Not currently insured';
+    }
+    if (lower == 'not applicable') return 'Insurance available upon request';
+    return null;
+  }
+
+  String? _farrierPolicyLabelFromSources(
+    Map<String, dynamic> merged,
+    Map<String, dynamic> profileData,
+    Map<String, dynamic> appData,
+  ) {
+    final cis = profileData['clientIntakePlusScheduling'] ??
+        merged['clientIntakePlusScheduling'] ??
+        appData['clientIntakePlusScheduling'];
+    if (cis is Map) {
+      final m = Map<String, dynamic>.from(cis);
+      if (m['notAcceptingNewClients'] == true) {
+        return 'Not accepting new clients';
+      }
+      if (m['referralOnly'] == true) return 'Referral only';
+      if (m['limitedAvailability'] == true) return 'Limited availability';
+      if (m['acceptingNewClients'] == true) return 'Accepting new clients';
+    }
+    final ci = profileData['clientIntake'] ??
+        appData['clientIntake'] ??
+        merged['clientIntake'];
+    if (ci is Map) {
+      final raw = ci['policy']?.toString().toLowerCase() ?? '';
+      if (raw.contains('not accepting')) return 'Not accepting new clients';
+      if (raw.contains('referral')) return 'Referral only';
+      if (raw.contains('limited')) return 'Limited availability';
+      if (raw.contains('accepting')) return 'Accepting new clients';
+      final exact = ci['policy']?.toString().trim();
+      if (exact != null &&
+          exact.isNotEmpty &&
+          farrierClientPolicyOptions.contains(exact)) {
+        return exact;
+      }
+    }
+    return null;
+  }
+
+  void _applySavedFarrierServiceRows(
+    List<dynamic> saved,
+    RxList target,
+  ) {
+    if (saved.isEmpty) return;
+    if (target.isEmpty) {
+      target.assignAll(
+        saved.map((s) {
+          if (s is! Map) {
+            return {
+              'name': s.toString(),
+              'price': TextEditingController(text: '0'),
+              'isSelected': RxBool(true),
+            };
+          }
+          final m = Map<String, dynamic>.from(s);
+          final name = (m['name'] ?? m['label'])?.toString().trim() ?? '';
+          final price =
+              (m['price'] ?? m['ratePerHour'] ?? m['rate'] ?? '').toString();
+          final sel = m['isSelected'];
+          final isSelected = sel is bool
+              ? sel
+              : (sel == null ? price.isNotEmpty : sel == true);
+          return {
+            'name': name,
+            'price': TextEditingController(text: price),
+            'isSelected': RxBool(isSelected),
+          };
+        }),
+      );
+      return;
+    }
+    for (final s in saved) {
+      if (s is! Map) continue;
+      final m = Map<String, dynamic>.from(s);
+      final name = (m['name'] ?? m['label'])?.toString().trim() ?? '';
+      if (name.isEmpty) continue;
+      final price =
+          (m['price'] ?? m['ratePerHour'] ?? m['rate'] ?? '').toString();
+      final sel = m['isSelected'];
+      final isSelected = sel is bool
+          ? sel
+          : (sel == null ? price.isNotEmpty : sel == true);
+      final idx = target.indexWhere((x) => x['name'] == name);
+      if (idx >= 0) {
+        target[idx]['isSelected'].value = isSelected;
+        (target[idx]['price'] as TextEditingController).text = price;
+      } else {
+        target.add({
+          'name': name,
+          'price': TextEditingController(text: price),
+          'isSelected': RxBool(isSelected),
+        });
+      }
+    }
+  }
+
+  void _hydrateFarrierTravelFromList(List<dynamic> travelPrefRaw) {
+    final Map<String, Map<String, dynamic>> travelMap = {};
+    selectedTravel.clear();
+    for (var item in travelPrefRaw) {
+      if (item is! Map) continue;
+      final itemMap = Map<String, dynamic>.from(item);
+      final categoryName =
+          VendorTravelPreferencePayload.labelFromRow(itemMap);
+      if (categoryName.isEmpty) continue;
+      final ui = VendorTravelPreferencePayload.toUiEditingState(itemMap);
+      final feeType = ui['feeType'] ?? 'No travel fee';
+      if (feeType == 'No travel fee' &&
+          (ui['price'] ?? '').isEmpty &&
+          (ui['disclaimer'] ?? '').isEmpty) {
+        continue;
+      }
+      travelMap[categoryName] = {
+        'type': categoryName,
+        'feeType': feeType,
+        'price': ui['price'] ?? '',
+        'disclaimer': ui['disclaimer'] ?? '',
+      };
+      if (!selectedTravel.contains(categoryName)) {
+        selectedTravel.add(categoryName);
+      }
+    }
+    selectedTravelData.assignAll(travelMap);
+  }
+
+  void _hydrateFarrierInsuranceFromSources(
+    Map<String, dynamic> merged,
+    Map<String, dynamic> profileData,
+    Map<String, dynamic> appData,
+  ) {
+    final insData = profileData['insurance'] ??
+        appData['insurance'] ??
+        merged['insurance'];
+    if (insData is Map) {
+      final rawStatus = insData['status'] ?? insData['insuranceStatus'];
+      final status = _coalesceFarrierInsuranceStatus(rawStatus);
+      if (status != null) farrierInsuranceStatus.value = status;
+
+      var doc = insData['document'] ?? insData['file'];
+      if (doc is String && doc.isEmpty && insData['file'] is List) {
+        doc = insData['file'];
+      }
+      if (doc is String && doc.isNotEmpty) {
+        farrierExistingInsuranceUrl.value = doc;
+      } else if (doc is List && doc.isNotEmpty) {
+        farrierExistingInsuranceUrl.value = doc.first.toString();
+      } else {
+        farrierExistingInsuranceUrl.value = null;
+      }
+
+      final fName = insData['fileName'];
+      farrierInsuranceFileName.value =
+          (fName is String && fName.isNotEmpty) ? fName : null;
+
+      final expStr = insData['expirationDate'] ?? insData['expiry'];
+      if (expStr != null && expStr.toString().isNotEmpty) {
+        try {
+          farrierInsuranceExpiry.value = DateTime.parse(expStr.toString());
+        } catch (_) {}
+      }
+      return;
+    }
+
+    final rawInsuranceStatus =
+        profileData['insuranceStatus'] ?? appData['insuranceStatus'];
+    final status = _coalesceFarrierInsuranceStatus(rawInsuranceStatus);
+    if (status != null) farrierInsuranceStatus.value = status;
+
+    var doc = appData['insuranceFile'] ?? profileData['insuranceFile'];
+    if (doc is String && doc.isNotEmpty) {
+      farrierExistingInsuranceUrl.value = doc;
+    } else if (doc is List && doc.isNotEmpty) {
+      farrierExistingInsuranceUrl.value = doc.first.toString();
+    } else {
+      farrierExistingInsuranceUrl.value = null;
+    }
+
+    final fName =
+        appData['insuranceFileName'] ?? profileData['insuranceFileName'];
+    farrierInsuranceFileName.value =
+        (fName is String && fName.isNotEmpty) ? fName : null;
+
+    final expStr =
+        appData['insuranceExpiry'] ?? profileData['insuranceExpiry'];
+    if (expStr != null && expStr.toString().isNotEmpty) {
+      try {
+        farrierInsuranceExpiry.value = DateTime.parse(expStr.toString());
+      } catch (_) {}
+    }
+  }
+
+  void _hydrateFarrierFields({
+    required Map<String, dynamic> merged,
+    required Map<String, dynamic> profileDataMap,
+    required Map<String, dynamic> appDataMap,
+  }) {
+    final profileData = merged['profileData'] is Map
+        ? Map<String, dynamic>.from(merged['profileData'] as Map)
+        : profileDataMap;
+
+    _applySavedFarrierServiceRows(
+      profileData['services'] is List
+          ? List<dynamic>.from(profileData['services'] as List)
+          : [],
+      farrierServices,
+    );
+    _applySavedFarrierServiceRows(
+      profileData['addOns'] is List
+          ? List<dynamic>.from(profileData['addOns'] as List)
+          : [],
+      farrierAddOns,
+    );
+
+    selectedCertifications.assignAll(
+      List<String>.from(
+        appDataMap['relevantCertifications'] ??
+            profileData['relevantCertifications'] ??
+            appDataMap['certifications'] ??
+            profileData['certifications'] ??
+            [],
+      ),
+    );
+    otherCertificationController.text =
+        (appDataMap['otherCertification'] ?? profileData['otherCertification'] ?? '')
+            .toString()
+            .replaceFirst('Other:', '')
+            .trim();
+
+    selectedFarrierScope.assignAll(
+      List<String>.from(
+        appDataMap['scopeOfWork'] ??
+            profileData['scopeOfWork'] ??
+            merged['scopeOfWork'] ??
+            [],
+      ),
+    );
+    otherFarrierScopeController.text =
+        (appDataMap['otherScopeOfWork'] ??
+                appDataMap['otherScope'] ??
+                profileData['otherScope'] ??
+                '')
+            .toString()
+            .replaceFirst('Other:', '')
+            .trim();
+
+    final travelRaw = profileData['travelPreferences'] ??
+        merged['travelPreferences'] ??
+        [];
+    if (travelRaw is List) _hydrateFarrierTravelFromList(travelRaw);
+
+    farrierNewClientPolicy.value = _farrierPolicyLabelFromSources(
+      merged,
+      profileData,
+      appDataMap,
+    );
+
+    final cis = profileData['clientIntakePlusScheduling'] ??
+        merged['clientIntakePlusScheduling'];
+    final ci = profileData['clientIntake'] ?? appDataMap['clientIntake'];
+    final minRaw = cis is Map
+        ? (cis['minHorsesPerStop'] ?? cis['minHorses'])
+        : (ci is Map ? ci['minHorses'] : null);
+    farrierMinHorses.value = int.tryParse(minRaw?.toString() ?? '') ?? 1;
+
+    if (cis is Map && cis['emergencySupport'] != null) {
+      farrierEmergencySupport.value = cis['emergencySupport'] == true;
+    } else if (ci is Map && ci['emergencySupport'] != null) {
+      farrierEmergencySupport.value = ci['emergencySupport'] == true;
+    }
+
+    _hydrateFarrierInsuranceFromSources(merged, profileData, appDataMap);
+  }
+
+  Future<void> _fetchFarrierTagsAndHydrate() async {
+    try {
+      final response = await _apiService.getRequest(
+        '/system-config/tag-types/with-values?category=Farrier',
+      );
+      if (response.statusCode != 200 || response.body['success'] != true) {
+        return;
+      }
+      final List types = response.body['data'];
+
+      final serviceType = types.firstWhereOrNull(
+        (t) => t['name'] == 'Farrier Services',
+      );
+      if (serviceType != null) {
+        farrierServices.assignAll(
+          List<Map<String, dynamic>>.from(
+            (serviceType['values'] as List).map(
+              (v) => {
+                'name': v['name'] as String,
+                'price': TextEditingController(
+                  text: v['defaultPrice']?.toString() ?? '',
+                ),
+                'isSelected': false.obs,
+              },
+            ),
+          ),
+        );
+      }
+
+      final addOnType = types.firstWhereOrNull((t) => t['name'] == 'Add-Ons');
+      if (addOnType != null) {
+        farrierAddOns.assignAll(
+          List<Map<String, dynamic>>.from(
+            (addOnType['values'] as List).map(
+              (v) => {
+                'name': v['name'] as String,
+                'price': TextEditingController(
+                  text: v['defaultPrice']?.toString() ?? '',
+                ),
+                'isSelected': false.obs,
+              },
+            ),
+          ),
+        );
+      }
+
+      final scopeType = types.firstWhereOrNull(
+        (t) => t['name'] == 'Scope of Work' || t['name'] == 'Scope Of Work',
+      );
+      if (scopeType != null) {
+        final values = List<String>.from(
+          scopeType['values'].map((v) => v['name']),
+        );
+        if (!values.contains('Other')) values.add('Other');
+        farrierScopeOptions.assignAll(values);
+      }
+
+      for (final t in types) {
+        if (t['name'] == 'Disciplines') {
+          final values = List<String>.from(t['values'].map((v) => v['name']));
+          for (final v in values) {
+            if (!disciplineOptions.contains(v)) disciplineOptions.add(v);
+          }
+        } else if (t['name'] == 'Typical Level of Horses') {
+          final values = List<String>.from(t['values'].map((v) => v['name']));
+          for (final v in values) {
+            if (!horseLevelOptions.contains(v)) horseLevelOptions.add(v);
+          }
+        }
+      }
+
+      if (vendorRootData.isNotEmpty) {
+        final merged = mergedVendorServiceDisplayData(
+          Map<String, dynamic>.from(vendorRootData),
+          'Farrier',
+        );
+        final appData = merged['applicationData'] is Map
+            ? Map<String, dynamic>.from(merged['applicationData'] as Map)
+            : <String, dynamic>{};
+        final pd = merged['profileData'] is Map
+            ? Map<String, dynamic>.from(merged['profileData'] as Map)
+            : <String, dynamic>{};
+        _hydrateFarrierFields(
+          merged: merged,
+          profileDataMap: pd,
+          appDataMap: appData,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error fetching farrier tags: $e');
+    }
+  }
+
   // Braiding Tab Specifics
   final RxList braidingServices = [].obs;
   final braidingServiceInputController = TextEditingController();
@@ -696,12 +1124,9 @@ class EditVendorProfileController extends GetxController {
                 [],
           ),
         );
-      } else if (type == 'Braiding' || type == 'Clipping') {
+      } else if (type == 'Braiding') {
         final List bServices = profileData['services'] ?? [];
-        final targetList = type == 'Braiding'
-            ? braidingServices
-            : clippingServices;
-        targetList.assignAll(
+        braidingServices.assignAll(
           bServices.map((s) {
             if (s is Map) {
               return {
@@ -721,10 +1146,10 @@ class EditVendorProfileController extends GetxController {
             };
           }).toList(),
         );
-      } else if (type == 'Farrier') {
-        final List fServices = profileData['services'] ?? [];
-        farrierServices.assignAll(
-          fServices.map((s) {
+      } else if (type == 'Clipping') {
+        final List bServices = profileData['services'] ?? [];
+        clippingServices.assignAll(
+          bServices.map((s) {
             if (s is Map) {
               return {
                 'name': s['name'] ?? '',
@@ -743,71 +1168,24 @@ class EditVendorProfileController extends GetxController {
             };
           }).toList(),
         );
-
-        final List aServices = profileData['addOns'] ?? [];
-        farrierAddOns.assignAll(
-          aServices.map((s) {
-            if (s is Map) {
-              return {
-                'name': s['name'] ?? '',
-                'price': TextEditingController(
-                  text: s['price']?.toString() ?? '',
-                ),
-                'isSelected': RxBool(
-                  s['isSelected'] == null || s['isSelected'] == true,
-                ),
-              };
-            }
-            return {
-              'name': s.toString(),
-              'price': TextEditingController(text: '0'),
-              'isSelected': RxBool(true),
-            };
-          }).toList(),
-        );
-
-        selectedCertifications.assignAll(
-          List<String>.from(appData['certifications'] ?? []),
-        );
-        otherCertificationController.text = appData['otherCertification'] ?? '';
-        selectedFarrierScope.assignAll(
-          List<String>.from(appData['scopeOfWork'] ?? []),
-        );
-        otherFarrierScopeController.text = appData['otherScope'] ?? '';
-
-        final List travelFees = profileData['travelPreferences'] ?? [];
-        farrierTravelFees.assignAll(
-          travelFees.map((t) => Map<String, dynamic>.from(t)).toList(),
-        );
-        selectedTravelData.clear();
-        for (var t in farrierTravelFees) {
-          final label = VendorTravelPreferencePayload.labelFromRow(t);
-          if (label.isEmpty) continue;
-          final ui = VendorTravelPreferencePayload.toUiEditingState(t);
-          selectedTravelData[label] = {
-            'type': label,
-            'feeType': ui['feeType'],
-            'price': ui['price'],
-            'disclaimer': ui['disclaimer'],
-          };
+        final List travelPrefs = profileData['travelPreferences'] ?? [];
+        clippingTravelFees.clear();
+        for (var pref in travelPrefs) {
+          if (pref is! Map) continue;
+          final m = Map<String, dynamic>.from(pref);
+          final region = VendorTravelPreferencePayload.labelFromRow(m);
+          if (region.isEmpty) continue;
+          clippingTravelFees[region] =
+              VendorTravelPreferencePayload.clippingFeeStructureFromRow(m);
         }
-
-        farrierNewClientPolicy.value =
-            appData['clientIntake']?['policy'] ??
-            profileData['clientIntake']?['policy'];
-        farrierMinHorses.value =
-            int.tryParse(
-              appData['clientIntake']?['minHorses']?.toString() ??
-                  profileData['clientIntake']?['minHorses']?.toString() ??
-                  '1',
-            ) ??
-            1;
-        farrierEmergencySupport.value =
-            appData['clientIntake']?['emergencySupport'] ??
-            profileData['clientIntake']?['emergencySupport'] ??
-            false;
-        farrierInsuranceStatus.value =
-            appData['insuranceStatus'] ?? profileData['insuranceStatus'];
+      } else if (type == 'Farrier') {
+        _hydrateFarrierFields(
+          merged: merged,
+          profileDataMap: profileData,
+          appDataMap: appData is Map
+              ? Map<String, dynamic>.from(appData as Map)
+              : <String, dynamic>{},
+        );
       } else if (_editProfileIsBodyworkServiceType(type)) {
         _mergeBodyworkModalities();
         otherModalityController.text =
@@ -1095,14 +1473,31 @@ class EditVendorProfileController extends GetxController {
                 [],
           ),
         );
-      } else if (activeService['serviceType'] == 'Braiding' ||
-          activeService['serviceType'] == 'Clipping') {
-        final serviceType = activeService['serviceType'];
+      } else if (activeService['serviceType'] == 'Braiding') {
         final List bServices = profileDataMap['services'] ?? [];
-        final targetList = serviceType == 'Braiding'
-            ? braidingServices
-            : clippingServices;
-        targetList.assignAll(
+        braidingServices.assignAll(
+          bServices.map((s) {
+            if (s is Map) {
+              return {
+                'name': s['name'] ?? '',
+                'price': TextEditingController(
+                  text: s['price']?.toString() ?? '',
+                ),
+                'isSelected': RxBool(
+                  s['isSelected'] == null || s['isSelected'] == true,
+                ),
+              };
+            }
+            return {
+              'name': s.toString(),
+              'price': TextEditingController(text: '0'),
+              'isSelected': RxBool(true),
+            };
+          }).toList(),
+        );
+      } else if (activeService['serviceType'] == 'Clipping') {
+        final List bServices = profileDataMap['services'] ?? [];
+        clippingServices.assignAll(
           bServices.map((s) {
             if (s is Map) {
               return {
@@ -1123,169 +1518,11 @@ class EditVendorProfileController extends GetxController {
           }).toList(),
         );
       } else if (activeService['serviceType'] == 'Farrier') {
-        final List fServices = profileDataMap['services'] ?? [];
-        farrierServices.assignAll(
-          fServices.map((s) {
-            if (s is Map) {
-              return {
-                'name': s['name'] ?? '',
-                'price': TextEditingController(
-                  text: s['price']?.toString() ?? '',
-                ),
-                'isSelected': RxBool(
-                  s['isSelected'] == null || s['isSelected'] == true,
-                ),
-              };
-            }
-            return {
-              'name': s.toString(),
-              'price': TextEditingController(text: '0'),
-              'isSelected': RxBool(true),
-            };
-          }).toList(),
+        _hydrateFarrierFields(
+          merged: merged,
+          profileDataMap: profileDataMap,
+          appDataMap: appDataMap,
         );
-
-        final List aServices = profileDataMap['addOns'] ?? [];
-        farrierAddOns.assignAll(
-          aServices.map((s) {
-            if (s is Map) {
-              return {
-                'name': s['name'] ?? '',
-                'price': TextEditingController(
-                  text: s['price']?.toString() ?? '',
-                ),
-                'isSelected': RxBool(
-                  s['isSelected'] == null || s['isSelected'] == true,
-                ),
-              };
-            }
-            return {
-              'name': s.toString(),
-              'price': TextEditingController(text: '0'),
-              'isSelected': RxBool(true),
-            };
-          }).toList(),
-        );
-
-        selectedCertifications.assignAll(
-          List<String>.from(appDataMap['certifications'] ?? []),
-        );
-        otherCertificationController.text =
-            (appDataMap['otherCertification'] ?? '')
-                .toString()
-                .replaceFirst('Other:', '')
-                .trim();
-        selectedFarrierScope.assignAll(
-          List<String>.from(appDataMap['scopeOfWork'] ?? []),
-        );
-        otherFarrierScopeController.text =
-            (appDataMap['otherScopeOfWork'] ?? appDataMap['otherScope'] ?? '')
-                .toString()
-                .replaceFirst('Other:', '')
-                .trim();
-
-        // Travel preferences are handled by the unified block at the end of this method
-
-        final rawPolicy = (appDataMap['clientIntake']?['policy'] ?? '')
-            .toString()
-            .toLowerCase();
-        if (rawPolicy.contains('not accepting')) {
-          farrierNewClientPolicy.value = 'Not accepting new clients';
-        } else if (rawPolicy.contains('referral')) {
-          farrierNewClientPolicy.value = 'Referral only';
-        } else if (rawPolicy.contains('limited')) {
-          farrierNewClientPolicy.value = 'Limited availability';
-        } else if (rawPolicy.contains('accepting')) {
-          farrierNewClientPolicy.value = 'Accepting new clients';
-        } else {
-          farrierNewClientPolicy.value = appDataMap['clientIntake']?['policy'];
-        }
-        farrierMinHorses.value =
-            int.tryParse(
-              appDataMap['clientIntake']?['minHorses']?.toString() ?? '1',
-            ) ??
-            1;
-        farrierEmergencySupport.value =
-            appDataMap['clientIntake']?['emergencySupport'] ?? false;
-        final insData = appDataMap['insurance'] ?? profileDataMap['insurance'];
-        if (insData != null && insData is Map) {
-          final rawStatus = insData['status'] ?? insData['insuranceStatus'];
-          if (rawStatus == 'I have professional liability insurance') {
-            farrierInsuranceStatus.value = 'Carries Insurance';
-          } else if (rawStatus ==
-              'I do not have professional liability insurance') {
-            farrierInsuranceStatus.value = 'Not currently insured';
-          } else if (rawStatus == 'Not applicable') {
-            farrierInsuranceStatus.value = 'Insurance available upon request';
-          } else if (rawStatus is String) {
-            farrierInsuranceStatus.value = rawStatus;
-          }
-
-          var doc = insData['document'] ?? insData['file'];
-
-          log("asdfsad$doc");
-          // If document is an empty string but file is available, use file
-          // if (doc is String && doc.isEmpty && insData['file'] != null) {
-          //   doc = insData['file'];
-          // }
-
-          if (doc is String && doc.isNotEmpty) {
-            farrierExistingInsuranceUrl.value = doc;
-          } else if (doc is List && doc.isNotEmpty) {
-            farrierExistingInsuranceUrl.value = doc.first.toString();
-          } else {
-            farrierExistingInsuranceUrl.value = null;
-          }
-
-          final fName = insData['fileName'];
-          farrierInsuranceFileName.value = (fName is String) ? fName : null;
-
-          final expStr = insData['expirationDate'] ?? insData['expiry'];
-
-          log("asdfsad:::$expStr");
-          if (expStr != null && expStr.toString().isNotEmpty) {
-            try {
-              farrierInsuranceExpiry.value = DateTime.parse(expStr.toString());
-            } catch (_) {}
-          }
-        } else {
-          // Backward compatibility
-          final rawInsuranceStatus = appDataMap['insuranceStatus'];
-          if (rawInsuranceStatus == 'I have professional liability insurance') {
-            farrierInsuranceStatus.value = 'Carries Insurance';
-          } else if (rawInsuranceStatus ==
-              'I do not have professional liability insurance') {
-            farrierInsuranceStatus.value = 'Not currently insured';
-          } else if (rawInsuranceStatus == 'Not applicable') {
-            farrierInsuranceStatus.value = 'Insurance available upon request';
-          } else if (rawInsuranceStatus is String) {
-            farrierInsuranceStatus.value = rawInsuranceStatus;
-          }
-
-          var doc =
-              appDataMap['insuranceFile'] ?? profileDataMap['insuranceFile'];
-          if (doc is String && doc.isNotEmpty) {
-            farrierExistingInsuranceUrl.value = doc;
-          } else if (doc is List && doc.isNotEmpty) {
-            farrierExistingInsuranceUrl.value = doc.first.toString();
-          } else {
-            farrierExistingInsuranceUrl.value = null;
-          }
-
-          final fName =
-              appDataMap['insuranceFileName'] ??
-              profileDataMap['insuranceFileName'];
-          farrierInsuranceFileName.value = (fName is String) ? fName : null;
-
-          final expStr =
-              appDataMap['insuranceExpiry'] ??
-              profileDataMap['insuranceExpiry'];
-          if (expStr != null && expStr.toString().isNotEmpty) {
-            try {
-              farrierInsuranceExpiry.value = DateTime.parse(expStr.toString());
-            } catch (_) {}
-          }
-        }
       } else if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
         _mergeBodyworkModalities();
 
@@ -1407,8 +1644,17 @@ class EditVendorProfileController extends GetxController {
           merged['travelPreferences'] ??
           [];
       if (travelPrefRaw is List) {
-        if (assignedServiceMatchesTab(activeService, 'Bodywork') ||
-            assignedServiceMatchesTab(activeService, 'Farrier')) {
+        if (assignedServiceMatchesTab(activeService, 'Clipping')) {
+          clippingTravelFees.clear();
+          for (var pref in travelPrefRaw) {
+            if (pref is! Map) continue;
+            final m = Map<String, dynamic>.from(pref);
+            final region = VendorTravelPreferencePayload.labelFromRow(m);
+            if (region.isEmpty) continue;
+            clippingTravelFees[region] =
+                VendorTravelPreferencePayload.clippingFeeStructureFromRow(m);
+          }
+        } else if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
           final Map<String, Map<String, dynamic>> travelMap = {};
           selectedTravel.clear();
           for (var item in travelPrefRaw) {
@@ -1581,6 +1827,8 @@ class EditVendorProfileController extends GetxController {
           _mergeBodyworkModalities();
         }
       }
+
+      await _fetchFarrierTagsAndHydrate();
 
       // Use SystemConfigController for regions (single source of truth)
       final systemConfig = Get.find<SystemConfigController>();
@@ -2270,8 +2518,14 @@ class EditVendorProfileController extends GetxController {
         };
       }).toList();
       profData['additionalSkills'] = selectedAdditionalSkills.toList();
-      profData['travelPreferences'] =
-          VendorTravelPreferencePayload.groomBraidTravelToApi(selectedTravel.toList());
+      profData['travelPreferences'] = clippingTravelFees.entries
+          .map(
+            (e) => VendorTravelPreferencePayload.fromClippingRegionEntry(
+              e.key,
+              Map<String, dynamic>.from(e.value),
+            ),
+          )
+          .toList();
     } else if (type == 'Farrier') {
       profData['services'] = farrierServices.map((s) {
         final ctrl = s['price'];
@@ -2293,6 +2547,7 @@ class EditVendorProfileController extends GetxController {
           'isSelected': s['isSelected'].value,
         };
       }).toList();
+      appData['relevantCertifications'] = selectedCertifications.toList();
       appData['certifications'] = selectedCertifications.toList();
       appData['otherCertification'] = otherCertificationController.text;
       appData['scopeOfWork'] = selectedFarrierScope.toList();
@@ -2315,10 +2570,18 @@ class EditVendorProfileController extends GetxController {
         'emergencySupport': farrierEmergencySupport.value,
       };
 
+      profData['insurance'] = {
+        'status': farrierInsuranceStatus.value,
+        'document': farrierExistingInsuranceUrl.value,
+        'fileName': farrierInsuranceFileName.value,
+        'expirationDate': farrierInsuranceExpiry.value?.toIso8601String(),
+      };
+
       // Also sync to applicationData for legacy reasons
       appData['facebookLink'] = fb;
       appData['instagramLink'] = ig;
       appData['clientIntake'] = profData['clientIntake'];
+      appData['insurance'] = profData['insurance'];
 
       profData['insuranceStatus'] = farrierInsuranceStatus.value;
     } else if (_editProfileIsBodyworkServiceType(type)) {
