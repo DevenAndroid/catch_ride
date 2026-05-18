@@ -41,16 +41,38 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
     {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
+  Worker? _horsesWorker;
+  Worker? _vendorsWorker;
+  Worker? _disciplineWorker;
+
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
+    _horsesWorker = ever(controller.horses, (_) {
+      if (controller.currentPage.value == 1 && _scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    });
+    _vendorsWorker = ever(controller.vendors, (_) {
+      if (controller.currentPage.value == 1 && _scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    });
+    _disciplineWorker = ever(controller.selectedDiscipline, (_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _horsesWorker?.dispose();
+    _vendorsWorker?.dispose();
+    _disciplineWorker?.dispose();
     _scrollController.dispose();
     super.dispose();
   }

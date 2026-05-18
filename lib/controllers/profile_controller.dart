@@ -163,9 +163,11 @@ class ProfileController extends GetxController {
   }
 
 
-  Future<void> fetchProfile({int retryCount = 0}) async {
+  Future<void> fetchProfile({int retryCount = 0, bool showLoading = true}) async {
     try {
-      isLoading.value = true;
+      if (showLoading) {
+        isLoading.value = true;
+      }
       final response = await _apiService.getRequest(AppUrls.profile);
 
       if (response.statusCode == 200) {
@@ -191,7 +193,7 @@ class ProfileController extends GetxController {
         if (retryCount < 1) {
           _logger.i('Retrying profile fetch...');
           await Future.delayed(const Duration(seconds: 1));
-          return fetchProfile(retryCount: retryCount + 1);
+          return fetchProfile(retryCount: retryCount + 1, showLoading: showLoading);
         }
       }
     } catch (e) {
@@ -199,7 +201,7 @@ class ProfileController extends GetxController {
       if (retryCount < 1) {
         _logger.i('Retrying profile fetch after error...');
         await Future.delayed(const Duration(seconds: 1));
-        return fetchProfile(retryCount: retryCount + 1);
+        return fetchProfile(retryCount: retryCount + 1, showLoading: showLoading);
       }
     } finally {
       if (retryCount == 0 || user.value != null) {

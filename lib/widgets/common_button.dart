@@ -37,7 +37,7 @@ class CommonButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(borderRadius ?? 12),
       child: Container(
         width: width,
-        height: height ?? 52,
+        height: height ?? 47,
         decoration: BoxDecoration(
           color: isLoading
               ? (backgroundColor ?? AppColors.primary).withValues(alpha: 0.7)

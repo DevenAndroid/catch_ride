@@ -1584,7 +1584,7 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Widget _buildBottomButtons() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 30),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 20),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -1601,7 +1601,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             child: GestureDetector(
               onTap: () => Get.back(),
               child: Container(
-                height: 56,
+                height: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: AppColors.borderMedium),
@@ -1745,7 +1745,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                         }
                       },
                 child: Container(
-                  height: 56,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: AppColors.primaryDark,
                     borderRadius: BorderRadius.circular(16),

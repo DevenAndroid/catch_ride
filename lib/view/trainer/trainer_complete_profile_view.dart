@@ -204,6 +204,28 @@ class _TrainerCompleteProfileViewState
           ),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Obx(() {
+        final phoneNo = profileController.helpPhoneNumber.value;
+        if (phoneNo.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 85), // Hover clearly in the white area per image
+          child: FloatingActionButton.extended(
+            onPressed: () async {
+              googleApiController.openSMS(phoneNo);
+            },
+            elevation: 4,
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.chat_outlined, color: Colors.white, size: 18),
+            label: const CommonText(
+              'Need help?',
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }),
     );
   }
 
