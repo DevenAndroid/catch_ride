@@ -25,6 +25,8 @@ class ChatMessage {
   final String type;
   final String? senderImage;
   final String? bookingId;
+  /// Notes from the booking linked via [bookingId] (same for sender and receiver).
+  final String? bookingNotes;
 
   ChatMessage({
     required this.id,
@@ -40,6 +42,7 @@ class ChatMessage {
     this.status = 'active',
     this.type = 'text',
     this.bookingId,
+    this.bookingNotes,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
@@ -62,7 +65,14 @@ class ChatMessage {
       status: json['status'] ?? 'active',
       type: json['type'] ?? 'text',
       bookingId: json['bookingId'] != null ? '${json['bookingId']}' : null,
+      bookingNotes: _parseBookingNotes(json['bookingNotes']),
     );
+  }
+
+  static String? _parseBookingNotes(dynamic value) {
+    if (value == null) return null;
+    final trimmed = value.toString().trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   Map<String, dynamic> toJson() {

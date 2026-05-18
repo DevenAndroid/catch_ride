@@ -28,10 +28,12 @@ class ParsedBookingDeclineMessage {
 class ParsedBookingPendingMessage {
   final String horseName;
   final String dateRaw;
+  final String? notes;
 
   ParsedBookingPendingMessage({
     required this.horseName,
     required this.dateRaw,
+    this.notes,
   });
 }
 
@@ -114,6 +116,37 @@ class BookingChatMessageParser {
     );
   }
 
+  static ParsedBookingDeclineMessage? parseCancel(String content) {
+    const prefix = 'Your booking request for ';
+    const marker = ' has been cancelled.';
+    if (!content.startsWith(prefix) || !content.contains(marker)) return null;
+
+    final afterPrefix = content.substring(prefix.length);
+    final markerIdx = afterPrefix.indexOf(marker);
+    if (markerIdx < 0) return null;
+
+    final core = afterPrefix.substring(0, markerIdx);
+    var remainder = afterPrefix.substring(markerIdx + marker.length).trim();
+
+    String? reason;
+    if (remainder.startsWith('Reason:')) {
+      reason = remainder.substring('Reason:'.length).trim();
+    }
+
+    final onIdx = core.lastIndexOf(' on ');
+    if (onIdx < 0) return null;
+
+    final horseName = core.substring(0, onIdx).trim();
+    final dateRaw = core.substring(onIdx + ' on '.length).trim();
+    if (horseName.isEmpty || dateRaw.isEmpty) return null;
+
+    return ParsedBookingDeclineMessage(
+      horseName: horseName,
+      dateRaw: dateRaw,
+      reason: reason,
+    );
+  }
+
   static ParsedBookingDeclineMessage? parseDecline(String content) {
     const prefix = 'Your booking request for ';
     const marker = ' has been declined.';
@@ -156,10 +189,19 @@ class BookingChatMessageParser {
     if (refIdx >= 0) {
       trimmed = trimmed.substring(0, refIdx).trim();
     }
-    if (!trimmed.startsWith(prefix) || !trimmed.endsWith(suffix)) return null;
+    if (!trimmed.startsWith(prefix)) return null;
 
-    final middle =
-        trimmed.substring(prefix.length, trimmed.length - suffix.length);
+    final suffixIdx = trimmed.indexOf(suffix);
+    if (suffixIdx < 0) return null;
+
+    final middle = trimmed.substring(prefix.length, suffixIdx);
+    var remainder = trimmed.substring(suffixIdx + suffix.length).trim();
+
+    String? notes;
+    if (remainder.startsWith('Notes:')) {
+      notes = remainder.substring('Notes:'.length).trim();
+    }
+
     final onIdx = middle.lastIndexOf(' on ');
     if (onIdx < 0) return null;
 
@@ -170,6 +212,7 @@ class BookingChatMessageParser {
     return ParsedBookingPendingMessage(
       horseName: horseName,
       dateRaw: dateRaw,
+      notes: notes,
     );
   }
 

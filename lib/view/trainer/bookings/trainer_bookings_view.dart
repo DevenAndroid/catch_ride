@@ -52,7 +52,27 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
+
+    int initTab = 0;
+    if (Get.arguments != null && Get.arguments is Map) {
+      if (Get.arguments['tabIndex'] != null) {
+        initTab = Get.arguments['tabIndex'];
+      }
+      if (Get.arguments['filterIndex'] != null) {
+        _selectedFilterIndex = Get.arguments['filterIndex'];
+      }
+    } else {
+      if (bookingController.targetTabIndex != null) {
+        initTab = bookingController.targetTabIndex!;
+        bookingController.targetTabIndex = null;
+      }
+      if (bookingController.targetFilterIndex != null) {
+        _selectedFilterIndex = bookingController.targetFilterIndex!;
+        bookingController.targetFilterIndex = null;
+      }
+    }
+
+    _tabController = TabController(length: 2, vsync: this, initialIndex: initTab);
     _tabController.addListener(_onTabChanged);
     _loadBookings();
     bookingController.refreshPendingBookingCounts();

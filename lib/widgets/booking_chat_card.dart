@@ -69,6 +69,19 @@ class BookingChatMessageTileBuilder {
       );
     }
 
+    final cancel = BookingChatMessageParser.parseCancel(strippedForBooking);
+    if (cancel != null) {
+      return _BookingCancelledChatCard(
+        parsed: cancel,
+        msg: msg,
+        isMe: isMe,
+        bookingId: _resolveBookingId(msg, chatController, conversationId),
+        conversationId: conversationId,
+        chatController: chatController,
+        showReadReceipt: isMe && messageIndex == 0 && msg.read,
+      );
+    }
+
     final update = BookingChatMessageParser.parseUpdate(strippedForBooking);
     if (update != null) {
       return _BookingUpdatedChatCard(
@@ -98,6 +111,7 @@ class BookingChatMessageTileBuilder {
         BookingChatMessageParser.parseApproval(stripped) != null ||
         BookingChatMessageParser.parseConfirmed(stripped) != null ||
         BookingChatMessageParser.parseDecline(stripped) != null ||
+        BookingChatMessageParser.parseCancel(stripped) != null ||
         BookingChatMessageParser.parseUpdate(stripped) != null;
     if (!isBookingRelated) return null;
 
@@ -233,6 +247,7 @@ Future<void> _openBookingDetails({
         otherName: otherName.isNotEmpty ? otherName : null,
         otherImage: otherImage.isNotEmpty ? otherImage : null,
         myTeamId: myTeamId.isNotEmpty ? myTeamId : null,
+        openedFromConversationId: conversationId,
       ),
     );
   } catch (e) {
@@ -474,8 +489,8 @@ class _BookingDeclinedChatCard extends StatelessWidget {
   }
 }
 
-class _BookingPendingChatCard extends StatelessWidget {
-  final ParsedBookingPendingMessage parsed;
+class _BookingCancelledChatCard extends StatelessWidget {
+  final ParsedBookingDeclineMessage parsed;
   final ChatMessage msg;
   final bool isMe;
   final String? bookingId;
@@ -483,7 +498,7 @@ class _BookingPendingChatCard extends StatelessWidget {
   final ChatController chatController;
   final bool showReadReceipt;
 
-  const _BookingPendingChatCard({
+  const _BookingCancelledChatCard({
     required this.parsed,
     required this.msg,
     required this.isMe,
@@ -506,13 +521,19 @@ class _BookingPendingChatCard extends StatelessWidget {
     final dateLine = DateUtil.formatDisplayDate(parsed.dateRaw);
 
     final cardBody = _BookingCardShell(
-      statusTitle: 'Request pending',
+      statusTitle: 'Booking cancelled',
       headline: parsed.horseName,
       subtitle: dateLine,
-      footnote: 'Waiting for professional approval.',
+      footnote: parsed.reason != null && parsed.reason!.isNotEmpty
+          ? 'Reason: ${parsed.reason}'
+          : null,
+      statusAccent: AppColors.errorPrimary,
+      icon: Icons.event_busy_rounded,
+      iconBackground: AppColors.errorBg,
+      iconColor: AppColors.errorPrimary,
       onShowDetails: () => _openBookingDetails(
         bookingId: bookingId,
-        fallbackStatus: 'pending',
+        fallbackStatus: 'cancelled',
         conversationId: conversationId,
         chatController: chatController,
       ),
@@ -575,6 +596,156 @@ class _BookingPendingChatCard extends StatelessWidget {
                 fontSize: AppTextSizes.size12,
                 color: AppColors.textSecondary,
                 textAlign: isMe ? TextAlign.right : TextAlign.left,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingPendingChatCard extends StatefulWidget {
+  final ParsedBookingPendingMessage parsed;
+  final ChatMessage msg;
+  final bool isMe;
+  final String? bookingId;
+  final String conversationId;
+  final ChatController chatController;
+  final bool showReadReceipt;
+
+  const _BookingPendingChatCard({
+    required this.parsed,
+    required this.msg,
+    required this.isMe,
+    required this.bookingId,
+    required this.conversationId,
+    required this.chatController,
+    required this.showReadReceipt,
+  });
+
+  @override
+  State<_BookingPendingChatCard> createState() => _BookingPendingChatCardState();
+}
+
+class _BookingPendingChatCardState extends State<_BookingPendingChatCard> {
+  String? _trainerNotes;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTrainerNotes();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BookingPendingChatCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.bookingId != widget.bookingId ||
+        oldWidget.msg.bookingNotes != widget.msg.bookingNotes ||
+        oldWidget.msg.id != widget.msg.id) {
+      _trainerNotes = null;
+      _loadTrainerNotes();
+    }
+  }
+
+  Future<void> _loadTrainerNotes() async {
+    final notes = await widget.chatController.bookingNotesForId(
+      widget.bookingId,
+      fromMessage: widget.msg.bookingNotes ?? widget.parsed.notes,
+      conversationId: widget.conversationId,
+    );
+    if (!mounted) return;
+    setState(() => _trainerNotes = notes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final timeLabel = DateFormat.jm().format(widget.msg.timestamp.toLocal());
+    final metaParts = <String>[
+      widget.msg.senderName,
+      _roleDisplayLabel(widget.msg.senderRole),
+      timeLabel,
+    ];
+    final metaLine = metaParts.join(' · ');
+
+    final dateLine = DateUtil.formatDisplayDate(widget.parsed.dateRaw);
+
+    final footnoteParts = <String>['Waiting for professional approval.'];
+    if (_trainerNotes != null && _trainerNotes!.isNotEmpty) {
+      footnoteParts.add('Notes for trainer: $_trainerNotes');
+    }
+
+    final cardBody = _BookingCardShell(
+      statusTitle: 'Request pending',
+      headline: widget.parsed.horseName,
+      subtitle: dateLine,
+      footnote: footnoteParts.join('\n'),
+      footnoteMaxLines: 8,
+      onShowDetails: () => _openBookingDetails(
+        bookingId: widget.bookingId,
+        fallbackStatus: 'pending',
+        conversationId: widget.conversationId,
+        chatController: widget.chatController,
+      ),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment:
+            widget.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: CommonText(
+              metaLine,
+              fontSize: AppTextSizes.size12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+              textAlign: widget.isMe ? TextAlign.right : TextAlign.left,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (widget.isMe)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Flexible(child: cardBody),
+                const SizedBox(width: 8),
+                CommonImageView(
+                  url: widget.msg.senderImage ?? '',
+                  height: 36,
+                  width: 36,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
+                ),
+              ],
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                CommonImageView(
+                  url: widget.msg.senderImage ?? '',
+                  height: 36,
+                  width: 36,
+                  shape: BoxShape.circle,
+                  isUserImage: true,
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: cardBody),
+              ],
+            ),
+          if (widget.showReadReceipt) ...[
+            const SizedBox(height: 4),
+            SizedBox(
+              width: double.infinity,
+              child: CommonText(
+                'Seen',
+                fontSize: AppTextSizes.size12,
+                color: AppColors.textSecondary,
+                textAlign: widget.isMe ? TextAlign.right : TextAlign.left,
               ),
             ),
           ],
@@ -713,6 +884,7 @@ class _BookingCardShell extends StatelessWidget {
   final String headline;
   final String subtitle;
   final String? footnote;
+  final int footnoteMaxLines;
   final VoidCallback onShowDetails;
   // Optional accent for status-specific cards (e.g. declined uses an error tint).
   final Color? statusAccent;
@@ -725,6 +897,7 @@ class _BookingCardShell extends StatelessWidget {
     required this.headline,
     required this.subtitle,
     this.footnote,
+    this.footnoteMaxLines = 4,
     required this.onShowDetails,
     this.statusAccent,
     this.icon,
@@ -790,7 +963,7 @@ class _BookingCardShell extends StatelessWidget {
                         fontSize: AppTextSizes.size12,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,
-                        maxLines: 4,
+                        maxLines: footnoteMaxLines,
                       ),
                     ],
                   ],
