@@ -36,18 +36,18 @@ class _LoginViewState extends State<LoginView> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
+          padding: const EdgeInsets.all(12),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SvgPicture.asset("assets/images/logo_with_title.svg"),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 // Main Card
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.cardColor,
                     borderRadius: BorderRadius.circular(24),
@@ -69,14 +69,14 @@ class _LoginViewState extends State<LoginView> {
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 5),
                       const CommonText(
                         AppStrings.welcomeBackSubtitle,
                         fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
 
                       CommonTextField(
                         label: AppStrings.email,
@@ -132,7 +132,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
                       Obx(
                         () => CommonButton(
                           text: _authController.isLoading.value
@@ -148,7 +148,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       if (!kIsWeb) ...[
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         const Center(
                           child: CommonText(
                             AppStrings.orLogInWith,
@@ -156,7 +156,7 @@ class _LoginViewState extends State<LoginView> {
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         Obx(
                           () => SocialButton(
                             text: AppStrings.continueWithGoogle,
@@ -183,7 +183,7 @@ class _LoginViewState extends State<LoginView> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
