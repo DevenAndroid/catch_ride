@@ -365,7 +365,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                     ],
 
                     const SizedBox(height: 24),
-                    _buildChipSection('Regions Covered', regionOptions, _localRegions),
+                    _buildMultiSelectDropdownSection('Regions Covered', regionOptions, _localRegions),
 
                     if (_selectedTab == 'Farrier' || _selectedTab == 'Bodywork' ||  _selectedTab=="Clipping") ...[
                       const SizedBox(height: 24),
@@ -611,6 +611,152 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildMultiSelectDropdownSection(String title, List<String> options, Set<String> localSet) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(title),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: () => _showMultiSelectBottomSheet(
+            title: 'Select $title',
+            options: options,
+            localSet: localSet,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFEAECF0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CommonText('Select $title...', fontSize: 13, color: const Color(0xFF667085), fontWeight: FontWeight.w500),
+                const Icon(Icons.add, color: Color(0xFF00083B), size: 20),
+              ],
+            ),
+          ),
+        ),
+        if (localSet.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: localSet.map((item) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFEAECF0)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: CommonText(item, fontSize: 12, color: const Color(0xFF344054), fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        localSet.remove(item);
+                      });
+                    },
+                    child: const Icon(Icons.close, size: 14, color: Color(0xFF667085)),
+                  ),
+                ],
+              ),
+            ),).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _showMultiSelectBottomSheet({
+    required String title,
+    required List<String> options,
+    required Set<String> localSet,
+  }) {
+    Get.bottomSheet(
+      isScrollControlled: true,
+      StatefulBuilder(builder: (context, setSheetState) {
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE5E7EB),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              CommonText(title, fontSize: 18, fontWeight: FontWeight.bold),
+              const SizedBox(height: 24),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: options.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF2F4F7)),
+                  itemBuilder: (context, index) {
+                    final opt = options[index];
+                    final isSelected = localSet.contains(opt);
+                    return CheckboxListTile(
+                      title: CommonText(opt, fontSize: 14, color: const Color(0xFF344054)),
+                      value: isSelected,
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (val) {
+                        setState(() {
+                          if (localSet.contains(opt)) {
+                            localSet.remove(opt);
+                          } else {
+                            localSet.add(opt);
+                          }
+                        });
+                        setSheetState(() {});
+                      },
+                      activeColor: const Color(0xFF00083B),
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Get.back(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00083B),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const CommonText('Done', color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 

@@ -25,23 +25,23 @@ class GroomChatView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const CommonText('Inbox', fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Center(
-              child: GestureDetector(
-                onTap: () => Get.to(() => const RequestsView()),
-                child: Row(
-                  children: const [
-                    CircleAvatar(radius: 4, backgroundColor: Colors.blue),
-                    SizedBox(width: 8),
-                    CommonText('Requests', color: Colors.blue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
-                  ],
-                ),
-              ),
-            ),
-          )
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 16),
+        //     child: Center(
+        //       child: GestureDetector(
+        //         onTap: () => Get.to(() => const RequestsView()),
+        //         child: Row(
+        //           children: const [
+        //             CircleAvatar(radius: 4, backgroundColor: Colors.blue),
+        //             SizedBox(width: 8),
+        //             CommonText('Requests', color: Colors.blue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   )
+        // ],
       ),
       body: Obx(() {
         if (controller.isLoadingConversations.value && controller.conversations.isEmpty) {

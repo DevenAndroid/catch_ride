@@ -40,36 +40,36 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
             color: AppColors.textPrimary,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Obx(() {
-              final currentUserId = Get.find<ProfileController>().id;
-              final hasRequests = chatController.conversations.any(
-                (c) =>
-                    c.status == 'request-pending' &&
-                    c.senderId != currentUserId,
-              );
-
-              return TextButton(
-                onPressed: () => Get.to(() => const BarnManagerRequestsView()),
-                child: Row(
-                  children: [
-                    if (hasRequests)
-                      const Icon(Icons.circle, color: Colors.blue, size: 8),
-                    const SizedBox(width: 6),
-                    const CommonText(
-                      'Requests',
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 8),
+        //     child: Obx(() {
+        //       final currentUserId = Get.find<ProfileController>().id;
+        //       final hasRequests = chatController.conversations.any(
+        //         (c) =>
+        //             c.status == 'request-pending' &&
+        //             c.senderId != currentUserId,
+        //       );
+        //
+        //       return TextButton(
+        //         onPressed: () => Get.to(() => const BarnManagerRequestsView()),
+        //         child: Row(
+        //           children: [
+        //             if (hasRequests)
+        //               const Icon(Icons.circle, color: Colors.blue, size: 8),
+        //             const SizedBox(width: 6),
+        //             const CommonText(
+        //               'Requests',
+        //               color: Colors.blue,
+        //               fontWeight: FontWeight.bold,
+        //               fontSize: 15,
+        //             ),
+        //           ],
+        //         ),
+        //       );
+        //     }),
+        //   ),
+        // ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(80),
           child: Column(
