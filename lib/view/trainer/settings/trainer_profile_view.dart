@@ -560,8 +560,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         trainerId: isOwnProfile ? null : widget.trainerId,
                                       ),
                                     ),
-                                    child: const CommonText(
-                                      'View all',
+                                    child:  CommonText(
+                                      'View All (${horses.length})',
                                       color: AppColors.linkBlue,
                                       fontWeight: FontWeight.bold,
                                     ),
