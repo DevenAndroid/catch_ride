@@ -58,11 +58,12 @@ class HorseCard extends StatelessWidget {
 
 
       final String searchedLocation = controller.location.value.trim().toLowerCase();
-      if (searchedLocation.isNotEmpty && horse.showAvailability.isNotEmpty) {
-        final show = horse.showAvailability.firstWhereOrNull(
-          (s) => s.cityState.trim().toLowerCase().contains(searchedLocation) || 
-                 searchedLocation.contains(s.cityState.trim().toLowerCase()),
-        );
+
+
+      if (searchedLocation.isNotEmpty && horse.availability.isNotEmpty) {
+        final show = horse.availability.isNotEmpty
+            ? horse.availability.first
+            : null;
 
         if (show != null) {
           final String datesStr = DateUtil.formatRange(

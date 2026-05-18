@@ -15,6 +15,7 @@ class HorseModel {
   final String? usefNumber;
   final List<String> listingTypes;
   final List<AvailabilityModel> showAvailability;
+  final List<AvailabilityModel> availability;
   final List<String> disciplines;
   final List<TagModel> programTags;
   final TagModel? experienceLevel;
@@ -64,6 +65,7 @@ class HorseModel {
     this.usefNumber,
     this.listingTypes = const [],
     this.showAvailability = const [],
+    this.availability = const [],
     this.disciplines = const [],
     this.programTags = const [],
     this.experienceLevel,
@@ -270,6 +272,7 @@ class HorseModel {
                    avail.startDate.trim().isEmpty &&
                    avail.endDate.trim().isEmpty);
         }).toList();
+
         // final now = DateTime.now();
         // final today = DateTime(now.year, now.month, now.day);
 
@@ -320,6 +323,18 @@ class HorseModel {
         //   }
         // });
         return list;
+      })(),
+      availability: (() {
+        final List<AvailabilityModel> list = (json['availability'] as List?)
+                ?.map((e) => AvailabilityModel.fromJson(e))
+                .toList() ??
+            [];
+        return list.where((avail) {
+          return !(avail.showVenue.trim().isEmpty &&
+                   avail.cityState.trim().isEmpty &&
+                   avail.startDate.trim().isEmpty &&
+                   avail.endDate.trim().isEmpty);
+        }).toList();
       })(),
       disciplines: json['discipline'] is String
           ? [json['discipline'] as String]
@@ -388,6 +403,7 @@ class HorseModel {
       'usefNumber': usefNumber,
       'listingTypes': listingTypes,
       'showAvailability': showAvailability.map((e) => e.toJson()).toList(),
+      'availability': availability.map((e) => e.toJson()).toList(),
       'discipline': disciplines,
       'programTags': programTags.map((e) => e.toJson()).toList(),
       if (experienceLevel != null) 'experienceLevel': experienceLevel!.toJson(),
@@ -424,6 +440,7 @@ class HorseModel {
     String? usefNumber,
     List<String>? listingTypes,
     List<AvailabilityModel>? showAvailability,
+    List<AvailabilityModel>? availability,
     List<String>? disciplines,
     List<TagModel>? programTags,
     TagModel? experienceLevel,
@@ -465,6 +482,7 @@ class HorseModel {
       usefNumber: usefNumber ?? this.usefNumber,
       listingTypes: listingTypes ?? this.listingTypes,
       showAvailability: showAvailability ?? this.showAvailability,
+      availability: availability ?? this.availability,
       disciplines: disciplines ?? this.disciplines,
       programTags: programTags ?? this.programTags,
       experienceLevel: experienceLevel ?? this.experienceLevel,

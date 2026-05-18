@@ -31,7 +31,7 @@ class TrainerProfileSetupView extends StatefulWidget {
 class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final AuthController _authController = Get.find<AuthController>();
   final ProfileController _profileController = Get.put(ProfileController());
-  final  googleApiController = Get.put(GoogleApiController());
+  final googleApiController = Get.put(GoogleApiController());
   final _formKey = GlobalKey<FormState>();
 
   // References controllers
@@ -64,8 +64,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   final FocusNode _instagramFocus = FocusNode();
   final FocusNode _federationIdFocus = FocusNode();
 
-
-
   bool _confirm18 = false;
   bool _agreeTerms = false;
   bool _understandPlatform = false;
@@ -78,7 +76,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -105,7 +102,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     _instagramFocus.dispose();
     _federationIdFocus.dispose();
     super.dispose();
-
   }
 
   @override
@@ -183,8 +179,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                             for (int i = 0; i < 2; i++) {
                               references.add({
                                 'name': _refNameControllers[i].text.trim(),
-                                'business': _refBusinessControllers[i].text.trim(),
-                                'relationship': _refRelationControllers[i].text.trim(),
+                                'business': _refBusinessControllers[i].text
+                                    .trim(),
+                                'relationship': _refRelationControllers[i].text
+                                    .trim(),
                                 'phone': _refPhoneControllers[i].text.trim(),
                               });
                             }
@@ -195,7 +193,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                             }
 
                             final List<String> primaryUse = [];
-                            if (_useSelling) primaryUse.add('Selling / Leasing');
+                            if (_useSelling)
+                              primaryUse.add('Selling / Leasing');
                             if (_useBuying) primaryUse.add('Buying / Leasing');
                             if (_useBooking)
                               primaryUse.add('Booking Service Providers');
@@ -207,7 +206,9 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                               return;
                             }
 
-                            if (!_confirm18 || !_agreeTerms || !_understandPlatform) {
+                            if (!_confirm18 ||
+                                !_agreeTerms ||
+                                !_understandPlatform) {
                               showError(
                                 'Please confirm all three checkboxes at the bottom',
                               );
@@ -215,13 +216,14 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                             }
 
                             final Map<String, dynamic> applicationData = {
-                              'whyJoin': _whyJoinController.text.trim().isEmpty 
-                                  ? AppStrings.whyJoinText 
+                              'whyJoin': _whyJoinController.text.trim().isEmpty
+                                  ? AppStrings.whyJoinText
                                   : _whyJoinController.text.trim(),
                               'facebook': _facebookController.text.trim(),
                               'website': _websiteController.text.trim(),
                               'instagram': _instagramController.text.trim(),
-                              'federationId': _federationIdController.text.trim(),
+                              'federationId': _federationIdController.text
+                                  .trim(),
                               'federationType': _selectedFederation,
                               'primaryUse': primaryUse,
                               'name': _nameController.text.trim(),
@@ -248,14 +250,20 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
         final phoneNo = _profileController.helpPhoneNumber.value;
         if (phoneNo.isEmpty) return const SizedBox.shrink();
         return Padding(
-          padding: const EdgeInsets.only(bottom: 85), // Hover clearly in the white area per image
+          padding: const EdgeInsets.only(
+            bottom: 85,
+          ), // Hover clearly in the white area per image
           child: FloatingActionButton.extended(
             onPressed: () async {
               googleApiController.openSMS(phoneNo);
             },
             elevation: 4,
             backgroundColor: AppColors.primary,
-            icon: const Icon(Icons.chat_outlined, color: Colors.white, size: 18),
+            icon: const Icon(
+              Icons.chat_outlined,
+              color: Colors.white,
+              size: 18,
+            ),
             label: const CommonText(
               'Need help?',
               color: Colors.white,
@@ -290,7 +298,6 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   Widget _buildNameCard() {
     return _buildCard(
-
       child: Column(
         children: [
           CommonTextField(
@@ -306,8 +313,7 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
     );
   }
 
-
-  Widget _buildCard({ String? title,String? subTitle, required Widget child}) {
+  Widget _buildCard({String? title, String? subTitle, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -319,25 +325,24 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if(title != null)
-         ...[
-           CommonText(
-             title,
-             fontSize: AppTextSizes.size16,
-             fontWeight: FontWeight.bold,
-             color: AppColors.textPrimary,
-           ),
-           if(subTitle != null)
-           Padding(
-             padding: const EdgeInsets.only(top:4),
-             child: CommonText(
-               subTitle,
-               fontSize: AppTextSizes.size12,
-               color: AppColors.textPrimary,
-             ),
-           ),
-           const SizedBox(height: 16),
-         ],
+          if (title != null) ...[
+            CommonText(
+              title,
+              fontSize: AppTextSizes.size16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+            if (subTitle != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: CommonText(
+                  subTitle,
+                  fontSize: AppTextSizes.size12,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            const SizedBox(height: 16),
+          ],
           child,
         ],
       ),
@@ -350,7 +355,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       child: CommonTextField(
         controller: _whyJoinController,
         label: '',
-        hintText: 'Tell us about your experience, what you’re looking for, and how Catch Ride can help you connect with the right programs and opportunities.',
+        hintText:
+            'Tell us about your experience, what you’re looking for, and how Catch Ride can help you connect with the right programs and opportunities.',
         maxLines: 5,
         isRequired: false,
       ),
@@ -387,6 +393,8 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   controller: _refNameControllers[index],
                   label: AppStrings.fullName,
                   hintText: "Enter full name",
+                  isRequired: true,
+                  validator: RequiredValidator(errorText: "Full name is required"),
                 ),
                 const SizedBox(height: 16),
                 CommonTextField(
@@ -398,15 +406,16 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                 CommonTextField(
                   controller: _refRelationControllers[index],
                   label: AppStrings.relationship,
-                  hintText: AppStrings.enterRelationshipName, // As per image hint
+                  hintText:
+                      AppStrings.enterRelationshipName, // As per image hint
                 ),
-                const SizedBox(height: 16),
-                CommonTextField(
-                  controller: _refPhoneControllers[index],
-                  label: AppStrings.phoneNumber,
-                  hintText: AppStrings.enterPhoneNumber,
-                  keyboardType: TextInputType.phone,
-                ),
+                // const SizedBox(height: 16),
+                // CommonTextField(
+                //   controller: _refPhoneControllers[index],
+                //   label: AppStrings.phoneNumber,
+                //   hintText: AppStrings.enterPhoneNumber,
+                //   keyboardType: TextInputType.phone,
+                // ),
                 if (index < 1) const SizedBox(height: 24),
               ],
             );
@@ -419,14 +428,10 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
   Widget _buildSocialMediaCard() {
     return _buildCard(
       title: AppStrings.socialMediaWebsite,
-      subTitle:"Include at least one profile for verification",
+      subTitle: "Include at least one profile for verification",
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-
-
-
           CommonTextField(
             controller: _facebookController,
             label: "Facebook",
@@ -493,14 +498,18 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
                   Icons.keyboard_arrow_down,
                   color: AppColors.textSecondary,
                 ),
-                items: ['USEF', 'EC',"FEI"].map((e) => DropdownMenuItem(
+                items: ['USEF', 'EC', "FEI"]
+                    .map(
+                      (e) => DropdownMenuItem(
                         value: e,
                         child: CommonText(
                           e,
                           fontSize: AppTextSizes.size14,
                           color: AppColors.textPrimary,
                         ),
-                      )).toList(),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (val) {
                   setState(() => _selectedFederation = val!);
                 },

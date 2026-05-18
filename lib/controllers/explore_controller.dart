@@ -14,7 +14,7 @@ class ExploreController extends GetxController {
   final ProfileController _profileController = Get.find<ProfileController>();
   final  googleApiController = Get.put(GoogleApiController());
   final Logger _logger = Logger();
-  final RxString locationType = 'City,State, or Region'.obs;
+  final RxString locationType = 'City, State, or Region'.obs;
   final RxList<HorseModel> horses = <HorseModel>[].obs;
   final RxList<VendorModel> vendors = <VendorModel>[].obs;
   final RxBool isLoading = false.obs;
@@ -285,10 +285,10 @@ class ExploreController extends GetxController {
       if (selectedDiscipline.value != 'All') {
         queryParams['discipline'] = selectedDiscipline.value;
       }
-
-      if (searchQuery.value.isNotEmpty) {
-        queryParams['search'] = searchQuery.value;
-      }
+      //
+      // if (searchQuery.value.isNotEmpty) {
+      //   queryParams['search'] = searchQuery.value;
+      // }
 
       if (regionsCovered.isNotEmpty) {
         queryParams['location'] = regionsCovered.first;

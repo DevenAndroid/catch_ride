@@ -230,6 +230,34 @@ class _AddNewListingViewState extends State<AddNewListingView> {
           ],
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Obx(() {
+        final phoneNo = profileController.helpPhoneNumber.value;
+        if (phoneNo.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(
+            bottom: 85,
+          ), // Hover clearly in the white area per image
+          child: FloatingActionButton.extended(
+            onPressed: () async {
+              googleApiController.openSMS(phoneNo);
+            },
+            elevation: 4,
+            backgroundColor: AppColors.primary,
+            icon: const Icon(
+              Icons.chat_outlined,
+              color: Colors.white,
+              size: 18,
+            ),
+            label: const CommonText(
+              'Need help?',
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }),
     ),
    );
   }
@@ -2108,11 +2136,11 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         ),
                         const SizedBox(height: 16),
                         CommonTextField(
-                          label: 'City/State',
+                          label: 'City, State',
                           controller: availabilityEntry.cityStateController,
                           hintText: 'e.g., Welling.',
                           readOnly: true, // Locked as per requirement
-                          isRequired: true,
+                          //isRequired: true,
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -2120,7 +2148,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'Start Date',
-                                isRequired: true,
+                              //  isRequired: true,
                                 controller:
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
@@ -2149,7 +2177,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'End Date',
-                                isRequired: true,
+                              //  isRequired: true,
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
                                 readOnly: true,

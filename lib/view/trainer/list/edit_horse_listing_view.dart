@@ -2122,11 +2122,11 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                         ),
                         const SizedBox(height: 16),
                         CommonTextField(
-                          label: 'City/State',
+                          label: 'City, State',
                           controller: availabilityEntry.cityStateController,
                           hintText: 'e.g., Welling.',
                           readOnly: true, // Locked as per requirement
-                          isRequired: true,
+                         // isRequired: true,
                         ),
                         const SizedBox(height: 16),
                         Row(
@@ -2134,7 +2134,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'Start Date',
-                                isRequired: true,
+                                //isRequired: true,
                                 controller:
                                     availabilityEntry.startDateController,
                                 hintText: 'Select date',
@@ -2163,7 +2163,7 @@ class _EditHorseListingViewState extends State<EditHorseListingView> {
                             Expanded(
                               child: CommonTextField(
                                 label: 'End Date',
-                                isRequired: true,
+                              //  isRequired: true,
                                 controller: availabilityEntry.endDateController,
                                 hintText: 'Select date',
                                 readOnly: true,

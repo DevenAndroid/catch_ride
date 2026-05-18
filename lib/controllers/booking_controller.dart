@@ -22,6 +22,10 @@ class BookingController extends GetxController {
   int _fetchReceivedRequestId = 0;
   int _fetchSentRequestId = 0;
 
+  int? targetTabIndex;
+  int? targetFilterIndex;
+
+
   Future<void> fetchBookings({
     String type = 'received',
     String? status,

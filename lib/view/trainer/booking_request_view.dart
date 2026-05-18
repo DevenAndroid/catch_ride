@@ -31,6 +31,7 @@ import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
 import '../barn_manager/barn_manager_availability_view.dart';
 import 'list/edit_horse_listing_view.dart';
+import 'package:catch_ride/view/trainer/trainer_bottom_nav.dart';
 
 class BookingRequestView extends StatefulWidget {
   final HorseModel? horse;
@@ -44,6 +45,9 @@ class BookingRequestView extends StatefulWidget {
   final String? otherImage;
   final String? myTeamId;
 
+  /// Non-null when opened from a chat thread; accept pops back instead of pushing chat again.
+  final String? openedFromConversationId;
+
   const BookingRequestView({
     super.key,
     this.horse,
@@ -56,6 +60,7 @@ class BookingRequestView extends StatefulWidget {
     this.otherName,
     this.otherImage,
     this.myTeamId,
+    this.openedFromConversationId,
   });
 
   @override
@@ -1820,16 +1825,44 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     if (widget.bookingId == null) return;
     try {
       setState(() => _isAccepting = true);
-      final bookingController = Get.find<BookingController>();
+      final bookingController = Get.put(BookingController());
+      final chatController = Get.put(ChatController());
       final result = await bookingController.updateBookingStatus(
           widget.bookingId!, 'confirmed');
       if (result != null) {
-        setState(() {
-          _currentBookingStatus = 'confirmed';
-        });
+        if (mounted) {
+          setState(() {
+            _currentBookingStatus = 'confirmed';
+          });
+        }
+
+        await chatController.fetchConversations();
+
+        final String? fromConvo = widget.openedFromConversationId;
+        if (fromConvo != null && fromConvo.isNotEmpty) {
+          await chatController.fetchMessages(fromConvo);
+          // Success snackbar from [updateBookingStatus] is open; plain [Get.back]
+          // only dismisses it and does not pop this route (GetX 4.x behavior).
+          Get.back(closeOverlays: true);
+        } else {
+          final String otherId =
+              widget.otherId ?? booking?.clientId ?? '';
+          final String otherName =
+              widget.otherName ?? booking?.clientName ?? 'Client';
+          final String otherImage =
+              widget.otherImage ?? booking?.clientImage ?? '';
+
+          chatController.openBookingChat(
+            bookingId: widget.bookingId!,
+            otherId: otherId,
+            otherName: otherName,
+            otherImage: otherImage,
+            myTeamId: widget.myTeamId,
+          );
+        }
       }
     } finally {
-      setState(() => _isAccepting = false);
+      if (mounted) setState(() => _isAccepting = false);
     }
   }
 
@@ -2068,16 +2101,19 @@ class _BookingRequestViewState extends State<BookingRequestView> {
         'cancelled',
       );
       if (success != null) {
-        Get.snackbar(
-          'Booking Cancelled',
-          'Your booking has been successfully cancelled.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.black87,
-          colorText: Colors.white,
-        );
         setState(() {
           _currentBookingStatus = 'cancelled';
         });
+        
+        bookingController.targetTabIndex = isHorseOwner ? 0 : 1;
+        bookingController.targetFilterIndex = 3;
+        Get.offAll(
+          () => const TrainerBottomNav(initialIndex: 0),
+          arguments: {
+            'tabIndex': isHorseOwner ? 0 : 1,
+            'filterIndex': 3,
+          },
+        );
       } else {
         Get.snackbar(
           'Action Failed',
