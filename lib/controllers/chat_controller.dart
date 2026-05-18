@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_controller.dart';
+import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
@@ -27,6 +29,11 @@ class ChatController extends GetxController {
   final RxString activeConversationId = ''.obs;
   final RxBool isUpdatingStatus = false.obs;
 
+  final Map<String, String?> _bookingNotesCache = {};
+
+  /// Debounced refresh of bottom-nav pending booking count when inbox data changes.
+  Timer? _pendingBookingBadgeDebounce;
+
   // Timer? _refreshTimer;
 
   int get totalUnreadCount {
@@ -46,9 +53,55 @@ class ChatController extends GetxController {
     // });
   }
 
+  /// Notes for the booking tied to a chat card (cached; same value for sender and receiver).
+  Future<String?> bookingNotesForId(
+    String? bookingId, {
+    String? fromMessage,
+    String? conversationId,
+  }) async {
+    final fromMsg = fromMessage?.trim();
+    if (fromMsg != null && fromMsg.isNotEmpty) return fromMsg;
+
+    if (bookingId == null || bookingId.isEmpty) return null;
+
+    if (_bookingNotesCache.containsKey(bookingId)) {
+      return _bookingNotesCache[bookingId];
+    }
+
+    if (conversationId != null && conversationId.isNotEmpty) {
+      final convo = conversations.firstWhereOrNull(
+        (c) => c.conversationId == conversationId,
+      );
+      final convoBookingId = convo?.booking?.id;
+      final convoNotes = convo?.booking?.notes?.trim();
+      if (convoBookingId == bookingId &&
+          convoNotes != null &&
+          convoNotes.isNotEmpty) {
+        _bookingNotesCache[bookingId] = convoNotes;
+        return convoNotes;
+      }
+    }
+
+    try {
+      final response = await _apiService.getRequest('/bookings/$bookingId');
+      if (response.statusCode == 200 && response.body['data'] != null) {
+        final notes = BookingModel.fromJson(response.body['data']).notes?.trim();
+        final value = (notes != null && notes.isNotEmpty) ? notes : null;
+        _bookingNotesCache[bookingId] = value;
+        return value;
+      }
+    } catch (e) {
+      _logger.w('bookingNotesForId failed for $bookingId: $e');
+    }
+
+    _bookingNotesCache[bookingId] = null;
+    return null;
+  }
+
   void clearData() {
     conversations.clear();
     currentMessages.clear();
+    _bookingNotesCache.clear();
     activeConversationId.value = '';
     isLoadingConversations.value = false;
     isLoadingMessages.value = false;
@@ -59,8 +112,39 @@ class ChatController extends GetxController {
 
   @override
   void onClose() {
+    _pendingBookingBadgeDebounce?.cancel();
     // _refreshTimer?.cancel();
     super.onClose();
+  }
+
+  /// Barn manager registers [BarnManagerBookingController]; trainer/vendor use [BookingController].
+  BookingController? _tryFindBookingController() {
+    if (Get.isRegistered<BarnManagerBookingController>()) {
+      return Get.find<BarnManagerBookingController>();
+    }
+    if (Get.isRegistered<BookingController>()) {
+      return Get.find<BookingController>();
+    }
+    return null;
+  }
+
+  void _schedulePendingBookingBadgeSync() {
+    _pendingBookingBadgeDebounce?.cancel();
+    _pendingBookingBadgeDebounce = Timer(const Duration(milliseconds: 350), () {
+      _pendingBookingBadgeDebounce = null;
+      _syncPendingBookingBadgeNow();
+    });
+  }
+
+  void _syncPendingBookingBadgeNow() {
+    try {
+      final bc = _tryFindBookingController();
+      if (bc != null) {
+        bc.refreshPendingBookingCounts();
+      }
+    } catch (e) {
+      _logger.w('ChatController: pending booking badge sync skipped: $e');
+    }
   }
 
   void _setupSocketListeners() {
@@ -114,6 +198,7 @@ class ChatController extends GetxController {
         conversations.value = data
             .map((json) => ChatConversation.fromJson(json))
             .toList();
+        _schedulePendingBookingBadgeSync();
       }
 
       if (conversations.isEmpty) {
@@ -489,6 +574,7 @@ class ChatController extends GetxController {
           label: old.label,
         );
         conversations.refresh();
+        _schedulePendingBookingBadgeSync();
         return; // Skip the standard increment logic below
       }
     } else if (activeConversationId.isNotEmpty) {
@@ -590,6 +676,7 @@ class ChatController extends GetxController {
       _logger.d('🆕 Updating conversation list item for ${message.conversationId}');
       conversations.insert(0, updated);
       conversations.refresh();
+      _schedulePendingBookingBadgeSync();
     } else {
       _logger.d('❓ Conversation not found in list. Fetching all.');
       // New conversation appeared - if it's the first message, we might need 
@@ -758,7 +845,8 @@ class ChatController extends GetxController {
     }
 
     // Refresh bookings to reflect new status (confirmed/rejected)
-    final bc = Get.put(BookingController());
+    final BookingController bc =
+        _tryFindBookingController() ?? Get.put(BookingController());
     bc.fetchBookings(type: 'received');
     bc.fetchBookings(type: 'sent');
     bc.refreshPendingBookingCounts();
