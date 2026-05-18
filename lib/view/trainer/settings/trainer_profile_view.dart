@@ -1,18 +1,14 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
-import 'package:catch_ride/view/trainer/settings/view_all_horses_view.dart';
 import 'package:catch_ride/view/trainer/settings/trainer_active_horses_view.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../controllers/profile_controller.dart';
 import '../../../models/user_model.dart';
 import '../../../utils/url_helper.dart';
-import '../trainer_complete_profile_view.dart';
-import '../trainer_profile_setup_view.dart';
 import 'edit_profile.dart';
 
 class TrainerProfileView extends StatefulWidget {
@@ -44,7 +40,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         // Viewing own profile or no ID provided (which defaults to own profile)
         _controller.viewedUser.value = null;
         _controller.viewedUserHorses.clear();
-        _controller.fetchProfile();
+        _controller.fetchProfile(showLoading: _controller.user.value == null);
       }
     });
   }
@@ -66,7 +62,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
     // Restore the logged-in user's own profile data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fetchProfile();
+      _controller.fetchProfile(showLoading: false);
     });
 
     super.dispose();
@@ -803,26 +799,27 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    horse.listingTitle?? horse.name,
+                    horse.name ?? horse.listingTitle??"",
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF101828),
                   ),
                   const SizedBox(height: 2),
+
+              CommonText(
+                horse.listingTitle ?? '',
+                fontSize: 13,
+                color: const Color(0xFF667085),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                height: 1.4,
+              ),
+              const SizedBox(height: 4),
                   CommonText(
-                    "${horse.age}-year-old ${horse.breed}",
+                    "${horse.age}-year, ${horse.breed}",
                     fontSize: 13,
                     color: const Color(0xFF475467),
                     fontWeight: FontWeight.w400,
-                  ),
-                  const SizedBox(height: 6),
-                  CommonText(
-                    horse.description ?? '',
-                    fontSize: 13,
-                    color: const Color(0xFF667085),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    height: 1.4,
                   ),
                 ],
               ),

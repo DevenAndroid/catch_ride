@@ -46,7 +46,7 @@ class GoogleApiController extends GetxController {
     }
 
     try {
-      String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey";
+      String url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$googleApiKey&components=country:us|country:ca";
       
       if (location != null && radius != null) {
         url += "&location=$location&radius=$radius&strictbounds=true";

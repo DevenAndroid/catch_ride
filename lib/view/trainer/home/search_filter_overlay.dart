@@ -22,7 +22,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   final ExploreController controller = Get.put(ExploreController());
   final ProfileController profileController = Get.find<ProfileController>();
   final TextEditingController _searchController = TextEditingController();
-  final  googleApiController = Get.put(GoogleApiController());
+  final googleApiController = Get.put(GoogleApiController());
   final ScrollController _scrollController = ScrollController();
 
   String _selectedSection = 'location'; // 'location' or 'date'
@@ -44,10 +44,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   void initState() {
     super.initState();
     _selectedCategory = controller.selectedDiscipline.value;
-    
+
     // Prefill search controller based on active filter
     // Prefill search controller based on active filter
-    if (controller.locationType.value == 'City,State, or Region') {
+    if (controller.locationType.value == 'City, State, or Region') {
       if (controller.location.value.isNotEmpty) {
         _searchController.text = controller.location.value;
         _showSuggestions = false;
@@ -65,7 +65,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         _searchController.text = controller.searchQuery.value;
       }
     }
-    
+
     _focusedDate = DateTime.now();
     _rangeStart = controller.startDate.value;
     _rangeEnd = controller.endDate.value;
@@ -74,9 +74,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     }
 
     final systemConfig = Get.find<SystemConfigController>();
-    if (systemConfig.regions.isEmpty && !systemConfig.isLoadingRegions.value) {
+    //if (systemConfig.regions.isEmpty && !systemConfig.isLoadingRegions.value) {
       systemConfig.fetchRegions();
-    }
+   // }
   }
 
   Future<void> _onSearchPressed() async {
@@ -85,21 +85,22 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       _isSearching = true;
     });
     controller.selectedDiscipline.value = _selectedCategory;
-    
-    // If the search text exactly matches the selected location/venue/region, 
+
+    // If the search text exactly matches the selected location/venue/region,
     // don't send it as a keyword search (only as a location filter)
     final searchText = _searchController.text.trim();
-    if (searchText == controller.location.value || 
-        searchText == controller.showVenue.value || 
-        controller.regionsCovered.contains(searchText)) {
-      controller.searchQuery.value = '';
+    if (controller.locationType.value == 'City, State, or Region') {
+      controller.location.value = searchText;
+      controller.showVenue.value = '';
     } else {
-      controller.searchQuery.value = searchText;
+      controller.showVenue.value = searchText;
+      controller.location.value = '';
     }
+    // "search" key is set to empty (removed/commented)
+    controller.searchQuery.value = '';
+
     controller.startDate.value = _rangeStart;
     controller.endDate.value = _rangeEnd;
-
-
 
     // Save all active filters to history
     if (_searchController.text.trim().isNotEmpty) {
@@ -129,7 +130,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     setState(() {
       _selectedCategory = 'All';
       _searchController.clear();
-      controller.locationType.value = 'City,State, or Region';
+      controller.locationType.value = 'City, State, or Region';
       _rangeStart = null;
       _rangeEnd = null;
       _showSuggestions = true;
@@ -355,21 +356,21 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     controller.searchLocations(val);
                   }
                 },
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _onSearchPressed(),
-                  decoration: InputDecoration(
-                    hintText: 'Search horses, services, and circuits',
-                    hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.5),
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    prefixIcon: const Icon(
-                      Icons.search_rounded,
-                      color: Colors.black87,
-                    ),
+                textInputAction: TextInputAction.search,
+                onSubmitted: (_) => _onSearchPressed(),
+                decoration: InputDecoration(
+                  hintText: 'Search horses, services, and circuits',
+                  hintStyle: TextStyle(
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                    fontSize: 14,
+                  ),
+                  border: InputBorder.none,
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: Colors.black87,
                   ),
                 ),
+              ),
               const SizedBox(height: 12),
 
               // Toggle Switcher
@@ -382,17 +383,18 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                 child: Row(
                   children: [
                     Expanded(
-              child: _buildToggleItem(
-                'City,State, or Region',
-                controller.locationType.value == 'City,State, or Region',
-              ),
-            ),
-            Expanded(
-              child: _buildToggleItem(
-                'Show Venue',
-                controller.locationType.value == 'Show Venue',
-              ),
-            ),
+                      child: _buildToggleItem(
+                        'City, State, or Region',
+                        controller.locationType.value ==
+                            'City, State, or Region',
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildToggleItem(
+                        'Show Venue',
+                        controller.locationType.value == 'Show Venue',
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -400,139 +402,156 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
               // Suggested Items (Matching Design)
               if (_showSuggestions)
-              Obx(() {
-                if (controller.isSuggestionsLoading.value) {
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  );
-                }
-
-                final isSearching = _searchController.text.isNotEmpty;
-
-                if (isShowVenue) {
-                  final list = isSearching
-                      ? controller.venuesSuggestions
-                      : controller.defaultVenues;
-
-                  final bool hasMore = list.length > 3;
-                  final displayList =
-                      _showAllVenues ? list : list.take(3).toList();
-
-                  if (list.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: CommonText(
-                        isSearching ? 'No venues found' : 'No venues available',
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
+                Obx(() {
+                  if (controller.isSuggestionsLoading.value) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       ),
                     );
                   }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ...displayList.map(
-                        (v) => _buildShowVenueItem(v),
-                      ),
-                      if (hasMore && !_showAllVenues)
-                        GestureDetector(
-                          onTap: () => setState(() => _showAllVenues = true),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: [
-                                CommonText(
-                                  'See All',
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.keyboard_arrow_down,
-                                    size: 16, color: AppColors.primary),
-                              ],
+
+                  final isSearching = _searchController.text.isNotEmpty;
+
+                  if (isShowVenue) {
+                    final list = isSearching
+                        ? controller.venuesSuggestions
+                        : controller.defaultVenues;
+
+                    final bool hasMore = list.length > 3;
+                    final displayList = _showAllVenues
+                        ? list
+                        : list.take(3).toList();
+
+                    if (list.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: CommonText(
+                          isSearching
+                              ? 'No venues found'
+                              : 'No venues available',
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...displayList.map((v) => _buildShowVenueItem(v)),
+                        if (hasMore && !_showAllVenues)
+                          GestureDetector(
+                            onTap: () => setState(() => _showAllVenues = true),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                children: [
+                                  CommonText(
+                                    'See All',
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                    ],
-                  );
-                } else {
-                  var list = (isSearching
-                          ? controller.locationsSuggestions
-                          : controller.defaultLocations)
-                      .toList();
-
-                  final bool hasMore = list.length > 3;
-                  final displayList =
-                      _showAllLocations ? list : list.take(3).toList();
-
-                  if (list.isEmpty && googleApiController.googleSuggestions.isEmpty) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: CommonText(
-                        isSearching
-                            ? 'No locations found'
-                            : 'Loading locations...',
-                        fontSize: 13,
-                        color: AppColors.textSecondary,
-                      ),
-                    );
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (isSearching) ...[
-                        Obx(() {
-                          final systemConfig = Get.find<SystemConfigController>();
-                          final q = _searchController.text.toLowerCase();
-                          final regionOptions = systemConfig.regionNames
-                              .where((r) => r.toLowerCase().contains(q))
-                              .toList();
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: regionOptions
-                                .map((r) => _buildLocationItem(r, isRegion: true))
-                                .toList(),
-                          );
-                        }),
                       ],
-                      if(!isSearching)
-                      ...displayList.map(
-                          (l) => _buildLocationItem(l['name'] ?? '')),
-                      if (hasMore && !_showAllLocations)
-                        GestureDetector(
-                          onTap: () => setState(() => _showAllLocations = true),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              children: [
-                                CommonText(
-                                  'See All',
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.keyboard_arrow_down,
-                                    size: 16, color: AppColors.primary),
-                              ],
+                    );
+                  } else {
+                    var list =
+                        (isSearching
+                                ? controller.locationsSuggestions
+                                : controller.defaultLocations)
+                            .toList();
+
+                    final bool hasMore = list.length > 3;
+                    final displayList = _showAllLocations
+                        ? list
+                        : list.take(3).toList();
+
+                    if (list.isEmpty &&
+                        googleApiController.googleSuggestions.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: CommonText(
+                          isSearching
+                              ? 'No locations found'
+                              : 'Loading locations...',
+                          fontSize: 13,
+                          color: AppColors.textSecondary,
+                        ),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (isSearching) ...[
+                          Obx(() {
+                            final systemConfig =
+                                Get.find<SystemConfigController>();
+                            final q = _searchController.text.toLowerCase();
+                            final regionOptions = systemConfig.regionNames
+                                .where((r) => r.toLowerCase().contains(q))
+                                .toList();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: regionOptions
+                                  .map(
+                                    (r) =>
+                                        _buildLocationItem(r, isRegion: true),
+                                  )
+                                  .toList(),
+                            );
+                          }),
+                        ],
+                        if (!isSearching)
+                          ...displayList.map(
+                            (l) => _buildLocationItem(l['name'] ?? ''),
+                          ),
+                        if (hasMore && !_showAllLocations)
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _showAllLocations = true),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                children: [
+                                  CommonText(
+                                    'See All',
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: 16,
+                                    color: AppColors.primary,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
 
-                      // Google Suggestions
-                      if (isSearching && googleApiController.googleSuggestions.isNotEmpty)
-                        ...googleApiController.googleSuggestions.map(
-                          (g) => _buildLocationItem(g['name'] ?? ''),
-                        ),
-                    ],
-                  );
-                }
-              }),
+                        // Google Suggestions
+                        if (isSearching &&
+                            googleApiController.googleSuggestions.isNotEmpty)
+                          ...googleApiController.googleSuggestions.map(
+                            (g) => _buildLocationItem(g['name'] ?? ''),
+                          ),
+                      ],
+                    );
+                  }
+                }),
 
               if (_showSuggestions) ...[
                 const SizedBox(height: 20),
@@ -559,7 +578,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                               ),
                             ),
                           ]
-                        : controller.recentSearches.take(3)
+                        : controller.recentSearches
+                              .take(3)
                               .map((search) => _buildHistoryItem(search))
                               .toList(),
                   ),
@@ -637,7 +657,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const CommonText(
-                  'City,State, or Region',
+                  'City, State, or Region',
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -765,9 +785,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           setState(() {
             controller.locationType.value = title;
             _showSuggestions = true;
-            
+
             // Switch search controller text based on the tab being switched to
-            if (title == 'City,State, or Region') {
+            if (title == 'City, State, or Region') {
               if (controller.regionsCovered.isNotEmpty) {
                 _searchController.text = controller.regionsCovered.first;
               } else {
@@ -776,8 +796,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             } else {
               _searchController.text = controller.showVenue.value;
             }
-            
-            // Note: We are NOT clearing location/showVenue here to allow "pre-filling" 
+
+            // Note: We are NOT clearing location/showVenue here to allow "pre-filling"
             // when switching between them, as requested by the user.
             // But we DO clear dates if that's what "clear data also in when wali" meant.
             _rangeStart = null;
@@ -829,7 +849,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         final end = DateTime.parse(show['endDate']);
         final df = DateFormat('MMMM d');
         final dfYear = DateFormat('yyyy');
-        dateRange = '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
+        dateRange =
+            '${df.format(start)}–${df.format(end)}, ${dfYear.format(end)}';
       }
     } catch (_) {}
 
@@ -856,9 +877,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         setState(() {
           _showSuggestions = false;
           if (showStart != null && showEnd != null) {
-            _venueStartDate = DateTime(showStart.year, showStart.month, showStart.day);
+            _venueStartDate = DateTime(
+              showStart.year,
+              showStart.month,
+              showStart.day,
+            );
             _venueEndDate = DateTime(showEnd.year, showEnd.month, showEnd.day);
-            
+
             _rangeStart = _venueStartDate;
             _rangeEnd = _venueEndDate;
             controller.startDate.value = _venueStartDate;
@@ -891,11 +916,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(
-                    name,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  CommonText(name, fontSize: 15, fontWeight: FontWeight.bold),
                   const SizedBox(height: 4),
                   CommonText(
                     '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country • $dateRange',
@@ -988,8 +1009,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         _unfocusAndScrollTop();
         // Logic to restore the correct filter type from history string
         bool isDateRange = address.contains(' - ') && address.length > 20;
-        bool isSingleDate =
-            RegExp(r'^\d{2} [A-Za-z]{3} \d{4}$').hasMatch(address);
+        bool isSingleDate = RegExp(
+          r'^\d{2} [A-Za-z]{3} \d{4}$',
+        ).hasMatch(address);
 
         if (isDateRange || isSingleDate) {
           try {
@@ -1010,10 +1032,12 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           }
         } else {
           // Try to match against known locations or venues first
-          bool isKnownLocation = controller.defaultLocations
-              .any((l) => l['name'] == address || l['subtitle'] == address);
-          bool isKnownVenue = controller.defaultVenues
-              .any((v) => v['name'] == address || v['subtitle'] == address);
+          bool isKnownLocation = controller.defaultLocations.any(
+            (l) => l['name'] == address || l['subtitle'] == address,
+          );
+          bool isKnownVenue = controller.defaultVenues.any(
+            (v) => v['name'] == address || v['subtitle'] == address,
+          );
 
           if (isKnownVenue) {
             controller.showVenue.value = address;
@@ -1044,7 +1068,15 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               color: AppColors.textSecondary,
             ),
             const SizedBox(width: 12),
-            Expanded(child: CommonText(address, fontSize: 13, color: AppColors.textPrimary,maxLines: 2,overflow: TextOverflow.ellipsis,)),
+            Expanded(
+              child: CommonText(
+                address,
+                fontSize: 13,
+                color: AppColors.textPrimary,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -1214,7 +1246,9 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     color: (isStart || isEnd)
                         ? Colors.white
                         : AppColors.textPrimary,
-                    fontWeight: (isStart || isEnd) ? FontWeight.bold : FontWeight.w500,
+                    fontWeight: (isStart || isEnd)
+                        ? FontWeight.bold
+                        : FontWeight.w500,
                     fontSize: 14,
                   ),
                 ),
@@ -1295,8 +1329,11 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.search_rounded,
-                              color: Colors.white, size: 22),
+                          const Icon(
+                            Icons.search_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                           const SizedBox(width: 8),
                           const CommonText(
                             'Search',

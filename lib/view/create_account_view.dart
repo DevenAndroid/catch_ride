@@ -37,18 +37,18 @@ class _CreateAccountViewState extends State<CreateAccountView> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
+          padding: const EdgeInsets.all(12),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SvgPicture.asset("assets/images/logo_with_title.svg"),
-                const SizedBox(height: 32),
+                const SizedBox(height: 18),
 
                 // Main Card
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.cardColor,
                     borderRadius: BorderRadius.circular(24),
@@ -70,14 +70,14 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 5),
                       const CommonText(
                         AppStrings.createAccountSubtitle,
                         fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
 
                       CommonTextField(
                         controller: _authController.emailController,
@@ -93,7 +93,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           ),
                         ]),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
                       CommonTextField(
                         controller: _authController.passwordController,
@@ -134,7 +134,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
                       CommonTextField(
                         controller: _authController.confirmPasswordController,
@@ -165,7 +165,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
                       Obx(
                         () => CommonButton(
                           text: AppStrings.getStarted,
@@ -185,7 +185,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         ),
                       ),
                       if (!kIsWeb) ...[
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         const Center(
                           child: CommonText(
                             AppStrings.orSignUpWith,
@@ -193,7 +193,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         Obx(
                           () => SocialButton(
                             text: AppStrings.continueWithGoogle,
@@ -220,7 +220,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -242,6 +242,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
