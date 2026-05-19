@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import 'package:catch_ride/controllers/google_api_controller.dart';
 import '../../../widgets/common_textfield.dart';
 
 class RequestHorseShowView extends StatefulWidget {
@@ -17,6 +18,8 @@ class RequestHorseShowView extends StatefulWidget {
 
 class _RequestHorseShowViewState extends State<RequestHorseShowView> {
   final SupportController _controller = Get.find<SupportController>();
+  final GoogleApiController _googleApiController = Get.put(GoogleApiController());
+  final FocusNode _locationFocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _showNameController = TextEditingController();
@@ -27,11 +30,20 @@ class _RequestHorseShowViewState extends State<RequestHorseShowView> {
   bool _isSubmitted = false;
 
   @override
+  void initState() {
+    super.initState();
+    _locationFocusNode.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _showNameController.dispose();
     _locationController.dispose();
     _startDateController.dispose();
     _endDateController.dispose();
+    _locationFocusNode.dispose();
     super.dispose();
   }
 
@@ -126,11 +138,66 @@ class _RequestHorseShowViewState extends State<RequestHorseShowView> {
                 validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 24),
-              CommonTextField(
-                label: 'Show Location',
-                controller: _locationController,
-                hintText: 'Enter Show Location',
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonTextField(
+                    label: 'Show Location',
+                    controller: _locationController,
+                    focusNode: _locationFocusNode,
+                    hintText: 'Enter Show Location',
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                    onChanged: (val) {
+                      _googleApiController.searchGooglePlaces(val);
+                    },
+                  ),
+                  Obx(() {
+                    if (_googleApiController.googleSuggestions.isEmpty || 
+                        !_locationController.text.isNotEmpty || 
+                        !_locationFocusNode.hasFocus) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      constraints: const BoxConstraints(maxHeight: 200),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: _googleApiController.googleSuggestions.length,
+                        separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
+                        itemBuilder: (context, index) {
+                          final suggestion = _googleApiController.googleSuggestions[index];
+                          return ListTile(
+                            dense: true,
+                            title: CommonText(
+                              suggestion['name'] ?? '',
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                            onTap: () {
+                              _locationController.text = suggestion['name'] ?? '';
+                              _googleApiController.googleSuggestions.clear();
+                              FocusScope.of(context).unfocus();
+                            },
+                          );
+                        },
+                      ),
+                    );
+                  }),
+                ],
               ),
               const SizedBox(height: 24),
               Row(
