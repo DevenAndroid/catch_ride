@@ -5,6 +5,7 @@ import 'package:catch_ride/controllers/barn_manager/barn_manager_booking_control
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:catch_ride/services/api_service.dart';
+import 'package:catch_ride/services/notification_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -147,6 +148,48 @@ class ChatController extends GetxController {
     }
   }
 
+  void _setConversationUnread(String conversationId, int unread) {
+    final index = conversations.indexWhere(
+      (c) => c.conversationId == conversationId,
+    );
+    if (index == -1) return;
+
+    final old = conversations[index];
+    if (old.unread == unread) return;
+
+    conversations[index] = ChatConversation(
+      id: old.id,
+      conversationId: old.conversationId,
+      otherUser: old.otherUser,
+      lastMessage: old.lastMessage,
+      date: old.date,
+      unread: unread,
+      status: old.status,
+      senderId: old.senderId,
+      booking: old.booking,
+      pinned: old.pinned,
+      label: old.label,
+    );
+    conversations.refresh();
+  }
+
+  /// While a chat is open, treat it as read for badge/inbox even if the server count lags.
+  void _syncUnreadForOpenChat() {
+    if (activeConversationId.isEmpty) return;
+    _setConversationUnread(activeConversationId.value, 0);
+  }
+
+  /// App icon badge = unread chat messages only (not in-app notification list).
+  void _syncAppIconBadge() {
+    try {
+      if (Get.isRegistered<NotificationService>()) {
+        Get.find<NotificationService>().updateBadge(totalUnreadCount);
+      }
+    } catch (e) {
+      _logger.w('ChatController: app icon badge sync skipped: $e');
+    }
+  }
+
   void _setupSocketListeners() {
     if (!_socketService.isInitialized) {
       _logger.w('ChatController: Socket not initialized yet. Skipping listener setup.');
@@ -198,7 +241,9 @@ class ChatController extends GetxController {
         conversations.value = data
             .map((json) => ChatConversation.fromJson(json))
             .toList();
+        _syncUnreadForOpenChat();
         _schedulePendingBookingBadgeSync();
+        _syncAppIconBadge();
       }
 
       if (conversations.isEmpty) {
@@ -284,26 +329,9 @@ class ChatController extends GetxController {
 
         // Mark as read locally and on server
         _socketService.emit('message:read', {'conversationId': convoId});
-        
-        // --- LOCAL UNREAD SYNC (Fix #4) ---
-        final index = conversations.indexWhere((c) => c.conversationId == convoId);
-        if (index != -1) {
-          final old = conversations[index];
-          conversations[index] = ChatConversation(
-            id: old.id,
-            conversationId: old.conversationId,
-            otherUser: old.otherUser,
-            lastMessage: old.lastMessage,
-            date: old.date,
-            unread: 0, // Set to 0 instantly
-            status: old.status,
-            senderId: old.senderId,
-            booking: old.booking,
-            pinned: old.pinned,
-            label: old.label,
-          );
-          conversations.refresh();
-        }
+
+        _setConversationUnread(convoId, 0);
+        _syncAppIconBadge();
       }
     } catch (e) {
       _logger.e('Error fetching messages: $e');
@@ -555,9 +583,9 @@ class ChatController extends GetxController {
         'conversationId': message.conversationId,
       });
 
-      // --- LOCAL UNREAD SYNC (Fix #4) ---
-      // If we are currently in this chat, keep unread at 0 locally
-      final convoIndex = conversations.indexWhere((c) => c.conversationId == message.conversationId);
+      final convoIndex = conversations.indexWhere(
+        (c) => c.conversationId == message.conversationId,
+      );
       if (convoIndex != -1) {
         final old = conversations[convoIndex];
         conversations[convoIndex] = ChatConversation(
@@ -566,7 +594,7 @@ class ChatController extends GetxController {
           otherUser: old.otherUser,
           lastMessage: message.content,
           date: message.timestamp,
-          unread: 0, 
+          unread: 0,
           status: message.status ?? old.status,
           senderId: message.senderId,
           booking: old.booking,
@@ -575,7 +603,8 @@ class ChatController extends GetxController {
         );
         conversations.refresh();
         _schedulePendingBookingBadgeSync();
-        return; // Skip the standard increment logic below
+        _syncAppIconBadge();
+        return;
       }
     } else if (activeConversationId.isNotEmpty) {
       // HANDLE ID TRANSITION (e.g. from Temp/Vendor ID to Normalized User ID)
@@ -604,6 +633,8 @@ class ChatController extends GetxController {
         _socketService.emit('message:read', {
           'conversationId': message.conversationId,
         });
+        _setConversationUnread(message.conversationId, 0);
+        _syncAppIconBadge();
       } else {
         // --- BACKGROUND NOTIFICATION (Fix #6) ---
         // If we are on a different screen or in a different chat, show a notification
@@ -677,6 +708,7 @@ class ChatController extends GetxController {
       conversations.insert(0, updated);
       conversations.refresh();
       _schedulePendingBookingBadgeSync();
+      _syncAppIconBadge();
     } else {
       _logger.d('❓ Conversation not found in list. Fetching all.');
       // New conversation appeared - if it's the first message, we might need 
