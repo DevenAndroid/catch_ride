@@ -107,7 +107,7 @@ class _ForgotPasswordResetViewState extends State<ForgotPasswordResetView> {
                     if (!RegExp(r'[A-Z]').hasMatch(value)) {
                       return 'Password must have at least one uppercase letter';
                     }
-                    if (!RegExp(r'[!@#\$&*~]').hasMatch(value)) {
+                    if (!RegExp(r'[!@#\$&*~?_+\-=/\\|:;()\[\]{}<>,.]').hasMatch(value)) {
                       return 'Password must have at least one special character';
                     }
                     return null;

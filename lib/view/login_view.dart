@@ -31,6 +31,7 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+     final  size= MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -43,7 +44,7 @@ class _LoginViewState extends State<LoginView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SvgPicture.asset("assets/images/logo_with_title.svg"),
-                const SizedBox(height: 20),
+                SizedBox(height: size * 0.024),
 
                 // Main Card
                 Container(
@@ -69,14 +70,14 @@ class _LoginViewState extends State<LoginView> {
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 5),
+                      SizedBox(height: size * 0.006),
                       const CommonText(
                         AppStrings.welcomeBackSubtitle,
                         fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 18),
+                      SizedBox(height: size * 0.022),
 
                       CommonTextField(
                         label: AppStrings.email,
@@ -92,7 +93,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ]),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: size * 0.02),
 
                       CommonTextField(
                         label: AppStrings.password,
@@ -116,7 +117,7 @@ class _LoginViewState extends State<LoginView> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      SizedBox(height: size * 0.015),
                       Align(
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
@@ -132,7 +133,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      SizedBox(height: size * 0.024),
                       Obx(
                         () => CommonButton(
                           text: _authController.isLoading.value
@@ -148,7 +149,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       ),
                       if (!kIsWeb) ...[
-                        const SizedBox(height: 16),
+                        SizedBox(height: size * 0.02),
                         const Center(
                           child: CommonText(
                             AppStrings.orLogInWith,
@@ -156,7 +157,7 @@ class _LoginViewState extends State<LoginView> {
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: size * 0.02),
                         Obx(
                           () => SocialButton(
                             text: AppStrings.continueWithGoogle,
@@ -169,7 +170,7 @@ class _LoginViewState extends State<LoginView> {
                           ),
                         ),
                         if (defaultTargetPlatform == TargetPlatform.iOS) ...[
-                          const SizedBox(height: 12),
+                          SizedBox(height: size * 0.015),
                           SocialButton(
                             text: AppStrings.continueWithAppleId,
                             icon:
@@ -183,7 +184,7 @@ class _LoginViewState extends State<LoginView> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                SizedBox(height: size * 0.022),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
