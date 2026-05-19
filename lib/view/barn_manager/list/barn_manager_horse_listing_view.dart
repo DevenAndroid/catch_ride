@@ -100,47 +100,64 @@ class _BarnManagerHorseListingViewState
           children: [
             const SizedBox(height: 16),
             Expanded(
-              child: Obx(() {
-                if (horseController.isLoading.value &&
-                    horseController.horses.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              child: RefreshIndicator(
+                onRefresh: () async => _loadHorses(),
+                child: Obx(() {
+                  if (horseController.isLoading.value &&
+                      horseController.horses.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                      ],
+                    );
+                  }
 
-                if (horseController.horses.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // const Text('🐴', style: TextStyle(fontSize: 72)),
-                          // const SizedBox(height: 20),
-                          const CommonText(
-                            'No horses found',
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                            textAlign: TextAlign.center,
+                  if (horseController.horses.isEmpty) {
+                    return CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  // const Text('🐴', style: TextStyle(fontSize: 72)),
+                                  // const SizedBox(height: 20),
+                                  const CommonText(
+                                    'No horses found',
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  const CommonText(
+                                    'Your associated trainer hasn\'t listed any horses yet. They will appear here once added.',
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary,
+                                    textAlign: TextAlign.center,
+                                    height: 1.6,
+                                    maxLines: 4,
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          const CommonText(
-                            'Your associated trainer hasn\'t listed any horses yet. They will appear here once added.',
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            textAlign: TextAlign.center,
-                            height: 1.6,
-                            maxLines: 4,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
+                        ),
+                      ],
+                    );
+                  }
 
-                return RefreshIndicator(
-                  onRefresh: () async => _loadHorses(),
-                  child: ListView.separated(
+                  return ListView.separated(
                     controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 8,
@@ -162,9 +179,9 @@ class _BarnManagerHorseListingViewState
                       final horse = horseController.horses[index];
                       return _buildVerticalHorseCard(horse);
                     },
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
           ],
         ),
@@ -186,11 +203,8 @@ class _BarnManagerHorseListingViewState
     final String timePosted = DateUtil.getTimeAgo(horse.createdAt);
     final String? mainImageUrl = horse.images.firstOrNull??horse.photo;
     final List<String> listingTypes = horse.listingTypes;
-    final String postTitle = horse.listingTitle??horse.name;
-    final String postDescription =
-        (horse.description == null || horse.description!.isEmpty)
-            ? "N/A"
-            : horse.description!;
+    final String postTitle =horse.name;
+    final String listingTitle = horse.listingTitle??"";
     final String location = (horse.location == null || horse.location!.isEmpty)
         ? "N/A"
         : horse.location!;
@@ -329,22 +343,22 @@ class _BarnManagerHorseListingViewState
                       .map((type) => _buildTypeTag(type))
                       .toList(),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 CommonText(
                   postTitle,
                   fontSize: 17,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 CommonText(
-                  postDescription,
+                  listingTitle,
                   fontSize: 14,
                   color: const Color(0xFF4B5563),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     const Icon(

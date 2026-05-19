@@ -159,8 +159,8 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   mainImageUrl: horse.images.isNotEmpty ? horse.images.first : (horse.photo ?? ''),
                   imageCount: '1 / ${horse.images.length}',
                   tags: horse.listingTypes,
-                  postTitle: horse.listingTitle ?? horse.name,
-                  postDescription: horse.description ?? '',
+                  postTitle: horse.name??"",
+                  postDescription:  horse.listingTitle  ?? '',
                   location: horse.location ?? '',
                   isOwnHorse: true,
                 );

@@ -28,6 +28,7 @@ import '../controllers/profile_controller.dart';
 import '../controllers/chat_controller.dart';
 import '../view/barn_manager/barn_manager_application_submitted_view.dart';
 import '../view/barn_manager/barn_manager_create_profile_view.dart';
+import '../view/barn_manager/settings/barn_community_view.dart';
 import '../view/create_account_view.dart';
 import '../view/trainer/trainer_community_standards.dart';
 import '../view/trainer/trainer_complete_profile_view.dart';
@@ -951,7 +952,7 @@ class AuthController extends GetxController {
           Get.offAll(() => const SelectRoleView());
         }
       } else if (role == 'barn_manager') {
-        Get.offAll(() => const BarnManagerCreateProfileView());
+        Get.offAll(() => const BarnCommunityStandardsView());
       } else if (role == 'service_provider') {
         if (isProfileCompleted) {
           // Final stage: Dashboard

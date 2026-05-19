@@ -286,11 +286,8 @@ class _HorseListingViewState extends State<HorseListingView> {
         ? "1 / ${horse.images.length}"
         : "1 / 1";
     final List<String> listingTypes = horse.listingTypes;
-    final String postTitle = horse.listingTitle ??horse.name??"";
-    final String postDescription =
-        (horse.description == null || horse.description!.isEmpty)
-        ? ""
-        : horse.description!;
+    final String postTitle = horse.name??"";
+    final String postDescription =horse.listingTitle ??"";
     final String location = (horse.location == null || horse.location!.isEmpty)
         ? ""
         : horse.location!;

@@ -47,58 +47,58 @@ class SettingsView extends StatelessWidget {
             color: AppColors.textPrimary,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.border.withValues(alpha: 0.5),
-                ),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: AppColors.textPrimary,
-                      size: 24,
-                    ),
-                    onPressed: () => Get.to(() => const NotificationsView()),
-                  ),
-                  Obx(() {
-                    final notifController = Get.put(NotificationController());
-                    if (notifController.unreadCount.value > 0) {
-                      return Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: CommonText(
-                            notifController.unreadCount.value > 99 ? '99+' : notifController.unreadCount.value.toString(),
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
-                ],
-              ),
-            ),
-          ),
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 16),
+        //     child: Container(
+        //       width: 44,
+        //       height: 44,
+        //       decoration: BoxDecoration(
+        //         shape: BoxShape.circle,
+        //         border: Border.all(
+        //           color: AppColors.border.withValues(alpha: 0.5),
+        //         ),
+        //       ),
+        //       child: Stack(
+        //         clipBehavior: Clip.none,
+        //         children: [
+        //           IconButton(
+        //             padding: EdgeInsets.zero,
+        //             icon: const Icon(
+        //               Icons.notifications_none_rounded,
+        //               color: AppColors.textPrimary,
+        //               size: 24,
+        //             ),
+        //             onPressed: () => Get.to(() => const NotificationsView()),
+        //           ),
+        //           // Obx(() {
+        //           //   final notifController = Get.put(NotificationController());
+        //           //   if (notifController.unreadCount.value > 0) {
+        //           //     return Positioned(
+        //           //       right: 8,
+        //           //       top: 8,
+        //           //       child: Container(
+        //           //         padding: const EdgeInsets.all(4),
+        //           //         decoration: const BoxDecoration(
+        //           //           color: Colors.red,
+        //           //           shape: BoxShape.circle,
+        //           //         ),
+        //           //         child: CommonText(
+        //           //           notifController.unreadCount.value > 99 ? '99+' : notifController.unreadCount.value.toString(),
+        //           //           color: Colors.white,
+        //           //           fontSize: 10,
+        //           //           fontWeight: FontWeight.bold,
+        //           //         ),
+        //           //       ),
+        //           //     );
+        //           //   }
+        //           //   return const SizedBox.shrink();
+        //           // }),
+        //         ],
+        //       ),
+        //     ),
+        //   ),
+        // ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),

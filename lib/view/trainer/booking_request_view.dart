@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/view/trainer/settings/trainer_profile_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -254,22 +256,16 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
     String targetDate = booking!.endDate ?? booking!.startDate ?? booking!.date;
 
+    log("tragetDate::::$targetDate");
+
     if (targetDate.contains(' - ')) {
       targetDate = targetDate.split(' - ').last.trim();
     } else if (targetDate.contains(' to ')) {
       targetDate = targetDate.split(' to ').last.trim();
     }
 
-    DateTime? parsedDate;
-
-    try {
-      parsedDate = DateTime.tryParse(targetDate);
-      parsedDate ??= DateFormat('MMMM d, yyyy').parse(targetDate);
-    } catch (_) {
-      try {
-        parsedDate = DateFormat('yyyy-MM-dd').parse(targetDate);
-      } catch (_) {}
-    }
+    final parsedDate = DateUtil.parse(targetDate);
+    log("parsedDate::::$parsedDate");
 
     if (parsedDate != null) {
       final today = DateTime.now();
@@ -280,7 +276,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       );
       final todayOnly = DateTime(today.year, today.month, today.day);
 
-      return dateOnly.isBefore(todayOnly);
+      return dateOnly.isBefore(todayOnly) || dateOnly.isAtSameMomentAs(todayOnly);
     }
 
     return false;
@@ -1895,7 +1891,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
         final String? fromConvo = widget.openedFromConversationId;
         if (fromConvo != null && fromConvo.isNotEmpty) {
-          await chatController.fetchMessages(fromConvo);
+           chatController.fetchMessages(fromConvo);
           // Success snackbar from [updateBookingStatus] is open; plain [Get.back]
           // only dismisses it and does not pop this route (GetX 4.x behavior).
           Get.back(closeOverlays: true);
