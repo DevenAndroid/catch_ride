@@ -54,26 +54,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       title: "CatchRide",
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      builder: (context, child) {
-        return GestureDetector(
-          onTap: () {
-            FocusScopeNode currentFocus = FocusScope.of(context);
-            if (!currentFocus.hasPrimaryFocus && currentFocus.focusedChild != null) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            }
-          },
-          behavior: HitTestBehavior.opaque,
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaler: MediaQuery.of(context).textScaler.clamp(
-                    minScaleFactor: .9,
-                    maxScaleFactor: .9,
-                  ),
-            ),
-            child: child!,
-          ),
-        );
-      },
+
       home: const SplashScreen(),
     );
   }

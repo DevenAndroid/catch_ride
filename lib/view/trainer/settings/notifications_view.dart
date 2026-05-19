@@ -11,7 +11,10 @@ class NotificationsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final NotificationController controller = Get.put(NotificationController());
+    final NotificationController controller =
+        Get.isRegistered<NotificationController>()
+            ? Get.find<NotificationController>()
+            : Get.put(NotificationController());
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -107,10 +110,17 @@ class NotificationsView extends StatelessWidget {
             itemBuilder: (context, index) {
               final notification = controller.notifications[index];
               return Dismissible(
-                key: ValueKey(notification.id),
+                key: ValueKey(
+                  notification.id.isNotEmpty
+                      ? notification.id
+                      : 'notification-$index',
+                ),
                 direction: DismissDirection.endToStart,
                 onDismissed: (direction) {
-                  controller.deleteNotification(notification.id);
+                  // Defer so the dismiss animation finishes before Obx rebuilds.
+                  Future.microtask(
+                    () => controller.deleteNotification(notification.id),
+                  );
                 },
                 background: Container(
                   alignment: Alignment.centerRight,
