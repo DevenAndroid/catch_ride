@@ -39,47 +39,47 @@ class MenuView extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         title: const CommonText('Menu', fontSize: AppTextSizes.size24, fontWeight: FontWeight.bold),
-        actions: [
-          InkWell(
-            onTap: ()=> Get.to(() => const NotificationsView()),
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.notifications_none, color: Colors.black, size: 24),
-                    Obx(() {
-                      final notifController = Get.put(NotificationController());
-                      if (notifController.unreadCount.value > 0) {
-                        return Positioned(
-                          right: -4,
-                          top: -4,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: CommonText(
-                              notifController.unreadCount.value > 99 ? '99+' : notifController.unreadCount.value.toString(),
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
-                ),
-              ),
-            ),
-          )
-        ],
+        // actions: [
+        //   InkWell(
+        //     onTap: ()=> Get.to(() => const NotificationsView()),
+        //     child: Padding(
+        //       padding: const EdgeInsets.only(right: 16),
+        //       child: Container(
+        //         padding: const EdgeInsets.all(8),
+        //         decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppColors.borderLight)),
+        //         child: Stack(
+        //           clipBehavior: Clip.none,
+        //           children: [
+        //             const Icon(Icons.notifications_none, color: Colors.black, size: 24),
+        //             Obx(() {
+        //               final notifController = Get.put(NotificationController());
+        //               if (notifController.unreadCount.value > 0) {
+        //                 return Positioned(
+        //                   right: -4,
+        //                   top: -4,
+        //                   child: Container(
+        //                     padding: const EdgeInsets.all(4),
+        //                     decoration: const BoxDecoration(
+        //                       color: Colors.red,
+        //                       shape: BoxShape.circle,
+        //                     ),
+        //                     child: CommonText(
+        //                       notifController.unreadCount.value > 99 ? '99+' : notifController.unreadCount.value.toString(),
+        //                       color: Colors.white,
+        //                       fontSize: 10,
+        //                       fontWeight: FontWeight.bold,
+        //                     ),
+        //                   ),
+        //                 );
+        //               }
+        //               return const SizedBox.shrink();
+        //             }),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //   )
+        // ],
       ),
       body: Obx(() {
         final user = Get.find<AuthController>().currentUser.value;

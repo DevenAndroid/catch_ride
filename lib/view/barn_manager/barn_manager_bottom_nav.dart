@@ -19,7 +19,7 @@ class BarnManagerBottomNav extends StatefulWidget {
 
   const BarnManagerBottomNav({
     super.key,
-    this.initialIndex = 0, // Default to Bookings (index 0)
+    this.initialIndex = 1, // Default to Bookings (index 0)
   });
 
   @override

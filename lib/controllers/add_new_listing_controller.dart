@@ -588,7 +588,10 @@ class AddNewListingController extends GetxController {
           }
           if (Get.isRegistered<HorseController>()) {
             final profile = Get.find<ProfileController>();
-            final tId = profile.trainerId;
+            String tId = profile.trainerId;
+            if (tId.isEmpty) {
+              tId = profile.user.value?.linkedTrainer?.id ?? '';
+            }
             final uId = profile.id;
 
             if (tId.isNotEmpty) {
@@ -604,7 +607,9 @@ class AddNewListingController extends GetxController {
             }
           }
           if (Get.isRegistered<ExploreController>()) {
-            Get.find<ExploreController>().fetchHorses();
+            final explore = Get.find<ExploreController>();
+            explore.fetchHorses();
+            explore.fetchVendors();
           }
         } catch (e) {
           print('Could not refresh data: $e');

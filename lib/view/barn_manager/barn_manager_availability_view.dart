@@ -541,6 +541,7 @@ class _BarnManagerAvailabilityViewState
                               duration: const Duration(seconds: 2),
                             );
                           }
+
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

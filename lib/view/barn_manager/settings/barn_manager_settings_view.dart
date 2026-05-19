@@ -39,28 +39,28 @@ class BarnManagerSettingsView extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Color(0xFF101828),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFEAECF0)),
-              ),
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                icon: const Icon(
-                  Icons.notifications_none_outlined,
-                  color: Color(0xFF344054),
-                  size: 24,
-                ),
-                onPressed: ()=> Get.to(()=> NotificationsView()),
-              ),
-            ),
-          ),
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 16),
+        //     child: Container(
+        //       width: 44,
+        //       height: 44,
+        //       decoration: BoxDecoration(
+        //         shape: BoxShape.circle,
+        //         border: Border.all(color: const Color(0xFFEAECF0)),
+        //       ),
+        //       child: IconButton(
+        //         padding: EdgeInsets.zero,
+        //         icon: const Icon(
+        //           Icons.notifications_none_outlined,
+        //           color: Color(0xFF344054),
+        //           size: 24,
+        //         ),
+        //         onPressed: ()=> Get.to(()=> NotificationsView()),
+        //       ),
+        //     ),
+        //   ),
+        // ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),

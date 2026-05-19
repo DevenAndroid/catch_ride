@@ -193,59 +193,65 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 CommonText(
                                   _controller.barnName.isEmpty
                                       ? ''
                                       : _controller.barnName,
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w500,
                                 ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                const SizedBox(height: 2),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(
-                                      Icons.location_on,
-                                      size: 16,
-                                      color: Colors.redAccent,
+                                    Padding(
+                                      padding: EdgeInsets.only(top: 4),
+                                      child: const Icon(
+                                        Icons.location_on,
+                                        size: 16,
+                                        color: Colors.redAccent,
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
-                                    CommonText(
-                                      (() {
-                                        // Priority 1: Linked Trainer Location
-                                        if (profile.linkedTrainer != null) {
-                                          final l1 =
-                                              profile.linkedTrainer!.location;
-                                          final l2 =
-                                              profile.linkedTrainer!.location2;
-                                          if (l1 != null &&
-                                              l1.isNotEmpty &&
-                                              l2 != null &&
-                                              l2.isNotEmpty) {
-                                            return "$l1\u00A0|\u00A0$l2";
-                                          }
-                                          if (l1?.isNotEmpty ?? false)
-                                            return l1!;
-                                          if (l2?.isNotEmpty ?? false)
-                                            return l2!;
-                                        }
+                                    Flexible(
+                                      child:
+                                        CommonText(
+                                          (() {
+                                            // Priority 1: Linked Trainer Location
+                                            if (profile.linkedTrainer != null) {
+                                              final l1 =
+                                                  profile.linkedTrainer!.location;
+                                              final l2 =
+                                                  profile.linkedTrainer!.location2;
+                                              if (l1 != null &&
+                                                  l1.isNotEmpty &&
+                                                  l2 != null &&
+                                                  l2.isNotEmpty) {
+                                                return "$l1\u00A0|\u00A0$l2";
+                                              }
+                                              if (l1?.isNotEmpty ?? false)
+                                                return l1!;
+                                              if (l2?.isNotEmpty ?? false)
+                                                return l2!;
+                                            }
 
-                                        // Priority 2: Barn Manager's own location
-                                        if (_controller.location.isNotEmpty) {
-                                          if (profile.location2?.isNotEmpty ??
-                                              false) {
-                                            return "${_controller.location} | ${profile.location2}";
-                                          }
-                                          return _controller.location;
-                                        }
+                                            // Priority 2: Barn Manager's own location
+                                            if (_controller.location.isNotEmpty) {
+                                              if (profile.location2?.isNotEmpty ??
+                                                  false) {
+                                                return "${_controller.location} | ${profile.location2}";
+                                              }
+                                              return _controller.location;
+                                            }
 
-                                        return '';
-                                      })(),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textSecondary,
+                                            return '';
+                                          })(),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.textSecondary,
+                                        ),
                                     ),
                                   ],
                                 ),
@@ -258,7 +264,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                       children: [
                                         CommonText(
                                           'Barn Manager',
-                                          fontSize: 15,
+                                          fontSize: 14,
                                           color: AppColors.textSecondary,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -276,7 +282,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                     if (_controller.yearsInIndustry.isNotEmpty)
                                       CommonText(
                                         '${_controller.yearsInIndustry} Yrs',
-                                        fontSize: 15,
+                                        fontSize: 14,
                                         color: AppColors.textSecondary,
                                         fontWeight: FontWeight.w600,
                                       ),

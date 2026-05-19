@@ -115,7 +115,19 @@ class DateUtil {
     } catch (_) {}
 
     try {
+      return DateFormat('d MMM yyyy').parse(date);
+    } catch (_) {}
+
+    try {
+      return DateFormat('d MMMM yyyy').parse(date);
+    } catch (_) {}
+
+    try {
       return DateFormat('MMMM d, yyyy').parse(date);
+    } catch (_) {}
+
+    try {
+      return DateFormat('MMM d, yyyy').parse(date);
     } catch (_) {}
 
     // 3. Try standard ISO-like date only
