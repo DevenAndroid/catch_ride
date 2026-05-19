@@ -206,7 +206,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                     return;
                   }
 
-                  if (!RegExp(r'[!@#\$&*~]')
+                  if (!RegExp(r'[!@#\$&*~?_+\-=/\\|:;()\[\]{}<>,.]')
                       .hasMatch(_newPasswordController.text)) {
                     Get.snackbar(
                       'Error',

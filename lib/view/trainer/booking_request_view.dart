@@ -103,7 +103,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     }
 
     if (widget.bookingId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _fetchBookingDetails());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _fetchBookingDetails(),
+      );
     }
   }
 
@@ -119,7 +121,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
             _currentBookingStatus = booking?.status;
           });
           final horseIdToLoad = booking?.horseId ?? widget.horseId;
-          if (horse == null && horseIdToLoad != null && horseIdToLoad.isNotEmpty) {
+          if (horse == null &&
+              horseIdToLoad != null &&
+              horseIdToLoad.isNotEmpty) {
             await _fetchHorseDetailsForId(horseIdToLoad);
           }
         }
@@ -163,7 +167,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
     // Fetch latest sent bookings from server to sync with DB
     await bookingController.fetchBookings(type: 'sent');
-    
+
     if (chatController.conversations.isEmpty) {
       await chatController.fetchConversations();
     }
@@ -173,15 +177,17 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     );
 
     final hasAcceptedBooking = bookingController.sentBookings.any(
-      (b) => b.trainerId == horse?.trainerId && 
-             (b.status.toLowerCase() == 'accepted' || 
-              b.status.toLowerCase() == 'confirmed' || 
+      (b) =>
+          b.trainerId == horse?.trainerId &&
+          (b.status.toLowerCase() == 'accepted' ||
+              b.status.toLowerCase() == 'confirmed' ||
               b.status.toLowerCase() == 'completed'),
     );
 
     final hasExistingChat = chatController.conversations.any(
-      (c) => c.otherUser?.id == horse?.trainerId || 
-             c.otherUser?.trainerId == horse?.trainerId,
+      (c) =>
+          c.otherUser?.id == horse?.trainerId ||
+          c.otherUser?.trainerId == horse?.trainerId,
     );
 
     setState(() {
@@ -191,7 +197,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   }
 
   void _initVideo() {
-    final String? videoLink = horse!.videoLink.isNotEmpty ? horse!.videoLink.first : null;
+    final String? videoLink = horse!.videoLink.isNotEmpty
+        ? horse!.videoLink.first
+        : null;
     if (videoLink == null || videoLink.isEmpty || videoLink == '') {
       _hasVideo = false;
       return;
@@ -243,9 +251,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   bool _isDatePassed() {
     if (booking == null) return false;
-    
+
     String targetDate = booking!.endDate ?? booking!.startDate ?? booking!.date;
-    
+
     if (targetDate.contains(' - ')) {
       targetDate = targetDate.split(' - ').last.trim();
     } else if (targetDate.contains(' to ')) {
@@ -253,7 +261,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     }
 
     DateTime? parsedDate;
-    
+
     try {
       parsedDate = DateTime.tryParse(targetDate);
       parsedDate ??= DateFormat('MMMM d, yyyy').parse(targetDate);
@@ -265,12 +273,16 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
     if (parsedDate != null) {
       final today = DateTime.now();
-      final dateOnly = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+      final dateOnly = DateTime(
+        parsedDate.year,
+        parsedDate.month,
+        parsedDate.day,
+      );
       final todayOnly = DateTime(today.year, today.month, today.day);
-      
+
       return dateOnly.isBefore(todayOnly);
     }
-    
+
     return false;
   }
 
@@ -334,8 +346,6 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -386,14 +396,14 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                             children: [
                               _buildRequesterInfoCard(),
                               _buildPremiumHeader(),
-                              if (widget.fromBooking && widget.otherName != null)
-
-                              _buildTrainerSection(),
+                              if (widget.fromBooking &&
+                                  widget.otherName != null)
+                                _buildTrainerSection(),
                               _buildDescriptionAndTags(),
                               _buildDetailsSection(),
                               _buildPricingSection(),
                               _buildAvailabilitySection(),
-                            //  if (!isHorseOwner) _buildCancelationPolicy(),
+                              //  if (!isHorseOwner) _buildCancelationPolicy(),
                               const SizedBox(height: 20),
                             ],
                           ),
@@ -424,10 +434,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.8),
-                    Colors.transparent,
-                  ],
+                  colors: [Colors.black.withOpacity(0.8), Colors.transparent],
                 ),
               ),
             ),
@@ -446,7 +453,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                   children: [
                     Expanded(
                       child: CommonText(
-                        horse?.listingTitle??horse?.name??"",
+                        horse?.listingTitle ?? horse?.name ?? "",
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -554,9 +561,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
         if (value == 'edit') {
           Get.to(() => EditHorseListingView(horse: horse!));
         } else if (value == 'availability') {
-          await Get.to(
-            () => BarnManagerAvailabilityView(horse: horse!),
-          );
+          await Get.to(() => BarnManagerAvailabilityView(horse: horse!));
           _fetchHorseDetails();
         } else if (value == 'active') {
           final horseController = Get.put(HorseController());
@@ -666,9 +671,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: const Color(
-          0xFF8B4444,
-        ), // Matched to mockup dark trans-red
+        color: const Color(0xFF8B4444), // Matched to mockup dark trans-red
         borderRadius: BorderRadius.circular(4),
       ),
       child: CommonText(
@@ -692,8 +695,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
         : horse!.trainerAvatar;
 
     final String trainerName =
-        (isOwnHorse &&
-            (horse!.trainerName == null || horse!.trainerName == ''))
+        (isOwnHorse && (horse!.trainerName == null || horse!.trainerName == ''))
         ? profileController.fullName
         : (horse!.trainerName ?? '');
 
@@ -719,15 +721,18 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                if(horse?.trainerId == null){
-          Get.snackbar(
-          'Error', 'This trainer has been deleted.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          );
-          return;}
-                  Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));},
+                if (horse?.trainerId == null) {
+                  Get.snackbar(
+                    'Error',
+                    'This trainer has been deleted.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                  );
+                  return;
+                }
+                Get.to(() => TrainerProfileView(trainerId: horse?.trainerId));
+              },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -855,7 +860,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
       child: Container(
-      //  padding: const EdgeInsets.all(16),
+        //  padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -914,8 +919,11 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(Icons.location_on_outlined,
-                                    size: 16, color: Color(0xFF667085)),
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  size: 16,
+                                  color: Color(0xFF667085),
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: CommonText(
@@ -931,8 +939,11 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                             const SizedBox(height: 6),
                             Row(
                               children: [
-                                const Icon(Icons.calendar_today_outlined,
-                                    size: 16, color: Color(0xFF667085)),
+                                const Icon(
+                                  Icons.calendar_today_outlined,
+                                  size: 16,
+                                  color: Color(0xFF667085),
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: CommonText(
@@ -948,7 +959,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
@@ -1087,12 +1100,14 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       if (horse!.photo != null && horse!.photo!.isNotEmpty) horse!.photo!,
       ...horse!.images,
       ...horse!.videoFile,
-      ...horse!.videoLink.where((link) =>
-          link.isNotEmpty &&
-          link != '' &&
-          !horse!.images.contains(link) &&
-          horse!.photo != link &&
-          !horse!.videoFile.contains(link)),
+      ...horse!.videoLink.where(
+        (link) =>
+            link.isNotEmpty &&
+            link != '' &&
+            !horse!.images.contains(link) &&
+            horse!.photo != link &&
+            !horse!.videoFile.contains(link),
+      ),
     ].toSet().toList();
 
     final int totalItems = allMedia.length;
@@ -1241,8 +1256,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                       ? ''
                       : horse!.usefNumber.toString(),
                   onLabelTap2: () async {
-                    final Uri url =
-                        Uri.parse('https://www.usef.org/search/horses');
+                    final Uri url = Uri.parse(
+                      'https://www.usef.org/search/horses',
+                    );
                     if (!await launchUrl(url)) {
                       Get.snackbar('Error', 'Could not launch $url');
                     }
@@ -1294,7 +1310,13 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       children: [
         Row(
           children: [
-            Flexible(child: CommonText(label, fontSize: 13, color: AppColors.textSecondary)),
+            Flexible(
+              child: CommonText(
+                label,
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
             if (onLabelTap != null) ...[
               const SizedBox(width: 6),
               GestureDetector(
@@ -1397,8 +1419,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 String formatPrice(String? p) {
                   if (p == null || p.isEmpty || p == 'null') return '';
                   try {
-                    final double val =
-                        double.parse(p.toString().replaceAll(',', ''));
+                    final double val = double.parse(
+                      p.toString().replaceAll(',', ''),
+                    );
                     return NumberFormat.decimalPattern().format(val);
                   } catch (e) {
                     return p;
@@ -1411,8 +1434,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 String valStr = '';
                 if (inquire) {
                   valStr = 'Inquire';
-                } else if (formattedMin.isNotEmpty &&
-                    formattedMax.isNotEmpty) {
+                } else if (formattedMin.isNotEmpty && formattedMax.isNotEmpty) {
                   if (formattedMin == formattedMax) {
                     valStr = '\$ $formattedMin';
                   } else {
@@ -1468,7 +1490,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: horse!.showAvailability.asMap().entries.map((entry) {
+                    children: horse!.showAvailability.asMap().entries.map((
+                      entry,
+                    ) {
                       final index = entry.key;
                       final show = entry.value;
                       return Column(
@@ -1611,8 +1635,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   Widget _buildBookingSpecificActions() {
     final status = (_currentBookingStatus ?? '').toLowerCase();
-    
-    final bool isAnyLoading = _isAccepting || _isRejecting || _isCompleting || _isCancelling;
+
+    final bool isAnyLoading =
+        _isAccepting || _isRejecting || _isCompleting || _isCancelling;
 
     // Professionals (Trainer/Barn Manager) actions for Received bookings
     if (isHorseOwner) {
@@ -1639,7 +1664,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.red),
+                            strokeWidth: 2,
+                            color: Colors.red,
+                          ),
                         )
                       : const CommonText(
                           'Decline',
@@ -1666,7 +1693,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const CommonText(
                           'Accept',
@@ -1680,7 +1709,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           ),
         );
       }
-      
+
       if (status == 'accepted' || status == 'confirmed') {
         final bool showComplete = _isDatePassed();
         return Padding(
@@ -1692,7 +1721,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: isAnyLoading ? null : () => _showCancelConfirmation(),
+                      onPressed: isAnyLoading
+                          ? null
+                          : () => _showCancelConfirmation(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: AppColors.textPrimary,
@@ -1708,7 +1739,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: AppColors.textPrimary),
+                                strokeWidth: 2,
+                                color: AppColors.textPrimary,
+                              ),
                             )
                           : const CommonText(
                               'Cancel',
@@ -1721,7 +1754,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: (isAnyLoading || !showComplete) ? null : () => _showCompleteConfirmation(),
+                      onPressed: (isAnyLoading || !showComplete)
+                          ? null
+                          : () => _showCompleteConfirmation(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: showComplete
                             ? AppColors.successPrimary
@@ -1737,13 +1772,19 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : CommonText(
                               'Complete',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: showComplete ? Colors.white : AppColors.textSecondary.withValues(alpha: 0.5),
+                              color: showComplete
+                                  ? Colors.white
+                                  : AppColors.textSecondary.withValues(
+                                      alpha: 0.5,
+                                    ),
                             ),
                     ),
                   ),
@@ -1753,15 +1794,24 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
+                    border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: CommonText(
@@ -1782,7 +1832,8 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     }
 
     // Default Cancel action (for clients or already confirmed bookings)
-    final bool canCancel = status == 'pending' || status == 'confirmed' || status == 'accepted';
+    final bool canCancel =
+        status == 'pending' || status == 'confirmed' || status == 'accepted';
     if (canCancel) {
       return Padding(
         padding: const EdgeInsets.all(16),
@@ -1805,7 +1856,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.textPrimary),
+                      strokeWidth: 2,
+                      color: AppColors.textPrimary,
+                    ),
                   )
                 : const CommonText(
                     'Cancel Booking',
@@ -1828,7 +1881,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       final bookingController = Get.put(BookingController());
       final chatController = Get.put(ChatController());
       final result = await bookingController.updateBookingStatus(
-          widget.bookingId!, 'confirmed');
+        widget.bookingId!,
+        'confirmed',
+      );
       if (result != null) {
         if (mounted) {
           setState(() {
@@ -1845,8 +1900,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           // only dismisses it and does not pop this route (GetX 4.x behavior).
           Get.back(closeOverlays: true);
         } else {
-          final String otherId =
-              widget.otherId ?? booking?.clientId ?? '';
+          final String otherId = widget.otherId ?? booking?.clientId ?? '';
           final String otherName =
               widget.otherName ?? booking?.clientName ?? 'Client';
           final String otherImage =
@@ -1872,7 +1926,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       setState(() => _isRejecting = true);
       final bookingController = Get.find<BookingController>();
       final result = await bookingController.updateBookingStatus(
-          widget.bookingId!, 'rejected');
+        widget.bookingId!,
+        'rejected',
+      );
       if (result != null) {
         setState(() {
           _currentBookingStatus = 'rejected';
@@ -2104,15 +2160,12 @@ class _BookingRequestViewState extends State<BookingRequestView> {
         setState(() {
           _currentBookingStatus = 'cancelled';
         });
-        
+
         bookingController.targetTabIndex = isHorseOwner ? 0 : 1;
         bookingController.targetFilterIndex = 3;
         Get.offAll(
           () => const TrainerBottomNav(initialIndex: 0),
-          arguments: {
-            'tabIndex': isHorseOwner ? 0 : 1,
-            'filterIndex': 3,
-          },
+          arguments: {'tabIndex': isHorseOwner ? 0 : 1, 'filterIndex': 3},
         );
       } else {
         Get.snackbar(
@@ -2210,11 +2263,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(
-            label,
-            fontSize: 11,
-            color: AppColors.textSecondary,
-          ),
+          CommonText(label, fontSize: 11, color: AppColors.textSecondary),
           const SizedBox(height: 2),
           CommonText(
             value,
@@ -2261,84 +2310,58 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                 children: [
                   // Handle
                   Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.border.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(2),
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.border.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const CommonText(
+                        'Request a Trial',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                      IconButton(
+                        onPressed: () => Get.back(),
+                        icon: const Icon(
+                          Icons.close,
+                          color: AppColors.textPrimary,
+                        ),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Horse Card
+                  _buildBookingHorseCard(),
+                  const SizedBox(height: 20),
+
+                  // Single Date
                   const CommonText(
-                    'Request a Trial',
-                    fontSize: 20,
+                    'Date',
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                   ),
-                  IconButton(
-                    onPressed: () => Get.back(),
-                    icon: const Icon(Icons.close, color: AppColors.textPrimary),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Horse Card
-              _buildBookingHorseCard(),
-              const SizedBox(height: 20),
-
-              // Single Date
-              const CommonText(
-                'Date',
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-              const SizedBox(height: 8),
-              _buildDateSelector(
-                startDate != null
-                    ? DateFormat('MMMM d, yyyy').format(startDate!)
-                    : 'Select Date',
-                () async {
-                  if (selectedLocation == null) {
-                    Get.snackbar(
-                      'Select Location',
-                      'Please select a location first to see available dates.',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: Colors.orange,
-                      colorText: Colors.white,
-                    );
-                    return;
-                  }
-
-                  // Find a valid initial date that satisfies the predicate
-                  DateTime now = DateTime.now();
-                  DateTime today = DateTime(now.year, now.month, now.day);
-                  DateTime initial = startDate ?? today;
-                  DateTime first = today;
-
-                  if (selectedLocation != horse!.location &&
-                      selectedShow != null) {
-                    final sDate = DateTime.tryParse(selectedShow!.startDate);
-                    final eDate = DateTime.tryParse(selectedShow!.endDate);
-
-                    if (sDate != null && eDate != null) {
-                      final startOnly =
-                          DateTime(sDate.year, sDate.month, sDate.day);
-                      final endOnly =
-                          DateTime(eDate.year, eDate.month, eDate.day);
-
-                      // Safety check: If the show is entirely in the past, don't open picker
-                      if (endOnly.isBefore(today)) {
+                  const SizedBox(height: 8),
+                  _buildDateSelector(
+                    startDate != null
+                        ? DateFormat('MMMM d, yyyy').format(startDate!)
+                        : 'Select Date',
+                    () async {
+                      if (selectedLocation == null) {
                         Get.snackbar(
-                          'Show Ended',
-                          'This show has already ended. Please select a different location.',
+                          'Select Location',
+                          'Please select a location first to see available dates.',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.orange,
                           colorText: Colors.white,
@@ -2346,369 +2369,461 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                         return;
                       }
 
-                      if (initial.isBefore(startOnly)) {
-                        initial = startOnly;
-                      } else if (initial.isAfter(endOnly)) {
-                        initial = startOnly;
-                      }
+                      // Find a valid initial date that satisfies the predicate
+                      DateTime now = DateTime.now();
+                      DateTime today = DateTime(now.year, now.month, now.day);
+                      DateTime initial = startDate ?? today;
+                      DateTime first = today;
 
-                      // Ensure initial date is not before today
-                      if (initial.isBefore(today)) {
-                        initial = today;
-                      }
-                    }
-                  }
-
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: initial,
-                    firstDate: first,
-                    lastDate: DateTime.now().add(const Duration(days: 365)),
-                    selectableDayPredicate: (DateTime day) {
-                      final dateOnly = DateTime(day.year, day.month, day.day);
-                      final now = DateTime.now();
-                      final today = DateTime(now.year, now.month, now.day);
-
-                      // Never allow past dates
-                      if (dateOnly.isBefore(today)) return false;
-
-                      if (selectedLocation == horse!.location) return true;
-                      if (selectedShow == null) return false;
-
-                      final sDate = DateTime.tryParse(selectedShow!.startDate);
-                      final eDate = DateTime.tryParse(selectedShow!.endDate);
-                      if (sDate != null && eDate != null) {
-                        final startOnly =
-                            DateTime(sDate.year, sDate.month, sDate.day);
-                        final endOnly =
-                            DateTime(eDate.year, eDate.month, eDate.day);
-
-                        return (dateOnly.isAtSameMomentAs(startOnly) ||
-                                dateOnly.isAfter(startOnly)) &&
-                            (dateOnly.isAtSameMomentAs(endOnly) ||
-                                dateOnly.isBefore(endOnly));
-                      }
-
-                      return false;
-                    },
-                  );
-                  if (date != null) {
-                    setSheetState(() {
-                      startDate = date;
-                      endDate = date; // For single date submission
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Location
-              const CommonText(
-                'Location',
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-              ),
-              const SizedBox(height: 4),
-              const CommonText(
-                'Note: Trials can be requested at horse shows or the horse\'s home location.',
-                fontSize: 11,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedLocation,
-                    isExpanded: true,
-                    itemHeight: null, // Allow custom height for Column
-                    items: [
-                      if (horse!.location != null &&
-                          horse!.location!.isNotEmpty)
-                        DropdownMenuItem(
-                          value: horse!.location!,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CommonText(
-                                  "${horse!.location!} (Home)",
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                const CommonText(
-                                  "Available at home",
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ...horse!.showAvailability.map((show) {
-                        final dateRange = DateUtil.formatRange(
-                            show.startDate, show.endDate);
-                        final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
-                        return DropdownMenuItem(
-                          value: uniqueValue,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                CommonText(
-                                  show.cityState,
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                CommonText(
-                                  dateRange,
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ],
-                            ),
-                          ),
+                      if (selectedLocation != horse!.location &&
+                          selectedShow != null) {
+                        final sDate = DateTime.tryParse(
+                          selectedShow!.startDate,
                         );
-                      }).toList(),
-                    ],
-                    hint: const CommonText(
-                      'Select Location',
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                    onChanged: (val) {
-                      setSheetState(() {
-                        selectedLocation = val;
-                        selectedShow = horse!.showAvailability.firstWhereOrNull(
-                          (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
-                        );
+                        final eDate = DateTime.tryParse(selectedShow!.endDate);
 
-                        // Reset date if it's invalid for the new location
-                        if (startDate != null) {
-                          if (val == horse!.location) {
-                            // All dates valid for home, no reset needed
-                          } else if (selectedShow != null) {
-                            final sDate = DateTime.tryParse(selectedShow!.startDate);
-                            final eDate = DateTime.tryParse(selectedShow!.endDate);
-                            bool isValid = false;
-                            if (sDate != null && eDate != null) {
-                              final dateOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);
-                              final startOnly = DateTime(sDate.year, sDate.month, sDate.day);
-                              final endOnly = DateTime(eDate.year, eDate.month, eDate.day);
-                              
-                              if ((dateOnly.isAtSameMomentAs(startOnly) || dateOnly.isAfter(startOnly)) &&
-                                  (dateOnly.isAtSameMomentAs(endOnly) || dateOnly.isBefore(endOnly))) {
-                                isValid = true;
-                              }
-                            }
-                            if (!isValid) {
-                              startDate = null;
-                            }
+                        if (sDate != null && eDate != null) {
+                          final startOnly = DateTime(
+                            sDate.year,
+                            sDate.month,
+                            sDate.day,
+                          );
+                          final endOnly = DateTime(
+                            eDate.year,
+                            eDate.month,
+                            eDate.day,
+                          );
+
+                          // Safety check: If the show is entirely in the past, don't open picker
+                          if (endOnly.isBefore(today)) {
+                            Get.snackbar(
+                              'Show Ended',
+                              'This show has already ended. Please select a different location.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.orange,
+                              colorText: Colors.white,
+                            );
+                            return;
+                          }
+
+                          if (initial.isBefore(startOnly)) {
+                            initial = startOnly;
+                          } else if (initial.isAfter(endOnly)) {
+                            initial = startOnly;
+                          }
+
+                          // Ensure initial date is not before today
+                          if (initial.isBefore(today)) {
+                            initial = today;
                           }
                         }
-                      });
+                      }
+
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: initial,
+                        firstDate: first,
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        selectableDayPredicate: (DateTime day) {
+                          final dateOnly = DateTime(
+                            day.year,
+                            day.month,
+                            day.day,
+                          );
+                          final now = DateTime.now();
+                          final today = DateTime(now.year, now.month, now.day);
+
+                          // Never allow past dates
+                          if (dateOnly.isBefore(today)) return false;
+
+                          if (selectedLocation == horse!.location) return true;
+                          if (selectedShow == null) return false;
+
+                          final sDate = DateTime.tryParse(
+                            selectedShow!.startDate,
+                          );
+                          final eDate = DateTime.tryParse(
+                            selectedShow!.endDate,
+                          );
+                          if (sDate != null && eDate != null) {
+                            final startOnly = DateTime(
+                              sDate.year,
+                              sDate.month,
+                              sDate.day,
+                            );
+                            final endOnly = DateTime(
+                              eDate.year,
+                              eDate.month,
+                              eDate.day,
+                            );
+
+                            return (dateOnly.isAtSameMomentAs(startOnly) ||
+                                    dateOnly.isAfter(startOnly)) &&
+                                (dateOnly.isAtSameMomentAs(endOnly) ||
+                                    dateOnly.isBefore(endOnly));
+                          }
+
+                          return false;
+                        },
+                      );
+                      if (date != null) {
+                        setSheetState(() {
+                          startDate = date;
+                          endDate = date; // For single date submission
+                        });
+                      }
                     },
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-              // Message
-              RichText(
-                text: const TextSpan(
-                  style: TextStyle(
+                  // Location
+                  const CommonText(
+                    'Location',
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    fontFamily: 'Outfit',
                   ),
-                  children: [
-                    TextSpan(text: 'Message '),
-                    TextSpan(
-                      text: '(optional)',
+                  const SizedBox(height: 4),
+                  const CommonText(
+                    'Note: Trials can be requested at horse shows or the horse\'s home location.',
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedLocation,
+                        isExpanded: true,
+                        itemHeight: null, // Allow custom height for Column
+                        items: [
+                          if (horse!.location != null &&
+                              horse!.location!.isNotEmpty)
+                            DropdownMenuItem(
+                              value: horse!.location!,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CommonText(
+                                      "${horse!.location!} (Home)",
+                                      fontSize: 14,
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    const CommonText(
+                                      "Available at home",
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ...horse!.showAvailability.map((show) {
+                            final dateRange = DateUtil.formatRange(
+                              show.startDate,
+                              show.endDate,
+                            );
+                            final uniqueValue =
+                                show.id ??
+                                "${show.cityState}_${show.startDate}";
+                            return DropdownMenuItem(
+                              value: uniqueValue,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CommonText(
+                                      show.cityState,
+                                      fontSize: 14,
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    CommonText(
+                                      dateRange,
+                                      fontSize: 11,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                        hint: const CommonText(
+                          'Select Location',
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                        ),
+                        onChanged: (val) {
+                          setSheetState(() {
+                            selectedLocation = val;
+                            selectedShow = horse!.showAvailability
+                                .firstWhereOrNull(
+                                  (s) =>
+                                      (s.id ??
+                                          "${s.cityState}_${s.startDate}") ==
+                                      val,
+                                );
+
+                            // Reset date if it's invalid for the new location
+                            if (startDate != null) {
+                              if (val == horse!.location) {
+                                // All dates valid for home, no reset needed
+                              } else if (selectedShow != null) {
+                                final sDate = DateTime.tryParse(
+                                  selectedShow!.startDate,
+                                );
+                                final eDate = DateTime.tryParse(
+                                  selectedShow!.endDate,
+                                );
+                                bool isValid = false;
+                                if (sDate != null && eDate != null) {
+                                  final dateOnly = DateTime(
+                                    startDate!.year,
+                                    startDate!.month,
+                                    startDate!.day,
+                                  );
+                                  final startOnly = DateTime(
+                                    sDate.year,
+                                    sDate.month,
+                                    sDate.day,
+                                  );
+                                  final endOnly = DateTime(
+                                    eDate.year,
+                                    eDate.month,
+                                    eDate.day,
+                                  );
+
+                                  if ((dateOnly.isAtSameMomentAs(startOnly) ||
+                                          dateOnly.isAfter(startOnly)) &&
+                                      (dateOnly.isAtSameMomentAs(endOnly) ||
+                                          dateOnly.isBefore(endOnly))) {
+                                    isValid = true;
+                                  }
+                                }
+                                if (!isValid) {
+                                  startDate = null;
+                                }
+                              }
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Message
+                  RichText(
+                    text: const TextSpan(
                       style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        color: AppColors.textSecondary,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Outfit',
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 120,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: messageController,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText:
-                        'Please include your preferred time frame for the trial...',
-                    hintStyle: TextStyle(
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: const Center(
-                          child: CommonText(
-                            'Cancel',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                      children: [
+                        TextSpan(text: 'Message '),
+                        TextSpan(
+                          text: '(optional)',
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: AppColors.textSecondary,
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 120,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.border),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextField(
+                      controller: messageController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Please include your preferred time frame for the trial...',
+                        hintStyle: TextStyle(
+                          color: AppColors.textSecondary.withValues(alpha: 0.5),
+                          fontSize: 14,
+                        ),
+                        border: InputBorder.none,
+                        isDense: true,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Obx(
-                      () => GestureDetector(
-                        onTap: bookingController.isLoading.value
-                            ? null
-                            : () async {
+                  const SizedBox(height: 32),
 
-
-                                if (startDate == null) {
-                                  Get.snackbar(
-                                    'Error',
-                                    'Please select a date',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.redAccent,
-                                    colorText: Colors.white,
-                                    barBlur: 0,
-                                    margin: const EdgeInsets.all(16),
-                                  );
-                                  return;
-                                }
-
-                                if (selectedLocation == null) {
-                                  Get.snackbar(
-                                    'Error',
-                                    'Please select a location',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: Colors.redAccent,
-                                    colorText: Colors.white,
-                                    barBlur: 0,
-                                    margin: const EdgeInsets.all(16),
-                                  );
-                                  return;
-                                }
-
-                                final result = await bookingController
-                                    .createBooking({
-                                      'horseId': horse!.id,
-                                      'horseName': horse!.name,
-                                      'trainerId': horse!.trainerId,
-                                      'type': selectedType,
-                                      'date': DateFormat(
-                                        'yyyy-MM-dd',
-                                      ).format(startDate!),
-                                      'location': selectedShow?.cityState ??
-                                          horse!.location ??
-                                          '',
-                                      'notes': messageController.text,
-                                      'service': selectedType,
-                                      'price': horse!.price ?? 0,
-                                      'clientId': Get.find<ProfileController>()
-                                          .user
-                                          .value
-                                          ?.id,
-                                    });
-
-                                if (result != null) {
-                                  Get.back(); // Close bottom sheet
-                                  Get.snackbar(
-                                    'Success',
-                                    'Booking request sent successfully',
-                                    snackPosition: SnackPosition.BOTTOM,
-                                    backgroundColor: const Color(0xFF17B26A),
-                                    colorText: Colors.white,
-                                    barBlur: 0,
-                                    margin: const EdgeInsets.all(16),
-                                  );
-                                  setState(() => _isRequested = true);
-                                  _fetchHorseDetails(); 
-                                   
-                                   final String? conversationId = (result is Map) ? result["conversationId"] : null;
-                                   if (conversationId != null) {
-                                     Get.to(() => SingleChatView(
-                                       name: horse!.trainerName ?? "Trainer",
-                                       image: horse!.trainerAvatar ?? "",
-                                       conversationId: conversationId,
-                                       otherId: horse!.trainerId?.toString(),
-                                     ));
-                                   }
-                                 }                              },
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: bookingController.isLoading.value
-                                ? AppColors.inputBackground
-                                : AppColors.primary,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Center(
-                            child: bookingController.isLoading.value
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const CommonText(
-                                    'Submit',
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                  // Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: const Center(
+                              child: CommonText(
+                                'Cancel',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Obx(
+                          () => GestureDetector(
+                            onTap: bookingController.isLoading.value
+                                ? null
+                                : () async {
+                                    if (startDate == null) {
+                                      Get.snackbar(
+                                        'Error',
+                                        'Please select a date',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: Colors.redAccent,
+                                        colorText: Colors.white,
+                                        barBlur: 0,
+                                        margin: const EdgeInsets.all(16),
+                                      );
+                                      return;
+                                    }
+
+                                    if (selectedLocation == null) {
+                                      Get.snackbar(
+                                        'Error',
+                                        'Please select a location',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: Colors.redAccent,
+                                        colorText: Colors.white,
+                                        barBlur: 0,
+                                        margin: const EdgeInsets.all(16),
+                                      );
+                                      return;
+                                    }
+
+                                    final result = await bookingController
+                                        .createBooking({
+                                          'horseId': horse!.id,
+                                          'horseName': horse!.name,
+                                          'trainerId': horse!.trainerId,
+                                          'type': selectedType,
+                                          'date': DateFormat(
+                                            'yyyy-MM-dd',
+                                          ).format(startDate!),
+                                          'location':
+                                              selectedShow?.cityState ??
+                                              horse!.location ??
+                                              '',
+                                          'notes': messageController.text,
+                                          'service': selectedType,
+                                          'price': horse!.price ?? 0,
+                                          'clientId':
+                                              Get.find<ProfileController>()
+                                                  .user
+                                                  .value
+                                                  ?.id,
+                                        });
+
+                                    if (result != null) {
+                                      Get.back(); // Close bottom sheet
+                                      Get.snackbar(
+                                        'Success',
+                                        'Booking request sent successfully',
+                                        snackPosition: SnackPosition.BOTTOM,
+                                        backgroundColor: const Color(
+                                          0xFF17B26A,
+                                        ),
+                                        colorText: Colors.white,
+                                        barBlur: 0,
+                                        margin: const EdgeInsets.all(16),
+                                      );
+                                      setState(() => _isRequested = true);
+                                      _fetchHorseDetails();
+
+                                      final String? conversationId =
+                                          (result is Map)
+                                          ? result["conversationId"]
+                                          : null;
+                                      if (conversationId != null) {
+                                        Get.to(
+                                          () => SingleChatView(
+                                            name:
+                                                horse!.trainerName ?? "Trainer",
+                                            image: horse!.trainerAvatar ?? "",
+                                            conversationId: conversationId,
+                                            otherId: horse!.trainerId
+                                                ?.toString(),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                            child: Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: bookingController.isLoading.value
+                                    ? AppColors.inputBackground
+                                    : AppColors.primary,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Center(
+                                child: bookingController.isLoading.value
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white,
+                                      )
+                                    : const CommonText(
+                                        'Submit',
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  ));
-}
+    );
+  }
 
   Widget _buildBookingHorseCard() {
     final hasImages = horse != null && horse!.images.isNotEmpty;
@@ -2722,7 +2837,10 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       if (firstShow.showVenue.isNotEmpty) {
         venueText = firstShow.showVenue;
       }
-      final formattedDates = DateUtil.formatRange(firstShow.startDate, firstShow.endDate);
+      final formattedDates = DateUtil.formatRange(
+        firstShow.startDate,
+        firstShow.endDate,
+      );
       if (formattedDates.isNotEmpty) {
         dateRangeText = formattedDates;
       }
@@ -2756,101 +2874,108 @@ class _BookingRequestViewState extends State<BookingRequestView> {
             ),
             const SizedBox(width: 16),
             Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                      fontFamily: 'Outfit',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                        fontFamily: 'Outfit',
+                      ),
+                      children: [
+                        TextSpan(
+                          text:
+                              horse?.name.toString().capitalizeFirst ??
+                              'Unknown',
+                        ),
+                        TextSpan(
+                          text:
+                              ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  CommonText(
+                    venueText,
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      TextSpan(text: horse?.name.toString().capitalizeFirst ?? 'Unknown'),
-                      TextSpan(
-                        text:
-                            ' - ${horse != null && horse!.displayDiscipline.isNotEmpty ? horse!.displayDiscipline : horse?.breed}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.normal,
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 13,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: CommonText(
+                          horse?.location ?? '',
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: CommonText(
+                          dateRangeText,
+                          fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 4),
-                CommonText(
-                  venueText,
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 13,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: CommonText(
-                        horse?.location ?? '',
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: CommonText(
-                        dateRangeText,
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: horse!.listingTypes
-                        .asMap()
-                        .entries
-                        .map(
-                          (entry) => Padding(
-                            padding: EdgeInsets.only(
-                              right: entry.key == horse!.listingTypes.length - 1
-                                  ? 0
-                                  : 8,
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: horse!.listingTypes
+                          .asMap()
+                          .entries
+                          .map(
+                            (entry) => Padding(
+                              padding: EdgeInsets.only(
+                                right:
+                                    entry.key == horse!.listingTypes.length - 1
+                                    ? 0
+                                    : 8,
+                              ),
+                              child: _buildOverlayBadge(
+                                entry.value,
+                                const Color(0xFFFDE4E1),
+                                const Color(0xFFE11D48),
+                              ),
                             ),
-                            child: _buildOverlayBadge(
-                              entry.value,
-                              const Color(0xFFFDE4E1),
-                              const Color(0xFFE11D48),
-                            ),
-                          ),
-                        ).toList(),
+                          )
+                          .toList(),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
           ],
-        )),
+        ),
+      ),
     );
   }
 
@@ -2878,21 +3003,31 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     );
   }
 
-  Widget _buildDetailRow(String label1, String val1, String label2, String val2,
-      {VoidCallback? onLabelTap2}) {
+  Widget _buildDetailRow(
+    String label1,
+    String val1,
+    String label2,
+    String val2, {
+    VoidCallback? onLabelTap2,
+  }) {
     return Column(
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-                child: _buildPremiumDetailItem(label1, val1, showDivider: false)),
+              child: _buildPremiumDetailItem(label1, val1, showDivider: false),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: label2.isEmpty
                   ? const SizedBox.shrink()
-                  : _buildPremiumDetailItem(label2, val2,
-                      onLabelTap: onLabelTap2, showDivider: false),
+                  : _buildPremiumDetailItem(
+                      label2,
+                      val2,
+                      onLabelTap: onLabelTap2,
+                      showDivider: false,
+                    ),
             ),
           ],
         ),
@@ -2912,7 +3047,8 @@ class _InlineVideoPlayer extends StatefulWidget {
   State<_InlineVideoPlayer> createState() => _InlineVideoPlayerState();
 }
 
-class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with AutomaticKeepAliveClientMixin {
+class _InlineVideoPlayerState extends State<_InlineVideoPlayer>
+    with AutomaticKeepAliveClientMixin {
   VideoPlayerController? _controller;
   YoutubePlayerController? _youtubeController;
   bool _isYoutube = false;
@@ -2940,20 +3076,22 @@ class _InlineVideoPlayerState extends State<_InlineVideoPlayer> with AutomaticKe
       _initialized = true;
     } else {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url))
-        ..initialize().then((_) {
-          if (mounted) {
-            setState(() {
-              _initialized = true;
+        ..initialize()
+            .then((_) {
+              if (mounted) {
+                setState(() {
+                  _initialized = true;
+                });
+              }
+            })
+            .catchError((e) {
+              debugPrint('Error loading video: $e');
+              if (mounted) {
+                setState(() {
+                  _error = true;
+                });
+              }
             });
-          }
-        }).catchError((e) {
-          debugPrint('Error loading video: $e');
-          if (mounted) {
-            setState(() {
-              _error = true;
-            });
-          }
-        });
     }
   }
 
@@ -3143,7 +3281,8 @@ class _VideoPlayerWidget extends StatefulWidget {
   State<_VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
-class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKeepAliveClientMixin {
+class _VideoPlayerWidgetState extends State<_VideoPlayerWidget>
+    with AutomaticKeepAliveClientMixin {
   VideoPlayerController? _videoPlayerController;
   ChewieController? _chewieController;
   YoutubePlayerController? _youtubeController;
@@ -3167,56 +3306,58 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
       _isYoutube = true;
       _youtubeController = YoutubePlayerController(
         initialVideoId: youtubeId,
-        flags: const YoutubePlayerFlags(
-          autoPlay: true,
-          mute: false,
-        ),
+        flags: const YoutubePlayerFlags(autoPlay: true, mute: false),
       )..addListener(_onYoutubeControllerChange);
       _initialized = true;
     } else {
-      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.url));
-      _videoPlayerController!.initialize().then((_) {
-        if (mounted) {
-          _chewieController = ChewieController(
-            videoPlayerController: _videoPlayerController!,
-            autoPlay: true,
-            looping: false,
-            aspectRatio: _videoPlayerController!.value.aspectRatio,
-            showControls: true,
-            materialProgressColors: ChewieProgressColors(
-              playedColor: AppColors.primary,
-              handleColor: AppColors.primary,
-              backgroundColor: Colors.grey,
-              bufferedColor: Colors.white.withOpacity(0.5),
-            ),
-            placeholder: Container(color: Colors.black),
-            autoInitialize: true,
-            deviceOrientationsOnEnterFullScreen: [
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.landscapeRight,
-            ],
-            deviceOrientationsAfterFullScreen: [
-              DeviceOrientation.portraitUp,
-              DeviceOrientation.portraitDown,
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.landscapeRight,
-            ],
-            systemOverlaysOnEnterFullScreen: [],
-            systemOverlaysAfterFullScreen: SystemUiOverlay.values,
-            allowFullScreen: true,
-          );
-          setState(() {
-            _initialized = true;
+      _videoPlayerController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.url),
+      );
+      _videoPlayerController!
+          .initialize()
+          .then((_) {
+            if (mounted) {
+              _chewieController = ChewieController(
+                videoPlayerController: _videoPlayerController!,
+                autoPlay: true,
+                looping: false,
+                aspectRatio: _videoPlayerController!.value.aspectRatio,
+                showControls: true,
+                materialProgressColors: ChewieProgressColors(
+                  playedColor: AppColors.primary,
+                  handleColor: AppColors.primary,
+                  backgroundColor: Colors.grey,
+                  bufferedColor: Colors.white.withOpacity(0.5),
+                ),
+                placeholder: Container(color: Colors.black),
+                autoInitialize: true,
+                deviceOrientationsOnEnterFullScreen: [
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.landscapeRight,
+                ],
+                deviceOrientationsAfterFullScreen: [
+                  DeviceOrientation.portraitUp,
+                  DeviceOrientation.portraitDown,
+                  DeviceOrientation.landscapeLeft,
+                  DeviceOrientation.landscapeRight,
+                ],
+                systemOverlaysOnEnterFullScreen: [],
+                systemOverlaysAfterFullScreen: SystemUiOverlay.values,
+                allowFullScreen: true,
+              );
+              setState(() {
+                _initialized = true;
+              });
+            }
+          })
+          .catchError((e) {
+            debugPrint('Error initializing video: $e');
+            if (mounted) {
+              setState(() {
+                _error = true;
+              });
+            }
           });
-        }
-      }).catchError((e) {
-        debugPrint('Error initializing video: $e');
-        if (mounted) {
-          setState(() {
-            _error = true;
-          });
-        }
-      });
     }
   }
 
@@ -3269,15 +3410,9 @@ class _VideoPlayerWidgetState extends State<_VideoPlayerWidget> with AutomaticKe
     }
 
     if (_chewieController != null) {
-      return Center(
-        child: Chewie(
-          controller: _chewieController!,
-        ),
-      );
+      return Center(child: Chewie(controller: _chewieController!));
     }
 
-    return const Center(
-      child: CircularProgressIndicator(color: Colors.white),
-    );
+    return const Center(child: CircularProgressIndicator(color: Colors.white));
   }
 }

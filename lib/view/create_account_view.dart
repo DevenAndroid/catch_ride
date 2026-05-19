@@ -33,6 +33,8 @@ class _CreateAccountViewState extends State<CreateAccountView> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -44,7 +46,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SvgPicture.asset("assets/images/logo_with_title.svg"),
-                const SizedBox(height: 18),
+                SizedBox(height: size * 0.022),
 
                 // Main Card
                 Container(
@@ -70,14 +72,14 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: 5),
+                      SizedBox(height: size * 0.006),
                       const CommonText(
                         AppStrings.createAccountSubtitle,
                         fontSize: AppTextSizes.size14,
                         color: AppColors.textSecondary,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 18),
+                      SizedBox(height: size * 0.022),
 
                       CommonTextField(
                         controller: _authController.emailController,
@@ -93,7 +95,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           ),
                         ]),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: size * 0.017),
 
                       CommonTextField(
                         controller: _authController.passwordController,
@@ -115,7 +117,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                                 'Password must have at least one uppercase letter',
                           ),
                           PatternValidator(
-                            r'[!@#\$&*~]',
+                            r'[!@#\$&*~?_+\-=/\\|:;()\[\]{}<>,.]',
                             errorText:
                                 'Password must have at least one special character',
                           ),
@@ -134,7 +136,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           },
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: size * 0.017),
 
                       CommonTextField(
                         controller: _authController.confirmPasswordController,
@@ -165,7 +167,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         ),
                       ),
 
-                      const SizedBox(height: 18),
+                      SizedBox(height: size * 0.022),
                       Obx(
                         () => CommonButton(
                           text: AppStrings.getStarted,
@@ -185,7 +187,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         ),
                       ),
                       if (!kIsWeb) ...[
-                        const SizedBox(height: 14),
+                        SizedBox(height: size * 0.017),
                         const Center(
                           child: CommonText(
                             AppStrings.orSignUpWith,
@@ -193,7 +195,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                             color: AppColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        SizedBox(height: size * 0.017),
                         Obx(
                           () => SocialButton(
                             text: AppStrings.continueWithGoogle,
@@ -206,7 +208,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                           ),
                         ),
                         if (defaultTargetPlatform == TargetPlatform.iOS) ...[
-                          const SizedBox(height: 12),
+                          SizedBox(height: size * 0.015),
                           SocialButton(
                             text: AppStrings.continueWithAppleId,
                             icon:
@@ -220,7 +222,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                SizedBox(height: size * 0.022),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -242,7 +244,7 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: size * 0.01),
               ],
             ),
           ),
