@@ -848,7 +848,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   Widget _buildRequesterInfoCard() {
     final String bName = booking?.clientName ?? widget.otherName ?? 'Client';
     final String? bAvatar = booking?.clientImage ?? widget.otherImage;
-    final String bLocation = booking?.location ?? '';
+    final String bLocation = (booking?.horseLocation != null && booking!.horseLocation!.isNotEmpty) 
+        ? booking!.horseLocation! 
+        : booking?.location ?? '';
     final String bDate = booking?.date ?? '';
     final String? bNotes = booking?.notes;
 

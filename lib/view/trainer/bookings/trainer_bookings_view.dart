@@ -356,15 +356,36 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           if (booking.status == 'confirmed' || booking.status == 'accepted') displayStatus = 'Accepted';
           if (booking.status == 'cancelled') displayStatus = 'Cancelled';
 
-          return _buildBookingCard(booking: booking, status: displayStatus);
+          final String locationLabel = _locationLineForBooking(booking);
+
+          return _buildBookingCard(
+            booking: booking,
+            status: displayStatus,
+            locationLabel: locationLabel,
+          );
         },
       ),
     );
   }
 
+  /// Pending trial requests store the show **venue** on [BookingModel.location]; prefer the horse's
+  /// home/listing address when the API populates [BookingModel.horseLocation].
+  String _locationLineForBooking(BookingModel booking) {
+    final isPending = booking.status.toLowerCase() == 'pending';
+    final hl = booking.horseLocation;
+    if (isPending &&
+        hl != null &&
+        hl.isNotEmpty &&
+        !_isServiceProviderBooking(booking)) {
+      return hl;
+    }
+    return booking.location ?? '';
+  }
+
   Widget _buildBookingCard({
     required BookingModel booking,
     required String status,
+    required String locationLabel,
   }) {
     final isVendorBooking = _isServiceProviderBooking(booking);
 
@@ -551,7 +572,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          booking.location ?? '',
+                          locationLabel,
                           fontSize: 13,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
@@ -571,7 +592,9 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
                       const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          DateUtil.formatDisplayDate(booking.date),
+                          (booking.startDate != null) 
+                            ? DateUtil.formatRange(booking.startDate, booking.endDate)
+                            : DateUtil.formatRangeString(booking.date),
                           fontSize: 13,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
                           maxLines: 1,
