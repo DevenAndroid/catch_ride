@@ -358,13 +358,16 @@ class _BarnManagerHorseListingViewState
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+
                 Row(
                   children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 16,
-                      color: Color(0xFF6B7280),
+                    Padding(
+                      padding: const EdgeInsets.only(top:4),
+                      child: const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Color(0xFF6B7280),
+                      ),
                     ),
                     const SizedBox(width: 4),
                     CommonText(

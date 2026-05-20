@@ -520,7 +520,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                      Padding(
-                       padding: const EdgeInsets.only(top:4),
+                       padding: const EdgeInsets.only(top:2),
                        child: Icon(
                         Icons.location_on_outlined,
                         size: 16,

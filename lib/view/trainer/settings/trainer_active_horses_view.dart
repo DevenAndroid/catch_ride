@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/view/trainer/list/edit_horse_listing_view.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_availability_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
@@ -179,6 +180,13 @@ class _TrainerActiveHorsesViewState extends State<TrainerActiveHorsesView> {
     required String location,
     bool isOwnHorse = false,
   }) {
+    final userRole = profileController.user.value?.role;
+    final horseTrainerId = horse.trainerId;
+    final profileTrainerId = profileController.trainerId;
+    final bool isHorseOwner = horseTrainerId != null && horseTrainerId == profileTrainerId;
+    final bool isTrainerOwner = isHorseOwner && userRole == 'trainer';
+    final bool isBarnManagerTeam = isHorseOwner && userRole == 'barn_manager';
+
     return GestureDetector(
       onTap: () {
         Get.to(() => TrainerHorseDetailView(horse: horse, isOwnHorse: isOwnHorse));
@@ -254,26 +262,81 @@ class _TrainerActiveHorsesViewState extends State<TrainerActiveHorsesView> {
                       ],
                     ),
                   ),
-                  if (isOwnHorse)
+                  if (isTrainerOwner || isBarnManagerTeam)
                     PopupMenuButton<String>(
                       padding: EdgeInsets.zero,
                       icon: const Icon(Icons.more_vert, color: AppColors.textPrimary, size: 22),
                       onSelected: (value) async {
                         if (value == 'edit') {
                           Get.to(() => EditHorseListingView(horse: horse));
+                        } else if (value == 'availability') {
+                          await Get.to(() => BarnManagerAvailabilityView(horse: horse));
+                          _loadHorses();
                         } else if (value == 'active') {
                           final success = await horseController.toggleHorseActive(horse.id!, !horse.isActive);
                           if (success) {
                             Get.snackbar('Success', 'Horse status updated successfully', backgroundColor: Colors.green, colorText: Colors.white);
+                            _loadHorses();
                           }
                         } else if (value == 'delete') {
                           _confirmDelete(horse);
                         }
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 20), SizedBox(width: 8), CommonText('Edit listing', fontSize: 14)])),
-                        PopupMenuItem(value: 'active', child: Row(children: [Icon(horse.isActive ? Icons.visibility_off : Icons.visibility, size: 20, color: horse.isActive ? Colors.orange : Colors.green), const SizedBox(width: 8), CommonText(horse.isActive ? 'Deactivate' : 'Activate', fontSize: 14)])),
-                        const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 20, color: Colors.red), SizedBox(width: 8), CommonText('Delete listing', fontSize: 14, color: Colors.red)])),
+                        if (isTrainerOwner) ...[
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit, size: 20),
+                                const SizedBox(width: 8),
+                                const CommonText('Edit listing', fontSize: 14),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'active',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  horse.isActive ? Icons.visibility_off : Icons.visibility,
+                                  size: 20,
+                                  color: horse.isActive ? Colors.orange : Colors.green,
+                                ),
+                                const SizedBox(width: 8),
+                                CommonText(
+                                  horse.isActive ? 'Deactivate' : 'Activate',
+                                  fontSize: 14,
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete, size: 20, color: Colors.red),
+                                const SizedBox(width: 8),
+                                const CommonText(
+                                  'Delete listing',
+                                  fontSize: 14,
+                                  color: Colors.red,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        if (isBarnManagerTeam)
+                          PopupMenuItem(
+                            value: 'availability',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.calendar_month_outlined, size: 20),
+                                const SizedBox(width: 8),
+                                const CommonText('Edit Availability', fontSize: 14),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                 ],
@@ -314,12 +377,12 @@ class _TrainerActiveHorsesViewState extends State<TrainerActiveHorsesView> {
                   CommonText(postTitle, fontSize: 17, fontWeight: FontWeight.w500, color: AppColors.textPrimary, height: 1.3),
                   const SizedBox(height: 4),
                   CommonText(postDescription, fontSize: 14, color: AppColors.textSecondary, height: 1.5, maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top:4),
+                        padding: const EdgeInsets.only(top:2),
                         child: const Icon(Icons.location_on_outlined, color: AppColors.textSecondary, size: 16),
                       ),
                       const SizedBox(width: 4),
