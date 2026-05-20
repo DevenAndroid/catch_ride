@@ -473,18 +473,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                             .toList();
 
                     final bool hasMore = list.length > 3;
-                    final displayList = _showAllLocations
-                        ? list
-                        : list.take(3).toList();
+                    final displayList = _showAllLocations ? list : list.take(3).toList();
 
-                    if (list.isEmpty &&
-                        googleApiController.googleSuggestions.isEmpty) {
+                    if (list.isEmpty) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: CommonText(
-                          isSearching
-                              ? 'No locations found'
-                              : 'Loading locations...',
+                          isSearching ? 'No locations found' : 'Loading locations...',
                           fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
@@ -493,34 +488,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isSearching) ...[
-                          Obx(() {
-                            final systemConfig =
-                                Get.find<SystemConfigController>();
-                            final q = _searchController.text.toLowerCase();
-                            final regionOptions = systemConfig.regionNames
-                                .where((r) => r.toLowerCase().contains(q))
-                                .toList();
-
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: regionOptions
-                                  .map(
-                                    (r) =>
-                                        _buildLocationItem(r, isRegion: true),
-                                  )
-                                  .toList(),
-                            );
-                          }),
-                        ],
-                        if (!isSearching)
-                          ...displayList.map(
-                            (l) => _buildLocationItem(l['name'] ?? ''),
-                          ),
+                        // Internal API / Default Suggestions
+                        ...displayList.map(
+                          (l) => _buildLocationItem(l['label'] ?? l['name'] ?? ''),
+                        ),
                         if (hasMore && !_showAllLocations)
                           GestureDetector(
-                            onTap: () =>
-                                setState(() => _showAllLocations = true),
+                            onTap: () => setState(() => _showAllLocations = true),
                             child: const Padding(
                               padding: EdgeInsets.symmetric(vertical: 8),
                               child: Row(
@@ -540,13 +514,6 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                                 ],
                               ),
                             ),
-                          ),
-
-                        // Google Suggestions
-                        if (isSearching &&
-                            googleApiController.googleSuggestions.isNotEmpty)
-                          ...googleApiController.googleSuggestions.map(
-                            (g) => _buildLocationItem(g['name'] ?? ''),
                           ),
                       ],
                     );
@@ -1033,7 +1000,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
         } else {
           // Try to match against known locations or venues first
           bool isKnownLocation = controller.defaultLocations.any(
-            (l) => l['name'] == address || l['subtitle'] == address,
+            (l) => l['label'] == address || l['subtitle'] == address,
           );
           bool isKnownVenue = controller.defaultVenues.any(
             (v) => v['name'] == address || v['subtitle'] == address,
@@ -1103,7 +1070,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
   Widget _buildDateInput(String title, DateTime? date) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(12),

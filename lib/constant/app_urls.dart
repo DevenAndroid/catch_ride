@@ -116,4 +116,7 @@ class AppUrls {
   static const String inviteBarnManager = '$barnManagers/invite';
   static const String removeBarnManager = '$barnManagers/remove';
   static const String createVendorBooking = bookings;
+
+  // Locations
+  static const String locationsSuggest = '/locations/suggest';
 }
