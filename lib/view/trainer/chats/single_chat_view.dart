@@ -34,7 +34,7 @@ class SingleChatView extends StatefulWidget {
 }
 
 class _SingleChatViewState extends State<SingleChatView> {
-  final ChatController controller = Get.find<ChatController>();
+  final ChatController controller = Get.put(ChatController());
   final TextEditingController textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 

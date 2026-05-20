@@ -27,7 +27,6 @@ import '../list/edit_horse_listing_view.dart';
 import '../../barn_manager/barn_manager_availability_view.dart';
 import '../../../controllers/horse_controller.dart';
 import '../../../controllers/chat_controller.dart';
-import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
 class TrainerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
@@ -2379,12 +2378,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   final String? conversationId = (result is Map) ? result["conversationId"] : null;
                                   final String? hostUserId = (result is Map) ? result["hostUserId"]?.toString() : null;
                                   if (conversationId != null) {
-                                    Get.to(() => SingleChatView(
-                                      name: horse!.trainerName ?? "Trainer",
-                                      image: horse!.trainerAvatar ?? "",
+                                    final chatController = Get.put(ChatController());
+                                    await chatController.openChatThread(
+                                      name: horse!.trainerName ?? 'Trainer',
+                                      image: horse!.trainerAvatar ?? '',
                                       conversationId: conversationId,
                                       otherId: hostUserId ?? horse!.trainerId?.toString(),
-                                    ));
+                                    );
                                   }
                                 }                              },
                               child: CommonButton(

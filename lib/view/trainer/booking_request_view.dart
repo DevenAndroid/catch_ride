@@ -29,7 +29,6 @@ import '../../../models/availability_model.dart';
 import '../../../services/api_service.dart';
 import '../../../controllers/horse_controller.dart';
 import '../../../controllers/chat_controller.dart';
-import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
 import '../barn_manager/barn_manager_availability_view.dart';
 import 'list/edit_horse_listing_view.dart';
@@ -849,7 +848,9 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   Widget _buildRequesterInfoCard() {
     final String bName = booking?.clientName ?? widget.otherName ?? 'Client';
     final String? bAvatar = booking?.clientImage ?? widget.otherImage;
-    final String bLocation = booking?.location ?? '';
+    final String bLocation = (booking?.horseLocation != null && booking!.horseLocation!.isNotEmpty) 
+        ? booking!.horseLocation! 
+        : booking?.location ?? '';
     final String bDate = booking?.date ?? '';
     final String? bNotes = booking?.notes;
 
@@ -2773,15 +2774,13 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                                           ? result["conversationId"]
                                           : null;
                                       if (conversationId != null) {
-                                        Get.to(
-                                          () => SingleChatView(
-                                            name:
-                                                horse!.trainerName ?? "Trainer",
-                                            image: horse!.trainerAvatar ?? "",
-                                            conversationId: conversationId,
-                                            otherId: horse!.trainerId
-                                                ?.toString(),
-                                          ),
+                                        final chatController =
+                                            Get.put(ChatController());
+                                        await chatController.openChatThread(
+                                          name: horse!.trainerName ?? 'Trainer',
+                                          image: horse!.trainerAvatar ?? '',
+                                          conversationId: conversationId,
+                                          otherId: horse!.trainerId?.toString(),
                                         );
                                       }
                                     }

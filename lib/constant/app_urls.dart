@@ -7,8 +7,8 @@ class AppUrls {
   /// `flutter run --dart-define=NGROK_ORIGIN=https://xxxx.ngrok-free.dev`
   static const String devTunnelOrigin = String.fromEnvironment(
     'NGROK_ORIGIN',
-      defaultValue: 'https://fremdly-monogenistic-collette.ngrok-free.dev',
-  // defaultValue: 'http://192.168.1.13:5000',
+    //    defaultValue: 'https://fremdly-monogenistic-collette.ngrok-free.dev',
+          defaultValue: 'http://192.168.1.13:5000',
   );
 
 

@@ -10,6 +10,7 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/booking_controller.dart';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/profile_controller.dart';
+import 'package:catch_ride/utils/date_util.dart';
 
 class BookingDetailsView extends StatelessWidget {
   final BookingModel booking;
@@ -162,11 +163,6 @@ class BookingDetailsView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CommonText(
-                  'Requester',
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
                 CommonText(
                   booking.clientName ?? 'Unknown Client',
                   fontSize: 18,
@@ -249,7 +245,9 @@ class BookingDetailsView extends StatelessWidget {
           _buildInfoRow('Service Type', booking.type),
           if (isMulti && included.isNotEmpty) _buildInfoRow('Includes', included),
           if (booking.rateType != null && booking.rateType!.isNotEmpty) _buildInfoRow('Category', booking.rateType!),
-          _buildInfoRow('Dates', booking.date),
+          _buildInfoRow('Dates', (booking.startDate != null) 
+              ? (DateUtil.formatRange(booking.startDate, booking.endDate).isEmpty ? '—' : DateUtil.formatRange(booking.startDate, booking.endDate))
+              : (DateUtil.formatRangeString(booking.date).isEmpty ? '—' : DateUtil.formatRangeString(booking.date))),
           if (isShipping && booking.origin != null && booking.destination != null) ...[
              _buildInfoRow('Route', '${booking.origin} → ${booking.destination}'),
           ] else if (booking.location != null) ...[
@@ -274,21 +272,8 @@ class BookingDetailsView extends StatelessWidget {
   }
 
   String _formatServiceLineDateRange(Map<String, dynamic> line) {
-    DateTime? parse(dynamic v) {
-      if (v == null) return null;
-      if (v is DateTime) return v;
-      return DateTime.tryParse(v.toString());
-    }
-
-    final s = parse(line['startDate']);
-    final e = parse(line['endDate']);
-    if (s != null && e != null) {
-      final sameDay =
-          s.year == e.year && s.month == e.month && s.day == e.day;
-      if (sameDay) return DateFormat('dd MMM yyyy').format(s);
-      return '${DateFormat('dd MMM').format(s)} - ${DateFormat('dd MMM yyyy').format(e)}';
-    }
-    return '—';
+    final formatted = DateUtil.formatRange(line['startDate'], line['endDate']);
+    return formatted.isEmpty ? '—' : formatted;
   }
 
   Widget _buildBundledServiceLinesSection(BookingModel booking) {
@@ -533,7 +518,7 @@ class BookingDetailsView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const CommonText(
-          'Notes from Requester',
+          'Notes from Trainer',
           fontSize: 14,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,

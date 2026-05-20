@@ -24,6 +24,8 @@ class BookingModel {
   final String? vendorImage;
   final String? trainerImage;
   final String? location;
+  /// Horse's listed address/home location from populated `horseId` (distinct from booking `location`, which may be a show venue name).
+  final String? horseLocation;
   final String? notes;
   final String? startDate;
   final String? endDate;
@@ -66,6 +68,7 @@ class BookingModel {
     this.horseImage,
     this.trainerImage,
     this.location,
+    this.horseLocation,
     this.notes,
     this.startDate,
     this.endDate,
@@ -143,11 +146,11 @@ class BookingModel {
       }
     }
 
-    String? sDate = formatD(sDateVal, 'dd MMM');
-    String? eDate = formatD(eDateVal, 'dd MMM yyyy');
+    String? sDateFormatted = formatD(sDateVal, 'dd MMM');
+    String? eDateFormatted = formatD(eDateVal, 'dd MMM yyyy');
     
-    if (sDate != null && eDate != null) {
-      displayDate = "$sDate - $eDate";
+    if (sDateFormatted != null && eDateFormatted != null) {
+      displayDate = "$sDateFormatted - $eDateFormatted";
     }
 
     // Aggressive Deep-Search Image Helper
@@ -226,6 +229,15 @@ class BookingModel {
       bmName = "${json['barnManagerId']['firstName'] ?? ''} ${json['barnManagerId']['lastName'] ?? ''}".trim();
     }
 
+    String? horseLoc;
+    if (json['horseId'] is Map) {
+      final h = json['horseId'];
+      final loc = h['location'];
+      if (loc != null && loc.toString().trim().isNotEmpty) {
+        horseLoc = loc.toString().trim();
+      }
+    }
+
     return BookingModel(
       id: json['_id'],
       bookingNumber: json['bookingNumber'] ?? '',
@@ -251,8 +263,8 @@ class BookingModel {
           ? json['horseName']
           : (json['horseId'] is Map ? json['horseId']['name'] : null),
       date: displayDate,
-      startDate: sDate,
-      endDate: eDate,
+      startDate: sDateVal,
+      endDate: eDateVal,
       startTime: json['startTime'],
       endTime: json['endTime'],
       price: json['price'] is num ? (json['price'] as num).toDouble() : 0.0,
@@ -260,6 +272,7 @@ class BookingModel {
       horseImage: json['horseImage'] ?? (json['horseId'] is Map ? (json['horseId']['images']?.isNotEmpty == true ? json['horseId']['images'].first : json['horseId']['photo']) : null),
       trainerImage: trainerImg,
       location: (json['location'] != null && json['location'].toString().isNotEmpty) ? json['location'] : (json['horseId'] is Map ? json['horseId']['location'] : null),
+      horseLocation: horseLoc,
       notes: json['notes'],
       tags: _parseTags(json['horseId']),
       acceptedById: json['acceptedById'] is Map ? json['acceptedById']['_id'] : json['acceptedById'],
@@ -321,6 +334,7 @@ class BookingModel {
       'paymentStatus': paymentStatus,
       'horseImage': horseImage,
       'location': location,
+      if (horseLocation != null) 'horseLocation': horseLocation,
       'notes': notes,
       'tags': tags,
       'numberOfHorses': numberOfHorses,
