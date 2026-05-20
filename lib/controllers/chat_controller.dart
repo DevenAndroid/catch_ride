@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import '../constant/app_colors.dart';
+import '../view/barn_manager/chats/barn_manager_single_chat_view.dart';
 import '../view/trainer/chats/single_chat_view.dart';
 import 'booking_controller.dart';
 import 'profile_controller.dart';
@@ -717,6 +718,50 @@ class ChatController extends GetxController {
     }
   }
 
+  bool get _usesBarnManagerChat {
+    final role = _authController.currentUser.value?.role ??
+        Get.put(ProfileController()).user.value?.role ??
+        '';
+    return role == 'barn_manager';
+  }
+
+  /// Opens the role-appropriate single-chat screen (trainer vs barn manager UI).
+  Future<void> openChatThread({
+    required String name,
+    required String image,
+    required String conversationId,
+    String? otherId,
+    bool readOnly = false,
+    bool prefetchMessages = true,
+  }) async {
+    if (prefetchMessages && conversationId.isNotEmpty) {
+      await fetchMessages(conversationId);
+      await fetchConversations(quiet: true);
+    }
+
+    if (_usesBarnManagerChat) {
+      Get.to(
+        () => BarnManagerSingleChatView(
+          name: name,
+          image: image,
+          conversationId: conversationId,
+          otherId: otherId,
+        ),
+      );
+      return;
+    }
+
+    Get.to(
+      () => SingleChatView(
+        name: name,
+        image: image,
+        conversationId: conversationId,
+        otherId: otherId,
+        readOnly: readOnly,
+      ),
+    );
+  }
+
   void openBookingChat({
     required String bookingId,
     required String otherId,
@@ -734,12 +779,12 @@ class ChatController extends GetxController {
     );
 
     if (existingConvo != null) {
-      Get.to(() => SingleChatView(
-            name: otherName,
-            image: otherImage,
-            conversationId: existingConvo.conversationId,
-            otherId: otherId,
-          ));
+      openChatThread(
+        name: otherName,
+        image: otherImage,
+        conversationId: existingConvo.conversationId,
+        otherId: otherId,
+      );
       return;
     }
 
@@ -749,12 +794,12 @@ class ChatController extends GetxController {
       (c) => c.otherUser?.id == otherId || c.otherUser?.trainerId == otherId || c.otherUser?.vendorId == otherId,
     );
     if (existingWithUser != null) {
-      Get.to(() => SingleChatView(
-            name: otherName,
-            image: otherImage,
-            conversationId: existingWithUser.conversationId,
-            otherId: otherId,
-          ));
+      openChatThread(
+        name: otherName,
+        image: otherImage,
+        conversationId: existingWithUser.conversationId,
+        otherId: otherId,
+      );
       return;
     }
 
@@ -772,22 +817,22 @@ class ChatController extends GetxController {
     );
 
     if (existingPersonal != null) {
-      Get.to(() => SingleChatView(
-            name: otherName,
-            image: otherImage,
-            conversationId: existingPersonal.conversationId,
-            otherId: otherId,
-          ));
+      openChatThread(
+        name: otherName,
+        image: otherImage,
+        conversationId: existingPersonal.conversationId,
+        otherId: otherId,
+      );
       return;
     }
 
     // 5. Final fallback - Create new personal thread
-    Get.to(() => SingleChatView(
-          name: otherName,
-          image: otherImage,
-          conversationId: personalConvoId,
-          otherId: otherId,
-        ));
+    openChatThread(
+      name: otherName,
+      image: otherImage,
+      conversationId: personalConvoId,
+      otherId: otherId,
+    );
   }
 
   void _handleSentConfirmation(String tempId, ChatMessage message) {
