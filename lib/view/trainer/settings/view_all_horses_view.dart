@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
 import 'package:catch_ride/view/trainer/list/edit_horse_listing_view.dart';
+import 'package:catch_ride/view/barn_manager/barn_manager_availability_view.dart';
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:get/get.dart';
@@ -159,8 +160,8 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                   mainImageUrl: horse.images.isNotEmpty ? horse.images.first : (horse.photo ?? ''),
                   imageCount: '1 / ${horse.images.length}',
                   tags: horse.listingTypes,
-                  postTitle: horse.listingTitle ?? horse.name,
-                  postDescription: horse.description ?? '',
+                  postTitle: horse.name??"",
+                  postDescription:  horse.listingTitle  ?? '',
                   location: horse.location ?? '',
                   isOwnHorse: true,
                 );
@@ -215,6 +216,13 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
     required String location,
     bool isOwnHorse = false,
   }) {
+    final userRole = profileController.user.value?.role;
+    final horseTrainerId = horse.trainerId;
+    final profileTrainerId = profileController.trainerId;
+    final bool isHorseOwner = horseTrainerId != null && horseTrainerId == profileTrainerId;
+    final bool isTrainerOwner = isHorseOwner && userRole == 'trainer';
+    final bool isBarnManagerTeam = isHorseOwner && userRole == 'barn_manager';
+
     return GestureDetector(
       onTap: () {
         Get.to(
@@ -303,86 +311,96 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                       ],
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.more_vert,
-                      color: AppColors.textPrimary,
-                      size: 22,
-                    ),
-                    onSelected: (value) async {
-                      if (value == 'edit') {
-                        Get.to(() => EditHorseListingView(horse: horse));
-                      } else if (value == 'active') {
-                        final success = await horseController.toggleHorseActive(
-                          horse.id!,
-                          !horse.isActive,
-                        );
-                        if (success) {
-                          Get.snackbar(
-                            'Success',
-                            'Horse status updated successfully',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.green,
-                            colorText: Colors.white,
+                  if (isTrainerOwner || isBarnManagerTeam)
+                    PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        Icons.more_vert,
+                        color: AppColors.textPrimary,
+                        size: 22,
+                      ),
+                      onSelected: (value) async {
+                        if (value == 'edit') {
+                          Get.to(() => EditHorseListingView(horse: horse));
+                        } else if (value == 'availability') {
+                          await Get.to(() => BarnManagerAvailabilityView(horse: horse));
+                          _loadHorses();
+                        } else if (value == 'active') {
+                          final success = await horseController.toggleHorseActive(
+                            horse.id!,
+                            !horse.isActive,
                           );
+                          if (success) {
+                            Get.snackbar(
+                              'Success',
+                              'Horse status updated successfully',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.green,
+                              colorText: Colors.white,
+                            );
+                            _loadHorses();
+                          }
+                        } else if (value == 'delete') {
+                          _confirmDelete(horse);
                         }
-                      } else if (value == 'delete') {
-                        _confirmDelete(horse);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.edit, size: 20),
-                            const SizedBox(width: 8),
-                            const CommonText('Edit listing', fontSize: 14),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'active',
-                        child: Row(
-                          children: [
-                            Icon(
-                              horse.isActive
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
-                              size: 20,
-                              color: horse.isActive
-                                  ? Colors.orange
-                                  : Colors.green,
+                      },
+                      itemBuilder: (context) => [
+                        if (isTrainerOwner) ...[
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit, size: 20),
+                                const SizedBox(width: 8),
+                                const CommonText('Edit listing', fontSize: 14),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            CommonText(
-                              horse.isActive ? 'Deactivate' : 'Activate',
-                              fontSize: 14,
+                          ),
+                          PopupMenuItem(
+                            value: 'active',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  horse.isActive ? Icons.visibility_off : Icons.visibility,
+                                  size: 20,
+                                  color: horse.isActive ? Colors.orange : Colors.green,
+                                ),
+                                const SizedBox(width: 8),
+                                CommonText(
+                                  horse.isActive ? 'Deactivate' : 'Activate',
+                                  fontSize: 14,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.delete,
-                              size: 20,
-                              color: Colors.red,
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete, size: 20, color: Colors.red),
+                                const SizedBox(width: 8),
+                                const CommonText(
+                                  'Delete listing',
+                                  fontSize: 14,
+                                  color: Colors.red,
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            const CommonText(
-                              'Delete listing',
-                              fontSize: 14,
-                              color: Colors.red,
+                          ),
+                        ],
+                        if (isBarnManagerTeam)
+                          PopupMenuItem(
+                            value: 'availability',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.calendar_month_outlined, size: 20),
+                                const SizedBox(width: 8),
+                                const CommonText('Edit Availability', fontSize: 14),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                          ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -473,12 +491,12 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(top: 4),
+                        padding: const EdgeInsets.only(top: 2),
                         child: const Icon(
                           Icons.location_on_outlined,
                           color: AppColors.textSecondary,

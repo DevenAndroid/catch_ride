@@ -5,6 +5,9 @@ import 'package:catch_ride/utils/date_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'profile_controller.dart';
+import 'horse_controller.dart';
+import 'explore_controller.dart';
 
 class AvailabilityController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -99,6 +102,36 @@ class AvailabilityController extends GetxController {
       );
 
       if (response.isOk) {
+        // Refresh screens
+        try {
+          if (Get.isRegistered<HorseController>()) {
+            final profile = Get.find<ProfileController>();
+            String tId = profile.trainerId;
+            if (tId.isEmpty) {
+              tId = profile.user.value?.linkedTrainer?.id ?? '';
+            }
+            final uId = profile.id;
+
+            if (tId.isNotEmpty) {
+              Get.find<HorseController>().fetchHorses(
+                refresh: true,
+                trainerId: tId,
+              );
+            } else if (uId.isNotEmpty) {
+              Get.find<HorseController>().fetchHorses(
+                refresh: true,
+                ownerId: uId,
+              );
+            }
+          }
+          if (Get.isRegistered<ExploreController>()) {
+            final explore = Get.find<ExploreController>();
+            explore.fetchHorses();
+           // explore.fetchVendors();
+          }
+        } catch (e) {
+          print('Could not refresh data in availability: $e');
+        }
         return true;
       } else {
         Get.snackbar(

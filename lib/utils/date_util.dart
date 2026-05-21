@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DateUtil {
-  static const String displayFormat = 'MMMM d, yyyy';
+  static const String displayFormat = 'MMM dd, yyyy';
 
   static String formatDisplayDate(dynamic date) {
     if (date == null) return '';
@@ -38,7 +38,7 @@ class DateUtil {
     }
 
     if (startDate.year == endDate.year) {
-      return "${DateFormat('MMMM d').format(startDate)} - ${DateFormat('MMMM d, yyyy').format(endDate)}";
+      return "${DateFormat('MMM dd').format(startDate)} - ${DateFormat('MMM dd, yyyy').format(endDate)}";
     }
 
     return "${DateFormat(displayFormat).format(startDate)} - ${DateFormat(displayFormat).format(endDate)}";
@@ -115,7 +115,23 @@ class DateUtil {
     } catch (_) {}
 
     try {
+      return DateFormat('d MMM yyyy').parse(date);
+    } catch (_) {}
+
+    try {
+      return DateFormat('d MMMM yyyy').parse(date);
+    } catch (_) {}
+
+    try {
       return DateFormat('MMMM d, yyyy').parse(date);
+    } catch (_) {}
+
+    try {
+      return DateFormat('MMM d, yyyy').parse(date);
+    } catch (_) {}
+
+    try {
+      return DateFormat('MMM dd, yyyy').parse(date);
     } catch (_) {}
 
     // 3. Try standard ISO-like date only

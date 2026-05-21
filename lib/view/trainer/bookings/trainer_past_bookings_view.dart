@@ -10,7 +10,7 @@ import '../../../constant/app_constants.dart';
 import '../../../widgets/common_image_view.dart';
 import '../../../widgets/common_text.dart';
 import '../booking_request_view.dart';
-import '../../vendor/vendor_details_view.dart';
+import '../../vendor/booking_details_view.dart';
 
 class TrainerPastBookingsView extends StatefulWidget {
   const TrainerPastBookingsView({super.key});
@@ -39,8 +39,8 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
   }
 
   void _fetchData() {
-    bookingController.fetchBookings(type: 'received', time: 'past', status: 'completed');
-    bookingController.fetchBookings(type: 'sent', time: 'past', status: 'completed');
+    bookingController.fetchBookings(type: 'received', time: 'past');
+    bookingController.fetchBookings(type: 'sent', time: 'past');
   }
 
   @override
@@ -92,10 +92,15 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           return const Center(child: CircularProgressIndicator());
         }
 
-        final List<BookingModel> combinedBookings = [
-          ...bookingController.receivedBookings,
-          ...bookingController.sentBookings,
-        ];
+        final Map<String, BookingModel> uniqueMap = {};
+        for (final b in bookingController.receivedBookings) {
+          uniqueMap[b.id ?? ''] = b;
+        }
+        for (final b in bookingController.sentBookings) {
+          uniqueMap[b.id ?? ''] = b;
+        }
+        
+        final List<BookingModel> combinedBookings = uniqueMap.values.toList();
 
         // Sort by date (descending)
         combinedBookings.sort((a, b) => b.date.compareTo(a.date));
@@ -138,63 +143,55 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
 
     return RefreshIndicator(
       onRefresh: () async => _fetchData(),
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: bookings.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: bookings.length + 1,
         itemBuilder: (context, index) {
-          return _buildPremiumPastCard(bookings[index]);
+          if (index == bookings.length) {
+            return const SizedBox(height: 120);
+          }
+          final booking = bookings[index];
+          final status = (booking.status).toLowerCase();
+          bool isCancelled = status == 'cancelled' || status == 'rejected' || status == 'declined';
+          String displayStatus = isCancelled ? 'Cancelled' : 'Completed';
+          String locationLabel = _locationLineForBooking(booking);
+
+          return _buildBookingCard(
+            booking: booking,
+            status: displayStatus,
+            locationLabel: locationLabel,
+          );
         },
       ),
     );
   }
 
-  Widget _buildPremiumPastCard(BookingModel booking) {
-    final status = (booking.status).toLowerCase();
-    bool isCancelled = status == 'cancelled' || status == 'rejected' || status == 'declined';
-    
-    String displayStatus = isCancelled ? 'Cancelled' : 'Completed';
-    Color statusColor = isCancelled ? const Color(0xFFB42318) : const Color(0xFF12B76A);
-    Color statusBg = isCancelled ? const Color(0xFFFEF3F2) : const Color(0xFFECFDF3);
-
-    // Dynamic Title Selection
-    String mainTitle = booking.trainerName ?? booking.vendorName ?? booking.clientName ?? 'Unknown';
-    if (booking.type == 'Trial' && booking.horseName != null) {
-      mainTitle = booking.horseName!;
+  String _locationLineForBooking(BookingModel booking) {
+    final hl = booking.horseLocation;
+    if (hl != null && hl.isNotEmpty && !_isServiceProviderBooking(booking)) {
+      return hl;
     }
+    return booking.location ?? '';
+  }
 
-    // Secondary Info
-    String subtitle = booking.type;
-    if (booking.providerBarnName != null) {
-      subtitle = "$subtitle • ${booking.providerBarnName}";
-    }
-
-    final vendorTypes = ['grooming', 'braiding', 'clipping', 'farrier', 'bodywork', 'shipping', 'transportation'];
-    final bool isVendorBooking = vendorTypes.contains(booking.type.toLowerCase());
+  Widget _buildBookingCard({
+    required BookingModel booking,
+    required String status,
+    required String locationLabel,
+  }) {
+    final isVendorBooking = _isServiceProviderBooking(booking);
+    final profileController = Get.find<ProfileController>();
 
     return GestureDetector(
       onTap: () {
         if (isVendorBooking) {
-          final targetId = booking.vendorId ?? booking.acceptedById ?? booking.trainerId;
-          Get.to(
-            () => const VendorDetailsView(),
-            arguments: {
-              'id': targetId,
-              'fromBooking': true,
-              'bookingId': booking.id,
-              'bookingStatus': booking.status,
-            },
-          );
+          Get.to(() => BookingDetailsView(booking: booking))?.then((_) => _fetchData());
         } else {
-          // Determine "other" participant info based on who is viewing (we don't have tab index here, but we can infer)
-          // For simplicity, we use the same logic as the main bookings view
-          // If the trainerId matches current user, they are the receiver
-          final profileController = Get.find<ProfileController>();
           final bool isReceived = booking.trainerUserId == profileController.id || booking.trainerId == profileController.id;
           
           final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
-          final String otherName = isReceived ? (booking.clientName ?? '') : (booking.trainerName ?? '');
-          final String otherImage = isReceived ? (booking.clientImage ?? '') : (booking.trainerImage ?? '');
+          final String otherName = isReceived ? booking.displayClientName : (booking.trainerName ?? '');
+          final String otherImage = isReceived ? (booking.displayClientImage ?? '') : (booking.trainerImage ?? '');
           final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
 
           Get.to(
@@ -208,62 +205,76 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
               otherImage: otherImage,
               myTeamId: myTeamId,
             ),
-          );
+          )?.then((_) => _fetchData());
         }
       },
       child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFEAECF0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.6)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(12),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Image Section
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: CommonImageView(
-                    url: booking.horseImage ?? booking.trainerImage ?? booking.clientImage,
-                    height: 100,
-                    width: 100,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 6,
-                  left: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(6),
+            // Image with badge
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 100,
+                width: 100,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CommonImageView(
+                      url: isVendorBooking
+                          ? (profileController.user.value?.role == 'service_provider'
+                              ? (booking.clientImage ?? booking.horseImage)
+                              : (booking.vendorImage ?? booking.horseImage))
+                          : booking.horseImage,
+                      isUserImage: isVendorBooking,
                     ),
-                    child: CommonText(
-                      displayStatus,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: statusColor,
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusBgColor(booking.status),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: _getStatusTextColor(booking.status)
+                                  .withValues(alpha: 0.2)),
+                        ),
+                        child: CommonText(
+                          status,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _getStatusTextColor(booking.status),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
             const SizedBox(width: 16),
-            // Content Section
+            // Details
             Expanded(
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -271,100 +282,177 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
                     children: [
                       Expanded(
                         child: CommonText(
-                          mainTitle,
-                          fontSize: 16,
+                          isVendorBooking
+                              ? (booking.vendorName ??
+                                  booking.acceptedByName ??
+                                  booking.trainerName ??
+                                  'Service Provider')
+                              : (booking.horseName ?? 'Horse Name'),
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF101828),
+                          color: AppColors.textPrimary,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF2F4F7),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3F4F6),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: CommonText(
+                              booking.type.capitalizeFirst ?? 'Trial',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  CommonText(
+                    isVendorBooking
+                        ? (booking.type.capitalizeFirst ?? 'Service')
+                        : 'Trainer : ${booking.trainerName ?? ''}',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: Color(0xFF98A2B3),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
                         child: CommonText(
-                          booking.type,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF667085),
+                          locationLabel,
+                          fontSize: 13,
+                          color: AppColors.textSecondary.withValues(alpha: 0.8),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  _buildDetailRow(Icons.location_on_outlined, booking.location ?? 'N/A'),
-                  const SizedBox(height: 6),
-                  _buildDetailRow(
-                    booking.type == 'Trial' ? Icons.pets_outlined : Icons.person_outline, 
-                    subtitle
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 14,
+                        color: Color(0xFF98A2B3),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: CommonText(
+                          (booking.startDate != null) 
+                            ? DateUtil.formatRange(booking.startDate, booking.endDate)
+                            : DateUtil.formatRangeString(booking.date),
+                          fontSize: 13,
+                          color: AppColors.textSecondary.withValues(alpha: 0.8),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  _buildDetailRow(Icons.calendar_today_outlined, booking.date),
-                  
-                  if (booking.senderBarnName != null || booking.barnManagerName != null)
-                     Padding(
-                       padding: const EdgeInsets.only(top: 10),
-                       child: Wrap(
-                         spacing: 8,
-                         runSpacing: 4,
-                         children: [
-                           if (booking.senderBarnName != null)
-                             _buildMiniTag(Icons.house_outlined, booking.senderBarnName!),
-                           if (booking.barnManagerName != null)
-                             _buildMiniTag(Icons.group_outlined, booking.barnManagerName!),
-                         ],
-                       ),
-                     ),
+                  if (booking.tags.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: booking.tags
+                            .map(
+                              (tag) => Container(
+                                margin: const EdgeInsets.only(right: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEEF2FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: CommonText(
+                                  tag,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF3730A3),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
       ),
-    ));
-  }
-
-  Widget _buildDetailRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: const Color(0xFF98A2B3)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: CommonText(
-            text,
-            fontSize: 13,
-            color: const Color(0xFF667085),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 
-  Widget _buildMiniTag(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFEAECF0)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 10, color: const Color(0xFF98A2B3)),
-          const SizedBox(width: 4),
-          CommonText(
-            text,
-            fontSize: 10,
-            color: const Color(0xFF667085),
-          ),
-        ],
-      ),
-    );
+  bool _isServiceProviderBooking(BookingModel booking) {
+    if (booking.vendorBundleLines.isNotEmpty) return true;
+    final vendorTypes = [
+      'grooming',
+      'braiding',
+      'clipping',
+      'farrier',
+      'bodywork',
+      'shipping',
+      'transportation',
+      'multi-service',
+    ];
+    return vendorTypes.contains(booking.type.toLowerCase());
+  }
+
+  Color _getStatusBgColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFFECFDF3); // Greenish
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFFEF3F2); // Reddish
+      case 'pending':
+        return const Color(0xFFFFFAEB); // Yellowish
+      default:
+        return const Color(0xFFF2F4F7); // Grey
+    }
+  }
+
+  Color _getStatusTextColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+      case 'confirmed':
+      case 'accepted':
+        return const Color(0xFF067647); // Dark Green
+      case 'rejected':
+      case 'declined':
+      case 'cancelled':
+        return const Color(0xFFB42318); // Dark Red
+      case 'pending':
+        return const Color(0xFFB54708); // Dark Orange
+      default:
+        return const Color(0xFF344054); // Dark Grey
+    }
   }
 }

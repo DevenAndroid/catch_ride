@@ -33,7 +33,7 @@ class BarnManagerSingleChatView extends StatefulWidget {
 }
 
 class _BarnManagerSingleChatViewState extends State<BarnManagerSingleChatView> {
-  final ChatController controller = Get.find<ChatController>();
+  final ChatController controller = Get.put(ChatController());
   final TextEditingController textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 

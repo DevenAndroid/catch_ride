@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/view/trainer/settings/trainer_profile_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
@@ -27,7 +29,6 @@ import '../../../models/availability_model.dart';
 import '../../../services/api_service.dart';
 import '../../../controllers/horse_controller.dart';
 import '../../../controllers/chat_controller.dart';
-import 'package:catch_ride/view/trainer/chats/single_chat_view.dart';
 
 import '../barn_manager/barn_manager_availability_view.dart';
 import 'list/edit_horse_listing_view.dart';
@@ -249,10 +250,48 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   bool _isTrainerOwnHorse() => isHorseOwner;
 
+  /// Resolves who the trial is with. Barn managers book on behalf of their linked trainer.
+  String _resolveTrialWithName() {
+    if (booking != null) {
+      final resolved = booking!.displayClientName;
+      final rawClient = booking!.clientName ?? '';
+      final isBmRequester = booking!.clientRole == 'barn_manager' ||
+          booking!.clientIsBarnManager;
+
+      if (isBmRequester &&
+          resolved == rawClient &&
+          horse?.trainerName != null &&
+          horse!.trainerName!.trim().isNotEmpty) {
+        return horse!.trainerName!.trim();
+      }
+      if (resolved.isNotEmpty) return resolved;
+    }
+    return widget.otherName ?? 'Client';
+  }
+
+  String? _resolveTrialWithImage() {
+    if (booking != null) {
+      final resolved = booking!.displayClientImage;
+      final isBmRequester = booking!.clientRole == 'barn_manager' ||
+          booking!.clientIsBarnManager;
+
+      if (isBmRequester &&
+          (resolved == null || resolved.isEmpty) &&
+          horse?.trainerAvatar != null &&
+          horse!.trainerAvatar!.trim().isNotEmpty) {
+        return horse!.trainerAvatar;
+      }
+      if (resolved != null && resolved.isNotEmpty) return resolved;
+    }
+    return widget.otherImage;
+  }
+
   bool _isDatePassed() {
     if (booking == null) return false;
 
     String targetDate = booking!.endDate ?? booking!.startDate ?? booking!.date;
+
+    log("tragetDate::::$targetDate");
 
     if (targetDate.contains(' - ')) {
       targetDate = targetDate.split(' - ').last.trim();
@@ -260,16 +299,8 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       targetDate = targetDate.split(' to ').last.trim();
     }
 
-    DateTime? parsedDate;
-
-    try {
-      parsedDate = DateTime.tryParse(targetDate);
-      parsedDate ??= DateFormat('MMMM d, yyyy').parse(targetDate);
-    } catch (_) {
-      try {
-        parsedDate = DateFormat('yyyy-MM-dd').parse(targetDate);
-      } catch (_) {}
-    }
+    final parsedDate = DateUtil.parse(targetDate);
+    log("parsedDate::::$parsedDate");
 
     if (parsedDate != null) {
       final today = DateTime.now();
@@ -280,7 +311,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
       );
       final todayOnly = DateTime(today.year, today.month, today.day);
 
-      return dateOnly.isBefore(todayOnly);
+      return dateOnly.isBefore(todayOnly) || dateOnly.isAtSameMomentAs(todayOnly);
     }
 
     return false;
@@ -851,10 +882,16 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   }
 
   Widget _buildRequesterInfoCard() {
-    final String bName = booking?.clientName ?? widget.otherName ?? 'Client';
-    final String? bAvatar = booking?.clientImage ?? widget.otherImage;
-    final String bLocation = booking?.location ?? '';
-    final String bDate = booking?.date ?? '';
+    final String bName = _resolveTrialWithName();
+    final String? bAvatar = _resolveTrialWithImage();
+    final String bLocation = (booking?.horseLocation != null && booking!.horseLocation!.isNotEmpty) 
+        ? booking!.horseLocation! 
+        : booking?.location ?? '';
+    final String bDate = booking != null
+        ? (DateUtil.formatRange(booking!.startDate, booking!.endDate).isNotEmpty
+            ? DateUtil.formatRange(booking!.startDate, booking!.endDate)
+            : DateUtil.formatRangeString(booking!.date))
+        : '';
     final String? bNotes = booking?.notes;
 
     return Padding(
@@ -1895,16 +1932,14 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
         final String? fromConvo = widget.openedFromConversationId;
         if (fromConvo != null && fromConvo.isNotEmpty) {
-          await chatController.fetchMessages(fromConvo);
+           chatController.fetchMessages(fromConvo);
           // Success snackbar from [updateBookingStatus] is open; plain [Get.back]
           // only dismisses it and does not pop this route (GetX 4.x behavior).
           Get.back(closeOverlays: true);
         } else {
           final String otherId = widget.otherId ?? booking?.clientId ?? '';
-          final String otherName =
-              widget.otherName ?? booking?.clientName ?? 'Client';
-          final String otherImage =
-              widget.otherImage ?? booking?.clientImage ?? '';
+          final String otherName = _resolveTrialWithName();
+          final String otherImage = _resolveTrialWithImage() ?? '';
 
           chatController.openBookingChat(
             bookingId: widget.bookingId!,
@@ -2777,15 +2812,13 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                                           ? result["conversationId"]
                                           : null;
                                       if (conversationId != null) {
-                                        Get.to(
-                                          () => SingleChatView(
-                                            name:
-                                                horse!.trainerName ?? "Trainer",
-                                            image: horse!.trainerAvatar ?? "",
-                                            conversationId: conversationId,
-                                            otherId: horse!.trainerId
-                                                ?.toString(),
-                                          ),
+                                        final chatController =
+                                            Get.put(ChatController());
+                                        await chatController.openChatThread(
+                                          name: horse!.trainerName ?? 'Trainer',
+                                          image: horse!.trainerAvatar ?? '',
+                                          conversationId: conversationId,
+                                          otherId: horse!.trainerId?.toString(),
                                         );
                                       }
                                     }

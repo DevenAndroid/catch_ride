@@ -125,6 +125,8 @@ class _TrainerCompleteProfileViewState
     _location2Focus.addListener(() {
       if (mounted) setState(() {});
     });
+
+    profileController.fetchMetadata();
   }
 
   @override
@@ -231,6 +233,7 @@ class _TrainerCompleteProfileViewState
 
   Widget _buildSectionContainer({
     required String title,
+     dynamic isRequired,
     required List<Widget> children,
   }) {
     return Container(
@@ -252,12 +255,24 @@ class _TrainerCompleteProfileViewState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CommonText(
-            title,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
+          Row(children: [
+            Flexible(
+              child: CommonText(
+                title,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
+            ),
+            if(isRequired==true)
+            CommonText(
+              " *",
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ],),
+
           const SizedBox(height: 20),
           ...children,
         ],
@@ -879,7 +894,8 @@ class _TrainerCompleteProfileViewState
           final isRequired = type['isRequired'] == true;
 
           return _buildSectionContainer(
-            title: isRequired ? '$typeName *' : typeName,
+            title:  typeName,
+            isRequired:isRequired,
             children: [
               Wrap(
                 spacing: 12,
