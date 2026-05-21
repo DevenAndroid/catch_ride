@@ -77,7 +77,23 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     //if (systemConfig.regions.isEmpty && !systemConfig.isLoadingRegions.value) {
       systemConfig.fetchRegions();
    // }
+
+    _loadLocationTabDefaults();
   }
+
+  void _loadLocationTabDefaults() {
+    if (controller.locationType.value == 'Show Venue') {
+      controller.fetchDefaultShowVenues();
+      return;
+    }
+    if (_isServicesCategory) {
+      controller.fetchDefaultVendorSearchMetadata();
+    } else if (controller.defaultLocations.isEmpty) {
+      controller.fetchDefaultSearchMetadata();
+    }
+  }
+
+  bool get _isServicesCategory => _selectedCategory == 'Services';
 
   Future<void> _onSearchPressed() async {
     FocusManager.instance.primaryFocus!.unfocus();
@@ -252,7 +268,15 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     _searchController.clear();
                     _rangeStart = null;
                     _rangeEnd = null;
+                    _showSuggestions = true;
                   });
+                  if (cat['name'] == 'Services') {
+                    _loadLocationTabDefaults();
+                  } else if (controller.defaultLocations.isEmpty) {
+                    controller.fetchDefaultSearchMetadata();
+                  } else if (controller.locationType.value == 'Show Venue') {
+                    controller.fetchDefaultShowVenues();
+                  }
                 }
               },
               child: Container(
@@ -490,7 +514,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                       children: [
                         // Internal API / Default Suggestions
                         ...displayList.map(
-                          (l) => _buildLocationItem(l['label'] ?? l['name'] ?? ''),
+                          (l) => _buildLocationItem(
+                            l['label'] ?? l['name'] ?? '',
+                            isRegion: l['source'] == 'region',
+                          ),
                         ),
                         if (hasMore && !_showAllLocations)
                           GestureDetector(
@@ -752,6 +779,16 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           setState(() {
             controller.locationType.value = title;
             _showSuggestions = true;
+            _showAllLocations = false;
+            _showAllVenues = false;
+
+            if (title == 'Show Venue') {
+              controller.fetchDefaultShowVenues();
+            } else if (_isServicesCategory) {
+              controller.fetchDefaultVendorSearchMetadata();
+            } else if (controller.defaultLocations.isEmpty) {
+              controller.fetchDefaultSearchMetadata();
+            }
 
             // Switch search controller text based on the tab being switched to
             if (title == 'City, State, or Region') {

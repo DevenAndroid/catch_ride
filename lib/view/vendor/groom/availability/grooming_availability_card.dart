@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/vendor/availability_venues_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -55,21 +56,6 @@ class GroomingAvailabilityCard extends StatelessWidget {
                         color: Colors.white,
                         fontSize: AppTextSizes.size16,
                         fontWeight: FontWeight.bold,
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined, color: Colors.white70, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: CommonText(
-                              availability.locationDisplay,
-                              color: Colors.white70,
-                              fontSize: AppTextSizes.size12,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -160,6 +146,7 @@ class GroomingAvailabilityCard extends StatelessWidget {
                     ],
                   ),
                 ],
+                AvailabilityVenuesSection(block: availability),
               ],
             ),
           ),

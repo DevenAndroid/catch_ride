@@ -665,9 +665,24 @@ class SendBookingRequestController extends GetxController {
       // General availability venues
       if (avail['showVenues'] != null && avail['showVenues'] is List) {
         for (var venue in avail['showVenues']) {
-          if (venue is Map &&
-              (venue['name'] != null || venue['address'] != null)) {
-            locations.add((venue['name'] ?? venue['address']).toString());
+          if (venue is Map) {
+            final name = venue['name']?.toString().trim() ?? '';
+            var loc = venue['location']?.toString().trim() ?? '';
+            if (loc.isEmpty) {
+              final city = venue['city']?.toString().trim() ?? '';
+              final state = venue['state']?.toString().trim() ?? '';
+              final country = venue['country']?.toString().trim() ?? '';
+              loc = [city, state, country].where((p) => p.isNotEmpty).join(', ');
+            }
+            if (name.isNotEmpty && loc.isNotEmpty) {
+              locations.add('$name ($loc)');
+            } else if (name.isNotEmpty) {
+              locations.add(name);
+            } else if (loc.isNotEmpty) {
+              locations.add(loc);
+            } else if (venue['address'] != null) {
+              locations.add(venue['address'].toString());
+            }
           } else if (venue != null && venue is! Map) {
             locations.add(venue.toString());
           }
@@ -714,10 +729,25 @@ class SendBookingRequestController extends GetxController {
     if (avail['showVenues'] != null) {
       if (avail['showVenues'] is List) {
         for (var venue in avail['showVenues']) {
-          if (venue is Map &&
-              (venue['name'] == locationName ||
-                  venue['address'] == locationName))
-            return true;
+          if (venue is Map) {
+            final name = venue['name']?.toString().trim() ?? '';
+            var loc = venue['location']?.toString().trim() ?? '';
+            if (loc.isEmpty) {
+              final city = venue['city']?.toString().trim() ?? '';
+              final state = venue['state']?.toString().trim() ?? '';
+              final country = venue['country']?.toString().trim() ?? '';
+              loc = [city, state, country].where((p) => p.isNotEmpty).join(', ');
+            }
+            final label = name.isNotEmpty && loc.isNotEmpty
+                ? '$name ($loc)'
+                : (name.isNotEmpty ? name : loc);
+            if (label == locationName ||
+                name == locationName ||
+                loc == locationName ||
+                venue['address'] == locationName) {
+              return true;
+            }
+          }
           if (venue.toString() == locationName) return true;
         }
       }

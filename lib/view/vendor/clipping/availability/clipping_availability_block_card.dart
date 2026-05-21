@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/vendor/availability_venues_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -54,23 +55,6 @@ class ClippingAvailabilityBlockCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white70, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: CommonText(
-                              block.locationDisplay.toUpperCase(),
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              overflow: TextOverflow.ellipsis,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
@@ -108,6 +92,7 @@ class ClippingAvailabilityBlockCard extends StatelessWidget {
                   const SizedBox(height: 14),
                   _buildIconRow(Icons.chat_bubble_outline, block.notes!, isNotes: true),
                 ],
+                AvailabilityVenuesSection(block: block, topSpacing: 14),
               ],
             ),
           ),

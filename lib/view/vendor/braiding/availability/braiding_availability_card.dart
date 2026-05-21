@@ -1,6 +1,7 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/vendor/availability_venues_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -55,22 +56,6 @@ class BraidingAvailabilityCard extends StatelessWidget {
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on_outlined, color: Colors.white, size: 14),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: CommonText(
-                                availability.locationDisplay,
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 12,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
                       ],
                     ),
                   ),
@@ -121,6 +106,7 @@ class BraidingAvailabilityCard extends StatelessWidget {
                       availability.notes!,
                     ),
                   ],
+                  AvailabilityVenuesSection(block: availability),
                 ],
               ),
             ),
