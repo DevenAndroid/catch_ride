@@ -358,6 +358,8 @@ class AddNewListingController extends GetxController {
       // Enable wakelock to prevent screen from locking during upload
       WakelockPlus.enable();
 
+      debugPrint('🚀 [Publish Listing] Starting publish process (Edit Mode: $isEditMode)');
+
       // Initial loader
       Get.dialog(
         Obx(
@@ -479,8 +481,16 @@ class AddNewListingController extends GetxController {
       List<String> allImages = [...uploadedImages];
       List<String> allVideos = [...uploadedVideos];
 
+      debugPrint('📸 [Publish Listing] Existing Network Images: ${uploadedImages.length}');
+      debugPrint('🎬 [Publish Listing] Existing Network Videos: ${uploadedVideos.length}');
+      debugPrint('📸 [Publish Listing] New Images to upload: ${localImages.length}');
+      debugPrint('🎬 [Publish Listing] New Videos to upload: ${localVideos.length}');
+
       for (var imageFile in localImages) {
-        if (isUploadCancelled.value) return; // Check for cancellation
+        if (isUploadCancelled.value) {
+          debugPrint('⏹️ [Publish Listing] Upload cancelled before uploading images');
+          return; // Check for cancellation
+        }
         final url = await _uploadFile(imageFile);
         if (url != null) {
           allImages.add(url);
@@ -501,7 +511,10 @@ class AddNewListingController extends GetxController {
       }
 
       for (var videoFile in localVideos) {
-        if (isUploadCancelled.value) return; // Check for cancellation
+        if (isUploadCancelled.value) {
+          debugPrint('⏹️ [Publish Listing] Upload cancelled before uploading videos');
+          return; // Check for cancellation
+        }
         final url = await _uploadFile(videoFile);
         if (url != null) {
           allVideos.add(url);
@@ -521,8 +534,10 @@ class AddNewListingController extends GetxController {
         }
       }
 
-      if (isUploadCancelled.value)
+      if (isUploadCancelled.value) {
+        debugPrint('⏹️ [Publish Listing] Upload cancelled before creating listing');
         return; // Final check before creating listing
+      }
 
       final horseData = {
         'listingTitle': listingTitleController.text,
@@ -570,12 +585,22 @@ class AddNewListingController extends GetxController {
             .toList(),
       };
 
+      final targetUrl = isEditMode
+          ? '${AppUrls.horses}/${editingHorseId.value}'
+          : AppUrls.horses;
+
+      debugPrint('📝 [Publish Listing] Payload: ${jsonEncode(horseData)}');
+      debugPrint('📤 [Publish Listing] Sending ${isEditMode ? "PUT" : "POST"} request to: $targetUrl');
+
       final response = isEditMode
           ? await _apiService.putRequest(
               '${AppUrls.horses}/${editingHorseId.value}',
               horseData,
             )
           : await _apiService.postRequest(AppUrls.horses, horseData);
+
+      debugPrint('📥 [Publish Listing] Response Status Code: ${response.statusCode}');
+      debugPrint('📥 [Publish Listing] Response Body: ${response.body}');
 
       Get.back(); // Remove loading dialog
       Get.back(); // Remove loading dialog
@@ -675,10 +700,12 @@ class AddNewListingController extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
+      debugPrint('📂 [Upload File] File: $fileName | Extension: $extension | Content-Type: $contentType | Size: ${file.lengthSync()} bytes');
+
       // --- FLOW FOR VIDEOS: S3 SIGNED URL ---
       if (isVideo) {
         debugPrint(
-          '🎬 VIDEO DETECTED: Using Signed URL flow with Progress Bar',
+          '🎬 [Upload Video] Signed URL Flow started with Progress Bar',
         );
         isUploadingVideo.value = true;
         uploadProgress.value = 0.0;
@@ -686,15 +713,23 @@ class AddNewListingController extends GetxController {
         final String signUrlEndpoint =
             "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
 
+        debugPrint('📤 [Upload Video] Getting Signed URL from: $signUrlEndpoint');
+
         final signResponse = await http.get(
           Uri.parse(signUrlEndpoint),
           headers: {if (token != null) 'Authorization': 'Bearer $token'},
         );
 
+        debugPrint('📥 [Upload Video] Signed URL Response status: ${signResponse.statusCode}');
+        debugPrint('📥 [Upload Video] Signed URL Response body: ${signResponse.body}');
+
         if (signResponse.statusCode == 200) {
           final signData = json.decode(signResponse.body);
           final String uploadUrl = signData['data']['uploadUrl'];
           final String publicUrl = signData['data']['publicUrl'];
+
+          debugPrint('📤 [Upload Video] PUT URL (S3 Presigned): $uploadUrl');
+          debugPrint('🔗 [Upload Video] Target Public URL: $publicUrl');
 
           final dio = dio_lib.Dio();
           final putResponse = await dio.put(
@@ -710,13 +745,16 @@ class AddNewListingController extends GetxController {
             onSendProgress: (sent, total) {
               if (total > 0) {
                 uploadProgress.value = sent / total;
+                debugPrint('⏳ [Upload Video Progress] ${(uploadProgress.value * 100).toStringAsFixed(1)}% completed');
               }
             },
           );
 
           isUploadingVideo.value = false;
+          debugPrint('📥 [Upload Video S3 PUT] Response status: ${putResponse.statusCode}');
+
           if (putResponse.statusCode == 200) {
-            debugPrint('✅ Video upload successful: $publicUrl');
+            debugPrint('✅ Video upload successful! URL: $publicUrl');
             return publicUrl;
           } else {
             debugPrint('❌ S3 PUT failed [${putResponse.statusCode}]');
@@ -737,7 +775,8 @@ class AddNewListingController extends GetxController {
       }
 
       final String uploadUrl = "$baseUrl$uploadPath?type=horse";
-      debugPrint('📸 IMAGE DETECTED: Using standard API');
+      debugPrint('📸 [Upload Image] Traditional API Flow started');
+      debugPrint('📤 [Upload Image] POSTing image to: $uploadUrl');
 
       var request = http.MultipartRequest('POST', Uri.parse(uploadUrl));
 
@@ -763,9 +802,14 @@ class AddNewListingController extends GetxController {
 
       var response = await http.Response.fromStream(streamedResponse);
 
+      debugPrint('📥 [Upload Image] Response status: ${response.statusCode}');
+      debugPrint('📥 [Upload Image] Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
-        return data['data']['url'];
+        final String uploadedImageUrl = data['data']['url'];
+        debugPrint('✅ Image upload successful! URL: $uploadedImageUrl');
+        return uploadedImageUrl;
       } else {
         debugPrint(
           '❌ Upload failed [${response.statusCode}]: ${response.body}',
