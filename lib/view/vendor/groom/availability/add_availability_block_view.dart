@@ -9,7 +9,9 @@ import 'package:intl/intl.dart';
 import '../../../../controllers/profile_controller.dart';
 import '../../../../controllers/google_api_controller.dart';
 import '../../../../controllers/vendor/groom/groom_view_profile_controller.dart';
+import '../../../../models/show_venue_location.dart';
 import '../../../../models/vendor_availability_model.dart';
+import '../../../../widgets/vendor/vendor_show_venue_section.dart';
 
 class AddAvailabilityBlockView extends StatefulWidget {
   const AddAvailabilityBlockView({super.key});
@@ -95,15 +97,22 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
       setState(() {
         _addedVenues.clear();
 
-        // 1. Check primary field: showVenues (list)
         if (_editingBlock!.showVenues.isNotEmpty) {
-          _addedVenues.assignAll(List<String>.from(_editingBlock!.showVenues));
-        }
-
-        // 2. Check fallback: location.city (if legacy data)
-        if (_addedVenues.isEmpty && _editingBlock!.location != null) {
-          final city = _editingBlock!.location!.city;
-          if (city.isNotEmpty) _addedVenues.add(city);
+          _addedVenues.assignAll(_editingBlock!.showVenues);
+        } else if (_editingBlock!.location != null) {
+          final loc = _editingBlock!.location!;
+          if (loc.city.isNotEmpty) {
+            _addedVenues.add(
+              ShowVenueLocation(
+                name: loc.city,
+                location: ShowVenueLocation.buildLocationLine(
+                  city: loc.city,
+                  state: loc.state,
+                  country: loc.country ?? '',
+                ),
+              ),
+            );
+          }
         }
 
         // 3. Re-process service types to ensure chips show up correctly
@@ -138,10 +147,8 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
   // Text controllers
   final _notesController = TextEditingController();
-  final _venueController = TextEditingController();
-
   // Lists
-  final RxList<String> _addedVenues = <String>[].obs;
+  final RxList<ShowVenueLocation> _addedVenues = <ShowVenueLocation>[].obs;
   final RxInt _maxHorses = 6.obs;
   final RxInt _maxDays = 12.obs;
 
@@ -263,7 +270,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
         'specificDate': _startDate!.toIso8601String(),
         'startDate': _startDate!.toIso8601String(),
         'endDate': _endDate!.toIso8601String(),
-        'showVenues': _addedVenues.toList(),
+        'showVenues': ShowVenueLocation.listToApiPayload(_addedVenues),
         'serviceTypes': allServices.toList(),
         'maxBookings': _maxHorses.value,
         'maxDays': _maxDays.value,
@@ -382,7 +389,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                     'Show Venue',
                   ]),
                   const SizedBox(height: 24),
-                  _buildVenueSection(),
+                  VendorShowVenueSection(venues: _addedVenues),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Daily Session Capacity'),
                   const SizedBox(height: 12),
@@ -408,7 +415,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   const SizedBox(height: 12),
                   _buildDateField('Date', _unStart, _selectBlackoutDate),
                   const SizedBox(height: 24),
-                  _buildVenueSection(),
+                  VendorShowVenueSection(venues: _addedVenues),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Time Block & Capacity'),
                   const SizedBox(height: 12),
@@ -439,7 +446,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
                   _buildCapacitySection(),
                 ] else if (_categoryName == 'Grooming' ||
                     _categoryName == 'Braiding') ...[
-                  _buildVenueSection(),
+                  VendorShowVenueSection(venues: _addedVenues),
                   const SizedBox(height: 24),
                   _buildSectionHeader('Work Type'),
                   const SizedBox(height: 12),
@@ -576,322 +583,6 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVenueSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('Show Venue or City'),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _venueController,
-          readOnly: true,
-          onTap: _showVenueSelectionSheet,
-          decoration: InputDecoration(
-            hintText: 'Select Show Venue or City',
-            hintStyle: const TextStyle(color: Color(0xFF667085), fontSize: 14),
-            prefixIcon: null,
-            suffixIcon: GestureDetector(
-              onTap: _showVenueSelectionSheet,
-              child: const Icon(
-                Icons.search,
-                size: 20,
-                color: Color(0xFF667085),
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
-          ),
-        ),
-        Obx(() {
-          if (_addedVenues.isEmpty) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _addedVenues
-                  .map(
-                    (v) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF2F4F7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFEAECF0)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: CommonText(
-                              v,
-                              fontSize: 13,
-                              color: AppColors.textPrimary,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () => _addedVenues.remove(v),
-                            child: const Icon(
-                              Icons.close,
-                              size: 14,
-                              color: Color(0xFF98A2B3),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  void _showVenueSelectionSheet() {
-    // Refresh or fetch if empty when opening
-    if (profileController.rawHorseShows.isEmpty) {
-      profileController.fetchMetadata();
-    }
-    final searchController = TextEditingController();
-    final RxString searchText = ''.obs;
-
-    Get.bottomSheet(
-      Container(
-        height: Get.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CommonText(
-                  'Select Venue or City',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search venues or city...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onChanged: (val) {
-                searchText.value = val;
-                if (val.length > 2) {
-                  googleApiController.searchGooglePlaces(val);
-                } else {
-                  googleApiController.googleSuggestions.clear();
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-            Obx(() {
-              if (profileController.isLoadingMetadata.value &&
-                  profileController.rawHorseShows.isEmpty) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              return const SizedBox.shrink();
-            }),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Google Suggestions (Cities)
-                    Obx(() {
-                      final suggestions = googleApiController.googleSuggestions;
-                      if (suggestions.isEmpty) return const SizedBox.shrink();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 16, bottom: 8),
-                            child: CommonText(
-                              'Cities',
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          ...suggestions.map((g) {
-                            final name = g['name'] ?? '';
-                            return Obx(() {
-                              final isSelected = _addedVenues.contains(name);
-                              return CheckboxListTile(
-                                value: isSelected,
-                                onChanged: (selected) {
-                                  if (selected == true) {
-                                    if (!_addedVenues.contains(name)) {
-                                      _addedVenues.add(name);
-                                    }
-                                  } else {
-                                    _addedVenues.remove(name);
-                                  }
-                                },
-                                title: CommonText(name),
-                                activeColor: const Color(0xFF030D3B),
-                              );
-                            });
-                          }).toList(),
-                          const Divider(),
-                        ],
-                      );
-                    }),
-
-                    // Local Venues
-                    Obx(() {
-                      final search = searchText.value.toLowerCase();
-                      final seenNames = <String>{};
-                      final allVenues = profileController.rawHorseShows.where((v) {
-                        final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-                        if (seenNames.contains(name)) return false;
-                        seenNames.add(name);
-
-                        if (search.isEmpty) return true;
-                        final city = v['city']?.toString().toLowerCase() ?? '';
-                        return name.toLowerCase().contains(search) || city.contains(search);
-                      }).toList();
-
-                      if (allVenues.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: CommonText('No venues found'),
-                          ),
-                        );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 16, bottom: 8),
-                            child: CommonText(
-                              'Venues',
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          ...allVenues.map((venueItem) {
-                            final venueName = venueItem['showVenue']?.toString() ??
-                                venueItem['name']?.toString() ??
-                                'Unknown';
-                            return Obx(() {
-                              final isSelected = _addedVenues.contains(venueName);
-                              return CheckboxListTile(
-                                value: isSelected,
-                                onChanged: (selected) {
-                                  if (selected == true) {
-                                    if (!_addedVenues.contains(venueName)) {
-                                      _addedVenues.add(venueName);
-                                    }
-                                  } else {
-                                    _addedVenues.remove(venueName);
-                                  }
-                                },
-                                title: CommonText(venueName),
-                                subtitle: venueItem['city'] != null
-                                    ? CommonText(
-                                        '${venueItem['city']}, ${venueItem['state'] ?? ""}',
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      )
-                                    : null,
-                                activeColor: const Color(0xFF030D3B),
-                              );
-                            });
-                          }).toList(),
-                        ],
-                      );
-                    }),
-                  ],
-                ),
-              )),
-             SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      side: const BorderSide(color: Color(0xFFD0D5DD)),
-                    ),
-                    child: const CommonText(
-                      'Close',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF344054),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Get.back(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF030D3B),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const CommonText(
-                      'Save',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 

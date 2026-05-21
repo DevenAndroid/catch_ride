@@ -2,7 +2,9 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/models/show_venue_location.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
+import 'package:catch_ride/widgets/vendor/vendor_show_venue_section.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -40,8 +42,7 @@ class _AddClippingAvailabilityViewState
   final RxInt _maxHorses = 6.obs;
 
   final _notesController = TextEditingController();
-  final _venueSearchController = TextEditingController();
-  final RxList<String> _addedVenues = <String>[].obs;
+  final RxList<ShowVenueLocation> _addedVenues = <ShowVenueLocation>[].obs;
 
   @override
   void initState() {
@@ -162,7 +163,7 @@ class _AddClippingAvailabilityViewState
         'endDate': _endDate!.toIso8601String(),
         'unavailableStart': _unStart?.toIso8601String(),
         'unavailableEnd': _unEnd?.toIso8601String(),
-        'showVenues': _addedVenues.toList(),
+        'showVenues': ShowVenueLocation.listToApiPayload(_addedVenues),
         'serviceTypes': ['Clipping'],
         'locationType': _locationType.value,
         'timeBlockType': _availabilityType.value,
@@ -256,7 +257,10 @@ groomController.fetchProfile();
           _buildSectionHeader('Location Type'),
           _buildDropdownField(_locationType, ['Both', 'Barn', 'Show Venue']),
           const SizedBox(height: 24),
-          _buildVenueSection(),
+          VendorShowVenueSection(
+            venues: _addedVenues,
+            includeGooglePlaces: false,
+          ),
           const SizedBox(height: 24),
           _buildSectionHeader('Time Block & Capacity'),
           const CommonText(
@@ -377,221 +381,6 @@ groomController.fetchProfile();
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildVenueSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('Show Venue or City'),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _venueSearchController,
-          readOnly: true,
-          onTap: _showVenueSelectionSheet,
-          decoration: InputDecoration(
-            hintText: 'Select Show Venue or City',
-            hintStyle: const TextStyle(color: Color(0xFF667085), fontSize: 14),
-            suffixIcon: const Icon(
-              Icons.search,
-              size: 20,
-              color: Color(0xFF667085),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
-          ),
-        ),
-        Obx(() {
-          if (_addedVenues.isEmpty) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _addedVenues
-                  .map(
-                    (v) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F8FF),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.primaryDark),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: CommonText(
-                              v,
-                              fontSize: 13,
-                              color: AppColors.primaryDark,
-                              fontWeight: FontWeight.bold,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () => _addedVenues.remove(v),
-                            child: const Icon(
-                              Icons.close,
-                              size: 14,
-                              color: Color(0xFF98A2B3),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
-  void _showVenueSelectionSheet() {
-    final searchController = TextEditingController();
-
-    // Deduplicate venues by display name before showing the list
-    final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows
-        .where((v) {
-          final name =
-              v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-          if (seenNames.contains(name)) return false;
-          seenNames.add(name);
-          return true;
-        })
-        .toList();
-
-    final RxList<Map<String, dynamic>> filteredVenues =
-        RxList<Map<String, dynamic>>(allVenues);
-
-    Get.bottomSheet(
-      Container(
-        height: Get.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const CommonText(
-                  'Select Venues',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search venues or city...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onChanged: (val) {
-                final search = val.toLowerCase();
-                filteredVenues.assignAll(
-                  allVenues.where((v) {
-                    final name = v['name']?.toString().toLowerCase() ?? '';
-                    final showVenue =
-                        v['showVenue']?.toString().toLowerCase() ?? '';
-                    final city = v['city']?.toString().toLowerCase() ?? '';
-                    return name.contains(search) ||
-                        showVenue.contains(search) ||
-                        city.contains(search);
-                  }).toList(),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Obx(
-                () => ListView.builder(
-                  itemCount: filteredVenues.length,
-                  itemBuilder: (context, index) {
-                    final venueItem = filteredVenues[index];
-                    // Prioritize 'showVenue' key as requested, then 'name'
-                    final venueName =
-                        venueItem['showVenue']?.toString() ??
-                        venueItem['name']?.toString() ??
-                        'Unknown';
-                    final city = venueItem['city']?.toString() ?? '';
-
-                    return Obx(() {
-                      final isSelected = _addedVenues.contains(venueName);
-                      return CheckboxListTile(
-                        value: isSelected,
-                        onChanged: (selected) {
-                          if (selected == true) {
-                            if (!_addedVenues.contains(venueName))
-                              _addedVenues.add(venueName);
-                          } else {
-                            _addedVenues.remove(venueName);
-                          }
-                        },
-                        title: CommonText(venueName),
-                        subtitle: city.isNotEmpty
-                            ? CommonText(city, fontSize: 12, color: Colors.grey)
-                            : null,
-                        activeColor: AppColors.primary,
-                      );
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const CommonText(
-                  'Done',
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 

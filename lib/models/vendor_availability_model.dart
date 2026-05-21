@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import 'show_venue_location.dart';
+
 class VendorAvailabilityModel {
   final String? id;
   final String vendorId;
@@ -17,7 +19,7 @@ class VendorAvailabilityModel {
   final int maxBookings;
   final int currentBookings;
   final String? notes;
-  final List<String> showVenues;
+  final List<ShowVenueLocation> showVenues;
   final DateTime? unavailableStart;
   final DateTime? unavailableEnd;
   final String? locationType; // 'Both', 'Barn', 'Show Venue'
@@ -58,18 +60,7 @@ class VendorAvailabilityModel {
   });
 
   factory VendorAvailabilityModel.fromJson(Map<String, dynamic> json) {
-    var rawVenues = json['showVenues'];
-    List<String> parsedVenues = [];
-    if (rawVenues is List) {
-      parsedVenues = rawVenues.map((v) {
-        if (v is Map && (v['name'] != null || v['address'] != null)) {
-          return (v['name'] ?? v['address']).toString();
-        }
-        return v.toString();
-      }).toList();
-    } else if (rawVenues is String && rawVenues.isNotEmpty) {
-      parsedVenues = [rawVenues];
-    }
+    final parsedVenues = ShowVenueLocation.listFromJson(json['showVenues']);
 
     return VendorAvailabilityModel(
       id: json['_id'],
@@ -121,7 +112,7 @@ class VendorAvailabilityModel {
       'maxBookings': maxBookings,
       'currentBookings': currentBookings,
       'notes': notes,
-      'showVenues': showVenues,
+      'showVenues': ShowVenueLocation.listToApiPayload(showVenues),
       'unavailableStart': unavailableStart?.toIso8601String(),
       'unavailableEnd': unavailableEnd?.toIso8601String(),
       'locationType': locationType,
@@ -149,9 +140,22 @@ class VendorAvailabilityModel {
   }
 
   String get locationDisplay {
-    if (showVenues.isNotEmpty) return showVenues.join(', ');
+    if (showVenues.isNotEmpty) {
+      return showVenues
+          .map((v) {
+            final sub = v.displaySubtitle;
+            return sub != null ? '${v.displayLabel} ($sub)' : v.displayLabel;
+          })
+          .join(', ');
+    }
     if (location == null) return 'N/A';
-    return '${location!.city}, ${location!.state}'.trim();
+    final parts = [
+      location!.city,
+      location!.state,
+      if (location!.country != null && location!.country!.isNotEmpty)
+        location!.country!,
+    ].where((p) => p.trim().isNotEmpty).toList();
+    return parts.join(', ');
   }
 }
 
@@ -186,12 +190,14 @@ class TimeSlot {
 class LocationData {
   final String city;
   final String state;
+  final String? country;
   final String? address;
   final String? zipCode;
 
   LocationData({
     required this.city,
     required this.state,
+    this.country,
     this.address,
     this.zipCode,
   });
@@ -200,6 +206,7 @@ class LocationData {
     return LocationData(
       city: json['city'] ?? '',
       state: json['state'] ?? '',
+      country: json['country']?.toString(),
       address: json['address'],
       zipCode: json['zipCode'],
     );
@@ -209,6 +216,7 @@ class LocationData {
     return {
       'city': city,
       'state': state,
+      if (country != null && country!.isNotEmpty) 'country': country,
       'address': address,
       'zipCode': zipCode,
     };

@@ -1,7 +1,9 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
+import 'package:catch_ride/models/show_venue_location.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
+import 'package:catch_ride/widgets/vendor/vendor_show_venue_section.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_textfield.dart';
@@ -36,7 +38,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
   final RxString _availabilityMode = 'General bookings'.obs;
   final RxInt _minHorses = 6.obs;
   final RxString _newClientPolicy = 'Accepting new clients'.obs;
-  final RxList<String> _addedVenues = <String>[].obs;
+  final RxList<ShowVenueLocation> _addedVenues = <ShowVenueLocation>[].obs;
   final _notesController = TextEditingController();
 
   @override
@@ -118,7 +120,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
         'specificDate': _startDate!.toIso8601String(),
         'startDate': _startDate!.toIso8601String(),
         'endDate': _endDate!.toIso8601String(),
-        'showVenues': _addedVenues.toList(),
+        'showVenues': ShowVenueLocation.listToApiPayload(_addedVenues),
         'serviceTypes': ['Farrier'],
         'maxBookings': _minHorses.value,
         'notes': _notesController.text.trim(),
@@ -184,7 +186,10 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
               const SizedBox(height: 8),
               _buildDropdownField(_timeWindow, ['Full Day', 'Morning window', 'Afternoon window']),
               const SizedBox(height: 24),
-              _buildVenueSection(),
+              VendorShowVenueSection(
+                venues: _addedVenues,
+                includeGooglePlaces: false,
+              ),
               const SizedBox(height: 24),
               const CommonText('Availability Mode', fontSize: 14, fontWeight: FontWeight.bold),
               const SizedBox(height: 8),
@@ -280,121 +285,6 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
           onChanged: (val) { if (val != null) selectedValue.value = val; },
         )),
       ),
-    );
-  }
-
-  Widget _buildVenueSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const CommonText('Show Venue or City', fontSize: 14, fontWeight: FontWeight.bold),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: _showVenueSelectionSheet,
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderLight)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Obx(() => CommonText(_addedVenues.isEmpty ? 'Enter Show Venue or City' : '${_addedVenues.length} Venues selected', fontSize: 14, color: _addedVenues.isEmpty ? Colors.grey : AppColors.textPrimary)),
-                const Icon(Icons.search, size: 20, color: Colors.grey),
-              ],
-            ),
-          ),
-        ),
-        Obx(() => _addedVenues.isEmpty ? const SizedBox.shrink() : Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Wrap(
-            spacing: 8, runSpacing: 8,
-            children: _addedVenues.map((v) => Chip(
-              label: CommonText(v, fontSize: 12, color: AppColors.primaryDark, fontWeight: FontWeight.bold),
-              onDeleted: () => _addedVenues.remove(v),
-              backgroundColor: const Color(0xFFF5F8FF),
-              side: const BorderSide(color: AppColors.primaryDark),
-              deleteIconColor: AppColors.primaryDark,
-            )).toList(),
-          ),
-        )),
-      ],
-    );
-  }
-
-  void _showVenueSelectionSheet() {
-    final searchController = TextEditingController();
-    
-    // Deduplicate venues by display name before showing the list
-    final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows.where((v) {
-      final name = v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-      if (seenNames.contains(name)) return false;
-      seenNames.add(name);
-      return true;
-    }).toList();
-
-    final RxList<Map<String, dynamic>> filteredVenues = RxList<Map<String, dynamic>>(allVenues);
-    
-    Get.bottomSheet(
-      Container(
-        height: Get.height * 0.8,
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const CommonText('Select Venues', fontSize: 18, fontWeight: FontWeight.bold),
-            const SizedBox(height: 16),
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search venues or city...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onChanged: (val) {
-                final search = val.toLowerCase();
-                filteredVenues.assignAll(allVenues.where((v) {
-                  final name = v['name']?.toString().toLowerCase() ?? '';
-                  final showVenue = v['showVenue']?.toString().toLowerCase() ?? '';
-                  final city = v['city']?.toString().toLowerCase() ?? '';
-                  return name.contains(search) || showVenue.contains(search) || city.contains(search);
-                }).toList());
-              },
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Obx(() => ListView.builder(
-                itemCount: filteredVenues.length,
-                itemBuilder: (ctx, i) {
-                  final venueItem = filteredVenues[i];
-                  // Prioritize 'showVenue' key as requested, then 'name'
-                  final venueName = venueItem['showVenue']?.toString() ?? venueItem['name']?.toString() ?? 'Unknown';
-                  final city = venueItem['city']?.toString() ?? '';
-                  
-                  return Obx(() {
-                    final isSelected = _addedVenues.contains(venueName);
-                    return CheckboxListTile(
-                      value: isSelected,
-                      onChanged: (selected) {
-                        if (selected == true) {
-                          if (!_addedVenues.contains(venueName)) _addedVenues.add(venueName);
-                        } else {
-                          _addedVenues.remove(venueName);
-                        }
-                      },
-                      title: CommonText(venueName),
-                      subtitle: city.isNotEmpty ? CommonText(city, fontSize: 12, color: Colors.grey) : null,
-                      activeColor: AppColors.primary,
-                    );
-                  });
-                },
-              )),
-            ),
-            SizedBox(width: double.infinity, height: 50, child: ElevatedButton(onPressed: () => Get.back(), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const CommonText('Done', color: Colors.white))),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 

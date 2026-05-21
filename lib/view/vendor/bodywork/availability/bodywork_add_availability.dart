@@ -2,7 +2,9 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/vendor/vendor_availability_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/models/show_venue_location.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
+import 'package:catch_ride/widgets/vendor/vendor_show_venue_section.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -34,8 +36,7 @@ class _BodyworkAddAvailabilityViewState
   DateTime? _endDate;
   final RxString _timeWindow = 'Full Day'.obs;
   final RxString _locationType = 'Both'.obs;
-  final _venueSearchController = TextEditingController();
-  final RxList<String> _selectedVenues = <String>[].obs;
+  final RxList<ShowVenueLocation> _selectedVenues = <ShowVenueLocation>[].obs;
   final RxInt _dailyCapacity = 6.obs;
   final RxString _bufferTime = '15 min'.obs;
   final _notesController = TextEditingController();
@@ -64,7 +65,7 @@ class _BodyworkAddAvailabilityViewState
     _endDate = _editingBlock!.endDate;
     _notesController.text = _editingBlock!.notes ?? '';
     _dailyCapacity.value = _editingBlock!.maxBookings;
-    _selectedVenues.assignAll(List<String>.from(_editingBlock!.showVenues));
+    _selectedVenues.assignAll(_editingBlock!.showVenues);
 
     _timeWindow.value = _editingBlock!.timeBlockType ?? 'Full Day';
     _locationType.value = _editingBlock!.locationType ?? 'Both';
@@ -148,7 +149,7 @@ class _BodyworkAddAvailabilityViewState
         'specificDate': _startDate!.toIso8601String(),
         'startDate': _startDate!.toIso8601String(),
         'endDate': _endDate!.toIso8601String(),
-        'showVenues': _selectedVenues.toList(),
+        'showVenues': ShowVenueLocation.listToApiPayload(_selectedVenues),
         'serviceTypes': ['Bodywork'],
         'maxBookings': _dailyCapacity.value,
         'notes': _notesController.text.trim(),
@@ -242,7 +243,10 @@ class _BodyworkAddAvailabilityViewState
                 _locationTypeOptions,
               ),
               const SizedBox(height: 24),
-              _buildVenueSection(),
+              VendorShowVenueSection(
+                venues: _selectedVenues,
+                includeGooglePlaces: false,
+              ),
               const SizedBox(height: 24),
               _buildCounter('Daily Session Capacity', _dailyCapacity),
               const SizedBox(height: 24),
@@ -404,213 +408,6 @@ class _BodyworkAddAvailabilityViewState
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVenueSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const CommonText(
-          'Show Venue or City',
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF344054),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _venueSearchController,
-          readOnly: true,
-          onTap: _showVenueSelectionSheet,
-          decoration: InputDecoration(
-            hintText: 'Enter Show Venue or City',
-            hintStyle: const TextStyle(color: Color(0xFF98A2B3), fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Obx(
-          () => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _selectedVenues
-                .map(
-                  (v) => Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F8FF),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: AppColors.primaryDark),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: CommonText(
-                            v,
-                            fontSize: 13,
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () => _selectedVenues.remove(v),
-                          child: const Icon(
-                            Icons.close,
-                            size: 14,
-                            color: Color(0xFF667085),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showVenueSelectionSheet() {
-    final searchController = TextEditingController();
-
-    // Deduplicate venues by display name before showing the list
-    final seenNames = <String>{};
-    final List<Map<String, dynamic>> allVenues = profileController.rawHorseShows
-        .where((v) {
-          final name =
-              v['showVenue']?.toString() ?? v['name']?.toString() ?? 'Unknown';
-          if (seenNames.contains(name)) return false;
-          seenNames.add(name);
-          return true;
-        })
-        .toList();
-
-    final RxList<Map<String, dynamic>> filteredVenues =
-        RxList<Map<String, dynamic>>(allVenues);
-
-    Get.bottomSheet(
-      Container(
-        height: Get.height * 0.85,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const CommonText(
-                  'Select Venues',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search venues or city...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onChanged: (val) {
-                final search = val.toLowerCase();
-                filteredVenues.assignAll(
-                  allVenues.where((v) {
-                    final name = v['name']?.toString().toLowerCase() ?? '';
-                    final showVenue =
-                        v['showVenue']?.toString().toLowerCase() ?? '';
-                    final city = v['city']?.toString().toLowerCase() ?? '';
-                    return name.contains(search) ||
-                        showVenue.contains(search) ||
-                        city.contains(search);
-                  }).toList(),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Obx(
-                () => ListView.builder(
-                  itemCount: filteredVenues.length,
-                  itemBuilder: (context, index) {
-                    final venueItem = filteredVenues[index];
-                    // Prioritize 'showVenue' key as requested, then 'name'
-                    final venueName =
-                        venueItem['showVenue']?.toString() ??
-                        venueItem['name']?.toString() ??
-                        'Unknown';
-                    final city = venueItem['city']?.toString() ?? '';
-
-                    return Obx(() {
-                      final isSelected = _selectedVenues.contains(venueName);
-                      return CheckboxListTile(
-                        value: isSelected,
-                        onChanged: (selected) {
-                          if (selected == true) {
-                            if (!_selectedVenues.contains(venueName))
-                              _selectedVenues.add(venueName);
-                          } else {
-                            _selectedVenues.remove(venueName);
-                          }
-                        },
-                        title: CommonText(venueName),
-                        subtitle: city.isNotEmpty
-                            ? CommonText(city, fontSize: 12, color: Colors.grey)
-                            : null,
-                        activeColor: AppColors.primaryDark,
-                      );
-                    });
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryDark,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const CommonText(
-                  'Done',
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 
