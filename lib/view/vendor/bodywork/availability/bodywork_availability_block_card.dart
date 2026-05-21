@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/models/vendor_availability_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/vendor/availability_venues_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -55,21 +56,6 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white70, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: CommonText(
-                              block.locationDisplay,
-                              color: Colors.white70,
-                              fontSize: 12,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -177,6 +163,7 @@ class BodyworkAvailabilityBlockCard extends StatelessWidget {
                     ],
                   ),
                 ],
+                AvailabilityVenuesSection(block: block),
               ],
             ),
           ),
