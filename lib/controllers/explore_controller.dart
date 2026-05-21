@@ -397,6 +397,9 @@ class ExploreController extends GetxController {
       if (location.value.isNotEmpty) {
         queryParams['location'] = location.value;
       }
+      if (showVenue.value.isNotEmpty) {
+        queryParams['showVenue'] = showVenue.value;
+      }
 
       if (startDate.value != null) {
         queryParams['startDate'] = DateFormat('yyyy-MM-dd').format(startDate.value!);

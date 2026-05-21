@@ -840,7 +840,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
   }
 
   Widget _buildShowVenueItem(Map<String, dynamic> show) {
-    final name = show['name'] ?? '';
+    final bool isServices = _selectedCategory == 'Services';
+    final resolvedName = isServices
+        ? (show['showVenue'] ?? show['label'] ?? show['name'] ?? '')
+        : (show['name'] ?? '');
     final venueName = show['showVenue'] ?? 'Unknown Venue';
     final city = show['city'] ?? '';
     final state = show['state'] ?? '';
@@ -861,10 +864,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     return GestureDetector(
       onTap: () {
         _unfocusAndScrollTop();
-        controller.showVenue.value = name;
+        controller.showVenue.value = resolvedName;
         controller.location.value = '';
         controller.regionsCovered.clear();
-        _searchController.text = name;
+        _searchController.text = resolvedName;
 
         DateTime? showStart;
         DateTime? showEnd;
@@ -920,13 +923,22 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CommonText(name, fontSize: 15, fontWeight: FontWeight.bold),
+                  CommonText(resolvedName, fontSize: 15, fontWeight: FontWeight.bold),
                   const SizedBox(height: 4),
-                  CommonText(
-                    '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country • $dateRange',
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
+                  if (isServices) ...[
+                    if (city.isNotEmpty || state.isNotEmpty || country.isNotEmpty)
+                      CommonText(
+                        '$city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country',
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                  ] else ...[
+                    CommonText(
+                      '$venueName • $city${city.isNotEmpty && state.isNotEmpty ? ", " : ""}$state${(city.isNotEmpty || state.isNotEmpty) && country.isNotEmpty ? ", " : ""}$country • $dateRange',
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ],
                 ],
               ),
             ),
