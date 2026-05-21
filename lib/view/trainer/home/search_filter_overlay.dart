@@ -77,7 +77,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
     //if (systemConfig.regions.isEmpty && !systemConfig.isLoadingRegions.value) {
       systemConfig.fetchRegions();
    // }
+
+    if (_selectedCategory == 'Services') {
+      controller.fetchDefaultVendorSearchMetadata();
+    }
   }
+
+  bool get _isServicesCategory => _selectedCategory == 'Services';
 
   Future<void> _onSearchPressed() async {
     FocusManager.instance.primaryFocus!.unfocus();
@@ -252,7 +258,13 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     _searchController.clear();
                     _rangeStart = null;
                     _rangeEnd = null;
+                    _showSuggestions = true;
                   });
+                  if (cat['name'] == 'Services') {
+                    controller.fetchDefaultVendorSearchMetadata();
+                  } else if (controller.defaultLocations.isEmpty) {
+                    controller.fetchDefaultSearchMetadata();
+                  }
                 }
               },
               child: Container(
@@ -351,7 +363,11 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     _showSuggestions = true;
                   });
                   if (isShowVenue) {
-                    controller.searchVenues(val);
+                    if (_isServicesCategory) {
+                      controller.searchVendorVenues(val);
+                    } else {
+                      controller.searchVenues(val);
+                    }
                   } else {
                     controller.searchLocations(val);
                   }
@@ -439,7 +455,16 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...displayList.map((v) => _buildShowVenueItem(v)),
+                        ...displayList.map(
+                          (v) => _isServicesCategory
+                              ? _buildLocationItem(
+                                  v['label']?.toString() ??
+                                      v['name']?.toString() ??
+                                      '',
+                                  isVenue: true,
+                                )
+                              : _buildShowVenueItem(v),
+                        ),
                         if (hasMore && !_showAllVenues)
                           GestureDetector(
                             onTap: () => setState(() => _showAllVenues = true),
@@ -490,7 +515,10 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                       children: [
                         // Internal API / Default Suggestions
                         ...displayList.map(
-                          (l) => _buildLocationItem(l['label'] ?? l['name'] ?? ''),
+                          (l) => _buildLocationItem(
+                            l['label'] ?? l['name'] ?? '',
+                            isRegion: l['source'] == 'region',
+                          ),
                         ),
                         if (hasMore && !_showAllLocations)
                           GestureDetector(
@@ -752,6 +780,12 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
           setState(() {
             controller.locationType.value = title;
             _showSuggestions = true;
+            _showAllLocations = false;
+            _showAllVenues = false;
+
+            if (_isServicesCategory) {
+              controller.fetchDefaultVendorSearchMetadata();
+            }
 
             // Switch search controller text based on the tab being switched to
             if (title == 'City, State, or Region') {

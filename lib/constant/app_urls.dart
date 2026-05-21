@@ -119,4 +119,5 @@ class AppUrls {
 
   // Locations
   static const String locationsSuggest = '/locations/suggest';
+  static const String vendorLocationSuggestions = '/vendors/location-suggestions';
 }

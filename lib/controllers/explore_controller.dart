@@ -585,6 +585,10 @@ class ExploreController extends GetxController {
   }
 
   Future<void> searchLocations(String query) async {
+    if (selectedDiscipline.value == 'Services') {
+      return searchVendorLocations(query);
+    }
+
     if (query.isEmpty) {
       locationsSuggestions.clear();
       googleApiController.googleSuggestions.clear();
@@ -614,6 +618,119 @@ class ExploreController extends GetxController {
       }
     } catch (e) {
       _logger.e('Error searching locations: $e');
+    }
+  }
+
+  List<Map<String, String>> _mapVendorLocationSuggestions(List data) {
+    final List<Map<String, String>> suggestions = [];
+    final seen = <String>{};
+    for (var item in data) {
+      final label = item['label']?.toString().trim() ?? '';
+      if (label.isEmpty) continue;
+      final dedupeKey = label.toLowerCase();
+      if (seen.contains(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      final source = item['source']?.toString() ?? '';
+      suggestions.add({
+        'label': label,
+        if (source.isNotEmpty) 'source': source,
+      });
+    }
+    return suggestions;
+  }
+
+  Future<void> fetchDefaultVendorSearchMetadata() async {
+    try {
+      isSuggestionsLoading.value = true;
+      final response = await _apiService.getRequest(
+        AppUrls.vendorLocationSuggestions,
+        query: {'limit': '20'},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        final all = _mapVendorLocationSuggestions(data);
+        defaultLocations.assignAll(
+          all.where((s) => s['source'] != 'show_venue').toList(),
+        );
+        defaultVenues.assignAll(
+          all
+              .where((s) => s['source'] == 'show_venue')
+              .map(
+                (s) => <String, dynamic>{
+                  'name': s['label'] ?? '',
+                  'label': s['label'] ?? '',
+                },
+              )
+              .toList(),
+        );
+      }
+    } catch (e) {
+      _logger.e('Error fetching vendor location suggestions: $e');
+    } finally {
+      isSuggestionsLoading.value = false;
+    }
+  }
+
+  Future<void> searchVendorLocations(String query) async {
+    if (query.isEmpty) {
+      locationsSuggestions.clear();
+      return;
+    }
+
+    try {
+      isSuggestionsLoading.value = true;
+      final response = await _apiService.getRequest(
+        AppUrls.vendorLocationSuggestions,
+        query: {'q': query, 'limit': '10'},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        locationsSuggestions.assignAll(
+          _mapVendorLocationSuggestions(data)
+              .where((s) => s['source'] != 'show_venue')
+              .toList(),
+        );
+      }
+    } catch (e) {
+      _logger.e('Error searching vendor locations: $e');
+    } finally {
+      isSuggestionsLoading.value = false;
+    }
+  }
+
+  Future<void> searchVendorVenues(String query) async {
+    if (query.isEmpty) {
+      venuesSuggestions.clear();
+      return;
+    }
+
+    try {
+      isSuggestionsLoading.value = true;
+      final response = await _apiService.getRequest(
+        AppUrls.vendorLocationSuggestions,
+        query: {'q': query, 'limit': '10'},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        final List<Map<String, dynamic>> suggestions = [];
+        for (var item in data) {
+          final source = item['source']?.toString() ?? '';
+          if (source != 'show_venue') continue;
+          final label = item['label']?.toString() ?? '';
+          if (label.isEmpty) continue;
+          if (!suggestions.any((s) => s['name'] == label)) {
+            suggestions.add({'name': label, 'label': label});
+          }
+        }
+        venuesSuggestions.assignAll(suggestions);
+      }
+    } catch (e) {
+      _logger.e('Error searching vendor venues: $e');
+    } finally {
+      isSuggestionsLoading.value = false;
     }
   }
 
