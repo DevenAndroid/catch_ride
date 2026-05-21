@@ -250,6 +250,42 @@ class _BookingRequestViewState extends State<BookingRequestView> {
 
   bool _isTrainerOwnHorse() => isHorseOwner;
 
+  /// Resolves who the trial is with. Barn managers book on behalf of their linked trainer.
+  String _resolveTrialWithName() {
+    if (booking != null) {
+      final resolved = booking!.displayClientName;
+      final rawClient = booking!.clientName ?? '';
+      final isBmRequester = booking!.clientRole == 'barn_manager' ||
+          booking!.clientIsBarnManager;
+
+      if (isBmRequester &&
+          resolved == rawClient &&
+          horse?.trainerName != null &&
+          horse!.trainerName!.trim().isNotEmpty) {
+        return horse!.trainerName!.trim();
+      }
+      if (resolved.isNotEmpty) return resolved;
+    }
+    return widget.otherName ?? 'Client';
+  }
+
+  String? _resolveTrialWithImage() {
+    if (booking != null) {
+      final resolved = booking!.displayClientImage;
+      final isBmRequester = booking!.clientRole == 'barn_manager' ||
+          booking!.clientIsBarnManager;
+
+      if (isBmRequester &&
+          (resolved == null || resolved.isEmpty) &&
+          horse?.trainerAvatar != null &&
+          horse!.trainerAvatar!.trim().isNotEmpty) {
+        return horse!.trainerAvatar;
+      }
+      if (resolved != null && resolved.isNotEmpty) return resolved;
+    }
+    return widget.otherImage;
+  }
+
   bool _isDatePassed() {
     if (booking == null) return false;
 
@@ -846,12 +882,16 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   }
 
   Widget _buildRequesterInfoCard() {
-    final String bName = booking?.clientName ?? widget.otherName ?? 'Client';
-    final String? bAvatar = booking?.clientImage ?? widget.otherImage;
+    final String bName = _resolveTrialWithName();
+    final String? bAvatar = _resolveTrialWithImage();
     final String bLocation = (booking?.horseLocation != null && booking!.horseLocation!.isNotEmpty) 
         ? booking!.horseLocation! 
         : booking?.location ?? '';
-    final String bDate = booking?.date ?? '';
+    final String bDate = booking != null
+        ? (DateUtil.formatRange(booking!.startDate, booking!.endDate).isNotEmpty
+            ? DateUtil.formatRange(booking!.startDate, booking!.endDate)
+            : DateUtil.formatRangeString(booking!.date))
+        : '';
     final String? bNotes = booking?.notes;
 
     return Padding(
@@ -1898,10 +1938,8 @@ class _BookingRequestViewState extends State<BookingRequestView> {
           Get.back(closeOverlays: true);
         } else {
           final String otherId = widget.otherId ?? booking?.clientId ?? '';
-          final String otherName =
-              widget.otherName ?? booking?.clientName ?? 'Client';
-          final String otherImage =
-              widget.otherImage ?? booking?.clientImage ?? '';
+          final String otherName = _resolveTrialWithName();
+          final String otherImage = _resolveTrialWithImage() ?? '';
 
           chatController.openBookingChat(
             bookingId: widget.bookingId!,

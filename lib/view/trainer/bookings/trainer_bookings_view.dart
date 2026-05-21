@@ -398,8 +398,8 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
         } else {
           final bool isReceived = _tabController.index == 0;
           final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
-          final String otherName = isReceived ? (booking.clientName ?? '') : (booking.trainerName ?? '');
-          final String otherImage = isReceived ? (booking.clientImage ?? '') : (booking.trainerImage ?? '');
+          final String otherName = isReceived ? booking.displayClientName : (booking.trainerName ?? '');
+          final String otherImage = isReceived ? (booking.displayClientImage ?? '') : (booking.trainerImage ?? '');
           // myTeamId is the Trainer's User ID (for chat thread reconstruction)
           final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
 

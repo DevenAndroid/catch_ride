@@ -190,8 +190,8 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           final bool isReceived = booking.trainerUserId == profileController.id || booking.trainerId == profileController.id;
           
           final String otherId = isReceived ? (booking.clientId ?? '') : (booking.trainerUserId ?? booking.trainerId ?? '');
-          final String otherName = isReceived ? (booking.clientName ?? '') : (booking.trainerName ?? '');
-          final String otherImage = isReceived ? (booking.clientImage ?? '') : (booking.trainerImage ?? '');
+          final String otherName = isReceived ? booking.displayClientName : (booking.trainerName ?? '');
+          final String otherImage = isReceived ? (booking.displayClientImage ?? '') : (booking.trainerImage ?? '');
           final String myTeamId = isReceived ? (booking.trainerUserId ?? booking.trainerId ?? '') : (booking.clientId ?? '');
 
           Get.to(
