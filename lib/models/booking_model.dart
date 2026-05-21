@@ -7,6 +7,13 @@ class BookingModel {
   final String status;
   final String? clientId;
   final String? clientName;
+  /// Role of [clientId] when populated from the API (e.g. `barn_manager`).
+  final String? clientRole;
+  /// Set on [clientId] user when they are a barn manager account.
+  final bool clientIsBarnManager;
+  /// Linked trainer profile name when the requester is a barn manager.
+  final String? requesterTrainerName;
+  final String? requesterTrainerImage;
   final String? trainerId;   // Trainer Profile ID
   final String? trainerName;
   final String? trainerUserId; // Trainer's User ID (for chat threads)
@@ -53,6 +60,10 @@ class BookingModel {
     required this.status,
     this.clientId,
     this.clientName,
+    this.clientRole,
+    this.clientIsBarnManager = false,
+    this.requesterTrainerName,
+    this.requesterTrainerImage,
     this.trainerId,
     this.trainerName,
     this.trainerUserId,
@@ -91,6 +102,76 @@ class BookingModel {
     this.vendorBundleLines = const [],
   });
 
+  bool get _clientActsAsBarnManager =>
+      clientRole == 'barn_manager' || clientIsBarnManager;
+
+  /// Name shown for the trial requester. Barn managers act for their linked trainer.
+  String get displayClientName {
+    if (_clientActsAsBarnManager &&
+        requesterTrainerName != null &&
+        requesterTrainerName!.isNotEmpty) {
+      return requesterTrainerName!;
+    }
+    return clientName ?? '';
+  }
+
+  /// Avatar for [displayClientName].
+  String? get displayClientImage {
+    if (_clientActsAsBarnManager &&
+        requesterTrainerImage != null &&
+        requesterTrainerImage!.isNotEmpty) {
+      return requesterTrainerImage;
+    }
+    return clientImage;
+  }
+
+  static String? _nameFromProfileMap(dynamic data) {
+    if (data is! Map) return null;
+    final name =
+        '${data['firstName'] ?? ''} ${data['lastName'] ?? ''}'.trim();
+    return name.isNotEmpty ? name : null;
+  }
+
+  static String? _imageFromProfileMap(dynamic data) {
+    if (data is! Map) return null;
+    for (final key in [
+      'profilePhoto',
+      'photo',
+      'avatar',
+      'displayAvatar',
+      'profileImage',
+      'image',
+    ]) {
+      final v = data[key];
+      if (v != null && v.toString().isNotEmpty) return v.toString();
+    }
+    return null;
+  }
+
+  static String? _linkedTrainerNameFromClient(Map client) {
+    final fromUserTrainer = _nameFromProfileMap(client['trainerId']);
+    if (fromUserTrainer != null) return fromUserTrainer;
+
+    if (client['barnManagerId'] is Map) {
+      final bm = client['barnManagerId'] as Map;
+      final fromBmTrainer = _nameFromProfileMap(bm['trainerId']);
+      if (fromBmTrainer != null) return fromBmTrainer;
+    }
+    return null;
+  }
+
+  static String? _linkedTrainerImageFromClient(Map client) {
+    final fromUserTrainer = _imageFromProfileMap(client['trainerId']);
+    if (fromUserTrainer != null) return fromUserTrainer;
+
+    if (client['barnManagerId'] is Map) {
+      final bm = client['barnManagerId'] as Map;
+      final fromBmTrainer = _imageFromProfileMap(bm['trainerId']);
+      if (fromBmTrainer != null) return fromBmTrainer;
+    }
+    return null;
+  }
+
   static List<Map<String, dynamic>> _parseVendorBundleLines(dynamic raw) {
     if (raw is! List) return [];
     final out = <Map<String, dynamic>>[];
@@ -113,7 +194,7 @@ class BookingModel {
         if (dateVal.contains('T')) {
           try {
             final dt = DateTime.parse(dateVal);
-            displayDate = DateFormat('dd MMM yyyy').format(dt);
+            displayDate = DateFormat('MMM dd, yyyy').format(dt);
           } catch (e) {
             displayDate = dateVal.split('T').first;
           }
@@ -146,8 +227,8 @@ class BookingModel {
       }
     }
 
-    String? sDateFormatted = formatD(sDateVal, 'dd MMM');
-    String? eDateFormatted = formatD(eDateVal, 'dd MMM yyyy');
+    String? sDateFormatted = formatD(sDateVal, 'MMM dd');
+    String? eDateFormatted = formatD(eDateVal, 'MMM dd, yyyy');
     
     if (sDateFormatted != null && eDateFormatted != null) {
       displayDate = "$sDateFormatted - $eDateFormatted";
@@ -238,6 +319,29 @@ class BookingModel {
       }
     }
 
+    String? clientRoleVal;
+    bool clientIsBarnManagerVal = false;
+    String? requesterTrainerNameVal;
+    String? requesterTrainerImageVal;
+    if (json['clientId'] is Map) {
+      final client = json['clientId'] as Map;
+      clientRoleVal = client['role']?.toString();
+      clientIsBarnManagerVal =
+          clientRoleVal == 'barn_manager' || client['barnManagerId'] != null;
+      requesterTrainerNameVal = _linkedTrainerNameFromClient(client);
+      requesterTrainerImageVal = _linkedTrainerImageFromClient(client);
+    }
+
+    // Booking-level barn manager (set on create / accept)
+    if ((requesterTrainerNameVal == null ||
+            requesterTrainerNameVal!.isEmpty) &&
+        json['barnManagerId'] is Map) {
+      final bm = json['barnManagerId'] as Map;
+      clientIsBarnManagerVal = true;
+      requesterTrainerNameVal ??= _nameFromProfileMap(bm['trainerId']);
+      requesterTrainerImageVal ??= _imageFromProfileMap(bm['trainerId']);
+    }
+
     return BookingModel(
       id: json['_id'],
       bookingNumber: json['bookingNumber'] ?? '',
@@ -245,6 +349,12 @@ class BookingModel {
       status: json['status'] ?? 'pending',
       clientId: json['clientId'] is Map ? json['clientId']['_id'] : json['clientId'],
       clientName: json['clientName'] ?? (json['clientId'] is Map ? "${json['clientId']['firstName'] ?? ''} ${json['clientId']['lastName'] ?? ''}".trim() : null),
+      clientRole: clientRoleVal,
+      clientIsBarnManager: clientIsBarnManagerVal,
+      requesterTrainerName: requesterTrainerNameVal?.isNotEmpty == true
+          ? requesterTrainerNameVal
+          : null,
+      requesterTrainerImage: requesterTrainerImageVal,
       trainerId: json['trainerId'] is Map ? json['trainerId']['_id'] : json['trainerId'],
       trainerUserId: json['trainerId'] is Map ? json['trainerId']['userId']?.toString() : null,
       trainerName: (json['trainerName'] != null && json['trainerName'].toString().isNotEmpty)

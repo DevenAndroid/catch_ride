@@ -226,8 +226,8 @@ Future<void> _openBookingDetails({
       if (otherImage.isEmpty) otherImage = booking.trainerImage ?? '';
     } else {
       if (otherId.isEmpty) otherId = booking.clientId ?? '';
-      if (otherName.isEmpty) otherName = booking.clientName ?? '';
-      if (otherImage.isEmpty) otherImage = booking.clientImage ?? '';
+      if (otherName.isEmpty) otherName = booking.displayClientName;
+      if (otherImage.isEmpty) otherImage = booking.displayClientImage ?? '';
     }
 
     final String trainerTeamUserId =
