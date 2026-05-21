@@ -543,6 +543,35 @@ class ExploreController extends GetxController {
     fetchHorses();
   }
 
+  /// Default show-venue list from GET /horse-shows (Show Venue tab).
+  Future<void> fetchDefaultShowVenues({int limit = 10}) async {
+    try {
+      isSuggestionsLoading.value = true;
+      final response = await _apiService.getRequest(
+        AppUrls.horseShows,
+        query: {'limit': limit.toString()},
+      );
+
+      if (response.statusCode == 200) {
+        final List data = response.body['data'] ?? [];
+        final List<Map<String, dynamic>> venues = [];
+
+        for (var show in data) {
+          final name = show['name']?.toString().trim() ?? '';
+          if (name.isEmpty) continue;
+          if (!venues.any((v) => v['name'] == name)) {
+            venues.add(Map<String, dynamic>.from(show));
+          }
+        }
+        defaultVenues.assignAll(venues);
+      }
+    } catch (e) {
+      _logger.e('Error fetching default show venues: $e');
+    } finally {
+      isSuggestionsLoading.value = false;
+    }
+  }
+
   Future<void> fetchDefaultSearchMetadata() async {
     try {
       final response = await _apiService.getRequest(
@@ -553,14 +582,12 @@ class ExploreController extends GetxController {
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
 
-        // Extract 3 unique locations (City, State)
+        // Extract unique city/state pairs for the City tab
         final List<Map<String, String>> locations = [];
-        final List<Map<String, dynamic>> venues = [];
 
         for (var show in data) {
           final city = show['city'] ?? '';
           final state = show['state'] ?? '';
-          final venue = show['showVenue'] ?? '';
 
           if (city.isNotEmpty && state.isNotEmpty) {
             final locName = "$city, $state";
@@ -568,17 +595,13 @@ class ExploreController extends GetxController {
               locations.add({'name': locName});
             }
           }
-
-          if (venue.isNotEmpty) {
-            if (!venues.any((v) => v['name'] == venue)) {
-              venues.add(Map<String, dynamic>.from(show));
-            }
-          }
         }
 
-        defaultLocations.assignAll(locations.map((l) => {'label': l['name']!}).toList());
-        defaultVenues.assignAll(venues);
+        defaultLocations.assignAll(
+          locations.map((l) => {'label': l['name']!}).toList(),
+        );
       }
+      await fetchDefaultShowVenues(limit: 10);
     } catch (e) {
       _logger.e('Error fetching default search metadata: $e');
     }
@@ -653,17 +676,6 @@ class ExploreController extends GetxController {
         defaultLocations.assignAll(
           all.where((s) => s['source'] != 'show_venue').toList(),
         );
-        defaultVenues.assignAll(
-          all
-              .where((s) => s['source'] == 'show_venue')
-              .map(
-                (s) => <String, dynamic>{
-                  'name': s['label'] ?? '',
-                  'label': s['label'] ?? '',
-                },
-              )
-              .toList(),
-        );
       }
     } catch (e) {
       _logger.e('Error fetching vendor location suggestions: $e');
@@ -734,14 +746,15 @@ class ExploreController extends GetxController {
     }
   }
 
+  /// Show Venue tab search — GET /horse-shows only (not vendor location-suggestions).
   Future<void> searchVenues(String query) async {
     if (query.isEmpty) {
       venuesSuggestions.clear();
       return;
     }
 
-    // isSuggestionsLoading.value = true;
     try {
+      isSuggestionsLoading.value = true;
       final response = await _apiService.getRequest(
         AppUrls.horseShows,
         query: {'search': query, 'limit': '10'},
@@ -752,19 +765,16 @@ class ExploreController extends GetxController {
         final List<Map<String, dynamic>> suggestions = [];
 
         for (var item in data) {
-          final venue = item['name'] ?? '';
-          final city = item['city'] ?? '';
-          final state = item['state'] ?? '';
-          if (venue.isNotEmpty) {
-            if (!suggestions.any((s) => s['name'] == venue)) {
-              suggestions.add(Map<String, dynamic>.from(item));
-            }
+          final name = item['name']?.toString().trim() ?? '';
+          if (name.isEmpty) continue;
+          if (!suggestions.any((s) => s['name'] == name)) {
+            suggestions.add(Map<String, dynamic>.from(item));
           }
         }
         venuesSuggestions.assignAll(suggestions);
       }
     } catch (e) {
-      _logger.e('Error searching venues: $e');
+      _logger.e('Error searching show venues: $e');
     } finally {
       isSuggestionsLoading.value = false;
     }

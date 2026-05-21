@@ -15,6 +15,8 @@ class VendorModel {
   final String status;
   final List<VendorServiceItem> services;
   final List<VendorAvailability> serviceAvailability;
+  /// Show venues from availability that matched the explore `location` filter.
+  final List<VendorMatchingVenue> matchingAvailabilityVenues;
 
   VendorModel({
     required this.id,
@@ -33,7 +35,16 @@ class VendorModel {
     required this.status,
     this.services = const [],
     this.serviceAvailability = const [],
+    this.matchingAvailabilityVenues = const [],
   });
+
+  /// Best label for list UI when filtering by city/state (prefers matched show venue).
+  String? get displayLocation {
+    if (matchingAvailabilityVenues.isNotEmpty) {
+      return matchingAvailabilityVenues.first.displayLine;
+    }
+    return location;
+  }
 
   String get fullName => '$firstName $lastName';
 
@@ -80,6 +91,32 @@ class VendorModel {
       serviceAvailability: (json['serviceAvailability'] as List? ?? [])
           .map((e) => VendorAvailability.fromJson(e))
           .toList(),
+      matchingAvailabilityVenues:
+          (json['matchingAvailabilityVenues'] as List? ?? [])
+              .map((e) => VendorMatchingVenue.fromJson(e as Map<String, dynamic>))
+              .toList(),
+    );
+  }
+}
+
+class VendorMatchingVenue {
+  final String name;
+  final String location;
+
+  const VendorMatchingVenue({this.name = '', this.location = ''});
+
+  String get displayLine {
+    final n = name.trim();
+    final loc = location.trim();
+    if (n.isNotEmpty && loc.isNotEmpty && n != loc) return '$n, $loc';
+    if (loc.isNotEmpty) return loc;
+    return n;
+  }
+
+  factory VendorMatchingVenue.fromJson(Map<String, dynamic> json) {
+    return VendorMatchingVenue(
+      name: json['name']?.toString() ?? '',
+      location: json['location']?.toString() ?? '',
     );
   }
 }

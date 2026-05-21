@@ -78,8 +78,18 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       systemConfig.fetchRegions();
    // }
 
-    if (_selectedCategory == 'Services') {
+    _loadLocationTabDefaults();
+  }
+
+  void _loadLocationTabDefaults() {
+    if (controller.locationType.value == 'Show Venue') {
+      controller.fetchDefaultShowVenues();
+      return;
+    }
+    if (_isServicesCategory) {
       controller.fetchDefaultVendorSearchMetadata();
+    } else if (controller.defaultLocations.isEmpty) {
+      controller.fetchDefaultSearchMetadata();
     }
   }
 
@@ -261,9 +271,11 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     _showSuggestions = true;
                   });
                   if (cat['name'] == 'Services') {
-                    controller.fetchDefaultVendorSearchMetadata();
+                    _loadLocationTabDefaults();
                   } else if (controller.defaultLocations.isEmpty) {
                     controller.fetchDefaultSearchMetadata();
+                  } else if (controller.locationType.value == 'Show Venue') {
+                    controller.fetchDefaultShowVenues();
                   }
                 }
               },
@@ -363,11 +375,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     _showSuggestions = true;
                   });
                   if (isShowVenue) {
-                    if (_isServicesCategory) {
-                      controller.searchVendorVenues(val);
-                    } else {
-                      controller.searchVenues(val);
-                    }
+                    controller.searchVenues(val);
                   } else {
                     controller.searchLocations(val);
                   }
@@ -455,16 +463,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...displayList.map(
-                          (v) => _isServicesCategory
-                              ? _buildLocationItem(
-                                  v['label']?.toString() ??
-                                      v['name']?.toString() ??
-                                      '',
-                                  isVenue: true,
-                                )
-                              : _buildShowVenueItem(v),
-                        ),
+                        ...displayList.map((v) => _buildShowVenueItem(v)),
                         if (hasMore && !_showAllVenues)
                           GestureDetector(
                             onTap: () => setState(() => _showAllVenues = true),
@@ -783,8 +782,12 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
             _showAllLocations = false;
             _showAllVenues = false;
 
-            if (_isServicesCategory) {
+            if (title == 'Show Venue') {
+              controller.fetchDefaultShowVenues();
+            } else if (_isServicesCategory) {
               controller.fetchDefaultVendorSearchMetadata();
+            } else if (controller.defaultLocations.isEmpty) {
+              controller.fetchDefaultSearchMetadata();
             }
 
             // Switch search controller text based on the tab being switched to

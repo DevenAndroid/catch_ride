@@ -311,11 +311,18 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                 ],
               ),
               child: InkWell(
-                onTap: () => Get.to(
-                  () => const SearchFilterOverlay(),
-                  fullscreenDialog: true,
-                  opaque: false,
-                ),
+                onTap: () {
+                  if (controller.locationType.value == 'Show Venue') {
+                    controller.fetchDefaultShowVenues();
+                  } else if (controller.selectedDiscipline.value == 'Services') {
+                    controller.fetchDefaultVendorSearchMetadata();
+                  }
+                  Get.to(
+                    () => const SearchFilterOverlay(),
+                    fullscreenDialog: true,
+                    opaque: false,
+                  );
+                },
                 borderRadius: BorderRadius.circular(30),
                 child: Row(
                   children: [
@@ -534,7 +541,8 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                     color: AppColors.textPrimary,
                   ),
                   const SizedBox(height: 8),
-                  if (vendor.location != null && vendor.location!.isNotEmpty) ...[
+                  if (vendor.displayLocation != null &&
+                      vendor.displayLocation!.isNotEmpty) ...[
                     Row(
                       children: [
                         Icon(
@@ -545,7 +553,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                         const SizedBox(width: 8),
                         Flexible(
                           child: CommonText(
-                            vendor.location!,
+                            vendor.displayLocation!,
                             fontSize: 14,
                             color: AppColors.textSecondary.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w500,
