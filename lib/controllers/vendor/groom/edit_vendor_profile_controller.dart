@@ -1411,12 +1411,20 @@ class EditVendorProfileController extends GetxController {
           vendorRootData['experience'];
       experience.value = exp?.toString();
 
-      selectedDisciplines.assignAll(
-        List<String>.from(
-          appDataMap['disciplines'] ?? vendorRootData['disciplines'] ?? [],
-        ),
+      // Decode: known options → chips; unrecognised entry → 'Other' chip selected + text field filled.
+      final rawDiscs = List<String>.from(
+        appDataMap['disciplines'] ?? vendorRootData['disciplines'] ?? [],
       );
-      otherDisciplineController.text = appDataMap['otherDiscipline'] ?? '';
+      final knownDiscOpts = Set<String>.from(disciplineOptions);
+      final standardDiscs = rawDiscs.where((d) => knownDiscOpts.contains(d)).toList();
+      final customDiscEntry = rawDiscs.firstWhereOrNull((d) => !knownDiscOpts.contains(d));
+      if (customDiscEntry != null) {
+        selectedDisciplines.assignAll([...standardDiscs, 'Other']);
+        otherDisciplineController.text = customDiscEntry;
+      } else {
+        selectedDisciplines.assignAll(standardDiscs);
+        otherDisciplineController.text = '';
+      }
       selectedHorseLevels.assignAll(List<String>.from(appDataMap['horseLevels'] ?? vendorRootData['horseLevels'] ?? []));
       
       final List rawRegions = appDataMap['regions'] ?? appDataMap['regionsCovered'] ?? vendorRootData['regions'] ?? vendorRootData['regionsCovered'] ?? [];
@@ -1828,6 +1836,27 @@ class EditVendorProfileController extends GetxController {
         // Trigger re-population of services if we already have profile data
         if (assignedServices.isNotEmpty) {
           _mergeBodyworkModalities();
+        }
+      }
+
+      // Fetch Braiding and Clipping specific tags
+      for (final cat in ['Braiding', 'Clipping']) {
+        final res = await _apiService.getRequest(
+          '/system-config/tag-types/with-values?category=$cat',
+        );
+        if (res.statusCode == 200 && res.body['success'] == true) {
+          final List types = res.body['data'];
+          for (var type in types) {
+            final name = type['name'];
+            final List<String> values = List<String>.from(
+              type['values'].map((v) => v['name']),
+            );
+            if (name == 'Disciplines') {
+              _categoryDisciplines[cat] = values;
+            } else if (name == 'Typical Level of Horses') {
+              _categoryHorseLevels[cat] = values;
+            }
+          }
         }
       }
 
@@ -2626,6 +2655,11 @@ class EditVendorProfileController extends GetxController {
     final fb = facebookController.text.trim();
     final ig = instagramController.text.trim();
 
+    // Encode: strip 'Other' sentinel — only the typed text goes into the array.
+    final customDiscText = otherDisciplineController.text.trim();
+    final discsToSave = selectedDisciplines.where((d) => d != 'Other').toList();
+    if (customDiscText.isNotEmpty) discsToSave.add(customDiscText);
+
     final Map<String, dynamic> appData = {
       'homeBase': {
         'city': cityController.text,
@@ -2635,8 +2669,7 @@ class EditVendorProfileController extends GetxController {
             : countryController.text.trim(),
       },
       'experience': experience.value,
-      'disciplines': selectedDisciplines.toList(),
-      'otherDiscipline': otherDisciplineController.text,
+      'disciplines': discsToSave,
       'horseLevels': selectedHorseLevels.toList(),
       'regions': selectedRegions.map((regionName) {
         final systemConfig = Get.find<SystemConfigController>();

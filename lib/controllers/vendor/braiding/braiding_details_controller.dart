@@ -35,15 +35,21 @@ class BraidingDetailsController extends GetxController {
   ].obs;
 
   final addServiceInputController = TextEditingController();
+  final addServicePriceController = TextEditingController();
 
-  void addBraidingService(String name) {
+  void addBraidingService(String name, String price) {
     if (name.isNotEmpty) {
+      final newPriceController = TextEditingController();
+      if (price.isNotEmpty) {
+        newPriceController.text = price;
+      }
       braidingServices.add({
         'name': name,
         'isSelected': true.obs,
-        'price': TextEditingController(),
+        'price': newPriceController,
       });
       addServiceInputController.clear();
+      addServicePriceController.clear();
     }
   }
 
@@ -66,6 +72,7 @@ class BraidingDetailsController extends GetxController {
 
   final disciplines = <String>[].obs;
   final disciplineOptions = <String>[].obs;
+  final otherDisciplineController = TextEditingController();
 
   final horseLevels = <String>[].obs;
   final horseLevelOptions = <String>[].obs;
@@ -127,9 +134,11 @@ class BraidingDetailsController extends GetxController {
           (t) => t['name'] == 'Disciplines',
         );
         if (disciplineType != null) {
-          disciplineOptions.value = List<String>.from(
+          final values = List<String>.from(
             disciplineType['values'].map((v) => v['name']),
           );
+          if (!values.contains('Other')) values.add('Other');
+          disciplineOptions.value = values;
         }
 
         // Populate Level of Horses
@@ -160,7 +169,20 @@ class BraidingDetailsController extends GetxController {
         
         experience.value = applicationData['experience']?.toString();
         
-        disciplines.assignAll(List<String>.from(applicationData['disciplines'] ?? []));
+        // Decode: separate known-option chips from the custom "Other" text.
+        // The array stores only real values — 'Other' is never saved, only the typed text is.
+        final rawDiscs = List<String>.from(applicationData['disciplines'] ?? []);
+        final knownOpts = Set<String>.from(disciplineOptions);
+        final standardDiscs = rawDiscs.where((d) => knownOpts.contains(d)).toList();
+        final customEntry = rawDiscs.firstWhereOrNull((d) => !knownOpts.contains(d));
+        if (customEntry != null) {
+          // Restore 'Other' chip as selected and fill the text field
+          disciplines.assignAll([...standardDiscs, 'Other']);
+          otherDisciplineController.text = customEntry;
+        } else {
+          disciplines.assignAll(standardDiscs);
+          otherDisciplineController.text = '';
+        }
         horseLevels.assignAll(List<String>.from(applicationData['horseLevels'] ?? []));
         final List rawRegions = applicationData['regions'] ?? applicationData['regionsCovered'] ?? [];
         final List<String> regionNames = rawRegions.map((r) {
@@ -222,7 +244,11 @@ class BraidingDetailsController extends GetxController {
       // Update applicationData with new selections
       final Map<String, dynamic> updatedApplicationData = Map<String, dynamic>.from(vendorResponse.body['data']['servicesData']?['braiding']?['applicationData'] ?? {});
       updatedApplicationData['experience'] = experience.value;
-      updatedApplicationData['disciplines'] = disciplines.toList();
+      // Save: strip the 'Other' sentinel — only add the typed text to the array.
+      final customText = otherDisciplineController.text.trim();
+      final discsToSave = disciplines.where((d) => d != 'Other').toList();
+      if (customText.isNotEmpty) discsToSave.add(customText);
+      updatedApplicationData['disciplines'] = discsToSave;
       updatedApplicationData['horseLevels'] = horseLevels.toList();
       final systemConfig = Get.find<SystemConfigController>();
       updatedApplicationData['regions'] = operatingRegions.map((name) {
@@ -298,7 +324,9 @@ class BraidingDetailsController extends GetxController {
       (service['price'] as TextEditingController).dispose();
     }
     customCancellationController.dispose();
+    otherDisciplineController.dispose();
     addServiceInputController.dispose();
+    addServicePriceController.dispose();
     super.onClose();
   }
 }
