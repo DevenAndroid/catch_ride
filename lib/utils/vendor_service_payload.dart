@@ -734,6 +734,54 @@ List<String> mergeServicePortfolioMediaUrls({
   return out;
 }
 
+/// Portfolio keys for post-approval details PUT: wizard uploads live on the [VendorModel]
+/// subdoc (`grooming.media`, …) and/or `assignedServices`, not only `servicesData.*.applicationData`.
+List<String> portfolioMediaKeysForDetailsSave({
+  required Map<String, dynamic> vendorRoot,
+  required String serviceType,
+  required Map<String, dynamic> applicationData,
+  Map<String, dynamic>? servicesDataBlock,
+}) {
+  Map<String, dynamic> appFromAssigned = <String, dynamic>{};
+  for (final row in normalizeAssignedServices(vendorRoot)) {
+    if (assignedServiceMatchesTab(row, serviceType)) {
+      appFromAssigned = effectiveApplicationData(row);
+      break;
+    }
+  }
+
+  final profileData = servicesDataBlock?['profileData'] is Map
+      ? Map<String, dynamic>.from(servicesDataBlock!['profileData'] as Map)
+      : <String, dynamic>{};
+
+  return portfolioMediaStorageKeysForSave(
+    mergeServicePortfolioMediaUrls(
+      serviceType: serviceType,
+      vendorRoot: vendorRoot,
+      profileData: profileData,
+      appData: <String, dynamic>{...appFromAssigned, ...applicationData},
+      draftBlock: servicesDataBlock,
+    ),
+  );
+}
+
+/// Writes preserved portfolio keys onto `applicationData` and nested `profileData` before PUT.
+void applyPortfolioMediaToServiceBlock({
+  required Map<String, dynamic> serviceBlock,
+  required Map<String, dynamic> applicationData,
+  required List<String> mediaKeys,
+}) {
+  if (mediaKeys.isEmpty) return;
+  applicationData['media'] = mediaKeys;
+  final profileData = Map<String, dynamic>.from(
+    serviceBlock['profileData'] is Map
+        ? serviceBlock['profileData'] as Map
+        : <String, dynamic>{},
+  );
+  profileData['media'] = mediaKeys;
+  serviceBlock['profileData'] = profileData;
+}
+
 /// [VendorModel.js] `profile` — falls back to legacy `profilePhoto` from older API payloads.
 String vendorProfileImageFromRoot(Map<dynamic, dynamic> data) {
   final profile = data['profile']?.toString();

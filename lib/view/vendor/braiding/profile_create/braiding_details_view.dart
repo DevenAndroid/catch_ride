@@ -162,7 +162,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
             children: const [
               Icon(Icons.add, size: 18, color: AppColors.linkBlue),
               SizedBox(width: 4),
-              CommonText('Add Skills', color: AppColors.linkBlue, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
+              CommonText('Add Service', color: AppColors.linkBlue, fontWeight: FontWeight.bold, fontSize: AppTextSizes.size14),
             ],
           ),
         ),
@@ -199,7 +199,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
           const SizedBox(height: 24),
           _buildEditableExperience(controller),
           const SizedBox(height: 24),
-          _buildEditableChips('Disciplines', 'Select the disciplines you most commonly work with.', controller.disciplines, controller.disciplineOptions, controller.toggleDiscipline),
+          _buildDisciplinesSection(controller),
           const SizedBox(height: 24),
           _buildEditableChips('Typical Level of Horses', 'Select the types of horses you most frequently work with.', controller.horseLevels, controller.horseLevelOptions, controller.toggleHorseLevel),
           const SizedBox(height: 24),
@@ -259,6 +259,57 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
             ),
           ),
         )),
+      ],
+    );
+  }
+
+  Widget _buildDisciplinesSection(BraidingDetailsController controller) {
+    return _buildSectionContainer(
+      title: 'Disciplines',
+      description: 'Select the disciplines you most commonly work with.',
+      children: [
+        Obx(() => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: controller.disciplineOptions.map((it) {
+            final isSelected = controller.disciplines.contains(it);
+            return GestureDetector(
+              onTap: () => controller.toggleDiscipline(it),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? const Color(0xFFF5F8FF) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.borderLight),
+                ),
+                child: CommonText(
+                  it,
+                  fontSize: 12,
+                  color: isSelected ? AppColors.primaryDark : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
+        )),
+        Obx(() {
+          if (!controller.disciplines.contains('Other')) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: TextField(
+              controller: controller.otherDisciplineController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Write here...',
+                hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primaryDark)),
+                contentPadding: const EdgeInsets.all(16),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -518,14 +569,28 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
               ),
             ),
             const SizedBox(height: 24),
-             CommonText('Add More Service', fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
+             CommonText('Add Service', fontSize: AppTextSizes.size22, fontWeight: FontWeight.bold),
             const SizedBox(height: 24),
-            const CommonText('Skill', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+            const CommonText('Service', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
             const SizedBox(height: 8),
             TextField(
               controller: controller.addServiceInputController,
               decoration: InputDecoration(
                 hintText: 'Enter your skill',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const CommonText('Price per horse', fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+            const SizedBox(height: 8),
+            TextField(
+              controller: controller.addServicePriceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [PriceInputFormatter()],
+              decoration: InputDecoration(
+                hintText: 'Price',
+                prefixText: '\$ ',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.borderLight)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
@@ -537,6 +602,7 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                   child: OutlinedButton(
                     onPressed: () {
                       controller.addServiceInputController.clear();
+                      controller.addServicePriceController.clear();
                       Get.back();
                     },
                     style: OutlinedButton.styleFrom(
@@ -553,7 +619,10 @@ class _BraidingDetailsViewState extends State<BraidingDetailsView> {
                     text: 'Save',
                     backgroundColor: AppColors.primary,
                     onPressed: () {
-                      controller.addBraidingService(controller.addServiceInputController.text);
+                      controller.addBraidingService(
+                        controller.addServiceInputController.text,
+                        controller.addServicePriceController.text,
+                      );
                       Get.back();
                     },
                   ),
