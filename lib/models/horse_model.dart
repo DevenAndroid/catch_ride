@@ -97,6 +97,23 @@ class HorseModel {
     this.createdAt,
   });
 
+  /// Rows to show in explore/list UIs (API may send filtered rows in `availability`).
+  List<AvailabilityModel> get displayAvailability =>
+      availability.isNotEmpty ? availability : showAvailability;
+
+  static List<AvailabilityModel> _parseAvailabilityList(dynamic raw) {
+    final List<AvailabilityModel> list = (raw as List?)
+            ?.map((e) => AvailabilityModel.fromJson(e))
+            .toList() ??
+        [];
+    return list.where((avail) {
+      return !(avail.showVenue.trim().isEmpty &&
+          avail.cityState.trim().isEmpty &&
+          avail.startDate.trim().isEmpty &&
+          avail.endDate.trim().isEmpty);
+    }).toList();
+  }
+
   factory HorseModel.fromJson(Map<String, dynamic> json) {
     // Handle nested trainer object if it exists
     String? tId;
@@ -236,6 +253,12 @@ class HorseModel {
       bLocation = json['bookedByLocation'] ?? json['booked_by_location'];
     }
 
+    final parsedAvailability = _parseAvailabilityList(json['availability']);
+    final parsedShowAvailability = _parseAvailabilityList(json['showAvailability']);
+    final displayAvailability = parsedAvailability.isNotEmpty
+        ? parsedAvailability
+        : parsedShowAvailability;
+
     return HorseModel(
       id: json['_id'],
       name: json["registeredName"] ?? json['name'] ?? '',
@@ -261,81 +284,8 @@ class HorseModel {
       })(),
       usefNumber: json['usefNumber'],
       listingTypes: List<String>.from(json['listingTypes'] ?? []),
-      showAvailability: (() {
-        final List<AvailabilityModel> list = (json['showAvailability'] as List?)
-                ?.map((e) => AvailabilityModel.fromJson(e))
-                .toList() ??
-            [];
-        return list.where((avail) {
-          return !(avail.showVenue.trim().isEmpty &&
-                   avail.cityState.trim().isEmpty &&
-                   avail.startDate.trim().isEmpty &&
-                   avail.endDate.trim().isEmpty);
-        }).toList();
-
-        // final now = DateTime.now();
-        // final today = DateTime(now.year, now.month, now.day);
-
-        // // Filter: Keep only current and upcoming shows
-        // final filtered = list.where((avail) {
-        //   if (avail.endDate.isEmpty) return true;
-        //   try {
-        //     DateTime? end;
-        //     try {
-        //       end = DateTime.parse(avail.endDate);
-        //     } catch (_) {
-        //       try {
-        //         end = DateFormat('dd MMM yyyy').parse(avail.endDate);
-        //       } catch (_) {}
-        //     }
-        //     if (end == null) return true;
-        //     return !end.isBefore(today);
-        //   } catch (e) {
-        //     return true;
-        //   }
-        // }).toList();
-
-        // // Sort: Prioritize upcoming shows (ascending start date)
-        // filtered.sort((a, b) {
-        //   if (a.startDate.isEmpty) return 1;
-        //   if (b.startDate.isEmpty) return -1;
-        //   try {
-        //     DateTime? dateA, dateB;
-        //     try {
-        //       dateA = DateTime.parse(a.startDate);
-        //     } catch (_) {
-        //       try {
-        //         dateA = DateFormat('dd MMM yyyy').parse(a.startDate);
-        //       } catch (_) {}
-        //     }
-        //     try {
-        //       dateB = DateTime.parse(b.startDate);
-        //     } catch (_) {
-        //       try {
-        //         dateB = DateFormat('dd MMM yyyy').parse(b.startDate);
-        //       } catch (_) {}
-        //     }
-        //     if (dateA == null) return 1;
-        //     if (dateB == null) return -1;
-        //     return dateA.compareTo(dateB);
-        //   } catch (e) {
-        //     return 0;
-        //   }
-        // });
-        return list;
-      })(),
-      availability: (() {
-        final List<AvailabilityModel> list = (json['availability'] as List?)
-                ?.map((e) => AvailabilityModel.fromJson(e))
-                .toList() ??
-            [];
-        return list.where((avail) {
-          return !(avail.showVenue.trim().isEmpty &&
-                   avail.cityState.trim().isEmpty &&
-                   avail.startDate.trim().isEmpty &&
-                   avail.endDate.trim().isEmpty);
-        }).toList();
-      })(),
+      showAvailability: displayAvailability,
+      availability: parsedAvailability,
       disciplines: json['discipline'] is String
           ? [json['discipline'] as String]
           : List<String>.from(json['discipline'] ?? []),
