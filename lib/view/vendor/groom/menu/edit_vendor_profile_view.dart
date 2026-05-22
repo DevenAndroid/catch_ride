@@ -594,8 +594,6 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
         const SizedBox(height: 20),
         _buildHorseHandlingSection(),
         const SizedBox(height: 20),
-        // _buildAdditionalSkillsSection(),
-        // const SizedBox(height: 20),
         _buildTravelPreferencesSection(),
         const SizedBox(height: 20),
         _buildExperienceHighlights(),
