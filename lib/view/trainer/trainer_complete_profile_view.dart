@@ -151,7 +151,7 @@ class _TrainerCompleteProfileViewState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -197,13 +197,14 @@ class _TrainerCompleteProfileViewState
                     const SizedBox(height: 16),
                     _buildDynamicTagsSection(),
                     const SizedBox(height: 32),
-                    _buildBottomButton(),
-                    const SizedBox(height: 24),
+
                   ],
                 ),
               ),
             ),
           ),
+          _buildBottomButton(),
+          const SizedBox(height: 12),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

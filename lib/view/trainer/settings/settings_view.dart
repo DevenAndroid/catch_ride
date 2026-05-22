@@ -23,6 +23,7 @@ import 'package:get/get.dart';
 import '../../../controllers/profile_controller.dart';
 import '../list/add_new_listing_view.dart';
 import '../bookings/trainer_past_bookings_view.dart';
+import '../trainer_complete_profile_view.dart';
 import 'notifications_view.dart';
 
 class SettingsView extends StatelessWidget {
@@ -425,6 +426,7 @@ class SettingsView extends StatelessWidget {
       height: 56,
       child: OutlinedButton(
         onPressed: () => _showLogoutDialog(Get.context!),
+       // onPressed: () =>  Get.to(TrainerCompleteProfileView()),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFEAECF0)),
           shape: RoundedRectangleBorder(
