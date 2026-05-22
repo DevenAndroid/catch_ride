@@ -11,7 +11,6 @@ class AppUrls {
           defaultValue: 'http://192.168.1.14:5000',
   );
 
-
   /// Production vs dev/ngrok — **false** uses [devTunnelOrigin] for API + sockets.
   static bool isLive = true;
 

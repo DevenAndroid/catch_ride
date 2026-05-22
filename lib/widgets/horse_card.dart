@@ -29,41 +29,15 @@ class HorseCard extends StatelessWidget {
     String  location = (horse.location == null || horse.location!.isEmpty) ? 'N/A' : horse.location!;
     final ExploreController controller = Get.put(ExploreController());
 
+    final availabilityRows = horse.displayAvailability;
+
     if (controller.locationType.value == "Show Venue") {
-      var searchedVenue = controller.showVenue.value.trim().toLowerCase();
+      final searchedVenue = controller.showVenue.value.trim().toLowerCase();
 
-      if (searchedVenue.isNotEmpty && horse.showAvailability.isNotEmpty) {
-        final show =
-            horse.showAvailability.firstWhereOrNull(
-              (s) => s.showVenue.trim().toLowerCase() == searchedVenue,
-            ) ??
-            (horse.showAvailability.isNotEmpty
-                ? horse.showAvailability.first
-                : null);
-
-        if (show != null) {
-          final String datesStr = DateUtil.formatRange(
-            show.startDate,
-            show.endDate,
-          );
-          dates = (datesStr.isEmpty || datesStr.trim() == '-')
-              ? 'N/A'
-              : datesStr;
-          barnName = show.showVenue;
-          location=show.cityState;
-        }
-      }
-    }
-    else {
-
-
-      final String searchedLocation = controller.location.value.trim().toLowerCase();
-
-
-      if (searchedLocation.isNotEmpty && horse.availability.isNotEmpty) {
-        final show = horse.availability.isNotEmpty
-            ? horse.availability.first
-            : null;
+      if (searchedVenue.isNotEmpty && availabilityRows.isNotEmpty) {
+        final show = availabilityRows.firstWhereOrNull(
+          (s) => s.showVenue.trim().toLowerCase().contains(searchedVenue),
+        );
 
         if (show != null) {
           final String datesStr = DateUtil.formatRange(
@@ -76,6 +50,23 @@ class HorseCard extends StatelessWidget {
           barnName = show.showVenue;
           location = show.cityState;
         }
+      }
+    } else {
+      final String searchedLocation =
+          controller.location.value.trim().toLowerCase();
+
+      if (searchedLocation.isNotEmpty && availabilityRows.isNotEmpty) {
+        final show = availabilityRows.first;
+
+        final String datesStr = DateUtil.formatRange(
+          show.startDate,
+          show.endDate,
+        );
+        dates = (datesStr.isEmpty || datesStr.trim() == '-')
+            ? 'N/A'
+            : datesStr;
+        barnName = show.showVenue;
+        location = show.cityState;
       }
     }
 

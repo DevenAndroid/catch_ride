@@ -38,13 +38,17 @@ class VendorModel {
     this.matchingAvailabilityVenues = const [],
   });
 
-  /// Best label for list UI when filtering by city/state (prefers matched show venue).
+  /// Best label for list UI when filtering by show venue / location.
   String? get displayLocation {
     if (matchingAvailabilityVenues.isNotEmpty) {
       return matchingAvailabilityVenues.first.displayLine;
     }
     return location;
   }
+
+  /// Dates from the first availability row that matched explore filters.
+  VendorAvailability? get primaryServiceAvailability =>
+      serviceAvailability.isNotEmpty ? serviceAvailability.first : null;
 
   String get fullName => '$firstName $lastName';
 

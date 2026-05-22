@@ -584,7 +584,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                     ],
                   ),
                   const SizedBox(height: 6),
-                  if (vendor.serviceAvailability.isNotEmpty)
+                  if (vendor.primaryServiceAvailability != null)
                     Row(
                       children: [
                         Icon(
@@ -595,10 +595,10 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                         const SizedBox(width: 8),
                         Flexible(
                           child: CommonText(
-                            vendor.serviceAvailability.first.startDate ==
-                                    vendor.serviceAvailability.first.endDate
-                                ? (vendor.serviceAvailability.first.startDate ?? '')
-                                : '${vendor.serviceAvailability.first.startDate ?? ''} - ${vendor.serviceAvailability.first.endDate ?? ''}',
+                            vendor.primaryServiceAvailability!.startDate ==
+                                    vendor.primaryServiceAvailability!.endDate
+                                ? (vendor.primaryServiceAvailability!.startDate ?? '')
+                                : '${vendor.primaryServiceAvailability!.startDate ?? ''} - ${vendor.primaryServiceAvailability!.endDate ?? ''}',
                             fontSize: 14,
                             color: AppColors.textSecondary.withValues(alpha: 0.7),
                             fontWeight: FontWeight.w500,
