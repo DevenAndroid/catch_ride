@@ -632,14 +632,12 @@ class GroomViewProfileController extends GetxController {
   }
 
   String get cancellationPolicy {
-    final raw = activeProfileData['cancellationPolicy'];
-    if (raw is Map) {
-      return raw['policy']?.toString() ?? "";
-    }
-    if (raw is String && raw.isNotEmpty) {
-      return raw;
-    }
-    return '';
+    final merged = activeProfileData;
+    final raw = merged['cancellationPolicy'] ??
+        (merged['profileData'] is Map
+            ? (merged['profileData'] as Map)['cancellationPolicy']
+            : null);
+    return effectiveCancellationDisplayText(raw);
   }
 
   // Experience Highlights

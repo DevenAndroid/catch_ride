@@ -30,6 +30,23 @@ Map<String, dynamic> servicesDataBlockForType(
   return <String, dynamic>{};
 }
 
+/// Human-readable cancellation text from API shapes (plain string or
+/// `{ policy, isCustom, customText }` saved during profile setup / edit).
+String effectiveCancellationDisplayText(dynamic cp) {
+  if (cp == null) return '';
+  if (cp is String) return cp.trim();
+  if (cp is Map) {
+    final policy = cp['policy']?.toString().trim() ?? '';
+    final customText = cp['customText']?.toString().trim() ?? '';
+    final isCustom = cp['isCustom'] == true;
+    if (isCustom) {
+      return customText.isNotEmpty ? customText : policy;
+    }
+    return policy.isNotEmpty ? policy : customText;
+  }
+  return cp.toString().trim();
+}
+
 Map<String, dynamic> effectiveApplicationData(dynamic assignedService) {
   if (assignedService is! Map) return <String, dynamic>{};
   final svc = Map<String, dynamic>.from(assignedService);
