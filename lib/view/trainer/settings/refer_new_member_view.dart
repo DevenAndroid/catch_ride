@@ -14,7 +14,6 @@ class ReferNewMemberView extends StatefulWidget {
 }
 
 class _ReferNewMemberViewState extends State<ReferNewMemberView> {
-  final String referralLink = 'catchride.com/r/yourusername';
 
   @override
   Widget build(BuildContext context) {
@@ -49,174 +48,181 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
       body: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CommonText(
-                    'Catch Ride is built through trusted referrals from within the industry. Invite professionals you trust to be considered for the network',
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                    height: 1.4,
-                  ),
-                  const SizedBox(height: 24),
-                  const CommonText(
-                    'How it works?',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildStep(
-                    1,
-                    'Invite a Professional',
-                    'Share your referral link with a trainer or vendor you trust.',
-                    false,
-                  ),
-                  _buildStep(
-                    2,
-                    'They Apply',
-                    'They submit a short application to confirm their details and references.',
-                    false,
-                  ),
-                  _buildStep(
-                    3,
-                    'Priority Review',
-                    'Referred applicants receive priority review as new members are approved.',
-                    true,
-                  ),
-                  const SizedBox(height: 32),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                final controller = Get.find<ProfileController>();
+                controller.fetchMetadata();
 
-                  // Share Link Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.border.withValues(alpha: 0.3),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              },
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CommonText(
+                      'Catch Ride is built through trusted referrals from within the industry. Invite professionals you trust to be considered for the network',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const CommonText(
-                          'Share Your Referral Link',
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                    const SizedBox(height: 24),
+                    const CommonText(
+                      'How it works?',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildStep(
+                      1,
+                      'Invite a Professional',
+                      'Share your referral link with a trainer or vendor you trust.',
+                      false,
+                    ),
+                    _buildStep(
+                      2,
+                      'They Apply',
+                      'They submit a short application to confirm their details and references.',
+                      false,
+                    ),
+                    _buildStep(
+                      3,
+                      'Priority Review',
+                      'Referred applicants receive priority review as new members are approved.',
+                      true,
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Share Link Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.border.withValues(alpha: 0.3),
                         ),
-                        const SizedBox(height: 8),
-                        const CommonText(
-                          'Share this link with professionals you\'d confidently recommend to the Catch Ride network.',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          height: 1.4,
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.border.withValues(alpha: 0.8),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CommonText(
+                            'Share Your Referral Link',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          const SizedBox(height: 8),
+                          const CommonText(
+                            'Share this link with professionals you\'d confidently recommend to the Catch Ride network.',
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppColors.border.withValues(alpha: 0.8),
+                              ),
+                            ),
+                            child: Builder(
+                              builder: (context) {
+                                final controller = Get.find<ProfileController>();
+                                String urlToCopy = '';
+                                if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                  urlToCopy = controller.appStoreUrl.value;
+                                } else {
+                                  urlToCopy = controller.playStoreUrl.value;
+                                }
+
+                                return Row(
+                                  children: [
+                                    Expanded(
+                                      child: CommonText(
+                                        urlToCopy,
+                                        fontSize: 14,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        final controller = Get.find<ProfileController>();
+                                        String urlToCopy = '';
+                                        if (Theme.of(context).platform == TargetPlatform.iOS) {
+                                          urlToCopy = controller.appStoreUrl.value;
+                                        } else {
+                                          urlToCopy = controller.playStoreUrl.value;
+                                        }
+
+                                        if (urlToCopy.isNotEmpty) {
+                                          Clipboard.setData(ClipboardData(text: urlToCopy)).then((_) {
+                                            Get.snackbar(
+                                              'Success',
+                                              'Link copied to clipboard',
+                                              snackPosition: SnackPosition.BOTTOM,
+                                              margin: const EdgeInsets.all(20),
+                                              backgroundColor: Colors.green,
+                                              colorText: Colors.white,
+                                            );
+                                          });
+                                        } else {
+                                           Get.snackbar(
+                                              'Error',
+                                              'App link not configured',
+                                              snackPosition: SnackPosition.BOTTOM,
+                                              margin: const EdgeInsets.all(20),
+                                              backgroundColor: Colors.red,
+                                              colorText: Colors.white,
+                                            );
+                                        }
+                                      },
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      child: const CommonText(
+                                        'Copy Link',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
                             ),
                           ),
-                          child: Builder(
-                            builder: (context) {
-                              final controller = Get.find<ProfileController>();
-                              String urlToCopy = '';
-                              if (Theme.of(context).platform == TargetPlatform.iOS) {
-                                urlToCopy = controller.appStoreUrl.value;
-                              } else {
-                                urlToCopy = controller.playStoreUrl.value;
-                              }
-
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    child: CommonText(
-                                      urlToCopy,
-                                      fontSize: 14,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      color: AppColors.textSecondary.withValues(alpha: 0.7),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      final controller = Get.find<ProfileController>();
-                                      String urlToCopy = '';
-                                      if (Theme.of(context).platform == TargetPlatform.iOS) {
-                                        urlToCopy = controller.appStoreUrl.value;
-                                      } else {
-                                        urlToCopy = controller.playStoreUrl.value;
-                                      }
-
-                                      if (urlToCopy.isNotEmpty) {
-                                        Clipboard.setData(ClipboardData(text: urlToCopy)).then((_) {
-                                          Get.snackbar(
-                                            'Success',
-                                            'Link copied to clipboard',
-                                            snackPosition: SnackPosition.BOTTOM,
-                                            margin: const EdgeInsets.all(20),
-                                            backgroundColor: Colors.green,
-                                            colorText: Colors.white,
-                                          );
-                                        });
-                                      } else {
-                                         Get.snackbar(
-                                            'Error',
-                                            'App link not configured',
-                                            snackPosition: SnackPosition.BOTTOM,
-                                            margin: const EdgeInsets.all(20),
-                                            backgroundColor: Colors.red,
-                                            colorText: Colors.white,
-                                          );
-                                      }
-                                    },
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.zero,
-                                      minimumSize: Size.zero,
-                                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    child: const CommonText(
-                                      'Copy Link',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 32),
-                  const CommonText(
-                    'Membership is shaped through trusted referrals within the industry',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    height: 1.4,
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 32),
+                    const CommonText(
+                      'Membership is shaped through trusted referrals within the industry',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                      height: 1.4,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
           ),
@@ -284,7 +290,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
 
   Widget _buildBottomButton() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 22),
       decoration: const BoxDecoration(color: Colors.white),
       child: GestureDetector(
         onTap: () {

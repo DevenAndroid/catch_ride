@@ -42,14 +42,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void initState() {
     super.initState();
     // Initialize from controller
-    if (controller.ageMin.value != null)
+    if (controller.ageMin.value != null) {
       minAgeController.text = controller.ageMin.value.toString();
-    if (controller.ageMax.value != null)
+    }
+    if (controller.ageMax.value != null) {
       maxAgeController.text = controller.ageMax.value.toString();
-    if (controller.heightMin.value != null)
+    }
+    if (controller.heightMin.value != null) {
       minHeightController.text = controller.heightMin.value.toString();
-    if (controller.heightMax.value != null)
+    }
+    if (controller.heightMax.value != null) {
       maxHeightController.text = controller.heightMax.value.toString();
+    }
     final priceFormatter = NumberFormat("#,###", "en_US");
     if (controller.priceMin.value != null) {
       minPriceController.text = priceFormatter.format(
@@ -94,6 +98,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.selectedTags.clear();
 
     controller.fetchHorses(showLoading: false);
+    Get.back();
   }
 
   void _applyFilters() async {

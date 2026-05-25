@@ -201,28 +201,33 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
           // Content
           SafeArea(
-            child: Column(
-              children: [
-                _buildTopBar(),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      children: [
-                        if (_selectedSection == 'location')
-                          _buildLocationSection(),
-                        if (_selectedSection == 'date') _buildDateSection(),
-                      ],
+            child: GestureDetector(
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              behavior: HitTestBehavior.translucent,
+              child: Column(
+                children: [
+                  _buildTopBar(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: Column(
+                        children: [
+                          if (_selectedSection == 'location')
+                            _buildLocationSection(),
+                          if (_selectedSection == 'date') _buildDateSection(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                _buildFooter(),
-                const SizedBox(height: 10),
-              ],
+                  _buildFooter(),
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
           ),
 
@@ -393,6 +398,26 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                     Icons.search_rounded,
                     color: Colors.black87,
                   ),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.cancel_rounded,
+                            color: Colors.black54,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _searchController.clear();
+                              _showSuggestions = true;
+                            });
+                            if (isShowVenue) {
+                              controller.searchVenues('');
+                            } else {
+                              controller.searchLocations('');
+                            }
+                          },
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(height: 12),
