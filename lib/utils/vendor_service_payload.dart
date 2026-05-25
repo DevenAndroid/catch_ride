@@ -571,11 +571,20 @@ void _normalizeVendorModelSubdocForDisplay(String serviceType, Map<String, dynam
               }
             }
           }
+          final isExplicitlySelected = e['isSelected'] == true || e['isSelected'] == 'true';
+          bool hasActiveRate = false;
+          ratesMap.forEach((k, v) {
+            final s = v?.toString().trim().replaceAll(',', '') ?? '';
+            final val = double.tryParse(s);
+            if (val != null && val > 0) {
+              hasActiveRate = true;
+            }
+          });
           return <String, dynamic>{
             'name': e['label'] ?? e['name'] ?? '',
             'rates': ratesMap,
             'session': session, // Keep for fallback
-            'isSelected': true,
+            'isSelected': isExplicitlySelected || hasActiveRate,
           };
         }
         return e;

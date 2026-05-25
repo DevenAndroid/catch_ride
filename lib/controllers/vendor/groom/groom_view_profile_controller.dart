@@ -726,6 +726,7 @@ class GroomViewProfileController extends GetxController {
 
       existingServicesData['braiding'] = {
         ...existing,
+        'services': services,
         'profileData': {
             ...existingProfile,
             'services': services
@@ -784,6 +785,7 @@ class GroomViewProfileController extends GetxController {
 
       existingServicesData['clipping'] = {
         ...existing,
+        'services': services,
         'profileData': {
             ...existingProfile,
             'services': services
@@ -841,18 +843,23 @@ class GroomViewProfileController extends GetxController {
       final existing = Map<String, dynamic>.from(existingServicesData['farrier'] ?? {});
       final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
 
+      final mappedServices = services.map((s) => {
+          ...s,
+          'price': s['price']?.toString().replaceAll(',', '') ?? '0'
+      }).toList();
+      final mappedAddOns = addOns.map((s) => {
+          ...s,
+          'price': s['price']?.toString().replaceAll(',', '') ?? '0'
+      }).toList();
+
       existingServicesData['farrier'] = {
         ...existing,
+        'services': mappedServices,
+        'addOns': mappedAddOns,
         'profileData': {
             ...existingProfile,
-            'services': services.map((s) => {
-                ...s,
-                'price': s['price']?.toString().replaceAll(',', '') ?? '0'
-            }).toList(), 
-            'addOns': addOns.map((s) => {
-                ...s,
-                'price': s['price']?.toString().replaceAll(',', '') ?? '0'
-            }).toList()
+            'services': mappedServices, 
+            'addOns': mappedAddOns
         },
       };
 
@@ -920,16 +927,19 @@ class GroomViewProfileController extends GetxController {
       final existing = Map<String, dynamic>.from(existingServicesData['bodywork'] ?? {});
       final existingProfile = Map<String, dynamic>.from(existing['profileData'] ?? {});
 
+      final mappedServices = services.map((s) => {
+          ...s,
+          'price': s['price']?.toString().replaceAll(',', '') ?? '0',
+          if (s['rates'] != null && s['rates'] is Map)
+            'rates': (s['rates'] as Map).map((key, value) => MapEntry(key, value?.toString().replaceAll(',', '') ?? '0'))
+      }).toList();
+
       existingServicesData['bodywork'] = {
         ...existing,
+        'services': mappedServices,
         'profileData': {
             ...existingProfile,
-            'services': services.map((s) => {
-                ...s,
-                'price': s['price']?.toString().replaceAll(',', '') ?? '0',
-                if (s['rates'] != null && s['rates'] is Map)
-                  'rates': (s['rates'] as Map).map((key, value) => MapEntry(key, value?.toString().replaceAll(',', '') ?? '0'))
-            }).toList()
+            'services': mappedServices
         },
       };
 

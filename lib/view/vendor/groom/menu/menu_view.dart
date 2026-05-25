@@ -22,9 +22,11 @@ import '../../../trainer/settings/privacy_policy_view.dart';
 import '../../../trainer/settings/profile_information_view.dart';
 import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
+import '../../bodywork/create_profile/bodywork_application_view.dart';
 import '../../farrier/profile/add_operations_and_compliance_view.dart';
 import '../../shipping/trip/shipping_trip_view.dart';
 import '../availability/availability_view.dart';
+import '../../insurance/vendor_insurance_view.dart';
 
 
 class MenuView extends StatelessWidget {
@@ -167,12 +169,14 @@ class MenuView extends StatelessWidget {
                       'Manage trips',
                       onTap: () => Get.to(() => const ShippingTripView())),
                 ],
-                if (_hasRole(['bodywork']))
+                if (_hasRole([
+                  'bodywork',
+                ]))
                   _buildMenuItem(
                       iconPath: "assets/icons/insurance.svg",
                       Icons.fact_check_outlined,
                       'Insurance', onTap: () {
-                    // Navigate to Operations & Compliance view
+                    Get.to(() => const VendorInsuranceView());
                   }),
               ]),
               const SizedBox(height: 24),

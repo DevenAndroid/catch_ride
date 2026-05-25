@@ -98,8 +98,8 @@ class HorseModel {
   });
 
   /// Rows to show in explore/list UIs (API may send filtered rows in `availability`).
-  List<AvailabilityModel> get displayAvailability =>
-      availability.isNotEmpty ? availability : showAvailability;
+   List<AvailabilityModel> get displayAvailability =>
+       availability.isNotEmpty ? availability : [];
 
   static List<AvailabilityModel> _parseAvailabilityList(dynamic raw) {
     final List<AvailabilityModel> list = (raw as List?)
@@ -255,9 +255,9 @@ class HorseModel {
 
     final parsedAvailability = _parseAvailabilityList(json['availability']);
     final parsedShowAvailability = _parseAvailabilityList(json['showAvailability']);
-    final displayAvailability = parsedAvailability.isNotEmpty
-        ? parsedAvailability
-        : parsedShowAvailability;
+    // final displayAvailability = parsedAvailability.isNotEmpty
+    //     ? parsedAvailability
+    //     : parsedShowAvailability;
 
     return HorseModel(
       id: json['_id'],
@@ -284,7 +284,7 @@ class HorseModel {
       })(),
       usefNumber: json['usefNumber'],
       listingTypes: List<String>.from(json['listingTypes'] ?? []),
-      showAvailability: displayAvailability,
+      showAvailability: parsedShowAvailability,
       availability: parsedAvailability,
       disciplines: json['discipline'] is String
           ? [json['discipline'] as String]
