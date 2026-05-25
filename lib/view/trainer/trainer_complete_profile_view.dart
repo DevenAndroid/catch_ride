@@ -150,85 +150,91 @@ class _TrainerCompleteProfileViewState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: SizedBox(),
-        // leading: IconButton(
-        //   icon: const Icon(
-        //     Icons.arrow_back_ios_new,
-        //     color: AppColors.textPrimary,
-        //     size: 20,
-        //   ),
-        //   onPressed: () => Get.back(),
-        // ),
-        title: const CommonText(
-          'Complete your Profile',
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          leading: SizedBox(),
+          // leading: IconButton(
+          //   icon: const Icon(
+          //     Icons.arrow_back_ios_new,
+          //     color: AppColors.textPrimary,
+          //     size: 20,
+          //   ),
+          //   onPressed: () => Get.back(),
+          // ),
+          title: const CommonText(
+            'Complete your Profile',
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _buildUploadImageSection(),
-                    const SizedBox(height: 16),
-                    _buildBasicDetailsSection(),
-                    const SizedBox(height: 16),
-                    _buildBarnInformationSection(),
-                    const SizedBox(height: 16),
-                    _buildExperienceSection(),
-                    const SizedBox(height: 16),
-                    _buildFrequentedCircuitsSection(),
-                    const SizedBox(height: 16),
-                    _buildDynamicTagsSection(),
-                    const SizedBox(height: 32),
+        body: Column(
+          children: [
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildUploadImageSection(),
+                      const SizedBox(height: 16),
+                      _buildBasicDetailsSection(),
+                      const SizedBox(height: 16),
+                      _buildBarnInformationSection(),
+                      const SizedBox(height: 16),
+                      _buildExperienceSection(),
+                      const SizedBox(height: 16),
+                      _buildFrequentedCircuitsSection(),
+                      const SizedBox(height: 16),
+                      _buildDynamicTagsSection(),
+                      const SizedBox(height: 32),
 
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          _buildBottomButton(),
-          const SizedBox(height: 12),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Obx(() {
-        final phoneNo = profileController.helpPhoneNumber.value;
-        if (phoneNo.isEmpty) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 85), // Hover clearly in the white area per image
-          child: FloatingActionButton.extended(
-            onPressed: () async {
-              googleApiController.openSMS(phoneNo);
-            },
-            elevation: 4,
-            backgroundColor: AppColors.primary,
-            icon: const Icon(Icons.chat_outlined, color: Colors.white, size: 18),
-            label: const CommonText(
-              'Need help?',
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+            _buildBottomButton(),
+            const SizedBox(height: 12),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: Obx(() {
+          final phoneNo = profileController.helpPhoneNumber.value;
+          if (phoneNo.isEmpty) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 85), // Hover clearly in the white area per image
+            child: FloatingActionButton.extended(
+              onPressed: () async {
+                googleApiController.openSMS(phoneNo);
+              },
+              elevation: 4,
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.chat_outlined, color: Colors.white, size: 18),
+              label: const CommonText(
+                'Need help?',
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 
@@ -1080,6 +1086,7 @@ class _TrainerCompleteProfileViewState
   }) {
     return CommonTextField(
       label: label,
+      textInputAction: TextInputAction.done,
       controller: controller,
       focusNode: focusNode,
       hintText: hint ?? '',
@@ -1136,6 +1143,7 @@ class _TrainerCompleteProfileViewState
                 child: TextFormField(
                   controller: _phoneController,
                   focusNode: _phoneFocus,
+                  textInputAction: TextInputAction.done,
                   keyboardType: TextInputType.phone,
                   style: const TextStyle(
                     fontSize: 15,

@@ -106,173 +106,179 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
-            size: 20,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
+            onPressed: () {
+              Get.back();
+            },
           ),
-          onPressed: () {
-            Get.back();
-          },
+          title: const CommonText(
+            AppStrings.completeYourApplication,
+            color: AppColors.textPrimary,
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1.0),
+            child: Container(color: AppColors.border, height: 1.0),
+          ),
         ),
-        title: const CommonText(
-          AppStrings.completeYourApplication,
-          color: AppColors.textPrimary,
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: AppColors.border, height: 1.0),
-        ),
-      ),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CommonText(
-                        AppStrings.provideFollowingDetails,
-                        fontSize: AppTextSizes.size14,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(height: 24),
-                      _buildCurrentStep(),
-                      const SizedBox(height: 32),
-                      Obx(
-                        () => CommonButton(
-                          text: AppStrings.next,
-                          isLoading: _authController.isLoading.value,
-                          onPressed: () async {
-                            void showError(String msg) {
-                              Get.snackbar(
-                                'Input Required',
-                                msg,
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.red,
-                                colorText: Colors.white,
-                              );
-                            }
-
-                            if (!_formKey.currentState!.validate()) {
-                              FormUtility.scrollToFirstError(context);
-                              return;
-                            }
-
-                            final List<Map<String, String>> references = [];
-                            for (int i = 0; i < 2; i++) {
-                              references.add({
-                                'name': _refNameControllers[i].text.trim(),
-                                'business': _refBusinessControllers[i].text
-                                    .trim(),
-                                'relationship': _refRelationControllers[i].text
-                                    .trim(),
-                                'phone': _refPhoneControllers[i].text.trim(),
-                              });
-                            }
-
-                            if (_selectedFederation == 'Select Federation') {
-                              showError('Please select a federation type');
-                              return;
-                            }
-
-                            final List<String> primaryUse = [];
-                            if (_useSelling)
-                              primaryUse.add('Selling / Leasing');
-                            if (_useBuying) primaryUse.add('Buying / Leasing');
-                            if (_useBooking)
-                              primaryUse.add('Booking Service Providers');
-
-                            if (primaryUse.isEmpty) {
-                              showError(
-                                'Please select at least one choice for how you will use Catch-Ride',
-                              );
-                              return;
-                            }
-
-                            if (!_confirm18 ||
-                                !_agreeTerms ||
-                                !_understandPlatform) {
-                              showError(
-                                'Please confirm all three checkboxes at the bottom',
-                              );
-                              return;
-                            }
-
-                            final Map<String, dynamic> applicationData = {
-                              'whyJoin': _whyJoinController.text.trim().isEmpty
-                                  ? AppStrings.whyJoinText
-                                  : _whyJoinController.text.trim(),
-                              'facebook': _facebookController.text.trim(),
-                              'website': _websiteController.text.trim(),
-                              'instagram': _instagramController.text.trim(),
-                              'federationId': _federationIdController.text
-                                  .trim(),
-                              'federationType': _selectedFederation,
-                              'primaryUse': primaryUse,
-                              'name': _nameController.text.trim(),
-                              'references': references,
-                            };
-
-                            await _authController.completeTrainerProfile(
-                              applicationData,
-                            );
-                          },
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CommonText(
+                          AppStrings.provideFollowingDetails,
+                          fontSize: AppTextSizes.size14,
+                          color: AppColors.textSecondary,
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                    ],
+                        const SizedBox(height: 24),
+                        _buildCurrentStep(),
+                        const SizedBox(height: 32),
+                        Obx(
+                          () => CommonButton(
+                            text: AppStrings.next,
+                            isLoading: _authController.isLoading.value,
+                            onPressed: () async {
+                              void showError(String msg) {
+                                Get.snackbar(
+                                  'Input Required',
+                                  msg,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.red,
+                                  colorText: Colors.white,
+                                );
+                              }
+
+                              if (!_formKey.currentState!.validate()) {
+                                FormUtility.scrollToFirstError(context);
+                                return;
+                              }
+
+                              final List<Map<String, String>> references = [];
+                              for (int i = 0; i < 2; i++) {
+                                references.add({
+                                  'name': _refNameControllers[i].text.trim(),
+                                  'business': _refBusinessControllers[i].text
+                                      .trim(),
+                                  'relationship': _refRelationControllers[i].text
+                                      .trim(),
+                                  'phone': _refPhoneControllers[i].text.trim(),
+                                });
+                              }
+
+                              if (_selectedFederation == 'Select Federation') {
+                                showError('Please select a federation type');
+                                return;
+                              }
+
+                              final List<String> primaryUse = [];
+                              if (_useSelling)
+                                primaryUse.add('Selling / Leasing');
+                              if (_useBuying) primaryUse.add('Buying / Leasing');
+                              if (_useBooking)
+                                primaryUse.add('Booking Service Providers');
+
+                              if (primaryUse.isEmpty) {
+                                showError(
+                                  'Please select at least one choice for how you will use Catch-Ride',
+                                );
+                                return;
+                              }
+
+                              if (!_confirm18 ||
+                                  !_agreeTerms ||
+                                  !_understandPlatform) {
+                                showError(
+                                  'Please confirm all three checkboxes at the bottom',
+                                );
+                                return;
+                              }
+
+                              final Map<String, dynamic> applicationData = {
+                                'whyJoin': _whyJoinController.text.trim().isEmpty
+                                    ? AppStrings.whyJoinText
+                                    : _whyJoinController.text.trim(),
+                                'facebook': _facebookController.text.trim(),
+                                'website': _websiteController.text.trim(),
+                                'instagram': _instagramController.text.trim(),
+                                'federationId': _federationIdController.text
+                                    .trim(),
+                                'federationType': _selectedFederation,
+                                'primaryUse': primaryUse,
+                                'name': _nameController.text.trim(),
+                                'references': references,
+                              };
+
+                              await _authController.completeTrainerProfile(
+                                applicationData,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        floatingActionButton: Obx(() {
+          final phoneNo = _profileController.helpPhoneNumber.value;
+          if (phoneNo.isEmpty) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(
+              bottom: 85,
+            ), // Hover clearly in the white area per image
+            child: FloatingActionButton.extended(
+              onPressed: () async {
+                googleApiController.openSMS(phoneNo);
+              },
+              elevation: 4,
+              backgroundColor: AppColors.primary,
+              icon: const Icon(
+                Icons.chat_outlined,
+                color: Colors.white,
+                size: 18,
+              ),
+              label: const CommonText(
+                'Need help?',
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          );
+        }),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Obx(() {
-        final phoneNo = _profileController.helpPhoneNumber.value;
-        if (phoneNo.isEmpty) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.only(
-            bottom: 85,
-          ), // Hover clearly in the white area per image
-          child: FloatingActionButton.extended(
-            onPressed: () async {
-              googleApiController.openSMS(phoneNo);
-            },
-            elevation: 4,
-            backgroundColor: AppColors.primary,
-            icon: const Icon(
-              Icons.chat_outlined,
-              color: Colors.white,
-              size: 18,
-            ),
-            label: const CommonText(
-              'Need help?',
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-      }),
     );
   }
 
@@ -354,11 +360,13 @@ class _TrainerProfileSetupViewState extends State<TrainerProfileSetupView> {
       title: AppStrings.whyJoinCommunity,
       child: CommonTextField(
         controller: _whyJoinController,
+        textInputAction: TextInputAction.done,
         label: '',
         hintText:
             'Tell us about your experience, what you’re looking for, and how Catch Ride can help you connect with the right programs and opportunities.',
         maxLines: 5,
         isRequired: false,
+
       ),
     );
   }

@@ -168,7 +168,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                     _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
                     const SizedBox(height: 20),
                   ],
-                  _buildDetailItem('Regions Covered', (widget.regionsCovered?.isEmpty ?? true) ? '' : widget.regionsCovered!.join(', ')),
+                  if (widget.regionsCovered?.isNotEmpty ?? false) _buildRegionsList('Regions Covered', widget.regionsCovered!),
                   const SizedBox(height: 20),
                   if (highlights.isNotEmpty) ...[
                     _buildDetailItem('Experience Highlights', highlights.join(', ')),
@@ -353,6 +353,45 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
           ],
         ),
         const Divider(height: 24, color: AppColors.dividerColor),
+      ],
+    );
+  }
+
+  Widget _buildRegionsList(String label, List<String> regions) {
+    if (regions.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(
+          label,
+          fontSize: 13,
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w400,
+        ),
+        const SizedBox(height: 6),
+        ...regions.map((r) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: CommonText(
+                  r,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        )),
+        const SizedBox(height: 12),
+        const Divider(height: 1, color: AppColors.dividerColor),
       ],
     );
   }

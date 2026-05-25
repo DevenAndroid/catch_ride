@@ -214,7 +214,7 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
               _buildSingleColumnDetail('Additional Skills', widget.additionalSkills!.join(', ')),
               const SizedBox(height: 20),
             ],
-            _buildSingleColumnDetail('Regions Covered', widget.operatingRegions.isEmpty ? '' : widget.operatingRegions.join(', ')),
+            _buildRegionsList('Regions Covered', widget.operatingRegions),
             const SizedBox(height: 20),
             if (widget.noteForTrainer != null && widget.noteForTrainer!.isNotEmpty) ...[
               _buildSingleColumnDetail('Note for trainer', widget.noteForTrainer!),
@@ -267,6 +267,34 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
 
   Widget _buildSingleColumnDetail(String label, String value) {
     return _buildDetailItem(label, value);
+  }
+
+  Widget _buildRegionsList(String label, List<String> regions) {
+    if (regions.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        const SizedBox(height: 6),
+        ...regions.map((r) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: CommonText(r, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              ),
+            ],
+          ),
+        )),
+        const Divider(height: 24, color: AppColors.dividerColor),
+      ],
+    );
   }
 
   Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {

@@ -24,6 +24,7 @@ class CommonTextField extends StatelessWidget {
   final InputBorder? border;
   final InputBorder? enabledBorder;
   final EdgeInsetsGeometry? contentPadding;
+  final TextInputAction? textInputAction;
   // final TextCapitalization? textCapitalization;
 
   final FocusNode? focusNode;
@@ -52,6 +53,7 @@ class CommonTextField extends StatelessWidget {
     this.onChanged,
     this.focusNode,
     this.inputFormatters,
+    this.textInputAction
   });
 
   final Function(String)? onChanged;
@@ -92,6 +94,7 @@ class CommonTextField extends StatelessWidget {
           const SizedBox(height: 6),
         ],
         TextFormField(
+          textInputAction: textInputAction ?? TextInputAction.done,
           controller: controller,
           focusNode: focusNode,
           obscureText: obscureText,

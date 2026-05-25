@@ -184,71 +184,77 @@ class _BraidingAddAvailabilityViewState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textPrimary,
-            size: 20,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
+            onPressed: () => Get.back(),
           ),
-          onPressed: () => Get.back(),
+          title: const CommonText(
+            'Add Availability Block',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          centerTitle: false,
         ),
-        title: const CommonText(
-          'Add Availability Block',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFF2F4F7)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText(
+                      _editingBlock != null ? 'Edit Block' : 'Block 1',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildDateSection(),
+                const SizedBox(height: 24),
+                VendorShowVenueSection(
+                  venues: _selectedVenues,
+                  includeGooglePlaces: false,
+                ),
+                const SizedBox(height: 24),
+                _buildCapacitySection(),
+                const SizedBox(height: 24),
+                _buildNotesSection(),
+              ],
+            ),
+          ),
         ),
-        centerTitle: false,
+        bottomNavigationBar: _buildBottomButtons(),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFF2F4F7)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CommonText(
-                    _editingBlock != null ? 'Edit Block' : 'Block 1',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildDateSection(),
-              const SizedBox(height: 24),
-              VendorShowVenueSection(
-                venues: _selectedVenues,
-                includeGooglePlaces: false,
-              ),
-              const SizedBox(height: 24),
-              _buildCapacitySection(),
-              const SizedBox(height: 24),
-              _buildNotesSection(),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -505,6 +511,7 @@ class _BraidingAddAvailabilityViewState
         ),
         const SizedBox(height: 12),
         TextField(
+          textInputAction: TextInputAction.done,
           controller: _notesController,
           maxLines: 4,
           decoration: InputDecoration(

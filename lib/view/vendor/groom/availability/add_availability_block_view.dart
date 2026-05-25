@@ -308,171 +308,177 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black,
-            size: 20,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        title: _editingBlock != null
-            ? CommonText(
-          'Edit Block',
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        )
-            : const CommonText(
-                'Add Availability Block',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.close, color: AppColors.textPrimary),
-        //     onPressed: () => Get.back(),
-        //   ),
-        // ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFF2F4F7)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF9FAFB),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.black,
+              size: 20,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CommonText(
-                      _editingBlock != null ? 'Edit Block' : 'Block 1',
-                      fontSize: 16,
+            onPressed: () => Get.back(),
+          ),
+          title: _editingBlock != null
+              ? CommonText(
+            'Edit Block',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          )
+              : const CommonText(
+                  'Add Availability Block',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+          // actions: [
+          //   IconButton(
+          //     icon: const Icon(Icons.close, color: AppColors.textPrimary),
+          //     onPressed: () => Get.back(),
+          //   ),
+          // ],
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFF2F4F7)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CommonText(
+                        _editingBlock != null ? 'Edit Block' : 'Block 1',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  _buildDateSection(),
+                  const SizedBox(height: 24),
+                  if (_categoryName == 'Bodywork') ...[
+                    _buildSectionHeader('Time window'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField('Full Day', _availabilityType, [
+                      'Full Day',
+                      'Morning window',
+                      'Afternoon window',
+                    ]),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Location Type'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField('Select a Location Type', _locationType, [
+                      'Both',
+                      'Barn',
+                      'Show Venue',
+                    ]),
+                    const SizedBox(height: 24),
+                    VendorShowVenueSection(venues: _addedVenues),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Daily Session Capacity'),
+                    const SizedBox(height: 12),
+                    _buildCapacitySection(),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Buffer Between Sessions'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField('15 min', _bufferTime, [
+                      '15 min',
+                      '30 min',
+                      '45 min',
+                    ]),
+                  ] else if (_categoryName == 'Clipping') ...[
+                    _buildSectionHeader('Location Type'),
+                    const SizedBox(height: 8),
+                    _buildDropdownField('Select a Location Type', _locationType, [
+                      'Both',
+                      'Barn',
+                      'Show Venue',
+                    ]),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Black out days'),
+                    const SizedBox(height: 12),
+                    _buildDateField('Date', _unStart, _selectBlackoutDate),
+                    const SizedBox(height: 24),
+                    VendorShowVenueSection(venues: _addedVenues),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Time Block & Capacity'),
+                    const SizedBox(height: 12),
+                    const CommonText(
+                      'Availability Type',
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
+                    const SizedBox(height: 8),
+                    _buildDropdownField('Full Day', _availabilityType, [
+                      'Full Day',
+                      'Morning window',
+                      'Afternoon window',
+                    ]),
+                    const SizedBox(height: 16),
+                    const CommonText(
+                      'Capacity',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDropdownField('Max horses per day', _capacityType, [
+                      'No capacity limit',
+                      'Max horses per time block',
+                      'Max horses per day',
+                    ]),
+                    const SizedBox(height: 16),
+                    _buildCapacitySection(),
+                  ] else if (_categoryName == 'Grooming' ||
+                      _categoryName == 'Braiding') ...[
+                    VendorShowVenueSection(venues: _addedVenues),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Work Type'),
+                    const SizedBox(height: 12),
+                    _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Additional Services'),
+                    const SizedBox(height: 12),
+                    _buildSelectionWrap(
+                      _availableServiceTypes,
+                      _selectedServiceTypes,
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('Capacity (optional)'),
+                    const SizedBox(height: 12),
+                    _buildCapacitySection(),
                   ],
-                ),
-                const SizedBox(height: 24),
-                _buildDateSection(),
-                const SizedBox(height: 24),
-                if (_categoryName == 'Bodywork') ...[
-                  _buildSectionHeader('Time window'),
-                  const SizedBox(height: 8),
-                  _buildDropdownField('Full Day', _availabilityType, [
-                    'Full Day',
-                    'Morning window',
-                    'Afternoon window',
-                  ]),
                   const SizedBox(height: 24),
-                  _buildSectionHeader('Location Type'),
-                  const SizedBox(height: 8),
-                  _buildDropdownField('Select a Location Type', _locationType, [
-                    'Both',
-                    'Barn',
-                    'Show Venue',
-                  ]),
-                  const SizedBox(height: 24),
-                  VendorShowVenueSection(venues: _addedVenues),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Daily Session Capacity'),
+                  _buildSectionHeader('Notes For Trainers (optional)'),
                   const SizedBox(height: 12),
-                  _buildCapacitySection(),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Buffer Between Sessions'),
-                  const SizedBox(height: 8),
-                  _buildDropdownField('15 min', _bufferTime, [
-                    '15 min',
-                    '30 min',
-                    '45 min',
-                  ]),
-                ] else if (_categoryName == 'Clipping') ...[
-                  _buildSectionHeader('Location Type'),
-                  const SizedBox(height: 8),
-                  _buildDropdownField('Select a Location Type', _locationType, [
-                    'Both',
-                    'Barn',
-                    'Show Venue',
-                  ]),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Black out days'),
-                  const SizedBox(height: 12),
-                  _buildDateField('Date', _unStart, _selectBlackoutDate),
-                  const SizedBox(height: 24),
-                  VendorShowVenueSection(venues: _addedVenues),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Time Block & Capacity'),
-                  const SizedBox(height: 12),
-                  const CommonText(
-                    'Availability Type',
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildDropdownField('Full Day', _availabilityType, [
-                    'Full Day',
-                    'Morning window',
-                    'Afternoon window',
-                  ]),
-                  const SizedBox(height: 16),
-                  const CommonText(
-                    'Capacity',
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildDropdownField('Max horses per day', _capacityType, [
-                    'No capacity limit',
-                    'Max horses per time block',
-                    'Max horses per day',
-                  ]),
-                  const SizedBox(height: 16),
-                  _buildCapacitySection(),
-                ] else if (_categoryName == 'Grooming' ||
-                    _categoryName == 'Braiding') ...[
-                  VendorShowVenueSection(venues: _addedVenues),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Work Type'),
-                  const SizedBox(height: 12),
-                  _buildSelectionWrap(_availableWorkTypes, _selectedWorkTypes),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Additional Services'),
-                  const SizedBox(height: 12),
-                  _buildSelectionWrap(
-                    _availableServiceTypes,
-                    _selectedServiceTypes,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader('Capacity (optional)'),
-                  const SizedBox(height: 12),
-                  _buildCapacitySection(),
+                  _buildNotesField(),
                 ],
-                const SizedBox(height: 24),
-                _buildSectionHeader('Notes For Trainers (optional)'),
-                const SizedBox(height: 12),
-                _buildNotesField(),
-              ],
+              ),
             ),
           ),
         ),
+        bottomNavigationBar: _buildBottomButtons(),
       ),
-      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -703,6 +709,7 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
 
   Widget _buildNotesField() {
     return TextField(
+      textInputAction: TextInputAction.done,
       controller: _notesController,
       maxLines: 4,
       decoration: InputDecoration(

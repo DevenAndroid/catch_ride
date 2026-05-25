@@ -195,31 +195,37 @@ groomController.fetchProfile();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
+          title: CommonText(
+            _editingBlock != null ? 'Edit Availability' : 'Add Availability',
+            fontSize: AppTextSizes.size18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        title: CommonText(
-          _editingBlock != null ? 'Edit Availability' : 'Add Availability',
-          fontSize: AppTextSizes.size18,
-          fontWeight: FontWeight.bold,
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            children: [
+              _buildBlockCard(),
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
+        bottomNavigationBar: _buildBottomButtons(),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Column(
-          children: [
-            _buildBlockCard(),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -387,6 +393,7 @@ groomController.fetchProfile();
   Widget _buildNotesField() {
     return TextFormField(
       controller: _notesController,
+      textInputAction: TextInputAction.done,
       maxLines: 4,
       keyboardType: TextInputType.multiline,
       textCapitalization: TextCapitalization.sentences,
