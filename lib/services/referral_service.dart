@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:android_play_install_referrer/android_play_install_referrer.dart';
+import 'package:play_install_referrer/play_install_referrer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -96,7 +96,7 @@ class ReferralService extends GetxService {
     if (_box.read<bool>(installReferrerCheckedKey) == true) return;
 
     try {
-      final details = await AndroidPlayInstallReferrer.installReferrer;
+      final details = await PlayInstallReferrer.installReferrer;
       final code = extractCodeFromInstallReferrer(details.installReferrer);
       if (code != null && pendingCode.value.isEmpty) {
         saveReferralCode(code);
