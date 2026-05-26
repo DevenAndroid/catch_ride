@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 
 class ShippingServiceAndRatesView extends StatefulWidget {
   final Map shippingData;
@@ -152,7 +153,7 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
 
               // ── Services Offered ──────────────────────────────────────────────
               if (widget.servicesOffered.isNotEmpty) ...[
-                _buildDetailItem('Services Offered', widget.servicesOffered.join(', ')),
+                _buildDetailItem('Services Offered', widget.servicesOffered.map((e) => StringUtils.capitalizeServiceWords(e)).join(', ')),
                 const SizedBox(height: 12),
               ],
 
@@ -266,6 +267,12 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
 
   Widget _buildRegionsList(String label, List<String> regions) {
     if (regions.isEmpty) return const SizedBox.shrink();
+    final List<String> flatRegions = [];
+    for (final r in regions) {
+      if (r == null) continue;
+      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -275,7 +282,7 @@ class _ShippingServiceAndRatesViewState extends State<ShippingServiceAndRatesVie
           color: AppColors.textSecondary,
         ),
         const SizedBox(height: 6),
-        ...regions.map((r) => Padding(
+        ...flatRegions.map((r) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -172,8 +172,12 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
                       const SizedBox(height: 24),
                       _buildHighlights(groomController),
                       const SizedBox(height: 16),
-                      if(groomController.cancellationPolicy != "")
-                      Obx(() => _buildCancellationPolicy(groomController)),
+                      Obx(() {
+                        if (groomController.cancellationPolicy == "") {
+                          return const SizedBox.shrink();
+                        }
+                        return _buildCancellationPolicy(groomController);
+                      }),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -479,6 +483,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
          horseLevels: groomController.horseLevels,
          regionsCovered: groomController.operatingRegions,
          travelPreferences: groomController.travelPreferences,
+         noteForTrainer: groomController.noteForTrainer,
        );
     }
     
@@ -506,6 +511,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         hasCDL: groomController.shippingHasCDL,
         businessName: groomController.shippingBusinessName,
         highlights: groomController.highlights,
+        noteForTrainer: groomController.noteForTrainer,
       );
     }
     
@@ -526,6 +532,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
          supportOptions: groomController.supportOptions,
          handlingOptions: groomController.handlingOptions,
          additionalSkills: groomController.highlights,
+         noteForTrainer: groomController.noteForTrainer,
        );
     }
     
@@ -543,6 +550,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
          horseLevels: groomController.horseLevels,
          regionsCovered: groomController.operatingRegions,
          travelPreferences: groomController.travelPreferences,
+         noteForTrainer: groomController.noteForTrainer,
        );
     }
     
@@ -560,6 +568,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
          horseLevels: groomController.horseLevels,
          regionsCovered: groomController.operatingRegions,
          travelPreferences: groomController.travelPreferences,
+         noteForTrainer: groomController.noteForTrainer,
        );
     }
 
@@ -579,6 +588,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
         travelPreferences: groomController.travelPreferences,
         services: groomController.farrierServices,
         addOns: groomController.farrierAddOns,
+        noteForTrainer: groomController.noteForTrainer,
       );
     }
 
@@ -599,6 +609,7 @@ class _GroomViewProfileState extends State<GroomViewProfile> with TickerProvider
       horseLevels: groomController.horseLevels,
       travelPreferences: groomController.travelPreferences,
       operatingRegions: groomController.operatingRegions,
+      noteForTrainer: groomController.noteForTrainer,
       isClipping: groomController.activeServiceType.toLowerCase().contains('clip'),
     );
   }

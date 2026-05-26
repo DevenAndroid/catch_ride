@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 
 class FarrierServiceAndRatesView extends StatefulWidget {
   final Map farrierData;
@@ -88,7 +89,7 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               ...services.map((s) {
                 final String price = s['price']?.toString() ?? '0';
                 final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                return _buildPricedItem(s['name'] ?? '', '\$ $formattedPrice');
+                return _buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? ''), '\$ $formattedPrice');
               }),
               if (addOns.isNotEmpty) ...[
                 const SizedBox(height: 20),
@@ -97,7 +98,7 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
                 ...addOns.map((s) {
                   final String price = s['price']?.toString() ?? '0';
                   final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                  return _buildPricedItem(s['name'] ?? '', '\$ $formattedPrice');
+                  return _buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? ''), '\$ $formattedPrice');
                 }),
               ],
             ],
@@ -222,12 +223,18 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
 
   Widget _buildRegionsList(String label, List<String> regions) {
     if (regions.isEmpty) return const SizedBox.shrink();
+    final List<String> flatRegions = [];
+    for (final r in regions) {
+      if (r == null) continue;
+      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
         const SizedBox(height: 6),
-        ...regions.map((r) => Padding(
+        ...flatRegions.map((r) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

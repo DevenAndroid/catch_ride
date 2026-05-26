@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 
 /// Read-only card: bodywork **services, session rates, travel, disciplines**, etc.
 ///
@@ -373,7 +374,7 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
   }
 
   Widget _buildServiceBlock(Map<String, dynamic> service) {
-    final String name = service['name'] ?? service['label'] ?? 'Service';
+    final String name = StringUtils.capitalizeServiceWords(service['name'] ?? service['label'] ?? 'Service');
     final Map<String, dynamic> ratesMap = service['rates'] is Map
         ? Map<String, dynamic>.from(service['rates'] as Map)
         : <String, dynamic>{};
@@ -496,6 +497,12 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
 
   Widget _buildRegionsList(String label, List<String> regions) {
     if (regions.isEmpty) return const SizedBox.shrink();
+    final List<String> flatRegions = [];
+    for (final r in regions) {
+      if (r == null) continue;
+      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -505,7 +512,7 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
           color: AppColors.textSecondary,
         ),
         const SizedBox(height: 6),
-        ...regions.map((r) => Padding(
+        ...flatRegions.map((r) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
