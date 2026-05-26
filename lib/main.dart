@@ -5,6 +5,7 @@ import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/services/socket_service.dart';
 import 'package:catch_ride/services/notification_service.dart';
 import 'package:catch_ride/services/link_handler.dart';
+import 'package:catch_ride/services/referral_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -49,7 +50,8 @@ Future<void> main() async {
   // Initialize Push Notifications
   await Get.putAsync(() => NotificationService().init());
   
-  // Initialize Deep Linking
+  // Referral + deep linking (invite codes)
+  await Get.putAsync(() => ReferralService().init());
   await Get.putAsync(() => LinkHandler().init());
 
   runApp(const MyApp());

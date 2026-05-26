@@ -17,6 +17,7 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'package:get/get.dart';
 
 import '../controllers/auth_controller.dart';
+import '../services/referral_service.dart';
 
 class CreateAccountView extends StatefulWidget {
   const CreateAccountView({super.key});
@@ -30,6 +31,12 @@ class _CreateAccountViewState extends State<CreateAccountView> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _authController.syncReferralCodeFromStorage();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,6 +174,21 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                         ),
                       ),
 
+                      SizedBox(height: size * 0.017),
+                      Obx(() {
+                        final pending = ReferralService.to.pendingCode.value;
+                        if (pending.isNotEmpty &&
+                            _authController.referralCodeController.text
+                                .trim()
+                                .isEmpty) {
+                          _authController.referralCodeController.text = pending;
+                        }
+                        return CommonTextField(
+                          controller: _authController.referralCodeController,
+                          label: 'Invite code (optional)',
+                          hintText: 'Enter invite code',
+                        );
+                      }),
                       SizedBox(height: size * 0.022),
                       Obx(
                         () => CommonButton(

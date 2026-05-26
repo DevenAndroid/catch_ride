@@ -37,6 +37,7 @@ import '../view/vendor/community_standards_view.dart';
 import '../view/vendor/vendor_application_submit_view.dart';
 import '../view/vendor/complete_profile_view.dart';
 import '../view/force_change_password_view.dart';
+import '../services/referral_service.dart';
 
 /// Android/iOS: OAuth **server** client for Google Sign-In id tokens. Not used on web.
 const String _kGoogleOAuthServerClientId =
@@ -53,6 +54,7 @@ class AuthController extends GetxController {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final referralCodeController = TextEditingController();
 
   // Registration State
   final RxString selectedRole = 'trainer'.obs;
@@ -72,6 +74,29 @@ class AuthController extends GetxController {
       );
     }
     loadUserFromStorage();
+    syncReferralCodeFromStorage();
+  }
+
+  void syncReferralCodeFromStorage() {
+    final pending = ReferralService.to.pendingReferralCode;
+    if (pending != null && referralCodeController.text.trim().isEmpty) {
+      referralCodeController.text = pending;
+    }
+  }
+
+  Map<String, dynamic> _referralRegisterPayload() {
+    final fromField =
+        ReferralService.normalizeReferralCode(referralCodeController.text);
+    final fromStorage = ReferralService.to.pendingReferralCode;
+    final code = fromField ?? fromStorage;
+    if (code == null) return {};
+    ReferralService.to.saveReferralCode(code);
+    return {'referralCode': code};
+  }
+
+  void _clearReferralAfterSignup() {
+    ReferralService.to.clearReferralCode();
+    referralCodeController.clear();
   }
 
   Future<void> loadUserFromStorage() async {
@@ -497,12 +522,16 @@ class AuthController extends GetxController {
         final response = await _apiService.postRequest(AppUrls.googleLogin, {
           'idToken': idToken,
           'deviceName': deviceName,
+          ..._referralRegisterPayload(),
         });
 
         if (response.statusCode == 200) {
           final responseData = response.body['data'];
           final token = responseData['token'];
           final user = responseData['user'];
+          if (responseData['referralApplied'] == true) {
+            _clearReferralAfterSignup();
+          }
           final String role = user['role'] ?? 'user';
           
           final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
@@ -644,12 +673,16 @@ class AuthController extends GetxController {
           'email': appleCredential.email, // Send email if available
           'firstName': appleCredential.givenName ?? '',
           'lastName': appleCredential.familyName ?? '',
+          ..._referralRegisterPayload(),
         });
 
         if (response.statusCode == 200) {
           final responseData = response.body['data'];
           final token = responseData['token'];
           final user = responseData['user'];
+          if (responseData['referralApplied'] == true) {
+            _clearReferralAfterSignup();
+          }
           final String role = user['role'] ?? 'user';
 
           final bool isProfileCompleted = user['isProfileCompleted'] ?? false;
@@ -745,6 +778,7 @@ class AuthController extends GetxController {
       if (!userData.containsKey('password'))
         userData['password'] = passwordController.text;
       if (!userData.containsKey('role')) userData['role'] = 'user';
+      userData.addAll(_referralRegisterPayload());
 
       final response = await _apiService.postRequest(
         AppUrls.register,
@@ -753,6 +787,7 @@ class AuthController extends GetxController {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         debugPrint('OTP sent. Navigating to OTP screen.');
+        _clearReferralAfterSignup();
         final email = userData['email'];
         Get.to(() => OtpVerificationView(email: email));
       } else if (response.statusCode == 409) {
