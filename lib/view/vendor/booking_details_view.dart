@@ -387,13 +387,13 @@ class BookingDetailsView extends StatelessWidget {
                       const SizedBox(height: 10),
                       const CommonText('Core services', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                       const SizedBox(height: 6),
-                      ...core.map((s) => _buildServiceItem(s)),
+                      ..._groupServices(core).map((s) => _buildServiceItem(s)),
                     ],
                     if (addl is List && addl.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       const CommonText('Additional services', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                       const SizedBox(height: 6),
-                      ...addl.map((s) => _buildServiceItem(s)),
+                      ..._groupServices(addl).map((s) => _buildServiceItem(s)),
                     ],
                   ],
                 ),
@@ -432,20 +432,52 @@ class BookingDetailsView extends StatelessWidget {
           if (booking.coreServices.isNotEmpty) ...[
             const CommonText('Core Services', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
             const SizedBox(height: 8),
-            ...booking.coreServices.map((s) => _buildServiceItem(s)),
+            ..._groupServices(booking.coreServices).map((s) => _buildServiceItem(s)),
             const SizedBox(height: 16),
           ],
           if (booking.additionalServices.isNotEmpty) ...[
             const CommonText('Additional Services', fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
             const SizedBox(height: 8),
-            ...booking.additionalServices.map((s) => _buildServiceItem(s)),
+            ..._groupServices(booking.additionalServices).map((s) => _buildServiceItem(s)),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildServiceItem(dynamic service) {
+  List<dynamic> _groupServices(List<dynamic> services) {
+    final Map<String, int> counts = {};
+    final Map<String, dynamic> firstInstances = {};
+    
+    for (var s in services) {
+      String id;
+      if (s is Map) {
+        id = s['_id']?.toString() ?? s['id']?.toString() ?? s['name']?.toString() ?? s.toString();
+      } else {
+        id = s.toString();
+      }
+      counts[id] = (counts[id] ?? 0) + 1;
+      firstInstances[id] ??= s;
+    }
+    
+    return counts.keys.map((id) {
+      final count = counts[id]!;
+      final original = firstInstances[id]!;
+      if (count > 1) {
+        return {'__service': original, '__qty': count};
+      }
+      return original;
+    }).toList();
+  }
+
+  Widget _buildServiceItem(dynamic serviceObj) {
+    dynamic service = serviceObj;
+    int qty = 1;
+    if (serviceObj is Map && serviceObj.containsKey('__service') && serviceObj.containsKey('__qty')) {
+      service = serviceObj['__service'];
+      qty = serviceObj['__qty'] as int;
+    }
+
     String name = 'Service';
     String price = '';
     if (service is Map) {
@@ -463,6 +495,10 @@ class BookingDetailsView extends StatelessWidget {
       } else {
         name = service;
       }
+    }
+    
+    if (qty > 1) {
+       name = '$name (x$qty)';
     }
 
     return Padding(
