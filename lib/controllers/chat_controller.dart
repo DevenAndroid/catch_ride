@@ -200,6 +200,7 @@ class ChatController extends GetxController {
     // 0. Remove old listeners before re-registering (Fix #2)
     _socketService.socket.off('message:received');
     _socketService.socket.off('message:sent');
+    _socketService.socket.off('message:error');
     _socketService.socket.off('conversation:status:updated');
     _socketService.socket.off('conversations:refresh');
 
@@ -215,6 +216,22 @@ class ChatController extends GetxController {
       final message = ChatMessage.fromJson(data['message']);
       final tempId = data['tempId'];
       _handleSentConfirmation(tempId, message);
+    });
+
+    _socketService.socket.on('message:error', (data) {
+      final tempId = data['tempId']?.toString();
+      final errMsg = data['message']?.toString() ??
+          'You do not have access to this conversation until a booking is confirmed.';
+      if (tempId != null && tempId.isNotEmpty) {
+        currentMessages.removeWhere((m) => m.id == tempId);
+      }
+      Get.snackbar(
+        'Message not sent',
+        errMsg,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+      );
     });
 
     // 3. Status Updated
@@ -333,6 +350,20 @@ class ChatController extends GetxController {
 
         _setConversationUnread(convoId, 0);
         _syncAppIconBadge();
+      } else if (response.statusCode == 403) {
+        final body = response.body;
+        final errMsg = body is Map
+            ? (body['message']?.toString() ??
+                'You do not have access to this conversation until a booking is confirmed.')
+            : 'You do not have access to this conversation until a booking is confirmed.';
+        Get.snackbar(
+          'Chat unavailable',
+          errMsg,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.primary,
+          colorText: Colors.white,
+        );
+        if (Get.key.currentState?.canPop() ?? false) Get.back();
       }
     } catch (e) {
       _logger.e('Error fetching messages: $e');
