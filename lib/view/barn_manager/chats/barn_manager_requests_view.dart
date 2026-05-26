@@ -4,7 +4,7 @@ import 'barn_manager_single_chat_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
-import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/utils/booking_controller_lookup.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/models/message_model.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchConversations();
-      Get.put(BookingController()).fetchBookings(type: 'received');
+      lookupBookingController().fetchBookings(type: 'received');
     });
   }
 
@@ -60,7 +60,7 @@ class _BarnManagerRequestsViewState extends State<BarnManagerRequestsView> {
         ),
       ),
       body: Obx(() {
-        final bookingController = Get.put(BookingController());
+        final bookingController = lookupBookingController();
         final chatController = Get.find<ChatController>();
 
         // 1. Get Chat Conversations that are requests
@@ -401,7 +401,7 @@ class _RequestCardState extends State<RequestCard> {
                                     onPressed: () async {
                                       Get.back(); // Close dialog
                                       setState(() => _isRejecting = true);
-                                      final bookingController = Get.put(BookingController());
+                                      final bookingController = lookupBookingController();
                                       final result = await bookingController.updateBookingStatus(
                                         widget.request.id!,
                                         'rejected'
@@ -471,7 +471,7 @@ class _RequestCardState extends State<RequestCard> {
                         ? null
                         : () async {
                             setState(() => _isAccepting = true);
-                            final bookingController = Get.put(BookingController());
+                            final bookingController = lookupBookingController();
                             final result = await bookingController.updateBookingStatus(
                               widget.request.id!,
                               'confirmed'

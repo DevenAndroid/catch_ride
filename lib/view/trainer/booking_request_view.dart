@@ -25,6 +25,7 @@ import 'package:catch_ride/models/booking_model.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../controllers/booking_controller.dart';
+import '../../../utils/booking_controller_lookup.dart';
 import '../../../models/availability_model.dart';
 import '../../../services/api_service.dart';
 import '../../../controllers/horse_controller.dart';
@@ -163,7 +164,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
   }
 
   Future<void> _checkIfRequested() async {
-    final bookingController = Get.put(BookingController());
+    final bookingController = lookupBookingController();
     final chatController = Get.put(ChatController());
 
     // Fetch latest sent bookings from server to sync with DB
@@ -1915,7 +1916,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     if (widget.bookingId == null) return;
     try {
       setState(() => _isAccepting = true);
-      final bookingController = Get.put(BookingController());
+      final bookingController = lookupBookingController();
       final chatController = Get.put(ChatController());
       final result = await bookingController.updateBookingStatus(
         widget.bookingId!,
@@ -2318,7 +2319,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
     String? selectedLocation = horse!.location;
     AvailabilityModel? selectedShow;
     final TextEditingController messageController = TextEditingController();
-    final BookingController bookingController = Get.put(BookingController());
+    final BookingController bookingController = lookupBookingController();
 
     showModalBottomSheet(
       context: context,

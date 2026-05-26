@@ -15,6 +15,7 @@ import '../view/barn_manager/chats/barn_manager_single_chat_view.dart';
 import '../view/trainer/chats/single_chat_view.dart';
 import 'booking_controller.dart';
 import 'profile_controller.dart';
+import '../utils/booking_controller_lookup.dart';
 
 class ChatController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -203,6 +204,7 @@ class ChatController extends GetxController {
     _socketService.socket.off('message:error');
     _socketService.socket.off('conversation:status:updated');
     _socketService.socket.off('conversations:refresh');
+    _socketService.socket.off('bookings:pending-count:refresh');
 
     // 1. Message Received
     _socketService.socket.on('message:received', (data) {
@@ -244,7 +246,12 @@ class ChatController extends GetxController {
       fetchConversations(quiet: true);
     });
 
-    // 5. Refresh conversations list (Sync inbox for new user session)
+    // 5. Barn manager: pending received booking count (no chat access yet)
+    _socketService.socket.on('bookings:pending-count:refresh', (_) {
+      _syncPendingBookingBadgeNow();
+    });
+
+    // 6. Refresh conversations list (Sync inbox for new user session)
     fetchConversations(quiet: true);
   }
 
@@ -1011,8 +1018,7 @@ class ChatController extends GetxController {
     }
 
     // Refresh bookings to reflect new status (confirmed/rejected)
-    final BookingController bc =
-        _tryFindBookingController() ?? Get.put(BookingController());
+    final BookingController bc = lookupBookingController();
     bc.fetchBookings(type: 'received');
     bc.fetchBookings(type: 'sent');
     bc.refreshPendingBookingCounts();
