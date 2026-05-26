@@ -266,9 +266,9 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
               const SizedBox(height: 16),
             ],
             if (regionsCovered.isNotEmpty) ...[
-              _buildDetailItem(
+              _buildRegionsList(
                 'Regions Covered',
-                regionsCovered.map((e) => e.toString()).join(', '),
+                regionsCovered.map((e) => e.toString()).toList(),
               ),
               const SizedBox(height: 16),
             ],
@@ -489,6 +489,43 @@ class _BodyworkServiceAndRatesViewState extends State<BodyworkServiceAndRatesVie
             Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
           ],
         ),
+        const Divider(height: 24, color: AppColors.dividerColor),
+      ],
+    );
+  }
+
+  Widget _buildRegionsList(String label, List<String> regions) {
+    if (regions.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonText(
+          label,
+          fontSize: AppTextSizes.size12,
+          color: AppColors.textSecondary,
+        ),
+        const SizedBox(height: 6),
+        ...regions.map((r) => Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: CommonText(
+                  r,
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        )),
         const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );

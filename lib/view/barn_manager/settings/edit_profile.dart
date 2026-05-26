@@ -65,14 +65,13 @@ class _EditBarnManagerProfileViewState
     _barnNameController.text = profileController.barnName;
     _bioController.text = profileController.bio;
 
-    // For years, we might need to find which option matches.
-    // BarnManager model usually stores it as string in the specific model
-    // which is synced to user.yearsExperience (int) for trainers,
-    // but for barn managers we use 'yearsInIndustry' string field in backend.
-    final rawData = profileController.userData;
-    if (rawData['barnManagerId'] != null &&
-        rawData['barnManagerId']['yearsInIndustry'] != null) {
-      _selectedYears = rawData['barnManagerId']['yearsInIndustry'];
+    // Pre-populate years using the barn manager field: yearsInIndustry.
+    const expItems = ['0-1', '2-4', '5-9', '10+'];
+    final savedYears =
+        profileController.userData['yearsInIndustry']?.toString() ??
+        profileController.yearsInIndustry;
+    if (expItems.contains(savedYears)) {
+      _selectedYears = savedYears;
     }
 
     // If profile is empty, fetch it
@@ -85,10 +84,11 @@ class _EditBarnManagerProfileViewState
           _barnNameController.text = profileController.barnName;
           _bioController.text = profileController.bio;
 
-          final updatedRawData = profileController.userData;
-          if (updatedRawData['barnManagerId'] != null &&
-              updatedRawData['barnManagerId']['yearsInIndustry'] != null) {
-            _selectedYears = updatedRawData['barnManagerId']['yearsInIndustry'];
+          final refreshedYears =
+              profileController.userData['yearsInIndustry']?.toString() ??
+              profileController.yearsInIndustry;
+          if (expItems.contains(refreshedYears)) {
+            _selectedYears = refreshedYears;
           }
         });
       });
@@ -334,7 +334,7 @@ class _EditBarnManagerProfileViewState
                         onTap: () => _showSingleSelectBottomSheet(
                           title: 'Years in industry',
                           currentValue: _selectedYears ?? '',
-                          items: List.generate(51, (index) => index.toString()),
+                          items: const ['0-1', '2-4', '5-9', '10+'],
                           onSelected: (val) {
                             setState(() => _selectedYears = val);
                           },
@@ -481,7 +481,7 @@ class _EditBarnManagerProfileViewState
                 ),
                 child: Row(
                   children: const [
-                    CommonText('+91', fontSize: 15, color: Color(0xFF101828)),
+                    CommonText('+1', fontSize: 15, color: Color(0xFF101828)),
                     SizedBox(width: 4),
                     Icon(
                       Icons.keyboard_arrow_down,
@@ -642,8 +642,8 @@ class _EditBarnManagerProfileViewState
       builder: (ctx) {
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.95,
-          minChildSize: 0.5,
+          initialChildSize: 0.5,
+          minChildSize: 0.4,
           maxChildSize: 0.95,
           builder: (_, scrollController) {
             return Column(

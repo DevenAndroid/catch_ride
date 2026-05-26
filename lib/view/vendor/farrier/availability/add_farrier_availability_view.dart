@@ -148,69 +148,75 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque, // ensures taps are detected on empty space
+      onTap: () {
+        FocusManager.instance.primaryFocus?.unfocus();
+      },
+      child: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
+          title: const CommonText('Add Availability Block', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
         ),
-        title: const CommonText('Add Availability Block', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Container(
+        body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.borderLight),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.borderLight),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4))],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText(_editingBlock != null ? 'Edit Block' : 'Block 1', fontSize: 16, fontWeight: FontWeight.bold),
 
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildDateSection(),
-              const SizedBox(height: 24),
-              const CommonText('Timeframe', fontSize: 14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              _buildDropdownField(_timeWindow, ['Full Day', 'Morning window', 'Afternoon window']),
-              const SizedBox(height: 24),
-              VendorShowVenueSection(
-                venues: _addedVenues,
-                includeGooglePlaces: false,
-              ),
-              const SizedBox(height: 24),
-              const CommonText('Availability Mode', fontSize: 14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              _buildDropdownField(_availabilityMode, ['General bookings', 'Emergency-only']),
-              const SizedBox(height: 24),
-              const CommonText('Minimum horses per stop', fontSize: 14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 12),
-              _buildCounter(_minHorses),
-              const SizedBox(height: 24),
-              const CommonText('New Client Policy', fontSize: 14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 12),
-              _buildRadioGroup(_newClientPolicy, ['Accepting new clients', 'Limited availability', 'Referral-only', 'Not accepting new clients']),
-              const SizedBox(height: 24),
-              const CommonText('Notes For Trainers (optional)', fontSize: 14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 12),
-              _buildNotesField(),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildDateSection(),
+                const SizedBox(height: 24),
+                const CommonText('Timeframe', fontSize: 14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 8),
+                _buildDropdownField(_timeWindow, ['Full Day', 'Morning window', 'Afternoon window']),
+                const SizedBox(height: 24),
+                VendorShowVenueSection(
+                  venues: _addedVenues,
+                  includeGooglePlaces: false,
+                ),
+                const SizedBox(height: 24),
+                const CommonText('Availability Mode', fontSize: 14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 8),
+                _buildDropdownField(_availabilityMode, ['General bookings', 'Emergency-only']),
+                const SizedBox(height: 24),
+                const CommonText('Minimum horses per stop', fontSize: 14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 12),
+                _buildCounter(_minHorses),
+                const SizedBox(height: 24),
+                const CommonText('New Client Policy', fontSize: 14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 12),
+                _buildRadioGroup(_newClientPolicy, ['Accepting new clients', 'Limited availability', 'Referral-only', 'Not accepting new clients']),
+                const SizedBox(height: 24),
+                const CommonText('Notes For Trainers (optional)', fontSize: 14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 12),
+                _buildNotesField(),
+              ],
+            ),
           ),
         ),
+        bottomNavigationBar: _buildBottomButtons(),
       ),
-      bottomNavigationBar: _buildBottomButtons(),
     );
   }
 
@@ -327,6 +333,7 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
 
   Widget _buildNotesField() {
     return TextField(
+      textInputAction: TextInputAction.done,
       controller: _notesController,
       maxLines: 4,
       decoration: InputDecoration(

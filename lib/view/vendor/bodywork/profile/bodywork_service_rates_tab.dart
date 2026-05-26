@@ -132,11 +132,18 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
       (b['vetApproval'] ?? a['vetApproval'])?.toString(),
       _vetApprovalOptions,
     );
+    bool hasAnyMeaningfulRate = false;
+    for (final val in rates.values) {
+      if (_meaningfulBodyworkRate(val)) {
+        hasAnyMeaningfulRate = true;
+        break;
+      }
+    }
     return {
       'name': (b['name']?.toString().trim().isNotEmpty == true)
           ? b['name']
           : a['name'],
-      'isSelected': a['isSelected'] == true || b['isSelected'] == true,
+      'isSelected': a['isSelected'] == true || b['isSelected'] == true || hasAnyMeaningfulRate,
       'rates': _sanitizeBodyworkRatesMap(rates),
       'note': nb.isNotEmpty ? b['note'] : (na.isNotEmpty ? a['note'] : ''),
       'trainerPresence': trainerCoerced,
@@ -166,9 +173,19 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
 
   Map<String, dynamic> _rowFromSaved(Map<String, dynamic> saved) {
     final name = saved['name']?.toString() ?? '';
+    bool hasAnyMeaningfulRate = false;
+    if (saved['rates'] is Map) {
+      final map = saved['rates'] as Map;
+      for (final val in map.values) {
+        if (_meaningfulBodyworkRate(val)) {
+          hasAnyMeaningfulRate = true;
+          break;
+        }
+      }
+    }
     return {
       'name': name,
-      'isSelected': saved['isSelected'] == true,
+      'isSelected': saved['isSelected'] == true || hasAnyMeaningfulRate,
       'rates': _sanitizeBodyworkRatesMap(saved['rates']),
       'note': saved['note']?.toString() ?? '',
       'trainerPresence': _coerceBodyworkDropdownValue(
@@ -282,6 +299,7 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
     }
 
     final payload = services
+        .where((s) => s['isSelected'] == true)
         .map((s) => Map<String, dynamic>.from({
               ...s,
               'rates': _sanitizeBodyworkRatesMap(s['rates']),
