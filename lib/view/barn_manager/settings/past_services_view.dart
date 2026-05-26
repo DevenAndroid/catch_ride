@@ -15,7 +15,7 @@ class PastServicesView extends StatefulWidget {
 }
 
 class _PastServicesViewState extends State<PastServicesView> with SingleTickerProviderStateMixin {
-  final BarnManagerBookingController controller = Get.find<BarnManagerBookingController>();
+  final BarnManagerBookingController controller = Get.put(BarnManagerBookingController());
   late TabController _tabController;
 
   @override

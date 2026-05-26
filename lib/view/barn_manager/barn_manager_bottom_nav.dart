@@ -44,7 +44,7 @@ class _BarnManagerBottomNavState extends State<BarnManagerBottomNav> {
     _selectedIndex = widget.initialIndex;
     Get.put(ProfileController());
     Get.put(HorseController());
-    Get.put(BarnManagerBookingController(), permanent: true);
+    Get.put(BarnManagerBookingController());
     Get.find<BarnManagerBookingController>().refreshPendingBookingCounts();
   }
 
