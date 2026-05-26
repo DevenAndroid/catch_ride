@@ -5,6 +5,7 @@ import 'package:catch_ride/utils/grooming_rates_util.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 
 class GroomingServiceAndRatesView extends StatefulWidget {
   final Map groomingData;
@@ -109,7 +110,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                     spacing: 12,
                     runSpacing: 12,
                     children: coreServices.map((s) {
-                      final name = s is Map ? (s['name'] ?? s['label'] ?? 'Service') : s.toString();
+                      final name = StringUtils.capitalizeServiceWords(s is Map ? (s['name'] ?? s['label'] ?? 'Service') : s.toString());
                       return SizedBox(
                      //   width: (MediaQuery.of(context).size.width - 100) / 2,
                         child: _buildCheckItem(name),
@@ -134,7 +135,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
                   ),
                   const SizedBox(height: 16),
                   ...additionalServices.map((s) {
-                    final name = s is Map ? (s['name'] ?? s['label'] ?? 'Service') : s.toString();
+                    final name = StringUtils.capitalizeServiceWords(s is Map ? (s['name'] ?? s['label'] ?? 'Service') : s.toString());
                     final price = s is Map ? (s['price']?.toString() ?? '0') : '0';
                     final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
                     return _buildPricedServiceItem(name, formattedPrice);
@@ -359,6 +360,12 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
 
   Widget _buildRegionsList(String label, List<String> regions) {
     if (regions.isEmpty) return const SizedBox.shrink();
+    final List<String> flatRegions = [];
+    for (final r in regions) {
+      if (r == null) continue;
+      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -369,7 +376,7 @@ class _GroomingServiceAndRatesViewState extends State<GroomingServiceAndRatesVie
           fontWeight: FontWeight.w400,
         ),
         const SizedBox(height: 6),
-        ...regions.map((r) => Padding(
+        ...flatRegions.map((r) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 
 class GeneralServiceAndRatesView extends StatefulWidget {
   final String title;
@@ -100,7 +101,7 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
             ...widget.services.map((s) {
               final String price = s['price']?.toString() ?? '0';
               final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-              return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice / horse');
+              return _buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? 'N/A'), '\$ $formattedPrice / horse');
             })
           else
             ..._buildCapabilityItems(),
@@ -112,7 +113,7 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
             ...widget.additionalServices.map((s) {
               final String price = s['price']?.toString() ?? '0';
               final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-              return _buildPricedItem(s['name'] ?? 'N/A', '\$ $formattedPrice / horse');
+              return _buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? 'N/A'), '\$ $formattedPrice / horse');
             }),
           ],
 
@@ -130,18 +131,18 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
       if (s is Map) {
         final String price = s['price']?.toString() ?? '0';
         final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-        items.add(_buildPricedItem(s['name'] ?? 'N/A', '\$$formattedPrice/horse'));
+        items.add(_buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? 'N/A'), '\$$formattedPrice/horse'));
       } else {
-        items.add(_buildCheckItem(s.toString()));
+        items.add(_buildCheckItem(StringUtils.capitalizeServiceWords(s.toString())));
       }
     }
 
     for (var it in widget.supportOptions) {
-      items.add(_buildCheckItem(it));
+      items.add(_buildCheckItem(StringUtils.capitalizeServiceWords(it)));
     }
 
     for (var it in widget.handlingOptions) {
-      items.add(_buildCheckItem(it));
+      items.add(_buildCheckItem(StringUtils.capitalizeServiceWords(it)));
     }
 
     return items;
@@ -271,12 +272,18 @@ class _GeneralServiceAndRatesViewState extends State<GeneralServiceAndRatesView>
 
   Widget _buildRegionsList(String label, List<String> regions) {
     if (regions.isEmpty) return const SizedBox.shrink();
+    final List<String> flatRegions = [];
+    for (final r in regions) {
+      if (r == null) continue;
+      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
         const SizedBox(height: 6),
-        ...regions.map((r) => Padding(
+        ...flatRegions.map((r) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

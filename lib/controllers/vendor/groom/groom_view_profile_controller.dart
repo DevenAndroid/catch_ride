@@ -640,6 +640,22 @@ class GroomViewProfileController extends GetxController {
     return effectiveCancellationDisplayText(raw);
   }
 
+  String get noteForTrainer {
+    final merged = activeProfileData;
+    for (final v in <dynamic>[
+      vendorData['noteForTrainer'],
+      merged['noteForTrainer'],
+      _activeApplicationData['noteForTrainer'],
+      _activeApplicationData['notesForTrainer'],
+      vendorData['notes'],
+      merged['notes'],
+    ]) {
+      final s = v?.toString().trim() ?? '';
+      if (s.isNotEmpty) return s;
+    }
+    return '';
+  }
+
   // Experience Highlights
   // List<String> get highlights {
   //   final List<String> vh = List<String>.from(vendorData['highlights'] ?? []);

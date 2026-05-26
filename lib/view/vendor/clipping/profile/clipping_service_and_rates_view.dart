@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 
 class ClippingServiceAndRatesView extends StatefulWidget {
   final Map clippingData;
@@ -76,7 +77,7 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
               ...services.map((s) {
                 final String price = s['price']?.toString() ?? '0';
                 final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                return _buildServiceItem(s['name'] ?? s['label'] ?? 'Service', '\$ $formattedPrice / horse');
+                return _buildServiceItem(StringUtils.capitalizeServiceWords(s['name'] ?? s['label'] ?? 'Service'), '\$ $formattedPrice / horse');
               }),
 
             const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
@@ -168,12 +169,18 @@ class _ClippingServiceAndRatesViewState extends State<ClippingServiceAndRatesVie
 
   Widget _buildRegionsList(String label, List<String> regions) {
     if (regions.isEmpty) return const SizedBox.shrink();
+    final List<String> flatRegions = [];
+    for (final r in regions) {
+      if (r == null) continue;
+      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
         const SizedBox(height: 6),
-        ...regions.map((r) => Padding(
+        ...flatRegions.map((r) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

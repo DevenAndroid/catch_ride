@@ -35,10 +35,13 @@ class SendBookingRequestController extends GetxController {
   final RxList<Map<String, dynamic>> additionalServicesList =
       <Map<String, dynamic>>[].obs;
   final RxList<String> selectedAdditionalIds = <String>[].obs;
+  final RxMap<String, int> addOnQuantities = <String, int>{}.obs;
 
   final RxList<Map<String, dynamic>> coreServicesList =
       <Map<String, dynamic>>[].obs;
   final RxList<String> selectedCoreServiceIds = <String>[].obs;
+
+  final RxMap<String, int> rateQuantities = <String, int>{}.obs;
 
   final RxBool isSummaryVisible = false.obs;
   final RxDouble totalPrice = 0.0.obs;
@@ -387,6 +390,9 @@ class SendBookingRequestController extends GetxController {
         selectedAdditionalIds,
         selectedCoreServiceIds,
       ], (_) => calculatePrice());
+      
+      rateQuantities.listen((_) => calculatePrice());
+      addOnQuantities.listen((_) => calculatePrice());
 
       // Fetch availability to populate locations
       fetchAvailability();
@@ -887,7 +893,7 @@ class SendBookingRequestController extends GetxController {
     final bool isMultiService =
         isBraiding || isShipping || isClipping || isFarrier || isBodywork;
 
-    if ((!isMultiService && selectedRateType.value == null) ||
+    if ((!isMultiService && rateQuantities.isEmpty) ||
         (isMultiService && selectedCoreServiceIds.isEmpty) ||
         startDate.value == null ||
         endDate.value == null ||
@@ -925,29 +931,26 @@ class SendBookingRequestController extends GetxController {
       // Without a distance field, we treat this as the base cost or a simplified calculation.
       basePrice.value = coreTotal;
     } else {
-      double rate = 0.0;
-      if (selectedRateType.value!.startsWith('Day Rate')) {
-        rate = double.tryParse(rates['daily']?.toString() ?? '250') ?? 250.0;
-        basePrice.value = rate * duration * numHorses;
-      } else if (selectedRateType.value!.startsWith('Week Rate')) {
-        rate =
-            double.tryParse(rates['weekly']?['price']?.toString() ?? '1200') ??
-            1200.0;
-        final weeks = (duration / 7).ceil();
-        basePrice.value = rate * weeks * numHorses;
-      } else if (selectedRateType.value!.startsWith('Month Rate')) {
-        rate =
-            double.tryParse(rates['monthly']?['price']?.toString() ?? '4500') ??
-            4500.0;
-        final months = (duration / 30).ceil();
-        basePrice.value = rate * months * numHorses;
+      double totalBase = 0.0;
+      final groomRates = groomRateOptions;
+      for (var entry in rateQuantities.entries) {
+        final id = entry.key;
+        final qty = entry.value;
+        if (qty > 0) {
+          final opt = groomRates.firstWhereOrNull((o) => o['id'] == id);
+          if (opt != null) {
+            totalBase += (opt['price'] as double) * qty * numHorses;
+          }
+        }
       }
+      basePrice.value = totalBase;
     }
 
     double addOnTotal = 0.0;
     for (var id in selectedAdditionalIds) {
       final service = additionalServicesList.firstWhere((s) => s['id'] == id);
-      addOnTotal += (service['price'] as double) * numHorses;
+      final qty = addOnQuantities[id] ?? 1;
+      addOnTotal += (service['price'] as double) * qty;
     }
     additionalTotal.value = addOnTotal;
     totalPrice.value = basePrice.value + additionalTotal.value;
@@ -976,11 +979,22 @@ class SendBookingRequestController extends GetxController {
     selectedDestination.value = booking['destination'];
     notesController.text = booking['notes'] ?? '';
     selectedAdditionalIds.assignAll(
-      List<String>.from(booking['additionalIds'] ?? []),
+      List<String>.from(booking['additionalIds']?.toSet() ?? []),
     );
+    addOnQuantities.clear();
+    final allAddOns = List<String>.from(booking['additionalIds'] ?? []);
+    for (var id in selectedAdditionalIds) {
+       addOnQuantities[id] = allAddOns.where((x) => x == id).length;
+    }
+    
     selectedCoreServiceIds.assignAll(
       _migrateLegacyCoreIds(List<String>.from(booking['coreIds'] ?? [])),
     );
+    
+    rateQuantities.clear();
+    if (booking['rateQuantities'] != null && booking['rateQuantities'] is Map) {
+      rateQuantities.addAll(Map<String, int>.from(booking['rateQuantities']));
+    }
 
     bookedServices.removeAt(index);
     calculatePrice();
@@ -989,9 +1003,33 @@ class SendBookingRequestController extends GetxController {
   void toggleAdditionalService(String id) {
     if (selectedAdditionalIds.contains(id)) {
       selectedAdditionalIds.remove(id);
+      addOnQuantities.remove(id);
     } else {
       selectedAdditionalIds.add(id);
+      addOnQuantities[id] = int.tryParse(selectedNumHorses.value ?? '1') ?? 1;
     }
+  }
+
+  void updateAddOnQuantity(String id, int delta) {
+    int current = addOnQuantities[id] ?? 1;
+    int next = current + delta;
+    if (next < 1) next = 1;
+    addOnQuantities[id] = next;
+  }
+
+  void toggleRateQuantity(String id) {
+    if (rateQuantities.containsKey(id)) {
+      rateQuantities.remove(id);
+    } else {
+      rateQuantities[id] = 1;
+    }
+  }
+
+  void updateRateQuantity(String id, int delta) {
+    int current = rateQuantities[id] ?? 1;
+    int next = current + delta;
+    if (next < 1) next = 1;
+    rateQuantities[id] = next;
   }
 
   bool validateForm() {
@@ -1039,10 +1077,10 @@ class SendBookingRequestController extends GetxController {
       }
     } else {
       // General form (Grooming, etc)
-      if (selectedRateType.value == null) {
+      if (rateQuantities.isEmpty) {
         Get.snackbar(
           'Validation Error',
-          'Please select a rate type',
+          'Please select at least one rate type',
           backgroundColor: Colors.redAccent,
           colorText: Colors.white,
         );
@@ -1088,6 +1126,8 @@ class SendBookingRequestController extends GetxController {
 
   void clearFormFields() {
     selectedRateType.value = null;
+    rateQuantities.clear();
+    addOnQuantities.clear();
     startDate.value = null;
     endDate.value = null;
     selectedNumHorses.value = null;
@@ -1108,15 +1148,31 @@ class SendBookingRequestController extends GetxController {
   void addServiceToSummary() {
     if (!validateForm()) return;
 
+    final isMultiService = isBraiding || isShipping || isClipping || isFarrier || isBodywork;
+    final List<String> expandedAddOns = [];
+    for (var id in selectedAdditionalIds) {
+      final qty = addOnQuantities[id] ?? 1;
+      for (var i = 0; i < qty; i++) expandedAddOns.add(id);
+    }
+
+    String finalRateType = selectedRateType.value ?? 'Service';
+    if (!isMultiService) {
+      final opts = groomRateOptions;
+      final finalrateList = rateQuantities.entries.map((e) {
+        final opt = opts.firstWhereOrNull((o) => o['id'] == e.key);
+        return '${opt?['label']?.split(' ')[0] ?? e.key} (${e.value} ${opt?['unit'] ?? ''}${e.value > 1 ? 's' : ''})';
+      }).toList();
+      finalRateType = finalrateList.join(', ');
+    } else if (isBraiding) {
+      finalRateType = 'Braiding Service';
+    } else if (isShipping) {
+      finalRateType = 'Shipping Service';
+    }
+
     bookedServices.add({
       'serviceType': selectedService.value,
-      'rateType':
-          selectedRateType.value ??
-          (isBraiding
-              ? 'Braiding Service'
-              : isShipping
-              ? 'Shipping Service'
-              : 'Service'),
+      'rateType': finalRateType,
+      'rateQuantities': Map<String, int>.from(rateQuantities),
       'startDate': startDate.value,
       'endDate': endDate.value,
       'horses': selectedNumHorses.value,
@@ -1126,7 +1182,7 @@ class SendBookingRequestController extends GetxController {
       'origin': selectedOrigin.value,
       'destination': selectedDestination.value,
       'notes': notesController.text,
-      'additionalIds': List<String>.from(selectedAdditionalIds),
+      'additionalIds': expandedAddOns,
       'coreIds': List<String>.from(selectedCoreServiceIds),
       'basePrice': basePrice.value,
       'totalPrice': totalPrice.value,
@@ -1163,15 +1219,30 @@ class SendBookingRequestController extends GetxController {
           return;
         }
 
+        final isMultiService = isBraiding || isShipping || isClipping || isFarrier || isBodywork;
+        final List<String> expandedAddOns = [];
+        for (var id in selectedAdditionalIds) {
+          final qty = addOnQuantities[id] ?? 1;
+          for (var i = 0; i < qty; i++) expandedAddOns.add(id);
+        }
+
+        String finalRateType = selectedRateType.value ?? 'Service';
+        if (!isMultiService) {
+          final opts = groomRateOptions;
+          final finalrateList = rateQuantities.entries.map((e) {
+            final opt = opts.firstWhereOrNull((o) => o['id'] == e.key);
+            return '${opt?['label']?.split(' ')[0] ?? e.key} (${e.value} ${opt?['unit'] ?? ''}${e.value > 1 ? 's' : ''})';
+          }).toList();
+          finalRateType = finalrateList.join(', ');
+        } else if (isBraiding) {
+          finalRateType = 'Braiding Service';
+        } else if (isShipping) {
+          finalRateType = 'Shipping Service';
+        }
+
         allBookings.add({
           'serviceType': selectedService.value,
-          'rateType':
-              selectedRateType.value ??
-              (isBraiding
-                  ? 'Braiding Service'
-                  : isShipping
-                  ? 'Shipping Service'
-                  : 'Service'),
+          'rateType': finalRateType,
           'startDate': startDate.value,
           'endDate': endDate.value,
           'horses': selectedNumHorses.value,
@@ -1181,7 +1252,7 @@ class SendBookingRequestController extends GetxController {
           'origin': selectedOrigin.value,
           'destination': selectedDestination.value,
           'notes': notesController.text,
-          'additionalIds': List<String>.from(selectedAdditionalIds),
+          'additionalIds': expandedAddOns,
           'coreIds': List<String>.from(selectedCoreServiceIds),
           'basePrice': basePrice.value,
           'totalPrice': totalPrice.value,
@@ -1351,6 +1422,38 @@ class SendBookingRequestController extends GetxController {
     final country = homeBase['country']?.toString() ?? 'USA';
     final co = country.toUpperCase() == 'USA' ? 'USA' : country;
     return '$city, $state, $co';
+  }
+
+  List<Map<String, dynamic>> get groomRateOptions {
+    final rates = _effectiveGroomRatesForPricing;
+
+    final List<Map<String, dynamic>> options = [];
+    if (rates['daily'] != null) {
+      options.add({'label': 'Daily', 'price': double.tryParse(rates['daily'].toString()) ?? 0.0, 'unit': 'Day', 'id': 'daily'});
+    }
+    if (rates['weekly']?['price'] != null) {
+      options.add({
+        'label': 'Weekly (${rates['weekly']?['days'] ?? 5} Days)',
+        'price': double.tryParse(rates['weekly']['price'].toString()) ?? 0.0,
+        'unit': 'Week',
+        'id': 'weekly'
+      });
+    }
+    if (rates['monthly']?['price'] != null) {
+      options.add({
+        'label': 'Monthly (${rates['monthly']?['days'] ?? 6} Days)',
+        'price': double.tryParse(rates['monthly']['price'].toString()) ?? 0.0,
+        'unit': 'Month',
+        'id': 'monthly'
+      });
+    }
+
+    if (options.isEmpty) {
+      options.add({'label': 'Daily', 'price': 250.0, 'unit': 'Day', 'id': 'daily'});
+      options.add({'label': 'Weekly', 'price': 1200.0, 'unit': 'Week', 'id': 'weekly'});
+      options.add({'label': 'Monthly', 'price': 4500.0, 'unit': 'Month', 'id': 'monthly'});
+    }
+    return options;
   }
 
   List<Map<String, dynamic>> get rateOptions {

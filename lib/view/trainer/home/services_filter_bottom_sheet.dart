@@ -292,6 +292,28 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                       )
                     : ['A/AA Circuit', 'Grand Prix', 'Young Horses', 'FEI'];
 
+                final bodyworkServiceType = dynamicTypes.firstWhereOrNull(
+                  (t) =>
+                      t['name'] == 'Modality Offered' ||
+                      t['name'] == 'Bodywork Services' ||
+                      t['name'] == 'Services',
+                );
+                final List<String> bodyworkServiceOptions = bodyworkServiceType != null
+                    ? List<String>.from(
+                        bodyworkServiceType['values']
+                            .map((v) => v['name']?.toString() ?? '')
+                            .where((n) => n.isNotEmpty && n != 'Other'),
+                      )
+                    : [
+                        'Sports Massage',
+                        'Myofascial release',
+                        'PEMF',
+                        'Chiropractic',
+                        'Acupuncture',
+                        'Laser therapy',
+                        'Red Light',
+                      ];
+
                 // Use SystemConfigController for regions (single source of truth)
                 final systemConfig = Get.find<SystemConfigController>();
                 final List<String> regionOptions = systemConfig.regionNames;
@@ -376,15 +398,7 @@ class _ServicesFilterBottomSheetState extends State<ServicesFilterBottomSheet> {
                         'Not accepting new clients',
                       ], _localFarrierIntake),
                     ] else if (_selectedTab == 'Bodywork') ...[
-                      _buildChipSection('Bodywork Services', [
-                        'Sports massage',
-                        'Myofascial release',
-                        'PEMF',
-                        'Chiropractic',
-                        'Acupuncture',
-                        'Laser therapy',
-                        'Red Light',
-                      ], _localBodyworkServices),
+                      _buildChipSection('Bodywork Services', bodyworkServiceOptions, _localBodyworkServices),
                     ] else if (_selectedTab == 'Shipping') ...[
                       _buildLabel('Start Location'),
                       const SizedBox(height: 8),

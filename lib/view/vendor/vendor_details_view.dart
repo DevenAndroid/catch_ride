@@ -107,8 +107,17 @@ class _VendorDetailsViewState extends State<VendorDetailsView> with TickerProvid
                           Obx(() => _buildPhotosSection()),
                           const SizedBox(height: 24),
                           _buildAvailabilitySection(),
-                          const SizedBox(height: 24),
-                          Obx(() => _buildCancellationPolicy()),
+                          Obx(() {
+                            if (controller.cancellationPolicy.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Column(
+                              children: [
+                                const SizedBox(height: 24),
+                                _buildCancellationPolicy(),
+                              ],
+                            );
+                          }),
                           const SizedBox(height: 140), // Space for buttons
                         ],
                       ),

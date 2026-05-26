@@ -61,16 +61,7 @@ class BodyworkDetailsController extends GetxController {
 
   // Services
   final services = <Map<String, dynamic>>[].obs;
-  // Fallback services in case API fails
-  final List<String> fallbackServices = [
-    'Sports massage',
-    'Myofascial release',
-    'PEMF',
-    'Chiropractic',
-    'Acupuncture',
-    'Laser therapy',
-    'Red Light',
-  ];
+
 
   final isLoadingServices = false.obs;
   final editingService = Rxn<Map<String, dynamic>>();
@@ -195,11 +186,28 @@ class BodyworkDetailsController extends GetxController {
     try {
       final Response response = await apiService.getRequest('/system-config/tag-types/with-values?category=Bodywork');
       if (response.statusCode == 200 && response.body['success'] == true) {
-        final List types = response.body['data'];
-        final serviceType = types.firstWhereOrNull((t) => t['name'] == 'Bodywork Services' || t['name'] == 'Services');
-        
+        final List types = response.body['data'] ?? [];
+        final serviceType = types.firstWhereOrNull((t) =>
+            t['name'] == 'Modality Offered' ||
+            t['name'] == 'Bodywork Services' ||
+            t['name'] == 'Services');
+
         if (serviceType != null) {
-          final List<String> names = List<String>.from(serviceType['values'].map((v) => v['name']));
+          final List values = serviceType['values'] ?? [];
+          final List<String> names = [];
+          for (final v in values) {
+            if (v is Map) {
+              final n = v['name']?.toString() ?? '';
+              if (n.isNotEmpty && n != 'Other') {
+                names.add(n);
+              }
+            } else if (v != null) {
+              final n = v.toString();
+              if (n.isNotEmpty && n != 'Other') {
+                names.add(n);
+              }
+            }
+          }
           services.assignAll(names.map((name) => {
             'name': name,
             'isSelected': false,
@@ -209,28 +217,17 @@ class BodyworkDetailsController extends GetxController {
             'vetApproval': null,
           }).toList());
         } else {
-          _setFallbackServices();
+          services.clear();
         }
       } else {
-        _setFallbackServices();
+        services.clear();
       }
     } catch (e) {
       debugPrint('Error fetching services: $e');
-      _setFallbackServices();
+      services.clear();
     } finally {
       isLoadingServices.value = false;
     }
-  }
-
-  void _setFallbackServices() {
-    services.assignAll(fallbackServices.map((name) => {
-      'name': name,
-      'isSelected': false,
-      'rates': {'30': '', '45': '', '60': '', '90': ''},
-      'note': '',
-      'trainerPresence': null,
-      'vetApproval': null,
-    }).toList());
   }
 
   /// Aligns VendorModel (`insuranceStatus`) / legacy (`status`) strings with radio [insuranceOptions].

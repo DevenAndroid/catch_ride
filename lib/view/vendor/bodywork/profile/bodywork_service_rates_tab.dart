@@ -30,15 +30,7 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
   final RxList<Map<String, dynamic>> services = <Map<String, dynamic>>[].obs;
   final RxBool isLoadingServices = false.obs;
 
-  static const List<String> _fallbackServiceNames = [
-    'Sports massage',
-    'Myofascial release',
-    'PEMF',
-    'Chiropractic',
-    'Acupuncture',
-    'Laser therapy',
-    'Red Light',
-  ];
+
 
   static const List<String> _sessionKeys = ['30', '45', '60', '90'];
 
@@ -208,7 +200,7 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
         final List types = response.body['data'] ?? [];
         dynamic serviceType;
         for (final t in types) {
-          if (t is Map && (t['name'] == 'Bodywork Services' || t['name'] == 'Services')) {
+          if (t is Map && (t['name'] == 'Modality Offered' || t['name'] == 'Bodywork Services' || t['name'] == 'Services')) {
             serviceType = t;
             break;
           }
@@ -217,21 +209,34 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
           final st = Map<String, dynamic>.from(serviceType);
           final values = st['values'];
           if (values is List && values.isNotEmpty) {
-            final List<String> names = List<String>.from(values.map((v) => v is Map ? v['name'] : v));
-            final deduped = _dedupeNamesInsensitive(names.map((e) => e.toString()));
+            final List<String> names = [];
+            for (final v in values) {
+              if (v is Map) {
+                final n = v['name']?.toString() ?? '';
+                if (n.isNotEmpty && n != 'Other') {
+                  names.add(n);
+                }
+              } else if (v != null) {
+                final n = v.toString();
+                if (n.isNotEmpty && n != 'Other') {
+                  names.add(n);
+                }
+              }
+            }
+            final deduped = _dedupeNamesInsensitive(names);
             services.assignAll(deduped.map(_defaultRow).toList());
           } else {
-            services.assignAll(_fallbackServiceNames.map(_defaultRow).toList());
+            services.clear();
           }
         } else {
-          services.assignAll(_fallbackServiceNames.map(_defaultRow).toList());
+          services.clear();
         }
       } else {
-        services.assignAll(_fallbackServiceNames.map(_defaultRow).toList());
+        services.clear();
       }
     } catch (e) {
       debugPrint('BodyworkServiceRatesTab: catalog fetch failed: $e');
-      services.assignAll(_fallbackServiceNames.map(_defaultRow).toList());
+      services.clear();
     } finally {
       isLoadingServices.value = false;
     }
