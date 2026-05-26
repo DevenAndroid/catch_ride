@@ -94,6 +94,9 @@ class AddTripView extends StatelessWidget {
                             builder: (context, child) => Theme(
                               data: Theme.of(context).copyWith(
                                 colorScheme: const ColorScheme.light(primary: AppColors.primary),
+                                datePickerTheme: DatePickerThemeData(
+                                  rangeSelectionBackgroundColor: AppColors.primary.withOpacity(0.15),
+                                ),
                               ),
                               child: child!,
                             ),

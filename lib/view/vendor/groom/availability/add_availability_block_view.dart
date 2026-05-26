@@ -200,6 +200,9 @@ class _AddAvailabilityBlockViewState extends State<AddAvailabilityBlockView> {
               onPrimary: Colors.white,
               onSurface: AppColors.textPrimary,
             ),
+            datePickerTheme: DatePickerThemeData(
+              rangeSelectionBackgroundColor: AppColors.secondary.withOpacity(0.15),
+            ),
           ),
           child: child!,
         );

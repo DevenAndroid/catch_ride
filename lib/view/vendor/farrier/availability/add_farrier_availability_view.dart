@@ -81,6 +81,9 @@ class _AddFarrierAvailabilityViewState extends State<AddFarrierAvailabilityView>
               onPrimary: Colors.white,
               onSurface: AppColors.textPrimary,
             ),
+            datePickerTheme: DatePickerThemeData(
+              rangeSelectionBackgroundColor: AppColors.primary.withOpacity(0.15),
+            ),
           ),
           child: child!,
         );

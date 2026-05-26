@@ -34,7 +34,7 @@ class HorseCard extends StatelessWidget {
     if (controller.locationType.value == "Show Venue") {
       final searchedVenue = controller.showVenue.value.trim().toLowerCase();
 
-      if (searchedVenue.isNotEmpty && availabilityRows.isNotEmpty) {
+      if ( availabilityRows.isNotEmpty) {
         final show = availabilityRows.firstWhereOrNull(
           (s) => s.showVenue.trim().toLowerCase().contains(searchedVenue),
         );
@@ -55,7 +55,7 @@ class HorseCard extends StatelessWidget {
       final String searchedLocation =
           controller.location.value.trim().toLowerCase();
 
-      if (searchedLocation.isNotEmpty && availabilityRows.isNotEmpty) {
+      if ( availabilityRows.isNotEmpty) {
         final show = availabilityRows.first;
 
         final String datesStr = DateUtil.formatRange(
@@ -157,14 +157,14 @@ class HorseCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(top: 3),
+                          padding: const EdgeInsets.only(top: 2),
                           child: Icon(
                             Icons.location_on_outlined,
-                            size: 16,
+                            size: 14,
                             color: const Color(0xFF667085),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         Flexible(
                           child: CommonText(
                             location,

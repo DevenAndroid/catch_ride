@@ -90,6 +90,9 @@ class _AddClippingAvailabilityViewState
               onPrimary: Colors.white,
               onSurface: AppColors.textPrimary,
             ),
+            datePickerTheme: DatePickerThemeData(
+              rangeSelectionBackgroundColor: AppColors.primary.withOpacity(0.15),
+            ),
           ),
           child: child!,
         );

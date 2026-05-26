@@ -5,6 +5,7 @@ import 'package:catch_ride/models/show_venue_location.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 
 /// Shared "Show Venue or City" field for vendor availability screens.
 class VendorShowVenueSection extends StatelessWidget {
@@ -129,6 +130,8 @@ class VendorShowVenueSection extends StatelessWidget {
 }
 
 class VendorShowVenuePicker {
+  static List<ShowVenueLocation>? _cachedVenues;
+
   static void open({
     required RxList<ShowVenueLocation> venues,
     bool includeGooglePlaces = true,
@@ -143,6 +146,31 @@ class VendorShowVenuePicker {
 
     final searchController = TextEditingController();
     final searchText = ''.obs;
+    final RxBool isParsing = false.obs;
+
+    // Cache / Pre-parse the horse shows into ShowVenueLocation in the background using compute()
+    void parseHorseShows() async {
+      if (_cachedVenues != null &&
+          _cachedVenues!.isNotEmpty &&
+          _cachedVenues!.length == profileController.rawHorseShows.length) {
+        return;
+      }
+      isParsing.value = true;
+      try {
+        final List<Map<String, dynamic>> listCopy = profileController.rawHorseShows.toList();
+        final List<ShowVenueLocation> temp = await compute(_parseHorseShowsInBackground, listCopy);
+        _cachedVenues = temp;
+      } catch (e) {
+        debugPrint('Error parsing horse shows in background: $e');
+      } finally {
+        isParsing.value = false;
+      }
+    }
+
+    // Parse immediately on open if we already have data loaded
+    if (profileController.rawHorseShows.isNotEmpty) {
+      parseHorseShows();
+    }
 
     Get.bottomSheet(
       Container(
@@ -185,8 +213,8 @@ class VendorShowVenuePicker {
             ),
             const SizedBox(height: 20),
             Obx(() {
-              if (profileController.isLoadingMetadata.value &&
-                  profileController.rawHorseShows.isEmpty) {
+              if ((profileController.isLoadingMetadata.value &&
+                  profileController.rawHorseShows.isEmpty) || isParsing.value) {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(20),
@@ -259,24 +287,28 @@ class VendorShowVenuePicker {
                         );
                       }),
                     Obx(() {
+                      if (isParsing.value) {
+                        return const SizedBox.shrink();
+                      }
                       final search = searchText.value.toLowerCase();
-                      final seenKeys = <String>{};
-                      final horseShowVenues = <ShowVenueLocation>[];
-                      for (final show in profileController.rawHorseShows) {
-                        final entry = ShowVenueLocation.fromHorseShow(
-                          Map<String, dynamic>.from(show),
-                        );
-                        if (entry.displayLabel == 'Unknown') continue;
-                        if (seenKeys.contains(entry.selectionKey)) continue;
-                        seenKeys.add(entry.selectionKey);
+                      
+                      // In case rawHorseShows finished loading asynchronously after sheet opened
+                      if ((_cachedVenues == null || _cachedVenues!.isEmpty) && profileController.rawHorseShows.isNotEmpty && !isParsing.value) {
+                        Future.microtask(() => parseHorseShows());
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                        if (search.isNotEmpty) {
-                          final hay =
-                              '${entry.displayLabel} ${entry.location}'
-                                  .toLowerCase();
-                          if (!hay.contains(search)) continue;
+                      final horseShowVenues = <ShowVenueLocation>[];
+                      final sourceList = _cachedVenues ?? [];
+                      if (search.isEmpty) {
+                        horseShowVenues.addAll(sourceList);
+                      } else {
+                        for (final entry in sourceList) {
+                          final hay = '${entry.displayLabel} ${entry.location}'.toLowerCase();
+                          if (hay.contains(search)) {
+                            horseShowVenues.add(entry);
+                          }
                         }
-                        horseShowVenues.add(entry);
                       }
 
                       if (horseShowVenues.isEmpty) {
@@ -372,4 +404,30 @@ class VendorShowVenuePicker {
       isScrollControlled: true,
     );
   }
+}
+
+/// Pure top-level background parsing function for compute() background isolate execution.
+List<ShowVenueLocation> _parseHorseShowsInBackground(List<Map<String, dynamic>> rawHorseShows) {
+  final List<ShowVenueLocation> temp = [];
+  final seenKeys = <String>{};
+  for (final show in rawHorseShows) {
+    final venueName = show['showVenue']?.toString() ?? show['name']?.toString() ?? '';
+    final city = show['city']?.toString() ?? '';
+    final state = show['state']?.toString() ?? '';
+    final country = show['country']?.toString() ?? '';
+    
+    final List<String> locParts = [];
+    if (city.trim().isNotEmpty) locParts.add(city.trim());
+    if (state.trim().isNotEmpty) locParts.add(state.trim());
+    if (country.trim().isNotEmpty) locParts.add(country.trim());
+    final loc = locParts.join(', ');
+
+    final key = '${venueName.trim().toLowerCase()}|${loc.trim().toLowerCase()}';
+    if (venueName.trim().isEmpty && loc.trim().isEmpty) continue;
+    if (venueName.trim() == 'Unknown') continue;
+    if (seenKeys.contains(key)) continue;
+    seenKeys.add(key);
+    temp.add(ShowVenueLocation(name: venueName, location: loc));
+  }
+  return temp;
 }

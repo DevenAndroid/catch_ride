@@ -122,6 +122,8 @@ class ApiService extends GetConnect implements GetxService {
     Map<String, dynamic>? query,
   }) async {
     if (!await _isAuthorized(path)) {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      preferences.clear();
       return const Response(statusCode: 401, statusText: 'Unauthorized');
     }
     final String fullUrl = '${httpClient.baseUrl}$path';
