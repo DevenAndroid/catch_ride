@@ -108,7 +108,16 @@ class BookingController extends GetxController {
       );
       if (response.statusCode == 200) {
         final List data = response.body['data'] ?? [];
-        pendingReceivedCount.value = data.length;
+        final Set<String> uniqueIds = {};
+        for (final item in data) {
+          if (item is! Map) continue;
+          final id = item['_id'] ?? item['id'];
+          if (id != null && id.toString().isNotEmpty) {
+            uniqueIds.add(id.toString());
+          }
+        }
+        pendingReceivedCount.value =
+            uniqueIds.isNotEmpty ? uniqueIds.length : data.length;
       }
     } catch (e) {
       _logger.e('Error refreshing pending booking counts: $e');

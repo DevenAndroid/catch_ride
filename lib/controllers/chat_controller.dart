@@ -15,6 +15,7 @@ import '../view/barn_manager/chats/barn_manager_single_chat_view.dart';
 import '../view/trainer/chats/single_chat_view.dart';
 import 'booking_controller.dart';
 import 'profile_controller.dart';
+import '../utils/booking_controller_lookup.dart';
 
 class ChatController extends GetxController {
   final ApiService _apiService = Get.find<ApiService>();
@@ -200,8 +201,10 @@ class ChatController extends GetxController {
     // 0. Remove old listeners before re-registering (Fix #2)
     _socketService.socket.off('message:received');
     _socketService.socket.off('message:sent');
+    _socketService.socket.off('message:error');
     _socketService.socket.off('conversation:status:updated');
     _socketService.socket.off('conversations:refresh');
+    _socketService.socket.off('bookings:pending-count:refresh');
 
     // 1. Message Received
     _socketService.socket.on('message:received', (data) {
@@ -217,6 +220,22 @@ class ChatController extends GetxController {
       _handleSentConfirmation(tempId, message);
     });
 
+    _socketService.socket.on('message:error', (data) {
+      final tempId = data['tempId']?.toString();
+      final errMsg = data['message']?.toString() ??
+          'You do not have access to this conversation until a booking is confirmed.';
+      if (tempId != null && tempId.isNotEmpty) {
+        currentMessages.removeWhere((m) => m.id == tempId);
+      }
+      Get.snackbar(
+        'Message not sent',
+        errMsg,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: AppColors.primary,
+        colorText: Colors.white,
+      );
+    });
+
     // 3. Status Updated
     _socketService.socket.on('conversation:status:updated', (data) {
       _handleStatusUpdate(data);
@@ -227,7 +246,12 @@ class ChatController extends GetxController {
       fetchConversations(quiet: true);
     });
 
-    // 5. Refresh conversations list (Sync inbox for new user session)
+    // 5. Barn manager: pending received booking count (no chat access yet)
+    _socketService.socket.on('bookings:pending-count:refresh', (_) {
+      _schedulePendingBookingBadgeSync();
+    });
+
+    // 6. Refresh conversations list (Sync inbox for new user session)
     fetchConversations(quiet: true);
   }
 
@@ -242,6 +266,7 @@ class ChatController extends GetxController {
         conversations.value = data
             .map((json) => ChatConversation.fromJson(json))
             .toList();
+        _dedupeConversationsByOtherUser();
         _syncUnreadForOpenChat();
         _schedulePendingBookingBadgeSync();
         _syncAppIconBadge();
@@ -262,6 +287,84 @@ class ChatController extends GetxController {
     final List<String> ids = [id1, id2];
     ids.sort();
     return ids.join('-');
+  }
+
+  /// True when two thread ids are the same chat (e.g. trainer–client vs barn–client).
+  bool _isSameChatThread(String activeId, String messageId, String myUserId) {
+    if (activeId.isEmpty || messageId.isEmpty) return false;
+    if (activeId == messageId) return true;
+    final activeParts = activeId.split('-').where((p) => p.isNotEmpty).toSet();
+    final msgParts = messageId.split('-').where((p) => p.isNotEmpty).toSet();
+    if (activeParts.length < 2 || msgParts.length < 2) return false;
+    final shared = activeParts.intersection(msgParts);
+    // Same external party, different team member id in the thread key (bm vs trainer)
+    if (shared.isNotEmpty &&
+        activeParts.difference(msgParts).length == 1 &&
+        msgParts.difference(activeParts).length == 1) {
+      return true;
+    }
+    if (shared.contains(myUserId) && shared.length >= 2) return true;
+    return false;
+  }
+
+  void _syncActiveConversationRoom(String conversationId) {
+    final previous = activeConversationId.value;
+    if (previous == conversationId) return;
+    if (previous.isNotEmpty) {
+      _socketService.emit('conversation:leave', previous);
+    }
+    activeConversationId.value = conversationId;
+    if (conversationId.isNotEmpty) {
+      _socketService.emit('conversation:join', conversationId);
+    }
+  }
+
+  /// One inbox row per counterparty (merges trainer–client and barn–client duplicates).
+  void _dedupeConversationsByOtherUser() {
+    if (conversations.isEmpty) return;
+    final Map<String, ChatConversation> bestByOther = {};
+    for (final c in conversations) {
+      final key = c.otherUser?.id ?? c.conversationId;
+      if (key.isEmpty) continue;
+      final existing = bestByOther[key];
+      final cDate = c.date ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final exDate = existing?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
+      if (existing == null) {
+        bestByOther[key] = c;
+      } else if (cDate.isAfter(exDate)) {
+        bestByOther[key] = ChatConversation(
+          id: c.id,
+          conversationId: c.conversationId,
+          otherUser: c.otherUser,
+          lastMessage: c.lastMessage,
+          date: c.date,
+          unread: c.unread > existing.unread ? c.unread : existing.unread,
+          status: c.status,
+          senderId: c.senderId,
+          booking: c.booking ?? existing.booking,
+          pinned: c.pinned || existing.pinned,
+          label: c.label ?? existing.label,
+        );
+      } else {
+        bestByOther[key] = ChatConversation(
+          id: existing.id,
+          conversationId: existing.conversationId,
+          otherUser: existing.otherUser,
+          lastMessage: existing.lastMessage,
+          date: existing.date,
+          unread: c.unread > existing.unread ? c.unread : existing.unread,
+          status: existing.status,
+          senderId: existing.senderId,
+          booking: existing.booking ?? c.booking,
+          pinned: existing.pinned || c.pinned,
+          label: existing.label ?? c.label,
+        );
+      }
+    }
+    if (bestByOther.length == conversations.length) return;
+    final merged = bestByOther.values.toList()
+      ..sort((a, b) => (b.date ?? DateTime.now()).compareTo(a.date ?? DateTime.now()));
+    conversations.value = merged;
   }
 
   Future<List<ChatConversation>> fetchConversationsForUser(String userId) async {
@@ -328,11 +431,34 @@ class ChatController extends GetxController {
           hasMoreMessages.value = false;
         }
 
+        if (newMessages.isNotEmpty) {
+          final canonical = newMessages.first.conversationId;
+          if (canonical.isNotEmpty && canonical != convoId) {
+            _syncActiveConversationRoom(canonical);
+          }
+        }
+
         // Mark as read locally and on server
-        _socketService.emit('message:read', {'conversationId': convoId});
+        _socketService.emit('message:read', {
+          'conversationId': activeConversationId.value,
+        });
 
         _setConversationUnread(convoId, 0);
         _syncAppIconBadge();
+      } else if (response.statusCode == 403) {
+        final body = response.body;
+        final errMsg = body is Map
+            ? (body['message']?.toString() ??
+                'You do not have access to this conversation until a booking is confirmed.')
+            : 'You do not have access to this conversation until a booking is confirmed.';
+        Get.snackbar(
+          'Chat unavailable',
+          errMsg,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: AppColors.primary,
+          colorText: Colors.white,
+        );
+        if (Get.key.currentState?.canPop() ?? false) Get.back();
       }
     } catch (e) {
       _logger.e('Error fetching messages: $e');
@@ -560,7 +686,17 @@ class ChatController extends GetxController {
     _logger.d('👤 ChatController ID Check: Msg Sender: ${message.senderId} | Current User: $currentUserId | isMe: $isMe');
     _logger.d('💬 Content: ${message.content}');
 
-    if (message.conversationId == activeConversationId.value) {
+    final bool sameThread = message.conversationId == activeConversationId.value ||
+        _isSameChatThread(
+          activeConversationId.value,
+          message.conversationId,
+          currentUserId,
+        );
+
+    if (sameThread) {
+      if (activeConversationId.value != message.conversationId) {
+        _syncActiveConversationRoom(message.conversationId);
+      }
       _logger.d('✅ Message matches active conversation. Inserting into list.');
       // 1. Check if ID already exists
       bool exists = currentMessages.any((m) => m.id == message.id);
@@ -608,27 +744,17 @@ class ChatController extends GetxController {
         return;
       }
     } else if (activeConversationId.isNotEmpty) {
-      // HANDLE ID TRANSITION (e.g. from Temp/Vendor ID to Normalized User ID)
-      // We check if the incoming message's participants overlap with our current active chat.
-      final activeParts = activeConversationId.value.split('-');
-      final msgParts = message.conversationId.split('-');
-      
-      bool isSameConversation = false;
-      if (activeParts.length >= 2 && msgParts.length >= 2) {
-        // If both IDs involve the same two people (even if one ID is a profile ID and other is User ID)
-        // We check if the sender of this message is one of the people we are talking to.
-        final String me = currentUserId;
-        final String otherInActive = activeParts[0] == me ? activeParts[1] : activeParts[0];
-        
-        if (msgParts.contains(me) && msgParts.contains(message.senderId)) {
-          // If the message is from the person we are currently talking to (or ourselves)
-          isSameConversation = true;
-        }
-      }
+      final bool isSameConversation = _isSameChatThread(
+        activeConversationId.value,
+        message.conversationId,
+        currentUserId,
+      );
 
       if (isSameConversation) {
-        _logger.i('🔄 Real-time ID transition: ${activeConversationId.value} -> ${message.conversationId}');
-        activeConversationId.value = message.conversationId;
+        _logger.i(
+          '🔄 Real-time ID transition: ${activeConversationId.value} -> ${message.conversationId}',
+        );
+        _syncActiveConversationRoom(message.conversationId);
         currentMessages.insert(0, message);
         
         _socketService.emit('message:read', {
@@ -836,20 +962,18 @@ class ChatController extends GetxController {
   }
 
   void _handleSentConfirmation(String tempId, ChatMessage message) {
-    // 1. Update activeConversationId if the backend returned a normalized one (Fix #3)
-    final String currentActiveId = activeConversationId.value;
-    if (currentActiveId == tempId || 
-        currentActiveId == message.conversationId || 
-        currentActiveId.contains(message.conversationId.split('-')[0]) ||
-        currentActiveId.contains(message.conversationId.split('-')[1])) {
-      
-      if (currentActiveId != message.conversationId) {
-        _logger.i('🔄 Syncing activeConversationId to normalized ID: ${message.conversationId}');
-        activeConversationId.value = message.conversationId;
+    final me = _authController.currentUser.value?.id ?? '';
+    if (_isSameChatThread(activeConversationId.value, message.conversationId, me) ||
+        activeConversationId.value == tempId) {
+      if (activeConversationId.value != message.conversationId) {
+        _logger.i(
+          '🔄 Syncing activeConversationId to canonical ID: ${message.conversationId}',
+        );
+        _syncActiveConversationRoom(message.conversationId);
       }
     }
 
-    // 2. Remove any other instances of this real ID that might have arrived before the confirmation
+    // Remove any other instances of this real ID that might have arrived before the confirmation
     currentMessages.removeWhere((m) => m.id == message.id && m.id != tempId);
 
     // 3. Find and replace the optimistic message
@@ -922,8 +1046,7 @@ class ChatController extends GetxController {
     }
 
     // Refresh bookings to reflect new status (confirmed/rejected)
-    final BookingController bc =
-        _tryFindBookingController() ?? Get.put(BookingController());
+    final BookingController bc = lookupBookingController();
     bc.fetchBookings(type: 'received');
     bc.fetchBookings(type: 'sent');
     bc.refreshPendingBookingCounts();

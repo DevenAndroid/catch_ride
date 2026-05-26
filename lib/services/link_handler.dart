@@ -1,5 +1,9 @@
 import 'dart:async';
+
 import 'package:app_links/app_links.dart';
+import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/services/referral_service.dart';
+import 'package:catch_ride/view/create_account_view.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -8,7 +12,6 @@ class LinkHandler extends GetxService {
   StreamSubscription<Uri>? _linkSubscription;
 
   Future<LinkHandler> init() async {
-    // Check initial link if app was opened via a link
     try {
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
@@ -18,7 +21,6 @@ class LinkHandler extends GetxService {
       debugPrint('Error getting initial link: $e');
     }
 
-    // Listen for links while the app is running
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
       _handleDeepLink(uri);
     }, onError: (err) {
@@ -30,44 +32,61 @@ class LinkHandler extends GetxService {
 
   void _handleDeepLink(Uri uri) {
     debugPrint('Handling deep link: $uri');
-    
-    // Structure: https://catchrideapp.com/open?screen=...&id=...
+
+    // Invite path on any host (ngrok dev or production)
+    final isInvitePath = uri.path == '/invite' ||
+        uri.path.startsWith('/invite/') ||
+        uri.host == 'invite' ||
+        (uri.scheme == 'catchride' && uri.host == 'invite');
+
+    final referralCode = ReferralService.extractCodeFromUri(uri);
+    if (referralCode != null || isInvitePath) {
+      if (referralCode != null) {
+        ReferralService.to.saveReferralCode(referralCode);
+      }
+      _navigateToSignupIfNeeded();
+      return;
+    }
+
     final screen = uri.queryParameters['screen'];
     final id = uri.queryParameters['id'];
 
     if (screen != null) {
       switch (screen) {
+        case 'register':
+        case 'signup':
+          _navigateToSignupIfNeeded();
+          break;
         case 'application_status':
-          // Get.to(() => const ApplicationStatusView());
           debugPrint('Navigating to Application Status');
           break;
         case 'home':
-          // Get.offAllNamed('/home');
           debugPrint('Navigating to Home');
           break;
         case 'booking':
-          // Get.toNamed('/booking_details', arguments: id);
           debugPrint('Navigating to Booking ID: $id');
           break;
         case 'login':
-          // Get.offAllNamed('/login');
           debugPrint('Navigating to Login');
           break;
         case 'support':
-          // Get.toNamed('/contact_support');
           debugPrint('Navigating to Support');
           break;
         case 'view_ticket':
         case 'reply_ticket':
-          // Get.toNamed('/ticket_details', arguments: id);
           debugPrint('Navigating to Ticket ID: $id');
           break;
         default:
           debugPrint('Unknown screen in deep link: $screen');
-          // Fallback to home
-          // Get.offAllNamed('/home');
       }
     }
+  }
+
+  void _navigateToSignupIfNeeded() {
+    if (!Get.isRegistered<AuthController>()) return;
+    final auth = Get.find<AuthController>();
+    if (auth.isLoggedIn.value) return;
+    Future.microtask(() => Get.to(() => const CreateAccountView()));
   }
 
   @override

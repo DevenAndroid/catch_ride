@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../controllers/profile_controller.dart';
+import '../../../utils/referral_link_helper.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ReferNewMemberView extends StatefulWidget {
@@ -14,6 +15,22 @@ class ReferNewMemberView extends StatefulWidget {
 }
 
 class _ReferNewMemberViewState extends State<ReferNewMemberView> {
+  @override
+  void initState() {
+    super.initState();
+    final profile = Get.find<ProfileController>();
+    if ((profile.user.value?.referralCode ?? '').isEmpty) {
+      profile.fetchProfile(showLoading: false);
+    }
+  }
+
+  String? _referralCode(ProfileController profile) {
+    final code = profile.user.value?.referralCode?.trim();
+    if (code != null && code.isNotEmpty) return code.toUpperCase();
+    return null;
+  }
+
+  String _inviteLink(String code) => ReferralLinkHelper.buildPrimaryInviteLink(code);
 
   @override
   Widget build(BuildContext context) {
@@ -93,6 +110,76 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                     ),
                     const SizedBox(height: 32),
 
+                    Obx(() {
+                      final profile = Get.find<ProfileController>();
+                      final code = _referralCode(profile);
+                      if (code == null) {
+                        return const Padding(
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: CommonText(
+                            'Loading your invite code...',
+                            fontSize: 13,
+                            color: AppColors.textSecondary,
+                          ),
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const CommonText(
+                            'Your Invite Code',
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8EAF6),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CommonText(
+                                    code,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 2,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Clipboard.setData(ClipboardData(text: code));
+                                    Get.snackbar(
+                                      'Copied',
+                                      'Invite code copied',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      margin: const EdgeInsets.all(20),
+                                      backgroundColor: Colors.green,
+                                      colorText: Colors.white,
+                                    );
+                                  },
+                                  child: const CommonText(
+                                    'Copy',
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      );
+                    }),
+
                     // Share Link Card
                     Container(
                       width: double.infinity,
@@ -122,7 +209,7 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                           ),
                           const SizedBox(height: 8),
                           const CommonText(
-                            'Share this link with professionals you\'d confidently recommend to the Catch Ride network.',
+                            'Share this link in text or email — it is clickable and opens the app when installed, or guides new users to install.',
                             fontSize: 12,
                             color: AppColors.textSecondary,
                             height: 1.4,
@@ -139,75 +226,58 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
                                 color: AppColors.border.withValues(alpha: 0.8),
                               ),
                             ),
-                            child: Builder(
-                              builder: (context) {
-                                final controller = Get.find<ProfileController>();
-                                String urlToCopy = '';
-                                if (Theme.of(context).platform == TargetPlatform.iOS) {
-                                  urlToCopy = controller.appStoreUrl.value;
-                                } else {
-                                  urlToCopy = controller.playStoreUrl.value;
-                                }
+                            child: Obx(() {
+                              final profile = Get.find<ProfileController>();
+                              final code = _referralCode(profile);
+                              final inviteLink =
+                                  code != null ? _inviteLink(code) : '';
 
-                                return Row(
-                                  children: [
-                                    Expanded(
-                                      child: CommonText(
-                                        urlToCopy,
-                                        fontSize: 14,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        color: AppColors.textSecondary.withValues(alpha: 0.7),
-                                      ),
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: CommonText(
+                                      inviteLink.isNotEmpty
+                                          ? inviteLink
+                                          : 'Invite link unavailable',
+                                      fontSize: 14,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      color: AppColors.textSecondary
+                                          .withValues(alpha: 0.7),
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        final controller = Get.find<ProfileController>();
-                                        String urlToCopy = '';
-                                        if (Theme.of(context).platform == TargetPlatform.iOS) {
-                                          urlToCopy = controller.appStoreUrl.value;
-                                        } else {
-                                          urlToCopy = controller.playStoreUrl.value;
-                                        }
-
-                                        if (urlToCopy.isNotEmpty) {
-                                          Clipboard.setData(ClipboardData(text: urlToCopy)).then((_) {
+                                  ),
+                                  TextButton(
+                                    onPressed: code == null
+                                        ? null
+                                        : () {
+                                            Clipboard.setData(
+                                              ClipboardData(text: inviteLink),
+                                            );
                                             Get.snackbar(
                                               'Success',
-                                              'Link copied to clipboard',
+                                              'Invite link copied',
                                               snackPosition: SnackPosition.BOTTOM,
                                               margin: const EdgeInsets.all(20),
                                               backgroundColor: Colors.green,
                                               colorText: Colors.white,
                                             );
-                                          });
-                                        } else {
-                                           Get.snackbar(
-                                              'Error',
-                                              'App link not configured',
-                                              snackPosition: SnackPosition.BOTTOM,
-                                              margin: const EdgeInsets.all(20),
-                                              backgroundColor: Colors.red,
-                                              colorText: Colors.white,
-                                            );
-                                        }
-                                      },
-                                      style: TextButton.styleFrom(
-                                        padding: EdgeInsets.zero,
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: const CommonText(
-                                        'Copy Link',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
+                                          },
+                                    style: TextButton.styleFrom(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: Size.zero,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
                                     ),
-                                  ],
-                                );
-                              }
-                            ),
+                                    child: const CommonText(
+                                      'Copy Link',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }),
                           ),
                         ],
                       ),
@@ -294,29 +364,28 @@ class _ReferNewMemberViewState extends State<ReferNewMemberView> {
       decoration: const BoxDecoration(color: Colors.white),
       child: GestureDetector(
         onTap: () {
-          final controller = Get.find<ProfileController>();
-          String urlToShare = '';
-          if (Theme.of(context).platform == TargetPlatform.iOS) {
-            urlToShare = controller.appStoreUrl.value;
-          } else {
-            urlToShare = controller.playStoreUrl.value;
+          final profile = Get.find<ProfileController>();
+          final code = _referralCode(profile);
+          if (code == null) {
+            Get.snackbar(
+              'Please wait',
+              'Your invite code is still loading',
+              snackPosition: SnackPosition.BOTTOM,
+              margin: const EdgeInsets.all(20),
+              backgroundColor: Colors.orange,
+              colorText: Colors.white,
+            );
+            return;
           }
 
-          if (urlToShare.isNotEmpty) {
-            Share.share(
-              'Join me on Catch Ride! The premier network for equestrian professionals. Download here: $urlToShare',
-              subject: 'Join Catch Ride',
-            );
-          } else {
-             Get.snackbar(
-                'Error',
-                'App link not configured for sharing',
-                snackPosition: SnackPosition.BOTTOM,
-                margin: const EdgeInsets.all(20),
-                backgroundColor: Colors.red,
-                colorText: Colors.white,
-              );
-          }
+          Share.share(
+            ReferralLinkHelper.buildShareMessage(
+              referralCode: code,
+              playStoreUrl: profile.playStoreUrl.value,
+              appStoreUrl: profile.appStoreUrl.value,
+            ),
+            subject: 'Join Catch Ride',
+          );
         },
         child: Container(
           height: 56,

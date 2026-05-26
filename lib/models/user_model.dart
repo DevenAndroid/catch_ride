@@ -53,6 +53,7 @@ final String? avatar;
   final List<String> highlights;
   final VendorCompliance? compliance;
   final DateTime? createdAt;
+  final String? referralCode;
 
   UserModel({
     this.id,
@@ -97,6 +98,7 @@ final String? avatar;
     this.highlights = const [],
     this.compliance,
     this.createdAt,
+    this.referralCode,
   });
 
   String get fullName => '$firstName $lastName'.trim();
@@ -348,6 +350,7 @@ final String? avatar;
           ? VendorCompliance.fromJson(json['compliance'] ?? proData!['compliance'])
           : null,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      referralCode: _nonEmptyStr(json['referralCode']),
     );
   }
 

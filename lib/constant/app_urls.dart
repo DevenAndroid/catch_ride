@@ -32,6 +32,23 @@ class AppUrls {
             ? devTunnelOrigin.substring(0, devTunnelOrigin.length - 1)
             : devTunnelOrigin;
     return '$origin/api';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
 
   static String get socketUrl {
@@ -39,7 +56,16 @@ class AppUrls {
     return devTunnelOrigin;
   }
 
+  /// Public origin for invite links (`/invite?ref=…`). Matches API host in dev (ngrok).
+  static String get publicWebOrigin {
+    if (isLive) return 'https://catchrideapp.com';
+    final String origin = devTunnelOrigin.endsWith('/')
+        ? devTunnelOrigin.substring(0, devTunnelOrigin.length - 1)
+        : devTunnelOrigin;
+    return origin;
+  }
 
+  static String get inviteWebUrl => '$publicWebOrigin/invite';
 
   // Auth
   static const String login = '/auth/login';
