@@ -1,14 +1,9 @@
-import 'dart:io';
-
-import 'package:play_install_referrer/play_install_referrer.dart';
-import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
-/// Persists a pending referrer code from invite links / install referrer until signup completes.
+/// Persists a pending referrer code from invite links / app links until signup completes.
 class ReferralService extends GetxService {
   static const String storageKey = 'pending_referral_code';
-  static const String installReferrerCheckedKey = 'install_referrer_checked';
 
   final _box = GetStorage();
   final RxString pendingCode = ''.obs;
@@ -22,7 +17,6 @@ class ReferralService extends GetxService {
 
   Future<ReferralService> init() async {
     pendingCode.value = _readStored();
-    await _tryReadAndroidInstallReferrer();
     return this;
   }
 
@@ -74,37 +68,5 @@ class ReferralService extends GetxService {
     return null;
   }
 
-  /// Parses Play Install Referrer payload (`ref=CODE` or `referralCode=CODE`).
-  static String? extractCodeFromInstallReferrer(String? referrer) {
-    if (referrer == null || referrer.trim().isEmpty) return null;
-    final decoded = Uri.decodeComponent(referrer.trim());
-    for (final part in decoded.split('&')) {
-      final kv = part.split('=');
-      if (kv.length != 2) continue;
-      final key = kv[0].trim().toLowerCase();
-      if (key == 'ref' || key == 'referralcode' || key == 'referalcode') {
-        return normalizeReferralCode(kv[1]);
-      }
-    }
-    return normalizeReferralCode(decoded);
-  }
-
   String _readStored() => (_box.read<String>(storageKey) ?? '').trim().toUpperCase();
-
-  Future<void> _tryReadAndroidInstallReferrer() async {
-    if (kIsWeb || !Platform.isAndroid) return;
-    if (_box.read<bool>(installReferrerCheckedKey) == true) return;
-
-    try {
-      final details = await PlayInstallReferrer.installReferrer;
-      final code = extractCodeFromInstallReferrer(details.installReferrer);
-      if (code != null && pendingCode.value.isEmpty) {
-        saveReferralCode(code);
-      }
-    } catch (e) {
-      debugPrint('Install referrer read failed: $e');
-    } finally {
-      _box.write(installReferrerCheckedKey, true);
-    }
-  }
 }
