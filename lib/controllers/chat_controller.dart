@@ -248,7 +248,7 @@ class ChatController extends GetxController {
 
     // 5. Barn manager: pending received booking count (no chat access yet)
     _socketService.socket.on('bookings:pending-count:refresh', (_) {
-      _syncPendingBookingBadgeNow();
+      _schedulePendingBookingBadgeSync();
     });
 
     // 6. Refresh conversations list (Sync inbox for new user session)
@@ -329,8 +329,36 @@ class ChatController extends GetxController {
       final existing = bestByOther[key];
       final cDate = c.date ?? DateTime.fromMillisecondsSinceEpoch(0);
       final exDate = existing?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
-      if (existing == null || cDate.isAfter(exDate)) {
+      if (existing == null) {
         bestByOther[key] = c;
+      } else if (cDate.isAfter(exDate)) {
+        bestByOther[key] = ChatConversation(
+          id: c.id,
+          conversationId: c.conversationId,
+          otherUser: c.otherUser,
+          lastMessage: c.lastMessage,
+          date: c.date,
+          unread: c.unread > existing.unread ? c.unread : existing.unread,
+          status: c.status,
+          senderId: c.senderId,
+          booking: c.booking ?? existing.booking,
+          pinned: c.pinned || existing.pinned,
+          label: c.label ?? existing.label,
+        );
+      } else {
+        bestByOther[key] = ChatConversation(
+          id: existing.id,
+          conversationId: existing.conversationId,
+          otherUser: existing.otherUser,
+          lastMessage: existing.lastMessage,
+          date: existing.date,
+          unread: c.unread > existing.unread ? c.unread : existing.unread,
+          status: existing.status,
+          senderId: existing.senderId,
+          booking: existing.booking ?? c.booking,
+          pinned: existing.pinned || c.pinned,
+          label: existing.label ?? c.label,
+        );
       }
     }
     if (bestByOther.length == conversations.length) return;
