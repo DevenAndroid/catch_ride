@@ -667,6 +667,9 @@ class _EditBookingFormVendorState extends State<EditBookingFormVendor> {
                     surface: Colors.white,
                     onSurface: AppColors.textPrimary,
                   ),
+                  datePickerTheme: DatePickerThemeData(
+                    rangeSelectionBackgroundColor: AppColors.primary.withOpacity(0.15),
+                  ),
                 ),
                 child: child!,
               ),
@@ -744,6 +747,9 @@ class _EditBookingFormVendorState extends State<EditBookingFormVendor> {
                     onPrimary: Colors.white,
                     surface: Colors.white,
                     onSurface: AppColors.textPrimary,
+                  ),
+                  datePickerTheme: DatePickerThemeData(
+                    rangeSelectionBackgroundColor: AppColors.primary.withOpacity(0.15),
                   ),
                 ),
                 child: child!,

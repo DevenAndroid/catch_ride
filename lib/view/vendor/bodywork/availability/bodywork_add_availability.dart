@@ -88,6 +88,9 @@ class _BodyworkAddAvailabilityViewState
               onPrimary: Colors.white,
               onSurface: AppColors.textPrimary,
             ),
+            datePickerTheme: DatePickerThemeData(
+              rangeSelectionBackgroundColor: AppColors.primaryDark.withOpacity(0.15),
+            ),
           ),
           child: child!,
         );
