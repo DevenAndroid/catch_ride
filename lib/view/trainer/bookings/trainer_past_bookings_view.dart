@@ -82,8 +82,9 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
             fontFamily: 'Outfit',
           ),
           tabs: const [
-            Tab(text: 'Services'),
             Tab(text: 'Trials'),
+         //   Tab(text: 'Services'),
+
           ],
         ),
       ),
@@ -100,7 +101,9 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           uniqueMap[b.id ?? ''] = b;
         }
         
-        final List<BookingModel> combinedBookings = uniqueMap.values.toList();
+        final List<BookingModel> combinedBookings = uniqueMap.values
+            .where((b) => b.status.toLowerCase() == 'completed')
+            .toList();
 
         // Sort by date (descending)
         combinedBookings.sort((a, b) => b.date.compareTo(a.date));
@@ -111,8 +114,9 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
         return TabBarView(
           controller: _tabController,
           children: [
-            _buildBookingList(services),
             _buildBookingList(trials),
+          //  _buildBookingList(services),
+
           ],
         );
       }),

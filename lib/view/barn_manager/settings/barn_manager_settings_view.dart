@@ -10,6 +10,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/profile_controller.dart';
+import '../../trainer/bookings/trainer_past_bookings_view.dart';
 import '../../trainer/settings/account_settings_view.dart';
 import '../../trainer/settings/feedback_view.dart';
 import '../../trainer/settings/get_help_view.dart';
@@ -114,7 +115,8 @@ class BarnManagerSettingsView extends StatelessWidget {
               _buildSettingsTile(
                 icon: Icons.history,
                 title: 'Past Services and Trials',
-                onTap: () => Get.to(() => const PastServicesView()),
+            //    onTap: () => Get.to(() => const PastServicesView()),
+                onTap: () => Get.to(() => const TrainerPastBookingsView()),
                 showDivider: false,
               ),
             ]),
@@ -187,15 +189,14 @@ class BarnManagerSettingsView extends StatelessWidget {
         children: [
           CommonImageView(
             url: controller.avatar.isNotEmpty
-                ? controller.avatar
-                : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80',
+                ? controller.avatar:"",
             height: 85,
             width: 85,
             shape: BoxShape.circle,
           ),
           const SizedBox(height: 16),
           CommonText(
-            controller.fullName.isNotEmpty ? controller.fullName : 'Arya Stark',
+            controller.fullName.isNotEmpty ? controller.fullName : '',
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: const Color(0xFF101828),
@@ -273,7 +274,7 @@ class BarnManagerSettingsView extends StatelessWidget {
                   ),
                   SizedBox(height: 2),
                   CommonText(
-                    'Edit availability for yours trainer\'s current string.',
+                    'Edit availability for yours trainer\'s current listing.',
                     fontSize: 13,
                     color: Color(0xFF667085),
                     fontWeight: FontWeight.w400,
