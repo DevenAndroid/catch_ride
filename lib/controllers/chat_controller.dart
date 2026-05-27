@@ -810,7 +810,10 @@ class ChatController extends GetxController {
 
     // --- REAL-TIME INBOX UPDATE (In-place) ---
     final index = conversations.indexWhere(
-      (c) => c.conversationId == message.conversationId,
+      (c) =>
+          c.conversationId == message.conversationId ||
+          _isSameChatThread(
+              c.conversationId, message.conversationId, currentUserId),
     );
 
     if (index != -1) {
@@ -861,8 +864,8 @@ class ChatController extends GetxController {
     bool prefetchMessages = true,
   }) async {
     if (prefetchMessages && conversationId.isNotEmpty) {
-      await fetchMessages(conversationId);
-      await fetchConversations(quiet: true);
+      fetchMessages(conversationId);
+      fetchConversations(quiet: true);
     }
 
     if (_usesBarnManagerChat) {
@@ -994,8 +997,15 @@ class ChatController extends GetxController {
     final String status = data['status'];
     final String? generalId = data['generalConversationId'] ?? data['normalizedId'];
 
+    final currentUserId = _authController.currentUser.value?.id ??
+        Get.put(ProfileController()).user.value?.id ??
+        '';
+
     // Update conversation list item in-place
-    final convoIndex = conversations.indexWhere((c) => c.conversationId == conversationId);
+    final convoIndex = conversations.indexWhere((c) =>
+        c.conversationId == conversationId ||
+        _isSameChatThread(c.conversationId, conversationId, currentUserId));
+        
     if (convoIndex != -1) {
       final updated = ChatConversation(
         id: conversations[convoIndex].id,
@@ -1018,7 +1028,17 @@ class ChatController extends GetxController {
       fetchConversations(quiet: true);
     }
 
-    if (conversationId == activeConversationId.value) {
+    final bool sameThread = conversationId == activeConversationId.value ||
+        _isSameChatThread(
+          activeConversationId.value,
+          conversationId,
+          currentUserId,
+        );
+
+    if (sameThread) {
+      if (activeConversationId.value != conversationId) {
+        _syncActiveConversationRoom(conversationId);
+      }
       if (generalId != null) {
         activeConversationId.value = generalId;
       }

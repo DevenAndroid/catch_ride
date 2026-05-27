@@ -26,7 +26,7 @@ class NotificationService extends GetxService {
     // 1. Request Permission
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
-      badge: false,
+      badge: true,
       sound: true,
     );
 
@@ -34,7 +34,7 @@ class NotificationService extends GetxService {
     if (!kIsWeb && Platform.isIOS) {
       await _fcm.setForegroundNotificationPresentationOptions(
         alert: true,  // Use native system banner for iOS
-        badge: false, // Ensure no badge is shown
+        badge: true, // Allow badge updates
         sound: true,
       );
     }
@@ -51,7 +51,7 @@ class NotificationService extends GetxService {
     
     final DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
       requestAlertPermission: true,
-      requestBadgePermission: false,
+      requestBadgePermission: true,
       requestSoundPermission: true,
     );
 
@@ -191,7 +191,7 @@ class NotificationService extends GetxService {
           ),
           iOS: const DarwinNotificationDetails(
             presentAlert: true,
-            presentBadge: false,
+            presentBadge: true,
             presentSound: true,
           ),
         ),
