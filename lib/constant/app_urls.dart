@@ -12,7 +12,7 @@ class AppUrls {
   );
 
   /// Production vs dev/ngrok — **false** uses [devTunnelOrigin] for API + sockets.
-  static bool isLive = false;
+  static bool isLive = true;
 
   /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
   static String get host {

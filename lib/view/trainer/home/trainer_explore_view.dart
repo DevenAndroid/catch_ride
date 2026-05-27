@@ -38,7 +38,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
       'icon': 'assets/icons/equitation.svg',
       'isSvg': true,
     },
-    {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
+  //  {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
   Worker? _horsesWorker;
