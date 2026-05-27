@@ -197,7 +197,7 @@ class _SingleChatViewState extends State<SingleChatView> {
               child: Column(
                 children: [
                 // Offline Banner
-                Obx(() {
+/*                Obx(() {
                   final isConnected =
                       Get.find<SocketService>().isConnected.value;
                   if (isConnected) return const SizedBox.shrink();
@@ -223,7 +223,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                       ],
                     ),
                   );
-                }),
+                }),*/
 
                 // Banner for Declined/Blocked status
                 Obx(() {
