@@ -394,53 +394,57 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
   void _showAddCustomServiceSheet() {
     final nameController = TextEditingController();
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CommonTextField(
-                controller: nameController,
-                hintText: 'e.g. Cupping, Kinesiology taping',
-                label: 'Service name',
-              ),
-              const SizedBox(height: 24),
-              CommonButton(
-                text: 'Add',
-                onPressed: () {
-                  final raw = nameController.text.trim();
-                  if (raw.isEmpty) {
-                    Get.snackbar(
-                      'Missing Info',
-                      'Please enter a service name',
-                      backgroundColor: AppColors.accentRed,
-                      colorText: Colors.white,
-                    );
-                    return;
-                  }
-                  final k = _canonServiceKey(raw);
-                  final exists = services.any((s) => _canonServiceKey(s['name']?.toString()) == k);
-                  if (exists) {
-                    Get.snackbar(
-                      'Duplicate',
-                      'That service is already in your list',
-                      backgroundColor: AppColors.accentRed,
-                      colorText: Colors.white,
-                    );
-                    return;
-                  }
-                  services.add(_defaultRow(raw));
-                  services.refresh();
-                  Get.back();
-                },
-              ),
-            ],
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CommonTextField(
+                  controller: nameController,
+                  hintText: 'e.g. Cupping, Kinesiology taping',
+                  label: 'Service name',
+                ),
+                const SizedBox(height: 24),
+                CommonButton(
+                  text: 'Add',
+                  onPressed: () {
+                    final raw = nameController.text.trim();
+                    if (raw.isEmpty) {
+                      Get.snackbar(
+                        'Missing Info',
+                        'Please enter a service name',
+                        backgroundColor: AppColors.accentRed,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+                    final k = _canonServiceKey(raw);
+                    final exists = services.any((s) => _canonServiceKey(s['name']?.toString()) == k);
+                    if (exists) {
+                      Get.snackbar(
+                        'Duplicate',
+                        'That service is already in your list',
+                        backgroundColor: AppColors.accentRed,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+                    services.add(_defaultRow(raw));
+                    services.refresh();
+                    Get.back();
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -623,169 +627,173 @@ class _BodyworkServiceRatesTabState extends State<BodyworkServiceRatesTab> with 
     );
 
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+      GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              CommonText(service['name']?.toString() ?? '', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
-              const SizedBox(height: 24),
-              const CommonText('Session Length & Price', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 16),
-              ..._sessionKeys.map((mins) {
-                final hasValue = _meaningfulBodyworkRate(editingRates[mins]);
-                final isChecked = hasValue.obs;
-                final textController = TextEditingController(
-                  text: hasValue ? editingRates[mins]?.toString() ?? '' : '',
-                );
+                const SizedBox(height: 24),
+                CommonText(service['name']?.toString() ?? '', fontSize: AppTextSizes.size20, fontWeight: FontWeight.bold),
+                const SizedBox(height: 24),
+                const CommonText('Session Length & Price', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 16),
+                ..._sessionKeys.map((mins) {
+                  final hasValue = _meaningfulBodyworkRate(editingRates[mins]);
+                  final isChecked = hasValue.obs;
+                  final textController = TextEditingController(
+                    text: hasValue ? editingRates[mins]?.toString() ?? '' : '',
+                  );
 
-                return Column(
-                  children: [
-                    Obx(
-                      () => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF9FAFB),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: isChecked.value ? AppColors.primary : Colors.transparent),
-                        ),
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    if (isChecked.value) {
-                                      editingRates[mins] = '';
-                                      textController.clear();
-                                    }
-                                    isChecked.value = !isChecked.value;
-                                  },
-                                  child: Icon(
-                                    isChecked.value ? Icons.check_box : Icons.check_box_outline_blank,
-                                    color: isChecked.value ? AppColors.primary : Colors.grey,
+                  return Column(
+                    children: [
+                      Obx(
+                        () => Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: isChecked.value ? AppColors.primary : Colors.transparent),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (isChecked.value) {
+                                        editingRates[mins] = '';
+                                        textController.clear();
+                                      }
+                                      isChecked.value = !isChecked.value;
+                                    },
+                                    child: Icon(
+                                      isChecked.value ? Icons.check_box : Icons.check_box_outline_blank,
+                                      color: isChecked.value ? AppColors.primary : Colors.grey,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                CommonText('$mins minutes', fontSize: 14, fontWeight: FontWeight.w500),
-                              ],
-                            ),
-                            if (isChecked.value) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.borderLight),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const CommonText('\$', fontSize: 14, color: AppColors.textSecondary),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: textController,
-                                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                        inputFormatters: [PriceInputFormatter()],
-                                        onChanged: (val) => editingRates[mins] = val,
-                                        decoration: const InputDecoration(
-                                          hintText: 'Enter price',
-                                          border: InputBorder.none,
-                                          hintStyle: TextStyle(fontSize: 14),
+                                  const SizedBox(width: 12),
+                                  CommonText('$mins minutes', fontSize: 14, fontWeight: FontWeight.w500),
+                                ],
+                              ),
+                              if (isChecked.value) ...[
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppColors.borderLight),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const CommonText('\$', fontSize: 14, color: AppColors.textSecondary),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: TextField(
+                                          controller: textController,
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          inputFormatters: [PriceInputFormatter()],
+                                          onChanged: (val) => editingRates[mins] = val,
+                                          decoration: const InputDecoration(
+                                            hintText: 'Enter price',
+                                            border: InputBorder.none,
+                                            hintStyle: TextStyle(fontSize: 14),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
+                      ),
+                    ],
+                  );
+                }),
+                const SizedBox(height: 16),
+                const CommonText('Note', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 8),
+                CommonTextField(label: '', hintText: 'Write here...', controller: editingNote, maxLines: 3),
+                const SizedBox(height: 16),
+                const CommonText('Trainer Presence', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 8),
+                Obx(
+                  () => _buildDropdown(
+                    value: trainerPresence.value,
+                    hint: 'Select Trainer Preference',
+                    options: _trainerPresenceOptions,
+                    onChanged: (val) => trainerPresence.value = val,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const CommonText('Vet approval', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                const SizedBox(height: 8),
+                Obx(
+                  () => _buildDropdown(
+                    value: vetApproval.value,
+                    hint: 'Select Vet Preference',
+                    options: _vetApprovalOptions,
+                    onChanged: (val) => vetApproval.value = val,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CommonButton(
+                        text: 'Cancel',
+                        onPressed: () => Get.back(),
+                        backgroundColor: Colors.white,
+                        textColor: AppColors.textPrimary,
+                        borderColor: AppColors.borderLight,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: CommonButton(
+                        text: 'Save',
+                        onPressed: () {
+                          service['rates'] = _sanitizeBodyworkRatesMap(editingRates);
+                          service['note'] = editingNote.text;
+                          service['trainerPresence'] = _coerceBodyworkDropdownValue(
+                            trainerPresence.value,
+                            _trainerPresenceOptions,
+                          );
+                          service['vetApproval'] = _coerceBodyworkDropdownValue(
+                            vetApproval.value,
+                            _vetApprovalOptions,
+                          );
+                          service['isSelected'] = true;
+                          services.refresh();
+                          Get.back();
+                        },
+                        backgroundColor: AppColors.primary,
                       ),
                     ),
                   ],
-                );
-              }),
-              const SizedBox(height: 16),
-              const CommonText('Note', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              CommonTextField(label: '', hintText: 'Write here...', controller: editingNote, maxLines: 3),
-              const SizedBox(height: 16),
-              const CommonText('Trainer Presence', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              Obx(
-                () => _buildDropdown(
-                  value: trainerPresence.value,
-                  hint: 'Select Trainer Preference',
-                  options: _trainerPresenceOptions,
-                  onChanged: (val) => trainerPresence.value = val,
                 ),
-              ),
-              const SizedBox(height: 16),
-              const CommonText('Vet approval', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
-              const SizedBox(height: 8),
-              Obx(
-                () => _buildDropdown(
-                  value: vetApproval.value,
-                  hint: 'Select Vet Preference',
-                  options: _vetApprovalOptions,
-                  onChanged: (val) => vetApproval.value = val,
-                ),
-              ),
-              const SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: CommonButton(
-                      text: 'Cancel',
-                      onPressed: () => Get.back(),
-                      backgroundColor: Colors.white,
-                      textColor: AppColors.textPrimary,
-                      borderColor: AppColors.borderLight,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CommonButton(
-                      text: 'Save',
-                      onPressed: () {
-                        service['rates'] = _sanitizeBodyworkRatesMap(editingRates);
-                        service['note'] = editingNote.text;
-                        service['trainerPresence'] = _coerceBodyworkDropdownValue(
-                          trainerPresence.value,
-                          _trainerPresenceOptions,
-                        );
-                        service['vetApproval'] = _coerceBodyworkDropdownValue(
-                          vetApproval.value,
-                          _vetApprovalOptions,
-                        );
-                        service['isSelected'] = true;
-                        services.refresh();
-                        Get.back();
-                      },
-                      backgroundColor: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
