@@ -90,11 +90,10 @@ class ApiService extends GetConnect implements GetxService {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
 
-    print("token:::::::::::${token}");
+    debugPrint("token:::::::::::$token");
 
     if (token == null || token.isEmpty) {
       debugPrint('Request to $path blocked: No auth token');
-      await _triggerAutoLogout();
       return false;
     }
     return true;
@@ -102,14 +101,19 @@ class ApiService extends GetConnect implements GetxService {
 
   Future<void> _triggerAutoLogout() async {
     try {
+      // Avoid contextless navigation before GetMaterialApp is mounted.
+      final canNavigate = Get.key.currentState != null;
       if (Get.isRegistered<AuthController>()) {
+        if (!canNavigate) return;
         await Get.find<AuthController>().logout(sessionExpired: true);
       } else {
         // Fallback: Clear everything manually if controller is missing
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.clear();
         clearToken();
-        Get.offAll(() => const LoginView());
+        if (canNavigate) {
+          Get.offAll(() => const LoginView());
+        }
       }
     } catch (e) {
       debugPrint('Failed to trigger auto-logout: $e');

@@ -21,8 +21,23 @@ import '../../trainer/settings/profile_information_view.dart';
 import '../../trainer/settings/terms_and_conditions_view.dart';
 import '../list/barn_manager_horse_listing_view.dart';
 
-class BarnManagerSettingsView extends StatelessWidget {
+class BarnManagerSettingsView extends StatefulWidget {
   const BarnManagerSettingsView({super.key});
+
+  @override
+  State<BarnManagerSettingsView> createState() => _BarnManagerSettingsViewState();
+}
+
+class _BarnManagerSettingsViewState extends State<BarnManagerSettingsView> {
+  final ProfileController _controller = Get.find<ProfileController>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.fetchProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

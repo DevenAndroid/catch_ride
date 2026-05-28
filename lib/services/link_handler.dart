@@ -15,14 +15,20 @@ class LinkHandler extends GetxService {
     try {
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
-        _handleDeepLink(initialUri);
+        debugPrint('Initial deep link received: $initialUri');
+        Future.delayed(const Duration(milliseconds: 600), () {
+          handleDeepLink(initialUri);
+        });
+      } else {
+        debugPrint('No initial deep link found at launch');
       }
     } catch (e) {
       debugPrint('Error getting initial link: $e');
     }
 
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
-      _handleDeepLink(uri);
+      debugPrint('Deep link stream event: $uri');
+      handleDeepLink(uri);
     }, onError: (err) {
       debugPrint('Error listening to links: $err');
     });
@@ -30,7 +36,7 @@ class LinkHandler extends GetxService {
     return this;
   }
 
-  void _handleDeepLink(Uri uri) {
+  void handleDeepLink(Uri uri) {
     debugPrint('Handling deep link: $uri');
 
     // Invite path on any host (ngrok dev or production)
@@ -43,6 +49,9 @@ class LinkHandler extends GetxService {
     if (referralCode != null || isInvitePath) {
       if (referralCode != null) {
         ReferralService.to.saveReferralCode(referralCode);
+        debugPrint('Referral found from deep link: $referralCode');
+      } else {
+        debugPrint('Invite deep link received without referral code');
       }
       _navigateToSignupIfNeeded();
       return;
@@ -83,10 +92,13 @@ class LinkHandler extends GetxService {
   }
 
   void _navigateToSignupIfNeeded() {
-    if (!Get.isRegistered<AuthController>()) return;
+    if (!Get.isRegistered<AuthController>()) {
+      debugPrint('AuthController not registered yet; skipping signup redirect.');
+      return;
+    }
     final auth = Get.find<AuthController>();
     if (auth.isLoggedIn.value) return;
-    Future.microtask(() => Get.to(() => const CreateAccountView()));
+    Future.microtask(() => Get.offAll(() => const CreateAccountView()));
   }
 
   @override

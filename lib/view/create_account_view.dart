@@ -175,20 +175,11 @@ class _CreateAccountViewState extends State<CreateAccountView> {
                       ),
 
                       SizedBox(height: size * 0.017),
-                      Obx(() {
-                        final pending = ReferralService.to.pendingCode.value;
-                        if (pending.isNotEmpty &&
-                            _authController.referralCodeController.text
-                                .trim()
-                                .isEmpty) {
-                          _authController.referralCodeController.text = pending;
-                        }
-                        return CommonTextField(
-                          controller: _authController.referralCodeController,
-                          label: 'Invite code (optional)',
-                          hintText: 'Enter invite code',
-                        );
-                      }),
+                      CommonTextField(
+                        controller: _authController.referralCodeController,
+                        label: 'Invite code (optional)',
+                        hintText: 'Enter invite code',
+                      ),
                       SizedBox(height: size * 0.022),
                       Obx(
                         () => CommonButton(
