@@ -94,7 +94,7 @@ class DateUtil {
     if (dateTime != null) {
       // For full date-time, we might want to keep local/UTC context if it's a real timestamp
       // but for our calendar dates, we treat them as fixed.
-      return DateFormat('MMMM d, yyyy, hh:mm a').format(dateTime);
+      return DateFormat('MMMM d, yyyy, hh:mm a').format(dateTime.toLocal());
     }
     return date.toString();
   }

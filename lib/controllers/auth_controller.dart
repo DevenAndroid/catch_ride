@@ -75,6 +75,13 @@ class AuthController extends GetxController {
     }
     loadUserFromStorage();
     syncReferralCodeFromStorage();
+
+    // Ensure text field updates reactively if link is clicked while app is running
+    ever(ReferralService.to.pendingCode, (String code) {
+      if (code.isNotEmpty && referralCodeController.text.trim().isEmpty) {
+        referralCodeController.text = code;
+      }
+    });
   }
 
   void syncReferralCodeFromStorage() {
@@ -182,6 +189,12 @@ class AuthController extends GetxController {
 
       if (token == null || token.isEmpty) {
         await ensureMinTime();
+        final bool hasPendingReferral =
+            (ReferralService.to.pendingReferralCode ?? '').isNotEmpty;
+        if (hasPendingReferral) {
+          Get.offAll(() => const CreateAccountView());
+          return;
+        }
         if (isFirstLaunch) {
           box.write('isFirstLaunch', false);
           Get.offAll(() => const CreateAccountView());
