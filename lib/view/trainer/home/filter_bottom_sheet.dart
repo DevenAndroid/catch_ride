@@ -312,71 +312,71 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     }).toList(),
                   ),
                   const SizedBox(height: 24),
-                  const CommonText(
-                    'Available By Date',
-                    fontSize: 13,
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () async {
-                      final DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: selectedAvailableBy ?? DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          selectedAvailableBy = picked;
-                        });
-                      }
-                    },
-                    child: Container(
-                      height: 48,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.border),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 18,
-                            color: AppColors.textSecondary,
-                          ),
-                          const SizedBox(width: 12),
-                          CommonText(
-                            selectedAvailableBy == null
-                                ? 'Select Date'
-                                : DateFormat(
-                                    'MMM dd, yyyy',
-                                  ).format(selectedAvailableBy!),
-                            color: selectedAvailableBy == null
-                                ? AppColors.textSecondary
-                                : AppColors.textPrimary,
-                          ),
-                          const Spacer(),
-                          if (selectedAvailableBy != null)
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedAvailableBy = null;
-                                });
-                              },
-                              child: const Icon(
-                                Icons.close,
-                                size: 18,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+                  // const CommonText(
+                  //   'Available By Date',
+                  //   fontSize: 13,
+                  //   color: AppColors.textPrimary,
+                  //   fontWeight: FontWeight.bold,
+                  // ),
+                  // const SizedBox(height: 12),
+                  // GestureDetector(
+                  //   onTap: () async {
+                  //     final DateTime? picked = await showDatePicker(
+                  //       context: context,
+                  //       initialDate: selectedAvailableBy ?? DateTime.now(),
+                  //       firstDate: DateTime(2000),
+                  //       lastDate: DateTime(2101),
+                  //     );
+                  //     if (picked != null) {
+                  //       setState(() {
+                  //         selectedAvailableBy = picked;
+                  //       });
+                  //     }
+                  //   },
+                  //   child: Container(
+                  //     height: 48,
+                  //     padding: const EdgeInsets.symmetric(horizontal: 16),
+                  //     decoration: BoxDecoration(
+                  //       border: Border.all(color: AppColors.border),
+                  //       borderRadius: BorderRadius.circular(12),
+                  //     ),
+                  //     child: Row(
+                  //       children: [
+                  //         Icon(
+                  //           Icons.calendar_today_outlined,
+                  //           size: 18,
+                  //           color: AppColors.textSecondary,
+                  //         ),
+                  //         const SizedBox(width: 12),
+                  //         CommonText(
+                  //           selectedAvailableBy == null
+                  //               ? 'Select Date'
+                  //               : DateFormat(
+                  //                   'MMM dd, yyyy',
+                  //                 ).format(selectedAvailableBy!),
+                  //           color: selectedAvailableBy == null
+                  //               ? AppColors.textSecondary
+                  //               : AppColors.textPrimary,
+                  //         ),
+                  //         const Spacer(),
+                  //         if (selectedAvailableBy != null)
+                  //           GestureDetector(
+                  //             onTap: () {
+                  //               setState(() {
+                  //                 selectedAvailableBy = null;
+                  //               });
+                  //             },
+                  //             child: const Icon(
+                  //               Icons.close,
+                  //               size: 18,
+                  //               color: AppColors.textSecondary,
+                  //             ),
+                  //           ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 16),
                   _buildTextFieldRow(
                     'Min Price',
                     'Max Price',

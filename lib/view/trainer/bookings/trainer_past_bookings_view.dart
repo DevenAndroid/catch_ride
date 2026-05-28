@@ -83,7 +83,7 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           ),
           tabs: const [
             Tab(text: 'Trials'),
-         //   Tab(text: 'Services'),
+          Tab(text: 'Services'),
 
           ],
         ),
@@ -115,8 +115,8 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           controller: _tabController,
           children: [
             _buildBookingList(trials),
-          //  _buildBookingList(services),
-
+            //_buildBookingList(services),
+            _buildComingSoon(),
           ],
         );
       }),
@@ -458,5 +458,44 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
       default:
         return const Color(0xFF344054); // Dark Grey
     }
+  }
+
+  Widget _buildComingSoon() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: const BoxDecoration(
+              color: Color(0xFFEFF4FF),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.home_repair_service_outlined,
+              size: 48,
+              color: Color(0xFF00083B),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const CommonText(
+            'Coming Soon',
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF101828),
+          ),
+          const SizedBox(height: 8),
+          // const Padding(
+          //   padding: EdgeInsets.symmetric(horizontal: 40),
+          //   child: CommonText(
+          //     'Past service records will be available here soon. Stay tuned!',
+          //     fontSize: 14,
+          //     color: Color(0xFF667085),
+          //     textAlign: TextAlign.center,
+          //   ),
+          // ),
+        ],
+      ),
+    );
   }
 }

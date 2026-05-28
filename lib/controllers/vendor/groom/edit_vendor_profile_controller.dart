@@ -543,21 +543,29 @@ class EditVendorProfileController extends GetxController {
       }
 
       if (vendorRootData.isNotEmpty) {
-        final merged = mergedVendorServiceDisplayData(
-          Map<String, dynamic>.from(vendorRootData),
-          'Farrier',
-        );
-        final appData = merged['applicationData'] is Map
-            ? Map<String, dynamic>.from(merged['applicationData'] as Map)
-            : <String, dynamic>{};
-        final pd = merged['profileData'] is Map
-            ? Map<String, dynamic>.from(merged['profileData'] as Map)
-            : <String, dynamic>{};
-        _hydrateFarrierFields(
-          merged: merged,
-          profileDataMap: pd,
-          appDataMap: appData,
-        );
+        final services = assignedServices;
+        String? currentServiceType;
+        int idx = selectedServiceIndex.value;
+        if (idx > 0 && idx <= services.length) {
+          currentServiceType = services[idx - 1]['serviceType']?.toString();
+        }
+        if (currentServiceType == 'Farrier') {
+          final merged = mergedVendorServiceDisplayData(
+            Map<String, dynamic>.from(vendorRootData),
+            'Farrier',
+          );
+          final appData = merged['applicationData'] is Map
+              ? Map<String, dynamic>.from(merged['applicationData'] as Map)
+              : <String, dynamic>{};
+          final pd = merged['profileData'] is Map
+              ? Map<String, dynamic>.from(merged['profileData'] as Map)
+              : <String, dynamic>{};
+          _hydrateFarrierFields(
+            merged: merged,
+            profileDataMap: pd,
+            appDataMap: appData,
+          );
+        }
       }
     } catch (e) {
       debugPrint('Error fetching farrier tags: $e');
@@ -2817,28 +2825,12 @@ class EditVendorProfileController extends GetxController {
 
       profData['insuranceStatus'] = farrierInsuranceStatus.value;
     } else if (_editProfileIsBodyworkServiceType(type)) {
-      //       final selectedModalities = bodyworkServices
-      //           .where((raw) {
-      //             if (raw is! Map) return false;
-      //             final m = Map<String, dynamic>.from(raw);
-      //             final sel = m['isSelected'];
-      //             if (sel is RxBool) return sel.value;
-      //             if (sel is bool) return sel;
-      //             return true;
-      //           })
-      //           .map((raw) => Map<String, dynamic>.from(raw as Map)['name']?.toString() ?? '')
-      //           .where((n) => n.isNotEmpty)
-      //           .toList();
-      //       appData['modalities'] = selectedModalities;
-
-      profData['insurance'] = {
-        'status': farrierInsuranceStatus.value,
-        'document': farrierExistingInsuranceUrl.value,
-        'fileName': farrierInsuranceFileName.value,
-        'expirationDate': farrierInsuranceExpiry.value?.toIso8601String(),
-      };
-    } else if (type == 'Bodywork') {
-      appData['modalities'] = bodyworkModalityOptions.toList();
+      final selectedModalities = bodyworkServices
+          .where((s) => s['isSelected'].value == true)
+          .map((s) => s['name']?.toString() ?? '')
+          .where((n) => n.isNotEmpty)
+          .toList();
+      appData['modalities'] = selectedModalities;
 
       appData['otherModality'] = otherModalityController.text;
       appData['professionalStandards'] = selectedBodyworkStandards.toList();

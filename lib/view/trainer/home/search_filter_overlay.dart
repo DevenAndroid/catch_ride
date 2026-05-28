@@ -181,7 +181,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       'icon': 'assets/icons/equitation.svg',
       'isSvg': true,
     },
-  //  {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
+    {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
   @override
@@ -217,14 +217,18 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                       ),
                       child: Column(
                         children: [
-                          if (_selectedSection == 'location')
-                            _buildLocationSection(),
-                          if (_selectedSection == 'date') _buildDateSection(),
+                          if (_isServicesCategory)
+                            _buildComingSoonSection()
+                          else ...[
+                            if (_selectedSection == 'location')
+                              _buildLocationSection(),
+                            if (_selectedSection == 'date') _buildDateSection(),
+                          ],
                         ],
                       ),
                     ),
                   ),
-                  _buildFooter(),
+                  if (!_isServicesCategory) _buildFooter(),
                   const SizedBox(height: 10),
                 ],
               ),
@@ -1387,6 +1391,63 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComingSoonSection() {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      margin: const EdgeInsets.only(top: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: SvgPicture.asset(
+              'assets/icons/vendor.svg',
+              width: 48,
+              height: 48,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const CommonText(
+            'Coming Soon!',
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          const SizedBox(height: 8),
+          // const Padding(
+          //   padding: EdgeInsets.symmetric(horizontal: 20),
+          //   child: CommonText(
+          //     'Searching for services is currently under development. Stay tuned!',
+          //     fontSize: 14,
+          //     color: AppColors.textSecondary,
+          //     textAlign: TextAlign.center,
+          //   ),
+          // ),
         ],
       ),
     );

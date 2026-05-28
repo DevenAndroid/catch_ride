@@ -589,10 +589,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                     );
                     if (video != null) {
                       final file = File(video.path);
-                      if (file.lengthSync() > 200 * 1024 * 1024) {
+                       if (file.lengthSync() > 750 * 1024 * 1024) {
                         Get.snackbar(
                           'Error',
-                          'Video size exceeds 200 MB limit',
+                          'Video size exceeds 750 MB limit',
                           snackPosition: SnackPosition.BOTTOM,
                           backgroundColor: Colors.red,
                           colorText: Colors.white,
@@ -630,7 +630,7 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         ),
                         SizedBox(height: 4),
                         CommonText(
-                          '(Max 200 MB)',
+                          '(Max 750 MB)',
                           fontSize: 10,
                           color: AppColors.textSecondary,
                         ),

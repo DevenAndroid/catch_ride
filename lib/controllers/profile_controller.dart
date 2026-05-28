@@ -18,6 +18,8 @@ class ProfileController extends GetxController {
   final RxMap userData = <String, dynamic>{}.obs;
   final RxList<HorseModel> trainerHorses = <HorseModel>[].obs;
   final RxList<HorseModel> viewedUserHorses = <HorseModel>[].obs;
+  final RxInt trainerHorsesTotal = 0.obs;
+  final RxInt viewedUserHorsesTotal = 0.obs;
   final RxBool isLoading = false.obs;
   final RxBool isLoadingMetadata = false.obs;
 
@@ -42,6 +44,8 @@ class ProfileController extends GetxController {
     userData.clear();
     trainerHorses.clear();
     viewedUserHorses.clear();
+    trainerHorsesTotal.value = 0;
+    viewedUserHorsesTotal.value = 0;
     _logger.i('ProfileController: Data cleared.');
   }
 
@@ -60,7 +64,7 @@ class ProfileController extends GetxController {
 
       final response = await _apiService.getRequest(
         AppUrls.horses,
-        query: {'trainerId': tId, 'limit': '5' ,  "isActive":isActive.toString() },
+        query: {'trainerId': tId, 'limit': '10' ,  "isActive":isActive.toString() },
       );
 
       if (response.statusCode == 200) {
@@ -68,6 +72,12 @@ class ProfileController extends GetxController {
         trainerHorses.assignAll(
           data.map((e) => HorseModel.fromJson(e)).toList(),
         );
+        final pagination = response.body['pagination'];
+        if (pagination != null) {
+          trainerHorsesTotal.value = pagination['total'] ?? data.length;
+        } else {
+          trainerHorsesTotal.value = data.length;
+        }
       }
     } catch (e) {
       _logger.e('Error fetching trainer horses: $e');
@@ -330,6 +340,12 @@ class ProfileController extends GetxController {
           viewedUserHorses.assignAll(
             horseData.map((e) => HorseModel.fromJson(e)).toList(),
           );
+          final pagination = horseResponse.body['pagination'];
+          if (pagination != null) {
+            viewedUserHorsesTotal.value = pagination['total'] ?? horseData.length;
+          } else {
+            viewedUserHorsesTotal.value = horseData.length;
+          }
         }
       }
     } catch (e) {

@@ -38,7 +38,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
       'icon': 'assets/icons/equitation.svg',
       'isSvg': true,
     },
-  //  {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
+   {'name': 'Services', 'icon': 'assets/icons/vendor.svg', 'isSvg': true},
   ];
 
   Worker? _horsesWorker;
@@ -101,10 +101,51 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                   final bool isVendors =
                       controller.selectedDiscipline.value == 'Services';
 
+                  if (isVendors) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEFF4FF),
+                              shape: BoxShape.circle,
+                            ),
+                            child: SvgPicture.asset(
+                              'assets/icons/vendor.svg',
+                              width: 48,
+                              height: 48,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF00083B),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const CommonText(
+                            'Coming Soon!',
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF101828),
+                          ),
+                          // const SizedBox(height: 8),
+                          // const Padding(
+                          //   padding: EdgeInsets.symmetric(horizontal: 40),
+                          //   child: CommonText(
+                          //     'Our professional services feature is currently under construction. Stay tuned!',
+                          //     fontSize: 14,
+                          //     color: Color(0xFF667085),
+                          //     textAlign: TextAlign.center,
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    );
+                  }
+
                   if (controller.isLoading.value &&
-                      (isVendors
-                          ? controller.vendors.isEmpty
-                          : controller.horses.isEmpty)) {
+                      controller.horses.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
 

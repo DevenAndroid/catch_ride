@@ -682,14 +682,42 @@ class AddNewListingController extends GetxController {
       final String extension = path.extension(file.path).toLowerCase();
       String contentType = 'image/jpeg';
 
-      if (extension == '.mp4' || extension == '.mov' || extension == '.avi') {
-        contentType = 'video/mp4';
+      final List<String> videoExtensions = [
+        '.mp4',
+        '.mov',
+        '.avi',
+        '.mkv',
+        '.webm',
+        '.3gp',
+        '.mpeg',
+        '.mpg',
+        '.wmv',
+        '.flv',
+        '.m4v'
+      ];
+      final bool isVideo = videoExtensions.contains(extension);
+
+      if (isVideo) {
+        if (extension == '.mkv') {
+          contentType = 'video/x-matroska';
+        } else if (extension == '.webm') {
+          contentType = 'video/webm';
+        } else if (extension == '.3gp') {
+          contentType = 'video/3gpp';
+        } else if (extension == '.avi') {
+          contentType = 'video/x-msvideo';
+        } else if (extension == '.wmv') {
+          contentType = 'video/x-ms-wmv';
+        } else if (extension == '.flv') {
+          contentType = 'video/x-flv';
+        } else {
+          contentType = 'video/mp4';
+        }
       } else if (extension == '.png') {
         contentType = 'image/png';
+      } else if (extension == '.gif') {
+        contentType = 'image/gif';
       }
-
-      final bool isVideo =
-          (extension == '.mp4' || extension == '.mov' || extension == '.avi');
 
       String baseUrl = AppUrls.baseUrl;
       if (baseUrl.endsWith('/')) {
@@ -718,7 +746,7 @@ class AddNewListingController extends GetxController {
         final signResponse = await http.get(
           Uri.parse(signUrlEndpoint),
           headers: {if (token != null) 'Authorization': 'Bearer $token'},
-        );
+        ).timeout(const Duration(minutes: 30));
 
         debugPrint('📥 [Upload Video] Signed URL Response status: ${signResponse.statusCode}');
         debugPrint('📥 [Upload Video] Signed URL Response body: ${signResponse.body}');
@@ -731,7 +759,13 @@ class AddNewListingController extends GetxController {
           debugPrint('📤 [Upload Video] PUT URL (S3 Presigned): $uploadUrl');
           debugPrint('🔗 [Upload Video] Target Public URL: $publicUrl');
 
-          final dio = dio_lib.Dio();
+          final dio = dio_lib.Dio(
+            dio_lib.BaseOptions(
+              connectTimeout: const Duration(minutes: 30),
+              sendTimeout: const Duration(minutes: 30),
+              receiveTimeout: const Duration(minutes: 30),
+            ),
+          );
           final putResponse = await dio.put(
             uploadUrl,
             data: file.openRead(),
@@ -798,7 +832,7 @@ class AddNewListingController extends GetxController {
 
       var streamedResponse = await client
           .send(request)
-          .timeout(const Duration(minutes: 5));
+          .timeout(const Duration(minutes: 30));
 
       var response = await http.Response.fromStream(streamedResponse);
 
@@ -908,10 +942,10 @@ class AddNewListingController extends GetxController {
                 );
                 if (video != null) {
                   final file = File(video.path);
-                  if (file.lengthSync() > 200 * 1024 * 1024) {
+                  if (file.lengthSync() > 750 * 1024 * 1024) {
                     Get.snackbar(
                       'Error',
-                      'Video size exceeds 200 MB limit',
+                      'Video size exceeds 750 MB limit',
                       snackPosition: SnackPosition.BOTTOM,
                       backgroundColor: Colors.red,
                       colorText: Colors.white,
