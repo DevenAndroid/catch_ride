@@ -306,6 +306,7 @@ class BodyworkEditProfileTab extends StatelessWidget {
     return _buildCard(
       title: 'Travel Preferences',
       child: Obx(() => Column(
+
         children: controller.travelOptions.map((opt) {
           final details = controller.selectedTravelData[opt];
           String? summary;

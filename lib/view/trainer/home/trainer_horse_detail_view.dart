@@ -2003,115 +2003,6 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     _buildBookingHorseCard(),
                     const SizedBox(height: 20),
 
-                    // Single Date
-                    const CommonText(
-                      'Date',
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildDateSelector(
-                      startDate != null
-                          ? DateFormat('MMMM d, yyyy').format(startDate!)
-                          : 'Select Date',
-                          () async {
-                        if (selectedLocation == null) {
-                          Get.snackbar(
-                            'Select Location',
-                            'Please select a location first to see available dates.',
-                            snackPosition: SnackPosition.BOTTOM,
-                            backgroundColor: Colors.orange,
-                            colorText: Colors.white,
-                          );
-                          return;
-                        }
-
-                        // Find a valid initial date that satisfies the predicate
-                        DateTime now = DateTime.now();
-                        DateTime today = DateTime(now.year, now.month, now.day);
-                        DateTime initial = startDate ?? today;
-                        DateTime first = today;
-
-                        if (selectedLocation != horse!.location &&
-                            selectedShow != null) {
-                          final sDate = DateUtil.parse(selectedShow!.startDate);
-                          final eDate = DateUtil.parse(selectedShow!.endDate);
-
-                          if (sDate != null && eDate != null) {
-                            final startOnly =
-                            DateTime(sDate.year, sDate.month, sDate.day);
-                            final endOnly =
-                            DateTime(eDate.year, eDate.month, eDate.day);
-
-                            // Safety check: If the show is entirely in the past, don't open picker
-                            if (endOnly.isBefore(today)) {
-                              Get.snackbar(
-                                'Show Ended',
-                                'This show has already ended. Please select a different location.',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.orange,
-                                colorText: Colors.white,
-                              );
-                              return;
-                            }
-
-                            if (initial.isBefore(startOnly)) {
-                              initial = startOnly;
-                            } else if (initial.isAfter(endOnly)) {
-                              initial = startOnly;
-                            }
-
-                            // Ensure initial date is not before today
-                            if (initial.isBefore(today)) {
-                              initial = today;
-                            }
-                          }
-                        }
-
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: initial,
-                          firstDate: first,
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
-                          selectableDayPredicate: (DateTime day) {
-                            final dateOnly = DateTime(day.year, day.month, day.day);
-                            final now = DateTime.now();
-                            final today = DateTime(now.year, now.month, now.day);
-
-                            // Never allow past dates
-                            if (dateOnly.isBefore(today)) return false;
-
-                            if (selectedLocation == horse!.location) return true;
-                            if (selectedShow == null) return false;
-
-                            final sDate = DateUtil.parse(selectedShow!.startDate);
-                            final eDate = DateUtil.parse(selectedShow!.endDate);
-                            if (sDate != null && eDate != null) {
-                              final startOnly =
-                              DateTime(sDate.year, sDate.month, sDate.day);
-                              final endOnly =
-                              DateTime(eDate.year, eDate.month, eDate.day);
-
-                              return (dateOnly.isAtSameMomentAs(startOnly) ||
-                                  dateOnly.isAfter(startOnly)) &&
-                                  (dateOnly.isAtSameMomentAs(endOnly) ||
-                                      dateOnly.isBefore(endOnly));
-                            }
-
-                            return false;
-                          },
-                        );
-                        if (date != null) {
-                          setSheetState(() {
-                            startDate = date;
-                            endDate = date; // For single date submission
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Location
                     const CommonText(
                       'Location',
                       fontSize: 13,
@@ -2235,6 +2126,115 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    const CommonText(
+                      'Date',
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDateSelector(
+                      startDate != null
+                          ? DateFormat('MMMM d, yyyy').format(startDate!)
+                          : 'Select Date',
+                          () async {
+                        if (selectedLocation == null) {
+                          Get.snackbar(
+                            'Select Location',
+                            'Please select a location first to see available dates.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.orange,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+
+                        // Find a valid initial date that satisfies the predicate
+                        DateTime now = DateTime.now();
+                        DateTime today = DateTime(now.year, now.month, now.day);
+                        DateTime initial = startDate ?? today;
+                        DateTime first = today;
+
+                        if (selectedLocation != horse!.location &&
+                            selectedShow != null) {
+                          final sDate = DateUtil.parse(selectedShow!.startDate);
+                          final eDate = DateUtil.parse(selectedShow!.endDate);
+
+                          if (sDate != null && eDate != null) {
+                            final startOnly =
+                            DateTime(sDate.year, sDate.month, sDate.day);
+                            final endOnly =
+                            DateTime(eDate.year, eDate.month, eDate.day);
+
+                            // Safety check: If the show is entirely in the past, don't open picker
+                            if (endOnly.isBefore(today)) {
+                              Get.snackbar(
+                                'Show Ended',
+                                'This show has already ended. Please select a different location.',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.orange,
+                                colorText: Colors.white,
+                              );
+                              return;
+                            }
+
+                            if (initial.isBefore(startOnly)) {
+                              initial = startOnly;
+                            } else if (initial.isAfter(endOnly)) {
+                              initial = startOnly;
+                            }
+
+                            // Ensure initial date is not before today
+                            if (initial.isBefore(today)) {
+                              initial = today;
+                            }
+                          }
+                        }
+
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: initial,
+                          firstDate: first,
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          selectableDayPredicate: (DateTime day) {
+                            final dateOnly = DateTime(day.year, day.month, day.day);
+                            final now = DateTime.now();
+                            final today = DateTime(now.year, now.month, now.day);
+
+                            // Never allow past dates
+                            if (dateOnly.isBefore(today)) return false;
+
+                            if (selectedLocation == horse!.location) return true;
+                            if (selectedShow == null) return false;
+
+                            final sDate = DateUtil.parse(selectedShow!.startDate);
+                            final eDate = DateUtil.parse(selectedShow!.endDate);
+                            if (sDate != null && eDate != null) {
+                              final startOnly =
+                              DateTime(sDate.year, sDate.month, sDate.day);
+                              final endOnly =
+                              DateTime(eDate.year, eDate.month, eDate.day);
+
+                              return (dateOnly.isAtSameMomentAs(startOnly) ||
+                                  dateOnly.isAfter(startOnly)) &&
+                                  (dateOnly.isAtSameMomentAs(endOnly) ||
+                                      dateOnly.isBefore(endOnly));
+                            }
+
+                            return false;
+                          },
+                        );
+                        if (date != null) {
+                          setSheetState(() {
+                            startDate = date;
+                            endDate = date; // For single date submission
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Location
+
 
                     // Message
                     RichText(

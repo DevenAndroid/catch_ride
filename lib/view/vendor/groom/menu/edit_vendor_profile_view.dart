@@ -126,52 +126,57 @@ class _EditVendorProfileViewState extends State<EditVendorProfileView>
           children: [
             _buildTabs(),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Builder(
-                  builder: (context) {
-                    // Ensure index is valid for current controller
-                    final currentIndex = controller.selectedServiceIndex.value;
-                    if (currentIndex >= _tabController.length) {
-                      return const SizedBox.shrink();
-                    }
-                    if (currentIndex == 0) {
-                      return Column(
-                        children: [
-                          _buildBasicDetails(),
-                          const SizedBox(height: 20),
-                          _buildHomeBaseLocation(),
-                          const SizedBox(height: 20),
-                          _buildPaymentMethods(),
-                          const SizedBox(height: 20),
-                          _buildNotesSection(),
-                          const SizedBox(height: 40),
-                        ],
-                      );
-                    } else {
-                      final serviceIndex = currentIndex - 1;
-                      if (serviceIndex < controller.assignedServices.length) {
-                        final service =
-                            controller.assignedServices[serviceIndex];
-                        if (service['serviceType'] == 'Grooming') {
-                          return _buildGroomingTab();
-                        } else if (service['serviceType'] == 'Braiding') {
-                          return _buildBraidingTab();
-                        } else if (service['serviceType'] == 'Clipping') {
-                          return ClippingEditProfileTab(controller: controller);
-                        } else if (service['serviceType'] == 'Farrier') {
-                          return FarrierEditProfileTab(controller: controller);
-                        } else if (assignedServiceMatchesTab(service, 'Bodywork')) {
-                          return BodyworkEditProfileTab(controller: controller);
-                        } else if (service['serviceType'] == 'Shipping') {
-                          return ShippingEditProfileTab(controller: controller);
-                        }
+              child: RefreshIndicator(
+                onRefresh: ()async{
+                  controller.fetchProfileData();
+                },
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Builder(
+                    builder: (context) {
+                      // Ensure index is valid for current controller
+                      final currentIndex = controller.selectedServiceIndex.value;
+                      if (currentIndex >= _tabController.length) {
+                        return const SizedBox.shrink();
                       }
-                      return const Center(
-                        child: CommonText('Service details soon...'),
-                      );
-                    }
-                  },
+                      if (currentIndex == 0) {
+                        return Column(
+                          children: [
+                            _buildBasicDetails(),
+                            const SizedBox(height: 20),
+                            _buildHomeBaseLocation(),
+                            const SizedBox(height: 20),
+                            _buildPaymentMethods(),
+                            const SizedBox(height: 20),
+                            _buildNotesSection(),
+                            const SizedBox(height: 40),
+                          ],
+                        );
+                      } else {
+                        final serviceIndex = currentIndex - 1;
+                        if (serviceIndex < controller.assignedServices.length) {
+                          final service =
+                              controller.assignedServices[serviceIndex];
+                          if (service['serviceType'] == 'Grooming') {
+                            return _buildGroomingTab();
+                          } else if (service['serviceType'] == 'Braiding') {
+                            return _buildBraidingTab();
+                          } else if (service['serviceType'] == 'Clipping') {
+                            return ClippingEditProfileTab(controller: controller);
+                          } else if (service['serviceType'] == 'Farrier') {
+                            return FarrierEditProfileTab(controller: controller);
+                          } else if (assignedServiceMatchesTab(service, 'Bodywork')) {
+                            return BodyworkEditProfileTab(controller: controller);
+                          } else if (service['serviceType'] == 'Shipping') {
+                            return ShippingEditProfileTab(controller: controller);
+                          }
+                        }
+                        return const Center(
+                          child: CommonText('Service details soon...'),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ),
             ),

@@ -31,7 +31,7 @@ class SupportController extends GetxController {
       // Building query params - GetConnect query values work best as strings
       final Map<String, dynamic> query = {
         'status': 'active',
-        'limit': (search != null && search.isNotEmpty ? '10' : '3'),
+      //  'limit': (search != null && search.isNotEmpty ? '10' : '3'),
       };
 
       if (search != null && search.isNotEmpty) {

@@ -20,9 +20,10 @@ class _GetHelpViewState extends State<GetHelpView> {
   final SupportController _controller = Get.put(SupportController());
   final ProfileController _profileController = Get.find<ProfileController>();
   final  googleApiController = Get.put(GoogleApiController());
-  final TextEditingController _subjectController = TextEditingController();
+   final TextEditingController _subjectController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  bool _faqsExpanded = false;
 
   final List<String> _categories = [
     'Account Access',
@@ -38,6 +39,13 @@ class _GetHelpViewState extends State<GetHelpView> {
     _categoryController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _controller.fetchFaqs();
   }
 
   void _showCategoryPicker() async {
@@ -111,34 +119,99 @@ class _GetHelpViewState extends State<GetHelpView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Popular Resources
-                  const CommonText(
-                    'Frequently asked questions',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(height: 16),
-                  Obx(() {
-                    if (_controller.isLoadingFaqs.value && _controller.faqs.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (_controller.faqs.isEmpty) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: CommonText(
-                          'No FAQs available',
-                          fontSize: 14,
-                          color: AppColors.textSecondary.withValues(alpha: 0.6),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _faqsExpanded = !_faqsExpanded;
+                      });
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.border.withValues(alpha: 0.5),
                         ),
-                      );
-                    }
-                    return Column(
-                      children: _controller.faqs.map((faq) => _buildResourceTile(faq)).toList(),
-                    );
-                  }),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.question_answer_outlined,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 14),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CommonText(
+                                      'Frequently asked questions',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                    SizedBox(height: 2),
+                                    CommonText(
+                                      'Tap to view popular solutions',
+                                      fontSize: 12,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                _faqsExpanded
+                                    ? Icons.keyboard_arrow_up_rounded
+                                    : Icons.keyboard_arrow_down_rounded,
+                                color: AppColors.textSecondary,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                          if (_faqsExpanded)
+                            Obx(() {
+                              if (_controller.isLoadingFaqs.value && _controller.faqs.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(top: 16),
+                                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                );
+                              }
+                              if (_controller.faqs.isEmpty) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: CommonText(
+                                    'No FAQs available',
+                                    fontSize: 14,
+                                    color: AppColors.textSecondary.withValues(alpha: 0.6),
+                                  ),
+                                );
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 16),
+                                child: Column(
+                                  children: _controller.faqs.map((faq) => _buildResourceTile(faq)).toList(),
+                                ),
+                              );
+                            }),
+                        ],
+                      ),
+                    ),
+                  ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // Need any help? card
                   Obx(() {
