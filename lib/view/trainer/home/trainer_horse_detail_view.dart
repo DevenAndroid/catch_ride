@@ -27,6 +27,8 @@ import '../list/edit_horse_listing_view.dart';
 import '../../barn_manager/barn_manager_availability_view.dart';
 import '../../../controllers/horse_controller.dart';
 import '../../../controllers/chat_controller.dart';
+import '../chats/single_chat_view.dart';
+import '../../barn_manager/chats/barn_manager_single_chat_view.dart';
 
 class TrainerHorseDetailView extends StatefulWidget {
   final HorseModel? horse;
@@ -2372,19 +2374,38 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                     barBlur: 0,
                                     margin: const EdgeInsets.all(16),
                                   );
-                                  setState(() => _isRequested = true);
-                                  _fetchHorseDetails(showLoader: false);
+                                  // _fetchHorseDetails(showLoader: false);
 
                                   final String? conversationId = (result is Map) ? result["conversationId"] : null;
                                   final String? hostUserId = (result is Map) ? result["hostUserId"]?.toString() : null;
                                   if (conversationId != null) {
-                                    final chatController = Get.put(ChatController());
-                                    await chatController.openChatThread(
-                                      name: horse!.trainerName ?? 'Trainer',
-                                      image: horse!.trainerAvatar ?? '',
-                                      conversationId: conversationId,
-                                      otherId: hostUserId ?? horse!.trainerId?.toString(),
-                                    );
+                                    // final chatController = Get.put(ChatController());
+                                    // await chatController.openChatThread(
+                                    //   name: horse!.trainerName ?? 'Trainer',
+                                    //   image: horse!.trainerAvatar ?? '',
+                                    //   conversationId: conversationId,
+                                    //   otherId: hostUserId ?? horse!.trainerId?.toString(),
+                                    // );
+
+                                    // Redirect using Get.off (replaces the current screen on the navigation stack).
+                                    // Note: If you have named routes configured, you can use:
+                                    // Get.offNamed('/chat', arguments: {'conversationId': conversationId, ...});
+                                    final role = Get.find<ProfileController>().user.value?.role;
+                                    if (role == 'barn_manager') {
+                                      Get.off(() => BarnManagerSingleChatView(
+                                        name: horse!.trainerName ?? 'Trainer',
+                                        image: horse!.trainerAvatar ?? '',
+                                        conversationId: conversationId,
+                                        otherId: hostUserId ?? horse!.trainerId?.toString(),
+                                      ));
+                                    } else {
+                                      Get.off(() => SingleChatView(
+                                        name: horse!.trainerName ?? 'Trainer',
+                                        image: horse!.trainerAvatar ?? '',
+                                        conversationId: conversationId,
+                                        otherId: hostUserId ?? hostUserId ?? horse!.trainerId?.toString(),
+                                      ));
+                                    }
                                   }
                                 }                              },
                               child: CommonButton(
