@@ -8,6 +8,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../constant/app_constants.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../widgets/common_image_view.dart';
@@ -105,6 +106,55 @@ class _BarnManagerInboxViewState extends State<BarnManagerInboxView> {
           if (chatController.isLoadingConversations.value &&
               chatController.conversations.isEmpty) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (_selectedTab == 1) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.6,
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 100,
+                      width: 100,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9F5F5),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: const Color(0xFFF3EAEB),
+                          width: 2,
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          LucideIcons.messageCircleMore,
+                          size: 44,
+                          color: Color(0xFF8B4444),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const CommonText(
+                      'Coming Soon!',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF8B4444),
+                    ),
+                    const SizedBox(height: 12),
+                    const CommonText(
+                      'Chatting with service providers is currently under development. Stay tuned!',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           final String currentUserId = Get.find<ProfileController>().id;

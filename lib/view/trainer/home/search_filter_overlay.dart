@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_colors.dart';
+import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:intl/intl.dart';
 
@@ -217,7 +218,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                       ),
                       child: Column(
                         children: [
-                          if (_isServicesCategory)
+                          if (_isServicesCategory && showComingSoon)
                             _buildComingSoonSection()
                           else ...[
                             if (_selectedSection == 'location')
@@ -228,7 +229,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
                       ),
                     ),
                   ),
-                  if (!_isServicesCategory) _buildFooter(),
+                  if (!_isServicesCategory || !showComingSoon) _buildFooter(),
                   const SizedBox(height: 10),
                 ],
               ),
