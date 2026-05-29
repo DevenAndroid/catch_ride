@@ -192,6 +192,7 @@ class AuthController extends GetxController {
         final bool hasPendingReferral =
             (ReferralService.to.pendingReferralCode ?? '').isNotEmpty;
         if (hasPendingReferral) {
+          syncReferralCodeFromStorage();
           Get.offAll(() => const CreateAccountView());
           return;
         }

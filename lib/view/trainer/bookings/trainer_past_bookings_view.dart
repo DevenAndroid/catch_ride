@@ -8,6 +8,7 @@ import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 import '../../../constant/app_constants.dart';
 import '../../../widgets/common_image_view.dart';
+import '../../../constant/app_urls.dart';
 import '../../../widgets/common_text.dart';
 import '../booking_request_view.dart';
 import '../../vendor/booking_details_view.dart';
@@ -115,8 +116,10 @@ class _TrainerPastBookingsViewState extends State<TrainerPastBookingsView> with 
           controller: _tabController,
           children: [
             _buildBookingList(trials),
-            //_buildBookingList(services),
-            _buildComingSoon(),
+            if (showComingSoon)
+              _buildComingSoon()
+            else
+              _buildBookingList(services),
           ],
         );
       }),

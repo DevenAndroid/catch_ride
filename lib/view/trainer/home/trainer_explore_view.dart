@@ -1,4 +1,5 @@
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
@@ -101,7 +102,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                   final bool isVendors =
                       controller.selectedDiscipline.value == 'Services';
 
-                  if (isVendors) {
+                  if (isVendors && showComingSoon) {
                     return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
