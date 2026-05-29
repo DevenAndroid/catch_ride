@@ -472,8 +472,6 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Braider', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
-        _buildAddServiceButton(controller),
-        const SizedBox(height: 24),
         _buildSendButton(controller),
       ],
     );
@@ -565,8 +563,6 @@ class SendBookingRequestView extends StatelessWidget {
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Clipping Service', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
-        _buildAddServiceButton(controller),
-        const SizedBox(height: 24),
         _buildSendButton(controller),
       ],
     );
@@ -657,8 +653,6 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDateRangeField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Farrier', 'Add a note for the service provider...', controller.notesController),
-        const SizedBox(height: 24),
-        _buildAddServiceButton(controller),
         const SizedBox(height: 24),
         _buildSendButton(controller),
       ],
@@ -784,8 +778,7 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDateRangeField(controller),
         const SizedBox(height: 20),
         _buildTextField('Notes To Your Bodywork Specialist', 'Add a note for the service provider...', controller.notesController),
-        const SizedBox(height: 24),
-        _buildAddServiceButton(controller),
+
         const SizedBox(height: 24),
         _buildSendButton(controller),
       ],
@@ -1008,8 +1001,7 @@ class SendBookingRequestView extends StatelessWidget {
         _buildDateRangeField(controller, locationObs: controller.selectedOrigin),
         const SizedBox(height: 16),
         _buildTextField('Notes To Your Shipper', 'Add a note for the service provider...', controller.notesController),
-        const SizedBox(height: 24),
-        _buildAddServiceButton(controller),
+
         const SizedBox(height: 24),
         _buildSendButton(controller),
       ],
@@ -1058,8 +1050,170 @@ class SendBookingRequestView extends StatelessWidget {
         _buildTextField('Notes to your Groom', 'Add a note for the service provider...', controller.notesController),
         const SizedBox(height: 24),
         _buildAdditionalServices(controller),
-        const SizedBox(height: 24),
-        _buildAddServiceButton(controller),
+
+        Obx(() {
+          // Only show the card if dates, horses, and at least one rate is selected
+          final showCalculation = controller.startDate.value != null &&
+              controller.endDate.value != null &&
+              controller.selectedNumHorses.value != null &&
+              controller.rateQuantities.values.any((q) => q > 0);
+
+          if (!showCalculation) return const SizedBox.shrink();
+
+          final startDt = controller.startDate.value!;
+          final endDt = controller.endDate.value!;
+          final sameCalendarDay =
+              startDt.year == endDt.year && startDt.month == endDt.month && startDt.day == endDt.day;
+
+          final dateLabel = sameCalendarDay
+              ? DateFormat('dd MMM yyyy').format(startDt)
+              : '${DateFormat('dd MMM').format(startDt)} - ${DateFormat('dd MMM yyyy').format(endDt)}';
+
+          final displayDuration = endDt.difference(startDt).inDays + 1;
+
+          final numHorses = int.tryParse(controller.selectedNumHorses.value ?? '1') ?? 1;
+          final perHorseBasePrice = controller.basePrice.value / numHorses;
+
+          final currencyFormatWithSpace = NumberFormat.currency(symbol: '\$ ');
+          final currencyFormatNoDecimals = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+
+          final opts = controller.groomRateOptions;
+          final parts = <String>[];
+          for (var entry in controller.rateQuantities.entries) {
+            if (entry.value > 0) {
+              final opt = opts.firstWhereOrNull((o) => o['id'] == entry.key);
+              if (opt != null) {
+                final unit = opt['unit'] ?? 'Day';
+                parts.add('${entry.value} ${unit}${entry.value > 1 ? 's' : ''}');
+              }
+            }
+          }
+          final rateLabel = parts.isEmpty ? 'Base Rate' : parts.join(', ');
+
+          return Container(
+            margin: const EdgeInsets.only(top: 16, bottom: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FB),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE4E7EC)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: controller.selectedService.value,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' ($displayDuration ${displayDuration > 1 ? 'Days' : 'Day'})',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    CommonText(currencyFormatWithSpace.format(perHorseBasePrice), fontSize: 14, fontWeight: FontWeight.bold),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 6),
+                    CommonText(controller.selectedLocation.value ?? '', fontSize: 12, color: AppColors.textSecondary),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 6),
+                    CommonText(dateLabel, fontSize: 12, color: AppColors.textSecondary),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CommonText(
+                      'Base Rate $rateLabel', 
+                      fontSize: 15, 
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    CommonText(currencyFormatNoDecimals.format(controller.basePrice.value), fontSize: 15, fontWeight: FontWeight.bold),
+                  ],
+                ),
+                if (controller.additionalTotal.value > 0) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const CommonText(
+                        'Add-on Services Subtotal', 
+                        fontSize: 15, 
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      CommonText(currencyFormatNoDecimals.format(controller.additionalTotal.value), fontSize: 15, fontWeight: FontWeight.bold),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 16),
+                LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    final boxWidth = constraints.constrainWidth();
+                    const dashWidth = 4.0;
+                    const dashHeight = 1.0;
+                    final dashCount = (boxWidth / (2 * dashWidth)).floor();
+                    return Flex(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      direction: Axis.horizontal,
+                      children: List.generate(dashCount, (_) {
+                        return const SizedBox(
+                          width: dashWidth,
+                          height: dashHeight,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(color: Color(0xFFD0D5DD)),
+                          ),
+                        );
+                      }),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const CommonText(
+                      'Total Estimated Price', 
+                      fontSize: 16, 
+                      fontWeight: FontWeight.bold,
+                    ),
+                    CommonText(currencyFormatNoDecimals.format(controller.totalPrice.value), fontSize: 18, fontWeight: FontWeight.bold),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+
         const SizedBox(height: 24),
         _buildSendButton(controller),
       ],
@@ -1567,19 +1721,7 @@ class SendBookingRequestView extends StatelessWidget {
     );
   }
 
-  Widget _buildAddServiceButton(SendBookingRequestController controller) {
-    return InkWell(
-      onTap: () => controller.addServiceToSummary(),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: const [
-          Icon(Icons.add, color: AppColors.linkBlue, size: 18),
-          SizedBox(width: 4),
-          CommonText('Add Service', color: AppColors.linkBlue, fontSize: 14, fontWeight: FontWeight.bold),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildSendButton(SendBookingRequestController controller) {
     return Obx(() => CommonButton(

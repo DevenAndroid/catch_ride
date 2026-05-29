@@ -1,0 +1,802 @@
+Resolving dependencies...
+Downloading packages...
+  _flutterfire_internals 1.3.59 (1.3.69 available)
+  app_links 6.4.1 (7.0.0 available)
+  async 2.13.0 (2.13.1 available)
+  audio_session 0.2.2 (0.2.3 available)
+  characters 1.4.0 (1.4.1 available)
+  chewie 1.13.0 (1.14.0 available)
+  cupertino_icons 1.0.8 (1.0.9 available)
+  device_info_plus 12.3.0 (13.1.0 available)
+  device_info_plus_platform_interface 7.0.3 (8.1.0 available)
+  file_picker 8.3.7 (11.0.2 available)
+  firebase_auth 5.7.0 (6.4.0 available)
+  firebase_auth_platform_interface 7.7.3 (8.1.9 available)
+  firebase_auth_web 5.15.3 (6.1.5 available)
+  firebase_core 3.15.2 (4.7.0 available)
+  firebase_core_platform_interface 6.0.2 (6.0.3 available)
+  firebase_core_web 2.24.1 (3.6.0 available)
+  firebase_messaging 15.2.10 (16.2.0 available)
+  firebase_messaging_platform_interface 4.6.10 (4.7.9 available)
+  firebase_messaging_web 3.10.10 (4.1.5 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  flutter_local_notifications 18.0.1 (21.0.0 available)
+  flutter_local_notifications_linux 5.0.0 (8.0.0 available)
+  flutter_local_notifications_platform_interface 8.0.0 (11.0.0 available)
+  flutter_plugin_android_lifecycle 2.0.33 (2.0.34 available)
+  flutter_svg 2.2.3 (2.2.4 available)
+  flutter_widget_from_html 0.17.1 (0.17.2 available)
+  flutter_widget_from_html_core 0.17.0 (0.17.2 available)
+  fwfh_webview 0.15.6 (0.15.7 available)
+  google_fonts 8.0.2 (8.1.0 available)
+  google_sign_in 6.3.0 (7.2.0 available)
+  google_sign_in_android 6.2.1 (7.2.10 available)
+  google_sign_in_ios 5.9.0 (6.3.0 available)
+  google_sign_in_platform_interface 2.5.0 (3.1.0 available)
+  google_sign_in_web 0.12.4+4 (1.1.3 available)
+  image_picker 1.2.1 (1.2.2 available)
+  image_picker_android 0.8.13+14 (0.8.13+17 available)
+  image_picker_ios 0.8.13+3 (0.8.13+6 available)
+  js 0.6.7 (0.7.2 available)
+  lints 5.1.1 (6.1.0 available)
+  logger 2.6.2 (2.7.0 available)
+  lucide_icons_flutter 3.1.12 (3.1.13 available)
+  matcher 0.12.17 (0.12.20 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.18.2 available)
+  package_info_plus 9.0.0 (10.1.0 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  path_provider_android 2.2.22 (2.3.1 available)
+  path_provider_foundation 2.5.1 (2.6.0 available)
+  share_plus 12.0.2 (13.1.0 available)
+  share_plus_platform_interface 6.1.0 (7.1.0 available)
+  shared_preferences 2.5.4 (2.5.5 available)
+  shared_preferences_android 2.4.21 (2.4.23 available)
+  shared_preferences_platform_interface 2.4.1 (2.4.2 available)
+  sign_in_with_apple 6.1.4 (7.0.1 available)
+  sign_in_with_apple_platform_interface 1.1.0 (2.0.0 available)
+  sign_in_with_apple_web 2.1.1 (3.0.0 available)
+  socket_io_client 2.0.3+1 (3.1.4 available)
+  socket_io_common 2.0.3 (3.1.1 available)
+  sqflite 2.4.2 (2.4.2+1 available)
+  sqflite_android 2.4.2+2 (2.4.2+3 available)
+  sqflite_common 2.5.6 (2.5.6+1 available)
+  synchronized 3.4.0 (3.4.0+1 available)
+  test_api 0.7.6 (0.7.12 available)
+  timezone 0.10.1 (0.11.0 available)
+  url_launcher_android 6.3.28 (6.3.29 available)
+  url_launcher_ios 6.3.6 (6.4.1 available)
+  url_launcher_web 2.4.1 (2.4.2 available)
+  vector_graphics 1.1.19 (1.2.0 available)
+  vector_math 2.2.0 (2.3.0 available)
+  video_player 2.10.1 (2.11.1 available)
+  video_player_android 2.9.4 (2.9.5 available)
+  video_player_avfoundation 2.8.9 (2.9.4 available)
+  video_player_platform_interface 6.6.0 (6.7.0 available)
+  vm_service 15.0.2 (15.2.0 available)
+  wakelock_plus 1.4.0 (1.6.0 available)
+  wakelock_plus_platform_interface 1.3.0 (1.5.0 available)
+  webview_flutter_android 4.10.13 (4.12.0 available)
+  webview_flutter_platform_interface 2.14.0 (2.15.1 available)
+  webview_flutter_wkwebview 3.24.0 (3.25.1 available)
+  win32 5.15.0 (6.1.0 available)
+  win32_registry 2.1.0 (3.0.3 available)
+  xml 6.6.1 (7.0.1 available)
+Got dependencies!
+82 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing mobileApp...                                          
+
+warning • Unused import: 'dart:developer' • lib/controllers/add_new_listing_controller.dart:2:8 • unused_import
+   info • The imported package 'http_parser' isn't a dependency of the importing package • lib/controllers/add_new_listing_controller.dart:14:8 • depend_on_referenced_packages
+warning • Unused import: '../main.dart' • lib/controllers/add_new_listing_controller.dart:19:8 • unused_import
+   info • Don't invoke 'print' in production code • lib/controllers/add_new_listing_controller.dart:166:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/controllers/add_new_listing_controller.dart:185:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/controllers/add_new_listing_controller.dart:192:5 • avoid_print
+warning • Dead code • lib/controllers/add_new_listing_controller.dart:267:58 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/add_new_listing_controller.dart:267:61 • dead_null_aware_expression
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/add_new_listing_controller.dart:268:61 • dead_null_aware_expression
+warning • The operand can't be 'null', so the condition is always 'true' • lib/controllers/add_new_listing_controller.dart:273:29 • unnecessary_null_comparison
+warning • The '!' will have no effect because the receiver can't be null • lib/controllers/add_new_listing_controller.dart:273:55 • unnecessary_non_null_assertion
+warning • The '!' will have no effect because the receiver can't be null • lib/controllers/add_new_listing_controller.dart:275:57 • unnecessary_non_null_assertion
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/add_new_listing_controller.dart:278:65 • dead_null_aware_expression
+warning • The operand can't be 'null', so the condition is always 'true' • lib/controllers/add_new_listing_controller.dart:284:27 • unnecessary_null_comparison
+warning • The '!' will have no effect because the receiver can't be null • lib/controllers/add_new_listing_controller.dart:284:51 • unnecessary_non_null_assertion
+warning • The '!' will have no effect because the receiver can't be null • lib/controllers/add_new_listing_controller.dart:286:53 • unnecessary_non_null_assertion
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/add_new_listing_controller.dart:289:61 • dead_null_aware_expression
+   info • Statements in an if should be enclosed in a block • lib/controllers/add_new_listing_controller.dart:314:7 • curly_braces_in_flow_control_structures
+   info • 'WillPopScope' is deprecated and shouldn't be used. Use PopScope instead. The Android predictive back feature will not work with WillPopScope. This feature was deprecated after v3.12.0-1.0.pre • lib/controllers/add_new_listing_controller.dart:353:19 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/controllers/add_new_listing_controller.dart:366:43 • deprecated_member_use
+   info • Don't invoke 'print' in production code • lib/controllers/add_new_listing_controller.dart:583:11 • avoid_print
+   info • Don't invoke 'print' in production code • lib/controllers/add_new_listing_controller.dart:780:7 • avoid_print
+warning • Unused import: '../view/trainer/trainer_complete_profile_view.dart' • lib/controllers/auth_controller.dart:30:8 • unused_import
+warning • Unused import: '../view/trainer/trainer_profile_setup_view.dart' • lib/controllers/auth_controller.dart:31:8 • unused_import
+warning • Unused import: '../view/vendor/complete_profile_view.dart' • lib/controllers/auth_controller.dart:34:8 • unused_import
+   info • Don't invoke 'print' in production code • lib/controllers/auth_controller.dart:69:5 • avoid_print
+   info • Unnecessary braces in a string interpolation • lib/controllers/auth_controller.dart:69:19 • unnecessary_brace_in_string_interps
+   info • Statements in an if should be enclosed in a block • lib/controllers/auth_controller.dart:641:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/auth_controller.dart:643:9 • curly_braces_in_flow_control_structures
+warning • The value of the local variable 'token' isn't used • lib/controllers/auth_controller.dart:701:15 • unused_local_variable
+warning • The value of the local variable 'role' isn't used • lib/controllers/auth_controller.dart:703:22 • unused_local_variable
+warning • The value of the local variable 'isProfileSetup' isn't used • lib/controllers/auth_controller.dart:705:20 • unused_local_variable
+warning • The value of the local variable 'isProfileApprove' isn't used • lib/controllers/auth_controller.dart:706:20 • unused_local_variable
+   info • Statements in an if should be enclosed in a block • lib/controllers/auth_controller.dart:844:13 • curly_braces_in_flow_control_structures
+warning • The receiver can't be null, so the null-aware operator '?.' is unnecessary • lib/controllers/chat_controller.dart:174:89 • invalid_null_aware_operator
+warning • The value of the local variable 'otherInActive' isn't used • lib/controllers/chat_controller.dart:407:22 • unused_local_variable
+warning • Dead code • lib/controllers/chat_controller.dart:443:32 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/chat_controller.dart:443:35 • dead_null_aware_expression
+warning • The value of the local variable 'currentUserId' isn't used • lib/controllers/explore_controller.dart:267:13 • unused_local_variable
+warning • The value of the local variable 'trainerId' isn't used • lib/controllers/explore_controller.dart:268:13 • unused_local_variable
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:318:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:320:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:322:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:324:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:326:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:328:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:330:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:409:50 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:410:57 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:411:58 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:412:57 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:413:58 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/explore_controller.dart:414:58 • curly_braces_in_flow_control_structures
+warning • The value of the local variable 'city' isn't used • lib/controllers/explore_controller.dart:642:17 • unused_local_variable
+warning • The value of the local variable 'state' isn't used • lib/controllers/explore_controller.dart:643:17 • unused_local_variable
+   info • Unnecessary override • lib/controllers/horse_controller.dart:18:8 • unnecessary_overrides
+   info • Don't invoke 'print' in production code • lib/controllers/horse_controller.dart:75:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/controllers/horse_controller.dart:92:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/controllers/horse_controller.dart:113:7 • avoid_print
+warning • Unused import: 'package:catch_ride/controllers/vendor/bodywork/bodywork_application_controller.dart' • lib/controllers/vendor/bodywork/bodywork_details_controller.dart:7:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/vendor/vendor_application_submit_view.dart' • lib/controllers/vendor/bodywork/bodywork_details_controller.dart:8:8 • unused_import
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/bodywork/bodywork_details_controller.dart:16:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/bodywork/bodywork_details_controller.dart:16:8 • unused_import
+warning • Duplicate import • lib/controllers/vendor/bodywork/bodywork_details_controller.dart:17:8 • duplicate_import
+warning • Unused import: 'package:catch_ride/view/vendor/vendor_application_submit_view.dart' • lib/controllers/vendor/bodywork/bodywork_details_controller.dart:17:8 • unused_import
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/braiding/braiding_application_controller.dart:15:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/braiding/braiding_application_controller.dart:15:8 • unused_import
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/clipping/clipping_application_controller.dart:14:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/clipping/clipping_application_controller.dart:14:8 • unused_import
+warning • The declaration 'updateServiceList' isn't referenced • lib/controllers/vendor/clipping/clipping_details_controller.dart:139:16 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/controllers/vendor/common_application_view.dart:175:33 • deprecated_member_use
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/farrier/farrier_application_controller.dart:12:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/farrier/farrier_application_controller.dart:12:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/vendor/farrier/create_profile/farrier_details_view.dart' • lib/controllers/vendor/farrier/farrier_application_controller.dart:14:8 • unused_import
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/farrier/farrier_details_controller.dart:6:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/farrier/farrier_details_controller.dart:6:8 • unused_import
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/groom/edit_vendor_profile_controller.dart:5:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/groom/edit_vendor_profile_controller.dart:5:8 • unused_import
+warning • The receiver can't be null, so the null-aware operator '?[' is unnecessary • lib/controllers/vendor/groom/edit_vendor_profile_controller.dart:690:40 • invalid_null_aware_operator
+   info • Function literals shouldn't be passed to 'forEach' • lib/controllers/vendor/groom/edit_vendor_profile_controller.dart:1120:33 • avoid_function_literals_in_foreach_calls
+warning • Unused import: '../../../view/vendor/braiding/profile_create/braiding_application_view.dart' • lib/controllers/vendor/groom/groom_complete_profile_controller.dart:10:8 • unused_import
+   info • Don't invoke 'print' in production code • lib/controllers/vendor/groom/groom_complete_profile_controller.dart:64:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/controllers/vendor/groom/groom_complete_profile_controller.dart:65:5 • avoid_print
+   info • Statements in an if should be enclosed in a block • lib/controllers/vendor/groom/groom_view_profile_controller.dart:453:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/vendor/groom/groom_view_profile_controller.dart:629:7 • curly_braces_in_flow_control_structures
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/groom/setup_groom_application_controller.dart:13:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/groom/setup_groom_application_controller.dart:13:8 • unused_import
+warning • Dead code • lib/controllers/vendor/shipping/add_trip_controller.dart:56:62 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/vendor/shipping/add_trip_controller.dart:56:65 • dead_null_aware_expression
+warning • The left operand can't be null, so the right operand is never executed • lib/controllers/vendor/shipping/add_trip_controller.dart:63:69 • dead_null_aware_expression
+   info • Statements in an if should be enclosed in a block • lib/controllers/vendor/shipping/shipping_details_controller.dart:354:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/controllers/vendor/shipping/shipping_details_controller.dart:358:9 • curly_braces_in_flow_control_structures
+warning • Unused import: 'package:catch_ride/constant/app_urls.dart' • lib/controllers/vendor/vendor_availability_controller.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/models/trip_model.dart' • lib/controllers/vendor/vendor_details_controller.dart:2:8 • unused_import
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/controllers/vendor/vendor_details_controller.dart:4:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/controllers/vendor/vendor_details_controller.dart:4:8 • unused_import
+warning • The value of the field '_authController' isn't used • lib/controllers/vendor/vendor_select_services_controller.dart:11:24 • unused_field
+warning • Unused import: 'package:shared_preferences/shared_preferences.dart' • lib/main.dart:9:8 • unused_import
+warning • The value of the local variable 'bId' isn't used • lib/models/horse_model.dart:183:13 • unused_local_variable
+   info • Unnecessary 'this.' qualifier • lib/models/user_model.dart:346:43 • unnecessary_this
+warning • Unused import: 'package:catch_ride/constant/app_strings.dart' • lib/my_app.dart:1:8 • unused_import
+   info • Don't invoke 'print' in production code • lib/services/api_service.dart:90:5 • avoid_print
+   info • Unnecessary braces in a string interpolation • lib/services/api_service.dart:90:28 • unnecessary_brace_in_string_interps
+   info • Don't invoke 'print' in production code • lib/services/notification_service.dart:229:3 • avoid_print
+   info • The local variable '_visit' starts with an underscore • lib/utils/form_utils.dart:8:10 • no_leading_underscores_for_local_identifiers
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/barn_manager/barn_manager_application_submitted_view.dart:3:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_application_submitted_view.dart:43:48 • deprecated_member_use
+   info • Unnecessary braces in a string interpolation • lib/view/barn_manager/barn_manager_application_submitted_view.dart:68:26 • unnecessary_brace_in_string_interps
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_application_submitted_view.dart:96:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_availability_view.dart:149:33 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/barn_manager/barn_manager_availability_view.dart:183:15 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_availability_view.dart:216:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_availability_view.dart:551:64 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/view/barn_manager/home/barn_manager_explore_view.dart' • lib/view/barn_manager/barn_manager_bottom_nav.dart:10:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_create_profile_view.dart:112:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_create_profile_view.dart:147:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_create_profile_view.dart:172:65 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_create_profile_view.dart:178:63 • deprecated_member_use
+   info • Implicit tear-off of the 'call' method • lib/view/barn_manager/barn_manager_create_profile_view.dart:240:38 • implicit_call_tearoffs
+   info • Implicit tear-off of the 'call' method • lib/view/barn_manager/barn_manager_create_profile_view.dart:297:50 • implicit_call_tearoffs
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/view/barn_manager/barn_manager_create_profile_view.dart:340:32 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/barn_manager_create_profile_view.dart:353:67 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/barn_manager/barn_manager_create_profile_view.dart:436:25 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/barn_manager/barn_manager_create_profile_view.dart:438:25 • curly_braces_in_flow_control_structures
+warning • Unused import: 'package:catch_ride/utils/date_util.dart' • lib/view/barn_manager/bookings/barn_manager_bookings_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/barn_manager/home/barn_manager_horse_detail_view.dart' • lib/view/barn_manager/bookings/barn_manager_bookings_view.dart:10:8 • unused_import
+warning • Unused import: '../../../constant/app_constants.dart' • lib/view/barn_manager/bookings/barn_manager_bookings_view.dart:14:8 • unused_import
+warning • Unused import: '../../../widgets/common_button.dart' • lib/view/barn_manager/bookings/barn_manager_bookings_view.dart:15:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/barn_manager/chats/barn_manager_chat_list_view.dart:2:8 • unused_import
+warning • Unused import: '../../../constant/app_constants.dart' • lib/view/barn_manager/chats/barn_manager_chat_list_view.dart:11:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_chat_list_view.dart:142:56 • deprecated_member_use
+warning • The value of the local variable 'me' isn't used • lib/view/barn_manager/chats/barn_manager_chat_list_view.dart:198:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_chat_list_view.dart:237:49 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/controllers/profile_controller.dart' • lib/view/barn_manager/chats/barn_manager_requests_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/models/message_model.dart' • lib/view/barn_manager/chats/barn_manager_requests_view.dart:9:8 • unused_import
+   info • Unnecessary use of 'toList' in a spread • lib/view/barn_manager/chats/barn_manager_requests_view.dart:124:85 • unnecessary_to_list_in_spreads
+   info • Unnecessary use of 'toList' in a spread • lib/view/barn_manager/chats/barn_manager_requests_view.dart:135:93 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_requests_view.dart:142:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_requests_view.dart:186:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_requests_view.dart:245:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_requests_view.dart:269:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/chats/barn_manager_single_chat_view.dart:351:37 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_strings.dart' • lib/view/barn_manager/home/barn_manager_horse_detail_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/barn_manager/home/barn_manager_search_filter_overlay.dart' • lib/view/barn_manager/home/barn_manager_horse_detail_view.dart:7:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/barn_manager/home/barn_manager_horse_detail_view.dart:9:8 • unused_import
+warning • The value of the field '_isYoutube' isn't used • lib/view/barn_manager/home/barn_manager_horse_detail_view.dart:68:8 • unused_field
+warning • The value of the field '_hasVideo' isn't used • lib/view/barn_manager/home/barn_manager_horse_detail_view.dart:69:8 • unused_field
+   info • Unnecessary constructor invocation • lib/view/barn_manager/home/barn_manager_horse_detail_view.dart:1067:35 • prefer_collection_literals
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:91:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:232:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:254:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:378:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:399:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:423:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:455:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:501:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:518:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:568:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:703:43 • deprecated_member_use
+warning • The value of the local variable 'roundedItemCount' isn't used • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:733:15 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:769:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/barn_manager/home/barn_manager_search_filter_overlay.dart:867:29 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/barn_manager/list/barn_manager_horse_listing_view.dart:6:8 • unused_import
+warning • Unused import: 'package:flutter_svg/flutter_svg.dart' • lib/view/barn_manager/list/barn_manager_horse_listing_view.dart:11:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/horse_card.dart' • lib/view/barn_manager/list/barn_manager_horse_listing_view.dart:17:8 • unused_import
+   info • Unnecessary 'const' keyword • lib/view/barn_manager/list/barn_manager_horse_listing_view.dart:302:27 • unnecessary_const
+   info • Statements in an if should be enclosed in a block • lib/view/barn_manager/settings/barn_manager_profile_view.dart:230:45 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/barn_manager/settings/barn_manager_profile_view.dart:232:45 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of 'toList' in a spread • lib/view/barn_manager/settings/barn_manager_profile_view.dart:461:34 • unnecessary_to_list_in_spreads
+   info • Statements in an if should be enclosed in a block • lib/view/barn_manager/settings/barn_manager_profile_view.dart:487:7 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of 'toList' in a spread • lib/view/barn_manager/settings/barn_manager_profile_view.dart:511:14 • unnecessary_to_list_in_spreads
+   info • Implicit tear-off of the 'call' method • lib/view/barn_manager/settings/edit_profile.dart:497:30 • implicit_call_tearoffs
+warning • Unused import: 'package:catch_ride/widgets/common_text.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:1:8 • unused_import
+warning • Unused import: 'package:flutter/material.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_colors.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:3:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:4:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:5:8 • unused_import
+warning • Unused import: 'package:catch_ride/models/horse_model.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:6:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_image_view.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:7:8 • unused_import
+warning • Unused import: 'package:get/get.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/controllers/horse_controller.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/controllers/profile_controller.dart' • lib/view/barn_manager/settings/view_all_horses_view.dart:10:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/select_role_view.dart' • lib/view/create_account_view.dart:10:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/create_account_view.dart:57:45 • deprecated_member_use
+   info • Implicit tear-off of the 'call' method • lib/view/create_account_view.dart:86:36 • implicit_call_tearoffs
+   info • Implicit tear-off of the 'call' method • lib/view/create_account_view.dart:102:36 • implicit_call_tearoffs
+warning • Unused import: 'package:catch_ride/view/select_role_view.dart' • lib/view/login_view.dart:10:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/login_view.dart:56:45 • deprecated_member_use
+   info • Implicit tear-off of the 'call' method • lib/view/login_view.dart:85:36 • implicit_call_tearoffs
+   info • Implicit tear-off of the 'call' method • lib/view/login_view.dart:101:36 • implicit_call_tearoffs
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/otp_verification_view.dart:160:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/otp_verification_view.dart:261:52 • deprecated_member_use
+   info • Don't invoke 'print' in production code • lib/view/select_role_view.dart:135:25 • avoid_print
+warning • Unused import: 'package:catch_ride/view/trainer/home/search_filter_overlay.dart' • lib/view/trainer/booking_request_view.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/trainer/booking_request_view.dart:10:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_button.dart' • lib/view/trainer/booking_request_view.dart:12:8 • unused_import
+warning • The value of the field '_isRequested' isn't used • lib/view/trainer/booking_request_view.dart:64:8 • unused_field
+warning • The value of the field '_canMessage' isn't used • lib/view/trainer/booking_request_view.dart:65:8 • unused_field
+warning • The value of the field '_isYoutube' isn't used • lib/view/trainer/booking_request_view.dart:77:8 • unused_field
+warning • The value of the field '_hasVideo' isn't used • lib/view/trainer/booking_request_view.dart:78:8 • unused_field
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/booking_request_view.dart:366:34 • deprecated_member_use
+warning • The declaration '_buildCircleButton' isn't referenced • lib/view/trainer/booking_request_view.dart:462:10 • unused_element
+warning • The declaration '_buildActionMenu' isn't referenced • lib/view/trainer/booking_request_view.dart:476:10 • unused_element
+warning • The declaration '_buildStatusBadge' isn't referenced • lib/view/trainer/booking_request_view.dart:928:10 • unused_element
+warning • The declaration '_buildHeader' isn't referenced • lib/view/trainer/booking_request_view.dart:973:10 • unused_element
+   info • Unnecessary constructor invocation • lib/view/trainer/booking_request_view.dart:1024:35 • prefer_collection_literals
+warning • The declaration '_buildUsefNumberBanner' isn't referenced • lib/view/trainer/booking_request_view.dart:1123:10 • unused_element
+warning • The declaration '_buildCancelationPolicy' isn't referenced • lib/view/trainer/booking_request_view.dart:1485:10 • unused_element
+warning • The declaration '_buildTagsGridSection' isn't referenced • lib/view/trainer/booking_request_view.dart:1932:10 • unused_element
+warning • The declaration '_showBookingRequestBottomSheet' isn't referenced • lib/view/trainer/booking_request_view.dart:2031:8 • unused_element
+warning • The value of the local variable 'endDate' isn't used • lib/view/trainer/booking_request_view.dart:2033:15 • unused_local_variable
+   info • Unnecessary use of 'toList' in a spread • lib/view/trainer/booking_request_view.dart:2287:26 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/booking_request_view.dart:2814:37 • deprecated_member_use
+warning • The value of the field '_currentIndex' isn't used • lib/view/trainer/booking_request_view.dart:2845:12 • unused_field
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/booking_request_view.dart:2916:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/booking_request_view.dart:2980:43 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/utils/date_util.dart' • lib/view/trainer/bookings/trainer_bookings_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/trainer/bookings/trainer_bookings_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart' • lib/view/trainer/bookings/trainer_bookings_view.dart:11:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_button.dart' • lib/view/trainer/bookings/trainer_bookings_view.dart:13:8 • unused_import
+warning • Unused import: 'package:catch_ride/utils/date_util.dart' • lib/view/trainer/bookings/trainer_past_bookings_view.dart:1:8 • unused_import
+warning • Unused import: '../../../constant/app_constants.dart' • lib/view/trainer/bookings/trainer_past_bookings_view.dart:9:8 • unused_import
+warning • Unused import: '../../../controllers/profile_controller.dart' • lib/view/trainer/chats/barn_manager_conversations_view.dart:11:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/barn_manager_conversations_view.dart:94:52 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/trainer/chats/chats_view.dart:4:8 • unused_import
+warning • Unused import: '../../../models/user_model.dart' • lib/view/trainer/chats/chats_view.dart:15:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/chats_view.dart:136:56 • deprecated_member_use
+warning • The value of the local variable 'me' isn't used • lib/view/trainer/chats/chats_view.dart:196:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/chats_view.dart:235:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/single_chat_view.dart:360:37 • deprecated_member_use
+warning • The declaration '_buildBannerButton' isn't referenced • lib/view/trainer/chats/single_chat_view.dart:397:10 • unused_element
+warning • Unused import: 'package:catch_ride/view/trainer/chats/single_chat_view.dart' • lib/view/trainer/chats/trainer_requests_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/models/message_model.dart' • lib/view/trainer/chats/trainer_requests_view.dart:8:8 • unused_import
+warning • Unused import: 'package:intl/intl.dart' • lib/view/trainer/chats/trainer_requests_view.dart:11:8 • unused_import
+warning • Unused import: 'package:catch_ride/controllers/profile_controller.dart' • lib/view/trainer/chats/trainer_requests_view.dart:12:8 • unused_import
+   info • Unnecessary use of 'toList' in a spread • lib/view/trainer/chats/trainer_requests_view.dart:122:85 • unnecessary_to_list_in_spreads
+   info • Unnecessary use of 'toList' in a spread • lib/view/trainer/chats/trainer_requests_view.dart:133:93 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/trainer_requests_view.dart:140:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/trainer_requests_view.dart:180:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/trainer_requests_view.dart:240:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/chats/trainer_requests_view.dart:264:51 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/home/filter_bottom_sheet.dart:44:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/home/filter_bottom_sheet.dart:46:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/home/filter_bottom_sheet.dart:48:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/home/filter_bottom_sheet.dart:50:7 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:130:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:203:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:274:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:299:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:522:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:543:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:567:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:599:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:645:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:662:60 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:712:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:725:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:766:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:772:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:833:44 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:839:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:963:43 • deprecated_member_use
+warning • The value of the local variable 'roundedItemCount' isn't used • lib/view/trainer/home/search_filter_overlay.dart:993:15 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/search_filter_overlay.dart:1029:46 • deprecated_member_use
+   info • The imported package 'collection' isn't a dependency of the importing package • lib/view/trainer/home/services_filter_bottom_sheet.dart:7:8 • depend_on_referenced_packages
+warning • Unused import: 'package:collection/collection.dart' • lib/view/trainer/home/services_filter_bottom_sheet.dart:7:8 • unused_import
+warning • A value for optional parameter 'isDecimal' isn't ever given • lib/view/trainer/home/services_filter_bottom_sheet.dart:504:163 • unused_element_parameter
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/services_filter_bottom_sheet.dart:668:39 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/view/trainer/home/search_filter_overlay.dart' • lib/view/trainer/home/trainer_horse_detail_view.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/trainer/home/trainer_horse_detail_view.dart:10:8 • unused_import
+warning • Unused import: 'package:chewie/chewie.dart' • lib/view/trainer/home/trainer_horse_detail_view.dart:16:8 • unused_import
+warning • The value of the field '_canMessage' isn't used • lib/view/trainer/home/trainer_horse_detail_view.dart:64:8 • unused_field
+warning • The value of the field '_isYoutube' isn't used • lib/view/trainer/home/trainer_horse_detail_view.dart:76:8 • unused_field
+warning • The value of the field '_hasVideo' isn't used • lib/view/trainer/home/trainer_horse_detail_view.dart:77:8 • unused_field
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/trainer_horse_detail_view.dart:326:34 • deprecated_member_use
+warning • Dead code • lib/view/trainer/home/trainer_horse_detail_view.dart:615:39 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/view/trainer/home/trainer_horse_detail_view.dart:615:42 • dead_null_aware_expression
+warning • The declaration '_buildHeader' isn't referenced • lib/view/trainer/home/trainer_horse_detail_view.dart:941:10 • unused_element
+   info • Unnecessary constructor invocation • lib/view/trainer/home/trainer_horse_detail_view.dart:992:35 • prefer_collection_literals
+warning • The declaration '_buildUsefNumberBanner' isn't referenced • lib/view/trainer/home/trainer_horse_detail_view.dart:1091:10 • unused_element
+warning • The declaration '_buildCancelationPolicy' isn't referenced • lib/view/trainer/home/trainer_horse_detail_view.dart:1453:10 • unused_element
+warning • The declaration '_buildTagsGridSection' isn't referenced • lib/view/trainer/home/trainer_horse_detail_view.dart:1803:10 • unused_element
+warning • The value of the local variable 'endDate' isn't used • lib/view/trainer/home/trainer_horse_detail_view.dart:1904:15 • unused_local_variable
+   info • Unnecessary use of 'toList' in a spread • lib/view/trainer/home/trainer_horse_detail_view.dart:2158:26 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/home/trainer_horse_detail_view.dart:2671:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:327:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:331:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:372:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:376:55 • deprecated_member_use
+warning • The value of the local variable 'url' isn't used • lib/view/trainer/list/add_new_listing_view.dart:423:26 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:430:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:461:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:465:55 • deprecated_member_use
+warning • The value of the local variable 'file' isn't used • lib/view/trainer/list/add_new_listing_view.dart:483:24 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:490:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:521:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:525:55 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/list/add_new_listing_view.dart:697:21 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/list/add_new_listing_view.dart:710:21 • curly_braces_in_flow_control_structures
+warning • The value of the local variable 'local' isn't used • lib/view/trainer/list/add_new_listing_view.dart:752:33 • unused_local_variable
+   info • Unnecessary constructor invocation • lib/view/trainer/list/add_new_listing_view.dart:759:34 • prefer_collection_literals
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:837:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/add_new_listing_view.dart:1208:33 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/trainer/list/add_new_listing_view.dart:1651:19 • deprecated_member_use
+warning • The declaration '_showSingleSelectBottomSheet' isn't referenced • lib/view/trainer/list/add_new_listing_view.dart:2157:8 • unused_element
+warning • The value of the local variable 'oldText' isn't used • lib/view/trainer/list/add_new_listing_view.dart:2261:12 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:396:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:400:55 • deprecated_member_use
+warning • The value of the local variable 'url' isn't used • lib/view/trainer/list/edit_horse_listing_view.dart:452:26 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:459:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:490:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:494:55 • deprecated_member_use
+warning • The value of the local variable 'file' isn't used • lib/view/trainer/list/edit_horse_listing_view.dart:512:24 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:519:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:550:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:554:55 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/list/edit_horse_listing_view.dart:727:21 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/list/edit_horse_listing_view.dart:740:21 • curly_braces_in_flow_control_structures
+warning • The value of the local variable 'local' isn't used • lib/view/trainer/list/edit_horse_listing_view.dart:780:29 • unused_local_variable
+   info • Unnecessary constructor invocation • lib/view/trainer/list/edit_horse_listing_view.dart:786:30 • prefer_collection_literals
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:855:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/edit_horse_listing_view.dart:1252:33 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/trainer/list/edit_horse_listing_view.dart:1656:19 • deprecated_member_use
+warning • The value of the local variable 'oldText' isn't used • lib/view/trainer/list/edit_horse_listing_view.dart:2170:12 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/horse_listing_view.dart:211:62 • deprecated_member_use
+warning • The value of the local variable 'imageCount' isn't used • lib/view/trainer/list/horse_listing_view.dart:285:18 • unused_local_variable
+warning • Unused import: 'package:chewie/chewie.dart' • lib/view/trainer/list/listing_preview_view.dart:12:8 • unused_import
+   info • The member 'initState' overrides an inherited member but isn't annotated with '@override' • lib/view/trainer/list/listing_preview_view.dart:34:8 • annotate_overrides
+warning • The declaration '_buildHeroTag' isn't referenced • lib/view/trainer/list/listing_preview_view.dart:208:10 • unused_element
+   info • Unnecessary use of string interpolation • lib/view/trainer/list/listing_preview_view.dart:374:23 • unnecessary_string_interpolations
+warning • A value of type 'void' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<Null>' • lib/view/trainer/list/listing_preview_view.dart:819:30 • invalid_return_type_for_catch_error
+warning • A value of type 'void' can't be returned by the 'onError' handler because it must be assignable to 'FutureOr<Null>' • lib/view/trainer/list/listing_preview_view.dart:839:32 • invalid_return_type_for_catch_error
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/list/listing_preview_view.dart:901:37 • deprecated_member_use
+warning • The value of the field '_is2FAEnabled' isn't used • lib/view/trainer/settings/account_settings_view.dart:22:8 • unused_field
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:53:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:187:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:190:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:252:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:287:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:307:63 • deprecated_member_use
+warning • The declaration '_buildToggleTile' isn't referenced • lib/view/trainer/settings/account_settings_view.dart:313:10 • unused_element
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/trainer/settings/account_settings_view.dart:339:17 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/account_settings_view.dart:348:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/change_password_view.dart:57:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/change_password_view.dart:163:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_barn_info_view.dart:106:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_barn_info_view.dart:160:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_barn_info_view.dart:163:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_basic_info_view.dart:140:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_basic_info_view.dart:196:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_basic_info_view.dart:199:35 • deprecated_member_use
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/settings/edit_basic_info_view.dart:360:34 • implicit_call_tearoffs
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_experience_view.dart:100:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_experience_view.dart:154:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_experience_view.dart:157:33 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/view/trainer/settings/edit_experience_view.dart:176:13 • deprecated_member_use
+warning • Unused import: '../trainer_profile_setup_view.dart' • lib/view/trainer/settings/edit_profile.dart:12:8 • unused_import
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/edit_profile.dart:96:35 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/edit_profile.dart:97:41 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/edit_profile.dart:98:10 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/edit_profile.dart:140:50 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/edit_profile.dart:141:56 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/edit_profile.dart:142:18 • curly_braces_in_flow_control_structures
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/view/trainer/settings/edit_profile.dart:459:11 • deprecated_member_use
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/settings/edit_profile.dart:513:22 • implicit_call_tearoffs
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/settings/edit_profile.dart:521:22 • implicit_call_tearoffs
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/settings/edit_profile.dart:530:22 • implicit_call_tearoffs
+warning • The value of the local variable 'typeId' isn't used • lib/view/trainer/settings/edit_profile.dart:681:17 • unused_local_variable
+warning • The declaration '_showTagsBottomSheet' isn't referenced • lib/view/trainer/settings/edit_profile.dart:734:8 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/edit_profile.dart:900:39 • deprecated_member_use
+warning • The declaration '_buildDropdownField' isn't referenced • lib/view/trainer/settings/edit_profile.dart:1037:10 • unused_element
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/settings/edit_profile.dart:1124:30 • implicit_call_tearoffs
+warning • The declaration '_showSingleSelectBottomSheet' isn't referenced • lib/view/trainer/settings/edit_profile.dart:1379:8 • unused_element
+warning • The declaration '_showMultiSelectBottomSheet' isn't referenced • lib/view/trainer/settings/edit_profile.dart:1471:8 • unused_element
+warning • Dead code • lib/view/trainer/settings/edit_profile.dart:1718:59 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/view/trainer/settings/edit_profile.dart:1718:62 • dead_null_aware_expression
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/horses_services_view.dart:32:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/horses_services_view.dart:41:56 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/horses_services_view.dart:44:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/horses_services_view.dart:91:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/horses_services_view.dart:100:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/invite_barn_manager_view.dart:140:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/invite_barn_manager_view.dart:393:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/notification_settings_view.dart:42:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/notification_settings_view.dart:54:60 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeTrackColor instead. This feature was deprecated after v3.24.0-0.2.pre • lib/view/trainer/settings/notification_settings_view.dart:74:23 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/privacy_policy_view.dart:47:52 • deprecated_member_use
+   info • 'Share' is deprecated and shouldn't be used. Use SharePlus instead • lib/view/trainer/settings/refer_new_member_view.dart:286:13 • deprecated_member_use
+   info • 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead • lib/view/trainer/settings/refer_new_member_view.dart:286:19 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/trainer/settings/request_horse_show_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/trainer/settings/saved_view.dart:2:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/saved_view.dart:36:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/saved_view.dart:146:43 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_theme.dart' • lib/view/trainer/settings/settings_view.dart:2:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/settings/terms_and_conditions_view.dart:47:52 • deprecated_member_use
+warning • Unused import: '../trainer_complete_profile_view.dart' • lib/view/trainer/settings/trainer_profile_view.dart:13:8 • unused_import
+warning • Unused import: '../trainer_profile_setup_view.dart' • lib/view/trainer/settings/trainer_profile_view.dart:14:8 • unused_import
+   info • Use interpolation to compose strings and values • lib/view/trainer/settings/trainer_profile_view.dart:255:53 • prefer_interpolation_to_compose_strings
+   info • Unnecessary use of 'toList' in a spread • lib/view/trainer/settings/trainer_profile_view.dart:500:36 • unnecessary_to_list_in_spreads
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/settings/trainer_profile_view.dart:543:7 • curly_braces_in_flow_control_structures
+   info • Unnecessary use of 'toList' in a spread • lib/view/trainer/settings/trainer_profile_view.dart:567:14 • unnecessary_to_list_in_spreads
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/view/trainer/settings/view_all_horses_view.dart:4:8 • unused_import
+warning • Unused import: 'package:flutter_svg/svg.dart' • lib/view/trainer/splash_screen.dart:3:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/login_view.dart' • lib/view/trainer/splash_screen.dart:5:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/create_account_view.dart' • lib/view/trainer/splash_screen.dart:6:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/trainer/trainer_bottom_nav.dart' • lib/view/trainer/splash_screen.dart:7:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/barn_manager/barn_manager_bottom_nav.dart' • lib/view/trainer/splash_screen.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/select_role_view.dart' • lib/view/trainer/splash_screen.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/trainer/trainer_profile_setup_view.dart' • lib/view/trainer/splash_screen.dart:10:8 • unused_import
+warning • Unused import: 'package:shared_preferences/shared_preferences.dart' • lib/view/trainer/splash_screen.dart:14:8 • unused_import
+warning • Unused import: '../../services/api_service.dart' • lib/view/trainer/splash_screen.dart:17:8 • unused_import
+warning • The value of the field '_logger' isn't used • lib/view/trainer/splash_screen.dart:28:16 • unused_field
+   info • 'color' is deprecated and shouldn't be used. Use colorFilter instead • lib/view/trainer/trainer_application_submitted_view.dart:29:19 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_application_submitted_view.dart:41:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_application_submitted_view.dart:92:48 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/controllers/auth_controller.dart' • lib/view/trainer/trainer_community_standards.dart:3:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/vendor/complete_profile_view.dart' • lib/view/trainer/trainer_community_standards.dart:4:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_complete_profile_view.dart:295:47 • deprecated_member_use
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/trainer_complete_profile_view.dart:388:22 • implicit_call_tearoffs
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/trainer_complete_profile_view.dart:426:22 • implicit_call_tearoffs
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/view/trainer/trainer_complete_profile_view.dart:444:11 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_complete_profile_view.dart:457:46 • deprecated_member_use
+warning • The declaration '_showMultiSelectBottomSheet' isn't referenced • lib/view/trainer/trainer_complete_profile_view.dart:687:8 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_complete_profile_view.dart:821:52 • deprecated_member_use
+warning • The value of the local variable 'typeId' isn't used • lib/view/trainer/trainer_complete_profile_view.dart:853:17 • unused_local_variable
+warning • The declaration '_showTagsBottomSheet' isn't referenced • lib/view/trainer/trainer_complete_profile_view.dart:906:8 • unused_element
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/trainer_complete_profile_view.dart:1105:30 • implicit_call_tearoffs
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_complete_profile_view.dart:1166:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_complete_profile_view.dart:1206:52 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/trainer/trainer_complete_profile_view.dart:1236:33 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_urls.dart' • lib/view/trainer/trainer_profile_setup_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/services/api_service.dart' • lib/view/trainer/trainer_profile_setup_view.dart:3:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/trainer/trainer_application_submitted_view.dart' • lib/view/trainer/trainer_profile_setup_view.dart:4:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/trainer/trainer_complete_profile_view.dart' • lib/view/trainer/trainer_profile_setup_view.dart:5:8 • unused_import
+warning • Unused import: 'package:url_launcher/url_launcher.dart' • lib/view/trainer/trainer_profile_setup_view.dart:15:8 • unused_import
+   info • Statements in an if should be enclosed in a block • lib/view/trainer/trainer_profile_setup_view.dart:201:31 • curly_braces_in_flow_control_structures
+   info • Implicit tear-off of the 'call' method • lib/view/trainer/trainer_profile_setup_view.dart:302:24 • implicit_call_tearoffs
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/bodywork/availability/bodywork_add_availability.dart:2:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/availability/bodywork_add_availability.dart:177:37 • deprecated_member_use
+warning • The declaration '_buildDatePickerField' isn't referenced • lib/view/vendor/bodywork/availability/bodywork_add_availability.dart:252:10 • unused_element
+warning • Unused import: 'package:catch_ride/widgets/common_dropdown.dart' • lib/view/vendor/bodywork/create_profile/bodywork_application_view.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_suggestion_field.dart' • lib/view/vendor/bodywork/create_profile/bodywork_application_view.dart:10:8 • unused_import
+warning • Unused import: 'package:form_field_validator/form_field_validator.dart' • lib/view/vendor/bodywork/create_profile/bodywork_application_view.dart:13:8 • unused_import
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/create_profile/bodywork_application_view.dart:208:32 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/create_profile/bodywork_application_view.dart:582:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:252:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:320:42 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:452:18 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:561:90 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:723:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:747:46 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/create_profile/bodywork_details_view.dart:866:18 • unnecessary_to_list_in_spreads
+warning • Unused import: 'package:intl/intl.dart' • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:15:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:67:33 • deprecated_member_use
+warning • The declaration '_showServicePriceBottomSheet' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:237:8 • unused_element
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:293:18 • unnecessary_to_list_in_spreads
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:427:18 • unnecessary_to_list_in_spreads
+warning • The declaration '_getFileSize' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:624:10 • unused_element
+warning • The declaration '_buildDatePickerTrigger' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:837:10 • unused_element
+warning • The declaration '_showLocationBottomSheet' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:878:8 • unused_element
+warning • The declaration '_selectDate' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_edit_profile_tab.dart:938:16 • unused_element
+warning • The value of the local variable 'insurance' isn't used • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:25:16 • unused_local_variable
+warning • The value of the local variable 'cancellationPolicy' isn't used • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:27:16 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:45:33 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:65:18 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:216:36 • deprecated_member_use
+warning • The declaration '_buildDisclaimerBox' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:301:10 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/profile/bodywork_profile_card.dart:305:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/profile/bodywork_service_rates_tab.dart:70:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/bodywork/profile/bodywork_service_rates_tab.dart:138:42 • deprecated_member_use
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/bodywork/profile/bodywork_service_rates_tab.dart:268:18 • unnecessary_to_list_in_spreads
+warning • The declaration '_showAddServiceBottomSheet' isn't referenced • lib/view/vendor/bodywork/profile/bodywork_service_rates_tab.dart:357:8 • unused_element
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/booking_details_view.dart:3:8 • unused_import
+warning • The declaration '_buildSummarySection' isn't referenced • lib/view/vendor/booking_details_view.dart:332:10 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/booking_details_view.dart:426:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/booking_details_view.dart:467:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/booking_details_view.dart:596:46 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/braiding/availability/braiding_add_availability.dart:2:8 • unused_import
+warning • Dead code • lib/view/vendor/braiding/availability/braiding_add_availability.dart:53:45 • dead_code
+warning • The left operand can't be null, so the right operand is never executed • lib/view/vendor/braiding/availability/braiding_add_availability.dart:53:48 • dead_null_aware_expression
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/availability/braiding_add_availability.dart:182:37 • deprecated_member_use
+warning • The declaration '_availableServiceTypes' isn't referenced • lib/view/vendor/braiding/availability/braiding_add_availability.dart:222:20 • unused_element
+warning • The declaration '_buildSelectionWrap' isn't referenced • lib/view/vendor/braiding/availability/braiding_add_availability.dart:227:10 • unused_element
+warning • The declaration '_buildDatePickerField' isn't referenced • lib/view/vendor/braiding/availability/braiding_add_availability.dart:293:10 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/availability/braiding_availability_card.dart:34:57 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/availability/braiding_availability_card.dart:66:53 • deprecated_member_use
+warning • Duplicate import • lib/view/vendor/braiding/profile/braiding_edit_profile_tab.dart:13:8 • duplicate_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/profile/braiding_edit_profile_tab.dart:64:33 • deprecated_member_use
+warning • The declaration '_showLocationBottomSheet' isn't referenced • lib/view/vendor/braiding/profile/braiding_edit_profile_tab.dart:690:8 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/profile/braiding_service_rates_tab.dart:93:51 • deprecated_member_use
+warning • Unused import: 'dart:io' • lib/view/vendor/braiding/profile_create/braiding_application_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_dropdown.dart' • lib/view/vendor/braiding/profile_create/braiding_application_view.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_suggestion_field.dart' • lib/view/vendor/braiding/profile_create/braiding_application_view.dart:9:8 • unused_import
+warning • Unused import: 'package:form_field_validator/form_field_validator.dart' • lib/view/vendor/braiding/profile_create/braiding_application_view.dart:11:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/profile_create/braiding_application_view.dart:310:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/profile_create/braiding_details_view.dart:378:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/braiding/profile_create/braiding_details_view.dart:409:71 • deprecated_member_use
+warning • The declaration '_buildActionLink' isn't referenced • lib/view/vendor/braiding/profile_create/braiding_details_view.dart:421:10 • unused_element
+warning • Unused import: 'package:catch_ride/widgets/common_button.dart' • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:6:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_textfield.dart' • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:8:8 • unused_import
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:67:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:69:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:71:7 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:234:33 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/clipping/availability/add_clipping_availability_view.dart:562:31 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/availability/clipping_availability_block_card.dart:30:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/availability/clipping_availability_block_card.dart:65:51 • deprecated_member_use
+warning • Duplicate import • lib/view/vendor/clipping/profile/clipping_edit_profile_tab.dart:14:8 • duplicate_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile/clipping_edit_profile_tab.dart:65:33 • deprecated_member_use
+warning • The declaration '_showLocationBottomSheet' isn't referenced • lib/view/vendor/clipping/profile/clipping_edit_profile_tab.dart:691:8 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile/clipping_service_and_rates.dart:71:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile/clipping_service_and_rates.dart:126:56 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile/clipping_service_rates_tab.dart:132:33 • deprecated_member_use
+warning • Unused import: 'dart:io' • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_dropdown.dart' • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_suggestion_field.dart' • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:10:8 • unused_import
+warning • Unused import: 'package:form_field_validator/form_field_validator.dart' • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:12:8 • unused_import
+   info • The import of 'package:get/get_core/src/get_main.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:15:8 • unnecessary_import
+   info • The import of 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:16:8 • unnecessary_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile_create/clipping_application_view.dart:314:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile_create/clipping_detail_view.dart:425:101 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/clipping/profile_create/clipping_detail_view.dart:697:41 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/controllers/auth_controller.dart' • lib/view/vendor/community_standards_view.dart:3:8 • unused_import
+warning • Unused import: 'dart:io' • lib/view/vendor/complete_profile_view.dart:1:8 • unused_import
+warning • Unused import: 'braiding/profile_create/braiding_application_view.dart' • lib/view/vendor/complete_profile_view.dart:15:8 • unused_import
+warning • Unused import: 'braiding/profile_create/braiding_details_view.dart' • lib/view/vendor/complete_profile_view.dart:16:8 • unused_import
+   info • Implicit tear-off of the 'call' method • lib/view/vendor/complete_profile_view.dart:191:22 • implicit_call_tearoffs
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:241:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:245:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:262:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:277:66 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:332:100 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:375:61 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:379:61 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:442:69 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:446:69 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:490:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:494:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:513:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:516:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/complete_profile_view.dart:547:29 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/widgets/common_textfield.dart' • lib/view/vendor/farrier/availability/add_farrier_availability_view.dart:7:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/availability/add_farrier_availability_view.dart:168:55 • deprecated_member_use
+warning • The declaration '_buildDateField' isn't referenced • lib/view/vendor/farrier/availability/add_farrier_availability_view.dart:246:10 • unused_element
+warning • Unused import: 'package:catch_ride/constant/app_colors.dart' • lib/view/vendor/farrier/availability/farrier_availability_block_card.dart:1:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/availability/farrier_availability_block_card.dart:31:44 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/farrier/availability/farrier_availability_block_card.dart:81:44 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/farrier/availability/farrier_availability_block_card.dart:82:51 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/availability/farrier_availability_block_card.dart:182:33 • deprecated_member_use
+warning • Unused import: 'dart:io' • lib/view/vendor/farrier/create_profile/farrier_application_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_dropdown.dart' • lib/view/vendor/farrier/create_profile/farrier_application_view.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_suggestion_field.dart' • lib/view/vendor/farrier/create_profile/farrier_application_view.dart:10:8 • unused_import
+warning • Unused import: 'package:form_field_validator/form_field_validator.dart' • lib/view/vendor/farrier/create_profile/farrier_application_view.dart:12:8 • unused_import
+   info • The import of 'package:get/get_core/src/get_main.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/farrier/create_profile/farrier_application_view.dart:15:8 • unnecessary_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/create_profile/farrier_application_view.dart:453:33 • deprecated_member_use
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeTrackColor instead. This feature was deprecated after v3.24.0-0.2.pre • lib/view/vendor/farrier/create_profile/farrier_details_view.dart:373:15 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/create_profile/farrier_details_view.dart:541:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/create_profile/farrier_details_view.dart:627:101 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/models/user_model.dart' • lib/view/vendor/farrier/profile/add_operations_and_compliance_view.dart:4:8 • unused_import
+warning • Unused import: 'dart:io' • lib/view/vendor/farrier/profile/add_operations_and_compliance_view.dart:10:8 • unused_import
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/vendor/farrier/profile/add_operations_and_compliance_view.dart:190:25 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/add_operations_and_compliance_view.dart:192:54 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/add_operations_and_compliance_view.dart:208:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/add_operations_and_compliance_view.dart:366:35 • deprecated_member_use
+warning • Duplicate import • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:14:8 • duplicate_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:76:33 • deprecated_member_use
+warning • The declaration '_buildFarrierServicesSection' isn't referenced • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:329:10 • unused_element
+warning • The value of the local variable 'index' isn't used • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:350:15 • unused_local_variable
+warning • The value of the local variable 'subtitle' isn't used • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:460:25 • unused_local_variable
+warning • Unnecessary cast • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:460:36 • unnecessary_cast
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:626:17 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:1003:101 • deprecated_member_use
+   info • The 'child' argument should be last in widget constructor invocations • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:1042:45 • sort_child_properties_last
+warning • The declaration '_showLocationBottomSheet' isn't referenced • lib/view/vendor/farrier/profile/farrier_edit_profile_tab.dart:1169:8 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/farrier_service_and_rates.dart:73:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/farrier/profile/farrier_service_rates_tab.dart:116:33 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/groom/availability/add_availability_block_view.dart:2:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/availability/add_availability_block_view.dart:290:39 • deprecated_member_use
+warning • The declaration '_buildBlockHeader' isn't referenced • lib/view/vendor/groom/availability/add_availability_block_view.dart:380:10 • unused_element
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/groom/availability/add_availability_block_view.dart:616:30 • unnecessary_to_list_in_spreads
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/groom/availability/add_availability_block_view.dart:656:30 • unnecessary_to_list_in_spreads
+warning • The declaration '_buildCapacityCounter' isn't referenced • lib/view/vendor/groom/availability/add_availability_block_view.dart:871:10 • unused_element
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/groom/availability/availability_view.dart:2:8 • unused_import
+warning • Unused import: 'package:catch_ride/models/vendor_availability_model.dart' • lib/view/vendor/groom/availability/availability_view.dart:4:8 • unused_import
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/groom/availability/availability_view.dart:191:21 • unnecessary_to_list_in_spreads
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/vendor/groom/availability/availability_view.dart:243:13 • deprecated_member_use
+warning • Unused import: '../../vendor_details_view.dart' • lib/view/vendor/groom/booking/booking_view.dart:11:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/booking/booking_view.dart:140:41 • deprecated_member_use
+warning • The '!' will have no effect because the receiver can't be null • lib/view/vendor/groom/chat/chat_request_card.dart:27:98 • unnecessary_non_null_assertion
+warning • The '!' will have no effect because the receiver can't be null • lib/view/vendor/groom/chat/chat_request_card.dart:28:41 • unnecessary_non_null_assertion
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/chat_request_card.dart:49:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/chat_request_card.dart:107:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/chat_request_card.dart:132:51 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/models/message_model.dart' • lib/view/vendor/groom/chat/groom_chat_view.dart:4:8 • unused_import
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/groom/chat/requests_view.dart:106:85 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/requests_view.dart:126:37 • deprecated_member_use
+warning • Duplicate import • lib/view/vendor/groom/chat/standalone_booking_card.dart:9:8 • duplicate_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/standalone_booking_card.dart:48:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/standalone_booking_card.dart:104:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/chat/standalone_booking_card.dart:128:49 • deprecated_member_use
+   info • 'color' is deprecated and shouldn't be used. Use colorFilter instead • lib/view/vendor/groom/groom_bottom_nav.dart:110:21 • deprecated_member_use
+   info • 'color' is deprecated and shouldn't be used. Use colorFilter instead • lib/view/vendor/groom/groom_bottom_nav.dart:134:17 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:434:37 • deprecated_member_use
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:462:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:464:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:466:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:468:7 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:470:7 • curly_braces_in_flow_control_structures
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:1131:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:1135:55 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:1154:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:1157:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:1208:33 • deprecated_member_use
+warning • The declaration '_showLocationBottomSheet' isn't referenced • lib/view/vendor/groom/menu/edit_vendor_profile_view.dart:1412:8 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/menu_view.dart:196:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/menu_view.dart:231:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/past_clients_view.dart:83:51 • deprecated_member_use
+warning • Unused import: '../profile_create/grooming_details_view.dart' • lib/view/vendor/groom/menu/services_rates_view.dart:18:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/services_rates_view.dart:844:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/menu/upcoming_clients_view.dart:102:51 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/utils/date_util.dart' • lib/view/vendor/groom/profile/groom_view_profile.dart:6:8 • unused_import
+warning • Unused import: '../menu/edit_vendor_profile_view.dart' • lib/view/vendor/groom/profile/groom_view_profile.dart:29:8 • unused_import
+warning • The declaration '_buildHighlights' isn't referenced • lib/view/vendor/groom/profile/groom_view_profile.dart:653:10 • unused_element
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/groom/profile/payment_methods.dart:103:14 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/profile_create/grooming_details_view.dart:610:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/profile_create/grooming_details_view.dart:697:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/profile_create/grooming_details_view.dart:770:28 • deprecated_member_use
+warning • Unused import: 'dart:io' • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_dropdown.dart' • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_suggestion_field.dart' • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:10:8 • unused_import
+warning • Unused import: 'package:form_field_validator/form_field_validator.dart' • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:12:8 • unused_import
+   info • The import of 'package:get/get_core/src/get_main.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:14:8 • unnecessary_import
+   info • The import of 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:16:8 • unnecessary_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/groom/profile_create/setup_groom_application_view.dart:319:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/profile_completed_view.dart:39:46 • deprecated_member_use
+warning • The declaration '_buildIncludedChips' isn't referenced • lib/view/vendor/send_booking_request_view.dart:255:10 • unused_element
+   info • Unnecessary use of 'toList' in a spread • lib/view/vendor/send_booking_request_view.dart:694:16 • unnecessary_to_list_in_spreads
+warning • The declaration '_buildTextFieldWithLabel' isn't referenced • lib/view/vendor/send_booking_request_view.dart:1029:10 • unused_element
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/availability/shipping_trip_card.dart:28:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/availability/shipping_trip_card.dart:114:22 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/availability/shipping_trip_card.dart:116:41 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/widgets/common_dropdown.dart' • lib/view/vendor/shipping/create_profile/shipping_application_view.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/widgets/common_suggestion_field.dart' • lib/view/vendor/shipping/create_profile/shipping_application_view.dart:9:8 • unused_import
+   info • The import of 'package:get/get_core/src/get_main.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/shipping/create_profile/shipping_application_view.dart:13:8 • unnecessary_import
+   info • The import of 'package:get/get_rx/src/rx_types/rx_types.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/shipping/create_profile/shipping_application_view.dart:15:8 • unnecessary_import
+   info • The import of 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/shipping/create_profile/shipping_application_view.dart:16:8 • unnecessary_import
+warning • Unused import: 'package:catch_ride/widgets/common_textfield.dart' • lib/view/vendor/shipping/profile/service_price_view.dart:6:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/profile/service_price_view.dart:36:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/profile/shipping_edit_profile_tab.dart:71:33 • deprecated_member_use
+warning • The declaration '_showLocationBottomSheet' isn't referenced • lib/view/vendor/shipping/profile/shipping_edit_profile_tab.dart:750:8 • unused_element
+warning • Unused import: 'package:catch_ride/view/vendor/shipping/profile/service_price_view.dart' • lib/view/vendor/shipping/profile/shipping_service_and_rates_view.dart:1:8 • unused_import
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/shipping/trip/add_trip_view.dart:3:8 • unused_import
+   info • 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre • lib/view/vendor/shipping/trip/add_trip_view.dart:193:27 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/trip/add_trip_view.dart:303:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/trip/add_trip_view.dart:382:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/trip/add_trip_view.dart:384:66 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/trip/shipping_trip_view.dart:117:33 • deprecated_member_use
+warning • The operand can't be 'null', so the condition is always 'true' • lib/view/vendor/shipping/trip/shipping_trip_view.dart:195:38 • unnecessary_null_comparison
+warning • The '!' will have no effect because the receiver can't be null • lib/view/vendor/shipping/trip/shipping_trip_view.dart:195:71 • unnecessary_non_null_assertion
+warning • The '!' will have no effect because the receiver can't be null • lib/view/vendor/shipping/trip/shipping_trip_view.dart:208:49 • unnecessary_non_null_assertion
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/trip/shipping_trip_view.dart:254:22 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/shipping/trip/shipping_trip_view.dart:256:41 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_text_sizes.dart' • lib/view/vendor/upcoming_availability.dart:2:8 • unused_import
+   info • The import of 'package:get/get_core/src/get_main.dart' is unnecessary because all of the used elements are also provided by the import of 'package:get/get.dart' • lib/view/vendor/vendor_application_submit_view.dart:4:8 • unnecessary_import
+warning • Unused import: '../../constant/app_strings.dart' • lib/view/vendor/vendor_application_submit_view.dart:7:8 • unused_import
+warning • Unused import: 'community_standards_view.dart' • lib/view/vendor/vendor_application_submit_view.dart:10:8 • unused_import
+   info • 'color' is deprecated and shouldn't be used. Use colorFilter instead • lib/view/vendor/vendor_application_submit_view.dart:36:100 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/vendor_application_submit_view.dart:43:106 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/view/vendor/vendor_application_submit_view.dart:81:77 • deprecated_member_use
+   info • The local variable '_authController' starts with an underscore • lib/view/vendor/vendor_application_submit_view.dart:109:52 • no_leading_underscores_for_local_identifiers
+warning • Unused import: 'package:catch_ride/controllers/booking_controller.dart' • lib/view/vendor/vendor_details_view.dart:9:8 • unused_import
+warning • Unused import: 'package:catch_ride/controllers/chat_controller.dart' • lib/view/vendor/vendor_details_view.dart:10:8 • unused_import
+warning • The member 'value' can only be used within instance members of subclasses of 'RxMap' • lib/view/vendor/vendor_details_view.dart:392:52 • invalid_use_of_protected_member
+warning • The receiver can't be null, so the null-aware operator '?[' is unnecessary • lib/view/vendor/vendor_details_view.dart:392:57 • invalid_null_aware_operator
+warning • The member 'value' can only be used within instance members of subclasses of 'RxMap' • lib/view/vendor/vendor_details_view.dart:799:57 • invalid_use_of_protected_member
+warning • Unused import: 'package:catch_ride/controllers/auth_controller.dart' • lib/view/vendor/vendor_select_services_view.dart:7:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/vendor/groom/profile_create/setup_groom_application_view.dart' • lib/view/vendor/vendor_select_services_view.dart:8:8 • unused_import
+warning • Unused import: 'package:catch_ride/view/vendor/braiding/profile_create/braiding_application_view.dart' • lib/view/vendor/vendor_select_services_view.dart:9:8 • unused_import
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/widgets/common_dropdown.dart:24:7 • deprecated_member_use
+warning • Unused import: 'package:catch_ride/constant/app_constants.dart' • lib/widgets/common_image_view.dart:5:8 • unused_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:108:35 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:146:35 • deprecated_member_use
+warning • The value of the local variable 'base64Data' isn't used • lib/widgets/common_image_view.dart:180:22 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:188:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:231:33 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:259:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:285:31 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:286:31 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:299:42 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:309:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:315:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_image_view.dart:328:50 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_media_viewer.dart:108:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_media_viewer.dart:125:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_media_viewer.dart:203:41 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/common_textfield.dart:88:54 • deprecated_member_use
+warning • The '!' will have no effect because the receiver can't be null • lib/widgets/horse_card.dart:29:69 • unnecessary_non_null_assertion
+warning • The '!' will have no effect because the receiver can't be null • lib/widgets/horse_card.dart:31:25 • unnecessary_non_null_assertion
+   info • Unnecessary use of 'toList' in a spread • lib/widgets/horse_card.dart:199:32 • unnecessary_to_list_in_spreads
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/widgets/segmented_tab_control.dart:44:49 • deprecated_member_use
+   info • Don't invoke 'print' in production code • test_api.dart:5:3 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:14:5 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:15:5 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:23:5 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:24:5 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:31:7 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:32:7 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:33:7 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:34:7 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:36:7 • avoid_print
+   info • Don't invoke 'print' in production code • test_api.dart:39:5 • avoid_print
+
+711 issues found. (ran in 8.7s)
