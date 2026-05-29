@@ -16,9 +16,10 @@ class LinkHandler extends GetxService {
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         debugPrint('Initial deep link received: $initialUri');
-        Future.delayed(const Duration(milliseconds: 600), () {
-          handleDeepLink(initialUri);
-        });
+        // Cold start: save referral code immediately, do NOT navigate.
+        // SplashScreen → checkAuthStatus() will check for pending referral
+        // and route to CreateAccountView if the user is not logged in.
+        _saveReferralFromUri(initialUri);
       } else {
         debugPrint('No initial deep link found at launch');
       }
@@ -26,6 +27,8 @@ class LinkHandler extends GetxService {
       debugPrint('Error getting initial link: $e');
     }
 
+    // Warm start: app already running / in background (e.g. link tapped in Apple Notes).
+    // Here we must both save AND navigate because checkAuthStatus() already ran.
     _linkSubscription = _appLinks.uriLinkStream.listen((uri) {
       debugPrint('Deep link stream event: $uri');
       handleDeepLink(uri);
@@ -36,8 +39,22 @@ class LinkHandler extends GetxService {
     return this;
   }
 
+  /// Extracts and persists the referral code from a URI without navigating.
+  /// Used on cold start so checkAuthStatus() is the single navigation authority.
+  void _saveReferralFromUri(Uri uri) {
+    final referralCode = ReferralService.extractCodeFromUri(uri);
+    if (referralCode != null) {
+      ReferralService.to.saveReferralCode(referralCode);
+      debugPrint('Referral saved from initial deep link: $referralCode');
+    } else {
+      debugPrint('Initial deep link had no extractable referral code');
+    }
+  }
+
+  /// Handles deep links received while the app is already running (warm start).
+  /// Saves the referral code AND navigates to CreateAccountView if needed.
   void handleDeepLink(Uri uri) {
-    debugPrint('Handling deep link: $uri');
+    debugPrint('Handling deep link (warm): $uri');
 
     // Invite path on any host (ngrok dev or production)
     final isInvitePath = uri.path == '/invite' ||
@@ -97,7 +114,14 @@ class LinkHandler extends GetxService {
       return;
     }
     final auth = Get.find<AuthController>();
-    if (auth.isLoggedIn.value) return;
+    if (auth.isLoggedIn.value) {
+      debugPrint('User already logged in; skipping signup redirect.');
+      return;
+    }
+
+    debugPrint('Navigating to CreateAccountView with referral pre-fill');
+    // Sync the referral code into the text controller before navigating
+    auth.syncReferralCodeFromStorage();
     Future.microtask(() => Get.offAll(() => const CreateAccountView()));
   }
 
