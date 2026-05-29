@@ -206,7 +206,9 @@ class AddNewListingController extends GetxController {
     disciplineController.text = horse.disciplines.join(', ');
 
     if (horse.availableFrom != null && horse.availableFrom!.isNotEmpty) {
-      availableFromController.text = DateUtil.formatDisplayDate(horse.availableFrom);
+      availableFromController.text = DateUtil.formatDisplayDate(
+        horse.availableFrom,
+      );
     }
     activeStatus.value = horse.isActive;
 
@@ -286,13 +288,17 @@ class AddNewListingController extends GetxController {
         final DateFormat formatter = DateFormat('dd MMM yyyy');
 
         if (avail.startDate != null && avail.startDate!.isNotEmpty) {
-          entry.startDateController.text = DateUtil.formatDisplayDate(avail.startDate);
+          entry.startDateController.text = DateUtil.formatDisplayDate(
+            avail.startDate,
+          );
         } else {
           entry.startDateController.text = '';
         }
 
         if (avail.endDate != null && avail.endDate!.isNotEmpty) {
-          entry.endDateController.text = DateUtil.formatDisplayDate(avail.endDate);
+          entry.endDateController.text = DateUtil.formatDisplayDate(
+            avail.endDate,
+          );
         } else {
           entry.endDateController.text = '';
         }
@@ -358,7 +364,9 @@ class AddNewListingController extends GetxController {
       // Enable wakelock to prevent screen from locking during upload
       WakelockPlus.enable();
 
-      debugPrint('🚀 [Publish Listing] Starting publish process (Edit Mode: $isEditMode)');
+      debugPrint(
+        '🚀 [Publish Listing] Starting publish process (Edit Mode: $isEditMode)',
+      );
 
       // Initial loader
       Get.dialog(
@@ -481,14 +489,24 @@ class AddNewListingController extends GetxController {
       List<String> allImages = [...uploadedImages];
       List<String> allVideos = [...uploadedVideos];
 
-      debugPrint('📸 [Publish Listing] Existing Network Images: ${uploadedImages.length}');
-      debugPrint('🎬 [Publish Listing] Existing Network Videos: ${uploadedVideos.length}');
-      debugPrint('📸 [Publish Listing] New Images to upload: ${localImages.length}');
-      debugPrint('🎬 [Publish Listing] New Videos to upload: ${localVideos.length}');
+      debugPrint(
+        '📸 [Publish Listing] Existing Network Images: ${uploadedImages.length}',
+      );
+      debugPrint(
+        '🎬 [Publish Listing] Existing Network Videos: ${uploadedVideos.length}',
+      );
+      debugPrint(
+        '📸 [Publish Listing] New Images to upload: ${localImages.length}',
+      );
+      debugPrint(
+        '🎬 [Publish Listing] New Videos to upload: ${localVideos.length}',
+      );
 
       for (var imageFile in localImages) {
         if (isUploadCancelled.value) {
-          debugPrint('⏹️ [Publish Listing] Upload cancelled before uploading images');
+          debugPrint(
+            '⏹️ [Publish Listing] Upload cancelled before uploading images',
+          );
           return; // Check for cancellation
         }
         final url = await _uploadFile(imageFile);
@@ -512,7 +530,9 @@ class AddNewListingController extends GetxController {
 
       for (var videoFile in localVideos) {
         if (isUploadCancelled.value) {
-          debugPrint('⏹️ [Publish Listing] Upload cancelled before uploading videos');
+          debugPrint(
+            '⏹️ [Publish Listing] Upload cancelled before uploading videos',
+          );
           return; // Check for cancellation
         }
         final url = await _uploadFile(videoFile);
@@ -535,7 +555,9 @@ class AddNewListingController extends GetxController {
       }
 
       if (isUploadCancelled.value) {
-        debugPrint('⏹️ [Publish Listing] Upload cancelled before creating listing');
+        debugPrint(
+          '⏹️ [Publish Listing] Upload cancelled before creating listing',
+        );
         return; // Final check before creating listing
       }
 
@@ -590,7 +612,9 @@ class AddNewListingController extends GetxController {
           : AppUrls.horses;
 
       debugPrint('📝 [Publish Listing] Payload: ${jsonEncode(horseData)}');
-      debugPrint('📤 [Publish Listing] Sending ${isEditMode ? "PUT" : "POST"} request to: $targetUrl');
+      debugPrint(
+        '📤 [Publish Listing] Sending ${isEditMode ? "PUT" : "POST"} request to: $targetUrl',
+      );
 
       final response = isEditMode
           ? await _apiService.putRequest(
@@ -599,7 +623,9 @@ class AddNewListingController extends GetxController {
             )
           : await _apiService.postRequest(AppUrls.horses, horseData);
 
-      debugPrint('📥 [Publish Listing] Response Status Code: ${response.statusCode}');
+      debugPrint(
+        '📥 [Publish Listing] Response Status Code: ${response.statusCode}',
+      );
       debugPrint('📥 [Publish Listing] Response Body: ${response.body}');
 
       Get.back(); // Remove loading dialog
@@ -693,7 +719,7 @@ class AddNewListingController extends GetxController {
         '.mpg',
         '.wmv',
         '.flv',
-        '.m4v'
+        '.m4v',
       ];
       final bool isVideo = videoExtensions.contains(extension);
 
@@ -728,7 +754,9 @@ class AddNewListingController extends GetxController {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
-      debugPrint('📂 [Upload File] File: $fileName | Extension: $extension | Content-Type: $contentType | Size: ${file.lengthSync()} bytes');
+      debugPrint(
+        '📂 [Upload File] File: $fileName | Extension: $extension | Content-Type: $contentType | Size: ${file.lengthSync()} bytes',
+      );
 
       // --- FLOW FOR VIDEOS: S3 SIGNED URL ---
       if (isVideo) {
@@ -741,15 +769,23 @@ class AddNewListingController extends GetxController {
         final String signUrlEndpoint =
             "$baseUrl${AppUrls.upload}/sign-url?fileName=$fileName&contentType=$contentType";
 
-        debugPrint('📤 [Upload Video] Getting Signed URL from: $signUrlEndpoint');
+        debugPrint(
+          '📤 [Upload Video] Getting Signed URL from: $signUrlEndpoint',
+        );
 
-        final signResponse = await http.get(
-          Uri.parse(signUrlEndpoint),
-          headers: {if (token != null) 'Authorization': 'Bearer $token'},
-        ).timeout(const Duration(minutes: 30));
+        final signResponse = await http
+            .get(
+              Uri.parse(signUrlEndpoint),
+              headers: {if (token != null) 'Authorization': 'Bearer $token'},
+            )
+            .timeout(const Duration(minutes: 30));
 
-        debugPrint('📥 [Upload Video] Signed URL Response status: ${signResponse.statusCode}');
-        debugPrint('📥 [Upload Video] Signed URL Response body: ${signResponse.body}');
+        debugPrint(
+          '📥 [Upload Video] Signed URL Response status: ${signResponse.statusCode}',
+        );
+        debugPrint(
+          '📥 [Upload Video] Signed URL Response body: ${signResponse.body}',
+        );
 
         if (signResponse.statusCode == 200) {
           final signData = json.decode(signResponse.body);
@@ -779,13 +815,17 @@ class AddNewListingController extends GetxController {
             onSendProgress: (sent, total) {
               if (total > 0) {
                 uploadProgress.value = sent / total;
-                debugPrint('⏳ [Upload Video Progress] ${(uploadProgress.value * 100).toStringAsFixed(1)}% completed');
+                debugPrint(
+                  '⏳ [Upload Video Progress] ${(uploadProgress.value * 100).toStringAsFixed(1)}% completed',
+                );
               }
             },
           );
 
           isUploadingVideo.value = false;
-          debugPrint('📥 [Upload Video S3 PUT] Response status: ${putResponse.statusCode}');
+          debugPrint(
+            '📥 [Upload Video S3 PUT] Response status: ${putResponse.statusCode}',
+          );
 
           if (putResponse.statusCode == 200) {
             debugPrint('✅ Video upload successful! URL: $publicUrl');

@@ -26,20 +26,23 @@ class _SelectRoleViewState extends State<SelectRoleView> {
   final AuthController _authController = Get.find<AuthController>();
   String _selectedRole = 'Trainer';
 
-  final List<Map<String, String>> _roles = [
-    {
-      'title': AppStrings.trainer,
-      'subtitle': AppStrings.trainersAndServiceProviders,
-      'value': AppStrings.trainer,
-      'backendValue': 'trainer',
-    },
-/*    {
-      'title': AppStrings.serviceProvider,
-      'subtitle': AppStrings.offerServicesAndAcceptBookings,
-      'value': AppStrings.serviceProvider,
-      'backendValue': 'service_provider',
-    },*/
-  ];
+  List<Map<String, String>> get _roles {
+    return [
+      {
+        'title': AppStrings.trainer,
+        'subtitle': AppStrings.trainersAndServiceProviders,
+        'value': AppStrings.trainer,
+        'backendValue': 'trainer',
+      },
+      if (!showComingSoon)
+        {
+          'title': AppStrings.serviceProvider,
+          'subtitle': AppStrings.offerServicesAndAcceptBookings,
+          'value': AppStrings.serviceProvider,
+          'backendValue': 'service_provider',
+        },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
