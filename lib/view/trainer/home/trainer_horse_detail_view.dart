@@ -10,6 +10,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_button.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:video_player/video_player.dart';
@@ -267,11 +268,12 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0), // Hide default app bar
-        child: AppBar(elevation: 0, backgroundColor: Colors.white),
-      ),
+      // appBar: PreferredSize(
+      //   preferredSize: const Size.fromHeight(0), // Hide default app bar
+      //   child: AppBar(elevation: 0, backgroundColor: Colors.white),
+      // ),
       body: SafeArea(
+       top: false ,
         child: horse == null
             ? const Center(child: CircularProgressIndicator())
             : Builder(
@@ -308,128 +310,131 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
   }
 
   Widget _buildPremiumHeader() {
-    return Stack(
-      children: [
-        _buildImageSection(),
-        // Dark gradient overlay for text readability
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 120,
-          child: IgnorePointer(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.8),
-                    Colors.transparent,
-                  ],
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(8),
+        bottomRight: Radius.circular(8),
+      ),
+      child: Stack(
+        children: [
+          _buildImageSection(),
+          // Dark gradient overlay for text readability
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 120,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.8),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        // Header Controls
-        Positioned(
-          top: 16,
-          left: 16,
-          right: 16,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildCircleButton(Icons.arrow_back_ios_new, () => Get.back()),
-              _buildActionMenu(),
-            ],
-          ),
-        ),
-        // Title & Badges Overlay
-        Positioned(
-          bottom: 12,
-          left: 16,
-          right: 16,
-          child: IgnorePointer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Header Controls
+          Positioned(
+            top: 40,
+            left: 16,
+            right: 16,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: CommonText(
-                        '${horse!.listingTitle}',
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: horse!.isActive
-                            ? const Color(0xFFECFDF3)
-                            : const Color(0xFFFEF3F2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: CommonText(
-                        horse!.isActive ? 'Active' : 'Inactive',
-                        fontSize: 9,
-                        fontWeight: FontWeight.bold,
-                        color: horse!.isActive
-                            ? const Color(0xFF027A48)
-                            : const Color(0xFFB42318),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Wrap(
-                    spacing: 5,
-                    runSpacing: 5,
-                    children: horse!.listingTypes
-                        .map(
-                          (type) => _buildOverlayBadge(
-                        type,
-                        const Color(0xFFFDE4E1),
-                        const Color(0xFFE11D48),
-                      ),
-                    )
-                        .toList(),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (horse!.location != null && horse!.location!.isNotEmpty)
+                _buildCircleButton(Icons.arrow_back_ios_new, () => Get.back()),
+                _buildActionMenu(),
+              ],
+            ),
+          ),
+          // Title & Badges Overlay
+          Positioned(
+            bottom: 12,
+            left: 16,
+            right: 16,
+            child: IgnorePointer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
                       Expanded(
                         child: CommonText(
-                          horse!.location!,
-                          fontSize: 11,
+                          '${horse!.listingTitle}',
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
                           color: Colors.white,
-                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: horse!.isActive
+                              ? const Color(0xFFECFDF3)
+                              : const Color(0xFFFEF3F2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: CommonText(
+                          horse!.isActive ? 'Active' : 'Inactive',
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: horse!.isActive
+                              ? const Color(0xFF027A48)
+                              : const Color(0xFFB42318),
                         ),
                       ),
                     ],
                   ),
-              ],
+                  const SizedBox(height: 8),
+                  if (horse!.location != null && horse!.location!.isNotEmpty)
+                    Row(
+                      children: [
+                        SvgPicture.asset("assets/icons/location.svg"),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: CommonText(
+                            horse!.location!,
+                            fontSize: 11,
+                            color: Colors.white,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      children: horse!.listingTypes
+                          .map(
+                            (type) => _buildOverlayBadge(
+                          type,
+                          const Color(0xFFFDE4E1),
+                          const Color(0xFFE11D48),
+                        ),
+                      )
+                          .toList(),
+                    ),
+                  ),
+
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -745,14 +750,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF), // Light blue background
+        color: Color(0xffEBF2FF), // Light blue background
         borderRadius: BorderRadius.circular(16),
       ),
       child: CommonText(
         label,
         fontSize: 11,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF1E40AF), // Dark blue text
+        color: const Color(0xFF000B48), // Dark blue text
       ),
     );
   }
@@ -1004,44 +1009,40 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final int totalItems = allMedia.length;
 
     if (totalItems == 0) {
-      return const CommonImageView(
-        url: null,
-        height: 260,
-        width: double.infinity,
+      return const ClipRRect(
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
+        child: CommonImageView(
+          url: null,
+          height: 260,
+          width: double.infinity,
+        ),
       );
     }
 
-    return Stack(
-      children: [
-        SizedBox(
-          height: 260,
-          child: PageView.builder(
-            controller: _pageController,
-            physics: const BouncingScrollPhysics(),
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: totalItems,
-            itemBuilder: (context, index) {
-              final String url = allMedia[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CommonMediaViewer(
-                        mediaSources: allMedia,
-                        initialIndex: index,
-                      ),
-                    ),
-                  );
-                },
-                child: _isUrlVideo(url)
-                    ? _InlineVideoPlayer(
-                  url: url,
-                  isActive: index == _currentPage,
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        bottomLeft: Radius.circular(12),
+        bottomRight: Radius.circular(12),
+      ),
+      child: Stack(
+        children: [
+          SizedBox(
+            height: 260,
+            child: PageView.builder(
+              controller: _pageController,
+              physics: const BouncingScrollPhysics(),
+              onPageChanged: (index) {
+                setState(() {
+                  _currentPage = index;
+                });
+              },
+              itemCount: totalItems,
+              itemBuilder: (context, index) {
+                final String url = allMedia[index];
+                return GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
@@ -1053,36 +1054,52 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                       ),
                     );
                   },
-                )
-                    : CommonImageView(
-                  url: url,
-                  height: 260,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              );
-            },
-          ),
-        ),
-        if (totalItems > 1)
-          Positioned(
-            bottom: 12,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: CommonText(
-                '${_currentPage + 1} / $totalItems',
-                color: Colors.white,
-                fontSize: AppTextSizes.size12,
-                fontWeight: FontWeight.w600,
-              ),
+                  child: _isUrlVideo(url)
+                      ? _InlineVideoPlayer(
+                    url: url,
+                    isActive: index == _currentPage,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CommonMediaViewer(
+                            mediaSources: allMedia,
+                            initialIndex: index,
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                      : CommonImageView(
+                    url: url,
+                    height: 260,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
             ),
           ),
-      ],
+          if (totalItems > 1)
+            Positioned(
+              bottom: 12,
+              right: 12,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: CommonText(
+                  '${_currentPage + 1} / $totalItems',
+                  color: Colors.white,
+                  fontSize: AppTextSizes.size12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -1136,6 +1153,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               border: Border.all(
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -1299,6 +1323,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               border: Border.all(
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Column(
               children: sortedEntries.map((entry) {
@@ -1399,6 +1430,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               border: Border.all(
                 color: AppColors.border.withValues(alpha: 0.5),
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: shows.isEmpty
                 ? const CommonText(
@@ -1497,6 +1535,13 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
         color: const Color(0xFFFEF3F2),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFFDE4E1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -1549,7 +1594,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           : Obx(() => CommonButton(
         text:
         _isRequested ? 'Your request is submitted' : 'Request a Trial',
-        isLoading: bookingController.isLoading.value,
+        isLoading: bookingController.isSubmitting.value,
         backgroundColor: _isRequested
             ? Colors.grey
             : const Color(0xFF00083B), // Navy blue
@@ -1571,7 +1616,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
             child: CommonButton(
               text: 'Cancel Booking',
               onPressed: () => _showCancelConfirmation(),
-              isLoading: bookingController.isLoading.value && status == 'pending', // or any logic to know which button is loading
+              isLoading: bookingController.isSubmitting.value && status == 'pending', // or any logic to know which button is loading
               backgroundColor: Colors.white,
               textColor: AppColors.textPrimary,
               borderColor: AppColors.border,
@@ -1596,7 +1641,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   );
                 }
               },
-              isLoading: bookingController.isLoading.value && (status == 'accepted' || status == 'confirmed'),
+              isLoading: bookingController.isSubmitting.value && (status == 'accepted' || status == 'confirmed'),
               backgroundColor: Colors.white,
               textColor: Colors.green,
               borderColor: AppColors.border,
@@ -2311,7 +2356,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                         Expanded(
                           child: Obx(
                                 () => GestureDetector(
-                              onTap: bookingController.isLoading.value
+                              onTap: bookingController.isSubmitting.value
                                   ? null
                                   : () async {
 
@@ -2410,7 +2455,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                 }                              },
                               child: CommonButton(
                                 text: 'Submit',
-                                isLoading: bookingController.isLoading.value,
+                                isLoading: bookingController.isSubmitting.value,
                                 height: 56,
                                 borderRadius: 16,
                                 backgroundColor: AppColors.primary,

@@ -264,16 +264,9 @@ class CommonImageView extends StatelessWidget {
           height: height,
           width: width,
           fit: fit,
+          fadeInDuration: const Duration(milliseconds: 3),
           placeholder: (context, url) => Container(
-            color: AppColors.border.withOpacity(0.1),
-            child: const Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  AppColors.textSecondary,
-                ),
-              ),
-            ),
+            color: AppColors.lightGray,
           ),
           errorWidget: (context, url, error) => _buildPlaceholder(),
         ),

@@ -15,6 +15,7 @@ class BookingController extends GetxController {
   // Keep this for backward compatibility and reactive triggers in other views (like Explore/Detail)
   final RxList<BookingModel> bookings = <BookingModel>[].obs;
   final RxBool isLoading = false.obs;
+  final RxBool isSubmitting = false.obs;
 
   /// Received bookings with status pending (for bottom-nav badge across tabs).
   final RxInt pendingReceivedCount = 0.obs;
@@ -127,6 +128,7 @@ class BookingController extends GetxController {
   Future<dynamic> createBooking(Map<String, dynamic> data) async {
     try {
       isLoading.value = true;
+      isSubmitting.value = true;
       final response = await _apiService.postRequest(AppUrls.bookings, data);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -163,12 +165,14 @@ class BookingController extends GetxController {
       return null;
     } finally {
       isLoading.value = false;
+      isSubmitting.value = false;
     }
   }
 
   Future<dynamic> updateBookingStatus(String bookingId, String status) async {
     try {
       isLoading.value = true;
+      isSubmitting.value = true;
       final response = await _apiService.putRequest(
         '${AppUrls.bookings}/$bookingId',
         {'status': status},
@@ -205,6 +209,7 @@ class BookingController extends GetxController {
       return null;
     } finally {
       isLoading.value = false;
+      isSubmitting.value = false;
     }
   }
 }
