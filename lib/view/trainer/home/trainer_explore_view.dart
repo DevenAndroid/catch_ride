@@ -18,6 +18,7 @@ import '../../../models/horse_model.dart';
 import '../../../models/vendor_model.dart';
 import '../../../utils/date_util.dart';
 import '../../../widgets/common_image_view.dart';
+import '../../../widgets/skeleton_loader.dart';
 
 class TrainerExploreView extends StatefulWidget {
   const TrainerExploreView({super.key});
@@ -145,9 +146,12 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                     );
                   }
 
-                  if (controller.isLoading.value &&
-                      controller.horses.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
+                  final bool isEmpty = isVendors ? controller.vendors.isEmpty : controller.horses.isEmpty;
+                  if (controller.isLoading.value && isEmpty) {
+                    return SkeletonLoader(
+                      isGridView: controller.isGridView.value,
+                      itemCount: 12,
+                    );
                   }
 
                   // Reactive trigger for booking status changes
@@ -206,6 +210,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                     child: CustomScrollView(
                       controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
+                      cacheExtent: 1500,
                       slivers: [
                         if (isVendors && !controller.isSearchActive && controller.isGridView.value)
                           SliverPadding(

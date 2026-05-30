@@ -5,7 +5,9 @@ import 'package:catch_ride/view/trainer/settings/trainer_active_horses_view.dart
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../../models/user_model.dart';
 import '../../../utils/url_helper.dart';
@@ -146,9 +148,16 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                         bottom: BorderSide(color: AppColors.borderLight),
                       ),
                       //Border.(color: AppColors.borderLight),
+                      // boxShadow: [
+                      //   BoxShadow(
+                      //     color: Colors.black.withValues(alpha: 0.02),
+                      //     blurRadius: 8,
+                      //     offset: const Offset(0, 2),
+                      //   ),
+                      // ],
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -178,7 +187,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                       children: [
                                         CommonText(
                                           _controller.fullName.isEmpty
-                                              ? 'N/A'
+                                              ? ''
                                               : profile.fullName,
                                           fontSize: 20,
                                           fontWeight: FontWeight.w800,
@@ -188,7 +197,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                         ),
                                         const SizedBox(height: 2),
                                         CommonText(
-                                          profile.barnName ?? 'N/A',
+                                          profile.barnName ?? '',
                                           fontSize: 16,
                                           color: const Color(0xFF475467),
                                           fontWeight: FontWeight.w600,
@@ -202,52 +211,24 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                               padding: const EdgeInsets.only(
                                                 top: 2,
                                               ),
-                                              child: const Icon(
-                                                Icons.location_on,
-                                                size: 16,
-                                                color: Color(0xFFF04438),
-                                              ),
+                                              child: SvgPicture.asset("assets/icons/location.svg"),
                                             ),
                                             const SizedBox(width: 4),
-                                            Flexible(
-                                              child: Wrap(
-                                                crossAxisAlignment:
-                                                    WrapCrossAlignment.center,
+                                            Expanded(
+                                              child: Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
-                                                  Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Expanded(
-                                                        child: CommonText(
-                                                          profile
-                                                                      .location
-                                                                      ?.isEmpty ??
-                                                                  true
-                                                              ? 'N/A'
-                                                              : profile
-                                                                    .location!,
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: const Color(
-                                                            0xFF475467,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      // if (profile.location2?.isNotEmpty ?? false)
-                                                      //   const Padding(
-                                                      //     padding: EdgeInsets.symmetric(horizontal: 6.0),
-                                                      //     child: CommonText("|", color: Color(0xFFD0D5DD)),
-                                                      //   ),
-                                                    ],
-                                                  ),
-                                                  if (profile
-                                                          .location2
-                                                          ?.isNotEmpty ??
-                                                      false)
-                                                    CommonText(
-                                                      profile.location2!,
+                                                  Flexible(
+                                                    child: CommonText(
+
+                                                "${profile.location?.isEmpty ?? true
+                                                    ? ''
+                                                    : profile.location!}"
+                                                      "${profile.location2?.isNotEmpty ?? true
+                                                ? " | ${    profile.location2!}": ""
+                                                }"
+
+                                                      ,
                                                       fontSize: 14,
                                                       fontWeight:
                                                           FontWeight.w500,
@@ -255,6 +236,22 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                         0xFF475467,
                                                       ),
                                                     ),
+                                                  ),
+           /*                                       if (profile
+                                                      .location2
+                                                      ?.isNotEmpty ??
+                                                      false)
+                                                    Flexible(
+                                                      child: CommonText(
+                                                        profile.location2!,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                        FontWeight.w500,
+                                                        color: const Color(
+                                                          0xFF475467,
+                                                        ),
+                                                      ),
+                                                    ),*/
                                                 ],
                                               ),
                                             ),
@@ -623,11 +620,18 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.black.withValues(alpha: 0.03),
+        //     blurRadius: 15,
+        //     offset: const Offset(0, 5),
+        //   ),
+        // ],
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),

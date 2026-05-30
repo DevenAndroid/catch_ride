@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
- bool showComingSoon = false;
+ bool showComingSoon = true;
 
 class AppUrls {
   /// Ngrok HTTPS origin (no trailing slash). From `ngrok http <backend-port>`.

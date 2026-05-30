@@ -2740,7 +2740,7 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                       Expanded(
                         child: Obx(
                           () => GestureDetector(
-                            onTap: bookingController.isLoading.value
+                            onTap: bookingController.isSubmitting.value
                                 ? null
                                 : () async {
                                     if (startDate == null) {
@@ -2827,13 +2827,13 @@ class _BookingRequestViewState extends State<BookingRequestView> {
                             child: Container(
                               height: 56,
                               decoration: BoxDecoration(
-                                color: bookingController.isLoading.value
+                                color: bookingController.isSubmitting.value
                                     ? AppColors.inputBackground
                                     : AppColors.primary,
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Center(
-                                child: bookingController.isLoading.value
+                                child: bookingController.isSubmitting.value
                                     ? const CircularProgressIndicator(
                                         color: Colors.white,
                                       )
