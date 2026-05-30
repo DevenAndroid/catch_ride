@@ -47,6 +47,7 @@ class AddNewListingController extends GetxController {
     'German Sport Horse (DSP)',
     'Zangersheide',
     'Warmblood Cross',
+    'Warmblood',
     'Thoroughbred',
     'Thoroughbred Cross',
     'Anglo European Sport Horse',
