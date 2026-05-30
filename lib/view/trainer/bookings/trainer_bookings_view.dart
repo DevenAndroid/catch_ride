@@ -6,6 +6,7 @@ import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/booking_controller.dart';
+import 'package:catch_ride/widgets/skeleton_loader.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/booking_model.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
@@ -202,7 +203,7 @@ class _TrainerBookingsViewState extends State<TrainerBookingsView>
           Expanded(
             child: Obx(() {
               if (bookingController.isLoading.value) {
-                return const Center(child: CircularProgressIndicator());
+                return const BookingSkeletonLoader();
               }
 
               // Check if BOTH are empty to show the global empty state
