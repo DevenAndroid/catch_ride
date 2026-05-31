@@ -1,4 +1,5 @@
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/view/trainer/home/trainer_horse_detail_view.dart';
@@ -167,7 +168,7 @@ class _HorseListingViewState extends State<HorseListingView> {
               child: Obx(() {
                 if ((horseController.isLoading.value || profileController.isLoading.value) &&
                     horseController.horses.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const HorseListingSkeletonLoader();
                 }
 
                 if (horseController.horses.isEmpty) {

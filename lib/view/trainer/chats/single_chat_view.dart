@@ -5,6 +5,7 @@ import 'package:catch_ride/widgets/chat_bubble.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/controllers/chat_controller.dart';
 import 'package:catch_ride/services/socket_service.dart';
+import 'package:catch_ride/widgets/skeleton_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -266,7 +267,7 @@ class _SingleChatViewState extends State<SingleChatView> {
                     }
                     if (controller.isLoadingMessages.value &&
                         controller.currentMessages.isEmpty) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const ChatSkeletonLoader();
                     }
 
                     if (Get.find<AuthController>().currentUser.value == null) {

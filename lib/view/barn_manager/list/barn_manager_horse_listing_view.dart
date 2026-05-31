@@ -1,4 +1,5 @@
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/widgets/skeleton_loader.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
 
 import 'package:flutter/material.dart';
@@ -105,15 +106,7 @@ class _BarnManagerHorseListingViewState
                 child: Obx(() {
                   if (horseController.isLoading.value &&
                       horseController.horses.isEmpty) {
-                    return CustomScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      slivers: [
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: const Center(child: CircularProgressIndicator()),
-                        ),
-                      ],
-                    );
+                    return const HorseListingSkeletonLoader();
                   }
 
                   if (horseController.horses.isEmpty) {
