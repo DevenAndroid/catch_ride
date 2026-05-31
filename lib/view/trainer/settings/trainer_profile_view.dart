@@ -764,7 +764,6 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
   Widget _buildHorseCard(HorseModel horse) {
     return GestureDetector(
       onTap: () {
-        Get.back();
         Get.to(() => TrainerHorseDetailView(horse: horse));
       },
       child: Container(
