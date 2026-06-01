@@ -694,7 +694,6 @@ class ExploreController extends GetxController {
     }
 
     try {
-      isSuggestionsLoading.value = true;
       final response = await _apiService.getRequest(
         AppUrls.vendorLocationSuggestions,
         query: {'q': query, 'limit': '10'},
@@ -710,8 +709,6 @@ class ExploreController extends GetxController {
       }
     } catch (e) {
       _logger.e('Error searching vendor locations: $e');
-    } finally {
-      isSuggestionsLoading.value = false;
     }
   }
 
@@ -722,7 +719,6 @@ class ExploreController extends GetxController {
     }
 
     try {
-      isSuggestionsLoading.value = true;
       final response = await _apiService.getRequest(
         AppUrls.vendorLocationSuggestions,
         query: {'q': query, 'limit': '10'},
@@ -744,8 +740,6 @@ class ExploreController extends GetxController {
       }
     } catch (e) {
       _logger.e('Error searching vendor venues: $e');
-    } finally {
-      isSuggestionsLoading.value = false;
     }
   }
 
@@ -757,7 +751,6 @@ class ExploreController extends GetxController {
     }
 
     try {
-      isSuggestionsLoading.value = true;
       final response = await _apiService.getRequest(
         AppUrls.horseShows,
         query: {'search': query, 'limit': '10'},
@@ -778,8 +771,6 @@ class ExploreController extends GetxController {
       }
     } catch (e) {
       _logger.e('Error searching show venues: $e');
-    } finally {
-      isSuggestionsLoading.value = false;
     }
   }
 

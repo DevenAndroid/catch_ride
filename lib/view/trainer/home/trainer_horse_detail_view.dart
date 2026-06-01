@@ -12,6 +12,7 @@ import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_button.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
@@ -286,9 +287,15 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildPremiumHeader(),
-                        _buildTrainerSection(),
-                        _buildDescriptionAndTags(),
+                       Container(
+                         color: Colors.white,
+                         child: Column(children: [
+                           _buildPremiumHeader(),
+                           _buildTrainerSection(),
+                           _buildDescriptionAndTags(),
+                         ],),
+                       ),
+                        SizedBox(height: 15,),
                         _buildDetailsSection(),
                         _buildPricingSection(),
                         _buildAvailabilitySection(),
@@ -679,14 +686,14 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                 foregroundColor: Colors.white,
                 padding:  EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children:  [
                   SizedBox(width: 8),
-                  Icon(Icons.chat_bubble_outline, size: 14),
+                  Icon(LucideIcons.messageCircle, size: 13),
                   SizedBox(width: 6),
                   CommonText(
                     'Message',
@@ -740,7 +747,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
               children: allTags.map((tag) => _buildBubbleTag(tag)).toList(),
             ),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 18),
         ],
       ),
     );
@@ -756,7 +763,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
       child: CommonText(
         label,
         fontSize: 11,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
         color: const Color(0xFF000B48), // Dark blue text
       ),
     );
@@ -1018,6 +1025,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
           url: null,
           height: 260,
           width: double.infinity,
+          isUserImage: false,
         ),
       );
     }
@@ -1075,6 +1083,8 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                     height: 260,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    isUserImage: false,
+
                   ),
                 );
               },
