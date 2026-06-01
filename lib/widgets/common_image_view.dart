@@ -313,7 +313,7 @@ class CommonImageView extends StatelessWidget {
           final isCompact = shortestSide != null && shortestSide < 96;
           final icon =
               fallbackIcon ??
-              (isUserImage ? Icons.person_rounded : Icons.pets_rounded);
+              (isUserImage ? Icons.person_rounded : Icons.error_outline);
 
           if (isTiny) {
             return Center(
@@ -346,7 +346,7 @@ class CommonImageView extends StatelessWidget {
                   if (!isCompact) ...[
                     const SizedBox(height: 8),
                     Text(
-                      isUserImage ? 'Profile Not Set' : 'No Photo Available',
+                      isUserImage ? 'Profile Not Set' : '',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 10,

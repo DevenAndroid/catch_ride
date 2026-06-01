@@ -99,12 +99,16 @@ class _CommonMediaViewerState extends State<CommonMediaViewer> {
                             fit: BoxFit.contain,
                             width: double.infinity,
                             height: double.infinity,
+                      isUserImage: false,
+
                           )
                         : CommonImageView(
                             file: source as File,
                             fit: BoxFit.contain,
                             width: double.infinity,
                             height: double.infinity,
+                      isUserImage: false,
+
                           ),
                   ),
                 );

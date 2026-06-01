@@ -1083,10 +1083,10 @@ class _AddNewListingViewState extends State<AddNewListingView> {
                         fontFamily: 'Inter',
                       ),
                       children: [
-                        TextSpan(
-                          text: ' *',
-                          style: TextStyle(color: Color(0xFFD92D20)),
-                        ),
+                        // TextSpan(
+                        //   text: ' *',
+                        //   style: TextStyle(color: Color(0xFFD92D20)),
+                        // ),
                       ],
                     ),
                   ),

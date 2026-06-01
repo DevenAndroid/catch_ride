@@ -97,7 +97,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         if (!didPop) _clearAndBack();
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFFBFBFB),
         body: Obx(() {
           // A barn manager who has the same trainerProfileId is still viewing ANOTHER person's profile.
           final bool isViewingOther =
@@ -195,7 +195,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                           maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(height: 2),
+                                        const SizedBox(height: 3),
                                         CommonText(
                                           profile.barnName ?? '',
                                           fontSize: 16,
@@ -271,12 +271,12 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                   Flexible(
                                                     child: CommonText(
                                                       "${_controller.disciplines.join("\u00A0/\u00A0")}\u00A0Trainer",
-                                                      fontSize: 14,
-                                                      color: const Color(
-                                                        0xFF667085,
-                                                      ),
-                                                      fontWeight:
-                                                          FontWeight.w500,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                        FontWeight.w500,
+                                                        color: const Color(
+                                                          0xFF475467,
+                                                        ),
                                                       maxLines: 1,
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -310,8 +310,11 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                               CommonText(
                                                 '${_controller.yearsExperience} yrs',
                                                 fontSize: 14,
-                                                color: const Color(0xFF667085),
-                                                fontWeight: FontWeight.w500,
+                                                fontWeight:
+                                                FontWeight.w500,
+                                                color: const Color(
+                                                  0xFF475467,
+                                                ),
                                               ),
                                           ],
                                         ),
@@ -333,7 +336,11 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                     CommonText(
                                       profile.bio ?? '',
                                       fontSize: 14,
-                                      color: const Color(0xFF344054),
+                                      fontWeight:
+                                      FontWeight.w500,
+                                      color: const Color(
+                                        0xFF475467,
+                                      ),
                                       height: 1.6,
                                     ),
                                   ],
@@ -620,13 +627,6 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
-        // boxShadow: [
-        //   BoxShadow(
-        //     color: Colors.black.withValues(alpha: 0.03),
-        //     blurRadius: 15,
-        //     offset: const Offset(0, 5),
-        //   ),
-        // ],
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -775,11 +775,12 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
           border: Border.all(
             color: AppColors.borderLight.withValues(alpha: 0.5),
           ),
+
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -811,13 +812,14 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
 
               CommonText(
                 horse.listingTitle ?? '',
-                fontSize: 13,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
                 color: const Color(0xFF667085),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 height: 1.4,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
                   CommonText(
                     "${horse.age}-year, ${horse.breed}",
                     fontSize: 13,
