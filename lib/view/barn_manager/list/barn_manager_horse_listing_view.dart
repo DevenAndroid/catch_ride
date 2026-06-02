@@ -228,7 +228,7 @@ class _BarnManagerHorseListingViewState
                   height: 40,
                   width: 40,
                   shape: BoxShape.circle,
-                  isUserImage: true,
+                  isUserImage: false,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -320,6 +320,7 @@ class _BarnManagerHorseListingViewState
               height: 240,
               width: double.infinity,
               fit: BoxFit.cover,
+              isUserImage: false,
             ),
           ),
 

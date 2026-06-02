@@ -136,6 +136,8 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       controller.addToHistory(dateStr);
     }
 
+    controller.isGridView.value = false;
+
     await controller.fetchHorses(showLoading: false);
     if (mounted) {
       Get.back();
@@ -152,6 +154,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
       _rangeEnd = null;
       _showSuggestions = true;
     });
+    controller.isGridView.value = true;
     controller.fetchHorses(showLoading: false);
     Get.back();
   }

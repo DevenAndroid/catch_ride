@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_constants.dart';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/widgets/common_media_viewer.dart';
+import 'package:flutter_avif/flutter_avif.dart';
 
 class CommonImageView extends StatelessWidget {
   final String? url;
@@ -49,11 +52,16 @@ class CommonImageView extends StatelessWidget {
 
     // If it's an already signed AWS S3 URL from the DB, the signature might be expired.
     // We strip it down to the relative uploads/ path so our backend can issue a fresh redirect.
-    if (url.contains('s3.us-east-1.amazonaws.com') &&
-        url.contains('uploads/')) {
-      final index = url.indexOf('uploads/');
+    // However, we avoid stripping AVIF URLs since redirect handling in AvifImage.network
+    // can be unreliable, preferring the direct signed S3 URL.
+    final String cleanUrl = url.trim();
+    final bool isAvifUrl = cleanUrl.toLowerCase().split('?').first.contains('.avif');
+    if (!isAvifUrl &&
+        cleanUrl.contains('s3.us-east-1.amazonaws.com') &&
+        cleanUrl.contains('uploads/')) {
+      final index = cleanUrl.indexOf('uploads/');
       if (index != -1) {
-        url = url.substring(index).split('?').first;
+        url = cleanUrl.substring(index).split('?').first;
       }
     }
 
@@ -231,6 +239,10 @@ class CommonImageView extends StatelessWidget {
     }
 
     final imageUrl = _getProcessedUrl(url!);
+    final String cleanUrl = url!.trim();
+    final String cleanImageUrl = imageUrl.trim();
+    final bool isAvif = cleanUrl.toLowerCase().split('?').first.contains('.avif') ||
+        cleanImageUrl.toLowerCase().split('?').first.contains('.avif');
 
     return Container(
       height: height,
@@ -259,17 +271,26 @@ class CommonImageView extends StatelessWidget {
                     );
                   }
                 : null),
-        child: CachedNetworkImage(
-          imageUrl: imageUrl,
-          height: height,
-          width: width,
-          fit: fit,
-          fadeInDuration: const Duration(milliseconds: 3),
-          placeholder: (context, url) => Container(
-            color: AppColors.lightGray,
-          ),
-          errorWidget: (context, url, error) => _buildPlaceholder(),
-        ),
+        child: isAvif
+            ? _NetworkAvifImageView(
+                url: imageUrl,
+                height: height,
+                width: width,
+                fit: fit,
+                placeholderBuilder: () => Container(color: AppColors.lightGray),
+                errorBuilder: () => _buildPlaceholder(),
+              )
+            : CachedNetworkImage(
+                imageUrl: imageUrl,
+                height: height,
+                width: width,
+                fit: fit,
+                fadeInDuration: const Duration(milliseconds: 3),
+                placeholder: (context, url) => Container(
+                  color: AppColors.lightGray,
+                ),
+                errorWidget: (context, url, error) => _buildPlaceholder(),
+              ),
       ),
     );
   }
@@ -366,3 +387,150 @@ class CommonImageView extends StatelessWidget {
     );
   }
 }
+
+class _NetworkAvifImageView extends StatefulWidget {
+  final String url;
+  final double? height;
+  final double? width;
+  final BoxFit fit;
+  final Widget Function() placeholderBuilder;
+  final Widget Function() errorBuilder;
+
+  const _NetworkAvifImageView({
+    required this.url,
+    this.height,
+    this.width,
+    this.fit = BoxFit.cover,
+    required this.placeholderBuilder,
+    required this.errorBuilder,
+  });
+
+  @override
+  State<_NetworkAvifImageView> createState() => _NetworkAvifImageViewState();
+}
+
+class _NetworkAvifImageViewState extends State<_NetworkAvifImageView> {
+  static final Map<String, Uint8List> _avifMemoryCache = {};
+
+  Uint8List? _imageBytes;
+  bool _isLoading = true;
+  bool _hasError = false;
+  String? _loadedUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    final String cacheKey = widget.url.split('?').first;
+    if (_avifMemoryCache.containsKey(cacheKey)) {
+      _imageBytes = _avifMemoryCache[cacheKey];
+      _isLoading = false;
+    } else {
+      _loadImage();
+    }
+  }
+
+  @override
+  void didUpdateWidget(_NetworkAvifImageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      final String cacheKey = widget.url.split('?').first;
+      if (_avifMemoryCache.containsKey(cacheKey)) {
+        setState(() {
+          _imageBytes = _avifMemoryCache[cacheKey];
+          _isLoading = false;
+          _hasError = false;
+        });
+      } else {
+        _loadImage();
+      }
+    }
+  }
+
+  Future<void> _loadImage() async {
+    if (!mounted) return;
+    
+    final String targetUrl = widget.url;
+    _loadedUrl = targetUrl;
+    
+    final String cacheKey = targetUrl.split('?').first;
+
+    if (_avifMemoryCache.containsKey(cacheKey)) {
+      setState(() {
+        _imageBytes = _avifMemoryCache[cacheKey];
+        _isLoading = false;
+        _hasError = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _hasError = false;
+      _imageBytes = null;
+    });
+
+    try {
+      final response = await http.get(Uri.parse(targetUrl));
+
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        debugPrint('ℹ️ _NetworkAvifImageView: Downloaded ${bytes.length} bytes successfully.');
+        
+        if (bytes.length > 12) {
+          final signature = bytes.sublist(4, 12);
+          final sigHex = signature.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+          debugPrint('ℹ️ _NetworkAvifImageView: Container signature (hex): $sigHex');
+          if (sigHex == '6674797061766966') {
+            debugPrint('ℹ️ _NetworkAvifImageView: Valid AVIF container signature found.');
+          } else {
+            debugPrint('⚠️ _NetworkAvifImageView: Signature does not match standard AVIF. Check if the image source is a valid AVIF.');
+          }
+        }
+
+        // Cache the bytes
+        _avifMemoryCache[cacheKey] = bytes;
+
+        if (mounted && _loadedUrl == targetUrl) {
+          setState(() {
+            _imageBytes = bytes;
+            _isLoading = false;
+          });
+        }
+      } else {
+        debugPrint('❌ _NetworkAvifImageView: Failed to load image. Status: ${response.statusCode}, URL: $targetUrl');
+        if (mounted && _loadedUrl == targetUrl) {
+          setState(() {
+            _hasError = true;
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ _NetworkAvifImageView: Error fetching URL: $e');
+      if (mounted && _loadedUrl == targetUrl) {
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return widget.placeholderBuilder();
+    }
+    if (_hasError || _imageBytes == null) {
+      return widget.errorBuilder();
+    }
+    return AvifImage.memory(
+      _imageBytes!,
+      height: widget.height,
+      width: widget.width,
+      fit: widget.fit,
+      errorBuilder: (context, error, stackTrace) => widget.errorBuilder(),
+    );
+  }
+}
+

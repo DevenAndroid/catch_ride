@@ -321,7 +321,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                   height: 48,
                   width: 48,
                   shape: BoxShape.circle,
-                  isUserImage: true,
+                  isUserImage: false,
                 ),
 
                 const SizedBox(width: 12),
@@ -464,6 +464,7 @@ class _HorseListingViewState extends State<HorseListingView> {
                   height: 240,
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  isUserImage: false,
                 ),
           /*      Positioned(
                   bottom: 12,
