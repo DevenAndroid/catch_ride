@@ -3,6 +3,7 @@ import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../controllers/profile_controller.dart';
 import '../../trainer/home/trainer_horse_detail_view.dart';
@@ -31,7 +32,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFBFBFB),
       body: Obx(() {
         final profile = _controller.user.value;
 
@@ -54,371 +55,128 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Section
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24),
-                        bottomRight: Radius.circular(24),
-                      ),
-                      child: CommonImageView(
-                        url: _controller.coverImage.isNotEmpty
-                            ? _controller.coverImage
-                            : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                // Header Section Container
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.borderLight),
                     ),
-
-                    // Back Button
-                    Positioned(
-                      top: 50,
-                      left: 16,
-                      child: GestureDetector(
-                        onTap: () => Get.back(),
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.chevron_left,
-                            size: 24,
-                            color: Colors.black,
-                          ),
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-
-                    Positioned(
-                      top: 50,
-                      right: 16,
-                      child: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            Get.to(() => const EditBarnManagerProfileView());
-                          }
-                        },
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        icon: Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.more_vert,
-                            size: 24,
-                            color: Colors.black,
-                          ),
-                        ),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.edit_outlined,
-                                  size: 20,
-                                  color: AppColors.textPrimary,
-                                ),
-                                SizedBox(width: 12),
-                                CommonText(
-                                  'Edit Profile',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Profile Image Overlap
-                    Positioned(
-                      bottom: -65,
-                      left: 16,
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 15,
-                              offset: Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: CommonImageView(
-                          url: _controller.avatar,
-                          height: 110,
-                          width: 110,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // Profile Identity Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    ],
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
-                      Row(
+                      // Column defines layout & height of this header section
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(width: 125),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CommonText(
-                                  _controller.fullName.isEmpty
-                                      ? ''
-                                      : _controller.fullName,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textPrimary,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                CommonText(
-                                  _controller.barnName.isEmpty
-                                      ? ''
-                                      : _controller.barnName,
-                                  fontSize: 14,
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 4),
-                                      child: const Icon(
-                                        Icons.location_on,
-                                        size: 16,
-                                        color: Colors.redAccent,
+                          const SizedBox(height: 180), // Reserve space for cover image
+                          Row(
+                            children: [
+                              const SizedBox(width: 130), // Overlap offset for avatar
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CommonText(
+                                        _controller.fullName.isEmpty
+                                            ? ''
+                                            : _controller.fullName,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFF101828),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child:
+                                      const SizedBox(height: 3),
+                                      if (_controller.barnName.isNotEmpty) ...[
                                         CommonText(
-                                          (() {
-                                            // Priority 1: Linked Trainer Location
-                                            if (profile.linkedTrainer != null) {
-                                              final l1 =
-                                                  profile.linkedTrainer!.location;
-                                              final l2 =
-                                                  profile.linkedTrainer!.location2;
-                                              if (l1 != null &&
-                                                  l1.isNotEmpty &&
-                                                  l2 != null &&
-                                                  l2.isNotEmpty) {
-                                                return "$l1\u00A0|\u00A0$l2";
-                                              }
-                                              if (l1?.isNotEmpty ?? false)
-                                                return l1!;
-                                              if (l2?.isNotEmpty ?? false)
-                                                return l2!;
-                                            }
-
-                                            // Priority 2: Barn Manager's own location
-                                            if (_controller.location.isNotEmpty) {
-                                              if (profile.location2?.isNotEmpty ??
-                                                  false) {
-                                                return "${_controller.location} | ${profile.location2}";
-                                              }
-                                              return _controller.location;
-                                            }
-
-                                            return '';
-                                          })(),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Wrap(
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CommonText(
-                                          'Barn Manager',
-                                          fontSize: 14,
-                                          color: AppColors.textSecondary,
+                                          _controller.barnName,
+                                          fontSize: 16,
+                                          color: const Color(0xFF475467),
                                           fontWeight: FontWeight.w600,
                                         ),
-                                        if (_controller.yearsInIndustry.isNotEmpty)
-                                          const Padding(
-                                            padding: EdgeInsets.symmetric(horizontal: 6.0),
+                                        const SizedBox(height: 2),
+                                      ],
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 2),
+                                            child: SvgPicture.asset("assets/icons/location.svg"),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Flexible(
                                             child: CommonText(
-                                              "·",
-                                              color: AppColors.textSecondary,
-                                              fontWeight: FontWeight.bold,
+                                              (() {
+                                                // Priority 1: Linked Trainer Location
+                                                if (profile.linkedTrainer != null) {
+                                                  final l1 = profile.linkedTrainer!.location;
+                                                  final l2 = profile.linkedTrainer!.location2;
+                                                  if (l1 != null && l1.isNotEmpty && l2 != null && l2.isNotEmpty) {
+                                                    return "$l1\u00A0|\u00A0$l2";
+                                                  }
+                                                  if (l1?.isNotEmpty ?? false) return l1!;
+                                                  if (l2?.isNotEmpty ?? false) return l2!;
+                                                }
+                                                // Priority 2: Barn Manager's own location
+                                                if (_controller.location.isNotEmpty) {
+                                                  if (profile.location2?.isNotEmpty ?? false) {
+                                                    return "${_controller.location} | ${profile.location2}";
+                                                  }
+                                                  return _controller.location;
+                                                }
+                                                return '';
+                                              })(),
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                              color: const Color(0xFF475467),
                                             ),
                                           ),
-                                      ],
-                                    ),
-                                    if (_controller.yearsInIndustry.isNotEmpty)
-                                      CommonText(
-                                        '${_controller.yearsInIndustry} Yrs',
-                                        fontSize: 14,
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
+                                        ],
                                       ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      if (hasBio) ...[
-                        const SizedBox(height: 24),
-                        CommonText(
-                          _controller.bio,
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                        ),
-                      ],
-
-                      const SizedBox(height: 32),
-
-                      // Associate Trainer Section
-                      if (profile.linkedTrainer != null) ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFF00083B,
-                            ), // Dark navy blue from mockup
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const CommonText(
-                                'Associate Trainer',
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(height: 12),
-                              GestureDetector(
-                                onTap: () {
-                                  if (profile.linkedTrainer?.id != null) {
-                                    Get.to(() => TrainerProfileView(
-                                          trainerId: profile.linkedTrainer!.id,
-                                        ));
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      CommonImageView(
-                                        url:
-                                            profile.linkedTrainer!.avatar ?? '',
-                                        height: 75,
-                                        width: 75,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            CommonText(
-                                              profile.linkedTrainer!.fullName,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: const Color(0xFF101828),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            CommonText(
-                                              profile.linkedTrainer!.barnName ??
-                                                  'No Barn Specified',
-                                              fontSize: 15,
-                                              color: const Color(0xFF667085),
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.location_on_outlined,
-                                                  size: 18,
-                                                  color: Color(0xFF2E90FA),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Expanded(
-                                                    child: CommonText(
-                                                      (() {
-                                                        final l1 = profile
-                                                            .linkedTrainer!
-                                                            .location;
-                                                        final l2 = profile
-                                                            .linkedTrainer!
-                                                            .location2;
-                                                        if (l1 != null &&
-                                                            l1.isNotEmpty &&
-                                                            l2 != null &&
-                                                            l2.isNotEmpty) {
-                                                          return "$l1\u00A0|\u00A0$l2";
-                                                        }
-                                                        final String finalLoc =
-                                                            (l1?.isNotEmpty ??
-                                                                    false)
-                                                                ? l1!
-                                                                : (l2?.isNotEmpty ??
-                                                                        false)
-                                                                    ? l2!
-                                                                    : "No Location Specified";
-                                                        return finalLoc;
-                                                      })(),
-                                                    fontSize: 13,
-                                                    color:
-                                                        const Color(0xFF2E90FA),
-                                                    fontWeight: FontWeight.w500,
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                      const SizedBox(height: 4),
+                                      Wrap(
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        children: [
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const CommonText(
+                                                'Barn Manager',
+                                                fontSize: 14,
+                                                color: Color(0xFF475467),
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              if (_controller.yearsInIndustry.isNotEmpty)
+                                                const Padding(
+                                                  padding: EdgeInsets.symmetric(horizontal: 6.0),
+                                                  child: CommonText(
+                                                    "·",
+                                                    color: Color(0xFFD0D5DD),
+                                                    fontWeight: FontWeight.bold,
                                                   ),
                                                 ),
-                                              ],
+                                            ],
+                                          ),
+                                          if (_controller.yearsInIndustry.isNotEmpty)
+                                            CommonText(
+                                              '${_controller.yearsInIndustry} Yrs',
+                                              fontSize: 14,
+                                              color: const Color(0xFF475467),
+                                              fontWeight: FontWeight.w500,
                                             ),
-                                          ],
-                                        ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -426,13 +184,281 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                               ),
                             ],
                           ),
+                          if (hasBio) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 24),
+                                  CommonText(
+                                    _controller.bio,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF475467),
+                                    height: 1.6,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (profile.linkedTrainer != null) ...[
+                             const SizedBox(height: 5),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              margin: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF00083B,
+                                ), // Dark navy blue from mockup
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const CommonText(
+                                    'Associate Trainer',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (profile.linkedTrainer?.id != null) {
+                                        Get.to(() => TrainerProfileView(
+                                          trainerId: profile.linkedTrainer!.id,
+                                        ));
+                                      }
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CommonImageView(
+                                            url:
+                                            profile.linkedTrainer!.avatar ?? '',
+                                            height: 65,
+                                            width: 65,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          const SizedBox(width: 14),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                CommonText(
+                                                  profile.linkedTrainer!.fullName,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: const Color(0xFF101828),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                const SizedBox(height: 2),
+                                                CommonText(
+                                                  profile.linkedTrainer!.barnName ??
+                                                      'No Barn Specified',
+                                                  fontSize: 15,
+                                                  color: const Color(0xFF667085),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      "assets/icons/location.svg",
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: CommonText(
+                                                        (() {
+                                                          final l1 = profile
+                                                              .linkedTrainer!
+                                                              .location;
+                                                          final l2 = profile
+                                                              .linkedTrainer!
+                                                              .location2;
+                                                          if (l1 != null &&
+                                                              l1.isNotEmpty &&
+                                                              l2 != null &&
+                                                              l2.isNotEmpty) {
+                                                            return "$l1\u00A0|\u00A0$l2";
+                                                          }
+                                                          final String finalLoc =
+                                                          (l1?.isNotEmpty ??
+                                                              false)
+                                                              ? l1!
+                                                              : (l2?.isNotEmpty ??
+                                                              false)
+                                                              ? l2!
+                                                              : "No Location Specified";
+                                                          return finalLoc;
+                                                        })(),
+                                                        fontSize: 13,
+                                                        color:
+                                                        const Color(0xFF475467),
+                                                        fontWeight: FontWeight.w500,
+                                                        maxLines: 1,
+                                                        overflow:
+                                                        TextOverflow.ellipsis,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                          ],
+                         // const SizedBox(height: 12),
+                        ],
+                      ),
+
+                      // Cover Image Positioned
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(22),
+                            bottomRight: Radius.circular(22),
+                          ),
+                          child: CommonImageView(
+                            url: _controller.coverImage.isNotEmpty
+                                ? _controller.coverImage
+                                : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                        const SizedBox(height: 32),
-                      ],
+                      ),
+
+                      // Buttons Back/Edit Positioned
+                      Positioned(
+                        top: MediaQuery.of(context).padding.top + 10,
+                        left: 16,
+                        right: 16,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            GestureDetector(
+                              onTap: () => Get.back(),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.chevron_left,
+                                  size: 24,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            PopupMenuButton<String>(
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  Get.to(() => const EditBarnManagerProfileView());
+                                }
+                              },
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.more_vert,
+                                  size: 24,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.edit_outlined,
+                                        size: 20,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                      SizedBox(width: 12),
+                                      CommonText(
+                                        'Edit Profile',
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Profile Avatar Positioned Overlap
+                      Positioned(
+                        top: 165,
+                        left: 16,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 15,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: CommonImageView(
+                            url: _controller.avatar,
+                            height: 90,
+                            width: 90,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Associate Trainer Section
+
 
                       _buildProfessionalInfoCard(),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
 
                       Obx(() {
                         final horses = _controller.trainerHorses;
@@ -453,15 +479,15 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                                 TextButton(
                                   onPressed: () =>
                                       Get.to(() => const ViewAllHorsesView()),
-                                  child: const CommonText(
-                                    'View all',
+                                  child: CommonText(
+                                    'View All (${_controller.trainerHorsesTotal.value})',
                                     color: AppColors.linkBlue,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             ...horses.map((horse) => _buildHorseCard(horse)).toList(),
                           ],
                         );
@@ -497,13 +523,13 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.1),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -560,7 +586,9 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
 
   Widget _buildHorseCard(HorseModel horse) {
     return GestureDetector(
-      onTap: () => Get.to(() => TrainerHorseDetailView(horse: horse)),
+      onTap: () {
+        Get.to(() => TrainerHorseDetailView(horse: horse));
+      },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
@@ -572,9 +600,9 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -584,10 +612,12 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: CommonImageView(
-                url:horse.images.firstOrNull?? horse.photo,
+                url: horse.images.firstOrNull ?? horse.photo,
                 height: 90,
                 width: 90,
                 fit: BoxFit.cover,
+                enableFullScreen: true,
+                isUserImage: false,
               ),
             ),
             const SizedBox(width: 14),
@@ -596,27 +626,27 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CommonText(
-                    horse.listingTitle??horse.name,
+                    horse.name,
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 2),
-                  CommonText(
-                    "${horse.age}-year old ${horse.breed}",
-                    fontSize: 13,
-                    color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
+                    color: const Color(0xFF101828),
                   ),
                   const SizedBox(height: 6),
                   CommonText(
-                    horse.description ?? '',
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
+                    horse.listingTitle ?? '',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF667085),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    height: 1.3,
+                    height: 1.4,
+                  ),
+                  const SizedBox(height: 2),
+                  CommonText(
+                    "${horse.age}-year, ${horse.breed}",
+                    fontSize: 13,
+                    color: const Color(0xFF475467),
+                    fontWeight: FontWeight.w400,
                   ),
                 ],
               ),

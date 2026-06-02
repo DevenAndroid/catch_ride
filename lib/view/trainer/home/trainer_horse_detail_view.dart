@@ -2527,6 +2527,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                   width: 75,
                   height: 110,
                   fit: BoxFit.cover,
+                  isUserImage: false,
                 ),
               ),
               const SizedBox(width: 16),

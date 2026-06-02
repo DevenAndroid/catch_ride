@@ -346,7 +346,7 @@ class CommonImageView extends StatelessWidget {
                   if (!isCompact) ...[
                     const SizedBox(height: 8),
                     Text(
-                      isUserImage ? 'Profile Not Set' : '',
+                      isUserImage ? '' : '',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 10,
