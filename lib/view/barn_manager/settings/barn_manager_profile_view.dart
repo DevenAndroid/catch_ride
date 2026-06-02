@@ -209,9 +209,7 @@ class _BarnManagerProfileViewState extends State<BarnManagerProfileView> {
                               padding: const EdgeInsets.all(12),
                               margin: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFF00083B,
-                                ), // Dark navy blue from mockup
+                                color:   AppColors.primary,
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
