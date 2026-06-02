@@ -700,6 +700,7 @@ class _TrainerExploreViewState extends State<TrainerExploreView> with AutomaticK
                     ? horse.images[0]
                     : horse.photo,
                 fit: BoxFit.cover,
+                isUserImage: false,
               ),
 
               Positioned(

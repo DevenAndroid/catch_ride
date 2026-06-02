@@ -218,7 +218,7 @@ class _TrainerActiveHorsesViewState extends State<TrainerActiveHorsesView> {
                     height: 48,
                     width: 48,
                     shape: BoxShape.circle,
-                    isUserImage: true,
+                    isUserImage: false,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -350,6 +350,7 @@ class _TrainerActiveHorsesViewState extends State<TrainerActiveHorsesView> {
                 height: 250,
                 width: double.infinity,
                 fit: BoxFit.cover,
+                isUserImage: false,
               ),
             ),
 

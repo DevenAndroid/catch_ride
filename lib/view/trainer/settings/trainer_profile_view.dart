@@ -795,6 +795,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                 width: 90,
                 fit: BoxFit.cover,
                 enableFullScreen: true,
+                isUserImage: false,
               ),
             ),
             const SizedBox(width: 14),

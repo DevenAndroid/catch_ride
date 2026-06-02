@@ -260,7 +260,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     height: 48,
                     width: 48,
                     shape: BoxShape.circle,
-                    isUserImage: true,
+                    isUserImage: false,
                   ),
 
                   const SizedBox(width: 12),
@@ -414,6 +414,7 @@ class _ViewAllHorsesViewState extends State<ViewAllHorsesView> {
                     height: 250,
                     width: double.infinity,
                     fit: BoxFit.cover,
+                    isUserImage: false,
                   ),
                 ),
                 /*   Positioned(

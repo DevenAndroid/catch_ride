@@ -46,6 +46,12 @@ class ProfileController extends GetxController {
     viewedUserHorses.clear();
     trainerHorsesTotal.value = 0;
     viewedUserHorsesTotal.value = 0;
+    allProgramTags.clear();
+    allHorseShows.clear();
+    rawHorseShows.clear();
+    allExperienceLevels.clear();
+    tagTypes.clear();
+    selectedTags.clear();
     _logger.i('ProfileController: Data cleared.');
   }
 
@@ -185,6 +191,10 @@ class ProfileController extends GetxController {
         userData.value = data;
         user.value = UserModel.fromJson(data);
         _logger.i('Profile fetched successfully: ${user.value?.email}');
+
+        if (tagTypes.isEmpty) {
+          fetchMetadata();
+        }
 
         // Fetch horses if trainer or barn manager
         if ((user.value?.role == 'trainer' ||

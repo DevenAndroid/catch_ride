@@ -1105,11 +1105,21 @@ class _TrainerCompleteProfileViewState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CommonText(
-          'Phone Number',
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
+        Row(
+          children: const [
+            CommonText(
+              'Phone Number',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+            CommonText(
+              ' *',
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ],
         ),
         const SizedBox(height: 6),
         Container(
