@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
- bool showComingSoon = true;
+ bool showComingSoon = false;
 
 class AppUrls {
   /// Ngrok HTTPS origin (no trailing slash). From `ngrok http <backend-port>`.
@@ -8,12 +8,12 @@ class AppUrls {
   /// `flutter run --dart-define=NGROK_ORIGIN=https://xxxx.ngrok-free.dev`
   static const String devTunnelOrigin = String.fromEnvironment(
     'NGROK_ORIGIN',
-         defaultValue: 'https://fremdly-monogenistic-collette.ngrok-free.dev',
-          // defaultValue: 'http://192.168.1.23:5000',
+    //  defaultValue: 'https://fremdly-monogenistic-collette.ngrok-free.dev',
+         defaultValue: 'http://192.168.1.23:5000',
   );
 
   /// Production vs dev/ngrok — **false** uses [devTunnelOrigin] for API + sockets.
-  static bool isLive = true;
+  static bool isLive = false;
 
 
   /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
