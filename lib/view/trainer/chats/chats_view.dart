@@ -163,8 +163,10 @@ class _TrainerChatsViewState extends State<TrainerChatsView> {
 
             bool belongsToTab = false;
             if (_selectedTab == 0) {
-              belongsToTab = c.otherUser?.role == 'trainer' ||
-                  c.otherUser?.role == 'barn_manager';
+                  //           belongsToTab = c.otherUser?.role == 'trainer' ||
+                  // c.otherUser?.role == 'barn_manager';
+              final role = c.otherUser?.role ?? '';
+              belongsToTab = role != 'service_provider' && role != 'vendor';
             } else {
               belongsToTab = c.otherUser?.role == 'service_provider' ||
                   c.otherUser?.role == 'vendor';
