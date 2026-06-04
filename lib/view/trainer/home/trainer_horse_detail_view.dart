@@ -2002,6 +2002,22 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
     final TextEditingController messageController = TextEditingController();
     final BookingController bookingController = Get.put(BookingController());
 
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final activeUpcomingShows = _allAvailableShows.where((show) {
+      final endDateTime = DateUtil.parse(show.endDate);
+      if (endDateTime != null) {
+        final endDateOnly = DateTime(endDateTime.year, endDateTime.month, endDateTime.day);
+        return endDateOnly.isAtSameMomentAs(today) || endDateOnly.isAfter(today);
+      }
+      final startDateTime = DateUtil.parse(show.startDate);
+      if (startDateTime != null) {
+        final startDateOnly = DateTime(startDateTime.year, startDateTime.month, startDateTime.day);
+        return startDateOnly.isAtSameMomentAs(today) || startDateOnly.isAfter(today);
+      }
+      return true;
+    }).toList();
+
     showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -2113,7 +2129,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                                   ),
                                 ),
                               ),
-                            ..._allAvailableShows.map((show) {
+                            ...activeUpcomingShows.map((show) {
                               final dateRange = DateUtil.formatRange(
                                   show.startDate, show.endDate);
                               final uniqueValue = show.id ?? "${show.cityState}_${show.startDate}";
@@ -2150,7 +2166,7 @@ class _TrainerHorseDetailViewState extends State<TrainerHorseDetailView> {
                           onChanged: (val) {
                             setSheetState(() {
                               selectedLocation = val;
-                              selectedShow = _allAvailableShows.firstWhereOrNull(
+                              selectedShow = activeUpcomingShows.firstWhereOrNull(
                                     (s) => (s.id ?? "${s.cityState}_${s.startDate}") == val,
                               );
 
