@@ -1,3 +1,4 @@
+
 import 'package:catch_ride/constant/app_strings.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/constant/app_text_sizes.dart';
