@@ -82,7 +82,7 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> with Au
   Widget build(BuildContext context) {
     super.build(context);
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       child: Column(
         children: [
           _buildServiceCard(
@@ -170,10 +170,10 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> with Au
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(
@@ -273,7 +273,7 @@ class _FarrierServiceRatesTabState extends State<FarrierServiceRatesTab> with Au
                   ),
                 ),
                 SizedBox(
-                  width: 100,
+                  width: 80,
                   child: TextField(
                     controller: priceCtrl,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),

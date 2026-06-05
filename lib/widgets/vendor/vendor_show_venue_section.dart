@@ -2,6 +2,7 @@ import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/controllers/google_api_controller.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/models/show_venue_location.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -290,7 +291,7 @@ class VendorShowVenuePicker {
                       if (isParsing.value) {
                         return const SizedBox.shrink();
                       }
-                      final search = searchText.value.toLowerCase();
+                      final search = searchText.value.normalizeQuotes().toLowerCase();
                       
                       // In case rawHorseShows finished loading asynchronously after sheet opened
                       if ((_cachedVenues == null || _cachedVenues!.isEmpty) && profileController.rawHorseShows.isNotEmpty && !isParsing.value) {
@@ -304,7 +305,7 @@ class VendorShowVenuePicker {
                         horseShowVenues.addAll(sourceList);
                       } else {
                         for (final entry in sourceList) {
-                          final hay = '${entry.displayLabel} ${entry.location}'.toLowerCase();
+                          final hay = '${entry.displayLabel} ${entry.location}'.normalizeQuotes().toLowerCase();
                           if (hay.contains(search)) {
                             horseShowVenues.add(entry);
                           }

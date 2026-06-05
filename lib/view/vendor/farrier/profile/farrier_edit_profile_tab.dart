@@ -82,7 +82,7 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CommonText(title, fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           child,
         ],
       ),
@@ -249,7 +249,7 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
 
   Widget _buildFarrierCertificationsSection() {
     return _buildCard(
-      title: 'Farrier Certifications',
+      title: 'Relevant Certifications',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -471,7 +471,18 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
                     title: opt,
                     isSelected: isSelected,
                     subTitle: summary,
-                    onTap: () => _showTravelFeeBottomSheet(context, opt),
+                    onTap: () {
+                      if (widget.controller.selectedTravelData.containsKey(opt)) {
+                        widget.controller.selectedTravelData.remove(opt);
+                        widget.controller.selectedTravel.remove(opt);
+                        widget.controller.selectedTravelData.refresh();
+                      } else {
+                        _showTravelFeeBottomSheet(context, opt);
+                      }
+                    },
+                    onEdit: () {
+                      _showTravelFeeBottomSheet(context, opt);
+                    },
                   );
                 }).toList(),
               )),
@@ -1181,7 +1192,13 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
     );
   }
 
-  Widget _buildCheckItem({required String title, required bool isSelected, String? subTitle, required VoidCallback onTap}) {
+  Widget _buildCheckItem({
+    required String title,
+    required bool isSelected,
+    String? subTitle,
+    required VoidCallback onTap,
+    VoidCallback? onEdit,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1225,6 +1242,11 @@ class _FarrierEditProfileTabState extends State<FarrierEditProfileTab> {
                 ],
               ),
             ),
+            if (isSelected) 
+              GestureDetector(
+                onTap: onEdit ?? onTap,
+                child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
+              ),
           ],
         ),
       ),

@@ -112,7 +112,7 @@ class VendorTravelPreferencePayload {
       };
     }
 
-    var feeType = m['feeType']?.toString() ?? 'No travel fee';
+    var feeType = m['feeType']?.toString() ?? m['type']?.toString() ?? 'No travel fee';
     if (feeType == 'Travel fee' || feeType == 'flat') feeType = 'Flat fee';
     if (feeType.toLowerCase() == 'none') feeType = 'No travel fee';
 

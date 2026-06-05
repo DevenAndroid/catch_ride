@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/constant/app_urls.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 import 'package:intl/intl.dart';
 
 import '../../../controllers/explore_controller.dart';
@@ -105,7 +106,7 @@ class _SearchFilterOverlayState extends State<SearchFilterOverlay> {
 
     // If the search text exactly matches the selected location/venue/region,
     // don't send it as a keyword search (only as a location filter)
-    final searchText = _searchController.text.trim();
+    final searchText = _searchController.text.normalizeQuotes().trim();
     if (controller.locationType.value == 'City, State, or Region') {
       controller.location.value = searchText;
       controller.showVenue.value = '';

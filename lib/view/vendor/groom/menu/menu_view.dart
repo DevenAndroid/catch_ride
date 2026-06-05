@@ -24,6 +24,7 @@ import '../../../trainer/settings/refer_new_member_view.dart';
 import '../../../trainer/settings/terms_and_conditions_view.dart';
 import '../../bodywork/create_profile/bodywork_application_view.dart';
 import '../../bodywork/create_profile/bodywork_details_view.dart';
+import '../../farrier/create_profile/farrier_details_view.dart';
 import '../../farrier/profile/add_operations_and_compliance_view.dart';
 import '../../shipping/trip/shipping_trip_view.dart';
 import '../availability/availability_view.dart';
@@ -157,7 +158,7 @@ class MenuView extends StatelessWidget {
                       iconPath: "assets/icons/calendar.svg",
                       'Calendar & Availability',
                       onTap: () => Get.to(() => const AvailabilityView())),
-                if (_hasRole(['farrier']) || _hasRole(['shipping']))
+                if (_hasRole(['shipping']))
                   _buildMenuItem(
                     iconPath: "assets/icons/operations.svg",
                     Icons.fact_check_outlined,
@@ -172,6 +173,7 @@ class MenuView extends StatelessWidget {
                 ],
                 if (_hasRole([
                   'bodywork',
+                  "farrier"
                 ]))
                   _buildMenuItem(
                       iconPath: "assets/icons/insurance.svg",
@@ -305,8 +307,8 @@ class MenuView extends StatelessWidget {
     return GestureDetector(
 
       onTap: () {
-        // Get.to(BodyworkDetailsView());
-        // return;
+          // Get.to(FarrierDetailsView());
+          //  return;
 
         _showLogoutDialog(Get.context!);
       },

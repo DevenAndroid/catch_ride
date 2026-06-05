@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../controllers/booking_controller.dart';
+import '../../../../controllers/chat_controller.dart';
 
 class PastClientsView extends StatefulWidget {
   const PastClientsView({super.key});
@@ -16,11 +17,12 @@ class PastClientsView extends StatefulWidget {
 
 class _PastClientsViewState extends State<PastClientsView> {
   final controller = Get.put(BookingController());
+  final chatController = Get.put(ChatController());
 
   @override
   void initState() {
     super.initState();
-    controller.fetchBookings(type: 'received', time: 'past', status: 'confirmed');
+    controller.fetchBookings(type: 'received', time: 'past');
   }
 
   @override
@@ -41,15 +43,20 @@ class _PastClientsViewState extends State<PastClientsView> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (controller.receivedBookings.isEmpty) {
+        final pastBookings = controller.receivedBookings.where((b) {
+          final status = b.status.toLowerCase();
+          return status == 'completed' || status == 'confirmed' || status == 'accepted';
+        }).toList();
+
+        if (pastBookings.isEmpty) {
           return const Center(child: CommonText('No past clients found', color: AppColors.textSecondary));
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(20),
-          itemCount: controller.receivedBookings.length,
+          itemCount: pastBookings.length,
           itemBuilder: (context, index) {
-            final booking = controller.receivedBookings[index];
+            final booking = pastBookings[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 16),
               child: _buildClientCard(
@@ -58,7 +65,23 @@ class _PastClientsViewState extends State<PastClientsView> {
                 location: booking.location ?? '',
                 date: booking.date,
                 note: booking.notes ?? 'No notes provided',
-                imageUrl: booking.horseImage ?? '',
+                imageUrl: booking.horseImage ?? booking.clientImage ?? booking.trainerImage ?? '',
+                onMessage: () {
+                  if (booking.id != null && booking.clientId != null) {
+                    chatController.openBookingChat(
+                      bookingId: booking.id!,
+                      otherId: booking.clientId!,
+                      otherName: booking.trainerName ?? booking.clientName ?? 'Client',
+                      otherImage: booking.clientImage ?? booking.trainerImage ?? '',
+                    );
+                  } else {
+                    Get.snackbar(
+                      'Chat Unavailable',
+                      'Conversation details are not properly loaded for this booking.',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  }
+                },
               ),
             );
           },
@@ -74,6 +97,7 @@ class _PastClientsViewState extends State<PastClientsView> {
     required String date,
     required String note,
     required String imageUrl,
+    required VoidCallback onMessage,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -121,10 +145,14 @@ class _PastClientsViewState extends State<PastClientsView> {
                     ),
                     const SizedBox(height: 4),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 3.0),
+                          child: const Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
+                        ),
                         const SizedBox(width: 4),
-                        CommonText(location, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                        Expanded(child: CommonText(location, fontSize: AppTextSizes.size12, color: AppColors.textSecondary)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -143,27 +171,25 @@ class _PastClientsViewState extends State<PastClientsView> {
           const SizedBox(height: 16),
           CommonText('Note: $note', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
           const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () {
-              // Navigation to chat or client details
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF8B4444)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF8B4444)),
-                  SizedBox(width: 8),
-                  CommonText('Message', color: Color(0xFF8B4444), fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
-                ],
-              ),
-            ),
-          ),
+          // GestureDetector(
+          //   onTap: onMessage,
+          //   child: Container(
+          //     width: double.infinity,
+          //     padding: const EdgeInsets.symmetric(vertical: 12),
+          //     decoration: BoxDecoration(
+          //       borderRadius: BorderRadius.circular(12),
+          //       border: Border.all(color: const Color(0xFF8B4444)),
+          //     ),
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: const [
+          //         Icon(Icons.chat_bubble_outline, size: 18, color: Color(0xFF8B4444)),
+          //         SizedBox(width: 8),
+          //         CommonText('Message', color: Color(0xFF8B4444), fontSize: AppTextSizes.size16, fontWeight: FontWeight.bold),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

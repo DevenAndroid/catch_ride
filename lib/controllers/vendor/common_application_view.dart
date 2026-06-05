@@ -241,14 +241,14 @@ class CommonApplicationView extends StatelessWidget {
           validator: RequiredValidator(errorText: "Please enter reference $number relationship").call,
         ),
         const SizedBox(height: 16),
-        CommonTextField(
-          label: 'Phone Number',
-          controller: phoneCtrl,
-          hintText: 'Enter phone number',
-          keyboardType: TextInputType.phone,
-          isRequired: true,
-          validator: RequiredValidator(errorText: "Please enter reference $number phone no").call,
-        ),
+        // CommonTextField(
+        //   label: 'Phone Number',
+        //   controller: phoneCtrl,
+        //   hintText: 'Enter phone number',
+        //   keyboardType: TextInputType.phone,
+        //   isRequired: true,
+        //   validator: RequiredValidator(errorText: "Please enter reference $number phone no").call,
+        // ),
       ],
     );
   }

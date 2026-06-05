@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
 import 'package:catch_ride/controllers/auth_controller.dart';
+import 'package:catch_ride/controllers/profile_controller.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/utils/vendor_service_sync.dart';
 import 'package:catch_ride/utils/vendor_service_payload.dart';
@@ -532,6 +533,17 @@ class EditVendorProfileController extends GetxController {
         farrierScopeOptions.assignAll(values);
       }
 
+      final relevantCertifications = types.firstWhereOrNull(
+            (t) => t['name'] == 'Relevant Certifications' || t['name'] == 'Relevant Certifications',
+      );
+      if (relevantCertifications != null) {
+        final values = List<String>.from(
+          relevantCertifications['values'].map((v) => v['name']),
+        );
+        if (!values.contains('Other')) values.add('Other');
+        certificationOptions.assignAll(values);
+      }
+
       for (final t in types) {
         if (t['name'] == 'Disciplines') {
           final values = List<String>.from(t['values'].map((v) => v['name']));
@@ -676,14 +688,7 @@ class EditVendorProfileController extends GetxController {
   // Farrier Tab Specifics
   final RxList farrierServices = [].obs;
   final RxList farrierAddOns = [].obs;
-  final RxList<String> certificationOptions = <String>[
-    'AFA Certified Journeyman Farrier (CJF)',
-    'AFA Certified Farrier (CF)',
-    'AFA Certified Tradesman Farrier (CTF)',
-    'BWFA Masters',
-    'DipWCF (Worshipful Company ...)',
-    'Other',
-  ].obs;
+  final RxList<String> certificationOptions = <String>[].obs;
   final RxList<String> selectedCertifications = <String>[].obs;
   final otherCertificationController = TextEditingController();
 
@@ -1681,7 +1686,8 @@ class EditVendorProfileController extends GetxController {
             clippingTravelFees[region] =
                 VendorTravelPreferencePayload.clippingFeeStructureFromRow(m);
           }
-        } else if (assignedServiceMatchesTab(activeService, 'Bodywork')) {
+        } else if (assignedServiceMatchesTab(activeService, 'Bodywork') ||
+            assignedServiceMatchesTab(activeService, 'Farrier')) {
           final Map<String, Map<String, dynamic>> travelMap = {};
           selectedTravel.clear();
           for (var item in travelPrefRaw) {
@@ -2585,6 +2591,10 @@ class EditVendorProfileController extends GetxController {
 
         if (Get.isRegistered<GroomViewProfileController>()) {
           await Get.find<GroomViewProfileController>().fetchProfile();
+        }
+
+        if (Get.isRegistered<ProfileController>()) {
+          await Get.find<ProfileController>().fetchProfile(showLoading: false);
         }
 
         _applyUploadedMediaToExistingLists(serviceMediaKeys);

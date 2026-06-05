@@ -18,6 +18,8 @@ import 'package:catch_ride/view/vendor/shipping/create_profile/shipping_details_
 import 'package:catch_ride/view/vendor/profile_completed_view.dart';
 import 'package:catch_ride/utils/vendor_travel_preference_payload.dart';
 
+import '../groom/groom_view_profile_controller.dart';
+
 class FarrierDetailsController extends GetxController {
   final formKey = GlobalKey<FormState>();
   final apiService = Get.find<ApiService>();
@@ -249,7 +251,22 @@ class FarrierDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _prefillFromGroomController();
     fetchFarrierData();
+  }
+
+  void _prefillFromGroomController() {
+    if (Get.isRegistered<GroomViewProfileController>()) {
+      final groomCtrl = Get.find<GroomViewProfileController>();
+      if (groomCtrl.vendorData.isNotEmpty) {
+        final servicesData = groomCtrl.vendorData['servicesData'] ?? {};
+        final farrierDataRaw = servicesData['farrier'];
+        final farrierData = farrierDataRaw is Map
+            ? Map<String, dynamic>.from(farrierDataRaw as Map)
+            : null;
+        applyFarrierFromServicesData(farrierData);
+      }
+    }
   }
 
   /// Prefill post-form fields from VendorModel-derived `servicesData.farrier` (GET /vendors/me).
@@ -444,38 +461,58 @@ class FarrierDetailsController extends GetxController {
         );
         if (serviceType != null) {
           final List values = serviceType['values'];
-          farrierServices.assignAll(
-            values
-                .map(
-                  (v) => {
-                    'name': v['name'] as String,
-                    'price': TextEditingController(
-                      text: v['defaultPrice']?.toString() ?? '',
-                    ),
-                    'isSelected': false.obs,
-                  },
-                )
-                .toList(),
-          );
+          final List<Map<String, dynamic>> updatedServices = [];
+          for (var v in values) {
+            final name = v['name'] as String;
+            final existing = farrierServices.firstWhereOrNull((s) => s['name'] == name);
+            if (existing != null) {
+              updatedServices.add(existing);
+            } else {
+              updatedServices.add({
+                'name': name,
+                'price': TextEditingController(
+                  text: v['defaultPrice']?.toString() ?? '',
+                ),
+                'isSelected': false.obs,
+              });
+            }
+          }
+          // Preserve any custom user-added services not present in system tags
+          for (var s in farrierServices) {
+            if (!values.any((v) => v['name'] == s['name'])) {
+              updatedServices.add(s);
+            }
+          }
+          farrierServices.assignAll(updatedServices);
         }
 
         // Populate Add-Ons from "Add-Ons" tag
         final addOnType = types.firstWhereOrNull((t) => t['name'] == 'Add-Ons');
         if (addOnType != null) {
           final List values = addOnType['values'];
-          addOns.assignAll(
-            values
-                .map(
-                  (v) => {
-                    'name': v['name'] as String,
-                    'price': TextEditingController(
-                      text: v['defaultPrice']?.toString() ?? '',
-                    ),
-                    'isSelected': false.obs,
-                  },
-                )
-                .toList(),
-          );
+          final List<Map<String, dynamic>> updatedAddOns = [];
+          for (var v in values) {
+            final name = v['name'] as String;
+            final existing = addOns.firstWhereOrNull((s) => s['name'] == name);
+            if (existing != null) {
+              updatedAddOns.add(existing);
+            } else {
+              updatedAddOns.add({
+                'name': name,
+                'price': TextEditingController(
+                  text: v['defaultPrice']?.toString() ?? '',
+                ),
+                'isSelected': false.obs,
+              });
+            }
+          }
+          // Preserve any custom user-added add-ons not present in system tags
+          for (var s in addOns) {
+            if (!values.any((v) => v['name'] == s['name'])) {
+              updatedAddOns.add(s);
+            }
+          }
+          addOns.assignAll(updatedAddOns);
         }
 
         // Populate Disciplines
@@ -493,13 +530,27 @@ class FarrierDetailsController extends GetxController {
       }
 
       // Use SystemConfigController for regions (single source of truth)
-      // 2. Fetch vendor profile data
       final systemConfig = Get.find<SystemConfigController>();
       if (systemConfig.regions.isEmpty) await systemConfig.fetchRegions();
       regionOptions.assignAll(systemConfig.regionNames);
-      final response = await apiService.getRequest('/vendors/me');
-      if (response.statusCode == 200 && response.body['success'] == true) {
-        final vendor = response.body['data'];
+
+      // Check if GroomViewProfileController has the vendor data
+      Map<String, dynamic>? vendor;
+      if (Get.isRegistered<GroomViewProfileController>()) {
+        final groomCtrl = Get.find<GroomViewProfileController>();
+        if (groomCtrl.vendorData.isNotEmpty) {
+          vendor = groomCtrl.vendorData;
+        }
+      }
+
+      if (vendor == null) {
+        final response = await apiService.getRequest('/vendors/me');
+        if (response.statusCode == 200 && response.body['success'] == true) {
+          vendor = response.body['data'];
+        }
+      }
+
+      if (vendor != null) {
         final servicesData = vendor['servicesData'] ?? {};
         final farrierDataRaw = servicesData['farrier'];
         final farrierData = farrierDataRaw is Map

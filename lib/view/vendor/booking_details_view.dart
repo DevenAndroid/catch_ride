@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
@@ -607,85 +606,7 @@ class BookingDetailsView extends StatelessWidget {
     );
   }
 
-  /// Last inclusive calendar day of the job window (local). Used to gate "Mark as Completed".
-  DateTime? _jobWindowLastCalendarDay(BookingModel booking) {
-    DateTime? dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
-    DateTime? tryParseDynamic(dynamic v) {
-      if (v == null) return null;
-      if (v is DateTime) return dateOnly(v);
-      final s = v.toString().trim();
-      if (s.isEmpty) return null;
-      final iso = DateTime.tryParse(s);
-      if (iso != null) return dateOnly(iso);
-      for (final pattern in ['yyyy-MM-dd', 'dd MMM yyyy', 'dd MMM, yyyy']) {
-        try {
-          return dateOnly(DateFormat(pattern).parse(s));
-        } catch (_) {}
-      }
-      // e.g. "15 Jan" from model (year omitted) — try current and adjacent years
-      if (!RegExp(r'\d{4}').hasMatch(s)) {
-        final y0 = DateTime.now().year;
-        for (final y in [y0, y0 + 1, y0 - 1]) {
-          try {
-            return dateOnly(DateFormat('dd MMM yyyy').parse('$s $y'));
-          } catch (_) {}
-        }
-      }
-      return null;
-    }
-
-    if (booking.vendorBundleLines.isNotEmpty) {
-      DateTime? maxDay;
-      for (final line in booking.vendorBundleLines) {
-        final end = tryParseDynamic(line['endDate']);
-        final start = tryParseDynamic(line['startDate']);
-        final day = end ?? start;
-        if (day != null && (maxDay == null || day.isAfter(maxDay))) {
-          maxDay = day;
-        }
-      }
-      if (maxDay != null) return maxDay;
-    }
-
-    final endStr = booking.endDate?.trim();
-    if (endStr != null && endStr.isNotEmpty) {
-      final parsed = tryParseDynamic(endStr);
-      if (parsed != null) return parsed;
-    }
-
-    final startStr = booking.startDate?.trim();
-    if (startStr != null && startStr.isNotEmpty) {
-      final parsed = tryParseDynamic(startStr);
-      if (parsed != null) return parsed;
-    }
-
-    final display = booking.date.trim();
-    if (display.isNotEmpty && display != 'N/A') {
-      if (display.contains(' - ')) {
-        final parts = display.split(' - ');
-        if (parts.length >= 2) {
-          final right = parts.last.trim();
-          final parsed = tryParseDynamic(right);
-          if (parsed != null) return parsed;
-        }
-      } else {
-        final parsed = tryParseDynamic(display);
-        if (parsed != null) return parsed;
-      }
-    }
-
-    return null;
-  }
-
-  /// "Mark as Completed" is allowed only from the first local calendar day **after** the job window ends.
-  bool _canShowMarkAsCompleted(BookingModel booking) {
-    final lastDay = _jobWindowLastCalendarDay(booking);
-    if (lastDay == null) return false;
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return today.isAfter(lastDay);
-  }
 
   /// Accept / decline / complete actions only for the service provider on this booking.
   bool _viewerIsAssignedVendor(BookingModel booking) {
@@ -761,7 +682,6 @@ class BookingDetailsView extends StatelessWidget {
     }
 
     if (status == 'confirmed' || status == 'accepted') {
-      final showMark = _canShowMarkAsCompleted(booking);
       return Container(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         decoration: BoxDecoration(
@@ -781,22 +701,20 @@ class BookingDetailsView extends StatelessWidget {
                 child: const CommonText('Cancel Booking', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red),
               ),
             ),
-            if (showMark) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _showCompleteConfirmation(controller, booking),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.secondary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: const CommonText('Mark as Completed', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => _showCompleteConfirmation(controller, booking),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
                 ),
+                child: const CommonText('Mark as Completed', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-            ],
+            ),
           ],
         ),
       );
