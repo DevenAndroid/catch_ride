@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
- bool showComingSoon = true;
+ bool showComingSoon = false;
 
 class AppUrls {
   /// Ngrok HTTPS origin (no trailing slash). From `ngrok http <backend-port>`.
@@ -13,8 +13,8 @@ class AppUrls {
   );
 
   /// Production vs dev/ngrok — **false** uses [devTunnelOrigin] for API + sockets.
-  static bool isLive = true;
-  static bool isStaging = true;
+  static bool isLive = false;
+  static bool isStaging = false;
 
 
   /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
