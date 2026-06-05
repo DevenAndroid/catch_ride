@@ -116,6 +116,14 @@ class BodyworkApplicationController extends GetxController {
           horseLevelOptions.assignAll(
               List<String>.from(horseLevelType['values'].map((v) => v['name'])));
         }
+        final modalityOptionsType= types.firstWhereOrNull((t) =>
+        t['name'] == 'Modality Offered' ||
+            t['name'] == 'Modality Offered');
+        if (modalityOptionsType != null) {
+          modalityOptions.assignAll(
+              List<String>.from(modalityOptionsType['values'].map((v) => v['name'])));
+        }
+
 
         // Use Global Regions API
         final systemConfig = Get.find<SystemConfigController>();

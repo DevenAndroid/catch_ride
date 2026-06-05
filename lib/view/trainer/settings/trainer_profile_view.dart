@@ -143,7 +143,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
+                      borderRadius: BorderRadius.circular(18),
                       border: Border(
                         bottom: BorderSide(color: AppColors.borderLight),
                       ),
@@ -209,7 +209,7 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                           children: [
                                             Padding(
                                               padding: const EdgeInsets.only(
-                                                top: 2,
+                                                top: 3,
                                               ),
                                               child: SvgPicture.asset("assets/icons/location.svg"),
                                             ),
@@ -232,6 +232,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                                                       fontSize: 14,
                                                       fontWeight:
                                                           FontWeight.w500,
+                                                      // maxLines: 1,
+                                                      // overflow: TextOverflow.ellipsis,
                                                       color: const Color(
                                                         0xFF475467,
                                                       ),
@@ -412,8 +414,8 @@ class _TrainerProfileViewState extends State<TrainerProfileView> {
                           right: 0,
                           child: ClipRRect(
                             borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(22),
-                              bottomRight: Radius.circular(22),
+                              bottomLeft: Radius.circular(18),
+                              bottomRight: Radius.circular(18),
                             ),
                             child: CommonImageView(
                               url: profile.coverImage,

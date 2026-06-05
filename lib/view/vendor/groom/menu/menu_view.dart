@@ -305,8 +305,8 @@ class MenuView extends StatelessWidget {
     return GestureDetector(
 
       onTap: () {
-        // Get.to(BodyworkDetailsView());
-        // return;
+         // Get.to(BodyworkApplicationView());
+         //  return;
 
         _showLogoutDialog(Get.context!);
       },

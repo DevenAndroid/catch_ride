@@ -97,6 +97,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.availableBy.value = null;
     controller.selectedTags.clear();
 
+    controller.isGridView.value = true;
+
     controller.fetchHorses(showLoading: false);
     Get.back();
   }
@@ -120,6 +122,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     controller.genderFilter.value = selectedGender;
     controller.availableBy.value = selectedAvailableBy;
     controller.selectedTags.assignAll(_localSelectedTags.toList());
+
+    controller.isGridView.value = false;
 
     await controller.fetchHorses(showLoading: false);
 

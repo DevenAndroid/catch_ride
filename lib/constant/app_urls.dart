@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
- bool showComingSoon = false;
+ bool showComingSoon = true;
 
 class AppUrls {
   /// Ngrok HTTPS origin (no trailing slash). From `ngrok http <backend-port>`.
@@ -8,22 +8,26 @@ class AppUrls {
   /// `flutter run --dart-define=NGROK_ORIGIN=https://xxxx.ngrok-free.dev`
   static const String devTunnelOrigin = String.fromEnvironment(
     'NGROK_ORIGIN',
-         defaultValue: 'https://fremdly-monogenistic-collette.ngrok-free.dev',
-          // defaultValue: 'http://192.168.1.23:5000',
+    //  defaultValue: 'https://fremdly-monogenistic-collette.ngrok-free.dev',
+         defaultValue: 'http://192.168.1.23:5000',
   );
 
   /// Production vs dev/ngrok — **false** uses [devTunnelOrigin] for API + sockets.
-  static bool isLive = false;
+  static bool isLive = true;
+  static bool isStaging = true;
 
 
   /// Hostname fragment for replacing `localhost` in legacy URLs (no scheme).
   static String get host {
     if (kIsWeb) return 'localhost';
+    if (isStaging) return 'backend.catchrideapp.com';
+
     if (isLive) return 'api.catchrideapp.com';
     return Uri.parse(devTunnelOrigin).host;
   }
 
   static String get baseUrl {
+    if (isStaging) return 'https://backend.catchrideapp.com/api';
     if (isLive) return 'https://api.catchrideapp.com/api';
 
     // Ngrok terminates TLS on 443 and forwards to your local :5000 — the public URL
@@ -39,6 +43,7 @@ class AppUrls {
   }
 
   static String get socketUrl {
+    if (isStaging) return 'https://backend.catchrideapp.com';
     if (isLive) return 'https://api.catchrideapp.com';
     return devTunnelOrigin;
   }

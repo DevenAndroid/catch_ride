@@ -162,6 +162,7 @@ class ExploreController extends GetxController {
     shippingStallTypes.clear();
 
     isServiceFilterApplied.value = false;
+    isGridView.value = true;
   }
 
   @override

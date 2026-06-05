@@ -26,7 +26,7 @@ class Validations {
   );
 
   static final instagramValidator = PatternValidator(
-    r'^@?([a-zA-Z0-9._]{1,30})$',
-    errorText: 'Please enter a valid Instagram username (e.g. @username)',
+    r'^((https?:\/\/)?(www\.)?instagram\.com\/)?@?[a-zA-Z0-9._]{1,30}\/?(\?.*)?$',
+    errorText: 'Please enter a valid Instagram username or link (e.g. @username or instagram.com/username)',
   );
 }
