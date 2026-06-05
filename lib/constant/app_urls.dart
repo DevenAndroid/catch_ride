@@ -13,7 +13,7 @@ class AppUrls {
   );
 
   /// Production vs dev/ngrok — **false** uses [devTunnelOrigin] for API + sockets.
-  static bool isLive = false;
+  static bool isLive = true;
   static bool isStaging = false;
 
 
