@@ -23,6 +23,7 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
   final controller = Get.put(GroomViewProfileController());
   TabController? _tabController;
   final RxBool isTabReady = false.obs;
+  bool isInitialLoading = true;
 
   @override
   void initState() {
@@ -31,9 +32,23 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
   }
 
   Future<void> _initData() async {
-    await controller.fetchProfile();
-    if (!mounted) return;
-    _syncTabController(controller.allAssignedServices);
+    final hasData = controller.vendorData.isNotEmpty;
+    if (hasData) {
+      isInitialLoading = false;
+      _syncTabController(controller.allAssignedServices);
+    }
+
+    try {
+      await controller.fetchProfile();
+      if (!mounted) return;
+      _syncTabController(controller.allAssignedServices);
+    } finally {
+      if (mounted) {
+        setState(() {
+          isInitialLoading = false;
+        });
+      }
+    }
   }
 
   void _onTabIndexChanged() {
@@ -83,13 +98,13 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
     final type = service['serviceType']?.toString().toLowerCase() ?? '';
     if (type.contains('braid')) {
       return SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: BraidingServiceRatesTab(serviceType: service['serviceType'].toString()),
       );
     }
     if (type.contains('clip')) {
       return SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(14),
         child: ClippingServiceRatesTab(serviceType: service['serviceType'].toString()),
       );
     }
@@ -121,59 +136,59 @@ class _ServicesRatesViewState extends State<ServicesRatesView> with TickerProvid
         ),
         title: const CommonText('Services & Rates', fontSize: AppTextSizes.size18, fontWeight: FontWeight.bold),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(controller.allAssignedServices.length <= 1 ? 0 : 48),
-          child: Obx(() {
-            if (!isTabReady.value || controller.allAssignedServices.length <= 1) {
-              return const SizedBox.shrink();
-            }
-            final tabCtrl = _tabController;
-            if (tabCtrl == null) return const SizedBox.shrink();
-            return TabBar(
-              controller: tabCtrl,
-              labelColor: AppColors.primary,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: AppColors.primary,
-              tabs: controller.allAssignedServices
-                  .map((s) => Tab(text: s['serviceType'].toString().capitalizeFirst))
-                  .toList(),
-            );
-          }),
+          preferredSize: Size.fromHeight(isInitialLoading || controller.allAssignedServices.length <= 1 ? 0 : 48),
+          child: isInitialLoading
+              ? const SizedBox.shrink()
+              : Obx(() {
+                  if (!isTabReady.value || controller.allAssignedServices.length <= 1) {
+                    return const SizedBox.shrink();
+                  }
+                  final tabCtrl = _tabController;
+                  if (tabCtrl == null) return const SizedBox.shrink();
+                  return TabBar(
+                    controller: tabCtrl,
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: AppColors.primary,
+                    tabs: controller.allAssignedServices
+                        .map((s) => Tab(text: s['serviceType'].toString().capitalizeFirst))
+                        .toList(),
+                  );
+                }),
         ),
       ),
-      body: Obx(() {
-        if (controller.isLoading.value && controller.vendorData.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: isInitialLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Obx(() {
+              final assigned = controller.allAssignedServices;
+              if (assigned.isEmpty) {
+                return const Center(child: CommonText('No services assigned'));
+              }
 
-        final assigned = controller.allAssignedServices;
-        if (assigned.isEmpty) {
-          return const Center(child: CommonText('No services assigned'));
-        }
+              // One service: render directly (no TabController).
+              if (assigned.length == 1) {
+                final row = assigned.first;
+                if (row is Map<String, dynamic>) {
+                  return _buildServiceTab(row);
+                }
+                return _buildServiceTab(Map<String, dynamic>.from(row as Map));
+              }
 
-        // One service: render directly (no TabController).
-        if (assigned.length == 1) {
-          final row = assigned.first;
-          if (row is Map<String, dynamic>) {
-            return _buildServiceTab(row);
-          }
-          return _buildServiceTab(Map<String, dynamic>.from(row as Map));
-        }
+              // Multiple services: wait until TabController exists.
+              if (!isTabReady.value || _tabController == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-        // Multiple services: wait until TabController exists.
-        if (!isTabReady.value || _tabController == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return TabBarView(
-          controller: _tabController,
-          children: assigned.map((s) {
-            final map = s is Map<String, dynamic>
-                ? s
-                : Map<String, dynamic>.from(s as Map);
-            return _buildServiceTab(map);
-          }).toList(),
-        );
-      }),
+              return TabBarView(
+                controller: _tabController,
+                children: assigned.map((s) {
+                  final map = s is Map<String, dynamic>
+                      ? s
+                      : Map<String, dynamic>.from(s as Map);
+                  return _buildServiceTab(map);
+                }).toList(),
+              );
+            }),
     );
   }
 }

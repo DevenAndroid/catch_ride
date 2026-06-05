@@ -13,4 +13,23 @@ class StringUtils {
       return word[0].toUpperCase() + word.substring(1).toLowerCase();
     }).join(' ');
   }
+
+  /// Normalizes smart quotes/curly apostrophes to standard ones for robust searching.
+  static String normalizeQuotes(String text) {
+    return text
+        .replaceAll('’', "'")
+        .replaceAll('‘', "'")
+        .replaceAll('“', '"')
+        .replaceAll('”', '"');
+  }
+}
+
+extension StringNormalizeExtension on String {
+  String normalizeQuotes() {
+    return this
+        .replaceAll('’', "'")
+        .replaceAll('‘', "'")
+        .replaceAll('“', '"')
+        .replaceAll('”', '"');
+  }
 }

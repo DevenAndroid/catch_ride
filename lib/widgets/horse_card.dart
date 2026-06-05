@@ -1,6 +1,7 @@
 import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/widgets/common_text.dart';
 import 'package:catch_ride/utils/date_util.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -32,11 +33,11 @@ class HorseCard extends StatelessWidget {
     final availabilityRows = horse.displayAvailability;
 
     if (controller.locationType.value == "Show Venue") {
-      final searchedVenue = controller.showVenue.value.trim().toLowerCase();
+      final searchedVenue = controller.showVenue.value.normalizeQuotes().trim().toLowerCase();
 
       if ( availabilityRows.isNotEmpty) {
         final show = availabilityRows.firstWhereOrNull(
-          (s) => s.showVenue.trim().toLowerCase().contains(searchedVenue),
+          (s) => s.showVenue.normalizeQuotes().trim().toLowerCase().contains(searchedVenue),
         );
 
         if (show != null) {

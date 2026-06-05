@@ -1,5 +1,6 @@
 import 'package:catch_ride/constant/app_colors.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 import 'package:flutter/material.dart';
 
 class CommonSuggestionField extends StatefulWidget {
@@ -108,8 +109,9 @@ class _CommonSuggestionFieldState extends State<CommonSuggestionField> {
                       .where((element) =>
                           element['name']
                               ?.toString()
+                              .normalizeQuotes()
                               .toLowerCase()
-                              .contains(value.text.toLowerCase()) ??
+                              .contains(value.text.normalizeQuotes().toLowerCase()) ??
                           false)
                       .toList();
 
