@@ -37,18 +37,24 @@ class FarrierServiceAndRatesView extends StatefulWidget {
   });
 
   @override
-  State<FarrierServiceAndRatesView> createState() => _FarrierServiceAndRatesViewState();
+  State<FarrierServiceAndRatesView> createState() =>
+      _FarrierServiceAndRatesViewState();
 }
 
-class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView> {
+class _FarrierServiceAndRatesViewState
+    extends State<FarrierServiceAndRatesView> {
   final _showMoreDetails = false.obs;
 
   @override
   Widget build(BuildContext context) {
-    final List services = widget.services ?? widget.farrierData['services'] ?? [];
+    final List services =
+        widget.services ?? widget.farrierData['services'] ?? [];
     final List addOns = widget.addOns ?? widget.farrierData['addOns'] ?? [];
     final profileData = widget.farrierData['profileData'] ?? widget.farrierData;
-    final List highlights = widget.farrierData['experienceHighlights'] ?? profileData['experienceHighlights'] ?? [];
+    final List highlights =
+        widget.farrierData['experienceHighlights'] ??
+        profileData['experienceHighlights'] ??
+        [];
 
     return Container(
       width: double.infinity,
@@ -82,28 +88,50 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               const Center(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
-                  child: CommonText('No farrier services configured', fontSize: AppTextSizes.size14, color: AppColors.textSecondary),
+                  child: CommonText(
+                    'No farrier services configured',
+                    fontSize: AppTextSizes.size14,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               )
             else ...[
               ...services.map((s) {
                 final String price = s['price']?.toString() ?? '0';
-                final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                return _buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? ''), '\$ $formattedPrice');
+                final formattedPrice = NumberFormat(
+                  '#,###',
+                ).format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+                return _buildPricedItem(
+                  StringUtils.capitalizeServiceWords(s['name'] ?? ''),
+                  '\$ $formattedPrice',
+                );
               }),
               if (addOns.isNotEmpty) ...[
                 const SizedBox(height: 20),
-                const CommonText('Add-ons', fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold),
+                const CommonText(
+                  'Add-ons',
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.bold,
+                ),
                 const SizedBox(height: 16),
                 ...addOns.map((s) {
                   final String price = s['price']?.toString() ?? '0';
-                  final formattedPrice = NumberFormat('#,###').format(double.tryParse(price.replaceAll(',', '')) ?? 0);
-                  return _buildPricedItem(StringUtils.capitalizeServiceWords(s['name'] ?? ''), '\$ $formattedPrice');
+                  final formattedPrice = NumberFormat(
+                    '#,###',
+                  ).format(double.tryParse(price.replaceAll(',', '')) ?? 0);
+                  return _buildPricedItem(
+                    StringUtils.capitalizeServiceWords(s['name'] ?? ''),
+                    '\$ $formattedPrice',
+                  );
                 }),
               ],
             ],
 
-            const Divider(height: 32, thickness: 1, color: AppColors.dividerColor),
+            const Divider(
+              height: 32,
+              thickness: 1,
+              color: AppColors.dividerColor,
+            ),
 
             // ── Location & Experience ──────────────────────────────────────
             _buildTwoColumnDetails(
@@ -113,36 +141,53 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               widget.experience ?? '',
             ),
 
-
-
             if (showMore) ...[
               const SizedBox(height: 20),
-              if ((widget.disciplines?.isNotEmpty ?? false) || (widget.horseLevels?.isNotEmpty ?? false))
+              if ((widget.disciplines?.isNotEmpty ?? false) ||
+                  (widget.horseLevels?.isNotEmpty ?? false))
                 _buildTwoColumnDetails(
-                  'Disciplines', widget.disciplines?.join(', ') ?? '',
-                  'Typical Level of Horses', widget.horseLevels?.join(', ') ?? '',
+                  'Disciplines',
+                  widget.disciplines?.join(', ') ?? '',
+                  'Typical Level of Horses',
+                  widget.horseLevels?.join(', ') ?? '',
                 ),
               if (widget.scopeOfWork?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
-                _buildDetailItem('Scope of Work', widget.scopeOfWork!.join(', ')),
+                _buildDetailItem(
+                  'Scope of Work',
+                  widget.scopeOfWork!.join(', '),
+                ),
               ],
               if (widget.travelPreferences?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
-                const CommonText('Travel Preferences', fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+                const CommonText(
+                  'Travel Preferences',
+                  fontSize: AppTextSizes.size12,
+                  color: AppColors.textSecondary,
+                ),
                 const SizedBox(height: 8),
-                ...widget.travelPreferences!.map((pref) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                
-                      Expanded(child: CommonText(pref, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                    ],
+                ...widget.travelPreferences!.map(
+                  (pref) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CommonText(
+                            pref,
+                            fontSize: AppTextSizes.size14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                )),
+                ),
                 const Divider(height: 24, color: AppColors.dividerColor),
               ],
-              
-              if (widget.farrierData['newClientPolicy'] != null || widget.farrierData['minHorses'] != null) ...[
+
+              if (widget.farrierData['newClientPolicy'] != null ||
+                  widget.farrierData['minHorses'] != null) ...[
                 _buildTwoColumnDetails(
                   'Client Policy',
                   widget.farrierData['newClientPolicy']?.toString() ?? '',
@@ -154,12 +199,17 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               if (widget.farrierData['emergencySupport'] != null) ...[
                 _buildDetailItem(
                   'Emergency Support',
-                  widget.farrierData['emergencySupport'] == true ? 'Available' : 'Not Available',
+                  widget.farrierData['emergencySupport'] == true
+                      ? 'Available'
+                      : 'Not Available',
                 ),
               ],
               if (widget.additionalSkills?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
-                _buildDetailItem('Additional Skills', widget.additionalSkills!.join(', ')),
+                _buildDetailItem(
+                  'Additional Skills',
+                  widget.additionalSkills!.join(', '),
+                ),
               ],
               if (widget.regionsCovered?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
@@ -167,7 +217,10 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               ],
               if (highlights.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _buildDetailItem('Experience Highlights', highlights.join(', ')),
+                _buildDetailItem(
+                  'Experience Highlights',
+                  highlights.join(', '),
+                ),
               ],
               if (widget.noteForTrainer?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
@@ -176,13 +229,23 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => _showMoreDetails.value = false,
-                child: const CommonText('View less', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                child: const CommonText(
+                  'View less',
+                  color: AppColors.linkBlue,
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ] else ...[
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () => _showMoreDetails.value = true,
-                child: const CommonText('View More', color: AppColors.linkBlue, fontSize: AppTextSizes.size14, fontWeight: FontWeight.w600),
+                child: const CommonText(
+                  'View More',
+                  color: AppColors.linkBlue,
+                  fontSize: AppTextSizes.size14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ],
@@ -196,24 +259,49 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline, size: 20, color: AppColors.textSecondary),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 20,
+            color: AppColors.textSecondary,
+          ),
           const SizedBox(width: 8),
-          Expanded(child: CommonText(name, fontSize: AppTextSizes.size16, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-          CommonText(price, fontSize: AppTextSizes.size14, color: AppColors.secondary, fontWeight: FontWeight.bold),
+          Expanded(
+            child: CommonText(
+              name,
+              fontSize: AppTextSizes.size16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          CommonText(
+            price,
+            fontSize: AppTextSizes.size14,
+            color: AppColors.secondary,
+            fontWeight: FontWeight.bold,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTwoColumnDetails(String label1, String value1, String label2, String value2) {
+  Widget _buildTwoColumnDetails(
+    String label1,
+    String value1,
+    String label2,
+    String value2,
+  ) {
     return Column(
       children: [
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _buildDetailItem(label1, value1, showDivider: false)),
+            Expanded(
+              child: _buildDetailItem(label1, value1, showDivider: false),
+            ),
             const SizedBox(width: 20),
-            Expanded(child: _buildDetailItem(label2, value2, showDivider: false)),
+            Expanded(
+              child: _buildDetailItem(label2, value2, showDivider: false),
+            ),
           ],
         ),
         const Divider(height: 24, color: AppColors.dividerColor),
@@ -226,46 +314,75 @@ class _FarrierServiceAndRatesViewState extends State<FarrierServiceAndRatesView>
     final List<String> flatRegions = [];
     for (final r in regions) {
       if (r == null) continue;
-      flatRegions.addAll(r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty));
+      flatRegions.addAll(
+        r.toString().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty),
+      );
     }
     if (flatRegions.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        CommonText(
+          label,
+          fontSize: AppTextSizes.size12,
+          color: AppColors.textSecondary,
+        ),
         const SizedBox(height: 6),
-        ...flatRegions.map((r) => Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.only(top: 5),
-                child: Icon(Icons.location_on_outlined, size: 14, color: AppColors.textSecondary),
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: CommonText(r, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-              ),
-            ],
+        ...flatRegions.map(
+          (r) => Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 5),
+                  child: Icon(
+                    Icons.location_on_outlined,
+                    size: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: CommonText(
+                    r,
+                    fontSize: AppTextSizes.size14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        )),
+        ),
         const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
 
-  Widget _buildDetailItem(String label, String value, {bool showDivider = true}) {
+  Widget _buildDetailItem(
+    String label,
+    String value, {
+    bool showDivider = true,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonText(label, fontSize: AppTextSizes.size12, color: AppColors.textSecondary),
+        CommonText(
+          label,
+          fontSize: AppTextSizes.size12,
+          color: AppColors.textSecondary,
+        ),
         const SizedBox(height: 6),
-        CommonText(value, fontSize: AppTextSizes.size14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        if (showDivider) const Divider(height: 24, color: AppColors.dividerColor),
+        CommonText(
+          value,
+          fontSize: AppTextSizes.size14,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        if (showDivider)
+          const Divider(height: 24, color: AppColors.dividerColor),
       ],
     );
   }
-
-  }
-
+}

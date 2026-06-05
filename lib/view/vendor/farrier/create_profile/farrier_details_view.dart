@@ -55,7 +55,7 @@ class FarrierDetailsView extends StatelessWidget {
             },
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -127,7 +127,7 @@ class FarrierDetailsView extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Obx(() => Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12).copyWith(left: 0),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -145,7 +145,7 @@ class FarrierDetailsView extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 2),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,8 +161,9 @@ class FarrierDetailsView extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 2),
                     SizedBox(
-                      width: 100,
+                      width: 80,
                       child: TextField(
                         controller: service['price'] as TextEditingController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -257,6 +258,9 @@ class FarrierDetailsView extends StatelessWidget {
                   _showTravelPreferenceBottomSheet(opt);
                 }
               },
+              onEdit: () {
+                _showTravelPreferenceBottomSheet(opt);
+              },
             );
           }).toList(),
         )),
@@ -264,7 +268,13 @@ class FarrierDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildCheckItem({required String title, String? subTitle, required bool isSelected, required VoidCallback onTap}) {
+  Widget _buildCheckItem({
+    required String title,
+    String? subTitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+    VoidCallback? onEdit,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -291,7 +301,7 @@ class FarrierDetailsView extends StatelessWidget {
             ),
             if (isSelected) 
               GestureDetector(
-                onTap: onTap, // Opening sheet again
+                onTap: onEdit ?? onTap,
                 child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
               ),
           ],
@@ -727,10 +737,10 @@ class FarrierDetailsView extends StatelessWidget {
   Widget _buildSectionContainer({required String title, String? description, required List<Widget> children}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 4)),

@@ -4,6 +4,7 @@ import 'package:catch_ride/constant/app_text_sizes.dart';
 import 'package:catch_ride/controllers/bookings/send_booking_request_controller.dart';
 import 'package:catch_ride/widgets/common_image_view.dart';
 import 'package:catch_ride/widgets/common_text.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
@@ -1871,7 +1872,7 @@ class _LocationSearchFieldState extends State<LocationSearchField> {
           
           final suggestions = googleController.googleSuggestions;
           final available = widget.bookingRequestController.availableLocations.where((l) =>
-            l.toLowerCase().contains(textController.text.toLowerCase())).toList();
+            l.normalizeQuotes().toLowerCase().contains(textController.text.normalizeQuotes().toLowerCase())).toList();
 
           if (suggestions.isEmpty && available.isEmpty) return const SizedBox.shrink();
 

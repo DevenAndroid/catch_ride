@@ -3,6 +3,7 @@ import 'package:catch_ride/models/horse_model.dart';
 import 'package:catch_ride/models/vendor_model.dart';
 import 'package:catch_ride/services/api_service.dart';
 import 'package:catch_ride/controllers/profile_controller.dart';
+import 'package:catch_ride/utils/string_utils.dart';
 import 'package:get/get.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
@@ -611,7 +612,8 @@ class ExploreController extends GetxController {
     }
   }
 
-  Future<void> searchLocations(String query) async {
+  Future<void> searchLocations(String rawQuery) async {
+    final query = rawQuery.normalizeQuotes();
     if (selectedDiscipline.value == 'Services') {
       return searchVendorLocations(query);
     }
@@ -688,7 +690,8 @@ class ExploreController extends GetxController {
     }
   }
 
-  Future<void> searchVendorLocations(String query) async {
+  Future<void> searchVendorLocations(String rawQuery) async {
+    final query = rawQuery.normalizeQuotes();
     if (query.isEmpty) {
       locationsSuggestions.clear();
       return;
@@ -713,7 +716,8 @@ class ExploreController extends GetxController {
     }
   }
 
-  Future<void> searchVendorVenues(String query) async {
+  Future<void> searchVendorVenues(String rawQuery) async {
+    final query = rawQuery.normalizeQuotes();
     if (query.isEmpty) {
       venuesSuggestions.clear();
       return;
@@ -745,7 +749,8 @@ class ExploreController extends GetxController {
   }
 
   /// Show Venue tab search — GET /horse-shows only (not vendor location-suggestions).
-  Future<void> searchVenues(String query) async {
+  Future<void> searchVenues(String rawQuery) async {
+    final query = rawQuery.normalizeQuotes();
     if (query.isEmpty) {
       venuesSuggestions.clear();
       return;

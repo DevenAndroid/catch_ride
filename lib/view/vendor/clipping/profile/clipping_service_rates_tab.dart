@@ -129,10 +129,10 @@ class _ClippingServiceRatesTabState extends State<ClippingServiceRatesTab> with 
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderLight),
         boxShadow: [
           BoxShadow(

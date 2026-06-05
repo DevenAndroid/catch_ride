@@ -224,7 +224,21 @@ class GroomViewProfileController extends GetxController {
     fetchProfile();
   }
 
+  Future<void>? _fetchProfileFuture;
+
   Future<void> fetchProfile() async {
+    if (_fetchProfileFuture != null) {
+      return _fetchProfileFuture;
+    }
+    _fetchProfileFuture = _fetchProfileImpl();
+    try {
+      await _fetchProfileFuture;
+    } finally {
+      _fetchProfileFuture = null;
+    }
+  }
+
+  Future<void> _fetchProfileImpl() async {
     try {
       isLoading.value = true;
       final response = await _apiService.getRequest('/vendors/me');
