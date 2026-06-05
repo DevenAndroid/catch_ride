@@ -145,7 +145,7 @@ class VendorShowVenuePicker {
         ? Get.find<GoogleApiController>()
         : Get.put(GoogleApiController());
 
-    final searchController = TextEditingController(text: "Bruce’s");
+    final searchController = TextEditingController();
     final searchText = ''.obs;
     final RxBool isParsing = false.obs;
 
